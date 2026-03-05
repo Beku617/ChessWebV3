@@ -13,6 +13,8 @@ import adminFeaturedEventsRoutes from "./adminFeaturedEvents.js";
 import lichessRoutes from "./lichess.js";
 import friendsRoutes from "./friends.js";
 import ratingsRoutes from "./ratings.js";
+import tournamentRoutes from "./tournamentRoutes.js";
+import messagesRoutes from "./messages.js";
 // streamers route included inside lichessRoutes
 
 export {
@@ -31,4 +33,6 @@ export {
   lichessRoutes,
   friendsRoutes,
   ratingsRoutes,
+  tournamentRoutes,
+  messagesRoutes,
 };

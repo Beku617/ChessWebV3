@@ -244,6 +244,11 @@ export default function Friends() {
                       <button
                         className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-teal-500/10 text-teal-600 dark:text-teal-300 hover:bg-teal-500/20 transition-colors flex items-center gap-1.5"
                         title="Message"
+                        onClick={() =>
+                          navigate(
+                            `/messages?chat=${encodeURIComponent(friend.id)}&name=${encodeURIComponent(friend.name)}`,
+                          )
+                        }
                       >
                         <MessageCircle className="w-4 h-4" />
                         Message

@@ -9,6 +9,8 @@ interface GameOverModalProps {
   onNewGame: () => void;
   savedGameId: string | null;
   analyzeBasePath?: string;
+  tournamentMode?: boolean;
+  onBackToTournament?: () => void;
 }
 
 export function GameOverModal({
@@ -18,6 +20,8 @@ export function GameOverModal({
   onNewGame,
   savedGameId,
   analyzeBasePath = "/analyze",
+  tournamentMode = false,
+  onBackToTournament,
 }: GameOverModalProps) {
   const navigate = useNavigate();
 
@@ -52,20 +56,32 @@ export function GameOverModal({
             <BarChart2 size={18} />
             {savedGameId ? "Analyze Game" : "Saving..."}
           </button>
-          <button
-            onClick={onTryAgain}
-            className="w-full py-3 bg-teal-600 hover:bg-teal-500 text-white rounded-lg font-medium"
-          >
-            Try Again
-          </button>
-          <button
-            onClick={() => {
-              onNewGame();
-            }}
-            className="w-full py-3 bg-gray-900 hover:bg-gray-800 text-white rounded-lg font-medium"
-          >
-            New Game
-          </button>
+          {tournamentMode ? (
+            <button
+              type="button"
+              onClick={() => onBackToTournament?.()}
+              className="w-full py-3 bg-gray-900 hover:bg-gray-800 text-white rounded-lg font-medium"
+            >
+              Back to Tournament
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={onTryAgain}
+                className="w-full py-3 bg-teal-600 hover:bg-teal-500 text-white rounded-lg font-medium"
+              >
+                Try Again
+              </button>
+              <button
+                onClick={() => {
+                  onNewGame();
+                }}
+                className="w-full py-3 bg-gray-900 hover:bg-gray-800 text-white rounded-lg font-medium"
+              >
+                New Game
+              </button>
+            </>
+          )}
         </div>
       </motion.div>
     </div>

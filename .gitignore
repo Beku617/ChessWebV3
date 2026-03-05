@@ -5,3 +5,6 @@ dist/
 .vite/
 
 public/media/
+
+# Broken/legacy project snapshots
+ChessWeb2.8] Broken/

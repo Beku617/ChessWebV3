@@ -26,6 +26,7 @@ interface QuickMatchSetupProps {
   queueStatus?: string | null;
   isConnected: boolean;
   onCancel: () => void;
+  tournamentMode?: boolean;
 }
 
 interface GameTypeOption {
@@ -134,6 +135,7 @@ export function QuickMatchSetup({
   queueStatus,
   isConnected,
   onCancel,
+  tournamentMode = false,
 }: QuickMatchSetupProps) {
   const { user } = useAuthStore();
 
@@ -209,7 +211,10 @@ export function QuickMatchSetup({
   const selectedTimeLabel = selectedTimeOption
     ? `${selectedTimeOption.label} (${selectedTimeOption.groupLabel})`
     : `${timeOptionLabel} (${timeGroupLabel})`;
-  const searchingGameText = `Searching ${timeOptionLabel} ${timeGroupLabel}${variantLabel ? " " + variantLabel : ""} Game`;
+  const searchingGameText = tournamentMode
+    ? queueStatus ||
+      "Waiting for your tournament opponent to open the game link..."
+    : `Searching ${timeOptionLabel} ${timeGroupLabel}${variantLabel ? " " + variantLabel : ""} Game`;
   const expandedRange = Math.min(
     500,
     50 + Math.floor(searchElapsedSeconds / 5) * 25,
@@ -314,7 +319,9 @@ export function QuickMatchSetup({
                       {searchingGameText}
                     </p>
                     <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                      {queueStatus || `Rating range: ±${expandedRange}`}
+                      {tournamentMode
+                        ? queueStatus || "Waiting for opponent..."
+                        : queueStatus || `Rating range: ±${expandedRange}`}
                     </p>
                     <button
                       type="button"
@@ -335,157 +342,173 @@ export function QuickMatchSetup({
                   <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4 text-teal-500" />
                     <h2 className="font-bold text-base text-gray-900 dark:text-white">
-                      Quick Match{variant === "chess960" ? " — Chess960" : ""}
+                      {tournamentMode
+                        ? "Tournament Game"
+                        : `Quick Match${variant === "chess960" ? " — Chess960" : ""}`}
                     </h2>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="rounded-full bg-teal-100 text-teal-700 dark:bg-teal-500/20 dark:text-teal-300 px-2 py-0.5 text-[11px] font-semibold">
-                      {timeOptionLabel}
-                    </span>
-                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                      {timeGroupLabel}
-                    </span>
-                  </div>
+                  {!tournamentMode && (
+                    <div className="flex items-center gap-2">
+                      <span className="rounded-full bg-teal-100 text-teal-700 dark:bg-teal-500/20 dark:text-teal-300 px-2 py-0.5 text-[11px] font-semibold">
+                        {timeOptionLabel}
+                      </span>
+                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                        {timeGroupLabel}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <p className="mt-1 text-[11px] text-gray-500 dark:text-gray-400">
-                  Find an opponent and start playing instantly.
+                  {tournamentMode
+                    ? "Your tournament pairing will start as soon as both players join."
+                    : "Find an opponent and start playing instantly."}
                 </p>
               </div>
 
               <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3 space-y-4">
-                {/* Game Type */}
-                <div className="rounded-2xl border border-gray-200/55 dark:border-white/10 bg-white/60 dark:bg-slate-900/45 p-3">
-                  <div className="text-[12px] font-semibold text-gray-900 dark:text-white mb-2">
-                    Game Type
+                {!tournamentMode && (
+                  <>
+                    {/* Game Type */}
+                    <div className="rounded-2xl border border-gray-200/55 dark:border-white/10 bg-white/60 dark:bg-slate-900/45 p-3">
+                      <div className="text-[12px] font-semibold text-gray-900 dark:text-white mb-2">
+                        Game Type
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setIsGameTypeOpen((value) => !value)}
+                        className="w-full py-3 px-3 rounded-xl bg-gray-100 dark:bg-slate-800 border border-gray-200/70 dark:border-white/10 text-gray-800 dark:text-gray-100 flex items-center justify-between"
+                      >
+                        <span className="flex items-center gap-2 text-[13px] font-semibold">
+                          <LayoutGrid className="w-4 h-4 text-gray-600 dark:text-gray-300" />
+                          {selectedGameType.label}
+                        </span>
+                        {isGameTypeOpen ? (
+                          <ChevronUp className="w-4 h-4 opacity-80" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4 opacity-80" />
+                        )}
+                      </button>
+
+                      {isGameTypeOpen && (
+                        <div className="mt-2 rounded-xl border border-gray-200/70 dark:border-white/10 overflow-hidden">
+                          {GAME_TYPE_OPTIONS.map((option) => {
+                            const isActive = selectedGameType.id === option.id;
+                            return (
+                              <button
+                                key={option.id}
+                                type="button"
+                                onClick={() => {
+                                  if (option.source === "quick") {
+                                    onVariantChange(option.id as MatchVariant);
+                                  } else {
+                                    onOpenVariantPage(option.id);
+                                  }
+                                  setIsGameTypeOpen(false);
+                                }}
+                                className={`w-full px-3 py-2.5 flex items-center justify-between text-left transition-colors ${
+                                  isActive
+                                    ? "bg-teal-500/15 text-teal-600 dark:text-teal-300"
+                                    : "bg-white dark:bg-slate-900 hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-700 dark:text-gray-200"
+                                }`}
+                              >
+                                <span className="text-[13px] font-medium">
+                                  {option.label}
+                                </span>
+                                {option.source === "variants" ? (
+                                  <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+                                ) : null}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Time Control */}
+                    <div className="rounded-2xl border border-gray-200/55 dark:border-white/10 bg-white/60 dark:bg-slate-900/45 p-3">
+                      <button
+                        type="button"
+                        onClick={() => setIsTimeControlOpen((value) => !value)}
+                        className="w-full py-3 px-3 rounded-xl bg-gray-100 dark:bg-slate-800 border border-gray-200/70 dark:border-white/10 text-gray-800 dark:text-gray-100 flex items-center justify-between"
+                      >
+                        <span className="flex items-center gap-2 text-[13px] font-semibold">
+                          <Timer className="w-4 h-4 text-yellow-500" />
+                          {selectedTimeLabel}
+                        </span>
+                        {isTimeControlOpen ? (
+                          <ChevronUp className="w-4 h-4 opacity-80" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4 opacity-80" />
+                        )}
+                      </button>
+
+                      {isTimeControlOpen && (
+                        <div className="mt-3 space-y-3">
+                          {QUICK_TIME_GROUPS.map((group) => {
+                            const GroupIcon = group.icon;
+                            return (
+                              <div key={group.id}>
+                                <div className="mb-1 flex items-center gap-1.5 text-[12px] font-semibold text-gray-800 dark:text-gray-200">
+                                  <GroupIcon className="w-4 h-4 text-yellow-500" />
+                                  <span>{group.label}</span>
+                                </div>
+                                <div className="grid grid-cols-3 gap-2">
+                                  {group.options.map((opt) => {
+                                    const isSelected =
+                                      timeControl.initial === opt.initial &&
+                                      timeControl.increment === opt.increment;
+                                    return (
+                                      <button
+                                        key={`${group.id}-${opt.label}`}
+                                        onClick={() => {
+                                          onTimeControlChange({
+                                            initial: opt.initial,
+                                            increment: opt.increment,
+                                          });
+                                          setIsTimeControlOpen(false);
+                                        }}
+                                        className={`py-2 rounded-lg text-[12px] font-semibold transition-all ${
+                                          isSelected
+                                            ? "bg-teal-500/20 text-teal-600 dark:text-teal-300 ring-2 ring-teal-500"
+                                            : "bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 ring-1 ring-gray-200 dark:ring-slate-700 hover:ring-gray-300 dark:hover:ring-slate-600"
+                                        }`}
+                                      >
+                                        {opt.label}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+
+                {tournamentMode && (
+                  <div className="rounded-2xl border border-gray-200/55 dark:border-white/10 bg-white/60 dark:bg-slate-900/45 p-3 text-sm text-gray-700 dark:text-gray-200">
+                    This is a tournament pairing. The game will start automatically once both players join this link. You can keep this tab open; no extra matchmaking is needed.
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setIsGameTypeOpen((value) => !value)}
-                    className="w-full py-3 px-3 rounded-xl bg-gray-100 dark:bg-slate-800 border border-gray-200/70 dark:border-white/10 text-gray-800 dark:text-gray-100 flex items-center justify-between"
-                  >
-                    <span className="flex items-center gap-2 text-[13px] font-semibold">
-                      <LayoutGrid className="w-4 h-4 text-gray-600 dark:text-gray-300" />
-                      {selectedGameType.label}
-                    </span>
-                    {isGameTypeOpen ? (
-                      <ChevronUp className="w-4 h-4 opacity-80" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4 opacity-80" />
-                    )}
-                  </button>
-
-                  {isGameTypeOpen && (
-                    <div className="mt-2 rounded-xl border border-gray-200/70 dark:border-white/10 overflow-hidden">
-                      {GAME_TYPE_OPTIONS.map((option) => {
-                        const isActive = selectedGameType.id === option.id;
-                        return (
-                          <button
-                            key={option.id}
-                            type="button"
-                            onClick={() => {
-                              if (option.source === "quick") {
-                                onVariantChange(option.id as MatchVariant);
-                              } else {
-                                onOpenVariantPage(option.id);
-                              }
-                              setIsGameTypeOpen(false);
-                            }}
-                            className={`w-full px-3 py-2.5 flex items-center justify-between text-left transition-colors ${
-                              isActive
-                                ? "bg-teal-500/15 text-teal-600 dark:text-teal-300"
-                                : "bg-white dark:bg-slate-900 hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-700 dark:text-gray-200"
-                            }`}
-                          >
-                            <span className="text-[13px] font-medium">
-                              {option.label}
-                            </span>
-                            {option.source === "variants" ? (
-                              <ExternalLink className="w-3.5 h-3.5 opacity-70" />
-                            ) : null}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-
-                {/* Time Control */}
-                <div className="rounded-2xl border border-gray-200/55 dark:border-white/10 bg-white/60 dark:bg-slate-900/45 p-3">
-                  <button
-                    type="button"
-                    onClick={() => setIsTimeControlOpen((value) => !value)}
-                    className="w-full py-3 px-3 rounded-xl bg-gray-100 dark:bg-slate-800 border border-gray-200/70 dark:border-white/10 text-gray-800 dark:text-gray-100 flex items-center justify-between"
-                  >
-                    <span className="flex items-center gap-2 text-[13px] font-semibold">
-                      <Timer className="w-4 h-4 text-yellow-500" />
-                      {selectedTimeLabel}
-                    </span>
-                    {isTimeControlOpen ? (
-                      <ChevronUp className="w-4 h-4 opacity-80" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4 opacity-80" />
-                    )}
-                  </button>
-
-                  {isTimeControlOpen && (
-                    <div className="mt-3 space-y-3">
-                      {QUICK_TIME_GROUPS.map((group) => {
-                        const GroupIcon = group.icon;
-                        return (
-                          <div key={group.id}>
-                            <div className="mb-1 flex items-center gap-1.5 text-[12px] font-semibold text-gray-800 dark:text-gray-200">
-                              <GroupIcon className="w-4 h-4 text-yellow-500" />
-                              <span>{group.label}</span>
-                            </div>
-                            <div className="grid grid-cols-3 gap-2">
-                              {group.options.map((opt) => {
-                                const isSelected =
-                                  timeControl.initial === opt.initial &&
-                                  timeControl.increment === opt.increment;
-                                return (
-                                  <button
-                                    key={`${group.id}-${opt.label}`}
-                                    onClick={() => {
-                                      onTimeControlChange({
-                                        initial: opt.initial,
-                                        increment: opt.increment,
-                                      });
-                                      setIsTimeControlOpen(false);
-                                    }}
-                                    className={`py-2 rounded-lg text-[12px] font-semibold transition-all ${
-                                      isSelected
-                                        ? "bg-teal-500/20 text-teal-600 dark:text-teal-300 ring-2 ring-teal-500"
-                                        : "bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 ring-1 ring-gray-200 dark:ring-slate-700 hover:ring-gray-300 dark:hover:ring-slate-600"
-                                    }`}
-                                  >
-                                    {opt.label}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-
+                )}
               </div>
 
-              {/* Play Button */}
-              <div className="p-4 pt-3 border-t border-gray-200/55 dark:border-white/10 pb-[calc(1rem+env(safe-area-inset-bottom))]">
-                <button
-                  onClick={onStart}
-                  disabled={isSearching || !isConnected}
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold text-lg transition-all shadow-lg hover:shadow-xl active:scale-[0.98] disabled:cursor-not-allowed disabled:shadow-none"
-                >
-                  {isSearching
-                    ? "Searching..."
-                    : isConnected
-                      ? "Play"
-                      : "Server Offline"}
-                </button>
-              </div>
+              {!tournamentMode && (
+                <div className="p-4 pt-3 border-t border-gray-200/55 dark:border-white/10 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+                  <button
+                    onClick={onStart}
+                    disabled={isSearching || !isConnected}
+                    className="w-full py-3 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold text-lg transition-all shadow-lg hover:shadow-xl active:scale-[0.98] disabled:cursor-not-allowed disabled:shadow-none"
+                  >
+                    {isSearching
+                      ? "Searching..."
+                      : isConnected
+                        ? "Play"
+                        : "Server Offline"}
+                  </button>
+                </div>
+              )}
             </>
           )}
         </div>

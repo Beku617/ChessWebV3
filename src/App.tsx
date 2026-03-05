@@ -18,6 +18,7 @@ import PlayPractice from "./pages/playPractice";
 import Puzzles from "./pages/puzzles";
 import PuzzleTrainer from "./pages/puzzleTrainer";
 import Learn from "./pages/Learn";
+import Tournaments from "./pages/tournaments";
 import Watch from "./pages/watch";
 import Community from "./pages/Community";
 import Friends from "./pages/friends";
@@ -36,6 +37,7 @@ import AdminPuzzles from "./pages/AdminPuzzles";
 import { AdminBots } from "./pages/adminBots";
 import { AdminFeaturedEvents } from "./pages/adminFeaturedEvents";
 import { AdminGames } from "./pages/adminGames";
+import { Messages } from "./pages/messages";
 import { useThemeStore } from "./store/themeStore";
 import { useAuthStore, authApi } from "./store/authStore";
 import { useFriendChallengeStore } from "./store/friendChallengeStore";
@@ -153,6 +155,7 @@ function Layout({ children }: { children: React.ReactNode }) {
       "/watch",
       "/community",
       "/friends",
+      "/messages",
       "/settings",
       "/login",
       "/register",
@@ -329,6 +332,14 @@ function App() {
             }
           />
           <Route
+            path="/tournaments"
+            element={
+              <ProtectedRoute>
+                <Tournaments />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/watch"
             element={
               <ProtectedRoute>
@@ -349,6 +360,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Friends />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/messages"
+            element={
+              <ProtectedRoute>
+                <Messages />
               </ProtectedRoute>
             }
           />

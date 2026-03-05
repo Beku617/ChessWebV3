@@ -15,7 +15,16 @@ import {
   eliminateFourPlayerColor,
 } from "./utils/fourPlayerEngine.js";
 import { connectDB } from "./config/db.js";
-import { Friend, RatingEvent, User } from "./models/index.js";
+import {
+  Friend,
+  RatingEvent,
+  Conversation,
+  DirectMessage,
+  Tournament,
+  TournamentGame,
+  User,
+  buildKey as buildConversationKey,
+} from "./models/index.js";
 import {
   gamesFieldForPool,
   getRatingPoolForTimeControl,
@@ -30,6 +39,10 @@ import {
   volatilityFieldForPool,
 } from "./utils/glicko2.js";
 import { seedPuzzles, seedGamePageConfig, seedBots } from "./seeds/index.js";
+import {
+  markTournamentGameStarted,
+  syncTournamentGameResultByGameId,
+} from "./services/tournamentRuntime.js";
 import {
   authRoutes,
   historyRoutes,
@@ -46,6 +59,8 @@ import {
   lichessRoutes,
   friendsRoutes,
   ratingsRoutes,
+  tournamentRoutes,
+  messagesRoutes,
 } from "./routes/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -60,6 +75,9 @@ const io = new Server(server, {
     credentials: true,
   },
 });
+
+// expose socket.io instance for notification helpers
+app.set("io", io);
 
 const waitingQueues = new Map(); // key -> [{ socketId, rating, joinedAt, pool }]
 const games = new Map(); // gameId -> { room, chess, players, playerUsers, timeControl, variant, chess960, isRated }
@@ -121,6 +139,8 @@ app.use("/api/featured-events", featuredEventsRoutes);
 app.use("/api/lichess", lichessRoutes);
 app.use("/api/friends", friendsRoutes);
 app.use("/api/ratings", ratingsRoutes);
+app.use("/api/tournaments", tournamentRoutes);
+app.use("/api/messages", messagesRoutes);
 
 function getQueueKey(timeControl, variant) {
   const initial = Number(timeControl?.initial ?? 300);
@@ -431,6 +451,16 @@ function normalizeTimeControl(timeControl) {
   };
 }
 
+function tournamentTimeControlToSocketTimeControl(timeControl) {
+  return {
+    initial: Math.max(
+      1,
+      Math.round(Number(timeControl?.baseMs || 300000) / 1000),
+    ),
+    increment: Math.max(0, Math.round(Number(timeControl?.incMs || 0) / 1000)),
+  };
+}
+
 function normalizePlayAs(playAs) {
   if (playAs === "white" || playAs === "black" || playAs === "random") {
     return playAs;
@@ -451,6 +481,89 @@ function normalizeVariant(variant) {
     return "fourPlayer";
   }
   return "standard";
+}
+
+function getQuickGameSocketForUser(userId) {
+  return getSocketForUser(io, normalizeId(userId));
+}
+
+function createRealtimeGameRoom({
+  gameId,
+  whiteSocket,
+  blackSocket,
+  timeControl,
+  variant = "standard",
+  isRated = true,
+  tournamentId = null,
+  tournamentGameId = null,
+}) {
+  const normalizedVariant = normalizeVariant(variant);
+  if (normalizedVariant === "fourPlayer") return false;
+  if (!whiteSocket || !blackSocket) return false;
+  if (whiteSocket.id === blackSocket.id) return false;
+  if (!isSocketReadyForGame(whiteSocket) || !isSocketReadyForGame(blackSocket)) {
+    return false;
+  }
+
+  const safeGameId =
+    String(gameId || "").trim() || crypto.randomBytes(8).toString("hex");
+  if (games.has(safeGameId)) return false;
+
+  const normalizedTimeControl = normalizeTimeControl(timeControl);
+  const initialPosition = createInitialPosition(normalizedVariant);
+  const chess =
+    initialPosition.fen === "start"
+      ? new Chess()
+      : new Chess(initialPosition.fen);
+  const room = `game:${safeGameId}`;
+
+  const socketToUser = {
+    [whiteSocket.id]: normalizeId(whiteSocket.data.userId),
+    [blackSocket.id]: normalizeId(blackSocket.data.userId),
+  };
+
+  games.set(safeGameId, {
+    room,
+    chess,
+    players: { white: whiteSocket.id, black: blackSocket.id },
+    playerUsers: {
+      white: socketToUser[whiteSocket.id] || "",
+      black: socketToUser[blackSocket.id] || "",
+    },
+    timeControl: normalizedTimeControl,
+    variant: normalizedVariant,
+    chess960: initialPosition.chess960,
+    isRated,
+    tournamentId: tournamentId ? normalizeId(tournamentId) : null,
+    tournamentGameId: tournamentGameId ? normalizeId(tournamentGameId) : null,
+  });
+
+  whiteSocket.data.gameId = safeGameId;
+  blackSocket.data.gameId = safeGameId;
+  syncUserPresenceFromSockets(normalizeId(whiteSocket.data.userId));
+  syncUserPresenceFromSockets(normalizeId(blackSocket.data.userId));
+  whiteSocket.join(room);
+  blackSocket.join(room);
+
+  io.to(whiteSocket.id).emit("matchFound", {
+    gameId: safeGameId,
+    color: "w",
+    fen: chess.fen(),
+    opponentName: blackSocket.data.name || "Opponent",
+    timeControl: normalizedTimeControl,
+    variant: normalizedVariant,
+  });
+
+  io.to(blackSocket.id).emit("matchFound", {
+    gameId: safeGameId,
+    color: "b",
+    fen: chess.fen(),
+    opponentName: whiteSocket.data.name || "Opponent",
+    timeControl: normalizedTimeControl,
+    variant: normalizedVariant,
+  });
+
+  return true;
 }
 
 function normalizeFourPlayerSquare(square) {
@@ -1385,6 +1498,16 @@ async function emitGameOver(gameId, reason, winner) {
     console.error("Elo update error:", error);
   }
 
+  if (game.tournamentId) {
+    const tournamentResult =
+      winner === "w" ? "1-0" : winner === "b" ? "0-1" : "1/2-1/2";
+    try {
+      await syncTournamentGameResultByGameId(gameId, tournamentResult);
+    } catch (error) {
+      console.error("Tournament result sync error:", error);
+    }
+  }
+
   io.to(game.room).emit("gameOver", { gameId, reason, winner, elo });
   clearGameForPlayers(game);
   games.delete(gameId);
@@ -1446,10 +1569,299 @@ io.on("connection", (socket) => {
     }
   };
 
+  const emitDmToUser = (userId, event, payload) => {
+    const room = getUserRoom(userId);
+    io.to(room).emit(event, payload);
+  };
+
+  const normalizeMessageBody = (body) => {
+    return String(body || "").trim();
+  };
+
+  const toObjectId = (value) => {
+    if (!mongoose.Types.ObjectId.isValid(value)) return null;
+    return new mongoose.Types.ObjectId(value);
+  };
+
+  const ensureConversation = async (userA, userB) => {
+    const a = toObjectId(userA);
+    const b = toObjectId(userB);
+    if (!a || !b || a.equals(b)) return null;
+    const participants = [a, b];
+    const participantsKey = buildConversationKey(participants);
+    let convo = await Conversation.findOne({ participantsKey });
+    if (!convo) {
+      try {
+        convo = await Conversation.create({
+          participants,
+          participantsKey,
+          unreadCounts: {
+            [participants[0]]: 0,
+            [participants[1]]: 0,
+          },
+        });
+      } catch (err) {
+        if (err?.code === 11000) {
+          convo = await Conversation.findOne({ participantsKey });
+        } else {
+          throw err;
+        }
+      }
+    }
+    return convo;
+  };
+
   socket.on("presence:ping", () => {
     const userId = normalizeId(socket.data.userId);
     if (!userId) return;
     syncUserPresenceFromSockets(userId);
+  });
+
+  socket.on("dm:send", async (payload = {}, ack) => {
+    try {
+      const fromUserId = normalizeId(socket.data.userId);
+      const toUserId = normalizeId(payload.toUserId);
+      const body = normalizeMessageBody(payload.body);
+      if (!mongoose.Types.ObjectId.isValid(toUserId)) {
+        return safeAck(ack, { success: false, error: "Invalid recipient." });
+      }
+      if (!fromUserId) return safeAck(ack, { success: false, error: "Not authenticated." });
+      if (!toUserId) return safeAck(ack, { success: false, error: "Recipient required." });
+      if (!body) return safeAck(ack, { success: false, error: "Message cannot be empty." });
+      if (fromUserId === toUserId) {
+        return safeAck(ack, { success: false, error: "Cannot message yourself." });
+      }
+
+      const convo = await ensureConversation(fromUserId, toUserId);
+      if (!convo) {
+        return safeAck(ack, { success: false, error: "Conversation error." });
+      }
+      if (!convo) return safeAck(ack, { success: false, error: "Conversation error." });
+
+      const message = await DirectMessage.create({
+        conversationId: convo._id,
+        fromUserId,
+        toUserId,
+        body,
+      });
+
+      const unreadCounts =
+        convo.unreadCounts instanceof Map
+          ? new Map(convo.unreadCounts)
+          : new Map(Object.entries(convo.unreadCounts || {}));
+      unreadCounts.set(toUserId, (unreadCounts.get(toUserId) || 0) + 1);
+      unreadCounts.set(fromUserId, unreadCounts.get(fromUserId) || 0);
+
+      await Conversation.updateOne(
+        { _id: convo._id },
+        {
+          $set: {
+            lastMessage: body,
+            lastSender: fromUserId,
+            lastMessageAt: message.createdAt,
+            unreadCounts,
+          },
+        },
+      );
+
+      const payloadMsg = {
+        id: normalizeId(message._id),
+        conversationId: normalizeId(convo._id),
+        fromUserId,
+        toUserId,
+        body,
+        createdAt: message.createdAt,
+        readAt: null,
+      };
+
+      emitDmToUser(fromUserId, "dm:newMessage", payloadMsg);
+      emitDmToUser(toUserId, "dm:newMessage", payloadMsg);
+      safeAck(ack, { success: true, message: payloadMsg });
+    } catch (error) {
+      console.error("dm:send error", error);
+      safeAck(ack, { success: false, error: "Failed to send." });
+    }
+  });
+
+  socket.on("dm:read", async (payload = {}, ack) => {
+    try {
+      const userId = normalizeId(socket.data.userId);
+      const convoId = normalizeId(payload.conversationId);
+      if (!mongoose.Types.ObjectId.isValid(convoId)) {
+        return safeAck(ack, { success: false, error: "Invalid conversation." });
+      }
+      if (!userId) return safeAck(ack, { success: false, error: "Not authenticated." });
+      if (!convoId) return safeAck(ack, { success: false, error: "Conversation required." });
+      const convo = await Conversation.findById(convoId);
+      if (!convo || !convo.participants.map(normalizeId).includes(userId)) {
+        return safeAck(ack, { success: false, error: "Conversation not found." });
+      }
+
+      await DirectMessage.updateMany(
+        { conversationId: convo._id, toUserId: userId, readAt: null },
+        { $set: { readAt: new Date() } },
+      );
+      await Conversation.updateOne(
+        { _id: convo._id },
+        { $set: { [`unreadCounts.${userId}`]: 0 } },
+      );
+      emitDmToUser(userId, "dm:read", { conversationId: convoId });
+      safeAck(ack, { success: true });
+    } catch (error) {
+      console.error("dm:read error", error);
+      safeAck(ack, { success: false, error: "Failed to mark read." });
+    }
+  });
+
+  socket.on("joinTournamentGame", async (payload = {}, ack) => {
+    try {
+      const gameId = String(payload?.gameId || "").trim();
+      const userId = normalizeId(socket.data.userId);
+      const name = String(payload?.name || socket.data.name || "Player").trim();
+      socket.data.name = name || "Player";
+
+      if (!userId) {
+        safeAck(ack, { success: false, error: "Not authenticated." });
+        return;
+      }
+      if (!gameId) {
+        safeAck(ack, { success: false, error: "Game id is required." });
+        return;
+      }
+      if (socket.data.fourPlayerGameId) {
+        safeAck(ack, {
+          success: false,
+          error: "Leave your current game first.",
+        });
+        return;
+      }
+      if (socket.data.gameId && socket.data.gameId !== gameId) {
+        safeAck(ack, {
+          success: false,
+          error: "Leave your current game first.",
+        });
+        return;
+      }
+
+      socket.data.inQueue = false;
+      socket.data.queueKey = null;
+      removeFromQueues(socket.id);
+      socket.data.inFourPlayerQueue = false;
+      socket.data.fourPlayerQueueKey = null;
+      removeFromFourPlayerQueues(socket.id);
+
+      const tournamentGame = await TournamentGame.findOne({ gameId }).lean();
+      if (!tournamentGame) {
+        safeAck(ack, { success: false, error: "Tournament game not found." });
+        return;
+      }
+      if (tournamentGame.isBye) {
+        safeAck(ack, { success: false, error: "This is a bye round." });
+        return;
+      }
+      if (String(tournamentGame.result || "*") !== "*") {
+        safeAck(ack, {
+          success: false,
+          error: "This game is already finished.",
+        });
+        return;
+      }
+
+      const whiteUserId = normalizeId(tournamentGame.whiteId);
+      const blackUserId = normalizeId(tournamentGame.blackId);
+      if (userId !== whiteUserId && userId !== blackUserId) {
+        safeAck(ack, {
+          success: false,
+          error: "You are not a player in this game.",
+        });
+        return;
+      }
+
+      const tournament = await Tournament.findById(tournamentGame.tournamentId)
+        .select("status timeControl")
+        .lean();
+      if (!tournament || tournament.status !== "running") {
+        safeAck(ack, { success: false, error: "Tournament is not running." });
+        return;
+      }
+
+      const userColor = userId === whiteUserId ? "w" : "b";
+      const ownColorKey = userColor === "w" ? "white" : "black";
+      const opponentColorKey = userColor === "w" ? "black" : "white";
+
+      const activeGame = games.get(gameId);
+      if (activeGame) {
+        const previousSocketId = activeGame.players[ownColorKey];
+        if (previousSocketId && previousSocketId !== socket.id) {
+          const previousSocket = io.sockets.sockets.get(previousSocketId);
+          if (previousSocket) {
+            previousSocket.data.gameId = null;
+          }
+        }
+
+        activeGame.players[ownColorKey] = socket.id;
+        activeGame.playerUsers[ownColorKey] = userId;
+        socket.data.gameId = gameId;
+        socket.join(activeGame.room);
+        syncUserPresenceFromSockets(userId);
+
+        const opponentSocket = io.sockets.sockets.get(
+          activeGame.players[opponentColorKey],
+        );
+        const opponentName = opponentSocket?.data?.name || "Opponent";
+
+        io.to(socket.id).emit("matchFound", {
+          gameId,
+          color: userColor,
+          fen: activeGame.chess.fen(),
+          opponentName,
+          timeControl: activeGame.timeControl,
+          variant: activeGame.variant || "standard",
+        });
+
+        safeAck(ack, {
+          success: true,
+          status: "started",
+          gameId,
+          rejoined: true,
+        });
+        return;
+      }
+
+      // Prefer the calling socket for the current player to avoid picking a different tab/socket.
+      const whiteSocket =
+        userId === whiteUserId ? socket : getQuickGameSocketForUser(whiteUserId);
+      const blackSocket =
+        userId === blackUserId ? socket : getQuickGameSocketForUser(blackUserId);
+      if (whiteSocket && blackSocket) {
+        const created = createRealtimeGameRoom({
+          gameId,
+          whiteSocket,
+          blackSocket,
+          timeControl: tournamentTimeControlToSocketTimeControl(
+            tournament.timeControl,
+          ),
+          variant: "standard",
+          isRated: true,
+          tournamentId: normalizeId(tournamentGame.tournamentId),
+          tournamentGameId: normalizeId(tournamentGame._id),
+        });
+        if (created) {
+          await markTournamentGameStarted(gameId);
+          safeAck(ack, { success: true, status: "started", gameId });
+          return;
+        }
+      }
+
+      syncUserPresenceFromSockets(userId);
+      safeAck(ack, { success: true, status: "waiting", gameId });
+    } catch (error) {
+      console.error("joinTournamentGame error:", error);
+      safeAck(ack, {
+        success: false,
+        error: "Failed to join tournament game.",
+      });
+    }
   });
 
   socket.on("findMatch", async ({ name, timeControl, variant } = {}) => {

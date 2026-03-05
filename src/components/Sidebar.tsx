@@ -6,6 +6,7 @@ import {
   Settings,
   MessageSquare,
   LogOut,
+  Trophy,
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuthStore, authApi } from "../store/authStore";
@@ -34,6 +35,7 @@ export default function Sidebar() {
   };
 
   const navItems = [
+    { icon: Trophy, label: "Tournaments", path: "/tournaments" },
     { icon: Puzzle, label: "Puzzles", path: "/puzzles" },
     { icon: GraduationCap, label: "Learn", path: "/learn" },
     { icon: Eye, label: "Watch", path: "/watch" },

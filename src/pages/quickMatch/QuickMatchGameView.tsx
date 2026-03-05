@@ -36,6 +36,7 @@ interface QuickMatchGameViewProps {
   onResign: () => void;
   onRematch: () => void;
   onLeave?: () => void;
+  tournamentMode?: boolean;
   opponentName?: string;
   variant?: MatchVariant;
   promotionState?: PromotionState;
@@ -69,6 +70,7 @@ export function QuickMatchGameView({
   onResign,
   onRematch,
   onLeave,
+  tournamentMode = false,
   opponentName,
   variant = "standard",
   promotionState,
@@ -117,6 +119,8 @@ export function QuickMatchGameView({
           onNewGame={onRematch}
           savedGameId={savedGameId}
           analyzeBasePath={variant === "chess960" ? "/analyze960" : "/analyze"}
+          tournamentMode={tournamentMode}
+          onBackToTournament={() => navigate("/tournaments")}
         />
 
         {/* Main Board Area */}
@@ -263,11 +267,11 @@ export function QuickMatchGameView({
               <button
                 onClick={() => {
                   onLeave?.();
-                  navigate("/play");
+                  navigate(tournamentMode ? "/tournaments" : "/play");
                 }}
                 className="w-full px-4 py-2.5 rounded-xl bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-800 dark:text-gray-200 font-medium transition-colors"
               >
-                Back to Play
+                {tournamentMode ? "Back to Tournament" : "Back to Play"}
               </button>
             </div>
           </div>

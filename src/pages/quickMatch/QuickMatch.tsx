@@ -84,7 +84,7 @@ function storeTimeControl(value: { initial: number; increment: number }) {
       JSON.stringify(value),
     );
   } catch {
-    // Ignore persistence issues.
+
   }
 }
 
@@ -108,6 +108,22 @@ function getVariantFromSearch(search: string): MatchVariant | null {
   const value = new URLSearchParams(search).get("variant");
   if (!value) return null;
   return normalizeVariant(value);
+}
+
+function getTournamentGameIdFromState(state: unknown): string | null {
+  if (!state || typeof state !== "object") return null;
+  const raw = (state as { tournamentGameId?: unknown }).tournamentGameId;
+  if (typeof raw !== "string") return null;
+  const trimmed = raw.trim();
+  return trimmed || null;
+}
+
+function getTournamentGameIdFromSearch(search: string): string | null {
+  const params = new URLSearchParams(search);
+  const raw = params.get("tournamentGameId");
+  if (!raw) return null;
+  const trimmed = raw.trim();
+  return trimmed || null;
 }
 
 export default function QuickMatch() {
@@ -138,6 +154,8 @@ export default function QuickMatch() {
     queueStatus,
     isConnected,
     startMatch,
+    joinTournamentGame,
+    leaveTournamentJoin,
     cancelMatch,
     resign,
     timeOut,
@@ -165,6 +183,12 @@ export default function QuickMatch() {
       "standard"
     );
   });
+  const [tournamentGameId, setTournamentGameId] = useState<string | null>(() => {
+    return (
+      getTournamentGameIdFromState(location.state) ||
+      getTournamentGameIdFromSearch(location.search)
+    );
+  });
 
   useEffect(() => {
     const selectedTimeControl =
@@ -184,16 +208,33 @@ export default function QuickMatch() {
     setVariant(selectedVariant || "standard");
   }, [location.state, location.search]);
 
+  useEffect(() => {
+    setTournamentGameId(
+      getTournamentGameIdFromState(location.state) ||
+        getTournamentGameIdFromSearch(location.search),
+    );
+  }, [location.state, location.search]);
+
   const autoStartRequested =
-    getAutoStartFromState(location.state) ||
-    getAutoStartFromSearch(location.search);
+    !tournamentGameId &&
+    (getAutoStartFromState(location.state) ||
+      getAutoStartFromSearch(location.search));
   const autoStartHandledRef = useRef(false);
   const [pendingAutoStart, setPendingAutoStart] = useState(autoStartRequested);
+  const tournamentJoinHandledRef = useRef("");
+  const [pendingTournamentJoin, setPendingTournamentJoin] = useState(
+    !!tournamentGameId,
+  );
 
   useEffect(() => {
     autoStartHandledRef.current = false;
     setPendingAutoStart(autoStartRequested);
   }, [autoStartRequested, location.key]);
+
+  useEffect(() => {
+    tournamentJoinHandledRef.current = "";
+    setPendingTournamentJoin(!!tournamentGameId);
+  }, [location.key, tournamentGameId]);
 
   useEffect(() => {
     if (!pendingAutoStart || autoStartHandledRef.current) return;
@@ -219,6 +260,29 @@ export default function QuickMatch() {
   ]);
 
   useEffect(() => {
+    if (!pendingTournamentJoin || !tournamentGameId) return;
+    if (gameStarted) {
+      setPendingTournamentJoin(false);
+      return;
+    }
+    if (!isConnected) return;
+
+    const joinKey = `${location.key}:${tournamentGameId}`;
+    if (tournamentJoinHandledRef.current === joinKey) return;
+    tournamentJoinHandledRef.current = joinKey;
+
+    joinTournamentGame(tournamentGameId, user?.fullName || "Player");
+  }, [
+    gameStarted,
+    isConnected,
+    joinTournamentGame,
+    location.key,
+    pendingTournamentJoin,
+    tournamentGameId,
+    user?.fullName,
+  ]);
+
+  useEffect(() => {
     if (!pendingAutoStart) return;
     if (isSearching || gameStarted) {
       setPendingAutoStart(false);
@@ -232,12 +296,36 @@ export default function QuickMatch() {
     }
   }, [gameStarted, isSearching, pendingAutoStart, queueStatus]);
 
+  useEffect(() => {
+    if (!pendingTournamentJoin) return;
+    if (gameStarted) {
+      setPendingTournamentJoin(false);
+      return;
+    }
+    if (isSearching) return;
+    if (!queueStatus) return;
+    if (
+      /offline|failed|not found|finished|not running|not a player|required/i.test(
+        queueStatus,
+      )
+    ) {
+      setPendingTournamentJoin(false);
+    }
+  }, [gameStarted, isSearching, pendingTournamentJoin, queueStatus]);
+
   const handleCancelMatch = () => {
+    if (tournamentGameId) {
+      setPendingTournamentJoin(false);
+      leaveTournamentJoin();
+      navigate("/tournaments");
+      return;
+    }
     setPendingAutoStart(false);
     cancelMatch();
   };
 
   const handleStartMatch = () => {
+    if (tournamentGameId) return;
     storeTimeControl(timeControl);
 
     const params = new URLSearchParams({
@@ -295,7 +383,6 @@ export default function QuickMatch() {
     });
   };
 
-  // If game started, show the game board
   if (gameStarted) {
     return (
       <QuickMatchGameView
@@ -318,6 +405,7 @@ export default function QuickMatch() {
         opponentName={opponentName}
         promotionState={promotionState}
         onPromotionPieceSelect={onPromotionPieceSelect}
+        tournamentMode={!!tournamentGameId}
         setOpponentTime={setOpponentTime}
         setPlayerTime={setPlayerTime}
         onTimeOut={timeOut}
@@ -329,7 +417,6 @@ export default function QuickMatch() {
     );
   }
 
-  // Setup screen
   return (
     <QuickMatchSetup
       timeControl={timeControl}
@@ -338,10 +425,19 @@ export default function QuickMatch() {
       onVariantChange={handleVariantChange}
       onOpenVariantPage={handleOpenVariantPage}
       onStart={handleStartMatch}
-      isSearching={isSearching || pendingAutoStart}
-      queueStatus={queueStatus}
+      isSearching={
+      isSearching ||
+      pendingAutoStart ||
+      (!!tournamentGameId && pendingTournamentJoin && !gameStarted)
+    }
+      queueStatus={
+        tournamentGameId
+          ? queueStatus || "Waiting for your tournament opponent..."
+          : queueStatus
+      }
       isConnected={isConnected}
       onCancel={handleCancelMatch}
+      tournamentMode={!!tournamentGameId}
     />
   );
 }

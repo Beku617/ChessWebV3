@@ -847,6 +847,60 @@ export function useOnlineQuickMatch() {
     [resetGameState],
   );
 
+  const joinTournamentGame = useCallback(
+    (targetGameId: string, name?: string) => {
+      if (!socketRef.current) return;
+      if (!socketRef.current.connected) {
+        setIsSearching(false);
+        setQueueStatus("Matchmaking server is offline.");
+        return;
+      }
+
+      const normalizedGameId = String(targetGameId || "").trim();
+      if (!normalizedGameId) {
+        setIsSearching(false);
+        setQueueStatus("Tournament game id is missing.");
+        return;
+      }
+
+      playerNameRef.current = name || playerNameRef.current || "Player";
+      if (gameIdRef.current !== normalizedGameId) {
+        resetGameState();
+      }
+      setIsSearching(true);
+      setQueueStatus("Joining tournament game...");
+
+      socketRef.current.emit(
+        "joinTournamentGame",
+        {
+          gameId: normalizedGameId,
+          name: playerNameRef.current,
+        },
+        (response?: { success?: boolean; status?: string; error?: string }) => {
+          if (response?.success !== true) {
+            setIsSearching(false);
+            setQueueStatus(response?.error || "Failed to join tournament game.");
+            return;
+          }
+          if (response.status === "waiting") {
+            setIsSearching(true);
+            setQueueStatus("Waiting for your tournament opponent...");
+            return;
+          }
+          if (response.status === "started" && !gameIdRef.current) {
+            setQueueStatus("Starting game...");
+          }
+        },
+      );
+    },
+    [resetGameState],
+  );
+
+  const leaveTournamentJoin = useCallback(() => {
+    setIsSearching(false);
+    setQueueStatus(null);
+  }, []);
+
   const cancelMatch = useCallback(() => {
     if (!socketRef.current) return;
     socketRef.current.emit("cancelFind");
@@ -1321,6 +1375,8 @@ export function useOnlineQuickMatch() {
     promotionState,
     onPromotionPieceSelect,
     startMatch,
+    joinTournamentGame,
+    leaveTournamentJoin,
     cancelMatch,
     resign,
     timeOut,
