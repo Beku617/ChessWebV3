@@ -1,12 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Chess, Square } from "chess.js";
 import { usePreMove } from "../chess/usePreMove";
 import { GameSettings } from "../components/game";
 import {
+  API_URL,
   OptionSquares,
   defaultGameSettings,
-  GameHistoryPayload,
 } from "./useStockfishGameTypes";
+import type { GameHistoryPayload } from "./useStockfishGameTypes";
 import { useStockfishEngine } from "./useStockfishEngine";
 import { useMoveOptions } from "./useMoveOptions";
 import { useSaveGameHistory } from "./useSaveGameHistory";
@@ -67,6 +69,32 @@ export function useStockfishGame() {
 
   // Save game history to backend
   const saveGameHistory = useSaveGameHistory();
+
+  const fetchLatestSavedGameId = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/history?limit=1`, {
+        credentials: "include",
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      const latest = Array.isArray(data.games) ? data.games[0] : null;
+      if (!latest?._id) return null;
+
+      const startedAt = startTimeRef.current;
+      if (startedAt && latest.createdAt) {
+        const createdAtMs = Date.parse(latest.createdAt);
+        if (!Number.isNaN(createdAtMs)) {
+          const delta = Math.abs(createdAtMs - startedAt);
+          // Only accept if it matches the current session (within 10 minutes)
+          if (delta > 10 * 60 * 1000) return null;
+        }
+      }
+
+      return latest._id as string;
+    } catch {
+      return null;
+    }
+  }, []);
 
   // Try to apply premove
   const tryApplyPreMove = useCallback(() => {
@@ -160,6 +188,7 @@ export function useStockfishGame() {
     historySavedRef,
     saveGameHistory,
     setSavedGameId,
+    fetchLatestSavedGameId,
   );
 
   // Square click handler

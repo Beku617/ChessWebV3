@@ -22,6 +22,7 @@ export function useGameHistorySaver(
   historySavedRef: React.MutableRefObject<boolean>,
   saveGameHistory: (payload: GameHistoryPayload) => Promise<string | null>,
   setSavedGameId: (id: string | null) => void,
+  fetchLatestSavedGameId?: () => Promise<string | null>,
 ) {
   useEffect(() => {
     if (!gameOver || !gameResult || historySavedRef.current) return;
@@ -118,7 +119,20 @@ export function useGameHistorySaver(
         gameSettings.selectedBot?.skillLevel || gameSettings.difficulty,
       durationMs,
     }).then((id) => {
-      if (id) setSavedGameId(id);
+      if (id) {
+        setSavedGameId(id);
+        return;
+      }
+
+      // Fallback: if backend saved but did not return an id, fetch the latest game id
+      if (!fetchLatestSavedGameId) return;
+      fetchLatestSavedGameId()
+        .then((latestId) => {
+          if (latestId) setSavedGameId(latestId);
+        })
+        .catch(() => {
+          // swallow; UI will remain without analyze link but game is already saved
+        });
     });
   }, [
     gameOver,
@@ -130,5 +144,6 @@ export function useGameHistorySaver(
     historySavedRef,
     saveGameHistory,
     setSavedGameId,
+    fetchLatestSavedGameId,
   ]);
 }

@@ -135,11 +135,21 @@ export default function Messages() {
     return () => window.clearInterval(id);
   }, [activeChatId, fetchConversations, fetchMessages]);
 
+  const sortedConversations = useMemo(() => {
+    return [...conversations].sort((a, b) => {
+      const aTime = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
+      const bTime = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
+      return bTime - aTime;
+    });
+  }, [conversations]);
+
   const filteredConversations = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return conversations;
-    return conversations.filter((c) => c.partnerName.toLowerCase().includes(q));
-  }, [conversations, search]);
+    if (!q) return sortedConversations;
+    return sortedConversations.filter((c) =>
+      c.partnerName.toLowerCase().includes(q),
+    );
+  }, [sortedConversations, search]);
 
   const tabbedConversations = useMemo(() => {
     const active = filteredConversations.filter((conversation) => !isArchivedConversation(conversation));
@@ -149,12 +159,27 @@ export default function Messages() {
 
   const activeConversation = conversations.find((c) => c.partnerId === activeChatId);
   const visibleConversations = chatTab === "archived" ? tabbedConversations.archived : tabbedConversations.active;
+  const hasConversations = sortedConversations.length > 0;
 
   useEffect(() => {
     if (!activeConversation) return;
     const nextTab = isArchivedConversation(activeConversation) ? "archived" : "conversations";
     setChatTab((prev) => (prev === nextTab ? prev : nextTab));
   }, [activeConversation]);
+
+  // When there is no active chat selected, automatically open the most recent conversation (prefer non-archived).
+  useEffect(() => {
+    if (loading) return;
+    if (activeChatId) return;
+
+    const next =
+      tabbedConversations.active[0] ||
+      tabbedConversations.archived[0] ||
+      null;
+    if (next?.partnerId) {
+      setSearchParams({ chat: next.partnerId });
+    }
+  }, [loading, activeChatId, tabbedConversations, setSearchParams]);
 
   const sendMessage = async () => {
     const content = draft.trim();
@@ -324,19 +349,29 @@ export default function Messages() {
 
         <section className="col-span-8 min-w-0 flex flex-col bg-[#08101d]/85">
           {!activeChatId ? (
-            <div className="flex flex-1 items-center justify-center p-8">
-              <div className="w-full max-w-md rounded-3xl border border-[#26344c] bg-[#101a2d]/88 p-8 text-center shadow-[0_28px_52px_rgba(0,0,0,0.3)]">
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-teal-400/30 bg-teal-500/10 text-teal-300">
-                  <MessageSquare className="h-8 w-8" />
-                </div>
-                <h3 className="text-xl font-semibold tracking-tight text-slate-100">
-                  {t("messages.emptyTitle", "Select a conversation")}
-                </h3>
-                <p className="mx-auto mt-2 max-w-xs text-sm text-slate-400">
-                  {t("messages.emptySubtitle", "Choose a player from your list to start a focused, real-time chat.")}
-                </p>
+            loading ? (
+              <div className="flex flex-1 items-center justify-center text-sm text-slate-500">
+                {t("messages.loadingConversation", "Loading conversations...")}
               </div>
-            </div>
+            ) : hasConversations ? (
+              <div className="flex flex-1 items-center justify-center text-sm text-slate-400">
+                {t("messages.openingLatest", "Opening your latest conversation...")}
+              </div>
+            ) : (
+              <div className="flex flex-1 items-center justify-center p-8">
+                <div className="w-full max-w-md rounded-3xl border border-[#26344c] bg-[#101a2d]/88 p-8 text-center shadow-[0_28px_52px_rgba(0,0,0,0.3)]">
+                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-teal-400/30 bg-teal-500/10 text-teal-300">
+                    <MessageSquare className="h-8 w-8" />
+                  </div>
+                  <h3 className="text-xl font-semibold tracking-tight text-slate-100">
+                    {t("messages.emptyTitle", "No conversations")}
+                  </h3>
+                  <p className="mx-auto mt-2 max-w-xs text-sm text-slate-400">
+                    {t("messages.emptySubtitle", "Choose a player from your list to start a focused, real-time chat.")}
+                  </p>
+                </div>
+              </div>
+            )
           ) : (
             <>
               <header className="flex items-center justify-between border-b border-[#1f2c45] bg-[#111b2f]/94 px-5 py-3.5 backdrop-blur-xl">
