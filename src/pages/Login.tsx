@@ -12,12 +12,15 @@ import {
 import { useAuthStore, authApi } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
 import { useAdminStore } from "../store/adminStore";
+import { useTranslation } from "react-i18next";
+import LanguageSwitcher from "../components/LanguageSwitcher";
 
 export default function Login() {
   const navigate = useNavigate();
   const { setUser, setError, banReason, setBanned } = useAuthStore();
   const { login: adminLogin } = useAdminStore();
   const { isDarkMode, toggleTheme } = useThemeStore();
+  const { t } = useTranslation();
   const logoSrc = isDarkMode ? "/images/Logo.png" : "/images/LightModeLogo.png";
 
   const [email, setEmail] = useState("");
@@ -52,7 +55,8 @@ export default function Login() {
       setUser(data.user);
       navigate("/");
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Login failed";
+      const message =
+        err instanceof Error ? err.message : t("auth.loginFailed", "Login failed");
       setLocalError(message);
       setError(message);
     } finally {
@@ -61,18 +65,22 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-950 flex items-center justify-center p-4 transition-colors duration-300">
+    <div className="h-screen overflow-hidden bg-gradient-to-b from-[#fbfcfe] to-[#f1f4f8] dark:from-[#020617] dark:to-[#0b1220] flex items-center justify-center p-4 transition-colors duration-300">
       {/* Theme Toggle - Top Right */}
-      <button
-        onClick={toggleTheme}
-        className="fixed top-4 right-4 p-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg hover:scale-105 transition-transform z-50"
-      >
-        {isDarkMode ? (
-          <Sun className="w-5 h-5 text-yellow-500" />
-        ) : (
-          <Moon className="w-5 h-5 text-gray-700" />
-        )}
-      </button>
+      <div className="fixed top-4 inset-x-4 flex items-center justify-between z-[60] gap-3">
+        <LanguageSwitcher compact className="shrink-0 z-[60]" />
+        <button
+          onClick={toggleTheme}
+          aria-label={t("common.toggleTheme", "Toggle theme")}
+          className="shrink-0 p-3 rounded-2xl border border-gray-200/80 dark:border-slate-700/80 bg-white/88 dark:bg-slate-900/88 shadow-[0_14px_30px_rgba(15,23,42,0.08)] dark:shadow-[0_16px_30px_rgba(0,0,0,0.26)] backdrop-blur-md transition-all duration-200 hover:border-teal-300/70 dark:hover:border-teal-700/70 hover:bg-white dark:hover:bg-slate-900 hover:scale-105"
+        >
+          {isDarkMode ? (
+            <Sun className="w-5 h-5 text-yellow-500" />
+          ) : (
+            <Moon className="w-5 h-5 text-gray-700" />
+          )}
+        </button>
+      </div>
 
       <div className="max-w-md w-full bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-800">
         <div className="text-center mb-8">
@@ -82,10 +90,10 @@ export default function Login() {
             className="w-36 h-36 object-contain mx-auto mb-4"
           />
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            Welcome Back
+            {t("auth.welcomeBack", "Welcome Back")}
           </h1>
           <p className="text-gray-500 dark:text-gray-400">
-            Sign in to continue your chess journey
+            {t("auth.signInSubtitle", "Sign in to continue your chess journey")}
           </p>
         </div>
 
@@ -94,10 +102,13 @@ export default function Login() {
           <div className="mb-4 p-4 rounded-lg bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-800">
             <div className="flex items-center gap-2 text-red-700 dark:text-red-400 font-semibold mb-1">
               <ShieldAlert className="w-5 h-5" />
-              Account Banned
+              {t("auth.accountBannedTitle", "Account Banned")}
             </div>
             <p className="text-red-600 dark:text-red-400 text-sm">
-              Your account has been banned. Reason: {banReason}
+              {t("auth.accountBannedReason", {
+                defaultValue: "Your account has been banned. Reason: {{reason}}",
+                reason: banReason,
+              })}
             </p>
           </div>
         )}
@@ -111,7 +122,7 @@ export default function Login() {
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-              Email Address
+              {t("auth.email", "Email Address")}
             </label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -120,7 +131,7 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-colors"
-                placeholder="you@example.com"
+                placeholder={t("auth.emailPlaceholder", "you@example.com")}
                 required
                 disabled={isLoading}
               />
@@ -130,13 +141,13 @@ export default function Login() {
           <div>
             <div className="flex justify-between items-center mb-1.5">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Password
+                {t("auth.password", "Password")}
               </label>
               <a
                 href="#"
                 className="text-sm text-teal-600 dark:text-teal-500 hover:underline font-medium"
               >
-                Forgot password?
+                {t("auth.forgotPassword", "Forgot password?")}
               </a>
             </div>
             <div className="relative">
@@ -165,7 +176,7 @@ export default function Login() {
               htmlFor="rememberMe"
               className="ml-2 text-sm text-gray-600 dark:text-gray-400"
             >
-              Remember me for 30 days
+              {t("auth.rememberMe", "Remember me for 30 days")}
             </label>
           </div>
 
@@ -178,7 +189,7 @@ export default function Login() {
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : (
               <>
-                <span>Sign In</span>
+                <span>{t("auth.signIn", "Sign In")}</span>
                 <ArrowRight className="w-5 h-5" />
               </>
             )}
@@ -192,7 +203,7 @@ export default function Login() {
             </div>
             <div className="relative flex justify-center text-sm">
               <span className="px-2 bg-white dark:bg-gray-900 text-gray-500">
-                Or continue with
+                {t("auth.orContinue", "Or continue with")}
               </span>
             </div>
           </div>
@@ -210,12 +221,12 @@ export default function Login() {
         </div>
 
         <p className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
-          Don't have an account?{" "}
+          {t("auth.noAccount", "Don't have an account?")}{" "}
           <Link
             to="/register"
             className="font-bold text-teal-600 dark:text-teal-500 hover:underline"
           >
-            Sign up
+            {t("auth.signUp", "Sign up")}
           </Link>
         </p>
       </div>

@@ -1,4 +1,5 @@
 import { PlayCircle, ExternalLink, RefreshCw } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { TransformedStreamer } from "../../utils/lichessApi";
 
 interface StreamersSectionProps {
@@ -12,12 +13,13 @@ export function StreamersSection({
   loading,
   onRefresh,
 }: StreamersSectionProps) {
+  const { t } = useTranslation();
   if (loading) {
     return (
       <section className="mt-12">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
           <PlayCircle className="w-5 h-5 text-purple-500 mr-2" />
-          Live Streamers
+          {t("Live Streamers")}
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => (
@@ -45,7 +47,7 @@ export function StreamersSection({
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
             <PlayCircle className="w-5 h-5 text-purple-500 mr-2" />
-            Live Streamers
+            {t("Live Streamers")}
           </h2>
           {onRefresh && (
             <button
@@ -53,16 +55,16 @@ export function StreamersSection({
               className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
             >
               <RefreshCw className="w-4 h-4" />
-              Refresh
+              {t("Refresh")}
             </button>
           )}
         </div>
         <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-8 text-center">
           <p className="text-gray-500 dark:text-gray-400">
-            No streamers live right now
+            {t("No streamers live right now")}
           </p>
           <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
-            Check back later!
+            {t("Check back later!")}
           </p>
         </div>
       </section>
@@ -74,9 +76,9 @@ export function StreamersSection({
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
           <PlayCircle className="w-5 h-5 text-purple-500 mr-2" />
-          Live Streamers
+          {t("Live Streamers")}
           <span className="ml-2 text-xs bg-gray-200 dark:bg-gray-800 px-2 py-1 rounded text-gray-500">
-            {streamers.length} live
+            {streamers.length} {t("live")}
           </span>
         </h2>
         {onRefresh && (
@@ -85,7 +87,7 @@ export function StreamersSection({
             className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
           >
             <RefreshCw className="w-4 h-4" />
-            Refresh
+            {t("Refresh")}
           </button>
         )}
       </div>
@@ -119,7 +121,9 @@ export function StreamersSection({
                 {streamer.streamTitle}
               </div>
               <div className="text-xs text-purple-600 dark:text-purple-400 mt-0.5 flex items-center gap-1">
-                <span>{streamer.viewers} watching</span>
+                <span>
+                  {streamer.viewers} {t("watching")}
+                </span>
                 <span className="text-gray-400">•</span>
                 <span className="capitalize">{streamer.platform}</span>
               </div>
@@ -131,7 +135,7 @@ export function StreamersSection({
 
       {/* Lichess attribution */}
       <div className="mt-4 text-center text-xs text-gray-400 dark:text-gray-500">
-        Streamers powered by{" "}
+        {t("Streamers powered by")}{" "}
         <a
           href="https://lichess.org/streamer"
           target="_blank"

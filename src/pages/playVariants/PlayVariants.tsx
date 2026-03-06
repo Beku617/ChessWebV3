@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Chessboard } from "react-chessboard";
 import { Clock, Shuffle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../../store/authStore";
 import { BOARD_FRAME } from "../quickMatch/types";
 
@@ -195,6 +196,7 @@ function FourPlayerPreview({ size }: { size: number }) {
 }
 
 export default function PlayVariants() {
+  const { t } = useTranslation();
   const { user } = useAuthStore();
   const location = useLocation();
   const navigate = useNavigate();
@@ -340,7 +342,7 @@ export default function PlayVariants() {
                   {selectedVariant.label}
                 </span>
                 <span className="text-[10px] text-gray-500 dark:text-gray-400">
-                  (Variant)
+                  ({t("Variant")})
                 </span>
               </div>
             </div>
@@ -373,20 +375,20 @@ export default function PlayVariants() {
               {user?.avatar ? (
                 <img
                   src={user.avatar}
-                  alt={user.fullName || "You"}
+                  alt={user.fullName || t("You")}
                   className="w-full h-full object-cover"
                 />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center">
                   <span className="text-white font-bold text-sm">
-                    {user?.fullName?.substring(0, 1).toUpperCase() || "Y"}
+                    {user?.fullName?.substring(0, 1).toUpperCase() || t("Y")}
                   </span>
                 </div>
               )}
             </div>
             <div className="flex-1">
               <span className="font-semibold text-gray-900 dark:text-white text-[13px]">
-                {user?.fullName || "You"}
+                {user?.fullName || t("You")}
               </span>
             </div>
           </div>
@@ -399,11 +401,11 @@ export default function PlayVariants() {
             <div className="flex items-center gap-2">
               <Shuffle className="w-4 h-4 text-teal-500" />
               <h2 className="font-bold text-[15px] text-gray-900 dark:text-white">
-                Chess Variants
+                {t("Chess Variants")}
               </h2>
             </div>
             <p className="mt-1 text-[11px] text-gray-500 dark:text-gray-400">
-              Pick a ruleset and jump into a match.
+              {t("Pick a ruleset and jump into a match.")}
             </p>
           </div>
 
@@ -411,7 +413,7 @@ export default function PlayVariants() {
             {/* Variant Options */}
             <div className="rounded-2xl border border-gray-200/70 dark:border-white/10 bg-white/70 dark:bg-slate-900/60 p-3">
               <div className="text-[12px] font-semibold text-gray-900 dark:text-white mb-2">
-                Variants
+                {t("Variants")}
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {VARIANTS.map((variant) => {
@@ -429,11 +431,11 @@ export default function PlayVariants() {
                       <div className="flex items-center gap-2">
                         <span className="text-sm">{variant.icon}</span>
                         <span className="text-[12px] font-semibold">
-                          {variant.label}
+                          {t(variant.label)}
                         </span>
                       </div>
                       <div className="text-[10px] text-gray-500 mt-1">
-                        {variant.description}
+                        {t(variant.description)}
                       </div>
                     </button>
                   );
@@ -445,7 +447,7 @@ export default function PlayVariants() {
             <div className="flex-1 min-h-0 rounded-2xl border border-gray-200/70 dark:border-white/10 bg-white/70 dark:bg-slate-900/60 p-3 flex flex-col">
               <div className="flex items-center gap-2 text-[13px] font-semibold text-gray-900 dark:text-white mb-2">
                 <Clock className="w-4 h-4 text-teal-500" />
-                <span>Time Control</span>
+                <span>{t("Time Control")}</span>
               </div>
               <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 gap-2 auto-rows-min">
                 {TIME_OPTIONS.map((opt) => {
@@ -481,7 +483,7 @@ export default function PlayVariants() {
               onClick={handleStart}
               className="w-full py-3 rounded-2xl bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white font-bold text-[15px] transition-all shadow-lg hover:shadow-xl active:scale-[0.98]"
             >
-              Start Variant
+              {t("Start Variant")}
             </button>
           </div>
         </div>

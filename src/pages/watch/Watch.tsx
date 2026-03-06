@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Search, Filter } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import Sidebar from "../../components/Sidebar";
 import { FeaturedMatch } from "./FeaturedMatch";
 import { LiveGamesGrid } from "./LiveGamesGrid";
@@ -7,6 +8,7 @@ import { StreamersSection } from "./StreamersSection";
 import { useWatchPageData } from "../../hooks/useWatchPage";
 
 export default function Watch() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("Top Rated");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -34,10 +36,10 @@ export default function Watch() {
         <header className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              Watch Live
+              {t("Watch Live")}
             </h1>
             <p className="text-gray-500 dark:text-gray-400">
-              Follow the best games happening right now
+              {t("Follow the best games happening right now")}
             </p>
           </div>
 
@@ -46,7 +48,7 @@ export default function Watch() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 type="text"
-                placeholder="Search players or events..."
+                placeholder={t("Search players or events...")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-300 pl-10 pr-4 py-2 rounded-lg focus:outline-none focus:border-teal-500 w-64 transition-colors shadow-sm"

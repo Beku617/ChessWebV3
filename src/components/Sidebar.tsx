@@ -11,12 +11,14 @@ import {
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuthStore, authApi } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
+import { useTranslation } from "react-i18next";
 
 export default function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
   const { isDarkMode } = useThemeStore();
+  const { t } = useTranslation();
   const isActive = (path: string) => location.pathname === path;
   const isCompact =
     location.pathname.startsWith("/play/quick") ||
@@ -35,11 +37,27 @@ export default function Sidebar() {
   };
 
   const navItems = [
-    { icon: Trophy, label: "Tournaments", path: "/tournaments" },
-    { icon: Puzzle, label: "Puzzles", path: "/puzzles" },
-    { icon: GraduationCap, label: "Learn", path: "/learn" },
-    { icon: Eye, label: "Watch", path: "/watch" },
-    { icon: Users, label: "Community", path: "/community" },
+    {
+      icon: Trophy,
+      label: t("nav.tournaments", "Tournaments"),
+      path: "/tournaments",
+    },
+    {
+      icon: Puzzle,
+      label: t("nav.puzzles", "Puzzles"),
+      path: "/puzzles",
+    },
+    {
+      icon: GraduationCap,
+      label: t("nav.learn", "Learn"),
+      path: "/learn",
+    },
+    { icon: Eye, label: t("nav.watch", "Watch"), path: "/watch" },
+    {
+      icon: Users,
+      label: t("nav.community", "Community"),
+      path: "/community",
+    },
   ];
   const fontSizeGroup = {
     primary: "text-base",
@@ -133,14 +151,15 @@ export default function Sidebar() {
                 {user?.avatar ? (
                   <img
                     src={user.avatar}
-                    alt={user.fullName || "User"}
+                    alt={user.fullName || t("common.user", "User")}
                     className="w-full h-full object-cover"
                   />
                 ) : (
                   <span
                     className={`text-white font-bold ${fontSizeGroup.caption}`}
                   >
-                    {user?.fullName?.substring(0, 2).toUpperCase() || "U"}
+                    {user?.fullName?.substring(0, 2).toUpperCase() ||
+                      t("common.userInitial", "U")}
                   </span>
                 )}
               </div>
@@ -148,12 +167,12 @@ export default function Sidebar() {
                 <div
                   className={`font-medium text-gray-900 dark:text-white truncate ${fontSizeGroup.secondary}`}
                 >
-                  {user?.fullName || "User"}
+                  {user?.fullName || t("common.user", "User")}
                 </div>
                 <div
                   className={`text-gray-500 truncate ${fontSizeGroup.caption}`}
                 >
-                  View Profile
+                  {t("nav.viewProfile", "View Profile")}
                 </div>
               </div>
             </Link>
@@ -166,7 +185,7 @@ export default function Sidebar() {
                   ? "bg-teal-500/10 text-teal-600 dark:text-teal-400"
                   : "text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300"
               } ${styleGroup.iconButtonPadding}`}
-              title="Messages"
+              title={t("nav.messages", "Messages")}
             >
               <MessageSquare className={styleGroup.rowIcon} />
             </Link>
@@ -179,7 +198,7 @@ export default function Sidebar() {
                   ? "bg-teal-500/10 text-teal-600 dark:text-teal-400"
                   : "text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300"
               } ${styleGroup.iconButtonPadding}`}
-              title="Friends"
+              title={t("nav.friends", "Friends")}
             >
               <Users className={styleGroup.rowIcon} />
             </Link>
@@ -192,7 +211,7 @@ export default function Sidebar() {
                   ? "bg-teal-500/10 text-teal-600 dark:text-teal-400"
                   : "text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300"
               } ${styleGroup.iconButtonPadding}`}
-              title="Settings"
+              title={t("nav.settings", "Settings")}
             >
               <Settings className={styleGroup.rowIcon} />
             </Link>
@@ -206,7 +225,7 @@ export default function Sidebar() {
         >
           <LogOut className={styleGroup.rowIcon} />
           <span className={`font-medium leading-none ${fontSizeGroup.primary}`}>
-            Log Out
+            {t("nav.logout", "Log Out")}
           </span>
         </button>
       </div>

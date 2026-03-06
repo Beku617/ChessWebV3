@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Chessboard } from "react-chessboard";
 import { Bot, ChevronDown, Crown, Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../../store/authStore";
 import type { BotPersonality } from "../../data/botPersonalities";
 import { BOARD_FRAME } from "./types";
@@ -48,6 +49,7 @@ function mapDbBotToPersonality(dbBot: any): BotPersonality {
 }
 
 export default function PlayWithBot() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuthStore();
 
@@ -79,7 +81,7 @@ export default function PlayWithBot() {
         });
 
         if (!res.ok) {
-          throw new Error("Failed to fetch bots");
+          throw new Error(t("Failed to fetch bots"));
         }
 
         const data = await res.json();
@@ -108,7 +110,7 @@ export default function PlayWithBot() {
         setError(null);
       } catch (err) {
         console.error("Error fetching bots:", err);
-        setError("Failed to load bots");
+        setError(t("Failed to load bots"));
       } finally {
         setLoading(false);
       }
@@ -186,7 +188,7 @@ export default function PlayWithBot() {
             <div className="flex-1">
               <div className="flex items-center gap-2">
                 <span className="font-bold text-gray-900 dark:text-white">
-                  {selectedBot?.name || "Select Bot"}
+                  {selectedBot?.name || t("Select Bot")}
                 </span>
                 {selectedBot?.title && (
                   <span className="px-1.5 py-0.5 text-[10px] font-bold bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded">
@@ -220,18 +222,18 @@ export default function PlayWithBot() {
               {user?.avatar ? (
                 <img
                   src={user.avatar}
-                  alt={user.fullName || "You"}
+                  alt={user.fullName || t("You")}
                   className="w-full h-full object-cover"
                 />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">{user?.fullName?.substring(0, 1).toUpperCase() || "Y"}</span>
+                  <span className="text-white font-bold text-sm">{user?.fullName?.substring(0, 1).toUpperCase() || t("Y")}</span>
                 </div>
               )}
             </div>
             <div className="flex-1">
               <span className="font-bold text-gray-900 dark:text-white">
-                {user?.fullName || "You"}
+                {user?.fullName || t("You")}
               </span>
             </div>
           </div>
@@ -244,7 +246,7 @@ export default function PlayWithBot() {
             <div className="flex items-center gap-2">
               <Bot className="w-5 h-5 text-teal-500" />
               <h2 className="font-bold text-lg text-gray-900 dark:text-white">
-                Play Bots
+                {t("Play Bots")}
               </h2>
             </div>
           </div>
@@ -300,7 +302,7 @@ export default function PlayWithBot() {
             {loading ? (
               <div className="flex items-center justify-center py-10">
                 <Loader2 className="w-6 h-6 text-teal-500 animate-spin" />
-                <span className="ml-2 text-gray-500">Loading bots...</span>
+                <span className="ml-2 text-gray-500">{t("Loading bots...")}</span>
               </div>
             ) : error ? (
               <div className="flex items-center justify-center py-10">
@@ -326,13 +328,13 @@ export default function PlayWithBot() {
                     >
                       <div className="flex items-center">
                         <span className="font-medium text-gray-900 dark:text-white">
-                          {cat.label}
+                          {t(cat.label)}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-gray-500 dark:text-gray-400">
                           {categoryBots.length}{" "}
-                          {categoryBots.length === 1 ? "bot" : "bots"}
+                          {categoryBots.length === 1 ? t("bot") : t("bots")}
                         </span>
                         <ChevronDown
                           className={`w-4 h-4 text-gray-400 transition-transform ${isExpanded ? "rotate-180" : ""}`}
@@ -407,7 +409,7 @@ export default function PlayWithBot() {
               disabled={!selectedBot}
               className="w-full py-3 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white font-bold text-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl active:scale-[0.98]"
             >
-              Play
+              {t("Play")}
             </button>
           </div>
         </div>

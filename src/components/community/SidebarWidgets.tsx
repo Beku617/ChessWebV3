@@ -30,16 +30,18 @@ import {
   SUGGESTED_USERS,
   UPCOMING_EVENTS,
 } from "../../data/communityData";
+import { useTranslation } from "react-i18next";
 
 /* ─── Trending Topics ─── */
 export function TrendingWidget() {
+  const { t } = useTranslation();
   return (
     <SidebarCard
-      title="Trending"
+      title={t("Trending")}
       icon={<TrendingUp className="w-4 h-4 text-orange-500" />}
       action={
         <button className="text-[11px] font-semibold text-teal-500 hover:text-teal-400 transition-colors">
-          See all
+          {t("See all")}
         </button>
       }
     >
@@ -57,7 +59,7 @@ export function TrendingWidget() {
                 {topic.tag}
               </div>
               <div className="text-[10px] text-gray-400 dark:text-gray-500">
-                {topic.posts} posts
+                {topic.posts} {t("posts")}
               </div>
             </div>
             <span className="text-xs font-bold text-gray-400 dark:text-gray-600 mt-1">
@@ -72,14 +74,15 @@ export function TrendingWidget() {
 
 /* ─── Live Games ─── */
 export function LiveGamesWidget() {
+  const { t } = useTranslation();
   return (
     <SidebarCard
-      title="Live Now"
+      title={t("Live Now")}
       icon={<Radio className="w-4 h-4 text-red-500 animate-pulse" />}
       action={
         <span className="flex items-center gap-1 text-[10px] font-bold text-red-400">
           <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-          {LIVE_GAMES.length} games
+          {LIVE_GAMES.length} {t("games")}
         </span>
       }
     >
@@ -137,9 +140,10 @@ export function LiveGamesWidget() {
 
 /* ─── Top Players Online ─── */
 export function TopPlayersWidget() {
+  const { t } = useTranslation();
   return (
     <SidebarCard
-      title="Top Players"
+      title={t("Top Players")}
       icon={<Crown className="w-4 h-4 text-amber-500" />}
     >
       <div className="space-y-1.5">
@@ -176,13 +180,14 @@ export function TopPlayersWidget() {
 
 /* ─── Puzzle Leaderboard ─── */
 export function PuzzleLeaderboardWidget() {
+  const { t } = useTranslation();
   return (
     <SidebarCard
-      title="Puzzle Leaders"
+      title={t("Puzzle Leaders")}
       icon={<Puzzle className="w-4 h-4 text-violet-500" />}
       action={
         <button className="text-[11px] font-semibold text-teal-500 hover:text-teal-400 transition-colors">
-          Full board
+          {t("Full board")}
         </button>
       }
     >
@@ -211,7 +216,7 @@ export function PuzzleLeaderboardWidget() {
                 {leader.name}
               </span>
               <span className="text-[10px] text-gray-500 dark:text-gray-400 tabular-nums">
-                {leader.rating} · {formatCount(leader.solved)} solved
+                {leader.rating} · {formatCount(leader.solved)} {t("solved")}
               </span>
             </div>
           </div>
@@ -223,9 +228,10 @@ export function PuzzleLeaderboardWidget() {
 
 /* ─── Who to Follow ─── */
 export function WhoToFollowWidget() {
+  const { t } = useTranslation();
   return (
     <SidebarCard
-      title="Who to Follow"
+      title={t("Who to Follow")}
       icon={<UserPlus className="w-4 h-4 text-teal-500" />}
     >
       <div className="space-y-3">
@@ -253,6 +259,7 @@ export function WhoToFollowWidget() {
 
 /* ─── Upcoming Events ─── */
 export function EventsWidget() {
+  const { t } = useTranslation();
   const typeIcon: Record<string, { icon: typeof Trophy; color: string }> = {
     tournament: { icon: Trophy, color: "text-amber-500 bg-amber-500/10" },
     stream: { icon: Tv, color: "text-red-500 bg-red-500/10" },
@@ -262,7 +269,7 @@ export function EventsWidget() {
 
   return (
     <SidebarCard
-      title="Upcoming Events"
+      title={t("Upcoming Events")}
       icon={<Calendar className="w-4 h-4 text-blue-500" />}
     >
       <div className="space-y-2">
@@ -303,6 +310,7 @@ export function EventsWidget() {
 
 /* ─── Daily Puzzle Shortcut ─── */
 export function DailyPuzzleWidget() {
+  const { t } = useTranslation();
   // 4x4 quick board
   const squares = Array.from({ length: 16 }, (_, i) => {
     const row = Math.floor(i / 4);
@@ -312,7 +320,7 @@ export function DailyPuzzleWidget() {
 
   return (
     <SidebarCard
-      title="Daily Puzzle"
+      title={t("Daily Puzzle")}
       icon={<Flame className="w-4 h-4 text-orange-500" />}
     >
       <button className="w-full group">
@@ -332,7 +340,7 @@ export function DailyPuzzleWidget() {
         </div>
         <div className="mt-2 text-center">
           <span className="text-xs font-bold text-teal-500 group-hover:text-teal-400 transition-colors">
-            Solve Today's Puzzle →
+            {t("Solve Today's Puzzle →")}
           </span>
         </div>
       </button>

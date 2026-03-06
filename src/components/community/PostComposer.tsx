@@ -14,6 +14,7 @@ import {
   Bold,
   Italic,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Avatar } from "./CommunityUI";
 import { useAuthStore } from "../../store/authStore";
 
@@ -24,6 +25,7 @@ interface ComposerProps {
 }
 
 export function PostComposer({ onPost }: ComposerProps) {
+  const { t } = useTranslation();
   const { user } = useAuthStore();
   const [content, setContent] = useState("");
   const [focused, setFocused] = useState(false);
@@ -53,32 +55,32 @@ export function PostComposer({ onPost }: ComposerProps) {
   const actionButtons = [
     {
       icon: ImageIcon,
-      label: "Image",
+      label: t("Image"),
       color: "text-blue-400 hover:bg-blue-500/10",
     },
     {
       icon: FileText,
-      label: "PGN",
+      label: t("PGN"),
       color: "text-teal-400 hover:bg-teal-500/10",
     },
     {
       icon: BarChart3,
-      label: "Poll",
+      label: t("Poll"),
       color: "text-purple-400 hover:bg-purple-500/10",
     },
     {
       icon: Puzzle,
-      label: "Puzzle",
+      label: t("Puzzle"),
       color: "text-amber-400 hover:bg-amber-500/10",
     },
     {
       icon: Trophy,
-      label: "Game",
+      label: t("Game"),
       color: "text-emerald-400 hover:bg-emerald-500/10",
     },
     {
       icon: Smile,
-      label: "Emoji",
+      label: t("Emoji"),
       color: "text-yellow-400 hover:bg-yellow-500/10",
     },
   ];
@@ -107,7 +109,7 @@ export function PostComposer({ onPost }: ComposerProps) {
               onChange={(e) => setContent(e.target.value)}
               onFocus={() => setFocused(true)}
               onBlur={() => setFocused(false)}
-              placeholder="Share a game, puzzle, or thought..."
+              placeholder={t("Share a game, puzzle, or thought...")}
               className="w-full bg-transparent border-none focus:ring-0 focus:outline-none text-sm text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 resize-none min-h-[64px] leading-relaxed"
               rows={2}
             />
@@ -182,7 +184,7 @@ export function PostComposer({ onPost }: ComposerProps) {
                       : "bg-gray-200 dark:bg-gray-800 text-gray-400 cursor-not-allowed"
                   }`}
                 >
-                  <span>Post</span>
+                  <span>{t("Post")}</span>
                   <Send className="w-3.5 h-3.5" />
                 </button>
               </div>

@@ -1,4 +1,5 @@
 import { Trophy, Eye, ExternalLink, Calendar, Users } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { FeaturedEvent } from "../../hooks/useWatchPage";
 import { TransformedLiveGame } from "../../utils/lichessApi";
 
@@ -13,6 +14,8 @@ export function FeaturedMatch({
   fallbackGame,
   loading,
 }: FeaturedMatchProps) {
+  const { t } = useTranslation();
+
   // Show skeleton while loading
   if (loading) {
     return (
@@ -20,7 +23,7 @@ export function FeaturedMatch({
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
             <Trophy className="w-5 h-5 text-yellow-500 mr-2" />
-            Featured Match
+            {t("Featured Match")}
           </h2>
         </div>
         <div className="bg-white dark:bg-gradient-to-r dark:from-gray-900 dark:to-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-800 shadow-xl animate-pulse">
@@ -40,15 +43,15 @@ export function FeaturedMatch({
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
             <Trophy className="w-5 h-5 text-yellow-500 mr-2" />
-            Featured{" "}
+            {t("Featured")}{" "}
             {event.type === "tournament"
-              ? "Tournament"
+              ? t("Tournament")
               : event.type === "match"
-                ? "Match"
-                : "Event"}
+                ? t("Match")
+                : t("Event")}
           </h2>
           <span className="text-teal-600 dark:text-teal-500 text-sm font-medium cursor-pointer hover:underline">
-            View all events
+            {t("View all events")}
           </span>
         </div>
 
@@ -65,7 +68,7 @@ export function FeaturedMatch({
               )}
               {event.status === "upcoming" && (
                 <span className="px-2 py-1 bg-blue-500 text-white text-xs font-bold rounded">
-                  UPCOMING
+                  {t("UPCOMING")}
                 </span>
               )}
               <span className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -149,7 +152,9 @@ export function FeaturedMatch({
             {event.viewers > 0 && (
               <div className="flex items-center gap-1">
                 <Users className="w-4 h-4" />
-                <span>{event.viewers.toLocaleString()} watching</span>
+                <span>
+                  {event.viewers.toLocaleString()} {t("watching")}
+                </span>
               </div>
             )}
           </div>
@@ -157,7 +162,7 @@ export function FeaturedMatch({
           <div className="flex justify-center gap-4">
             <button className="flex items-center space-x-2 bg-teal-600 hover:bg-teal-500 text-white px-8 py-3 rounded-lg font-bold transition-all shadow-lg shadow-teal-900/20 hover:scale-105">
               <Eye className="w-5 h-5" />
-              <span>Watch Now</span>
+              <span>{t("Watch Now")}</span>
             </button>
             {event.lichessUrl && (
               <a
@@ -183,13 +188,13 @@ export function FeaturedMatch({
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
             <Trophy className="w-5 h-5 text-yellow-500 mr-2" />
-            Featured Match
+            {t("Featured Match")}
             <span className="ml-2 text-xs bg-gray-200 dark:bg-gray-800 px-2 py-1 rounded text-gray-500">
-              via Lichess
+              {t("via Lichess")}
             </span>
           </h2>
           <span className="text-teal-600 dark:text-teal-500 text-sm font-medium cursor-pointer hover:underline">
-            View all tournaments
+            {t("View all tournaments")}
           </span>
         </div>
 
@@ -265,7 +270,7 @@ export function FeaturedMatch({
               className="flex items-center space-x-2 bg-teal-600 hover:bg-teal-500 text-white px-8 py-3 rounded-lg font-bold transition-all shadow-lg shadow-teal-900/20 hover:scale-105"
             >
               <Eye className="w-5 h-5" />
-              <span>Watch on Lichess</span>
+              <span>{t("Watch on Lichess")}</span>
             </a>
           </div>
         </div>
@@ -279,12 +284,12 @@ export function FeaturedMatch({
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
           <Trophy className="w-5 h-5 text-yellow-500 mr-2" />
-          Featured Match
+          {t("Featured Match")}
         </h2>
       </div>
       <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 border border-gray-200 dark:border-gray-800 text-center">
         <p className="text-gray-500 dark:text-gray-400">
-          No featured events at the moment
+          {t("No featured events at the moment")}
         </p>
       </div>
     </section>

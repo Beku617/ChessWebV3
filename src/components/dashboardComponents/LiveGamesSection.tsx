@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Users, Clock, RefreshCw } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { TransformedLiveGame } from "../../utils/lichessApi";
 
 interface LiveGamesSectionProps {
@@ -17,6 +18,7 @@ export function LiveGamesSection({
   error,
   refetch,
 }: LiveGamesSectionProps) {
+  const { t } = useTranslation();
   const isLoading = loading || apiLoading;
 
   return (
@@ -31,10 +33,10 @@ export function LiveGamesSection({
           <div className="flex items-center space-x-2">
             <Users className="w-5 h-5 text-teal-500 dark:text-teal-400" />
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
-              Live Games
+              {t("Live Games")}
             </h2>
             <span className="px-2 py-1 bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 text-xs rounded-full">
-              {games.length} active
+              {games.length} {t("active")}
             </span>
           </div>
           <div className="flex items-center space-x-3">
@@ -42,14 +44,14 @@ export function LiveGamesSection({
               onClick={refetch}
               disabled={apiLoading}
               className="flex items-center space-x-1 text-sm text-gray-500 dark:text-gray-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors disabled:opacity-50"
-              title="Refresh live games"
+              title={t("Refresh live games")}
             >
               <RefreshCw
                 className={`w-3.5 h-3.5 ${apiLoading ? "animate-spin" : ""}`}
               />
             </button>
             <button className="text-sm text-teal-600 dark:text-teal-400 hover:text-teal-500 dark:hover:text-teal-300 transition-colors">
-              View All
+              {t("View All")}
             </button>
           </div>
         </div>
@@ -140,7 +142,7 @@ export function LiveGamesSection({
                       rel="noopener noreferrer"
                       className="px-3 py-1 bg-teal-600 hover:bg-teal-500 text-white text-sm rounded-md transition-colors opacity-0 group-hover:opacity-100 shadow-sm hover:shadow-teal-600/20"
                     >
-                      Watch
+                      {t("Watch")}
                     </a>
                   </div>
                 </div>

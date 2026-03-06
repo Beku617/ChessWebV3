@@ -1,0 +1,241 @@
+{
+  "brand": {
+    "name": "NeonGambit"
+  },
+  "settingsLang": {
+    "title": "Language",
+    "helper": "Choose your preferred language"
+  },
+  "language": {
+    "label": "Language"
+  },
+  "common": {
+    "user": "User",
+    "userInitial": "U",
+    "toggleTheme": "Toggle theme"
+  },
+  "nav": {
+    "tournaments": "Tournaments",
+    "puzzles": "Puzzles",
+    "learn": "Learn",
+    "watch": "Watch",
+    "community": "Community",
+    "viewProfile": "View Profile",
+    "messages": "Messages",
+    "friends": "Friends",
+    "settings": "Settings",
+    "logout": "Log Out"
+  },
+  "auth": {
+    "welcomeBack": "Welcome Back",
+    "signInSubtitle": "Sign in to continue your chess journey",
+    "accountBannedTitle": "Account Banned",
+    "accountBannedReason": "Your account has been banned. Reason: {{reason}}",
+    "email": "Email Address",
+    "emailPlaceholder": "you@example.com",
+    "password": "Password",
+    "forgotPassword": "Forgot password?",
+    "rememberMe": "Remember me for 30 days",
+    "signIn": "Sign In",
+    "orContinue": "Or continue with",
+    "noAccount": "Don't have an account?",
+    "signUp": "Sign up",
+    "loginFailed": "Login failed",
+    "createAccount": "Create Account",
+    "registerSubtitle": "Join the community of chess masters",
+    "fullName": "Full Name",
+    "namePlaceholder": "John Doe",
+    "minimumChars": "Minimum 6 characters",
+    "orSignup": "Or sign up with",
+    "haveAccount": "Already have an account?",
+    "signInCta": "Sign in",
+    "registrationFailed": "Registration failed"
+  },
+  "settings": {
+    "header": {
+      "title": "Settings",
+      "subtitle": "Manage your account & preferences"
+    },
+    "actions": {
+      "reset": "Reset",
+      "saveChanges": "Save Changes",
+      "change": "Change",
+      "manage": "Manage"
+    },
+    "toasts": {
+      "saved": "Settings saved successfully!",
+      "reset": "Settings reset to last saved state",
+      "passwordChanged": "Password changed successfully!",
+      "deletionRequested": "Account deletion requested"
+    },
+    "profile": {
+      "title": "Profile & Account",
+      "subtitle": "Your personal information and security",
+      "username": "Username",
+      "email": "Email",
+      "changePassword": "Change Password",
+      "changePasswordHelper": "Update your account password",
+      "linkedAccounts": "Linked Accounts",
+      "linkedAccountsHelper": "Connect third-party services",
+      "google": "Google",
+      "github": "GitHub"
+    },
+    "appearance": {
+      "title": "Appearance",
+      "subtitle": "Customize how NeonGambit looks",
+      "theme": "Theme",
+      "themeHelper": "Choose your preferred color scheme",
+      "themes": {
+        "dark": "Dark",
+        "dim": "Dim",
+        "amoled": "AMOLED"
+      },
+      "accentColor": "Accent Color",
+      "accentHelper": "Primary highlight color",
+      "accent": {
+        "teal": "Teal",
+        "purple": "Purple",
+        "blue": "Blue"
+      },
+      "boardTheme": "Board Theme",
+      "boardThemeHelper": "Choose board color scheme",
+      "boardThemes": {
+        "green": "Green",
+        "brown": "Brown",
+        "blue": "Blue",
+        "purple": "Purple",
+        "gray": "Gray",
+        "neon": "Neon"
+      },
+      "pieceStyle": "Piece Style",
+      "pieceStyleHelper": "Visual style of chess pieces",
+      "pieces": {
+        "neo": "Neo",
+        "classic": "Classic",
+        "alpha": "Alpha",
+        "merida": "Merida"
+      },
+      "reducedMotion": "Reduced Motion",
+      "reducedMotionHelper": "Minimize animations"
+    },
+    "gameplay": {
+      "title": "Gameplay",
+      "subtitle": "Tweak your playing experience",
+      "defaultTime": "Default Time Control",
+      "defaultTimeHelper": "Starting time format for new games",
+      "timeControls": {
+        "bullet": "⚡ Bullet",
+        "blitz": "🔥 Blitz",
+        "rapid": "🚀 Rapid",
+        "classical": "🏛️ Classical",
+        "custom": "⚙️ Custom"
+      },
+      "autoQueen": "Auto-Queen",
+      "autoQueenHelper": "Automatically promote pawns to queen",
+      "moveInput": "Move Input",
+      "moveInputHelper": "How you make moves on the board",
+      "input": {
+        "click": "Click",
+        "drag": "Drag",
+        "both": "Both"
+      },
+      "legalMoves": "Show Legal Moves",
+      "legalMovesHelper": "Highlight available squares",
+      "confirmMove": "Confirm Move",
+      "confirmMoveHelper": "Require explicit confirmation before moving",
+      "premoves": "Premoves",
+      "premovesHelper": "Queue your next move while waiting"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "subtitle": "Control what alerts you receive",
+      "email": "Email Notifications",
+      "emailHelper": "Receive emails about activity",
+      "push": "Push Notifications",
+      "pushHelper": "Browser push alerts",
+      "challengeRequests": "Challenge Requests",
+      "challengeHelper": "Get notified when someone challenges you",
+      "tournamentUpdates": "Tournament Updates",
+      "tournamentHelper": "Upcoming events and results",
+      "soundEffects": "Sound Effects",
+      "soundEffectsHelper": "In-game sounds and alerts",
+      "soundVolume": "Sound Volume",
+      "soundVolumeHelper": "Adjust effect volume"
+    },
+    "privacy": {
+      "title": "Privacy & Safety",
+      "subtitle": "Control who sees your information",
+      "visibility": "Profile Visibility",
+      "visibilityHelper": "Who can see your profile",
+      "options": {
+        "public": "Public",
+        "friends": "Friends",
+        "private": "Private"
+      },
+      "onlineStatus": "Show Online Status",
+      "onlineStatusHelper": "Let others see when you're online",
+      "lastSeen": "Show Last Seen",
+      "lastSeenHelper": "Display when you were last active",
+      "blockedUsers": "Blocked Users",
+      "blockedUsersHelper": "Manage your block list"
+    },
+    "ai": {
+      "title": "AI & Analysis",
+      "subtitle": "Configure AI-powered features",
+      "explanations": "AI Move Explanations",
+      "explanationsHelper": "Get detailed move analysis powered by Llama 3",
+      "groqConnected": "Groq API connected",
+      "groqMissing": "VITE_GROQ_API_KEY missing — add it to .env",
+      "explanationLevel": "Explanation Level",
+      "explanationLevelHelper": "How detailed AI commentary should be",
+      "levels": {
+        "brief": "Brief",
+        "normal": "Normal",
+        "deep": "Deep"
+      },
+      "postGame": "Post-Game Analysis",
+      "postGameHelper": "Allow engine analysis after games",
+      "engineStrength": "Engine Strength",
+      "engineStrengthHelper": "Stockfish difficulty level",
+      "levelLabel": "Lvl"
+    },
+    "stats": {
+      "bullet": "Bullet",
+      "blitz": "Blitz",
+      "rapid": "Rapid",
+      "classical": "Classical",
+      "gamesPlayed": "Games Played",
+      "gamesWon": "Games Won"
+    },
+    "quickActions": {
+      "title": "Quick Actions",
+      "exportPgn": "Export Games (PGN)",
+      "downloadData": "Download Account Data"
+    },
+    "danger": {
+      "title": "Danger Zone",
+      "subtitle": "Irreversible actions",
+      "signOutAll": "Sign Out All Devices",
+      "deleteAccount": "Delete Account"
+    },
+    "modals": {
+      "changePassword": {
+        "title": "Change Password",
+        "current": "Current Password",
+        "currentPlaceholder": "Enter current password",
+        "new": "New Password",
+        "newPlaceholder": "Enter new password",
+        "confirm": "Confirm Password",
+        "confirmPlaceholder": "Confirm new password",
+        "cta": "Update Password"
+      },
+      "delete": {
+        "title": "Delete Account",
+        "warning": "This action is permanent and cannot be undone. All your games, ratings, and data will be lost.",
+        "confirmLabel": "Type {{name}} to confirm",
+        "username": "username",
+        "cta": "Permanently Delete Account"
+      }
+    }
+  }
+}

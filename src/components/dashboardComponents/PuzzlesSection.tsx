@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Chessboard } from "react-chessboard";
 
 interface Puzzle {
@@ -31,6 +32,7 @@ interface PuzzlePreviewBoardProps {
 }
 
 function PuzzlePreviewBoard({ puzzleId, fen, onClick }: PuzzlePreviewBoardProps) {
+  const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [boardWidth, setBoardWidth] = useState(260);
 
@@ -67,7 +69,7 @@ function PuzzlePreviewBoard({ puzzleId, fen, onClick }: PuzzlePreviewBoardProps)
       type="button"
       onClick={onClick}
       className="w-full text-left rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70"
-      aria-label="Open puzzle training"
+      aria-label={t("Open puzzle training")}
     >
       <div
         ref={containerRef}
@@ -88,6 +90,7 @@ function PuzzlePreviewBoard({ puzzleId, fen, onClick }: PuzzlePreviewBoardProps)
 }
 
 export function PuzzlesSection({ showTopDivider = true }: PuzzlesSectionProps) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const featuredPuzzleTrainPath = "/puzzles/train/697e04834e244759b6123158";
   const [puzzles, setPuzzles] = useState<Puzzle[]>([]);
@@ -136,12 +139,12 @@ export function PuzzlesSection({ showTopDivider = true }: PuzzlesSectionProps) {
           <div className="flex items-center space-x-2">
             <span className="text-xl">🧩</span>
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-              Puzzles
+              {t("Puzzles")}
             </h3>
           </div>
         </div>
         <p className="text-gray-500 dark:text-gray-400 text-sm">
-          No puzzles available yet.
+          {t("No puzzles available yet.")}
         </p>
       </div>
     );
@@ -153,14 +156,14 @@ export function PuzzlesSection({ showTopDivider = true }: PuzzlesSectionProps) {
         <div className="flex items-center space-x-2">
           <span className="text-xl">🧩</span>
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-            Puzzles
+            {t("Puzzles")}
           </h3>
         </div>
         <button
           onClick={() => navigate("/puzzles")}
           className="text-sm text-teal-600 dark:text-teal-400 hover:text-teal-500 dark:hover:text-teal-300 transition-colors"
         >
-          Browse All
+          {t("Browse All")}
         </button>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -184,7 +187,7 @@ export function PuzzlesSection({ showTopDivider = true }: PuzzlesSectionProps) {
                 onClick={() => handleSolve(pz)}
                 className="w-full px-4 py-2.5 bg-gray-900 dark:bg-gray-800 hover:bg-gray-800 dark:hover:bg-gray-700 text-white text-sm rounded-lg transition-colors"
               >
-                Solve Puzzle
+                {t("Solve Puzzle")}
               </button>
             </div>
           </motion.div>

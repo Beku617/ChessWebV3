@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Puzzle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../../store/authStore";
 import {
   API_URL,
@@ -18,6 +19,7 @@ import { PuzzlesGrid } from "./PuzzlesGrid";
 import { PuzzleBrowseFilters } from "./PuzzleBrowseFilters";
 
 export default function Puzzles() {
+  const { t } = useTranslation();
   const { user } = useAuthStore();
   const [puzzles, setPuzzles] = useState<PuzzleItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -99,16 +101,18 @@ export default function Puzzles() {
   }, [collection, mateBucket, motif, puzzles, query]);
 
   const activeLabel = useMemo(() => {
-    if (collection === "all") return "All Puzzles";
+    if (collection === "all") return t("All Puzzles");
     if (collection === "mate") {
-      return mateBucket === "all" ? "Mate" : `Mate in ${mateBucket}`;
+      return mateBucket === "all"
+        ? t("Mate")
+        : t("Mate in {{count}}", { count: mateBucket });
     }
     if ((collection === "tactics" || collection === "endgame") && motif !== "All") {
-      return `${collection === "tactics" ? "Tactics" : "Endgame"} • ${motif}`;
+      return `${t(collection === "tactics" ? "Tactics" : "Endgame")} • ${t(motif)}`;
     }
-    if (collection === "openings") return "Openings";
-    return "Filtered";
-  }, [collection, mateBucket, motif]);
+    if (collection === "openings") return t("Openings");
+    return t("Filtered");
+  }, [collection, mateBucket, motif, t]);
 
   return (
     <div className="space-y-8">
@@ -117,10 +121,10 @@ export default function Puzzles() {
         <div className="lg:col-span-1 space-y-2">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
             <Puzzle className="w-8 h-8 text-teal-500 dark:text-teal-400" />
-            Puzzles
+            {t("Puzzles")}
           </h1>
           <p className="text-gray-500 dark:text-gray-400">
-            Train by motif and track your puzzle strength.
+            {t("Train by motif and track your puzzle strength.")}
           </p>
         </div>
 

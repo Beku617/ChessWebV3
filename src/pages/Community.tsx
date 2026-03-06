@@ -3,6 +3,7 @@
    ═══════════════════════════════════════════════════════ */
 import { useEffect, useState, useMemo } from "react";
 import { Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const POSTS_PER_PAGE = 8;
 
@@ -34,6 +35,7 @@ import {
 } from "../data/communityData";
 
 export default function Community() {
+  const { t } = useTranslation();
   const [searchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -95,16 +97,16 @@ export default function Community() {
             {filteredPosts.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-gray-400 dark:text-gray-600">
                 <Search className="w-10 h-10 mb-3 opacity-40" />
-                <p className="text-sm font-medium">No posts found</p>
+                <p className="text-sm font-medium">{t("No posts found")}</p>
                 <p className="text-xs mt-1">
-                  Try a different tab or search term
+                  {t("Try a different tab or search term")}
                 </p>
               </div>
             ) : (
               <>
                 {/* Range info */}
                 <div className="text-sm text-gray-500 dark:text-gray-400">
-                  {rangeStart}–{rangeEnd} of {filteredPosts.length} posts
+                  {rangeStart}–{rangeEnd} {t("of")} {filteredPosts.length} {t("posts")}
                 </div>
 
                 <div className="space-y-4">
@@ -169,7 +171,7 @@ export default function Community() {
             {/* Footer */}
             <div className="px-3 pt-2">
               <p className="text-[10px] text-gray-400 dark:text-gray-600 leading-relaxed">
-                About · Help · Terms · Privacy · Ads · API ·{" "}
+                {t("About")} · {t("Help")} · {t("Terms")} · {t("Privacy")} · {t("Ads")} · API ·{" "}
                 <span className="font-semibold text-gray-500 dark:text-gray-500">
                   NeonGambit
                 </span>{" "}

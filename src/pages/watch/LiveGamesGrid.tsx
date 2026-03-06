@@ -7,6 +7,7 @@ import {
   ExternalLink,
   RefreshCw,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { TransformedLiveGame } from "../../utils/lichessApi";
 
 const GAMES_PER_PAGE = 12;
@@ -28,6 +29,7 @@ interface LiveGameCardProps {
 }
 
 export function LiveGameCard({ game }: LiveGameCardProps) {
+  const { t } = useTranslation();
   const label = game.category || game.type;
   return (
     <motion.a
@@ -99,7 +101,7 @@ export function LiveGameCard({ game }: LiveGameCardProps) {
           Lichess
         </span>
         <span className="text-teal-600 dark:text-teal-500 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity flex items-center">
-          Watch <ChevronRight className="w-4 h-4 ml-1" />
+          {t("Watch")} <ChevronRight className="w-4 h-4 ml-1" />
         </span>
       </div>
     </motion.a>
@@ -146,6 +148,7 @@ export function LiveGamesGrid({
   loading,
   onRefresh,
 }: LiveGamesGridProps) {
+  const { t } = useTranslation();
   const [currentPage, setCurrentPage] = useState(1);
 
   const getCategory = (game: TransformedLiveGame) => {
@@ -228,7 +231,7 @@ export function LiveGamesGrid({
                   : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
               }`}
             >
-              {tab}
+              {t(tab)}
               {activeTab === tab && (
                 <motion.div
                   layoutId="activeTab"
@@ -245,7 +248,7 @@ export function LiveGamesGrid({
             className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 pb-4"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-            Refresh
+            {t("Refresh")}
           </button>
         )}
       </div>
@@ -253,7 +256,7 @@ export function LiveGamesGrid({
       {/* Count info */}
       {!loading && filteredGames.length > 0 && (
         <div className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-          {rangeStart}–{rangeEnd} of {filteredGames.length} games
+          {rangeStart}–{rangeEnd} {t("of")} {filteredGames.length} {t("games")}
         </div>
       )}
 
@@ -271,9 +274,9 @@ export function LiveGamesGrid({
         </div>
       ) : (
         <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-          <p>No live games in this category right now</p>
+          <p>{t("No live games in this category right now")}</p>
           <p className="text-sm mt-2">
-            Check back soon or try another category
+            {t("Check back soon or try another category")}
           </p>
         </div>
       )}
@@ -318,7 +321,7 @@ export function LiveGamesGrid({
 
       {/* Lichess attribution */}
       <div className="mt-6 text-center text-xs text-gray-400 dark:text-gray-500">
-        Live games powered by{" "}
+        {t("Live games powered by")}{" "}
         <a
           href="https://lichess.org"
           target="_blank"

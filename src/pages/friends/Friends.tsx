@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, UserPlus, UserX, MessageCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import Sidebar from "../../components/Sidebar";
 import { useAuthStore } from "../../store/authStore";
 
@@ -37,6 +38,7 @@ function resolveAvatarUrl(avatar?: string) {
 }
 
 export default function Friends() {
+  const { t } = useTranslation();
   const { user } = useAuthStore();
   const navigate = useNavigate();
   const [friends, setFriends] = useState<Friend[]>([]);
@@ -165,16 +167,16 @@ export default function Friends() {
         <header className="flex flex-col gap-4 mb-8">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold">Friends</h1>
+              <h1 className="text-3xl font-bold">{t("Friends")}</h1>
               <p className="text-gray-500 dark:text-gray-400">
-                Manage your friends and stay connected.
+                {t("Manage your friends and stay connected.")}
               </p>
             </div>
             <div className="relative w-full max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 type="text"
-                placeholder="Search friends..."
+                placeholder={t("Search friends...")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-300 pl-10 pr-4 py-2 rounded-lg focus:outline-none focus:border-teal-500 transition-colors shadow-sm"
@@ -188,20 +190,20 @@ export default function Friends() {
           <section className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-5 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h2 className="text-lg font-semibold">Your Friends</h2>
+                <h2 className="text-lg font-semibold">{t("Your Friends")}</h2>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {friends.length} total
+                  {friends.length} {t("total")}
                 </p>
               </div>
             </div>
 
             {loadingFriends ? (
               <div className="py-10 text-center text-gray-500 dark:text-gray-400">
-                Loading friends...
+                {t("Loading friends...")}
               </div>
             ) : filteredFriends.length === 0 ? (
               <div className="py-10 text-center text-gray-500 dark:text-gray-400">
-                No friends found.
+                {t("No friends found.")}
               </div>
             ) : (
               <div className="space-y-3">
@@ -235,7 +237,7 @@ export default function Friends() {
                           {friend.name}
                         </div>
                         <div className="text-xs text-gray-500 dark:text-gray-400">
-                          Friends since {friend.since}
+                          {t("Friends since")} {friend.since}
                         </div>
                       </div>
                     </div>
@@ -243,7 +245,7 @@ export default function Friends() {
                     <div className="flex items-center gap-2">
                       <button
                         className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-teal-500/10 text-teal-600 dark:text-teal-300 hover:bg-teal-500/20 transition-colors flex items-center gap-1.5"
-                        title="Message"
+                        title={t("Message")}
                         onClick={() =>
                           navigate(
                             `/messages?chat=${encodeURIComponent(friend.id)}&name=${encodeURIComponent(friend.name)}`,
@@ -251,15 +253,15 @@ export default function Friends() {
                         }
                       >
                         <MessageCircle className="w-4 h-4" />
-                        Message
+                        {t("Message")}
                       </button>
                       <button
                         onClick={() => handleRemoveFriend(friend.id)}
                         className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20 transition-colors flex items-center gap-1.5"
-                        title="Unfriend"
+                        title={t("Unfriend")}
                       >
                         <UserX className="w-4 h-4" />
-                        Unfriend
+                        {t("Unfriend")}
                       </button>
                     </div>
                   </div>
@@ -272,16 +274,16 @@ export default function Friends() {
           <aside className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-5 shadow-sm">
             <h2 className="text-lg font-semibold mb-2 flex items-center gap-2">
               <UserPlus className="w-5 h-5 text-teal-500" />
-              Add Friend
+              {t("Add Friend")}
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-              Search by username or email.
+              {t("Search by username or email.")}
             </p>
 
             <div className="space-y-3">
               <input
                 type="text"
-                placeholder="Username or email"
+                placeholder={t("Username or email")}
                 value={newFriendName}
                 onChange={(e) => setNewFriendName(e.target.value)}
                 className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-300 px-4 py-2 rounded-lg focus:outline-none focus:border-teal-500 transition-colors"
@@ -293,7 +295,7 @@ export default function Friends() {
                 onClick={handleSearchUsers}
                 className="w-full py-2.5 rounded-lg bg-teal-600 hover:bg-teal-500 text-white font-semibold transition-colors"
               >
-                {searching ? "Searching..." : "Search"}
+                {searching ? t("Searching...") : t("Search")}
               </button>
             </div>
 
@@ -329,7 +331,7 @@ export default function Friends() {
                           {result.name}
                         </div>
                         <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                          {result.email || "No email"}
+                          {result.email || t("No email")}
                         </div>
                       </div>
                     </div>
@@ -337,7 +339,7 @@ export default function Friends() {
                       onClick={() => handleAddFromResult(result.id)}
                       className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-teal-500/10 text-teal-600 dark:text-teal-300 hover:bg-teal-500/20 transition-colors"
                     >
-                      Add
+                      {t("Add")}
                     </button>
                   </div>
                 ))}

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Shield, Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { timeFormats } from "../../data/mockData";
 import type { GameHistory } from "../../historyTypes";
 
@@ -76,6 +77,7 @@ function calculateStats(games: GameHistory[]): GameStats {
 }
 
 export function FormatRatingsCard() {
+  const { t } = useTranslation();
   const [stats, setStats] = useState<GameStats>({
     totalGames: 0,
     wins: 0,
@@ -117,7 +119,7 @@ export function FormatRatingsCard() {
     >
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-xl md:text-2xl font-semibold text-gray-900 dark:text-white">
-          Format Ratings
+          {t("Format Ratings")}
         </h3>
         <Shield className="w-5 h-5 text-teal-500 dark:text-teal-400" />
       </div>
@@ -131,7 +133,7 @@ export function FormatRatingsCard() {
               <span className="text-xl">{format.icon}</span>
               <div>
                 <div className="font-medium text-gray-900 dark:text-white">
-                  {format.name}
+                  {t(format.name)}
                 </div>
                 <div className="text-xs text-gray-500 dark:text-gray-400">
                   {format.displayTime}
@@ -144,10 +146,10 @@ export function FormatRatingsCard() {
               </div>
               <div className="text-xs text-gray-500 dark:text-gray-400">
                 {format.rating > 1850
-                  ? "🔥 Hot"
+                  ? t("🔥 Hot")
                   : format.rating > 1750
-                    ? "📈 Rising"
-                    : "📊 Stable"}
+                    ? t("📈 Rising")
+                    : t("📊 Stable")}
               </div>
             </div>
           </div>
@@ -162,7 +164,7 @@ export function FormatRatingsCard() {
           <div className="grid grid-cols-3 gap-2 text-center">
             <div className="bg-white dark:bg-gray-800/50 rounded-lg p-2">
               <div className="text-xs text-gray-500 dark:text-gray-400">
-                Win Rate
+                {t("Win Rate")}
               </div>
               <div className="text-sm font-medium text-gray-900 dark:text-white">
                 {stats.winRate}%
@@ -170,7 +172,7 @@ export function FormatRatingsCard() {
             </div>
             <div className="bg-white dark:bg-gray-800/50 rounded-lg p-2">
               <div className="text-xs text-gray-500 dark:text-gray-400">
-                Games
+                {t("Games")}
               </div>
               <div className="text-sm font-medium text-gray-900 dark:text-white">
                 {stats.totalGames}
@@ -178,7 +180,7 @@ export function FormatRatingsCard() {
             </div>
             <div className="bg-white dark:bg-gray-800/50 rounded-lg p-2">
               <div className="text-xs text-gray-500 dark:text-gray-400">
-                Streak
+                {t("Streak")}
               </div>
               <div className="text-sm font-medium text-gray-900 dark:text-white">
                 {stats.streak}

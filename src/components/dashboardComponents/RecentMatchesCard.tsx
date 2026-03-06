@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Clock, Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import type { GameHistory } from "../../historyTypes";
 
@@ -16,7 +17,7 @@ interface RecentMatch {
   analyzePath: string;
 }
 
-function formatTimeAgo(dateString: string): string {
+function formatTimeAgo(dateString: string, t: (key: string) => string): string {
   const date = new Date(dateString);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
@@ -24,14 +25,19 @@ function formatTimeAgo(dateString: string): string {
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
 
-  if (diffMins < 1) return "Just now";
-  if (diffMins < 60) return `${diffMins} min ago`;
-  if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
-  if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
+  if (diffMins < 1) return t("Just now");
+  if (diffMins < 60) return `${diffMins} ${t("min ago")}`;
+  if (diffHours < 24) {
+    return `${diffHours} ${diffHours > 1 ? t("hours ago") : t("hour ago")}`;
+  }
+  if (diffDays < 7) return `${diffDays} ${diffDays > 1 ? t("days ago") : t("day ago")}`;
   return date.toLocaleDateString();
 }
 
-function transformGameHistory(game: GameHistory): RecentMatch {
+function transformGameHistory(
+  game: GameHistory,
+  t: (key: string) => string,
+): RecentMatch {
   const isWhite = game.playAs === "white";
   const result =
     game.result === "1-0"
@@ -52,7 +58,7 @@ function transformGameHistory(game: GameHistory): RecentMatch {
     opponent: game.opponent || "Stockfish",
     result,
     timeControl: game.timeControl || "10+0",
-    date: formatTimeAgo(game.createdAt),
+    date: formatTimeAgo(game.createdAt, t),
     ratingChange,
     analyzePath:
       game.variant === "chess960" ||
@@ -63,6 +69,7 @@ function transformGameHistory(game: GameHistory): RecentMatch {
 }
 
 export function RecentMatchesCard() {
+  const { t } = useTranslation();
   const [matches, setMatches] = useState<RecentMatch[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -78,7 +85,9 @@ export function RecentMatchesCard() {
           return;
         }
         const data = await res.json();
-        const transformed = (data.games || []).map(transformGameHistory);
+        const transformed = (data.games || []).map((game: GameHistory) =>
+          transformGameHistory(game, t),
+        );
         setMatches(transformed);
       } catch {
         setMatches([]);
@@ -87,7 +96,7 @@ export function RecentMatchesCard() {
       }
     }
     fetchRecentGames();
-  }, []);
+  }, [t]);
 
   return (
     <motion.div
@@ -98,7 +107,7 @@ export function RecentMatchesCard() {
     >
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-xl md:text-2xl font-semibold text-gray-900 dark:text-white">
-          Recent Matches
+          {t("Recent Matches")}
         </h3>
         <Clock className="w-5 h-5 text-gray-400" />
       </div>
@@ -109,8 +118,8 @@ export function RecentMatchesCard() {
         </div>
       ) : matches.length === 0 ? (
         <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-          <p className="text-sm">No games played yet</p>
-          <p className="text-xs mt-1">Start a game to see your history here</p>
+          <p className="text-sm">{t("No games played yet")}</p>
+          <p className="text-xs mt-1">{t("Start a game to see your history here")}</p>
         </div>
       ) : (
         <div className="space-y-3">

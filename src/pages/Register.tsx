@@ -3,11 +3,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, User, ArrowRight, Github, Sun, Moon } from "lucide-react";
 import { useAuthStore, authApi } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
+import { useTranslation } from "react-i18next";
+import LanguageSwitcher from "../components/LanguageSwitcher";
 
 export default function Register() {
   const navigate = useNavigate();
   const { setUser, setError } = useAuthStore();
   const { isDarkMode, toggleTheme } = useThemeStore();
+  const { t } = useTranslation();
   const logoSrc = isDarkMode ? "/images/Logo.png" : "/images/LightModeLogo.png";
 
   const [name, setName] = useState("");
@@ -27,7 +30,9 @@ export default function Register() {
       navigate("/");
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : "Registration failed";
+        err instanceof Error
+          ? err.message
+          : t("auth.registrationFailed", "Registration failed");
       setLocalError(message);
       setError(message);
     } finally {
@@ -38,16 +43,20 @@ export default function Register() {
   return (
     <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-950 flex items-center justify-center p-4 transition-colors duration-300">
       {/* Theme Toggle - Top Right */}
-      <button
-        onClick={toggleTheme}
-        className="fixed top-4 right-4 p-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg hover:scale-105 transition-transform z-50"
-      >
-        {isDarkMode ? (
-          <Sun className="w-5 h-5 text-yellow-500" />
-        ) : (
-          <Moon className="w-5 h-5 text-gray-700" />
-        )}
-      </button>
+      <div className="fixed top-4 inset-x-4 flex items-center justify-between z-[60] gap-3">
+        <LanguageSwitcher compact className="shadow-lg z-[60]" />
+        <button
+          onClick={toggleTheme}
+          aria-label={t("common.toggleTheme", "Toggle theme")}
+          className="p-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg hover:scale-105 transition-transform"
+        >
+          {isDarkMode ? (
+            <Sun className="w-5 h-5 text-yellow-500" />
+          ) : (
+            <Moon className="w-5 h-5 text-gray-700" />
+          )}
+        </button>
+      </div>
 
       <div className="max-w-md w-full bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-800">
         <div className="text-center mb-8">
@@ -57,10 +66,10 @@ export default function Register() {
             className="w-36 h-36 object-contain mx-auto mb-4"
           />
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            Create Account
+            {t("auth.createAccount", "Create Account")}
           </h1>
           <p className="text-gray-500 dark:text-gray-400">
-            Join the community of chess masters
+            {t("auth.registerSubtitle", "Join the community of chess masters")}
           </p>
         </div>
 
@@ -73,7 +82,7 @@ export default function Register() {
         <form onSubmit={handleRegister} className="space-y-5">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-              Full Name
+              {t("auth.fullName", "Full Name")}
             </label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -82,7 +91,7 @@ export default function Register() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-colors"
-                placeholder="John Doe"
+                placeholder={t("auth.namePlaceholder", "John Doe")}
                 required
                 disabled={isLoading}
               />
@@ -91,7 +100,7 @@ export default function Register() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-              Email Address
+              {t("auth.email", "Email Address")}
             </label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -100,7 +109,7 @@ export default function Register() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-colors"
-                placeholder="you@example.com"
+                placeholder={t("auth.emailPlaceholder", "you@example.com")}
                 required
                 disabled={isLoading}
               />
@@ -109,7 +118,7 @@ export default function Register() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-              Password
+              {t("auth.password", "Password")}
             </label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -124,7 +133,9 @@ export default function Register() {
                 minLength={6}
               />
             </div>
-            <p className="mt-1 text-xs text-gray-500">Minimum 6 characters</p>
+            <p className="mt-1 text-xs text-gray-500">
+              {t("auth.minimumChars", "Minimum 6 characters")}
+            </p>
           </div>
 
           <button
@@ -136,7 +147,7 @@ export default function Register() {
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : (
               <>
-                <span>Create Account</span>
+                <span>{t("auth.createAccount", "Create Account")}</span>
                 <ArrowRight className="w-5 h-5" />
               </>
             )}
@@ -150,7 +161,7 @@ export default function Register() {
             </div>
             <div className="relative flex justify-center text-sm">
               <span className="px-2 bg-white dark:bg-gray-900 text-gray-500">
-                Or sign up with
+                {t("auth.orSignup", "Or sign up with")}
               </span>
             </div>
           </div>
@@ -168,12 +179,12 @@ export default function Register() {
         </div>
 
         <p className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
-          Already have an account?{" "}
+          {t("auth.haveAccount", "Already have an account?")}{" "}
           <Link
             to="/login"
             className="font-bold text-teal-600 dark:text-teal-500 hover:underline"
           >
-            Sign in
+            {t("auth.signInCta", "Sign in")}
           </Link>
         </p>
       </div>

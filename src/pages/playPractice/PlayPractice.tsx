@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Chessboard } from "react-chessboard";
 import { Target, Timer } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../../store/authStore";
 import { BOARD_FRAME } from "../quickMatch/types";
 
@@ -48,6 +49,7 @@ const SESSION_OPTIONS = [
 ];
 
 export default function PlayPractice() {
+  const { t } = useTranslation();
   const { user } = useAuthStore();
   const [selectedFocus, setSelectedFocus] = useState(PRACTICE_OPTIONS[0]);
   const [sessionLength, setSessionLength] = useState(20);
@@ -113,10 +115,10 @@ export default function PlayPractice() {
             <div className="flex-1">
               <div className="flex items-center gap-1.5">
                 <span className="font-semibold text-gray-900 dark:text-white text-[13px]">
-                  {selectedFocus.label}
+                  {t(selectedFocus.label)}
                 </span>
                 <span className="text-[10px] text-gray-500 dark:text-gray-400">
-                  (Practice)
+                  ({t("Practice")})
                 </span>
               </div>
             </div>
@@ -145,20 +147,20 @@ export default function PlayPractice() {
               {user?.avatar ? (
                 <img
                   src={user.avatar}
-                  alt={user.fullName || "You"}
+                  alt={user.fullName || t("You")}
                   className="w-full h-full object-cover"
                 />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center">
                   <span className="text-white font-bold text-sm">
-                    {user?.fullName?.substring(0, 1).toUpperCase() || "Y"}
+                    {user?.fullName?.substring(0, 1).toUpperCase() || t("Y")}
                   </span>
                 </div>
               )}
             </div>
             <div className="flex-1">
               <span className="font-semibold text-gray-900 dark:text-white text-[13px]">
-                {user?.fullName || "You"}
+                {user?.fullName || t("You")}
               </span>
             </div>
           </div>
@@ -171,11 +173,11 @@ export default function PlayPractice() {
             <div className="flex items-center gap-2">
               <Target className="w-4 h-4 text-teal-500" />
               <h2 className="font-bold text-[15px] text-gray-900 dark:text-white">
-                Practice
+                {t("Practice")}
               </h2>
             </div>
             <p className="mt-1 text-[11px] text-gray-500 dark:text-gray-400">
-              Choose a focus and session length.
+              {t("Choose a focus and session length.")}
             </p>
           </div>
 
@@ -183,7 +185,7 @@ export default function PlayPractice() {
             {/* Practice Focus */}
             <div className="rounded-2xl border border-gray-200/70 dark:border-white/10 bg-white/70 dark:bg-slate-900/60 p-3">
               <div className="text-[12px] font-semibold text-gray-900 dark:text-white mb-2">
-                Focus
+                {t("Focus")}
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {PRACTICE_OPTIONS.map((option) => {
@@ -201,11 +203,11 @@ export default function PlayPractice() {
                       <div className="flex items-center gap-2">
                         <span className="text-sm">{option.icon}</span>
                         <span className="text-[12px] font-semibold">
-                          {option.label}
+                          {t(option.label)}
                         </span>
                       </div>
                       <div className="text-[10px] text-gray-500 mt-1">
-                        {option.description}
+                        {t(option.description)}
                       </div>
                     </button>
                   );
@@ -217,7 +219,7 @@ export default function PlayPractice() {
             <div className="flex-1 min-h-0 rounded-2xl border border-gray-200/70 dark:border-white/10 bg-white/70 dark:bg-slate-900/60 p-3 flex flex-col">
               <div className="flex items-center gap-2 text-[13px] font-semibold text-gray-900 dark:text-white mb-2">
                 <Timer className="w-4 h-4 text-teal-500" />
-                <span>Session Length</span>
+                <span>{t("Session Length")}</span>
               </div>
               <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 gap-2 auto-rows-min">
                 {SESSION_OPTIONS.map((opt) => {
@@ -232,7 +234,7 @@ export default function PlayPractice() {
                           : "bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 ring-1 ring-gray-200 dark:ring-slate-700 hover:ring-gray-300 dark:hover:ring-slate-600"
                       }`}
                     >
-                      {opt.label}
+                      {t(opt.label)}
                     </button>
                   );
                 })}
@@ -246,7 +248,7 @@ export default function PlayPractice() {
               onClick={handleStart}
               className="w-full py-3 rounded-2xl bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white font-bold text-[15px] transition-all shadow-lg hover:shadow-xl active:scale-[0.98]"
             >
-              Start Practice
+              {t("Start Practice")}
             </button>
           </div>
         </div>

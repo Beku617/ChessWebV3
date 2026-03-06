@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Target, Brain, Zap } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { PuzzleUserStats } from "./types";
 
 interface PuzzleStatsCardsProps {
@@ -8,6 +9,8 @@ interface PuzzleStatsCardsProps {
 }
 
 export function PuzzleStatsCards({ stats, loading = false }: PuzzleStatsCardsProps) {
+  const { t } = useTranslation();
+
   if (loading) {
     return (
       <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -38,13 +41,13 @@ export function PuzzleStatsCards({ stats, loading = false }: PuzzleStatsCardsPro
       >
         <div>
           <div className="text-gray-500 dark:text-gray-400 text-sm mb-1">
-            Puzzle Rating
+            {t("Puzzle Rating")}
           </div>
           <div className="text-2xl font-bold text-gray-900 dark:text-white">
             {rating}
           </div>
           <div className="text-xs text-gray-500 dark:text-gray-400">
-            Best: {bestRating}
+            {t("Best:")} {bestRating}
           </div>
         </div>
         <div className="w-10 h-10 rounded-full bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center">
@@ -60,13 +63,13 @@ export function PuzzleStatsCards({ stats, loading = false }: PuzzleStatsCardsPro
       >
         <div>
           <div className="text-gray-500 dark:text-gray-400 text-sm mb-1">
-            Solved Today
+            {t("Solved Today")}
           </div>
           <div className="text-2xl font-bold text-gray-900 dark:text-white">
             {solvedToday}
           </div>
           <div className="text-xs text-gray-500 dark:text-gray-400">
-            {solved}/{attempts} solved overall
+            {solved}/{attempts} {t("solved overall")}
           </div>
         </div>
         <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
@@ -82,13 +85,13 @@ export function PuzzleStatsCards({ stats, loading = false }: PuzzleStatsCardsPro
       >
         <div>
           <div className="text-gray-500 dark:text-gray-400 text-sm mb-1">
-            Streak
+            {t("Streak")}
           </div>
           <div className="text-2xl font-bold text-gray-900 dark:text-white">
-            {streak} {streak === 1 ? "Day" : "Days"}
+            {streak} {streak === 1 ? t("Day") : t("Days")}
           </div>
           <div className="text-xs text-gray-500 dark:text-gray-400">
-            Consecutive solve days
+            {t("Consecutive solve days")}
           </div>
         </div>
         <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">

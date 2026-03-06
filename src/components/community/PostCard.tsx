@@ -11,6 +11,7 @@ import {
   Swords,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import {
   Avatar,
   TitleBadge,
@@ -24,6 +25,7 @@ import type { CommunityPost } from "../../data/communityData";
 
 /* ─── Mini Board Preview ─── */
 function MiniBoardPreview({ label }: { label?: string }) {
+  const { t } = useTranslation();
   // 4x4 simplified chessboard pattern
   const squares = Array.from({ length: 16 }, (_, i) => {
     const row = Math.floor(i / 4);
@@ -51,7 +53,7 @@ function MiniBoardPreview({ label }: { label?: string }) {
         <div className="flex items-center gap-2">
           <Swords className="w-3.5 h-3.5 text-white/80" />
           <span className="text-xs font-semibold text-white/90">
-            {label || "View Game"}
+            {label ? t(label) : t("View Game")}
           </span>
         </div>
       </div>
@@ -67,6 +69,7 @@ function PollView({
 }: {
   poll: { question: string; options: { label: string; votes: number }[] };
 }) {
+  const { t } = useTranslation();
   const [voted, setVoted] = useState<string | null>(null);
   const total = poll.options.reduce((s, o) => s + o.votes, 0);
 
@@ -111,7 +114,7 @@ function PollView({
         );
       })}
       <p className="text-xs text-gray-500 dark:text-gray-400 pl-1">
-        {formatCount(total)} votes
+        {formatCount(total)} {t("votes")}
       </p>
     </div>
   );
@@ -163,6 +166,7 @@ interface PostCardProps {
 }
 
 export function PostCard({ post, index }: PostCardProps) {
+  const { t } = useTranslation();
   const [liked, setLiked] = useState(post.liked ?? false);
   const [bookmarked, setBookmarked] = useState(post.bookmarked ?? false);
   const [likeCount, setLikeCount] = useState(post.likes);
@@ -255,7 +259,7 @@ export function PostCard({ post, index }: PostCardProps) {
                 <span className="text-lg">🏆</span>
               </div>
               <span className="text-xs text-gray-400 mt-2 block">
-                Tournament Banner
+                {t("Tournament Banner")}
               </span>
             </div>
           </div>

@@ -1,0 +1,241 @@
+{
+  "brand": {
+    "name": "NeonGambit"
+  },
+  "language": {
+    "label": "Хэл"
+  },
+  "common": {
+    "user": "Хэрэглэгч",
+    "userInitial": "Х",
+    "toggleTheme": "Гадаад төрх солих"
+  },
+  "nav": {
+    "tournaments": "Тэмцээнүүд",
+    "puzzles": "Бодолт",
+    "learn": "Сурах",
+    "watch": "Үзэх",
+    "community": "Нийгэм",
+    "viewProfile": "Профайл харах",
+    "messages": "Захидал",
+    "friends": "Найзууд",
+    "settings": "Тохиргоо",
+    "logout": "Гарах"
+  },
+  "auth": {
+    "welcomeBack": "Дахин тавтай морил",
+    "signInSubtitle": "Аяллаа үргэлжлүүлэхийн тулд нэвтэрнэ үү",
+    "accountBannedTitle": "Данс түгжигдсэн",
+    "accountBannedReason": "Таны данс түгжигдсэн. Шалтгаан: {{reason}}",
+    "email": "И-мэйл",
+    "emailPlaceholder": "chi@example.com",
+    "password": "Нууц үг",
+    "forgotPassword": "Нууц үгээ мартсан уу?",
+    "rememberMe": "30 хоног сануулах",
+    "signIn": "Нэвтрэх",
+    "orContinue": "Эсвэл дараахаар үргэлжлүүл",
+    "noAccount": "Дансгүй байна уу?",
+    "signUp": "Бүртгүүлэх",
+    "loginFailed": "Нэвтрэхэд алдаа гарлаа",
+    "createAccount": "Данс үүсгэх",
+    "registerSubtitle": "Шатрын мастеруудтай нэгдээрэй",
+    "fullName": "Бүтэн нэр",
+    "namePlaceholder": "Бат Эрдэнэ",
+    "minimumChars": "Дор хаяж 6 тэмдэгт",
+    "orSignup": "Эсвэл дараахаар бүртгүүл",
+    "haveAccount": "Өмнө нь бүртгүүлсэн үү?",
+    "signInCta": "Нэвтрэх",
+    "registrationFailed": "Бүртгэл амжилтгүй"
+  },
+  "settings": {
+    "header": {
+      "title": "Тохиргоо",
+      "subtitle": "Данс ба тохиргоогоо удирдаарай"
+    },
+    "actions": {
+      "reset": "Сэргээх",
+      "saveChanges": "Өөрчлөлт хадгалах",
+      "change": "Солих",
+      "manage": "Удирдах"
+    },
+    "toasts": {
+      "saved": "Тохиргоо амжилттай хадгалагдлаа!",
+      "reset": "Сүүлд хадгалсан төлөвт сэргээв",
+      "passwordChanged": "Нууц үг амжилттай шинэчлэгдлээ!",
+      "deletionRequested": "Данс устгах хүсэлт илгээгдсэн"
+    },
+    "profile": {
+      "title": "Профайл ба данс",
+      "subtitle": "Хувийн мэдээлэл, аюулгүй байдал",
+      "username": "Хэрэглэгчийн нэр",
+      "email": "И-мэйл",
+      "changePassword": "Нууц үг солих",
+      "changePasswordHelper": "Дансаа шинэ нууц үгээр хамгаалах",
+      "linkedAccounts": "Холбосон дансууд",
+      "linkedAccountsHelper": "Гуравдагч талын үйлчилгээ холбох",
+      "google": "Google",
+      "github": "GitHub"
+    },
+    "appearance": {
+      "title": "Гадаад төрх",
+      "subtitle": "NeonGambit хэрхэн харагдахыг өөрчил",
+      "theme": "Theme",
+      "themeHelper": "Өнгөний схемээ сонгоно уу",
+      "themes": {
+        "dark": "Хар",
+        "dim": "Бүүдгэр",
+        "amoled": "AMOLED"
+      },
+      "accentColor": "Өнгөний акцент",
+      "accentHelper": "Гол тод өнгө",
+      "accent": {
+        "teal": "Ногоон цэнхэр",
+        "purple": "Ягаан",
+        "blue": "Цэнхэр"
+      },
+      "boardTheme": "Самбарын өнгө",
+      "boardThemeHelper": "Самбарын өнгөний схем",
+      "boardThemes": {
+        "green": "Ногоон",
+        "brown": "Бор",
+        "blue": "Цэнхэр",
+        "purple": "Нил ягаан",
+        "gray": "Саарал",
+        "neon": "Неон"
+      },
+      "pieceStyle": "Хөлгийн дүрс",
+      "pieceStyleHelper": "Хэсгүүдийн хэв маяг",
+      "pieces": {
+        "neo": "Нео",
+        "classic": "Классик",
+        "alpha": "Альфа",
+        "merida": "Мерида"
+      },
+      "reducedMotion": "Хөдөлгөөн багасгах",
+      "reducedMotionHelper": "Анимацийг багасгах"
+    },
+    "gameplay": {
+      "title": "Тоглолт",
+      "subtitle": "Тоглох туршлагаа тааруулах",
+      "defaultTime": "Цагийн хяналтын үндсэн тохиргоо",
+      "defaultTimeHelper": "Шинэ тоглолтын эхний цаг",
+      "timeControls": {
+        "bullet": "⚡ Буллет",
+        "blitz": "🔥 Блиц",
+        "rapid": "🚀 Рапид",
+        "classical": "🏛️ Классик",
+        "custom": "⚙️ Тохируулга"
+      },
+      "autoQueen": "Авто хатан",
+      "autoQueenHelper": "Пиёныг автоматаар хатан болгож дэвшүүлэх",
+      "moveInput": "Нүүдэл хийх арга",
+      "moveInputHelper": "Самбар дээр хэрхэн нүүдэл хийх",
+      "input": {
+        "click": "Дарж",
+        "drag": "Чирж",
+        "both": "Хоёулаа"
+      },
+      "legalMoves": "Зөв нүүдэл харуулах",
+      "legalMovesHelper": "Боломжтой нүдийг гэрэлтүүлэх",
+      "confirmMove": "Нүүдэл баталгаажуулах",
+      "confirmMoveHelper": "Нүүхээс өмнө батлах шаардлагатай",
+      "premoves": "Урьдчилсан нүүдэл",
+      "premovesHelper": "Хүлээх хугацаанд дараагийн нүүдлээ бэлдэх"
+    },
+    "notifications": {
+      "title": "Мэдэгдэл",
+      "subtitle": "Ямар дохио авахыг удирдах",
+      "email": "И-мэйл мэдэгдэл",
+      "emailHelper": "Үйл ажиллагааны талаар имэйл авна",
+      "push": "Push мэдэгдэл",
+      "pushHelper": "Хөтөчийн анхааруулга",
+      "challengeRequests": "Дайралтын хүсэлт",
+      "challengeHelper": "Хэн нэгэн дуудалт өгөхөд мэдэгдэх",
+      "tournamentUpdates": "Тэмцээний шинэчлэл",
+      "tournamentHelper": "Удахгүй болох тэмцээн, үр дүн",
+      "soundEffects": "Дууны эффект",
+      "soundEffectsHelper": "Тоглоомын дуу, дохио",
+      "soundVolume": "Дууны түвшин",
+      "soundVolumeHelper": "Эффектын чангаарыг тохируулах"
+    },
+    "privacy": {
+      "title": "Нууцлал ба аюулгүй байдал",
+      "subtitle": "Таны мэдээллийг хэн харахыг хянах",
+      "visibility": "Профайлын ил харагдалт",
+      "visibilityHelper": "Хэн таны профайлыг харах вэ",
+      "options": {
+        "public": "Нээлттэй",
+        "friends": "Найзууд",
+        "private": "Хувийн"
+      },
+      "onlineStatus": "Онлайн байдлыг харуулах",
+      "onlineStatusHelper": "Бусдад онлайнаар байгааг харуулах",
+      "lastSeen": "Сүүлд идэвхтэй хугацаа",
+      "lastSeenHelper": "Хэзээ идэвхтэй байснаа үзүүлэх",
+      "blockedUsers": "Хориглосон хэрэглэгчид",
+      "blockedUsersHelper": "Хоригийн жагсаалтыг удирдах"
+    },
+    "ai": {
+      "title": "Хиймэл оюун ба анализ",
+      "subtitle": "AI боломжуудыг тохируулах",
+      "explanations": "AI нүүдлийн тайлбар",
+      "explanationsHelper": "Llama 3 дээр суурилсан дэлгэрэнгүй анализ",
+      "groqConnected": "Groq API холбоотой",
+      "groqMissing": "VITE_GROQ_API_KEY байхгүй — .env-д нэмнэ үү",
+      "explanationLevel": "Тайлбарын түвшин",
+      "explanationLevelHelper": "AI тайлбарын нарийвчлал",
+      "levels": {
+        "brief": "Товч",
+        "normal": "Энгийн",
+        "deep": "Гүн"
+      },
+      "postGame": "Тоглолтын дараах анализ",
+      "postGameHelper": "Тоглолт дууссаны дараа хөдөлгүүрээр шинжлэх",
+      "engineStrength": "Хөдөлгүүрийн хүч",
+      "engineStrengthHelper": "Stockfish-ын түвшин",
+      "levelLabel": "Түв."
+    },
+    "stats": {
+      "bullet": "Буллет",
+      "blitz": "Блиц",
+      "rapid": "Рапид",
+      "classical": "Классик",
+      "gamesPlayed": "Тоглосон тоглолт",
+      "gamesWon": "Ялсан тоглолт"
+    },
+    "quickActions": {
+      "title": "Түргэн үйлдэл",
+      "exportPgn": "Тоглолтуудыг PGN-ээр экспортлох",
+      "downloadData": "Дансны мэдээлэл татах"
+    },
+    "danger": {
+      "title": "Аюултай бүс",
+      "subtitle": "Эргэж буцахгүй үйлдлүүд",
+      "signOutAll": "Бүх төхөөрөмжөөс гарах",
+      "deleteAccount": "Дансыг устгах"
+    },
+    "modals": {
+      "changePassword": {
+        "title": "Нууц үг солих",
+        "current": "Одоогийн нууц үг",
+        "currentPlaceholder": "Одоогийн нууц үгээ оруулна уу",
+        "new": "Шинэ нууц үг",
+        "newPlaceholder": "Шинэ нууц үг оруулах",
+        "confirm": "Нууц үг батлах",
+        "confirmPlaceholder": "Шинэ нууц үгээ дахин оруулна уу",
+        "cta": "Нууц үг шинэчлэх"
+      },
+      "delete": {
+        "title": "Данс устгах",
+        "warning": "Энэ үйлдэл буцаах боломжгүй. Таны бүх тоглолт, рейтинг, өгөгдөл устна.",
+        "confirmLabel": "{{name}} гэж бичиж баталгаажуул",
+        "username": "хэрэглэгчийн нэр",
+        "cta": "Дансыг бүр мөсөн устгах"
+      }
+    }
+  },
+  "settingsLang": {
+    "title": "Хэл",
+    "helper": "Сонгох хэлээ тодорхойлоорой"
+  }
+}

@@ -1,4 +1,5 @@
 import { Search } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import {
   COLLECTION_OPTIONS,
   ENDGAME_MOTIFS,
@@ -35,6 +36,7 @@ export function PuzzleBrowseFilters({
   motif,
   onMotifChange,
 }: PuzzleBrowseFiltersProps) {
+  const { t } = useTranslation();
   const motifOptions =
     collection === "tactics"
       ? ["All", ...TACTIC_MOTIFS]
@@ -49,7 +51,7 @@ export function PuzzleBrowseFilters({
         <input
           value={query}
           onChange={(event) => onQueryChange(event.target.value)}
-          placeholder="Search puzzle title, theme, or motif..."
+          placeholder={t("Search puzzle title, theme, or motif...")}
           className="w-full h-10 pl-9 pr-3 rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950/30 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none focus:border-teal-400 dark:focus:border-teal-500"
         />
       </div>
@@ -64,7 +66,7 @@ export function PuzzleBrowseFilters({
               onClick={() => onCollectionChange(option.id)}
               className={`px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors ${chipClass(active)}`}
             >
-              {option.label}
+              {t(option.label)}
             </button>
           );
         })}
@@ -81,7 +83,7 @@ export function PuzzleBrowseFilters({
                 onClick={() => onMateBucketChange(option.id)}
                 className={`px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors ${chipClass(active)}`}
               >
-                {option.label}
+                {t(option.label)}
               </button>
             );
           })}
@@ -99,7 +101,7 @@ export function PuzzleBrowseFilters({
                 onClick={() => onMotifChange(item)}
                 className={`px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors ${chipClass(active)}`}
               >
-                {item}
+                {t(item)}
               </button>
             );
           })}

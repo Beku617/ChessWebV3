@@ -10,6 +10,7 @@ import {
   Zap,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../../store/authStore";
 import { BOARD_FRAME } from "./types";
 
@@ -137,6 +138,7 @@ export function QuickMatchSetup({
   onCancel,
   tournamentMode = false,
 }: QuickMatchSetupProps) {
+  const { t } = useTranslation();
   const { user } = useAuthStore();
 
   const [searchElapsedSeconds, setSearchElapsedSeconds] = useState(0);
@@ -201,20 +203,20 @@ export function QuickMatchSetup({
     }
     return null;
   })();
-  const variantLabel = variant === "chess960" ? "Chess960" : "";
+  const variantLabel = variant === "chess960" ? t("Chess960") : "";
   const selectedGameType =
     GAME_TYPE_OPTIONS.find((option) => option.id === variant) ||
     GAME_TYPE_OPTIONS[0];
   const timeGroupLabel =
-    selectedTimeOption?.groupLabel || getTimeGroupLabel(timeControl);
+    t(selectedTimeOption?.groupLabel || getTimeGroupLabel(timeControl));
   const timeOptionLabel = selectedTimeOption?.label || formatTimeLabel(timeControl);
   const selectedTimeLabel = selectedTimeOption
-    ? `${selectedTimeOption.label} (${selectedTimeOption.groupLabel})`
+    ? `${selectedTimeOption.label} (${t(selectedTimeOption.groupLabel)})`
     : `${timeOptionLabel} (${timeGroupLabel})`;
   const searchingGameText = tournamentMode
     ? queueStatus ||
-      "Waiting for your tournament opponent to open the game link..."
-    : `Searching ${timeOptionLabel} ${timeGroupLabel}${variantLabel ? " " + variantLabel : ""} Game`;
+      t("Waiting for your tournament opponent to open the game link...")
+    : `${t("Searching")} ${timeOptionLabel} ${timeGroupLabel}${variantLabel ? " " + variantLabel : ""} ${t("Game")}`;
   const expandedRange = Math.min(
     500,
     50 + Math.floor(searchElapsedSeconds / 5) * 25,
@@ -244,16 +246,16 @@ export function QuickMatchSetup({
             </div>
             <div className="flex-1">
               {isSearching ? (
-                <div className="font-semibold text-gray-900 dark:text-white text-base sm:text-lg">
-                  Searching...
+                  <div className="font-semibold text-gray-900 dark:text-white text-base sm:text-lg">
+                  {t("Searching...")}
                 </div>
               ) : (
                 <div className="flex items-center gap-1.5">
                   <span className="font-semibold text-gray-900 dark:text-white text-sm">
-                    Opponent
+                    {t("Opponent")}
                   </span>
                   <span className="text-[11px] text-gray-500 dark:text-gray-400">
-                    (Waiting...)
+                    ({t("Waiting...")})
                   </span>
                 </div>
               )}
@@ -283,20 +285,20 @@ export function QuickMatchSetup({
               {user?.avatar ? (
                 <img
                   src={user.avatar}
-                  alt={user.fullName || "You"}
+                  alt={user.fullName || t("You")}
                   className="w-full h-full object-cover"
                 />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center">
                   <span className="text-white font-bold text-sm">
-                    {user?.fullName?.substring(0, 1).toUpperCase() || "Y"}
+                    {user?.fullName?.substring(0, 1).toUpperCase() || t("Y")}
                   </span>
                 </div>
               )}
             </div>
             <div className="flex-1">
               <span className="font-semibold text-gray-900 dark:text-white text-sm">
-                {user?.fullName || "You"}
+                {user?.fullName || t("You")}
               </span>
             </div>
           </div>
@@ -320,15 +322,15 @@ export function QuickMatchSetup({
                     </p>
                     <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                       {tournamentMode
-                        ? queueStatus || "Waiting for opponent..."
-                        : queueStatus || `Rating range: ±${expandedRange}`}
+                        ? queueStatus || t("Waiting for opponent...")
+                        : queueStatus || `${t("Rating range:")} ±${expandedRange}`}
                     </p>
                     <button
                       type="button"
                       onClick={onCancel}
                       className="mt-7 text-base font-medium text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white transition-colors"
                     >
-                      Cancel
+                      {t("Cancel")}
                     </button>
                   </div>
                 </div>
@@ -343,8 +345,8 @@ export function QuickMatchSetup({
                     <Clock className="w-4 h-4 text-teal-500" />
                     <h2 className="font-bold text-base text-gray-900 dark:text-white">
                       {tournamentMode
-                        ? "Tournament Game"
-                        : `Quick Match${variant === "chess960" ? " — Chess960" : ""}`}
+                        ? t("Tournament Game")
+                        : `${t("Quick Match")}${variant === "chess960" ? ` — ${t("Chess960")}` : ""}`}
                     </h2>
                   </div>
                   {!tournamentMode && (
@@ -360,8 +362,8 @@ export function QuickMatchSetup({
                 </div>
                 <p className="mt-1 text-[11px] text-gray-500 dark:text-gray-400">
                   {tournamentMode
-                    ? "Your tournament pairing will start as soon as both players join."
-                    : "Find an opponent and start playing instantly."}
+                    ? t("Your tournament pairing will start as soon as both players join.")
+                    : t("Find an opponent and start playing instantly.")}
                 </p>
               </div>
 
@@ -371,7 +373,7 @@ export function QuickMatchSetup({
                     {/* Game Type */}
                     <div className="rounded-2xl border border-gray-200/55 dark:border-white/10 bg-white/60 dark:bg-slate-900/45 p-3">
                       <div className="text-[12px] font-semibold text-gray-900 dark:text-white mb-2">
-                        Game Type
+                        {t("Game Type")}
                       </div>
                       <button
                         type="button"
@@ -380,7 +382,7 @@ export function QuickMatchSetup({
                       >
                         <span className="flex items-center gap-2 text-[13px] font-semibold">
                           <LayoutGrid className="w-4 h-4 text-gray-600 dark:text-gray-300" />
-                          {selectedGameType.label}
+                          {t(selectedGameType.label)}
                         </span>
                         {isGameTypeOpen ? (
                           <ChevronUp className="w-4 h-4 opacity-80" />
@@ -412,7 +414,7 @@ export function QuickMatchSetup({
                                 }`}
                               >
                                 <span className="text-[13px] font-medium">
-                                  {option.label}
+                                  {t(option.label)}
                                 </span>
                                 {option.source === "variants" ? (
                                   <ExternalLink className="w-3.5 h-3.5 opacity-70" />
@@ -450,7 +452,7 @@ export function QuickMatchSetup({
                               <div key={group.id}>
                                 <div className="mb-1 flex items-center gap-1.5 text-[12px] font-semibold text-gray-800 dark:text-gray-200">
                                   <GroupIcon className="w-4 h-4 text-yellow-500" />
-                                  <span>{group.label}</span>
+                                  <span>{t(group.label)}</span>
                                 </div>
                                 <div className="grid grid-cols-3 gap-2">
                                   {group.options.map((opt) => {
@@ -489,7 +491,7 @@ export function QuickMatchSetup({
 
                 {tournamentMode && (
                   <div className="rounded-2xl border border-gray-200/55 dark:border-white/10 bg-white/60 dark:bg-slate-900/45 p-3 text-sm text-gray-700 dark:text-gray-200">
-                    This is a tournament pairing. The game will start automatically once both players join this link. You can keep this tab open; no extra matchmaking is needed.
+                    {t("This is a tournament pairing. The game will start automatically once both players join this link. You can keep this tab open; no extra matchmaking is needed.")}
                   </div>
                 )}
               </div>
@@ -502,10 +504,10 @@ export function QuickMatchSetup({
                     className="w-full py-3 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold text-lg transition-all shadow-lg hover:shadow-xl active:scale-[0.98] disabled:cursor-not-allowed disabled:shadow-none"
                   >
                     {isSearching
-                      ? "Searching..."
+                      ? t("Searching...")
                       : isConnected
-                        ? "Play"
-                        : "Server Offline"}
+                        ? t("Play")
+                        : t("Server Offline")}
                   </button>
                 </div>
               )}

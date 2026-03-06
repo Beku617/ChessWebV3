@@ -9,9 +9,12 @@ import {
   BarChart,
   Target,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { courses } from "../data/mockData";
 
 export default function Learn() {
+  const { t } = useTranslation();
+
   const levelColor = (level: string) => {
     switch (level) {
       case "Beginner":
@@ -37,24 +40,25 @@ export default function Learn() {
           <div className="space-y-4 max-w-xl">
             <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-teal-500/20 text-teal-100 dark:text-teal-300 text-xs font-bold uppercase tracking-wider border border-teal-500/30">
               <Star className="w-3 h-3" />
-              <span>Premium Content</span>
+              <span>{t("Premium Content")}</span>
             </div>
             <h1 className="text-4xl md:text-5xl font-bold text-white leading-tight">
-              Master the Game <br />
+              {t("Master the Game")} <br />
               <span className="text-teal-200 dark:text-teal-400">
-                One Move at a Time
+                {t("One Move at a Time")}
               </span>
             </h1>
             <p className="text-gray-200 dark:text-gray-300 text-lg">
-              Interactive lessons, video courses, and personalized training
-              plans designed by Grandmasters.
+              {t(
+                "Interactive lessons, video courses, and personalized training plans designed by Grandmasters.",
+              )}
             </p>
             <div className="flex flex-wrap gap-4 pt-2">
               <button className="px-6 py-3 bg-teal-600 hover:bg-teal-500 text-white font-semibold rounded-lg transition-all shadow-lg shadow-teal-900/20 flex items-center gap-2">
-                Start Learning <ChevronRight className="w-5 h-5" />
+                {t("Start Learning")} <ChevronRight className="w-5 h-5" />
               </button>
               <button className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-lg transition-colors border border-white/20">
-                Browse Catalog
+                {t("Browse Catalog")}
               </button>
             </div>
           </div>
@@ -90,9 +94,9 @@ export default function Learn() {
               )}
             </div>
             <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
-              {cat}
+              {t(cat)}
             </h3>
-            <p className="text-xs text-gray-500 mt-1">12 Courses</p>
+            <p className="text-xs text-gray-500 mt-1">{t("12 Courses")}</p>
           </motion.button>
         ))}
       </div>
@@ -101,10 +105,10 @@ export default function Learn() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Featured Courses
+            {t("Featured Courses")}
           </h2>
           <button className="text-teal-600 dark:text-teal-400 hover:text-teal-500 dark:hover:text-teal-300 text-sm font-medium transition-colors">
-            View All
+            {t("View All")}
           </button>
         </div>
 
@@ -128,20 +132,20 @@ export default function Learn() {
                     <span
                       className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wide border ${levelColor(course.level)}`}
                     >
-                      {course.level}
+                      {t(course.level)}
                     </span>
                   </div>
                 </div>
 
                 <div className="p-5 flex-1 flex flex-col">
                   <div className="text-xs font-medium text-teal-600 dark:text-teal-500 mb-2 uppercase tracking-wider">
-                    {course.category}
+                    {t(course.category)}
                   </div>
                   <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 line-clamp-2 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
                     {course.title}
                   </h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                    by {course.author}
+                    {t("by")} {course.author}
                   </p>
 
                   <div className="mt-auto space-y-3">
@@ -156,13 +160,15 @@ export default function Learn() {
                     <div className="flex items-center justify-between text-xs text-gray-500">
                       <span className="flex items-center gap-1">
                         <BookOpen className="w-3 h-3" /> {course.lessons}{" "}
-                        Lessons
+                        {t("Lessons")}
                       </span>
-                      <span>{course.progress}% Complete</span>
+                      <span>
+                        {course.progress}% {t("Complete")}
+                      </span>
                     </div>
 
                     <button className="w-full py-2 bg-gray-100 dark:bg-gray-800 hover:bg-teal-600 hover:text-white text-gray-600 dark:text-gray-300 rounded-lg transition-all text-sm font-medium flex items-center justify-center gap-2">
-                      {course.progress > 0 ? "Continue" : "Start Course"}
+                      {course.progress > 0 ? t("Continue") : t("Start Course")}
                       {course.progress === 0 && <Play className="w-3 h-3" />}
                     </button>
                   </div>
@@ -171,7 +177,7 @@ export default function Learn() {
             ))
           ) : (
             <div className="col-span-full text-center py-12 text-gray-500">
-              No courses available at the moment.
+              {t("No courses available at the moment.")}
             </div>
           )}
         </div>

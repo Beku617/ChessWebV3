@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Trophy } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { QUICK_ACTIONS, iconMap } from "./game/types";
 import { useLichessLiveGames } from "../hooks/useWatchPage";
 import {
@@ -38,6 +39,7 @@ const fontSizeGroup = {
 } as const;
 
 export default function Dashboard() {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const { games, loading: apiLoading, error, refetch } = useLichessLiveGames();
 
@@ -86,7 +88,7 @@ export default function Dashboard() {
                     {option.label}
                   </p>
                   <p className="mt-3 text-lg font-medium text-gray-600 dark:text-gray-300">
-                    {option.category}
+                    {t(option.category)}
                   </p>
                 </Link>
               ))}
@@ -111,12 +113,12 @@ export default function Dashboard() {
                     <span
                       className={`block ${fontSizeGroup.primary} font-medium text-gray-900 dark:text-white`}
                     >
-                      {item.title}
+                      {t(item.title)}
                     </span>
                     <span
                       className={`block ${fontSizeGroup.secondary} text-gray-500 dark:text-gray-400`}
                     >
-                      {item.description}
+                      {t(item.description)}
                     </span>
                   </span>
                 </Link>
@@ -131,13 +133,13 @@ export default function Dashboard() {
               <span className="font-semibold text-gray-900 dark:text-white">
                 {loading || apiLoading ? "..." : viewerCount.toLocaleString()}
               </span>{" "}
-              viewers watching now
+              {t("viewers watching now")}
             </p>
             <p className="mt-1">
               <span className="font-semibold text-gray-900 dark:text-white">
                 {loading || apiLoading ? "..." : games.length.toLocaleString()}
               </span>{" "}
-              games in play
+              {t("games in play")}
             </p>
           </div>
         </aside>
@@ -157,11 +159,11 @@ export default function Dashboard() {
               <div className="flex items-center space-x-2">
                 <Trophy className="w-5 h-5 text-amber-500 dark:text-amber-400" />
                 <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
-                  Tournaments
+                  {t("Tournaments")}
                 </h2>
               </div>
               <button className="text-sm text-teal-600 dark:text-teal-400 hover:text-teal-500 dark:hover:text-teal-300 transition-colors">
-                Browse All
+                {t("Browse All")}
               </button>
             </div>
             <TournamentsSection />

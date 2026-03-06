@@ -3,6 +3,7 @@
    ═══════════════════════════════════════════════════════ */
 import type { ReactNode } from "react";
 import { Crown, CheckCircle2, Circle, Wifi } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 /* ─── Title Badge (GM, IM, etc.) ─── */
 export function TitleBadge({ title }: { title: string }) {
@@ -123,6 +124,7 @@ export function StatusDot({
 }: {
   status: "playing" | "idle" | "streaming";
 }) {
+  const { t } = useTranslation();
   const map = {
     playing: "bg-green-500",
     idle: "bg-yellow-500",
@@ -137,7 +139,7 @@ export function StatusDot({
     <span className="inline-flex items-center gap-1">
       <span className={`w-1.5 h-1.5 rounded-full ${map[status]}`} />
       <span className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">
-        {labels[status]}
+        {t(labels[status])}
       </span>
     </span>
   );
@@ -153,6 +155,7 @@ export function FollowButton({
   following?: boolean;
   onClick?: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <button
       onClick={onClick}
@@ -162,7 +165,7 @@ export function FollowButton({
           : "bg-teal-600 hover:bg-teal-500 text-white shadow-md shadow-teal-900/20 hover:shadow-lg"
       } ${compact ? "text-[11px] px-3 py-1" : "text-xs px-4 py-1.5"}`}
     >
-      {following ? "Following" : "Follow"}
+      {following ? t("Following") : t("Follow")}
     </button>
   );
 }

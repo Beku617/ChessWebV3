@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Play, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { PuzzleItem, getDifficultyColor } from "./types";
 
 const ITEMS_PER_PAGE = 12;
@@ -12,6 +13,7 @@ interface PuzzleCardProps {
 }
 
 export function PuzzleCard({ puzzle, index }: PuzzleCardProps) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   return (
@@ -33,7 +35,7 @@ export function PuzzleCard({ puzzle, index }: PuzzleCardProps) {
           <span
             className={`px-2.5 py-1 rounded-md text-xs font-medium border ${getDifficultyColor(puzzle.difficulty)}`}
           >
-            {puzzle.difficulty}
+            {t(puzzle.difficulty)}
           </span>
         </div>
       </div>
@@ -58,17 +60,17 @@ export function PuzzleCard({ puzzle, index }: PuzzleCardProps) {
           {puzzle.isWhiteToMove ? (
             <>
               <div className="w-3 h-3 rounded-full bg-white border border-gray-300" />
-              White to move
+              {t("White to move")}
             </>
           ) : (
             <>
               <div className="w-3 h-3 rounded-full bg-gray-800 border border-gray-600" />
-              Black to move
+              {t("Black to move")}
             </>
           )}
         </span>
         <button className="px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-lg transition-all text-sm font-medium flex items-center gap-1 group-hover:shadow-lg group-hover:shadow-teal-500/20">
-          <Play size={14} /> Solve
+          <Play size={14} /> {t("Solve")}
         </button>
       </div>
     </motion.div>
@@ -100,6 +102,7 @@ export function PuzzlesGrid({
   totalCount,
   activeLabel,
 }: PuzzlesGridProps) {
+  const { t } = useTranslation();
   const [currentPage, setCurrentPage] = useState(1);
 
   // Reset to page 1 whenever the filtered list changes
@@ -133,12 +136,12 @@ export function PuzzlesGrid({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-          Puzzle Library
+          {t("Puzzle Library")}
         </h3>
         <div className="text-sm text-gray-500 dark:text-gray-400">
           {selectedCount === 0
-            ? `0/${allCount} shown`
-            : `${rangeStart}–${rangeEnd} of ${selectedCount}`}
+            ? `0/${allCount} ${t("shown")}`
+            : `${rangeStart}–${rangeEnd} ${t("of")} ${selectedCount}`}
           {activeLabel ? ` • ${activeLabel}` : ""}
         </div>
       </div>
@@ -150,7 +153,7 @@ export function PuzzlesGrid({
           </div>
         ) : puzzles.length === 0 ? (
           <div className="col-span-full text-center py-12 text-gray-500 dark:text-gray-400">
-            No puzzles available
+            {t("No puzzles available")}
           </div>
         ) : (
           paginatedPuzzles.map((puzzle, idx) => (
