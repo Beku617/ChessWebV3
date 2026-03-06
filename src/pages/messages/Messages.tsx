@@ -227,10 +227,10 @@ export default function Messages() {
                 <button
                   type="button"
                   onClick={() => setChatTab("archived")}
-                  className={`flex flex-1 items-center justify-between gap-2 px-4 py-3 text-[12px] font-semibold leading-4 transition-all ${
+                  className={`flex flex-1 items-center justify-between gap-2 border-l border-[#25344e] px-4 py-3 text-[12px] font-semibold leading-4 transition-all ${
                     chatTab === "archived"
                       ? "relative -mb-px border-b border-[#0c1629] bg-[#0c1629] text-teal-300 shadow-[inset_0_1px_0_rgba(37,52,78,0.8)]"
-                      : "border-l border-[#25344e] border-b border-[#25344e] bg-[#0c1629]/40 text-slate-400 hover:bg-[#13223a]/65 hover:text-slate-200"
+                      : "border-b border-[#25344e] bg-[#0c1629]/40 text-slate-400 hover:bg-[#13223a]/65 hover:text-slate-200"
                   }`}
                 >
                   <span>{t("messages.tabArchived", "Archived")}</span>
