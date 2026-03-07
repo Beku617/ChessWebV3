@@ -75,30 +75,33 @@ html:not(.dark) .placeholder-gray-500::placeholder {
   display: none; /* Safari/Chrome */
 }
 
-/* Premium custom scrollbar */
+/* Premium dark scrollbar for NeonGambit */
 .premium-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: transparent transparent;
+  scrollbar-color: rgba(34, 148, 157, 0.18) rgba(7, 12, 21, 0.38);
 }
 .premium-scrollbar:hover {
-  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+  scrollbar-color: rgba(34, 148, 157, 0.32) rgba(7, 12, 21, 0.48);
 }
 .premium-scrollbar::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
 .premium-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
+  background: rgba(4, 9, 17, 0.35);
 }
 .premium-scrollbar::-webkit-scrollbar-thumb {
-  background: transparent;
+  background: linear-gradient(180deg, rgba(28, 122, 138, 0.22), rgba(42, 176, 189, 0.24));
   border-radius: 999px;
-  transition: background 0.3s;
+  transition: background 0.25s ease, opacity 0.25s ease;
+  opacity: 0.7;
 }
 .premium-scrollbar:hover::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: linear-gradient(180deg, rgba(28, 122, 138, 0.35), rgba(42, 176, 189, 0.4));
+  opacity: 1;
 }
 .premium-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: linear-gradient(180deg, rgba(36, 165, 178, 0.45), rgba(52, 205, 214, 0.48));
 }
 
 /* Leaderboard fade mask */

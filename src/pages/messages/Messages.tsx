@@ -212,8 +212,8 @@ export default function Messages() {
     <div className="min-h-screen h-screen bg-[#060b16] text-slate-100 flex transition-colors duration-300">
       <Sidebar />
 
-      <div className="flex-1 ml-72 grid h-screen grid-cols-12 overflow-hidden">
-        <aside className="col-span-4 min-w-0 overflow-y-auto border-r border-[#1b2740] bg-[#0d1525]/92 backdrop-blur-xl">
+      <div className="flex-1 ml-72 grid h-screen min-h-0 grid-cols-12 overflow-hidden">
+        <aside className="col-span-4 min-w-0 min-h-0 overflow-y-auto premium-scrollbar border-r border-[#1b2740] bg-[#0d1525]/92 backdrop-blur-xl">
           <div className="sticky top-0 z-20 bg-[#101a2d]/92 p-5 backdrop-blur-xl">
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
@@ -347,7 +347,7 @@ export default function Messages() {
           </div>
         </aside>
 
-        <section className="col-span-8 min-w-0 flex flex-col bg-[#08101d]/85">
+        <section className="col-span-8 min-w-0 min-h-0 flex flex-col overflow-hidden bg-[#08101d]/85">
           {!activeChatId ? (
             loading ? (
               <div className="flex flex-1 items-center justify-center text-sm text-slate-500">
@@ -374,7 +374,7 @@ export default function Messages() {
             )
           ) : (
             <>
-              <header className="flex items-center justify-between border-b border-[#1f2c45] bg-[#111b2f]/94 px-5 py-3.5 backdrop-blur-xl">
+              <header className="flex shrink-0 items-center justify-between border-b border-[#1f2c45] bg-[#111b2f]/94 px-5 py-3.5 backdrop-blur-xl">
                 <div className="flex min-w-0 items-center gap-3">
                   <div className="relative h-11 w-11 shrink-0 rounded-full bg-[#1a2940] ring-1 ring-[#2a3a57]">
                     {activeConversation?.partnerAvatar ? (
@@ -413,7 +413,7 @@ export default function Messages() {
                 </div>
               </header>
 
-              <div className="flex-1 overflow-y-auto px-5 py-4">
+              <div className="flex-1 min-h-0 overflow-y-auto premium-scrollbar px-5 py-4">
                 {info && (
                   <div className="mb-3 rounded-xl border border-teal-500/30 bg-teal-500/12 px-3 py-2 text-xs font-medium text-teal-300">
                     {info}
@@ -450,7 +450,7 @@ export default function Messages() {
                               : "rounded-bl-md border border-[#27354f] bg-[#132036] text-slate-100 shadow-[0_8px_20px_rgba(0,0,0,0.22)]"
                           }`}
                         >
-                          <div className="whitespace-pre-wrap break-words">{m.content}</div>
+                          <div className="whitespace-pre-wrap break-words [overflow-wrap:anywhere]">{m.content}</div>
                           <div
                             className={`mt-1.5 inline-flex items-center gap-1 text-[10px] ${
                               mine ? "text-cyan-100/90" : "text-slate-400"
@@ -466,7 +466,7 @@ export default function Messages() {
                 )}
               </div>
 
-              <div className="border-t border-[#1f2c45] bg-[#0f182a]/95 px-4 py-3 backdrop-blur-xl">
+              <div className="shrink-0 border-t border-[#1f2c45] bg-[#0f182a]/95 px-4 py-3 backdrop-blur-xl">
                 <div className="flex items-center gap-2 rounded-2xl border border-[#27354f] bg-[#121e31]/92 p-2">
                   <button
                     type="button"
