@@ -1,4 +1,4 @@
-import { Calendar, Clock, ChevronDown, ChevronUp, Swords } from "lucide-react";
+import { Calendar, Clock, ChevronDown, ChevronUp, Swords, Share2 } from "lucide-react";
 import { GameHistory } from "../../historyTypes";
 
 interface GameCardHeaderProps {
@@ -10,6 +10,8 @@ interface GameCardHeaderProps {
   resultColor: string;
   playerIsWhite: boolean;
   formatDuration: (ms?: number) => string;
+  gameIndex?: number;
+  onShare?: () => void;
 }
 
 export function GameCardHeader({
@@ -21,6 +23,8 @@ export function GameCardHeader({
   resultColor,
   playerIsWhite,
   formatDuration,
+  gameIndex,
+  onShare,
 }: GameCardHeaderProps) {
   return (
     <div
@@ -29,6 +33,11 @@ export function GameCardHeader({
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
+          {gameIndex != null && (
+            <span className="inline-flex h-7 min-w-[28px] items-center justify-center rounded-md bg-gray-100 dark:bg-gray-800 text-xs font-semibold text-gray-500 dark:text-gray-400 tabular-nums" title={`Game #${gameIndex}`}>
+              {gameIndex}
+            </span>
+          )}
           <div
             className={`px-3 py-1.5 rounded-lg font-bold text-sm ${resultBg} ${resultColor} w-16 text-center`}
           >
@@ -73,6 +82,19 @@ export function GameCardHeader({
             <Swords size={14} />
             <span>{game.moves.length}</span>
           </div>
+          {onShare && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onShare();
+              }}
+              title="Share game"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500 transition-colors hover:border-teal-400 dark:hover:border-teal-600 hover:text-teal-500 dark:hover:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-500/10"
+            >
+              <Share2 size={14} />
+            </button>
+          )}
           {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
         </div>
       </div>

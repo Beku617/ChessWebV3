@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, History, Trophy } from "lucide-react";
 import { GameHistory } from "../../historyTypes";
 import { GameCard } from "../profile";
+import { ShareGameModal } from "../ShareGameModal";
 import { FilterType } from "./types";
 
 const GAMES_PER_PAGE = 10;
@@ -21,22 +22,35 @@ function getPageNumbers(current: number, total: number): (number | "...")[] {
 
 interface GamesTabContentProps {
   filteredGames: GameHistory[];
+  allGames?: GameHistory[];
   filter: FilterType;
   setFilter: (filter: FilterType) => void;
   expandedId: string | null;
   setExpandedId: (id: string | null) => void;
   analyzeBaseUrl?: string;
+  showShareButton?: boolean;
 }
 
 export function GamesTabContent({
   filteredGames,
+  allGames,
   filter,
   setFilter,
   expandedId,
   setExpandedId,
   analyzeBaseUrl,
+  showShareButton = false,
 }: GamesTabContentProps) {
   const [currentPage, setCurrentPage] = useState(1);
+  const [shareGame, setShareGame] = useState<GameHistory | null>(null);
+
+  // Build an id→index map from all games (1-based, matching profile history order)
+  const gameIndexMap = useMemo(() => {
+    const source = allGames || filteredGames;
+    const map = new Map<string, number>();
+    source.forEach((g, i) => map.set(g._id, i + 1));
+    return map;
+  }, [allGames, filteredGames]);
 
   // Reset to page 1 when filter changes
   const handleSetFilter = (f: FilterType) => {
@@ -112,6 +126,8 @@ export function GamesTabContent({
                 setExpandedId(expandedId === game._id ? null : game._id)
               }
               analyzeBaseUrl={analyzeBaseUrl}
+              gameIndex={gameIndexMap.get(game._id)}
+              onShare={showShareButton ? (g) => setShareGame(g) : undefined}
             />
           ))
         ) : (
@@ -166,6 +182,13 @@ export function GamesTabContent({
             <ChevronRight size={16} />
           </button>
         </div>
+      )}
+
+      {shareGame && (
+        <ShareGameModal
+          game={shareGame}
+          onClose={() => setShareGame(null)}
+        />
       )}
     </motion.div>
   );

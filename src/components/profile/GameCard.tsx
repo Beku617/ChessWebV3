@@ -11,7 +11,9 @@ interface GameCardProps {
   game: GameHistory;
   isExpanded: boolean;
   onToggle: () => void;
-  analyzeBaseUrl?: string; // Optional custom base URL for analyze, defaults to "/analyze"
+  analyzeBaseUrl?: string;
+  gameIndex?: number;
+  onShare?: (game: GameHistory) => void;
 }
 
 function isChess960Game(game: GameHistory): boolean {
@@ -32,6 +34,8 @@ export function GameCard({
   isExpanded,
   onToggle,
   analyzeBaseUrl = "/analyze",
+  gameIndex,
+  onShare,
 }: GameCardProps) {
   const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
@@ -127,6 +131,8 @@ export function GameCard({
         resultColor={resultColor}
         playerIsWhite={playerIsWhite}
         formatDuration={formatDuration}
+        gameIndex={gameIndex}
+        onShare={onShare ? () => onShare(game) : undefined}
       />
 
       {isExpanded && (

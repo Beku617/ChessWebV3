@@ -98,10 +98,12 @@ export default function Profile() {
             ) : (
               <GamesTabContent
                 filteredGames={filteredGames}
+                allGames={games}
                 filter={filter}
                 setFilter={setFilter}
                 expandedId={expandedId}
                 setExpandedId={setExpandedId}
+                showShareButton={true}
               />
             )
           ) : (

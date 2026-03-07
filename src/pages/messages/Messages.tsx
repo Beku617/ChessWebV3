@@ -19,6 +19,8 @@ import {
   ChevronRight,
   Image as ImageIcon,
   Video,
+  Crown,
+  ExternalLink,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import Sidebar from "../../components/Sidebar";
@@ -69,12 +71,29 @@ interface MessageAttachment {
   thumbnail?: string | null;
 }
 
+interface SharedGame {
+  gameId: string;
+  white: string;
+  black: string;
+  result: string;
+  whiteElo?: number | null;
+  blackElo?: number | null;
+  timeControl?: string;
+  eco?: string;
+  playedAt?: string;
+  rated?: boolean;
+  moves?: number;
+  variant?: string;
+  termination?: string;
+}
+
 interface Message {
   _id: string;
   sender: string;
   receiver: string;
   content: string;
   attachments?: MessageAttachment[];
+  sharedGame?: SharedGame | null;
   read: boolean;
   status?: string;
   createdAt: string;
@@ -167,7 +186,8 @@ const isVideoAttachment = (att?: MessageAttachment | null) =>
 const isImageAttachment = (att?: MessageAttachment | null) =>
   !!att && (att.type === "image" || (att.mimeType || "").startsWith("image/"));
 
-function messagePreviewLabel(message: Pick<Message, "content" | "attachments">) {
+function messagePreviewLabel(message: Pick<Message, "content" | "attachments" | "sharedGame">) {
+  if (message.sharedGame?.gameId) return "Shared a game";
   const text = (message.content || "").trim();
   const attachments = Array.isArray(message.attachments) ? message.attachments : [];
   const videos = attachments.filter(isVideoAttachment).length;
@@ -362,6 +382,7 @@ export default function Messages() {
         receiver: String(payload.receiver || payload.toUserId || ""),
         content: String(payload.content || payload.body || ""),
         attachments: Array.isArray(payload.attachments) ? payload.attachments : [],
+        sharedGame: payload.sharedGame || null,
         read: !!payload.read,
         status: payload.status || "delivered",
         createdAt: payload.createdAt || new Date().toISOString(),
@@ -864,6 +885,51 @@ export default function Messages() {
     const hasVideo = !!pendingVideo;
     if (!activeChatId) return;
     if (!content && !hasImages && !hasVideo) return;
+
+    // Detect /gameN command (only when no attachments and full message matches)
+    const gameCommandMatch = content.match(/^\/game(\d+)$/i);
+    if (gameCommandMatch && !hasImages && !hasVideo) {
+      const gameIndex = parseInt(gameCommandMatch[1], 10);
+      if (!Number.isFinite(gameIndex) || gameIndex < 1) {
+        setError("Invalid game number. Use /game1, /game2, etc.");
+        return;
+      }
+
+      setError(null);
+      setInfo(null);
+      setSending(true);
+
+      try {
+        const res = await fetch(`${API_URL}/api/messages/share-game`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            receiverId: activeChatId,
+            gameIndex,
+          }),
+        });
+
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          setError(data.error || "Failed to share game.");
+          return;
+        }
+
+        setDraft("");
+        setPendingScroll({ type: "bottom" });
+
+        await Promise.all([
+          fetchConversations(),
+          fetchMessages(activeChatId, { scrollToBottom: true }),
+        ]);
+      } catch {
+        setError("Failed to share game. Please try again.");
+      } finally {
+        setSending(false);
+      }
+      return;
+    }
     if (hasImages && hasVideo) {
       setError("Send either images or one video per message.");
       return;
@@ -1319,6 +1385,7 @@ export default function Messages() {
                     const attachments = Array.isArray(m.attachments) ? m.attachments : [];
                     const hasAttachments = attachments.length > 0;
                     const hasText = Boolean(m.content && m.content.trim().length > 0);
+                    const hasSharedGame = !!(m.sharedGame?.gameId);
 
                     return (
                       <div
@@ -1332,7 +1399,7 @@ export default function Messages() {
                               ? "rounded-br-md bg-gradient-to-br from-teal-500 to-cyan-500 text-white shadow-[0_10px_24px_rgba(20,184,166,0.28)]"
                               : "rounded-bl-md border border-[#27354f] bg-[#132036] text-slate-100 shadow-[0_8px_20px_rgba(0,0,0,0.22)]"
                           } ${
-                            hasAttachments ? "px-3 py-3" : "px-4 py-2.5"
+                            hasAttachments || hasSharedGame ? "px-3 py-3" : "px-4 py-2.5"
                           }`}
                         >
                           {hasText && (
@@ -1340,6 +1407,75 @@ export default function Messages() {
                               {m.content}
                             </div>
                           )}
+                          {hasSharedGame && (() => {
+                            const sg = m.sharedGame!;
+                            const gameResultText =
+                              sg.result === "1-0" ? "White wins" : sg.result === "0-1" ? "Black wins" : sg.result === "1/2-1/2" ? "Draw" : sg.result || "—";
+                            const resultAccent =
+                              sg.result === "1-0" || sg.result === "0-1" ? "text-emerald-300" : "text-amber-300";
+                            const variant = sg.variant === "chess960" ? "960" : "";
+                            const analyzeUrl = sg.variant === "chess960" ? `/analyze960/${sg.gameId}` : `/analyze/${sg.gameId}`;
+                            const cardBg = mine
+                              ? "border-white/20 bg-white/10 hover:bg-white/15"
+                              : "border-[#25344e] bg-[#0b1424]/80 hover:bg-[#0f1a2e]/90";
+
+                            return (
+                              <a
+                                href={analyzeUrl}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  window.location.href = analyzeUrl;
+                                }}
+                                className={`mt-1 block rounded-xl border ${cardBg} p-3 transition-colors cursor-pointer group`}
+                              >
+                                <div className="flex items-start gap-3">
+                                  <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${mine ? "bg-white/15 text-white" : "bg-teal-500/10 text-teal-400"}`}>
+                                    <Crown className="h-4.5 w-4.5" />
+                                  </div>
+                                  <div className="min-w-0 flex-1">
+                                    <div className="flex items-center gap-1.5 text-[13px] font-semibold">
+                                      <span className={mine ? "text-white" : "text-slate-100"}>{sg.white}</span>
+                                      {sg.whiteElo != null && <span className={`text-[11px] font-normal ${mine ? "text-cyan-100/70" : "text-slate-500"}`}>({sg.whiteElo})</span>}
+                                      <span className={mine ? "text-cyan-100/60" : "text-slate-500"}>vs</span>
+                                      <span className={mine ? "text-white" : "text-slate-100"}>{sg.black}</span>
+                                      {sg.blackElo != null && <span className={`text-[11px] font-normal ${mine ? "text-cyan-100/70" : "text-slate-500"}`}>({sg.blackElo})</span>}
+                                    </div>
+                                    <div className={`mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] ${mine ? "text-cyan-100/75" : "text-slate-400"}`}>
+                                      <span className={`font-semibold ${mine ? resultAccent : resultAccent}`}>{gameResultText}</span>
+                                      {sg.timeControl && (
+                                        <>
+                                          <span className={mine ? "text-cyan-100/40" : "text-slate-600"}>·</span>
+                                          <span>{sg.timeControl}{variant && ` ${variant}`}</span>
+                                        </>
+                                      )}
+                                      {sg.eco && (
+                                        <>
+                                          <span className={mine ? "text-cyan-100/40" : "text-slate-600"}>·</span>
+                                          <span>{sg.eco}</span>
+                                        </>
+                                      )}
+                                      {sg.moves != null && sg.moves > 0 && (
+                                        <>
+                                          <span className={mine ? "text-cyan-100/40" : "text-slate-600"}>·</span>
+                                          <span>{sg.moves} moves</span>
+                                        </>
+                                      )}
+                                      {sg.rated && (
+                                        <>
+                                          <span className={mine ? "text-cyan-100/40" : "text-slate-600"}>·</span>
+                                          <span>Rated</span>
+                                        </>
+                                      )}
+                                    </div>
+                                    <div className={`mt-1.5 inline-flex items-center gap-1 text-[11px] font-medium ${mine ? "text-white/80 group-hover:text-white" : "text-teal-400/80 group-hover:text-teal-300"} transition-colors`}>
+                                      <ExternalLink className="h-3 w-3" />
+                                      View Game
+                                    </div>
+                                  </div>
+                                </div>
+                              </a>
+                            );
+                          })()}
                           {hasAttachments && renderAttachmentGrid(attachments, m._id, mine)}
                           <div
                             className={`mt-1.5 inline-flex items-center gap-1 text-[10px] ${
@@ -1486,6 +1622,16 @@ export default function Messages() {
                           </div>
                         ))}
                       </div>
+                    </div>
+                  )}
+
+                  {/* /gameN command hint */}
+                  {/^\/game\d*$/i.test(draft.trim()) && !pendingImages.length && !pendingVideo && (
+                    <div className="mb-2 flex items-center gap-2 rounded-xl border border-teal-500/20 bg-teal-500/5 px-3 py-2">
+                      <Crown className="h-4 w-4 shrink-0 text-teal-400" />
+                      <span className="text-xs text-teal-300/90">
+                        Type <span className="font-mono font-semibold">/game1</span>, <span className="font-mono font-semibold">/game2</span>, etc. to share a game from your profile history
+                      </span>
                     </div>
                   )}
 

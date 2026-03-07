@@ -1,7 +1,9 @@
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { History } from "lucide-react";
 import { GameHistory } from "../../historyTypes";
 import { GameCard } from "../profile";
+import { ShareGameModal } from "../ShareGameModal";
 import { TabType } from "./types";
 
 interface RecentGamesProps {
@@ -19,6 +21,15 @@ export function RecentGames({
   setActiveTab,
   analyzeBaseUrl,
 }: RecentGamesProps) {
+  const [shareGame, setShareGame] = useState<GameHistory | null>(null);
+
+  // Build index numbers (1-based) that match the profile history order
+  const gameIndexMap = useMemo(() => {
+    const map = new Map<string, number>();
+    games.forEach((g, i) => map.set(g._id, i + 1));
+    return map;
+  }, [games]);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -48,9 +59,15 @@ export function RecentGames({
               setExpandedId(expandedId === game._id ? null : game._id)
             }
             analyzeBaseUrl={analyzeBaseUrl}
+            gameIndex={gameIndexMap.get(game._id)}
+            onShare={(g) => setShareGame(g)}
           />
         ))}
       </div>
+
+      {shareGame && (
+        <ShareGameModal game={shareGame} onClose={() => setShareGame(null)} />
+      )}
     </motion.div>
   );
 }

@@ -9,6 +9,8 @@ import { authMiddleware } from "../middleware/index.js";
 import {
   BlockedUser,
   Friend,
+  History,
+  History960,
   Message,
   User,
   UserConversationState,
@@ -29,7 +31,11 @@ const ALLOWED_IMAGE_TYPES = new Set([
   "image/webp",
   "image/gif",
 ]);
-const ALLOWED_VIDEO_TYPES = new Set(["video/mp4", "video/webm", "video/quicktime"]);
+const ALLOWED_VIDEO_TYPES = new Set([
+  "video/mp4",
+  "video/webm",
+  "video/quicktime",
+]);
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024; // 8MB per image
 const MAX_TOTAL_IMAGE_BYTES = 32 * 1024 * 1024; // 32MB per message (images only)
 const MAX_IMAGES_PER_MESSAGE = 10;
@@ -52,8 +58,14 @@ const upload = multer({
     files: MAX_IMAGES_PER_MESSAGE + MAX_VIDEOS_PER_MESSAGE,
   },
   fileFilter: (_req, file, cb) => {
-    if (!ALLOWED_IMAGE_TYPES.has(file.mimetype) && !ALLOWED_VIDEO_TYPES.has(file.mimetype)) {
-      const err = new multer.MulterError("LIMIT_UNEXPECTED_FILE", file.fieldname);
+    if (
+      !ALLOWED_IMAGE_TYPES.has(file.mimetype) &&
+      !ALLOWED_VIDEO_TYPES.has(file.mimetype)
+    ) {
+      const err = new multer.MulterError(
+        "LIMIT_UNEXPECTED_FILE",
+        file.fieldname,
+      );
       err.message =
         "Unsupported file type. Please upload jpg, jpeg, png, webp, gif, mp4, webm, or mov.";
       return cb(err);
@@ -63,17 +75,21 @@ const upload = multer({
 });
 
 const uploadAttachments = (req, res, next) =>
-  upload.array("attachments", MAX_IMAGES_PER_MESSAGE + MAX_VIDEOS_PER_MESSAGE)(req, res, (err) => {
-    if (err) {
-      const message =
-        err instanceof multer.MulterError
-          ? err.message ||
-            "Attachment error. Please ensure files are jpg/png/webp/gif or mp4/webm/mov and within size limits."
-          : "Failed to upload attachments.";
-      return res.status(400).json({ error: message });
-    }
-    return next();
-  });
+  upload.array("attachments", MAX_IMAGES_PER_MESSAGE + MAX_VIDEOS_PER_MESSAGE)(
+    req,
+    res,
+    (err) => {
+      if (err) {
+        const message =
+          err instanceof multer.MulterError
+            ? err.message ||
+              "Attachment error. Please ensure files are jpg/png/webp/gif or mp4/webm/mov and within size limits."
+            : "Failed to upload attachments.";
+        return res.status(400).json({ error: message });
+      }
+      return next();
+    },
+  );
 
 const router = Router();
 const VISIBLE_MESSAGE_STATUSES = ["delivered", "request_accepted"];
@@ -82,23 +98,31 @@ const STATE_COLLECTION =
   UserConversationState.collection?.name || "userconversationstates";
 
 const visibleStatusQuery = () => ({
-  $or: [{ status: { $in: VISIBLE_MESSAGE_STATUSES } }, { status: { $exists: false } }],
+  $or: [
+    { status: { $in: VISIBLE_MESSAGE_STATUSES } },
+    { status: { $exists: false } },
+  ],
 });
 
 const cleanupFiles = async (files = []) => {
   await Promise.all(
     files.map((file) =>
-      file?.path ? fs.promises.unlink(file.path).catch(() => null) : Promise.resolve(),
+      file?.path
+        ? fs.promises.unlink(file.path).catch(() => null)
+        : Promise.resolve(),
     ),
   );
 };
 
 const mapAttachments = (files = []) =>
   files.map((file) => {
-    const storedName = path.basename(file.filename || file.originalname || "image");
+    const storedName = path.basename(
+      file.filename || file.originalname || "image",
+    );
     const displayName = path.basename(file.originalname || storedName);
     const type =
-      ALLOWED_VIDEO_TYPES.has(file.mimetype) || (file.mimetype || "").startsWith("video/")
+      ALLOWED_VIDEO_TYPES.has(file.mimetype) ||
+      (file.mimetype || "").startsWith("video/")
         ? "video"
         : "image";
     return {
@@ -107,10 +131,10 @@ const mapAttachments = (files = []) =>
       filename: displayName,
       mimeType: file.mimetype,
       size: file.size,
-      width: type === "image" ? file.width ?? null : null,
-      height: type === "image" ? file.height ?? null : null,
-      duration: type === "video" ? file.duration ?? null : null,
-      thumbnail: type === "video" ? file.thumbnail ?? null : null,
+      width: type === "image" ? (file.width ?? null) : null,
+      height: type === "image" ? (file.height ?? null) : null,
+      duration: type === "video" ? (file.duration ?? null) : null,
+      thumbnail: type === "video" ? (file.thumbnail ?? null) : null,
     };
   });
 
@@ -128,7 +152,8 @@ const summarizeAttachmentLabel = (attachments = []) => {
   return "";
 };
 
-const getMessagePreview = (content, attachments) => {
+const getMessagePreview = (content, attachments, sharedGame) => {
+  if (sharedGame?.gameId) return "Shared a game";
   const text = String(content || "").trim();
   const label = summarizeAttachmentLabel(attachments);
   if (!label) return text;
@@ -138,7 +163,8 @@ const getMessagePreview = (content, attachments) => {
 
 const toObjectId = (value) => new mongoose.Types.ObjectId(String(value));
 const toId = (value) => (value ? String(value) : "");
-const isValidObjectId = (value) => mongoose.Types.ObjectId.isValid(String(value || ""));
+const isValidObjectId = (value) =>
+  mongoose.Types.ObjectId.isValid(String(value || ""));
 const getUserRoom = (userId) => `user:${userId}`;
 
 async function hasBlockRelation(userA, userB) {
@@ -163,12 +189,17 @@ router.get("/conversations", async (req, res) => {
     const conversations = await Message.aggregate([
       {
         $match: {
-          $and: [{ $or: [{ sender: userId }, { receiver: userId }] }, visibleStatusQuery()],
+          $and: [
+            { $or: [{ sender: userId }, { receiver: userId }] },
+            visibleStatusQuery(),
+          ],
         },
       },
       {
         $addFields: {
-          partnerId: { $cond: [{ $eq: ["$sender", userId] }, "$receiver", "$sender"] },
+          partnerId: {
+            $cond: [{ $eq: ["$sender", userId] }, "$receiver", "$sender"],
+          },
         },
       },
       {
@@ -215,12 +246,18 @@ router.get("/conversations", async (req, res) => {
           _id: "$partnerId",
           lastMessage: { $first: "$content" },
           lastAttachments: { $first: "$attachments" },
+          lastSharedGame: { $first: "$sharedGame" },
           lastMessageAt: { $first: "$createdAt" },
           lastSender: { $first: "$sender" },
           unreadCount: {
             $sum: {
               $cond: [
-                { $and: [{ $eq: ["$receiver", userId] }, { $eq: ["$read", false] }] },
+                {
+                  $and: [
+                    { $eq: ["$receiver", userId] },
+                    { $eq: ["$read", false] },
+                  ],
+                },
                 1,
                 0,
               ],
@@ -270,9 +307,15 @@ router.get("/conversations", async (req, res) => {
     const filteredConversations = conversations
       .filter((c) => friendSet.has(String(c.partnerId)))
       .map((c) => {
-        const lastAttachmentCount = Array.isArray(c.lastAttachments) ? c.lastAttachments.length : 0;
-        const preview = getMessagePreview(c.lastMessage, c.lastAttachments);
-        const { lastAttachments, ...rest } = c;
+        const lastAttachmentCount = Array.isArray(c.lastAttachments)
+          ? c.lastAttachments.length
+          : 0;
+        const preview = getMessagePreview(
+          c.lastMessage,
+          c.lastAttachments,
+          c.lastSharedGame,
+        );
+        const { lastAttachments, lastSharedGame, ...rest } = c;
         return {
           ...rest,
           lastAttachmentCount,
@@ -312,7 +355,10 @@ router.get("/unread-count", async (req, res) => {
       query.$or = [
         { sender: { $nin: clearedPartners } },
         ...clearedStates.map((s) => ({
-          $and: [{ sender: toObjectId(s.partnerId) }, { createdAt: { $gt: s.clearedAt } }],
+          $and: [
+            { sender: toObjectId(s.partnerId) },
+            { createdAt: { $gt: s.clearedAt } },
+          ],
         })),
       ];
     }
@@ -337,7 +383,9 @@ router.patch("/conversations/:partnerId/archive", async (req, res) => {
     }
 
     if (!(await areFriends(userId, partnerId))) {
-      return res.status(403).json({ error: "Not authorized for this conversation." });
+      return res
+        .status(403)
+        .json({ error: "Not authorized for this conversation." });
     }
 
     const archivedAt = archive ? new Date() : null;
@@ -367,7 +415,9 @@ router.delete("/conversations/:partnerId", async (req, res) => {
     }
 
     if (!(await areFriends(userId, partnerId))) {
-      return res.status(403).json({ error: "Not authorized for this conversation." });
+      return res
+        .status(403)
+        .json({ error: "Not authorized for this conversation." });
     }
 
     const now = new Date();
@@ -427,7 +477,12 @@ router.get("/:friendId", async (req, res) => {
 
     const query = {
       $and: [
-        { $or: [{ sender: userId, receiver: friendId }, { sender: friendId, receiver: userId }] },
+        {
+          $or: [
+            { sender: userId, receiver: friendId },
+            { sender: friendId, receiver: userId },
+          ],
+        },
         visibleStatusQuery(),
       ],
     };
@@ -446,7 +501,10 @@ router.get("/:friendId", async (req, res) => {
       query.createdAt = createdAt;
     }
 
-    const messages = await Message.find(query).sort({ createdAt: -1 }).limit(limit).lean();
+    const messages = await Message.find(query)
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .lean();
 
     res.json({ messages: messages.reverse() });
   } catch (err) {
@@ -478,11 +536,17 @@ router.post("/", uploadAttachments, async (req, res) => {
 
     if (content.length > MAX_MESSAGE_LENGTH) {
       await cleanupFiles(files);
-      return res.status(400).json({ error: "Message text is too long (2000 characters max)." });
+      return res
+        .status(400)
+        .json({ error: "Message text is too long (2000 characters max)." });
     }
 
-    const images = files.filter((file) => ALLOWED_IMAGE_TYPES.has(file.mimetype));
-    const videos = files.filter((file) => ALLOWED_VIDEO_TYPES.has(file.mimetype));
+    const images = files.filter((file) =>
+      ALLOWED_IMAGE_TYPES.has(file.mimetype),
+    );
+    const videos = files.filter((file) =>
+      ALLOWED_VIDEO_TYPES.has(file.mimetype),
+    );
 
     if (images.length + videos.length !== files.length) {
       await cleanupFiles(files);
@@ -491,24 +555,37 @@ router.post("/", uploadAttachments, async (req, res) => {
 
     if (!content && images.length === 0 && videos.length === 0) {
       await cleanupFiles(files);
-      return res.status(400).json({ error: "Message must include text or at least one attachment." });
+      return res
+        .status(400)
+        .json({
+          error: "Message must include text or at least one attachment.",
+        });
     }
 
     if (images.length > 0 && videos.length > 0) {
       await cleanupFiles(files);
       return res
         .status(400)
-        .json({ error: "Send either multiple images or one video per message (with optional text)." });
+        .json({
+          error:
+            "Send either multiple images or one video per message (with optional text).",
+        });
     }
 
     if (images.length > MAX_IMAGES_PER_MESSAGE) {
       await cleanupFiles(files);
-      return res.status(400).json({ error: `You can upload up to ${MAX_IMAGES_PER_MESSAGE} images per message.` });
+      return res
+        .status(400)
+        .json({
+          error: `You can upload up to ${MAX_IMAGES_PER_MESSAGE} images per message.`,
+        });
     }
 
     if (videos.length > MAX_VIDEOS_PER_MESSAGE) {
       await cleanupFiles(files);
-      return res.status(400).json({ error: "Only one video can be sent per message." });
+      return res
+        .status(400)
+        .json({ error: "Only one video can be sent per message." });
     }
 
     const invalidImage = images.find((file) => file.size > MAX_IMAGE_BYTES);
@@ -516,16 +593,23 @@ router.post("/", uploadAttachments, async (req, res) => {
       await cleanupFiles(files);
       return res
         .status(400)
-        .json({ error: `${invalidImage.originalname || "Image"} is too large (max 8MB per image).` });
+        .json({
+          error: `${invalidImage.originalname || "Image"} is too large (max 8MB per image).`,
+        });
     }
 
-    const totalImageBytes = images.reduce((sum, file) => sum + (Number(file.size) || 0), 0);
+    const totalImageBytes = images.reduce(
+      (sum, file) => sum + (Number(file.size) || 0),
+      0,
+    );
     if (images.length > 0 && totalImageBytes > MAX_TOTAL_IMAGE_BYTES) {
       await cleanupFiles(files);
       const limitMb = Math.round(MAX_TOTAL_IMAGE_BYTES / (1024 * 1024));
       return res
         .status(400)
-        .json({ error: `Attachments are too large. Please keep the total under ${limitMb}MB.` });
+        .json({
+          error: `Attachments are too large. Please keep the total under ${limitMb}MB.`,
+        });
     }
 
     const invalidVideo = videos.find((file) => file.size > MAX_VIDEO_BYTES);
@@ -534,7 +618,9 @@ router.post("/", uploadAttachments, async (req, res) => {
       const limitMb = Math.round(MAX_VIDEO_BYTES / (1024 * 1024));
       return res
         .status(400)
-        .json({ error: `${invalidVideo.originalname || "Video"} is too large (max ${limitMb}MB).` });
+        .json({
+          error: `${invalidVideo.originalname || "Video"} is too large (max ${limitMb}MB).`,
+        });
     }
 
     if (receiverId === senderId) {
@@ -559,7 +645,9 @@ router.post("/", uploadAttachments, async (req, res) => {
 
     if (await hasBlockRelation(senderId, receiverId)) {
       await cleanupFiles(files);
-      return res.status(403).json({ error: "Messaging is blocked between users" });
+      return res
+        .status(403)
+        .json({ error: "Messaging is blocked between users" });
     }
 
     const attachments = mapAttachments([...images, ...videos]);
@@ -576,12 +664,18 @@ router.post("/", uploadAttachments, async (req, res) => {
     // while preserving the clearedAt boundary so older history stays hidden for the user who deleted.
     await UserConversationState.findOneAndUpdate(
       { userId: senderId, partnerId: receiverId },
-      { $set: { deletedAt: null, archivedAt: null }, $setOnInsert: { clearedAt: null } },
+      {
+        $set: { deletedAt: null, archivedAt: null },
+        $setOnInsert: { clearedAt: null },
+      },
       { upsert: true },
     );
     await UserConversationState.findOneAndUpdate(
       { userId: receiverId, partnerId: senderId },
-      { $set: { deletedAt: null, archivedAt: null }, $setOnInsert: { clearedAt: null } },
+      {
+        $set: { deletedAt: null, archivedAt: null },
+        $setOnInsert: { clearedAt: null },
+      },
       { upsert: true },
     );
 
@@ -628,6 +722,192 @@ router.post("/", uploadAttachments, async (req, res) => {
     if (Array.isArray(req.files) && req.files.length > 0) {
       await cleanupFiles(req.files);
     }
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// POST /api/messages/share-game — send a shared game message
+router.post("/share-game", async (req, res) => {
+  try {
+    const senderId = req.user.userId;
+    const receiverId = String(req.body?.receiverId || "").trim();
+    const gameId = String(req.body?.gameId || "").trim();
+    const gameIndex =
+      req.body?.gameIndex != null ? Number(req.body.gameIndex) : null;
+
+    if (!receiverId || !isValidObjectId(receiverId)) {
+      return res.status(400).json({ error: "Valid receiver id required." });
+    }
+    if (receiverId === senderId) {
+      return res.status(400).json({ error: "Cannot message yourself." });
+    }
+
+    // Validate friendship
+    if (!(await areFriends(senderId, receiverId))) {
+      return res
+        .status(403)
+        .json({ error: "You must be friends to share games." });
+    }
+    if (await hasBlockRelation(senderId, receiverId)) {
+      return res
+        .status(403)
+        .json({ error: "Messaging is blocked between users." });
+    }
+
+    const receiver = await User.findOne({ _id: receiverId, deletedAt: null })
+      .select("_id")
+      .lean();
+    if (!receiver) {
+      return res.status(404).json({ error: "Receiver not found." });
+    }
+
+    // Resolve game — either by gameId or by index from sender's history
+    let game = null;
+
+    if (gameId && isValidObjectId(gameId)) {
+      // Direct game ID — validate sender owns the game
+      game = await History.findOne({ _id: gameId, userId: senderId }).lean();
+      if (!game) {
+        game = await History960.findOne({
+          _id: gameId,
+          userId: senderId,
+        }).lean();
+      }
+    } else if (
+      gameIndex != null &&
+      Number.isFinite(gameIndex) &&
+      gameIndex >= 1
+    ) {
+      // Index-based lookup: merge standard + chess960 by createdAt desc to mirror profile ordering
+      const skipN = gameIndex - 1;
+      const history960Collection = History960.collection?.name || "history960s";
+      const baseProject = {
+        _id: 1,
+        userId: 1,
+        white: 1,
+        black: 1,
+        result: 1,
+        whiteElo: 1,
+        blackElo: 1,
+        timeControl: 1,
+        eco: 1,
+        date: 1,
+        utcDate: 1,
+        rated: 1,
+        moves: 1,
+        variant: { $ifNull: ["$variant", "standard"] },
+        termination: 1,
+        createdAt: 1,
+      };
+
+      const unified = await History.aggregate([
+        { $match: { userId: toObjectId(senderId) } },
+        { $project: { ...baseProject, _source: { $literal: "standard" } } },
+        {
+          $unionWith: {
+            coll: history960Collection,
+            pipeline: [
+              { $match: { userId: toObjectId(senderId) } },
+              {
+                $project: { ...baseProject, _source: { $literal: "chess960" } },
+              },
+            ],
+          },
+        },
+        { $sort: { createdAt: -1 } },
+        { $skip: skipN },
+        { $limit: 1 },
+      ]).exec();
+
+      game = unified?.[0] || null;
+    }
+
+    if (!game) {
+      return res
+        .status(404)
+        .json({
+          error: "Game not found. Check the game number and try again.",
+        });
+    }
+
+    // Build snapshot
+    const sharedGame = {
+      gameId: String(game._id),
+      white: game.white || "",
+      black: game.black || "",
+      result: game.result || "",
+      whiteElo: game.whiteElo || null,
+      blackElo: game.blackElo || null,
+      timeControl: game.timeControl || "",
+      eco: game.eco || "",
+      playedAt: game.date || game.utcDate || "",
+      rated: !!game.rated,
+      moves: Array.isArray(game.moves) ? game.moves.length : 0,
+      variant: game.variant || "standard",
+      termination: game.termination || "",
+    };
+
+    const message = await Message.create({
+      sender: senderId,
+      receiver: receiverId,
+      content: "",
+      attachments: [],
+      sharedGame,
+      status: "delivered",
+    });
+
+    // Revive conversation for both sides
+    await UserConversationState.findOneAndUpdate(
+      { userId: senderId, partnerId: receiverId },
+      {
+        $set: { deletedAt: null, archivedAt: null },
+        $setOnInsert: { clearedAt: null },
+      },
+      { upsert: true },
+    );
+    await UserConversationState.findOneAndUpdate(
+      { userId: receiverId, partnerId: senderId },
+      {
+        $set: { deletedAt: null, archivedAt: null },
+        $setOnInsert: { clearedAt: null },
+      },
+      { upsert: true },
+    );
+
+    await notifyUser(req.app, {
+      userId: receiverId,
+      type: "new_message",
+      title: "New message",
+      message: "Shared a game with you.",
+      link: "/messages",
+      payload: { fromUserId: senderId, messageId: toId(message._id) },
+    });
+
+    const payload = {
+      _id: message._id,
+      sender: message.sender,
+      receiver: message.receiver,
+      content: message.content,
+      attachments: [],
+      sharedGame: message.sharedGame,
+      read: message.read,
+      status: "delivered",
+      createdAt: message.createdAt,
+    };
+
+    const io = req.app.get("io");
+    if (io) {
+      io.to(getUserRoom(senderId)).emit("message:new", payload);
+      io.to(getUserRoom(receiverId)).emit("message:new", payload);
+    }
+
+    res.json({
+      message: payload,
+      preview: "Shared a game",
+      mode: "direct",
+    });
+  } catch (err) {
+    console.error("Share game error:", err);
     res.status(500).json({ error: "Server error" });
   }
 });
