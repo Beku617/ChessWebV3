@@ -41,6 +41,7 @@ import { Messages } from "./pages/messages";
 import { useThemeStore } from "./store/themeStore";
 import { useAuthStore, authApi } from "./store/authStore";
 import { useFriendChallengeStore } from "./store/friendChallengeStore";
+import { useFriendStore } from "./store/friendStore";
 import FriendChallengeOverlay from "./components/FriendChallengeOverlay";
 
 // Auth check component
@@ -125,14 +126,25 @@ function RealtimeBridge() {
   const { isAuthenticated, user } = useAuthStore();
   const initialize = useFriendChallengeStore((state) => state.initialize);
   const disconnect = useFriendChallengeStore((state) => state.disconnect);
+  const socket = useFriendChallengeStore((state) => state.socket);
+  const bindFriendSocket = useFriendStore((state) => state.bindSocket);
+  const loadFriends = useFriendStore((state) => state.loadAll);
+  const resetFriends = useFriendStore((state) => state.reset);
 
   useEffect(() => {
     if (isAuthenticated && user) {
       initialize(user);
+      void loadFriends();
       return;
     }
     disconnect();
-  }, [disconnect, initialize, isAuthenticated, user]);
+    resetFriends();
+    bindFriendSocket(null);
+  }, [disconnect, initialize, isAuthenticated, user, loadFriends, resetFriends, bindFriendSocket]);
+
+  useEffect(() => {
+    bindFriendSocket(socket);
+  }, [socket, bindFriendSocket]);
 
   return null;
 }

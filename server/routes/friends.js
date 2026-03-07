@@ -19,6 +19,10 @@ const router = Router();
 const REQUEST_USER_FIELDS =
   "fullName email avatar rating presenceStatus lastActiveAt lastSeenAt";
 
+function isValidObjectId(value) {
+  return mongoose.Types.ObjectId.isValid(String(value || ""));
+}
+
 function userRoom(userId) {
   return `user:${normalizeId(userId)}`;
 }
@@ -307,6 +311,9 @@ router.post("/requests/:requestId/accept", authMiddleware, async (req, res) => {
   try {
     const userId = normalizeId(req.user.userId);
     const { requestId } = req.params;
+    if (!isValidObjectId(requestId)) {
+      return res.status(400).json({ error: "Invalid request id" });
+    }
     const request = await FriendRequest.findById(requestId)
       .populate("senderId", REQUEST_USER_FIELDS)
       .populate("receiverId", REQUEST_USER_FIELDS);
@@ -367,6 +374,9 @@ router.post("/requests/:requestId/deny", authMiddleware, async (req, res) => {
   try {
     const userId = normalizeId(req.user.userId);
     const { requestId } = req.params;
+    if (!isValidObjectId(requestId)) {
+      return res.status(400).json({ error: "Invalid request id" });
+    }
     const request = await FriendRequest.findById(requestId)
       .populate("senderId", REQUEST_USER_FIELDS)
       .populate("receiverId", REQUEST_USER_FIELDS);
@@ -413,6 +423,9 @@ router.post("/requests/:requestId/ignore", authMiddleware, async (req, res) => {
   try {
     const userId = normalizeId(req.user.userId);
     const { requestId } = req.params;
+    if (!isValidObjectId(requestId)) {
+      return res.status(400).json({ error: "Invalid request id" });
+    }
     const request = await FriendRequest.findById(requestId)
       .populate("senderId", REQUEST_USER_FIELDS)
       .populate("receiverId", REQUEST_USER_FIELDS);
@@ -450,6 +463,9 @@ router.post("/requests/:requestId/cancel", authMiddleware, async (req, res) => {
   try {
     const userId = normalizeId(req.user.userId);
     const { requestId } = req.params;
+    if (!isValidObjectId(requestId)) {
+      return res.status(400).json({ error: "Invalid request id" });
+    }
     const request = await FriendRequest.findById(requestId)
       .populate("senderId", REQUEST_USER_FIELDS)
       .populate("receiverId", REQUEST_USER_FIELDS);
