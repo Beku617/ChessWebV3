@@ -1,21 +1,120 @@
 import { Router } from "express";
 import mongoose from "mongoose";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+import crypto from "crypto";
+import { fileURLToPath } from "url";
 import { authMiddleware } from "../middleware/index.js";
-import { BlockedUser, Friend, Message, User } from "../models/index.js";
+import {
+  BlockedUser,
+  Friend,
+  Message,
+  User,
+  UserConversationState,
+} from "../models/index.js";
 import { notifyUser } from "../services/notify.js";
 import { areFriends } from "../utils/friendship.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const uploadsRoot = path.resolve(__dirname, "../uploads/messages");
+
+// Ensure uploads directory exists
+fs.mkdirSync(uploadsRoot, { recursive: true });
+
+const ALLOWED_IMAGE_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+]);
+const MAX_IMAGE_BYTES = 8 * 1024 * 1024; // 8MB per image
+const MAX_TOTAL_BYTES = 32 * 1024 * 1024; // 32MB per message
+const MAX_IMAGES_PER_MESSAGE = 10;
+
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, uploadsRoot),
+  filename: (_req, file, cb) => {
+    const ext = path.extname(file.originalname || "");
+    const name = crypto.randomBytes(10).toString("hex");
+    cb(null, `${Date.now()}-${name}${ext}`);
+  },
+});
+
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: MAX_IMAGE_BYTES,
+    files: MAX_IMAGES_PER_MESSAGE,
+  },
+  fileFilter: (_req, file, cb) => {
+    if (!ALLOWED_IMAGE_TYPES.has(file.mimetype)) {
+      const err = new multer.MulterError("LIMIT_UNEXPECTED_FILE", file.fieldname);
+      err.message = "Unsupported file type. Please upload jpg, jpeg, png, webp, or gif.";
+      return cb(err);
+    }
+    cb(null, true);
+  },
+});
+
+const uploadAttachments = (req, res, next) =>
+  upload.array("attachments", MAX_IMAGES_PER_MESSAGE)(req, res, (err) => {
+    if (err) {
+      const message =
+        err instanceof multer.MulterError
+          ? err.message ||
+            "Attachment error. Please ensure files are images and within size limits."
+          : "Failed to upload attachments.";
+      return res.status(400).json({ error: message });
+    }
+    return next();
+  });
 
 const router = Router();
 const VISIBLE_MESSAGE_STATUSES = ["delivered", "request_accepted"];
 const MAX_MESSAGE_LENGTH = 2000;
+const STATE_COLLECTION =
+  UserConversationState.collection?.name || "userconversationstates";
 
 const visibleStatusQuery = () => ({
   $or: [{ status: { $in: VISIBLE_MESSAGE_STATUSES } }, { status: { $exists: false } }],
 });
 
+const cleanupFiles = async (files = []) => {
+  await Promise.all(
+    files.map((file) =>
+      file?.path ? fs.promises.unlink(file.path).catch(() => null) : Promise.resolve(),
+    ),
+  );
+};
+
+const mapAttachments = (files = []) =>
+  files.map((file) => {
+    const storedName = path.basename(file.filename || file.originalname || "image");
+    const displayName = path.basename(file.originalname || storedName);
+    return {
+      url: `/uploads/messages/${storedName}`,
+      filename: displayName,
+      mimeType: file.mimetype,
+      size: file.size,
+      width: file.width ?? null,
+      height: file.height ?? null,
+    };
+  });
+
+const getMessagePreview = (content, attachments) => {
+  const text = String(content || "").trim();
+  const count = Array.isArray(attachments) ? attachments.length : 0;
+  if (count === 0) return text;
+  if (!text) return count === 1 ? "Photo" : "Photos";
+  return `${text} · ${count === 1 ? "Photo" : "Photos"}`;
+};
+
 const toObjectId = (value) => new mongoose.Types.ObjectId(String(value));
 const toId = (value) => (value ? String(value) : "");
 const isValidObjectId = (value) => mongoose.Types.ObjectId.isValid(String(value || ""));
+const getUserRoom = (userId) => `user:${userId}`;
 
 async function hasBlockRelation(userA, userB) {
   return !!(await BlockedUser.findOne({
@@ -47,11 +146,50 @@ router.get("/conversations", async (req, res) => {
           partnerId: { $cond: [{ $eq: ["$sender", userId] }, "$receiver", "$sender"] },
         },
       },
+      {
+        $lookup: {
+          from: STATE_COLLECTION,
+          let: { partnerId: "$partnerId" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$userId", userId] },
+                    { $eq: ["$partnerId", "$$partnerId"] },
+                  ],
+                },
+              },
+            },
+            { $project: { clearedAt: 1, archivedAt: 1, deletedAt: 1 } },
+          ],
+          as: "state",
+        },
+      },
+      { $addFields: { state: { $first: "$state" } } },
+      {
+        $addFields: {
+          clearedAt: { $ifNull: ["$state.clearedAt", null] },
+          archivedAt: { $ifNull: ["$state.archivedAt", null] },
+          deletedAt: { $ifNull: ["$state.deletedAt", null] },
+        },
+      },
+      {
+        $match: {
+          $expr: {
+            $or: [
+              { $eq: ["$clearedAt", null] },
+              { $gt: ["$createdAt", "$clearedAt"] },
+            ],
+          },
+        },
+      },
       { $sort: { createdAt: -1 } },
       {
         $group: {
           _id: "$partnerId",
           lastMessage: { $first: "$content" },
+          lastAttachments: { $first: "$attachments" },
           lastMessageAt: { $first: "$createdAt" },
           lastSender: { $first: "$sender" },
           unreadCount: {
@@ -63,6 +201,9 @@ router.get("/conversations", async (req, res) => {
               ],
             },
           },
+          archivedAt: { $first: "$archivedAt" },
+          deletedAt: { $first: "$deletedAt" },
+          clearedAt: { $first: "$clearedAt" },
         },
       },
       { $sort: { lastMessageAt: -1 } },
@@ -81,14 +222,19 @@ router.get("/conversations", async (req, res) => {
           partnerName: "$partner.fullName",
           partnerAvatar: { $ifNull: ["$partner.avatar", ""] },
           lastMessage: 1,
+          lastAttachments: 1,
           lastMessageAt: 1,
           lastSender: 1,
           unreadCount: 1,
+          archivedAt: 1,
+          deletedAt: 1,
+          clearedAt: 1,
         },
       },
     ]);
 
     const partnerIds = conversations.map((c) => String(c.partnerId));
+
     const friendEdges = await Friend.find({
       userId: userIdStr,
       friendId: { $in: partnerIds },
@@ -96,9 +242,20 @@ router.get("/conversations", async (req, res) => {
       .select("friendId")
       .lean();
     const friendSet = new Set(friendEdges.map((f) => String(f.friendId)));
-    const filteredConversations = conversations.filter((c) =>
-      friendSet.has(String(c.partnerId)),
-    );
+    const filteredConversations = conversations
+      .filter((c) => friendSet.has(String(c.partnerId)))
+      .map((c) => {
+        const lastAttachmentCount = Array.isArray(c.lastAttachments) ? c.lastAttachments.length : 0;
+        const preview = getMessagePreview(c.lastMessage, c.lastAttachments);
+        const { lastAttachments, ...rest } = c;
+        return {
+          ...rest,
+          lastAttachmentCount,
+          lastMessage: preview,
+          archived: !!c.archivedAt,
+          isArchived: !!c.archivedAt,
+        };
+      });
 
     res.json({ conversations: filteredConversations });
   } catch (err) {
@@ -110,14 +267,94 @@ router.get("/conversations", async (req, res) => {
 // GET /api/messages/unread-count — total unread count for visible messages
 router.get("/unread-count", async (req, res) => {
   try {
-    const count = await Message.countDocuments({
-      receiver: req.user.userId,
+    const userId = toObjectId(req.user.userId);
+    const states = await UserConversationState.find({
+      userId: req.user.userId,
+    })
+      .select("partnerId clearedAt")
+      .lean();
+
+    const clearedStates = states.filter((s) => s.clearedAt);
+    const clearedPartners = clearedStates.map((s) => toObjectId(s.partnerId));
+
+    const query = {
+      receiver: userId,
       read: false,
       ...visibleStatusQuery(),
-    });
+    };
+
+    if (clearedStates.length > 0) {
+      query.$or = [
+        { sender: { $nin: clearedPartners } },
+        ...clearedStates.map((s) => ({
+          $and: [{ sender: toObjectId(s.partnerId) }, { createdAt: { $gt: s.clearedAt } }],
+        })),
+      ];
+    }
+
+    const count = await Message.countDocuments(query);
     res.json({ count });
   } catch (err) {
     console.error("Unread count error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// PATCH /api/messages/conversations/:partnerId/archive — archive/unarchive for current user
+router.patch("/conversations/:partnerId/archive", async (req, res) => {
+  try {
+    const userId = String(req.user.userId || "");
+    const partnerId = String(req.params?.partnerId || "");
+    const archive = req.body?.archived !== false;
+
+    if (!isValidObjectId(partnerId)) {
+      return res.status(400).json({ error: "Invalid conversation id" });
+    }
+
+    if (!(await areFriends(userId, partnerId))) {
+      return res.status(403).json({ error: "Not authorized for this conversation." });
+    }
+
+    const archivedAt = archive ? new Date() : null;
+    const state = await UserConversationState.findOneAndUpdate(
+      { userId, partnerId },
+      { $set: { archivedAt, deletedAt: null } },
+      { upsert: true, new: true },
+    )
+      .select("archivedAt partnerId")
+      .lean();
+
+    res.json({ success: true, archived: !!state?.archivedAt });
+  } catch (err) {
+    console.error("Archive conversation error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// DELETE /api/messages/conversations/:partnerId — soft delete for current user
+router.delete("/conversations/:partnerId", async (req, res) => {
+  try {
+    const userId = String(req.user.userId || "");
+    const partnerId = String(req.params?.partnerId || "");
+
+    if (!isValidObjectId(partnerId)) {
+      return res.status(400).json({ error: "Invalid conversation id" });
+    }
+
+    if (!(await areFriends(userId, partnerId))) {
+      return res.status(403).json({ error: "Not authorized for this conversation." });
+    }
+
+    const now = new Date();
+    await UserConversationState.findOneAndUpdate(
+      { userId, partnerId },
+      { $set: { deletedAt: now, clearedAt: now, archivedAt: null } },
+      { upsert: true, new: true },
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Delete conversation error:", err);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -155,6 +392,14 @@ router.get("/:friendId", async (req, res) => {
         .json({ error: "Direct messages are available between friends only." });
     }
 
+    const state = await UserConversationState.findOne({
+      userId,
+      partnerId: friendId,
+    })
+      .select("clearedAt")
+      .lean();
+    const clearedAt = state?.clearedAt || null;
+
     const query = {
       $and: [
         { $or: [{ sender: userId, receiver: friendId }, { sender: friendId, receiver: userId }] },
@@ -162,11 +407,18 @@ router.get("/:friendId", async (req, res) => {
       ],
     };
 
+    const createdAt = {};
     if (before) {
       const parsedDate = new Date(before);
       if (Number.isFinite(parsedDate.getTime())) {
-        query.createdAt = { $lt: parsedDate };
+        createdAt.$lt = parsedDate;
       }
+    }
+    if (clearedAt) {
+      createdAt.$gt = clearedAt;
+    }
+    if (Object.keys(createdAt).length > 0) {
+      query.createdAt = createdAt;
     }
 
     const messages = await Message.find(query).sort({ createdAt: -1 }).limit(limit).lean();
@@ -178,12 +430,19 @@ router.get("/:friendId", async (req, res) => {
   }
 });
 
-// POST /api/messages — send a message (direct or request)
-router.post("/", async (req, res) => {
+// POST /api/messages — send a message (text and/or images)
+router.post("/", uploadAttachments, async (req, res) => {
   try {
     const senderId = req.user.userId;
     const receiverId = String(req.body?.receiverId || "").trim();
-    const content = String(req.body?.content || "").trim();
+    const rawContent =
+      typeof req.body?.content === "string"
+        ? req.body.content
+        : typeof req.body?.text === "string"
+          ? req.body.text
+          : "";
+    const content = String(rawContent || "").trim();
+    const files = Array.isArray(req.files) ? req.files : [];
 
     if (!receiverId) {
       return res.status(400).json({ error: "Receiver id required" });
@@ -191,10 +450,33 @@ router.post("/", async (req, res) => {
     if (!isValidObjectId(receiverId)) {
       return res.status(400).json({ error: "Invalid receiver id" });
     }
-    if (!content || content.length > MAX_MESSAGE_LENGTH) {
-      return res.status(400).json({ error: "Message must be 1-2000 characters" });
+
+    if (content.length > MAX_MESSAGE_LENGTH) {
+      await cleanupFiles(files);
+      return res.status(400).json({ error: "Message text is too long (2000 characters max)." });
     }
+
+    if (!content && files.length === 0) {
+      await cleanupFiles(files);
+      return res.status(400).json({ error: "Message must include text or at least one image." });
+    }
+
+    if (files.length > MAX_IMAGES_PER_MESSAGE) {
+      await cleanupFiles(files);
+      return res.status(400).json({ error: `You can upload up to ${MAX_IMAGES_PER_MESSAGE} images per message.` });
+    }
+
+    const totalBytes = files.reduce((sum, file) => sum + (Number(file.size) || 0), 0);
+    if (totalBytes > MAX_TOTAL_BYTES) {
+      await cleanupFiles(files);
+      const limitMb = Math.round(MAX_TOTAL_BYTES / (1024 * 1024));
+      return res
+        .status(400)
+        .json({ error: `Attachments are too large. Please keep the total under ${limitMb}MB.` });
+    }
+
     if (receiverId === senderId) {
+      await cleanupFiles(files);
       return res.status(400).json({ error: "Cannot message yourself" });
     }
 
@@ -202,49 +484,83 @@ router.post("/", async (req, res) => {
       .select("_id")
       .lean();
     if (!receiver) {
+      await cleanupFiles(files);
       return res.status(404).json({ error: "Receiver not found" });
     }
 
     if (!(await areFriends(senderId, receiverId))) {
+      await cleanupFiles(files);
       return res
         .status(403)
         .json({ error: "You must be friends to send direct messages." });
     }
 
     if (await hasBlockRelation(senderId, receiverId)) {
+      await cleanupFiles(files);
       return res.status(403).json({ error: "Messaging is blocked between users" });
     }
+
+    const attachments = mapAttachments(files);
 
     const message = await Message.create({
       sender: senderId,
       receiver: receiverId,
       content,
+      attachments,
       status: "delivered",
     });
+
+    // Revive conversation visibility for both participants (including auto-unarchive on new inbound messages)
+    // while preserving the clearedAt boundary so older history stays hidden for the user who deleted.
+    await UserConversationState.findOneAndUpdate(
+      { userId: senderId, partnerId: receiverId },
+      { $set: { deletedAt: null, archivedAt: null }, $setOnInsert: { clearedAt: null } },
+      { upsert: true },
+    );
+    await UserConversationState.findOneAndUpdate(
+      { userId: receiverId, partnerId: senderId },
+      { $set: { deletedAt: null, archivedAt: null }, $setOnInsert: { clearedAt: null } },
+      { upsert: true },
+    );
+
+    const preview = getMessagePreview(content, attachments);
 
     await notifyUser(req.app, {
       userId: receiverId,
       type: "new_message",
       title: "New message",
-      message: "You received a new message.",
+      message: attachments.length > 0 ? "You received a new photo." : "You received a new message.",
       link: "/messages",
       payload: { fromUserId: senderId, messageId: toId(message._id) },
     });
 
+    const payload = {
+      _id: message._id,
+      sender: message.sender,
+      receiver: message.receiver,
+      content: message.content,
+      attachments: message.attachments || [],
+      read: message.read,
+      status: "delivered",
+      createdAt: message.createdAt,
+    };
+
+    const io = req.app.get("io");
+    if (io) {
+      io.to(getUserRoom(senderId)).emit("message:new", payload);
+      io.to(getUserRoom(receiverId)).emit("message:new", payload);
+    }
+
     res.json({
-      message: {
-        _id: message._id,
-        sender: message.sender,
-        receiver: message.receiver,
-        content: message.content,
-        read: message.read,
-        status: "delivered",
-        createdAt: message.createdAt,
-      },
+      message: payload,
+      preview,
       mode: "direct",
     });
   } catch (err) {
     console.error("Send message error:", err);
+    if (Array.isArray(req.files) && req.files.length > 0) {
+      await cleanupFiles(req.files);
+    }
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -255,12 +571,25 @@ router.patch("/read/:friendId", async (req, res) => {
     const userId = req.user.userId;
     const { friendId } = req.params;
 
+    const state = await UserConversationState.findOne({
+      userId,
+      partnerId: friendId,
+    })
+      .select("clearedAt")
+      .lean();
+
+    const createdAt =
+      state?.clearedAt && state.clearedAt instanceof Date
+        ? { $gt: state.clearedAt }
+        : undefined;
+
     await Message.updateMany(
       {
         sender: friendId,
         receiver: userId,
         read: false,
         ...visibleStatusQuery(),
+        ...(createdAt ? { createdAt } : {}),
       },
       { $set: { read: true } },
     );

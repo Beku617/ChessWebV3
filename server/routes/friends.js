@@ -126,6 +126,7 @@ async function ensureFriendshipAndNotify(app, userA, userB) {
 
 async function loadRequestsForUser(userId) {
   const requests = await FriendRequest.find({
+    status: "pending",
     $or: [{ senderId: userId }, { receiverId: userId }],
   })
     .sort({ createdAt: -1 })
@@ -135,19 +136,14 @@ async function loadRequestsForUser(userId) {
 
   const incoming = [];
   const outgoing = [];
-  const history = [];
 
   for (const req of requests) {
     const dto = buildRequestDTO(req, userId);
-    if (req.status === "pending") {
-      if (dto.direction === "incoming") incoming.push(dto);
-      else outgoing.push(dto);
-    } else {
-      history.push(dto);
-    }
+    if (dto.direction === "incoming") incoming.push(dto);
+    else outgoing.push(dto);
   }
 
-  return { incoming, outgoing, history };
+  return { incoming, outgoing };
 }
 
 // List friends for current user
@@ -314,29 +310,30 @@ router.post("/requests/:requestId/accept", authMiddleware, async (req, res) => {
     if (!isValidObjectId(requestId)) {
       return res.status(400).json({ error: "Invalid request id" });
     }
-    const request = await FriendRequest.findById(requestId)
+    const request = await FriendRequest.findOneAndUpdate(
+      { _id: requestId, receiverId: userId, status: "pending" },
+      { $set: { status: "accepted", respondedAt: new Date() } },
+      { new: true },
+    )
       .populate("senderId", REQUEST_USER_FIELDS)
       .populate("receiverId", REQUEST_USER_FIELDS);
 
     if (!request) {
-      return res.status(404).json({ error: "Request not found" });
-    }
-    if (normalizeId(request.receiverId?._id || request.receiverId) !== userId) {
-      return res.status(403).json({ error: "Not authorized for this request" });
-    }
-    if (request.status !== "pending") {
-      return res.status(409).json({ error: "Request already processed" });
+      return res.status(409).json({ error: "Request not found or already processed" });
     }
 
-    request.status = "accepted";
-    request.respondedAt = new Date();
-    await request.save();
-
-    await ensureFriendshipAndNotify(
-      req.app,
-      normalizeId(request.senderId?._id || request.senderId),
-      normalizeId(request.receiverId?._id || request.receiverId),
-    );
+    // Create friendship; tolerate duplicate-key races gracefully
+    try {
+      await ensureFriendshipAndNotify(
+        req.app,
+        normalizeId(request.senderId?._id || request.senderId),
+        normalizeId(request.receiverId?._id || request.receiverId),
+      );
+    } catch (err) {
+      if (err?.code !== 11000) {
+        throw err;
+      }
+    }
 
     const io = req.app.get("io");
     const receiverView = buildRequestDTO(request, userId);
@@ -365,7 +362,7 @@ router.post("/requests/:requestId/accept", authMiddleware, async (req, res) => {
     });
   } catch (err) {
     console.error("Accept friend request error:", err);
-    res.status(500).json({ error: "Server error" });
+    res.status(500).json({ error: "Server error", detail: err?.message });
   }
 });
 
@@ -377,23 +374,17 @@ router.post("/requests/:requestId/deny", authMiddleware, async (req, res) => {
     if (!isValidObjectId(requestId)) {
       return res.status(400).json({ error: "Invalid request id" });
     }
-    const request = await FriendRequest.findById(requestId)
+    const request = await FriendRequest.findOneAndUpdate(
+      { _id: requestId, receiverId: userId, status: "pending" },
+      { $set: { status: "denied", respondedAt: new Date() } },
+      { new: true },
+    )
       .populate("senderId", REQUEST_USER_FIELDS)
       .populate("receiverId", REQUEST_USER_FIELDS);
 
     if (!request) {
-      return res.status(404).json({ error: "Request not found" });
+      return res.status(409).json({ error: "Request not found or already processed" });
     }
-    if (normalizeId(request.receiverId?._id || request.receiverId) !== userId) {
-      return res.status(403).json({ error: "Not authorized for this request" });
-    }
-    if (request.status !== "pending") {
-      return res.status(409).json({ error: "Request already processed" });
-    }
-
-    request.status = "denied";
-    request.respondedAt = new Date();
-    await request.save();
 
     const senderId = normalizeId(request.senderId?._id || request.senderId);
     const receiverView = buildRequestDTO(request, userId);
@@ -414,7 +405,7 @@ router.post("/requests/:requestId/deny", authMiddleware, async (req, res) => {
     res.json({ success: true, status: "denied", request: receiverView });
   } catch (err) {
     console.error("Deny friend request error:", err);
-    res.status(500).json({ error: "Server error" });
+    res.status(500).json({ error: "Server error", detail: err?.message });
   }
 });
 
@@ -426,23 +417,17 @@ router.post("/requests/:requestId/ignore", authMiddleware, async (req, res) => {
     if (!isValidObjectId(requestId)) {
       return res.status(400).json({ error: "Invalid request id" });
     }
-    const request = await FriendRequest.findById(requestId)
+    const request = await FriendRequest.findOneAndUpdate(
+      { _id: requestId, receiverId: userId, status: "pending" },
+      { $set: { status: "ignored", respondedAt: new Date() } },
+      { new: true },
+    )
       .populate("senderId", REQUEST_USER_FIELDS)
       .populate("receiverId", REQUEST_USER_FIELDS);
 
     if (!request) {
-      return res.status(404).json({ error: "Request not found" });
+      return res.status(409).json({ error: "Request not found or already processed" });
     }
-    if (normalizeId(request.receiverId?._id || request.receiverId) !== userId) {
-      return res.status(403).json({ error: "Not authorized for this request" });
-    }
-    if (request.status !== "pending") {
-      return res.status(409).json({ error: "Request already processed" });
-    }
-
-    request.status = "ignored";
-    request.respondedAt = new Date();
-    await request.save();
 
     const senderId = normalizeId(request.senderId?._id || request.senderId);
     const receiverView = buildRequestDTO(request, userId);
@@ -454,7 +439,7 @@ router.post("/requests/:requestId/ignore", authMiddleware, async (req, res) => {
     res.json({ success: true, status: "ignored", request: receiverView });
   } catch (err) {
     console.error("Ignore friend request error:", err);
-    res.status(500).json({ error: "Server error" });
+    res.status(500).json({ error: "Server error", detail: err?.message });
   }
 });
 

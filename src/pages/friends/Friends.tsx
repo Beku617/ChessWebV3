@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Hourglass, MessageCircle, Search, Swords, UserPlus, UserX } from "lucide-react";
+import { Hourglass, MessageCircle, Search, Sparkles, Swords, UserPlus, UserX, Users, type LucideIcon } from "lucide-react";
 import Sidebar from "../../components/Sidebar";
 import { useAuthStore } from "../../store/authStore";
 import {
@@ -35,6 +35,8 @@ interface SearchResult {
   requestId?: string | null;
 }
 
+type PrimaryTab = "friends" | "incoming" | "outgoing";
+
 function formatPresence(presence?: string, lastActiveAt?: string | null) {
   if (presence === "online") return "Online";
   if (presence === "in_game") return "In game";
@@ -51,6 +53,21 @@ function formatPresence(presence?: string, lastActiveAt?: string | null) {
   if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
   return `${days}d ago`;
+}
+
+function formatDateDistance(value?: string | null) {
+  if (!value) return "Earlier";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "Earlier";
+  const diff = Date.now() - d.getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "Just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 48) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 14) return `${days}d ago`;
+  return d.toLocaleDateString();
 }
 
 function StatusBadge({ status }: { status: FriendRequestItem["status"] }) {
@@ -72,17 +89,78 @@ function StatusBadge({ status }: { status: FriendRequestItem["status"] }) {
   );
 }
 
-function SectionCard({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
+const shellClass =
+  "rounded-2xl border border-transparent bg-gradient-to-br from-[#0c1424] via-[#0b1220] to-[#0d1629] shadow-[0_24px_60px_rgba(0,0,0,0.4)]";
+
+function EmptyState({
+  icon: Icon = Hourglass,
+  title,
+  description,
+}: {
+  icon?: LucideIcon;
+  title: string;
+  description?: string;
+}) {
   return (
-    <section className="rounded-2xl border border-[#1f2c45] bg-gradient-to-br from-[#0c1424] via-[#0b1220] to-[#0d1629] shadow-[0_24px_60px_rgba(0,0,0,0.55)] p-4 md:p-5">
-      <div className="flex items-center justify-between mb-3">
-        <div>
-          <h2 className="text-lg font-semibold text-slate-100">{title}</h2>
-          {subtitle && <p className="text-xs text-slate-400 mt-0.5">{subtitle}</p>}
-        </div>
+    <div className="flex flex-col items-center justify-center gap-3 rounded-2xl bg-gradient-to-b from-[#0c1524]/88 to-[#0b1220]/72 px-4 py-8 text-center shadow-[0_16px_40px_rgba(0,0,0,0.24)] ring-1 ring-[#0d1523]/18">
+      <div className="w-10 h-10 rounded-full bg-[#111b2d] ring-1 ring-[#16243a]/28 flex items-center justify-center text-teal-200/85">
+        <Icon className="w-4 h-4" />
       </div>
-      {children}
-    </section>
+      <div className="text-sm font-semibold text-slate-100">{title}</div>
+      {description && <p className="text-xs text-slate-400 max-w-xs leading-relaxed">{description}</p>}
+    </div>
+  );
+}
+
+function SummaryStat({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: number | string }) {
+  return (
+    <div className="inline-flex items-center gap-2 rounded-xl bg-[#0b1424]/75 px-3 py-2 shadow-[0_10px_24px_rgba(0,0,0,0.2)] ring-1 ring-[#132035]/18">
+      <div className="w-8 h-8 rounded-lg bg-[#0f1c30] ring-1 ring-[#16243a]/28 flex items-center justify-center text-teal-200">
+        <Icon className="w-4 h-4" />
+      </div>
+      <div className="leading-tight">
+        <div className="text-[11px] uppercase tracking-[0.16em] text-slate-500">{label}</div>
+        <div className="text-sm font-semibold text-slate-100">{value}</div>
+      </div>
+    </div>
+  );
+}
+
+function TabButton({
+  id,
+  label,
+  count,
+  activeTab,
+  onSelect,
+}: {
+  id: PrimaryTab;
+  label: string;
+  count?: number;
+  activeTab: PrimaryTab;
+  onSelect: (id: PrimaryTab) => void;
+}) {
+  const isActive = activeTab === id;
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(id)}
+      className={`relative inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
+        isActive
+          ? "bg-gradient-to-br from-[#0f2536] via-[#0c1c2f] to-[#0d1e33] text-teal-100 shadow-[0_8px_18px_rgba(0,0,0,0.28)] ring-1 ring-[#132036]/32"
+          : "bg-[#0b1322]/70 text-slate-300 hover:bg-[#0f1c30] ring ring-transparent hover:ring-[#0f1b2d]/24"
+      }`}
+    >
+      <span>{label}</span>
+      {typeof count === "number" && (
+        <span
+          className={`min-w-[22px] h-5 px-1.5 rounded-full text-[11px] font-semibold flex items-center justify-center ${
+            isActive ? "bg-teal-500/20 text-teal-100 border border-teal-500/25" : "bg-[#162239] text-slate-300/90"
+          }`}
+        >
+          {count}
+        </span>
+      )}
+    </button>
   );
 }
 
@@ -93,12 +171,10 @@ export default function Friends() {
     friends,
     incoming,
     outgoing,
-    history,
     loading,
     sendRequest,
     acceptRequest,
     denyRequest,
-    ignoreRequest,
     cancelRequest,
     removeFriend,
     loadAll,
@@ -111,6 +187,7 @@ export default function Friends() {
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [actionId, setActionId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<PrimaryTab>("friends");
 
   useEffect(() => {
     void loadAll();
@@ -121,6 +198,15 @@ export default function Friends() {
     if (!q) return friends;
     return friends.filter((f) => f.name.toLowerCase().includes(q));
   }, [friendFilter, friends]);
+
+  const pendingIncoming = useMemo(
+    () => incoming.filter((r) => r.status === "pending"),
+    [incoming],
+  );
+  const pendingOutgoing = useMemo(
+    () => outgoing.filter((r) => r.status === "pending"),
+    [outgoing],
+  );
 
   const handleSearchUsers = async () => {
     const q = searchQuery.trim();
@@ -191,15 +277,6 @@ export default function Friends() {
     }
   };
 
-  const handleIgnore = async (requestId: string) => {
-    setActionId(requestId);
-    try {
-      await ignoreRequest(requestId);
-    } finally {
-      setActionId(null);
-    }
-  };
-
   const handleCancel = async (requestId: string) => {
     setActionId(requestId);
     try {
@@ -222,12 +299,13 @@ export default function Friends() {
     const disabled = actionId === req.id;
     const accent =
       type === "incoming"
-        ? "from-emerald-500/15 to-teal-500/10 border-emerald-500/20"
-        : "from-slate-500/10 to-slate-700/10 border-slate-600/30";
+        ? "ring-1 ring-[#0f253a]/18 bg-gradient-to-br from-[#0c1f30]/88 via-[#0c1829] to-[#0b1424]"
+        : "ring-1 ring-[#0f1c2e]/16 bg-gradient-to-br from-[#0b1220] via-[#0b111d] to-[#0a0f1a]";
+    const subtitle = type === "incoming" ? "Wants to connect" : "Awaiting response";
     return (
       <div
         key={req.id}
-        className={`flex items-center justify-between gap-3 rounded-xl border ${accent} bg-gradient-to-br px-3 py-3`}
+        className={`flex items-start justify-between gap-3 rounded-xl px-4 py-3.5 shadow-[0_14px_30px_rgba(0,0,0,0.3)] ${accent}`}
       >
         <div className="flex items-center gap-3 min-w-0">
           <div className="relative w-11 h-11 rounded-full overflow-hidden bg-[#132033] ring-1 ring-[#1f2c45]">
@@ -241,37 +319,37 @@ export default function Friends() {
             <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border border-[#0c1424]" />
           </div>
           <div className="min-w-0">
-            <div className="text-sm font-semibold text-slate-100 truncate">
-              {req.userName}
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="text-sm font-semibold text-slate-100 truncate leading-tight">
+                {req.userName}
+              </div>
+              <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#13243a] text-slate-200 border border-[#1f2c45]">
+                {type === "incoming" ? "Incoming" : "Outgoing"}
+              </span>
             </div>
-            <div className="text-xs text-slate-400">
-              {type === "incoming" ? "Wants to connect" : "Awaiting response"}
+            <div className="text-xs text-slate-400 leading-relaxed flex items-center gap-2 flex-wrap">
+              <span>{subtitle}</span>
+              <span className="text-slate-600">•</span>
+              <span>{formatDateDistance(req.createdAt)}</span>
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           {type === "incoming" ? (
             <>
               <button
                 onClick={() => void handleAccept(req.id)}
                 disabled={disabled}
-                className="px-3 py-1.5 rounded-lg bg-teal-600 text-white text-xs font-semibold hover:bg-teal-500 disabled:opacity-60"
+                className="px-3 py-1.5 rounded-lg bg-teal-600 text-white text-xs font-semibold hover:bg-teal-500 disabled:opacity-60 transition-colors shadow-[0_10px_24px_rgba(13,148,136,0.28)]"
               >
                 Accept
               </button>
               <button
                 onClick={() => void handleDeny(req.id)}
                 disabled={disabled}
-                className="px-3 py-1.5 rounded-lg border border-red-500/40 text-red-300 text-xs font-semibold hover:bg-red-500/10 disabled:opacity-60"
+                className="px-3 py-1.5 rounded-lg border border-red-500/40 text-red-300 text-xs font-semibold hover:bg-red-500/10 disabled:opacity-60 transition-colors"
               >
                 Deny
-              </button>
-              <button
-                onClick={() => void handleIgnore(req.id)}
-                disabled={disabled}
-                className="px-3 py-1.5 rounded-lg border border-slate-600/50 text-slate-300 text-xs font-semibold hover:bg-slate-700/40 disabled:opacity-60"
-              >
-                Ignore
               </button>
             </>
           ) : (
@@ -281,7 +359,7 @@ export default function Friends() {
                 <button
                   onClick={() => void handleCancel(req.id)}
                   disabled={disabled}
-                  className="px-3 py-1.5 rounded-lg border border-slate-600/50 text-slate-300 text-xs font-semibold hover:bg-slate-700/40 disabled:opacity-60"
+                  className="px-3 py-1.5 rounded-lg border border-slate-600/60 text-slate-300 text-xs font-semibold hover:bg-slate-700/40 disabled:opacity-60 transition-colors"
                 >
                   Cancel
                 </button>
@@ -298,12 +376,12 @@ export default function Friends() {
     return (
       <div
         key={friend.id}
-        className="flex items-center justify-between gap-4 rounded-xl border border-[#1f2c45] bg-[#0d1729]/80 px-3 py-3 hover:border-teal-500/30 hover:bg-[#112038]/90 transition-colors"
+        className="flex items-center justify-between gap-4 rounded-xl bg-gradient-to-br from-[#0d1628] via-[#0c1424] to-[#0c182d] px-4 py-3.5 hover:ring-1 hover:ring-[#11324b]/24 hover:bg-[#122036]/85 transition-all shadow-[0_12px_30px_rgba(0,0,0,0.26)]"
       >
         <div className="flex items-center gap-3 min-w-0">
           <button
             type="button"
-            className="w-11 h-11 rounded-full overflow-hidden bg-gradient-to-br from-teal-600 to-emerald-500 text-white font-bold"
+            className="w-11 h-11 rounded-full overflow-hidden bg-gradient-to-br from-teal-600 to-emerald-500 text-white font-bold ring-1 ring-teal-500/40"
             onClick={() => navigate(`/u/${friend.id}`)}
             title="View profile"
           >
@@ -313,14 +391,21 @@ export default function Friends() {
               friend.name.substring(0, 2).toUpperCase()
             )}
           </button>
-          <div className="min-w-0">
-            <div
-              className="text-sm font-semibold text-slate-100 truncate cursor-pointer hover:text-teal-200"
-              onClick={() => navigate(`/u/${friend.id}`)}
-            >
-              {friend.name}
+          <div className="min-w-0 space-y-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <div
+                className="text-sm font-semibold text-slate-100 truncate cursor-pointer hover:text-teal-200"
+                onClick={() => navigate(`/u/${friend.id}`)}
+              >
+                {friend.name}
+              </div>
+              {typeof friend.rating === "number" && (
+                <span className="px-2 py-0.5 rounded-lg border border-[#1f2c45] bg-[#102138] text-[11px] text-slate-200">
+                  {friend.rating}
+                </span>
+              )}
             </div>
-            <div className="text-xs text-slate-400 flex items-center gap-2">
+            <div className="text-xs text-slate-400 flex items-center gap-2 flex-wrap">
               <span className="inline-flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-emerald-400" />
                 {formatPresence(friend.presenceStatus, friend.lastActiveAt)}
@@ -377,7 +462,7 @@ export default function Friends() {
         <button
           onClick={() => void handleAccept(result.requestId!)}
           disabled={isProcessing}
-          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-teal-600 text-white hover:bg-teal-500 disabled:opacity-60"
+          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-teal-600 text-white hover:bg-teal-500 disabled:opacity-60 shadow-[0_10px_24px_rgba(13,148,136,0.28)]"
         >
           Accept
         </button>
@@ -393,7 +478,7 @@ export default function Friends() {
     if (result.id === user?.id) {
       return (
         <span className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-700/40 text-slate-300 border border-slate-600/50">
-          That’s you
+          That's you
         </span>
       );
     }
@@ -401,120 +486,139 @@ export default function Friends() {
       <button
         onClick={() => void handleSendRequest(result.id)}
         disabled={isProcessing}
-        className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-teal-600 text-white hover:bg-teal-500 disabled:opacity-60"
+        className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-teal-600 text-white hover:bg-teal-500 disabled:opacity-60 shadow-[0_10px_24px_rgba(13,148,136,0.28)]"
       >
         Add Friend
       </button>
     );
   };
 
-  const totalFriends = friends.length;
-  const totalIncoming = incoming.filter((r) => r.status === "pending").length;
-  const totalOutgoing = outgoing.filter((r) => r.status === "pending").length;
+  const tabItems: Array<{ id: PrimaryTab; label: string; count: number }> = [
+    { id: "friends", label: "Friends", count: friends.length },
+    { id: "incoming", label: "Incoming", count: pendingIncoming.length },
+    { id: "outgoing", label: "Outgoing", count: pendingOutgoing.length },
+  ];
 
   return (
     <div className="min-h-screen bg-[#060b16] text-slate-100 flex">
       <Sidebar />
-      <main className="flex-1 ml-72 px-5 md:px-7 lg:px-9 py-6 space-y-6">
-        <header className="flex flex-col gap-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-teal-300/80">NeonGambit Social</p>
-              <h1 className="text-3xl font-bold text-white">Friends</h1>
-              <p className="text-sm text-slate-400">Requests update in real time while keeping the classic NeonGambit polish.</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="px-3 py-2 rounded-xl border border-teal-500/30 bg-teal-500/10 text-sm font-semibold text-teal-200">
-                {totalFriends} Friends
-              </div>
-              <div className="px-3 py-2 rounded-xl border border-amber-500/30 bg-amber-500/10 text-sm font-semibold text-amber-200">
-                {totalIncoming} Incoming
-              </div>
-              <div className="px-3 py-2 rounded-xl border border-slate-500/40 bg-slate-500/10 text-sm font-semibold text-slate-200">
-                {totalOutgoing} Outgoing
-              </div>
+      <main className="flex-1 ml-72 px-5 md:px-8 lg:px-10 py-7 space-y-6">
+        <header className="space-y-3">
+          <div className="flex items-start justify-between flex-wrap gap-3">
+            <div className="space-y-1">
+              <h1 className="text-2xl font-semibold text-slate-50 sr-only">Friends</h1>
             </div>
           </div>
         </header>
 
-        <div className="grid grid-cols-1 xl:grid-cols-[1.05fr_1.35fr] gap-5 lg:gap-6">
-          <div className="space-y-4">
-            <SectionCard title="Incoming requests" subtitle="Accept, deny, or ignore pending invites">
-              {loading ? (
-                <div className="rounded-xl border border-[#1f2c45] bg-[#0e182b]/70 px-4 py-5 text-sm text-slate-400">
-                  Loading incoming requests...
-                </div>
-              ) : incoming.filter((r) => r.status === "pending").length === 0 ? (
-                <div className="rounded-xl border border-dashed border-[#1f2c45] bg-[#0e182b]/60 px-4 py-5 text-sm text-slate-400">
-                  No incoming requests right now.
-                </div>
-              ) : (
-                <div className="space-y-2.5">
-                  {incoming
-                    .filter((r) => r.status === "pending")
-                    .map((req) => renderRequestCard(req, "incoming"))}
-                </div>
-              )}
-            </SectionCard>
+        <div className="grid grid-cols-1 xl:grid-cols-[1.75fr_1fr] gap-5 lg:gap-6">
+          <section className={`${shellClass} px-4 py-4 md:px-6 md:py-5 space-y-5`}>
+            <div className="flex flex-col gap-2">
+              <div className="space-y-1">
+                <p className="text-sm font-semibold text-slate-100">Relationship states</p>
+              </div>
+              <div className="flex flex-wrap items-center gap-1.5 rounded-xl bg-[#0c1526]/82 px-1.5 py-1.5 shadow-[0_8px_18px_rgba(0,0,0,0.22)]">
+                {tabItems.map((tab) => (
+                  <TabButton
+                    key={tab.id}
+                    id={tab.id}
+                    label={tab.label}
+                    count={tab.count}
+                    activeTab={activeTab}
+                    onSelect={setActiveTab}
+                  />
+                ))}
+              </div>
+            </div>
 
-            <SectionCard title="Outgoing requests" subtitle="Requests you have sent">
-              {loading ? (
-                <div className="rounded-xl border border-[#1f2c45] bg-[#0e182b]/70 px-4 py-5 text-sm text-slate-400">
-                  Loading outgoing requests...
+            {activeTab === "friends" && (
+              <div className="space-y-4">
+                <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
+                <div className="flex-1 flex items-center gap-3 rounded-xl bg-[#0f1b2f]/95 px-3 py-2.5 shadow-[0_8px_16px_rgba(0,0,0,0.14)]">
+                  <Search className="w-4 h-4 text-slate-500" />
+                  <input
+                    value={friendFilter}
+                    onChange={(e) => setFriendFilter(e.target.value)}
+                    placeholder="Filter friends by name or handle"
+                    className="flex-1 bg-transparent text-sm text-slate-100 placeholder:text-slate-500 outline-none"
+                  />
                 </div>
-              ) : outgoing.filter((r) => r.status === "pending").length === 0 ? (
-                <div className="rounded-xl border border-dashed border-[#1f2c45] bg-[#0e182b]/60 px-4 py-5 text-sm text-slate-400">
-                  No outgoing requests.
+                <div className="text-xs text-slate-500 px-1.5">
+                  {friends.length} total
                 </div>
-              ) : (
-                <div className="space-y-2.5">
-                  {outgoing
-                    .filter((r) => r.status === "pending")
-                    .map((req) => renderRequestCard(req, "outgoing"))}
-                </div>
-              )}
-            </SectionCard>
+              </div>
+                {loading ? (
+                  <EmptyState icon={Hourglass} title="Loading friends..." description="Fetching your circle." />
+                ) : filteredFriends.length === 0 ? (
+                  <EmptyState
+                    icon={Users}
+                    title="Your friends list is empty"
+                    description="Add players to start challenging and chatting."
+                  />
+                ) : (
+                  <div className="space-y-2.5">{filteredFriends.map(renderFriendRow)}</div>
+                )}
+              </div>
+            )}
 
-            <SectionCard title="History" subtitle="Processed requests stay tidy here">
-              {history.length === 0 ? (
-                <div className="rounded-xl border border-dashed border-[#1f2c45] bg-[#0e182b]/60 px-4 py-5 text-sm text-slate-400">
-                  No processed requests yet.
+            {activeTab === "incoming" && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <p className="text-sm text-slate-300">Incoming requests</p>
+                  <span className="text-xs text-slate-500">Newest first</span>
                 </div>
-              ) : (
-                <div className="space-y-2">
-                  {history.slice(0, 8).map((req) => (
-                    <div
-                      key={req.id}
-                      className="flex items-center justify-between rounded-xl border border-[#1f2c45] bg-[#0d1525]/70 px-3 py-2.5"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-9 h-9 rounded-full bg-[#132033] text-xs font-semibold text-teal-100 flex items-center justify-center overflow-hidden">
-                          {req.userAvatar ? (
-                            <img src={req.userAvatar} alt={req.userName} className="w-full h-full object-cover" />
-                          ) : (
-                            req.userName.substring(0, 2).toUpperCase()
-                          )}
-                        </div>
-                        <div className="min-w-0">
-                          <div className="text-sm font-semibold text-slate-100 truncate">{req.userName}</div>
-                          <div className="text-xs text-slate-500">
-                            {req.direction === "incoming" ? "You responded" : "Their response"}
-                          </div>
-                        </div>
-                      </div>
-                      <StatusBadge status={req.status} />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </SectionCard>
-          </div>
+                {loading ? (
+                  <EmptyState icon={Hourglass} title="Loading incoming requests..." />
+                ) : pendingIncoming.length === 0 ? (
+                  <EmptyState
+                    icon={Sparkles}
+                    title="No incoming requests"
+                    description="You'll see friend invites here as they arrive."
+                  />
+                ) : (
+                  <div className="space-y-2.5">
+                    {pendingIncoming.map((req) => renderRequestCard(req, "incoming"))}
+                  </div>
+                )}
+              </div>
+            )}
 
-          <div className="space-y-4">
-            <SectionCard title="Add friends" subtitle="Search players by name or email">
-              <div className="flex flex-col md:flex-row gap-3">
-                <div className="relative flex-1">
-                  <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+            {activeTab === "outgoing" && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <p className="text-sm text-slate-300">Outgoing requests</p>
+                  <span className="text-xs text-slate-500">Awaiting response</span>
+                </div>
+                {loading ? (
+                  <EmptyState icon={Hourglass} title="Loading outgoing requests..." />
+                ) : pendingOutgoing.length === 0 ? (
+                  <EmptyState
+                    icon={Sparkles}
+                    title="No outgoing requests"
+                    description="Send an invite to start a new connection."
+                  />
+                ) : (
+                  <div className="space-y-2.5">
+                    {pendingOutgoing.map((req) => renderRequestCard(req, "outgoing"))}
+                  </div>
+                )}
+              </div>
+            )}
+
+          </section>
+
+          <aside className={`${shellClass} px-4 py-4 md:px-5 md:py-5 space-y-4`}>
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-slate-100">Add friends</p>
+              <p className="text-xs text-slate-400">
+                Search by username or email. Invite players into your circle.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex flex-col sm:flex-row gap-2 items-stretch">
+                <div className="flex-1 flex items-center gap-3 rounded-xl bg-[#0f1b2f]/95 px-3 py-2.5 shadow-[0_8px_18px_rgba(0,0,0,0.16)]">
+                  <Search className="w-4 h-4 text-slate-500" />
                   <input
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -524,90 +628,76 @@ export default function Friends() {
                         void handleSearchUsers();
                       }
                     }}
-                    placeholder="Username or email"
-                    className="w-full rounded-xl bg-[#0f1b2f] border border-[#1f2c45] text-sm text-slate-100 pl-10 pr-3 py-2.5 placeholder:text-slate-500 focus:border-teal-400 focus:ring-2 focus:ring-teal-500/30 outline-none"
+                    placeholder="Find by name or email"
+                    className="flex-1 bg-transparent text-sm text-slate-100 placeholder:text-slate-500 outline-none"
                   />
                 </div>
                 <button
                   onClick={() => void handleSearchUsers()}
                   disabled={searching}
-                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-teal-600 text-white font-semibold text-sm hover:bg-teal-500 disabled:opacity-60"
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-teal-600 text-white font-semibold text-sm hover:bg-teal-500 disabled:opacity-60 shadow-[0_12px_28px_rgba(13,148,136,0.35)]"
                 >
                   <UserPlus className="w-4 h-4" />
                   {searching ? "Searching..." : "Search"}
                 </button>
               </div>
               {searchError && (
-                <div className="mt-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+                <div className="rounded-lg border border-red-500/25 bg-red-500/10 px-3 py-2 text-xs text-red-200">
                   {searchError}
                 </div>
               )}
-              {searchResults.length > 0 && (
-                <div className="mt-4 space-y-2">
-                  {searchResults.map((result) => (
-                    <div
-                      key={result.id}
-                      className="flex items-center justify-between gap-2 rounded-xl border border-[#1f2c45] bg-[#0e182b]/70 px-3 py-2.5"
-                    >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <button
-                          type="button"
-                          className="w-9 h-9 rounded-full bg-gradient-to-br from-teal-600 to-emerald-500 text-white text-xs font-bold overflow-hidden flex items-center justify-center shrink-0"
+            </div>
+
+            <div className="rounded-xl border border-transparent bg-[#0c1627]/60 p-3 space-y-2 max-h-[480px] overflow-y-auto premium-scrollbar shadow-[0_10px_26px_rgba(0,0,0,0.2)]">
+              {searching ? (
+                <EmptyState icon={Hourglass} title="Searching..." description="Looking for players across NeonGambit." />
+              ) : searchResults.length === 0 ? (
+                <EmptyState
+                  icon={Sparkles}
+                  title="Find players"
+                  description="Search to add new friends. Your results will appear here."
+                />
+              ) : (
+                searchResults.map((result) => (
+                  <div
+                    key={result.id}
+                    className="flex items-center justify-between gap-3 rounded-lg border border-transparent bg-[#0f1b2f]/82 px-3 py-2.5 shadow-[0_8px_18px_rgba(0,0,0,0.18)]"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <button
+                        type="button"
+                        className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-600 to-emerald-500 text-white text-sm font-bold overflow-hidden flex items-center justify-center shrink-0"
+                        onClick={() => navigate(`/u/${result.id}`)}
+                      >
+                        {result.avatar ? (
+                          <img
+                            src={result.avatar}
+                            alt={result.name}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                          />
+                        ) : (
+                          result.name.substring(0, 2).toUpperCase()
+                        )}
+                      </button>
+                      <div className="min-w-0">
+                        <div
+                          className="text-sm font-semibold text-slate-100 truncate cursor-pointer hover:text-teal-200"
                           onClick={() => navigate(`/u/${result.id}`)}
                         >
-                          {result.avatar ? (
-                            <img
-                              src={result.avatar}
-                              alt={result.name}
-                              className="w-full h-full object-cover"
-                              loading="lazy"
-                            />
-                          ) : (
-                            result.name.substring(0, 2).toUpperCase()
-                          )}
-                        </button>
-                        <div className="min-w-0">
-                          <div
-                            className="text-sm font-semibold text-slate-100 truncate cursor-pointer hover:text-teal-200"
-                            onClick={() => navigate(`/u/${result.id}`)}
-                          >
-                            {result.name}
-                          </div>
-                          <div className="text-xs text-slate-500 truncate">
-                            {result.email || "No email"}
-                          </div>
+                          {result.name}
+                        </div>
+                        <div className="text-xs text-slate-500 truncate">
+                          {result.email || "No email provided"}
                         </div>
                       </div>
-                      {renderSearchActionButton(result)}
                     </div>
-                  ))}
-                </div>
+                    {renderSearchActionButton(result)}
+                  </div>
+                ))
               )}
-            </SectionCard>
-
-            <SectionCard title="Friends list" subtitle="Message or challenge your connections">
-              <div className="mb-3 flex items-center gap-2">
-                <Search className="w-4 h-4 text-slate-500" />
-                <input
-                  value={friendFilter}
-                  onChange={(e) => setFriendFilter(e.target.value)}
-                  placeholder="Filter friends"
-                  className="flex-1 rounded-lg bg-[#0f1b2f] border border-[#1f2c45] text-sm text-slate-100 px-3 py-2 placeholder:text-slate-500 focus:border-teal-400 focus:ring-2 focus:ring-teal-500/30 outline-none"
-                />
-              </div>
-              {loading ? (
-                <div className="rounded-xl border border-[#1f2c45] bg-[#0e182b]/70 px-4 py-5 text-sm text-slate-400">
-                  Loading friends...
-                </div>
-              ) : filteredFriends.length === 0 ? (
-                <div className="rounded-xl border border-dashed border-[#1f2c45] bg-[#0e182b]/60 px-4 py-5 text-sm text-slate-400">
-                  Your friends list is empty for now.
-                </div>
-              ) : (
-                <div className="space-y-2">{filteredFriends.map(renderFriendRow)}</div>
-              )}
-            </SectionCard>
-          </div>
+            </div>
+          </aside>
         </div>
       </main>
     </div>

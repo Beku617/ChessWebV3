@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
   Puzzle,
   GraduationCap,
@@ -12,6 +13,8 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuthStore, authApi } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
 import { useTranslation } from "react-i18next";
+import { useFriendStore } from "../store/friendStore";
+import { useMessageStore } from "../store/messageStore";
 
 export default function Sidebar() {
   const location = useLocation();
@@ -19,12 +22,28 @@ export default function Sidebar() {
   const { user, logout } = useAuthStore();
   const { isDarkMode } = useThemeStore();
   const { t } = useTranslation();
+  const loadAllFriends = useFriendStore((state) => state.loadAll);
+  const pendingIncomingCount = useFriendStore((state) => state.pendingIncomingCount());
+  const refreshUnread = useMessageStore((state) => state.refreshUnread);
+  const unreadCount = useMessageStore((state) => state.unreadCount);
   const isActive = (path: string) => location.pathname === path;
   const isCompact =
     location.pathname.startsWith("/play/quick") ||
     location.pathname.startsWith("/play/friend") ||
     location.pathname.startsWith("/play/variants") ||
     location.pathname.startsWith("/play/practice");
+
+  useEffect(() => {
+    void loadAllFriends();
+    const id = window.setInterval(() => void loadAllFriends(), 10000);
+    return () => window.clearInterval(id);
+  }, [loadAllFriends]);
+
+  useEffect(() => {
+    void refreshUnread();
+    const id = window.setInterval(() => void refreshUnread(), 7000);
+    return () => window.clearInterval(id);
+  }, [refreshUnread]);
 
   const handleLogout = async () => {
     try {
@@ -75,6 +94,7 @@ export default function Sidebar() {
     iconButtonPadding: isCompact ? "p-1.5" : "p-2",
   } as const;
   const logoSrc = isDarkMode ? "/images/Logo.png" : "/images/LightModeLogo.png";
+  const formatCount = (value: number) => (value > 99 ? "99+" : value.toString());
 
   return (
     <div className="w-72 h-screen bg-[#ebebed] dark:bg-gray-900 flex flex-col fixed left-0 top-0 z-50 transition-colors duration-300">
@@ -180,7 +200,7 @@ export default function Sidebar() {
             {/* Messages Icon Button */}
             <Link
               to="/messages"
-              className={`flex-shrink-0 rounded-lg transition-colors ${
+              className={`relative inline-flex items-center justify-center flex-shrink-0 rounded-lg transition-colors ${
                 isActive("/messages")
                   ? "bg-teal-500/10 text-teal-600 dark:text-teal-400"
                   : "text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300"
@@ -188,12 +208,17 @@ export default function Sidebar() {
               title={t("nav.messages", "Messages")}
             >
               <MessageSquare className={styleGroup.rowIcon} />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-5 px-1.5 rounded-full bg-cyan-500 text-[10px] font-bold text-white leading-none flex items-center justify-center shadow-[0_0_0_1px_rgba(0,0,0,0.35)]">
+                  {formatCount(unreadCount)}
+                </span>
+              )}
             </Link>
 
             {/* Friends Icon Button */}
             <Link
               to="/friends"
-              className={`flex-shrink-0 rounded-lg transition-colors ${
+              className={`relative inline-flex items-center justify-center flex-shrink-0 rounded-lg transition-colors ${
                 isActive("/friends")
                   ? "bg-teal-500/10 text-teal-600 dark:text-teal-400"
                   : "text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300"
@@ -201,6 +226,11 @@ export default function Sidebar() {
               title={t("nav.friends", "Friends")}
             >
               <Users className={styleGroup.rowIcon} />
+              {pendingIncomingCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-5 px-1.5 rounded-full bg-teal-500 text-[10px] font-bold text-white leading-none flex items-center justify-center shadow-[0_0_0_1px_rgba(0,0,0,0.35)]">
+                  {formatCount(pendingIncomingCount)}
+                </span>
+              )}
             </Link>
 
             {/* Settings Icon Button */}

@@ -15,6 +15,7 @@ import {
   type TabType,
 } from "../components/profilePage";
 import type { Relationship } from "../components/profilePage/ProfileHeader";
+import { useFriendStore } from "../store/friendStore";
 
 interface PublicUser {
   id: string;
@@ -31,9 +32,14 @@ export default function UserProfile() {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
   const { user: authUser } = useAuthStore();
+  const sendFriendRequest = useFriendStore((state) => state.sendRequest);
+  const acceptFriendRequest = useFriendStore((state) => state.acceptRequest);
+  const ignoreFriendRequest = useFriendStore((state) => state.ignoreRequest);
+  const removeFriendship = useFriendStore((state) => state.removeFriend);
 
   const [profileUser, setProfileUser] = useState<PublicUser | null>(null);
   const [relationship, setRelationship] = useState<Relationship>("none");
+  const [pendingRequestId, setPendingRequestId] = useState<string | null>(null);
   const [games, setGames] = useState<GameHistory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -77,6 +83,7 @@ export default function UserProfile() {
         if (!cancelled) {
           setProfileUser(profileData.user);
           setRelationship(profileData.relationship || "none");
+          setPendingRequestId(profileData.relationshipRequestId || null);
           setGames(gamesData.games || []);
         }
       } catch (err) {
@@ -114,44 +121,63 @@ export default function UserProfile() {
     if (!userId || friendLoading) return;
     try {
       setFriendLoading(true);
-      const res = await fetch(`${API_URL}/api/friends`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ friendId: userId }),
-      });
-      if (res.ok) {
+      const result = await sendFriendRequest(userId);
+      if (result.status === "accepted") {
         setRelationship("friends");
+        setPendingRequestId(null);
+      } else {
+        setRelationship("outgoing_pending");
+        setPendingRequestId(result.requestId || null);
       }
     } catch {
       // ignore
     } finally {
       setFriendLoading(false);
     }
-  }, [userId, friendLoading]);
+  }, [userId, friendLoading, sendFriendRequest]);
 
   const handleRemoveFriend = useCallback(async () => {
     if (!userId || friendLoading) return;
     try {
       setFriendLoading(true);
-      const res = await fetch(`${API_URL}/api/friends/${userId}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-      if (res.ok) {
-        setRelationship("none");
-      }
+      await removeFriendship(userId);
+      setRelationship("none");
+      setPendingRequestId(null);
     } catch {
       // ignore
     } finally {
       setFriendLoading(false);
     }
-  }, [userId, friendLoading]);
+  }, [userId, friendLoading, removeFriendship]);
+
+  const handleAcceptRequest = useCallback(async () => {
+    if (!pendingRequestId || friendLoading) return;
+    try {
+      setFriendLoading(true);
+      await acceptFriendRequest(pendingRequestId);
+      setRelationship("friends");
+      setPendingRequestId(null);
+    } finally {
+      setFriendLoading(false);
+    }
+  }, [pendingRequestId, friendLoading, acceptFriendRequest]);
+
+  const handleIgnoreRequest = useCallback(async () => {
+    if (!pendingRequestId || friendLoading) return;
+    try {
+      setFriendLoading(true);
+      await ignoreFriendRequest(pendingRequestId);
+      setRelationship("none");
+      setPendingRequestId(null);
+    } finally {
+      setFriendLoading(false);
+    }
+  }, [pendingRequestId, friendLoading, ignoreFriendRequest]);
 
   const handleChallenge = useCallback(() => {
-    // Navigate to play with friend or trigger challenge flow
+    if (relationship !== "friends") return;
     navigate("/play/friend");
-  }, [navigate]);
+  }, [navigate, relationship]);
 
   if (loading) {
     return (
@@ -202,6 +228,8 @@ export default function UserProfile() {
           onAddFriend={handleAddFriend}
           onRemoveFriend={handleRemoveFriend}
           onChallenge={handleChallenge}
+          onAcceptRequest={handleAcceptRequest}
+          onIgnoreRequest={handleIgnoreRequest}
           friendLoading={friendLoading}
         />
 

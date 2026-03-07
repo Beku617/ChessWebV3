@@ -9,61 +9,19 @@ import {
   UserRoundPlus,
   UserCheck,
   Settings,
+  Hourglass,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ProfileStats, TabType } from "./types";
 import { ProfileAvatarUpload } from "./ProfileAvatarUpload";
 import { useFriendChallengeStore } from "../../store/friendChallengeStore";
+import {
+  PresenceStatus,
+  presenceText,
+  presenceDotClass,
+} from "../../utils/presence";
 
-export type Relationship = "self" | "none" | "friends";
-type PresenceStatus =
-  | "online"
-  | "offline"
-  | "searching_match"
-  | "in_game"
-  | "away";
-
-function parseDate(input?: string | Date | null): Date | null {
-  if (!input) return null;
-  const parsed = input instanceof Date ? input : new Date(input);
-  return Number.isFinite(parsed.getTime()) ? parsed : null;
-}
-
-function formatRelativeTime(input?: string | Date | null): string {
-  const date = parseDate(input);
-  if (!date) return "unknown";
-
-  const diffMs = Math.max(0, Date.now() - date.getTime());
-  const mins = Math.floor(diffMs / (60 * 1000));
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
-
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
-
-  const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}d ago`;
-
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
-
-function presenceText(status: PresenceStatus, lastSeen?: string | Date | null) {
-  if (status === "in_game") return "In game";
-  if (status === "searching_match") return "Searching for match";
-  if (status === "away") return "Away";
-  if (status === "online") return "Online";
-  const seen = formatRelativeTime(lastSeen);
-  return seen === "unknown" ? "Offline" : `Last seen ${seen}`;
-}
-
-function presenceDotClass(status: PresenceStatus) {
-  if (status === "online") return "bg-emerald-500";
-  if (status === "in_game") return "bg-amber-500";
-  if (status === "searching_match") return "bg-sky-500";
-  if (status === "away") return "bg-yellow-500";
-  return "bg-gray-400";
-}
-
+export type Relationship = "self" | "none" | "friends" | "incoming_pending" | "outgoing_pending";
 function resolveAvatarUrl(avatar?: string) {
   if (!avatar) return "";
   if (
@@ -100,6 +58,8 @@ interface ProfileHeaderProps {
   onAddFriend?: () => void;
   onRemoveFriend?: () => void;
   onChallenge?: () => void;
+  onAcceptRequest?: () => void;
+  onIgnoreRequest?: () => void;
   friendLoading?: boolean;
 }
 
@@ -114,6 +74,8 @@ export function ProfileHeader({
   onAddFriend,
   onRemoveFriend,
   onChallenge,
+  onAcceptRequest,
+  onIgnoreRequest,
   friendLoading,
 }: ProfileHeaderProps) {
   const navigate = useNavigate();
@@ -177,6 +139,7 @@ export function ProfileHeader({
     [clockTick, effectiveLastSeen, effectiveStatus],
   );
   const showVisitorActions = !isMe && (!!onChallenge || !!onAddFriend || !!onRemoveFriend);
+  const canChallenge = relationship === "friends";
 
   return (
     <div className="relative">
@@ -242,33 +205,66 @@ export function ProfileHeader({
                     <>
                       <button
                         type="button"
-                        onClick={onChallenge}
-                        className="px-4 py-2.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-sm font-semibold text-white inline-flex items-center gap-2 transition-colors shadow-[0_8px_20px_rgba(13,148,136,0.35)]"
+                        onClick={() => {
+                          if (canChallenge) onChallenge?.();
+                        }}
+                        disabled={!canChallenge}
+                        className={`px-4 py-2.5 rounded-lg text-sm font-semibold inline-flex items-center gap-2 transition-colors ${
+                          canChallenge
+                            ? "bg-teal-600 hover:bg-teal-700 text-white shadow-[0_8px_20px_rgba(13,148,136,0.35)]"
+                            : "bg-slate-800/60 text-slate-400 cursor-not-allowed"
+                        }`}
                       >
                         <Swords size={16} />
                         Challenge
                       </button>
-                      {relationship === "friends" ? (
-                        <button
-                          type="button"
-                          onClick={onRemoveFriend}
-                          disabled={friendLoading}
-                          className="px-4 py-2.5 rounded-lg border border-teal-400/40 bg-teal-50/80 dark:bg-teal-500/10 hover:bg-teal-100 dark:hover:bg-teal-500/20 text-sm font-semibold text-teal-700 dark:text-teal-300 inline-flex items-center gap-2 transition-colors disabled:opacity-50"
-                        >
-                          <UserCheck size={16} />
-                          Friends
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={onAddFriend}
-                          disabled={friendLoading}
-                          className="px-4 py-2.5 rounded-lg border border-gray-300/80 dark:border-white/15 bg-white/85 dark:bg-black/25 hover:bg-white dark:hover:bg-black/35 text-sm font-semibold text-gray-900 dark:text-white inline-flex items-center gap-2 transition-colors disabled:opacity-50"
-                        >
-                          <UserRoundPlus size={16} />
-                          Add Friend
-                        </button>
-                      )}
+                  {relationship === "friends" ? (
+                    <button
+                      type="button"
+                      onClick={onRemoveFriend}
+                      disabled={friendLoading}
+                      className="px-4 py-2.5 rounded-lg border border-teal-400/40 bg-teal-50/80 dark:bg-teal-500/10 hover:bg-teal-100 dark:hover:bg-teal-500/20 text-sm font-semibold text-teal-700 dark:text-teal-300 inline-flex items-center gap-2 transition-colors disabled:opacity-50"
+                    >
+                      <UserCheck size={16} />
+                      Friends
+                    </button>
+                  ) : relationship === "incoming_pending" ? (
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => onAcceptRequest?.()}
+                        disabled={friendLoading}
+                        className="px-4 py-2.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-sm font-semibold text-white inline-flex items-center gap-2 transition-colors disabled:opacity-50"
+                      >
+                        <UserCheck size={16} />
+                        Accept
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onIgnoreRequest?.()}
+                        disabled={friendLoading}
+                        className="px-4 py-2.5 rounded-lg border border-slate-500/40 bg-slate-800/70 text-sm font-semibold text-slate-200 inline-flex items-center gap-2 transition-colors disabled:opacity-50"
+                      >
+                        <Hourglass size={16} />
+                        Ignore
+                      </button>
+                    </div>
+                  ) : relationship === "outgoing_pending" ? (
+                    <span className="px-4 py-2.5 rounded-lg border border-slate-500/40 bg-slate-800/70 text-sm font-semibold text-slate-200 inline-flex items-center gap-2">
+                      <Hourglass size={16} />
+                      Request sent
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={onAddFriend}
+                      disabled={friendLoading}
+                      className="px-4 py-2.5 rounded-lg border border-gray-300/80 dark:border-white/15 bg-white/85 dark:bg-black/25 hover:bg-white dark:hover:bg-black/35 text-sm font-semibold text-gray-900 dark:text-white inline-flex items-center gap-2 transition-colors disabled:opacity-50"
+                    >
+                      <UserRoundPlus size={16} />
+                      Add Friend
+                    </button>
+                  )}
                       <button
                         type="button"
                         className="w-10 h-10 rounded-lg border border-gray-300/80 dark:border-white/15 bg-white/85 dark:bg-black/25 hover:bg-white dark:hover:bg-black/35 text-gray-700 dark:text-gray-200 inline-flex items-center justify-center transition-colors"

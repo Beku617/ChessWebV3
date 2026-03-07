@@ -18,3 +18,4 @@ export { default as Conversation, buildKey } from "./Conversation.js";
 export { default as DirectMessage } from "./DirectMessage.js";
 export { default as Notification } from "./Notification.js";
 export { default as FriendRequest } from "./FriendRequest.js";
+export { default as UserConversationState } from "./UserConversationState.js";

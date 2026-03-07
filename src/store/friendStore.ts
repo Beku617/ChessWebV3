@@ -58,7 +58,6 @@ interface FriendStoreState {
   friends: FriendListItem[];
   incoming: FriendRequestItem[];
   outgoing: FriendRequestItem[];
-  history: FriendRequestItem[];
   loading: boolean;
   error: string | null;
   socketId: string | null;
@@ -66,11 +65,11 @@ interface FriendStoreState {
   sendRequest: (targetUserId: string) => Promise<{ status: string; requestId?: string | null }>;
   acceptRequest: (requestId: string) => Promise<void>;
   denyRequest: (requestId: string) => Promise<void>;
-  ignoreRequest: (requestId: string) => Promise<void>;
   cancelRequest: (requestId: string) => Promise<void>;
   removeFriend: (friendId: string) => Promise<void>;
   bindSocket: (socket: Socket | null) => void;
   getRelationship: (userId: string) => FriendRelationship;
+  pendingIncomingCount: () => number;
   reset: () => void;
 }
 
@@ -127,7 +126,6 @@ export const useFriendStore = create<FriendStoreState>((set, get) => ({
   friends: [],
   incoming: [],
   outgoing: [],
-  history: [],
   loading: false,
   error: null,
   socketId: null,
@@ -137,7 +135,6 @@ export const useFriendStore = create<FriendStoreState>((set, get) => ({
       friends: [],
       incoming: [],
       outgoing: [],
-      history: [],
       loading: false,
       error: null,
       socketId: null,
@@ -164,7 +161,7 @@ export const useFriendStore = create<FriendStoreState>((set, get) => ({
         fetch(`${API_URL}/api/friends/requests`, { credentials: "include" }),
       ]);
       const friendsData = friendsRes.ok ? await friendsRes.json() : { friends: [] };
-      const requestsData = requestsRes.ok ? await requestsRes.json() : { incoming: [], outgoing: [], history: [] };
+      const requestsData = requestsRes.ok ? await requestsRes.json() : { incoming: [], outgoing: [] };
 
       set({
         friends: Array.isArray(friendsData.friends)
@@ -175,9 +172,6 @@ export const useFriendStore = create<FriendStoreState>((set, get) => ({
           : [],
         outgoing: Array.isArray(requestsData.outgoing)
           ? requestsData.outgoing.map(toRequestItem)
-          : [],
-        history: Array.isArray(requestsData.history)
-          ? requestsData.history.map(toRequestItem)
           : [],
         loading: false,
         error: null,
@@ -216,7 +210,6 @@ export const useFriendStore = create<FriendStoreState>((set, get) => ({
       const reqItem = toRequestItem(data.request);
       set((state) => ({
         outgoing: upsertRequest(state.outgoing, reqItem),
-        history: state.history.filter((r) => r.id !== reqItem.id),
       }));
       return { status: data.status || "pending", requestId: reqItem.id };
     }
@@ -225,71 +218,56 @@ export const useFriendStore = create<FriendStoreState>((set, get) => ({
   },
 
   acceptRequest: async (requestId) => {
+    if (!requestId) throw new Error("Missing request id");
     const res = await fetch(`${API_URL}/api/friends/requests/${requestId}/accept`, {
       method: "POST",
       credentials: "include",
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      throw new Error(data.error || "Failed to accept request");
+      throw new Error(data.detail || data.error || "Failed to accept request");
     }
-    const reqItem = data.request ? toRequestItem(data.request) : null;
     const friendItem = data.friendship ? toFriendItem(data.friendship) : null;
 
     set((state) => ({
       incoming: state.incoming.filter((r) => r.id !== requestId),
       outgoing: state.outgoing.filter((r) => r.id !== requestId),
-      history: reqItem ? upsertRequest(state.history, { ...reqItem, status: "accepted" }) : state.history,
       friends: friendItem ? upsertFriend(state.friends, friendItem) : state.friends,
     }));
+    // Refresh to avoid stale edge cases
+    void get().loadAll();
   },
 
   denyRequest: async (requestId) => {
+    if (!requestId) throw new Error("Missing request id");
     const res = await fetch(`${API_URL}/api/friends/requests/${requestId}/deny`, {
       method: "POST",
       credentials: "include",
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      throw new Error(data.error || "Failed to deny request");
+      throw new Error(data.detail || data.error || "Failed to deny request");
     }
-    const reqItem = data.request ? toRequestItem(data.request) : null;
     set((state) => ({
       incoming: state.incoming.filter((r) => r.id !== requestId),
-      history: reqItem ? upsertRequest(state.history, reqItem) : state.history,
     }));
-  },
-
-  ignoreRequest: async (requestId) => {
-    const res = await fetch(`${API_URL}/api/friends/requests/${requestId}/ignore`, {
-      method: "POST",
-      credentials: "include",
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      throw new Error(data.error || "Failed to ignore request");
-    }
-    const reqItem = data.request ? toRequestItem(data.request) : null;
-    set((state) => ({
-      incoming: state.incoming.filter((r) => r.id !== requestId),
-      history: reqItem ? upsertRequest(state.history, reqItem) : state.history,
-    }));
+    void get().loadAll();
   },
 
   cancelRequest: async (requestId) => {
+    if (!requestId) throw new Error("Missing request id");
     const res = await fetch(`${API_URL}/api/friends/requests/${requestId}/cancel`, {
       method: "POST",
       credentials: "include",
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      throw new Error(data.error || "Failed to cancel request");
+      throw new Error(data.detail || data.error || "Failed to cancel request");
     }
-    const reqItem = data.request ? toRequestItem(data.request) : null;
     set((state) => ({
       outgoing: state.outgoing.filter((r) => r.id !== requestId),
-      history: reqItem ? upsertRequest(state.history, reqItem) : state.history,
     }));
+    void get().loadAll();
   },
 
   removeFriend: async (friendId) => {
@@ -306,6 +284,9 @@ export const useFriendStore = create<FriendStoreState>((set, get) => ({
     }));
   },
 
+  pendingIncomingCount: () =>
+    get().incoming.filter((r) => r.status === "pending").length,
+
   bindSocket: (socket) => {
     if (socket && boundSocket && boundSocket.id === socket.id) {
       set({ socketId: socket.id });
@@ -320,31 +301,40 @@ export const useFriendStore = create<FriendStoreState>((set, get) => ({
     }
 
     boundSocket = socket;
-    const handlers = {
-      friend_request_received: (dto: any) =>
-        set((state) => ({
-          incoming: upsertRequest(state.incoming, toRequestItem({ ...dto, direction: "incoming" })),
-          outgoing: state.outgoing,
-        })),
-      friend_request_sent: (dto: any) =>
-        set((state) => ({
-          outgoing: upsertRequest(state.outgoing, toRequestItem({ ...dto, direction: "outgoing" })),
-        })),
-      friend_request_updated: (dto: any) =>
-        set((state) => {
-          const item = toRequestItem(dto);
-          const isIncoming = item.direction === "incoming";
-          const nextIncoming = state.incoming.filter((r) => r.id !== item.id);
-          const nextOutgoing = state.outgoing.filter((r) => r.id !== item.id);
-          const nextHistory = upsertRequest(state.history, item);
+  const handlers = {
+    friend_request_received: (dto: any) =>
+      set((state) => ({
+        incoming: upsertRequest(state.incoming, toRequestItem({ ...dto, direction: "incoming" })),
+        outgoing: state.outgoing,
+      })),
+    friend_request_sent: (dto: any) =>
+      set((state) => ({
+        outgoing: upsertRequest(state.outgoing, toRequestItem({ ...dto, direction: "outgoing" })),
+      })),
+    friend_request_updated: (dto: any) =>
+      set((state) => {
+        const item = toRequestItem(dto);
+        const isIncoming = item.direction === "incoming";
+        let nextIncoming = state.incoming;
+        let nextOutgoing = state.outgoing;
 
-          // If accepted, mirror in history and let friendship event handle friend list
-          return {
-            incoming: isIncoming ? nextIncoming : state.incoming,
-            outgoing: isIncoming ? state.outgoing : nextOutgoing,
-            history: nextHistory,
-          };
-        }),
+        if (isIncoming) {
+          nextIncoming = state.incoming.filter((r) => r.id !== item.id);
+          if (item.status === "pending") {
+            nextIncoming = upsertRequest(nextIncoming, item);
+          }
+        } else {
+          nextOutgoing = state.outgoing.filter((r) => r.id !== item.id);
+          if (item.status === "pending") {
+            nextOutgoing = upsertRequest(nextOutgoing, item);
+          }
+        }
+
+        return {
+          incoming: nextIncoming,
+          outgoing: nextOutgoing,
+        };
+      }),
       friendship_created: (payload: any) =>
         set((state) => ({
           friends: upsertFriend(
