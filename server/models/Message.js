@@ -22,12 +22,19 @@ const MessageSchema = new mongoose.Schema(
     },
     attachments: [
       {
+        type: {
+          type: String,
+          enum: ["image", "video"],
+          default: "image",
+        },
         url: { type: String, required: true },
         filename: { type: String, required: true },
         mimeType: { type: String, required: true },
         size: { type: Number, required: true },
         width: { type: Number, default: null },
         height: { type: Number, default: null },
+        duration: { type: Number, default: null },
+        thumbnail: { type: String, default: null },
       },
     ],
     read: {

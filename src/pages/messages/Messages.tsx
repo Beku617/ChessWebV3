@@ -18,6 +18,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Image as ImageIcon,
+  Video,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import Sidebar from "../../components/Sidebar";
@@ -33,9 +34,11 @@ import {
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const ACCEPTED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime"];
 const MAX_ATTACHMENTS = 10;
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024; // 8MB
-const MAX_TOTAL_BYTES = 32 * 1024 * 1024; // 32MB
+const MAX_TOTAL_IMAGE_BYTES = 32 * 1024 * 1024; // 32MB total images
+const MAX_VIDEO_BYTES = 50 * 1024 * 1024; // 50MB per video
 
 interface Conversation {
   partnerId: string;
@@ -55,12 +58,15 @@ interface Conversation {
 }
 
 interface MessageAttachment {
+  type?: "image" | "video";
   url: string;
   filename: string;
   mimeType: string;
   size: number;
   width?: number | null;
   height?: number | null;
+  duration?: number | null;
+  thumbnail?: string | null;
 }
 
 interface Message {
@@ -80,6 +86,15 @@ type FetchMessagesOptions = {
 };
 
 type PendingImage = {
+  id: string;
+  file: File;
+  previewUrl: string;
+  name: string;
+  size: number;
+  type: string;
+};
+
+type PendingVideo = {
   id: string;
   file: File;
   previewUrl: string;
@@ -146,12 +161,25 @@ function formatBytes(bytes: number) {
   return `${value.toFixed(value >= 10 || i === 0 ? 0 : 1)} ${units[i]}`;
 }
 
+const isVideoAttachment = (att?: MessageAttachment | null) =>
+  !!att && (att.type === "video" || (att.mimeType || "").startsWith("video/"));
+
+const isImageAttachment = (att?: MessageAttachment | null) =>
+  !!att && (att.type === "image" || (att.mimeType || "").startsWith("image/"));
+
 function messagePreviewLabel(message: Pick<Message, "content" | "attachments">) {
   const text = (message.content || "").trim();
-  const count = Array.isArray(message.attachments) ? message.attachments.length : 0;
-  if (count === 0) return text;
-  if (!text) return count === 1 ? "Photo" : "Photos";
-  return `${text} · ${count === 1 ? "Photo" : "Photos"}`;
+  const attachments = Array.isArray(message.attachments) ? message.attachments : [];
+  const videos = attachments.filter(isVideoAttachment).length;
+  const images = attachments.filter(isImageAttachment).length;
+
+  let label = "";
+  if (videos > 0) label = videos > 1 ? `${videos} Videos` : "Video";
+  else if (images > 0) label = images > 1 ? `${images} Photos` : "Photo";
+
+  if (!label) return text;
+  if (!text) return label;
+  return `${text} · ${label}`;
 }
 
 export default function Messages() {
@@ -188,10 +216,12 @@ export default function Messages() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState<"archive" | "delete" | null>(null);
   const [pendingImages, setPendingImages] = useState<PendingImage[]>([]);
+  const [pendingVideo, setPendingVideo] = useState<PendingVideo | null>(null);
   const [sending, setSending] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const videoInputRef = useRef<HTMLInputElement | null>(null);
   const [viewer, setViewer] = useState<{ attachments: MessageAttachment[]; index: number } | null>(null);
-  const totalPendingBytes = useMemo(
+  const totalPendingImageBytes = useMemo(
     () => pendingImages.reduce((sum, img) => sum + (img.size || 0), 0),
     [pendingImages],
   );
@@ -562,15 +592,21 @@ export default function Messages() {
   useEffect(
     () => () => {
       pendingImages.forEach((img) => URL.revokeObjectURL(img.previewUrl));
+      if (pendingVideo) URL.revokeObjectURL(pendingVideo.previewUrl);
     },
-    [pendingImages],
+    [pendingImages, pendingVideo],
   );
 
-  const handleFileSelection = useCallback(
+  const handleImageSelection = useCallback(
     (list: FileList | null) => {
       if (!list) return;
       const files = Array.from(list);
       if (files.length === 0) return;
+
+      if (pendingVideo) {
+        setError("Remove the selected video before adding images.");
+        return;
+      }
 
       const availableSlots = Math.max(0, MAX_ATTACHMENTS - pendingImages.length);
       if (availableSlots <= 0) {
@@ -603,10 +639,10 @@ export default function Messages() {
 
       const combined = [...pendingImages, ...accepted];
       const combinedSize = combined.reduce((sum, img) => sum + img.size, 0);
-      if (combinedSize > MAX_TOTAL_BYTES) {
+      if (combinedSize > MAX_TOTAL_IMAGE_BYTES) {
         accepted.forEach((img) => URL.revokeObjectURL(img.previewUrl));
         setError(
-          `Attachments exceed the ${Math.round(MAX_TOTAL_BYTES / (1024 * 1024))}MB total limit.`,
+          `Images exceed the ${Math.round(MAX_TOTAL_IMAGE_BYTES / (1024 * 1024))}MB total limit.`,
         );
         return;
       }
@@ -626,7 +662,7 @@ export default function Messages() {
         setError(null);
       }
     },
-    [pendingImages],
+    [pendingImages, pendingVideo],
   );
 
   const removePendingImage = useCallback((id: string) => {
@@ -645,6 +681,57 @@ export default function Messages() {
     setInfo(null);
     setError(null);
   }, []);
+
+  const clearPendingVideo = useCallback(() => {
+    setPendingVideo((prev) => {
+      if (prev) URL.revokeObjectURL(prev.previewUrl);
+      return null;
+    });
+    setInfo(null);
+    setError(null);
+  }, []);
+
+  const handleVideoSelection = useCallback(
+    (list: FileList | null) => {
+      if (!list || list.length === 0) return;
+      const file = list[0];
+
+      if (pendingImages.length > 0) {
+        setError("Remove selected images before attaching a video.");
+        return;
+      }
+
+      if (!ACCEPTED_VIDEO_TYPES.includes(file.type)) {
+        setError("Unsupported video format. Use mp4, webm, or mov.");
+        return;
+      }
+
+      if (file.size > MAX_VIDEO_BYTES) {
+        setError(`Video is too large (max ${Math.round(MAX_VIDEO_BYTES / (1024 * 1024))}MB).`);
+        return;
+      }
+
+      setPendingVideo((prev) => {
+        if (prev) URL.revokeObjectURL(prev.previewUrl);
+        return {
+          id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          file,
+          previewUrl: URL.createObjectURL(file),
+          name: file.name,
+          size: file.size,
+          type: file.type,
+        };
+      });
+      setInfo(null);
+      setError(null);
+    },
+    [pendingImages],
+  );
+
+  useEffect(() => {
+    clearPendingImages();
+    clearPendingVideo();
+  }, [activeChatId, clearPendingImages, clearPendingVideo]);
 
   const stepViewer = useCallback((direction: 1 | -1) => {
     setViewer((prev) => {
@@ -665,61 +752,104 @@ export default function Messages() {
   ) => {
     if (!attachments || attachments.length === 0) return null;
 
-    const count = attachments.length;
-    const display = count > 5 ? attachments.slice(0, 5) : attachments;
-    const extra = count - display.length;
-
-    const gridCols = (() => {
-      if (count === 1) return "grid-cols-1";
-      if (count === 2) return "grid-cols-2";
-      if (count === 3) return "grid-cols-2 grid-rows-2";
-      if (count === 4) return "grid-cols-2";
-      return "grid-cols-3";
-    })();
-
+    const videos = attachments.filter(isVideoAttachment);
+    const images = attachments.filter((att) => !isVideoAttachment(att));
     const containerTint = mine
       ? "border-white/10 bg-white/5"
       : "border-[#1f2d45] bg-[#0d1729]/80";
 
-    return (
-      <div className={`mt-2 rounded-xl border ${containerTint} p-2`}>
-        <div className={`grid ${gridCols} gap-2`}>
-          {display.map((att, idx) => {
-            const isOverlay = extra > 0 && idx === display.length - 1;
-            const layoutClass =
-              count === 1
-                ? "aspect-[4/3] md:aspect-[16/10]"
-                : count === 3 && idx === 0
-                  ? "row-span-2 aspect-[3/4] md:aspect-[2/3]"
-                  : count >= 3
-                    ? "aspect-square"
-                    : "aspect-[4/3]";
+    const videoBlock =
+      videos.length > 0 ? (
+        <div className={`mt-2 rounded-xl border ${containerTint} p-2`}>
+          <div className="relative overflow-hidden rounded-lg bg-[#0b1424] shadow-[0_10px_26px_rgba(0,0,0,0.28)]">
+            <video
+              key={`${messageId}-video`}
+              src={resolveMediaUrl(videos[0].url)}
+              poster={videos[0].thumbnail ? resolveMediaUrl(videos[0].thumbnail || "") : undefined}
+              controls
+              preload="metadata"
+              className="h-full max-h-[360px] w-full rounded-lg bg-black/60 object-contain"
+              onDoubleClick={(e) => {
+                e.stopPropagation();
+                setViewer({ attachments, index: attachments.indexOf(videos[0]) });
+              }}
+            />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/45 via-black/15 to-transparent" />
+          </div>
+          <div className="mt-2 flex items-center justify-between gap-2 text-[12px] text-slate-200/90">
+            <span className="truncate">{videos[0].filename || "Video"}</span>
+            <span className="text-slate-400">{formatBytes(videos[0].size || 0)}</span>
+          </div>
+        </div>
+      ) : null;
+
+    const imageBlock =
+      images.length > 0 ? (
+        <div className={`mt-2 rounded-xl border ${containerTint} p-2`}>
+          {(() => {
+            const count = images.length;
+            const display = count > 5 ? images.slice(0, 5) : images;
+            const extra = count - display.length;
+            const gridCols = (() => {
+              if (count === 1) return "grid-cols-1";
+              if (count === 2) return "grid-cols-2";
+              if (count === 3) return "grid-cols-2 grid-rows-2";
+              if (count === 4) return "grid-cols-2";
+              return "grid-cols-3";
+            })();
 
             return (
-              <button
-                type="button"
-                key={`${messageId}-att-${idx}`}
-                onClick={() => setViewer({ attachments, index: idx })}
-                className={`group relative overflow-hidden rounded-xl ${layoutClass} shadow-[0_10px_26px_rgba(0,0,0,0.28)]`}
-              >
-                <img
-                  src={resolveMediaUrl(att.url)}
-                  alt={att.filename || "attachment"}
-                  loading="lazy"
-                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-                />
-                {isOverlay && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-lg font-semibold text-white backdrop-blur-sm">
-                    +{extra}
-                  </div>
-                )}
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-black/10 to-black/30 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
-              </button>
+              <div className={`grid ${gridCols} gap-2`}>
+                {display.map((att, idx) => {
+                  const originalIndex = attachments.indexOf(att);
+                  const isOverlay = extra > 0 && idx === display.length - 1;
+                  const layoutClass =
+                    count === 1
+                      ? "aspect-[4/3] md:aspect-[16/10]"
+                      : count === 3 && idx === 0
+                        ? "row-span-2 aspect-[3/4] md:aspect-[2/3]"
+                        : count >= 3
+                          ? "aspect-square"
+                          : "aspect-[4/3]";
+
+                  return (
+                    <button
+                      type="button"
+                      key={`${messageId}-att-${idx}`}
+                      onClick={() => setViewer({ attachments, index: originalIndex })}
+                      className={`group relative overflow-hidden rounded-xl ${layoutClass} shadow-[0_10px_26px_rgba(0,0,0,0.28)]`}
+                    >
+                      <img
+                        src={resolveMediaUrl(att.url)}
+                        alt={att.filename || "attachment"}
+                        loading="lazy"
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                      />
+                      {isOverlay && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-lg font-semibold text-white backdrop-blur-sm">
+                          +{extra}
+                        </div>
+                      )}
+                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-black/10 to-black/30 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+                    </button>
+                  );
+                })}
+              </div>
             );
-          })}
+          })()}
         </div>
-      </div>
-    );
+      ) : null;
+
+    if (videoBlock && imageBlock) {
+      return (
+        <div className="space-y-3">
+          {videoBlock}
+          {imageBlock}
+        </div>
+      );
+    }
+
+    return videoBlock || imageBlock;
   };
 
   const sendMessage = async () => {
@@ -731,8 +861,13 @@ export default function Messages() {
 
     const content = draft.trim();
     const hasImages = pendingImages.length > 0;
+    const hasVideo = !!pendingVideo;
     if (!activeChatId) return;
-    if (!content && !hasImages) return;
+    if (!content && !hasImages && !hasVideo) return;
+    if (hasImages && hasVideo) {
+      setError("Send either images or one video per message.");
+      return;
+    }
 
     setError(null);
     setInfo(null);
@@ -740,11 +875,14 @@ export default function Messages() {
 
     try {
       let res: Response;
-      if (hasImages) {
+      if (hasImages || hasVideo) {
         const form = new FormData();
         form.append("receiverId", activeChatId);
         form.append("content", content);
         pendingImages.forEach((img) => form.append("attachments", img.file, img.name));
+        if (pendingVideo) {
+          form.append("attachments", pendingVideo.file, pendingVideo.name);
+        }
 
         res = await fetch(`${API_URL}/api/messages`, {
           method: "POST",
@@ -768,6 +906,7 @@ export default function Messages() {
 
       setDraft("");
       clearPendingImages();
+      clearPendingVideo();
       setPendingScroll({ type: "bottom" });
 
       await Promise.all([
@@ -1243,10 +1382,62 @@ export default function Messages() {
                     accept={ACCEPTED_IMAGE_TYPES.join(",")}
                     className="hidden"
                     onChange={(e) => {
-                      handleFileSelection(e.target.files);
+                      handleImageSelection(e.target.files);
                       if (e.target) e.target.value = "";
                     }}
                   />
+                  <input
+                    ref={videoInputRef}
+                    type="file"
+                    accept={ACCEPTED_VIDEO_TYPES.join(",")}
+                    className="hidden"
+                    onChange={(e) => {
+                      handleVideoSelection(e.target.files);
+                      if (e.target) e.target.value = "";
+                    }}
+                  />
+
+                  {pendingVideo && (
+                    <div className="mb-2 rounded-2xl border border-[#27354f] bg-[#0f1829]/92 px-3 py-3">
+                      <div className="mb-2 flex items-center justify-between text-[12px] text-slate-200">
+                        <span className="inline-flex items-center gap-2">
+                          <Video className="h-4 w-4 text-teal-300" />
+                          <span>1 video selected · {formatBytes(pendingVideo.size)}</span>
+                        </span>
+                        <button
+                          type="button"
+                          onClick={clearPendingVideo}
+                          className="rounded-lg px-2 py-1 text-[11px] text-slate-300 transition-colors hover:bg-[#18273f] hover:text-white"
+                        >
+                          {t("messages.clearAttachments", "Remove all")}
+                        </button>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="relative h-24 w-40 overflow-hidden rounded-xl border border-[#23334f] bg-[#0b1424] shadow-[0_10px_24px_rgba(0,0,0,0.28)]">
+                          <video
+                            src={pendingVideo.previewUrl}
+                            className="h-full w-full object-cover"
+                            controls
+                            muted
+                          />
+                          <button
+                            type="button"
+                            onClick={clearPendingVideo}
+                            className="absolute right-1 top-1 inline-flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-white opacity-80 transition hover:opacity-100"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                          <span className="absolute bottom-1 left-1 rounded-full bg-black/55 px-2 py-0.5 text-[10px] text-slate-100">
+                            {formatBytes(pendingVideo.size)}
+                          </span>
+                        </div>
+                        <div className="min-w-0 flex-1 text-[12px] text-slate-200">
+                          <div className="truncate font-medium">{pendingVideo.name}</div>
+                          <div className="text-slate-400">{pendingVideo.type}</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {pendingImages.length > 0 && (
                     <div className="mb-2 rounded-2xl border border-[#27354f] bg-[#0f1829]/92 px-3 py-3">
@@ -1255,8 +1446,8 @@ export default function Messages() {
                           <ImageIcon className="h-4 w-4 text-teal-300" />
                           <span>
                             {pendingImages.length}{" "}
-                            {pendingImages.length === 1 ? "image selected" : "images selected"} ·{" "}
-                            {formatBytes(totalPendingBytes)}
+                            {pendingImages.length === 1 ? "image selected" : "images selected"} -{" "}
+                            {formatBytes(totalPendingImageBytes)}
                           </span>
                         </span>
                         <button
@@ -1312,6 +1503,17 @@ export default function Messages() {
                     </button>
                     <button
                       type="button"
+                      onClick={() => {
+                        setError(null);
+                        setInfo(null);
+                        videoInputRef.current?.click();
+                      }}
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-[#1b2a41] hover:text-slate-100"
+                    >
+                      <Video className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
                       className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-[#1b2a41] hover:text-slate-100"
                     >
                       <Smile className="h-4 w-4" />
@@ -1332,7 +1534,7 @@ export default function Messages() {
 
                     <button
                       onClick={() => void sendMessage()}
-                      disabled={sending || (!draft.trim() && pendingImages.length === 0)}
+                      disabled={sending || (!draft.trim() && pendingImages.length === 0 && !pendingVideo)}
                       className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-teal-600 text-white shadow-[0_10px_20px_rgba(13,148,136,0.35)] transition-all hover:bg-teal-500 disabled:cursor-not-allowed disabled:bg-[#1e2a40] disabled:text-slate-600 disabled:shadow-none"
                     >
                       {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
@@ -1379,15 +1581,30 @@ export default function Messages() {
             {(() => {
               const current =
                 viewer.attachments[viewer.index] || viewer.attachments[0];
+              const video = isVideoAttachment(current);
               return (
                 <>
-                  <img
-                    src={resolveMediaUrl(current?.url)}
-                    alt={current?.filename || "attachment"}
-                    className="max-h-[80vh] w-full rounded-2xl border border-white/10 bg-[#0b1424] object-contain shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
-                  />
+                  {video ? (
+                    <video
+                      src={resolveMediaUrl(current?.url)}
+                      poster={
+                        current?.thumbnail ? resolveMediaUrl(current.thumbnail) : undefined
+                      }
+                      controls
+                      preload="metadata"
+                      className="max-h-[80vh] w-full rounded-2xl border border-white/10 bg-black/70 object-contain shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
+                    />
+                  ) : (
+                    <img
+                      src={resolveMediaUrl(current?.url)}
+                      alt={current?.filename || "attachment"}
+                      className="max-h-[80vh] w-full rounded-2xl border border-white/10 bg-[#0b1424] object-contain shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
+                    />
+                  )}
                   <div className="mt-3 flex items-center justify-center gap-3 text-sm text-slate-200">
-                    <span className="max-w-[60vw] truncate">{current?.filename || "Photo"}</span>
+                    <span className="max-w-[60vw] truncate">
+                      {current?.filename || (video ? "Video" : "Photo")}
+                    </span>
                     <span className="text-slate-400">{formatBytes(current?.size || 0)}</span>
                   </div>
                 </>

@@ -14,7 +14,6 @@ import {
   PuzzleUserStats,
 } from "./types";
 import { PuzzleStatsCards } from "./PuzzleStatsCards";
-import { DailyPuzzleCard } from "./DailyPuzzleSection";
 import { PuzzlesGrid } from "./PuzzlesGrid";
 import { PuzzleBrowseFilters } from "./PuzzleBrowseFilters";
 
@@ -115,45 +114,42 @@ export default function Puzzles() {
   }, [collection, mateBucket, motif, t]);
 
   return (
-    <div className="space-y-8">
-      {/* Header & Stats */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-1 space-y-2">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-            <Puzzle className="w-8 h-8 text-teal-500 dark:text-teal-400" />
-            {t("Puzzles")}
-          </h1>
-          <p className="text-gray-500 dark:text-gray-400">
-            {t("Train by motif and track your puzzle strength.")}
-          </p>
+    <div className="space-y-6 lg:space-y-7">
+      <section className="rounded-2xl border border-gray-800 bg-gray-900/70 px-5 py-6 shadow-[0_20px_60px_-48px_rgba(20,184,166,0.4)] sm:px-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl border border-teal-500/30 bg-teal-500/10">
+              <Puzzle className="h-5 w-5 text-teal-300" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold leading-tight text-white">{t("Puzzles")}</h1>
+              <p className="mt-1 text-sm text-gray-400">
+                {t("Train by motif and track your puzzle strength.")}
+              </p>
+            </div>
+          </div>
         </div>
 
-        <PuzzleStatsCards stats={stats} loading={statsLoading} />
-      </div>
+        <div className="mt-5">
+          <PuzzleStatsCards stats={stats} loading={statsLoading} />
+        </div>
+      </section>
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Daily Puzzle (Left 2 cols) */}
-        <DailyPuzzleCard />
+      <PuzzleBrowseFilters
+        query={query}
+        onQueryChange={setQuery}
+        collection={collection}
+        onCollectionChange={(nextCollection) => {
+          setCollection(nextCollection);
+          setMateBucket("all");
+          setMotif("All");
+        }}
+        mateBucket={mateBucket}
+        onMateBucketChange={setMateBucket}
+        motif={motif}
+        onMotifChange={setMotif}
+      />
 
-        {/* Filters / Buckets (Right col) */}
-        <PuzzleBrowseFilters
-          query={query}
-          onQueryChange={setQuery}
-          collection={collection}
-          onCollectionChange={(nextCollection) => {
-            setCollection(nextCollection);
-            setMateBucket("all");
-            setMotif("All");
-          }}
-          mateBucket={mateBucket}
-          onMateBucketChange={setMateBucket}
-          motif={motif}
-          onMotifChange={setMotif}
-        />
-      </div>
-
-      {/* Recommended Puzzles Grid */}
       <PuzzlesGrid
         puzzles={filteredPuzzles}
         loading={loading}

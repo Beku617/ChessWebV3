@@ -29,9 +29,12 @@ const ALLOWED_IMAGE_TYPES = new Set([
   "image/webp",
   "image/gif",
 ]);
+const ALLOWED_VIDEO_TYPES = new Set(["video/mp4", "video/webm", "video/quicktime"]);
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024; // 8MB per image
-const MAX_TOTAL_BYTES = 32 * 1024 * 1024; // 32MB per message
+const MAX_TOTAL_IMAGE_BYTES = 32 * 1024 * 1024; // 32MB per message (images only)
 const MAX_IMAGES_PER_MESSAGE = 10;
+const MAX_VIDEOS_PER_MESSAGE = 1;
+const MAX_VIDEO_BYTES = 50 * 1024 * 1024; // 50MB per video
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, uploadsRoot),
@@ -45,13 +48,14 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage,
   limits: {
-    fileSize: MAX_IMAGE_BYTES,
-    files: MAX_IMAGES_PER_MESSAGE,
+    fileSize: Math.max(MAX_IMAGE_BYTES, MAX_VIDEO_BYTES),
+    files: MAX_IMAGES_PER_MESSAGE + MAX_VIDEOS_PER_MESSAGE,
   },
   fileFilter: (_req, file, cb) => {
-    if (!ALLOWED_IMAGE_TYPES.has(file.mimetype)) {
+    if (!ALLOWED_IMAGE_TYPES.has(file.mimetype) && !ALLOWED_VIDEO_TYPES.has(file.mimetype)) {
       const err = new multer.MulterError("LIMIT_UNEXPECTED_FILE", file.fieldname);
-      err.message = "Unsupported file type. Please upload jpg, jpeg, png, webp, or gif.";
+      err.message =
+        "Unsupported file type. Please upload jpg, jpeg, png, webp, gif, mp4, webm, or mov.";
       return cb(err);
     }
     cb(null, true);
@@ -59,12 +63,12 @@ const upload = multer({
 });
 
 const uploadAttachments = (req, res, next) =>
-  upload.array("attachments", MAX_IMAGES_PER_MESSAGE)(req, res, (err) => {
+  upload.array("attachments", MAX_IMAGES_PER_MESSAGE + MAX_VIDEOS_PER_MESSAGE)(req, res, (err) => {
     if (err) {
       const message =
         err instanceof multer.MulterError
           ? err.message ||
-            "Attachment error. Please ensure files are images and within size limits."
+            "Attachment error. Please ensure files are jpg/png/webp/gif or mp4/webm/mov and within size limits."
           : "Failed to upload attachments.";
       return res.status(400).json({ error: message });
     }
@@ -93,22 +97,43 @@ const mapAttachments = (files = []) =>
   files.map((file) => {
     const storedName = path.basename(file.filename || file.originalname || "image");
     const displayName = path.basename(file.originalname || storedName);
+    const type =
+      ALLOWED_VIDEO_TYPES.has(file.mimetype) || (file.mimetype || "").startsWith("video/")
+        ? "video"
+        : "image";
     return {
+      type,
       url: `/uploads/messages/${storedName}`,
       filename: displayName,
       mimeType: file.mimetype,
       size: file.size,
-      width: file.width ?? null,
-      height: file.height ?? null,
+      width: type === "image" ? file.width ?? null : null,
+      height: type === "image" ? file.height ?? null : null,
+      duration: type === "video" ? file.duration ?? null : null,
+      thumbnail: type === "video" ? file.thumbnail ?? null : null,
     };
   });
 
+const summarizeAttachmentLabel = (attachments = []) => {
+  const list = Array.isArray(attachments) ? attachments : [];
+  const videos = list.filter(
+    (a) => a?.type === "video" || (a?.mimeType || "").startsWith("video/"),
+  ).length;
+  const images = list.filter(
+    (a) => a?.type === "image" || (a?.mimeType || "").startsWith("image/"),
+  ).length;
+
+  if (videos > 0) return videos > 1 ? `${videos} Videos` : "Video";
+  if (images > 0) return images > 1 ? `${images} Photos` : "Photo";
+  return "";
+};
+
 const getMessagePreview = (content, attachments) => {
   const text = String(content || "").trim();
-  const count = Array.isArray(attachments) ? attachments.length : 0;
-  if (count === 0) return text;
-  if (!text) return count === 1 ? "Photo" : "Photos";
-  return `${text} · ${count === 1 ? "Photo" : "Photos"}`;
+  const label = summarizeAttachmentLabel(attachments);
+  if (!label) return text;
+  if (!text) return label;
+  return `${text} · ${label}`;
 };
 
 const toObjectId = (value) => new mongoose.Types.ObjectId(String(value));
@@ -430,7 +455,7 @@ router.get("/:friendId", async (req, res) => {
   }
 });
 
-// POST /api/messages — send a message (text and/or images)
+// POST /api/messages — send a message (text and/or media)
 router.post("/", uploadAttachments, async (req, res) => {
   try {
     const senderId = req.user.userId;
@@ -456,23 +481,60 @@ router.post("/", uploadAttachments, async (req, res) => {
       return res.status(400).json({ error: "Message text is too long (2000 characters max)." });
     }
 
-    if (!content && files.length === 0) {
+    const images = files.filter((file) => ALLOWED_IMAGE_TYPES.has(file.mimetype));
+    const videos = files.filter((file) => ALLOWED_VIDEO_TYPES.has(file.mimetype));
+
+    if (images.length + videos.length !== files.length) {
       await cleanupFiles(files);
-      return res.status(400).json({ error: "Message must include text or at least one image." });
+      return res.status(400).json({ error: "Unsupported file type." });
     }
 
-    if (files.length > MAX_IMAGES_PER_MESSAGE) {
+    if (!content && images.length === 0 && videos.length === 0) {
+      await cleanupFiles(files);
+      return res.status(400).json({ error: "Message must include text or at least one attachment." });
+    }
+
+    if (images.length > 0 && videos.length > 0) {
+      await cleanupFiles(files);
+      return res
+        .status(400)
+        .json({ error: "Send either multiple images or one video per message (with optional text)." });
+    }
+
+    if (images.length > MAX_IMAGES_PER_MESSAGE) {
       await cleanupFiles(files);
       return res.status(400).json({ error: `You can upload up to ${MAX_IMAGES_PER_MESSAGE} images per message.` });
     }
 
-    const totalBytes = files.reduce((sum, file) => sum + (Number(file.size) || 0), 0);
-    if (totalBytes > MAX_TOTAL_BYTES) {
+    if (videos.length > MAX_VIDEOS_PER_MESSAGE) {
       await cleanupFiles(files);
-      const limitMb = Math.round(MAX_TOTAL_BYTES / (1024 * 1024));
+      return res.status(400).json({ error: "Only one video can be sent per message." });
+    }
+
+    const invalidImage = images.find((file) => file.size > MAX_IMAGE_BYTES);
+    if (invalidImage) {
+      await cleanupFiles(files);
+      return res
+        .status(400)
+        .json({ error: `${invalidImage.originalname || "Image"} is too large (max 8MB per image).` });
+    }
+
+    const totalImageBytes = images.reduce((sum, file) => sum + (Number(file.size) || 0), 0);
+    if (images.length > 0 && totalImageBytes > MAX_TOTAL_IMAGE_BYTES) {
+      await cleanupFiles(files);
+      const limitMb = Math.round(MAX_TOTAL_IMAGE_BYTES / (1024 * 1024));
       return res
         .status(400)
         .json({ error: `Attachments are too large. Please keep the total under ${limitMb}MB.` });
+    }
+
+    const invalidVideo = videos.find((file) => file.size > MAX_VIDEO_BYTES);
+    if (invalidVideo) {
+      await cleanupFiles(files);
+      const limitMb = Math.round(MAX_VIDEO_BYTES / (1024 * 1024));
+      return res
+        .status(400)
+        .json({ error: `${invalidVideo.originalname || "Video"} is too large (max ${limitMb}MB).` });
     }
 
     if (receiverId === senderId) {
@@ -500,7 +562,7 @@ router.post("/", uploadAttachments, async (req, res) => {
       return res.status(403).json({ error: "Messaging is blocked between users" });
     }
 
-    const attachments = mapAttachments(files);
+    const attachments = mapAttachments([...images, ...videos]);
 
     const message = await Message.create({
       sender: senderId,
@@ -529,7 +591,12 @@ router.post("/", uploadAttachments, async (req, res) => {
       userId: receiverId,
       type: "new_message",
       title: "New message",
-      message: attachments.length > 0 ? "You received a new photo." : "You received a new message.",
+      message:
+        attachments.length > 0
+          ? summarizeAttachmentLabel(attachments) === "Video"
+            ? "You received a new video."
+            : "You received new photos."
+          : "You received a new message.",
       link: "/messages",
       payload: { fromUserId: senderId, messageId: toId(message._id) },
     });

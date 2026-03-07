@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import type { ReactNode } from "react";
 import { Target, Brain, Zap } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { PuzzleUserStats } from "./types";
@@ -32,72 +33,69 @@ export function PuzzleStatsCards({ stats, loading = false }: PuzzleStatsCardsPro
   const streak = stats?.streak ?? 0;
 
   return (
-    <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-4">
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 p-4 rounded-xl flex items-center justify-between shadow-sm"
-      >
-        <div>
-          <div className="text-gray-500 dark:text-gray-400 text-sm mb-1">
-            {t("Puzzle Rating")}
-          </div>
-          <div className="text-2xl font-bold text-gray-900 dark:text-white">
-            {rating}
-          </div>
-          <div className="text-xs text-gray-500 dark:text-gray-400">
-            {t("Best:")} {bestRating}
-          </div>
-        </div>
-        <div className="w-10 h-10 rounded-full bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center">
-          <Target className="w-5 h-5 text-teal-500 dark:text-teal-400" />
-        </div>
-      </motion.div>
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <StatCard
+        delay={0.1}
+        label={t("Puzzle Rating")}
+        value={rating.toLocaleString()}
+        helper={`${t("Best:")} ${bestRating.toLocaleString()}`}
+        icon={<Target className="h-4 w-4" />}
+        accent="border-teal-400/30 bg-teal-500/12 text-teal-200"
+      />
 
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 p-4 rounded-xl flex items-center justify-between shadow-sm"
-      >
-        <div>
-          <div className="text-gray-500 dark:text-gray-400 text-sm mb-1">
-            {t("Solved Today")}
-          </div>
-          <div className="text-2xl font-bold text-gray-900 dark:text-white">
-            {solvedToday}
-          </div>
-          <div className="text-xs text-gray-500 dark:text-gray-400">
-            {solved}/{attempts} {t("solved overall")}
-          </div>
-        </div>
-        <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-          <Brain className="w-5 h-5 text-blue-500 dark:text-blue-400" />
-        </div>
-      </motion.div>
+      <StatCard
+        delay={0.2}
+        label={t("Solved Today")}
+        value={solvedToday.toLocaleString()}
+        helper={`${solved}/${attempts} ${t("solved overall")}`}
+        icon={<Brain className="h-4 w-4" />}
+        accent="border-cyan-400/35 bg-cyan-500/12 text-cyan-200"
+      />
 
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 p-4 rounded-xl flex items-center justify-between shadow-sm"
-      >
-        <div>
-          <div className="text-gray-500 dark:text-gray-400 text-sm mb-1">
-            {t("Streak")}
-          </div>
-          <div className="text-2xl font-bold text-gray-900 dark:text-white">
-            {streak} {streak === 1 ? t("Day") : t("Days")}
-          </div>
-          <div className="text-xs text-gray-500 dark:text-gray-400">
-            {t("Consecutive solve days")}
-          </div>
-        </div>
-        <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-          <Zap className="w-5 h-5 text-amber-500 dark:text-amber-400" />
-        </div>
-      </motion.div>
+      <StatCard
+        delay={0.3}
+        label={t("Streak")}
+        value={`${streak} ${streak === 1 ? t("Day") : t("Days")}`}
+        helper={t("Consecutive solve days")}
+        icon={<Zap className="h-4 w-4" />}
+        accent="border-amber-400/30 bg-amber-500/10 text-amber-200"
+      />
     </div>
+  );
+}
+
+function StatCard({
+  label,
+  value,
+  helper,
+  icon,
+  accent,
+  delay,
+}: {
+  label: string;
+  value: string;
+  helper: string;
+  icon: ReactNode;
+  accent: string;
+  delay?: number;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay }}
+      className="flex items-center justify-between rounded-xl border border-gray-800 bg-gray-900/70 px-4 py-3 shadow-[0_14px_32px_-26px_rgba(15,23,42,0.9)]"
+    >
+      <div className="min-w-0">
+        <p className="text-[11px] uppercase tracking-[0.16em] text-gray-400">{label}</p>
+        <p className="mt-1 text-lg font-semibold leading-tight text-white">{value}</p>
+        <p className="mt-0.5 text-[11px] text-gray-500">{helper}</p>
+      </div>
+      <span
+        className={`ml-3 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border ${accent}`}
+      >
+        {icon}
+      </span>
+    </motion.div>
   );
 }
