@@ -222,6 +222,16 @@ function normalizeId(value) {
   return String(value);
 }
 
+async function areUsersFriends(userA, userB) {
+  const a = normalizeId(userA);
+  const b = normalizeId(userB);
+  if (!a || !b || a === b) return false;
+  const edge = await Friend.findOne({ userId: a, friendId: b })
+    .select("_id")
+    .lean();
+  return !!edge;
+}
+
 function getUserRoom(userId) {
   return `user:${userId}`;
 }
@@ -1630,6 +1640,13 @@ io.on("connection", (socket) => {
       if (!body) return safeAck(ack, { success: false, error: "Message cannot be empty." });
       if (fromUserId === toUserId) {
         return safeAck(ack, { success: false, error: "Cannot message yourself." });
+      }
+
+      if (!(await areUsersFriends(fromUserId, toUserId))) {
+        return safeAck(ack, {
+          success: false,
+          error: "Direct messages are limited to friends.",
+        });
       }
 
       const convo = await ensureConversation(fromUserId, toUserId);

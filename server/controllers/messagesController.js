@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import { authMiddleware } from "../middleware/index.js";
 import { BlockedUser, Friend, Message, User } from "../models/index.js";
 import { notifyUser } from "../services/notify.js";
+import { areFriends } from "../utils/friendship.js";
 
 const router = Router();
 const VISIBLE_MESSAGE_STATUSES = ["delivered", "request_accepted"];
@@ -27,28 +28,13 @@ async function hasBlockRelation(userA, userB) {
     .lean());
 }
 
-async function canSendDirectMessage(senderId, receiverId) {
-  const [friendship, acceptedEdge] = await Promise.all([
-    Friend.findOne({ userId: senderId, friendId: receiverId }).select("_id").lean(),
-    Message.findOne({
-      $or: [
-        { sender: senderId, receiver: receiverId, status: "request_accepted" },
-        { sender: receiverId, receiver: senderId, status: "request_accepted" },
-      ],
-    })
-      .select("_id")
-      .lean(),
-  ]);
-
-  return !!(friendship || acceptedEdge);
-}
-
 router.use(authMiddleware);
 
 // GET /api/messages/conversations — list conversations with latest visible message
 router.get("/conversations", async (req, res) => {
   try {
     const userId = toObjectId(req.user.userId);
+    const userIdStr = String(req.user.userId);
 
     const conversations = await Message.aggregate([
       {
@@ -102,7 +88,19 @@ router.get("/conversations", async (req, res) => {
       },
     ]);
 
-    res.json({ conversations });
+    const partnerIds = conversations.map((c) => String(c.partnerId));
+    const friendEdges = await Friend.find({
+      userId: userIdStr,
+      friendId: { $in: partnerIds },
+    })
+      .select("friendId")
+      .lean();
+    const friendSet = new Set(friendEdges.map((f) => String(f.friendId)));
+    const filteredConversations = conversations.filter((c) =>
+      friendSet.has(String(c.partnerId)),
+    );
+
+    res.json({ conversations: filteredConversations });
   } catch (err) {
     console.error("Conversations list error:", err);
     res.status(500).json({ error: "Server error" });
@@ -126,165 +124,21 @@ router.get("/unread-count", async (req, res) => {
 
 // GET /api/messages/requests — pending incoming/outgoing message requests
 router.get("/requests", async (req, res) => {
-  try {
-    const userId = toObjectId(req.user.userId);
-
-    const [incoming, outgoing] = await Promise.all([
-      Message.aggregate([
-        { $match: { receiver: userId, status: "request_pending" } },
-        { $sort: { createdAt: -1 } },
-        {
-          $group: {
-            _id: "$sender",
-            lastMessage: { $first: "$content" },
-            lastMessageAt: { $first: "$createdAt" },
-            totalMessages: { $sum: 1 },
-          },
-        },
-        {
-          $lookup: {
-            from: "users",
-            localField: "_id",
-            foreignField: "_id",
-            as: "user",
-          },
-        },
-        { $unwind: "$user" },
-        {
-          $project: {
-            userId: "$_id",
-            name: "$user.fullName",
-            avatar: { $ifNull: ["$user.avatar", ""] },
-            email: "$user.email",
-            lastMessage: 1,
-            lastMessageAt: 1,
-            totalMessages: 1,
-          },
-        },
-        { $sort: { lastMessageAt: -1 } },
-      ]),
-      Message.aggregate([
-        { $match: { sender: userId, status: "request_pending" } },
-        { $sort: { createdAt: -1 } },
-        {
-          $group: {
-            _id: "$receiver",
-            lastMessage: { $first: "$content" },
-            lastMessageAt: { $first: "$createdAt" },
-            totalMessages: { $sum: 1 },
-          },
-        },
-        {
-          $lookup: {
-            from: "users",
-            localField: "_id",
-            foreignField: "_id",
-            as: "user",
-          },
-        },
-        { $unwind: "$user" },
-        {
-          $project: {
-            userId: "$_id",
-            name: "$user.fullName",
-            avatar: { $ifNull: ["$user.avatar", ""] },
-            email: "$user.email",
-            lastMessage: 1,
-            lastMessageAt: 1,
-            totalMessages: 1,
-          },
-        },
-        { $sort: { lastMessageAt: -1 } },
-      ]),
-    ]);
-
-    res.json({ incoming, outgoing });
-  } catch (error) {
-    console.error("Message requests list error:", error);
-    res.status(500).json({ error: "Server error" });
-  }
+  return res.json({ incoming: [], outgoing: [] });
 });
 
 // POST /api/messages/requests/:userId/accept — accept pending requests from user
 router.post("/requests/:userId/accept", async (req, res) => {
-  try {
-    const receiverId = req.user.userId;
-    const senderId = String(req.params.userId || "").trim();
-
-    if (!isValidObjectId(senderId)) {
-      return res.status(400).json({ error: "Invalid user id" });
-    }
-
-    if (await hasBlockRelation(receiverId, senderId)) {
-      return res.status(403).json({ error: "Cannot accept request due to block settings" });
-    }
-
-    const updateResult = await Message.updateMany(
-      { sender: senderId, receiver: receiverId, status: "request_pending" },
-      { $set: { status: "request_accepted" } },
-    );
-
-    if (!updateResult.modifiedCount) {
-      return res.status(404).json({ error: "No pending request found" });
-    }
-
-    await notifyUser(req.app, {
-      userId: senderId,
-      type: "message_request_accepted",
-      title: "Message request accepted",
-      message: "Your message request was accepted.",
-      link: "/messages",
-      payload: { userId: receiverId },
-    });
-
-    res.json({
-      success: true,
-      acceptedFrom: senderId,
-      acceptedCount: updateResult.modifiedCount,
-    });
-  } catch (error) {
-    console.error("Accept message request error:", error);
-    res.status(500).json({ error: "Server error" });
-  }
+  return res
+    .status(410)
+    .json({ error: "Message requests are disabled. Add as friend to chat." });
 });
 
 // POST /api/messages/requests/:userId/decline — decline pending requests from user
 router.post("/requests/:userId/decline", async (req, res) => {
-  try {
-    const receiverId = req.user.userId;
-    const senderId = String(req.params.userId || "").trim();
-
-    if (!isValidObjectId(senderId)) {
-      return res.status(400).json({ error: "Invalid user id" });
-    }
-
-    const updateResult = await Message.updateMany(
-      { sender: senderId, receiver: receiverId, status: "request_pending" },
-      { $set: { status: "request_declined" } },
-    );
-
-    if (!updateResult.modifiedCount) {
-      return res.status(404).json({ error: "No pending request found" });
-    }
-
-    await notifyUser(req.app, {
-      userId: senderId,
-      type: "message_request_declined",
-      title: "Message request declined",
-      message: "Your message request was declined.",
-      link: "/messages",
-      payload: { userId: receiverId },
-    });
-
-    res.json({
-      success: true,
-      declinedFrom: senderId,
-      declinedCount: updateResult.modifiedCount,
-    });
-  } catch (error) {
-    console.error("Decline message request error:", error);
-    res.status(500).json({ error: "Server error" });
-  }
+  return res
+    .status(410)
+    .json({ error: "Message requests are disabled. Add as friend to chat." });
 });
 
 // GET /api/messages/:friendId — get visible message history
@@ -294,6 +148,12 @@ router.get("/:friendId", async (req, res) => {
     const { friendId } = req.params;
     const limit = Math.min(parseInt(req.query.limit, 10) || 50, 200);
     const before = req.query.before;
+
+    if (!(await areFriends(userId, friendId))) {
+      return res
+        .status(403)
+        .json({ error: "Direct messages are available between friends only." });
+    }
 
     const query = {
       $and: [
@@ -345,62 +205,31 @@ router.post("/", async (req, res) => {
       return res.status(404).json({ error: "Receiver not found" });
     }
 
+    if (!(await areFriends(senderId, receiverId))) {
+      return res
+        .status(403)
+        .json({ error: "You must be friends to send direct messages." });
+    }
+
     if (await hasBlockRelation(senderId, receiverId)) {
       return res.status(403).json({ error: "Messaging is blocked between users" });
     }
-
-    const directAllowed = await canSendDirectMessage(senderId, receiverId);
-    const status = directAllowed ? "delivered" : "request_pending";
-
-    const hadUnreadDirectBefore =
-      directAllowed &&
-      (await Message.findOne({
-        sender: senderId,
-        receiver: receiverId,
-        read: false,
-        ...visibleStatusQuery(),
-      })
-        .select("_id")
-        .lean());
-
-    const hadPendingBefore =
-      !directAllowed &&
-      (await Message.findOne({
-        sender: senderId,
-        receiver: receiverId,
-        status: "request_pending",
-      })
-        .select("_id")
-        .lean());
 
     const message = await Message.create({
       sender: senderId,
       receiver: receiverId,
       content,
-      status,
+      status: "delivered",
     });
 
-    if (status === "request_pending" && !hadPendingBefore) {
-      await notifyUser(req.app, {
-        userId: receiverId,
-        type: "message_request",
-        title: "New message request",
-        message: "You received a message request.",
-        link: "/messages",
-        payload: { fromUserId: senderId },
-      });
-    }
-
-    if (status === "delivered" && !hadUnreadDirectBefore) {
-      await notifyUser(req.app, {
-        userId: receiverId,
-        type: "new_message",
-        title: "New message",
-        message: "You received a new message.",
-        link: "/messages",
-        payload: { fromUserId: senderId, messageId: toId(message._id) },
-      });
-    }
+    await notifyUser(req.app, {
+      userId: receiverId,
+      type: "new_message",
+      title: "New message",
+      message: "You received a new message.",
+      link: "/messages",
+      payload: { fromUserId: senderId, messageId: toId(message._id) },
+    });
 
     res.json({
       message: {
@@ -409,10 +238,10 @@ router.post("/", async (req, res) => {
         receiver: message.receiver,
         content: message.content,
         read: message.read,
-        status: message.status || "delivered",
+        status: "delivered",
         createdAt: message.createdAt,
       },
-      mode: status === "request_pending" ? "request_pending" : "direct",
+      mode: "direct",
     });
   } catch (err) {
     console.error("Send message error:", err);

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
-import { User } from "../models/index.js";
+import { User, Friend, FriendRequest } from "../models/index.js";
 import { authMiddleware } from "../middleware/index.js";
 
 const router = Router();
@@ -211,15 +211,36 @@ router.get("/users/:userId", authMiddleware, async (req, res) => {
 
     // Determine relationship
     let relationship = "none";
-    if (String(user._id) === String(viewerId)) {
+    let relationshipRequestId = null;
+    const viewerIdStr = String(viewerId);
+    if (String(user._id) === viewerIdStr) {
       relationship = "self";
     } else {
-      const { default: Friend } = await import("../models/Friend.js");
       const isFriend = await Friend.findOne({
         userId: viewerId,
         friendId: user._id,
       }).lean();
-      if (isFriend) relationship = "friends";
+      if (isFriend) {
+        relationship = "friends";
+      } else {
+        const pending = await FriendRequest.findOne({
+          status: "pending",
+          $or: [
+            { senderId: viewerId, receiverId: user._id },
+            { senderId: user._id, receiverId: viewerId },
+          ],
+        })
+          .select("_id senderId receiverId status")
+          .lean();
+
+        if (pending) {
+          relationshipRequestId = String(pending._id);
+          relationship =
+            String(pending.senderId) === viewerIdStr
+              ? "outgoing_pending"
+              : "incoming_pending";
+        }
+      }
     }
 
     // Fetch game history count
@@ -240,6 +261,7 @@ router.get("/users/:userId", authMiddleware, async (req, res) => {
         gamesWon: Math.max(user.gamesWon ?? 0, totalWins),
       },
       relationship,
+      relationshipRequestId,
     });
   } catch (err) {
     console.error("Public profile error:", err);
