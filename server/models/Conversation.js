@@ -9,7 +9,7 @@ const ConversationSchema = new mongoose.Schema(
       validate: [(arr) => arr.length === 2, "Conversation must have 2 participants"],
     },
     // deterministic key "idA_idB" (sorted) for unique pairing
-    participantsKey: { type: String, required: true, unique: true },
+    participantsKey: { type: String, required: true },
     lastMessage: { type: String, default: "" },
     lastSender: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     lastMessageAt: { type: Date, default: Date.now },

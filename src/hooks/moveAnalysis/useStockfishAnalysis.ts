@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import { GameHistory } from "../../historyTypes";
 import { AnalysisEntry } from "../useGameReplayTypes";
 
+const STOCKFISH_WORKER_URL =
+  "https://cdn.jsdelivr.net/npm/stockfish@16/stockfish.js";
+
 /**
  * Hook to run Stockfish analysis on positions when no analysis is provided
  */
@@ -34,7 +37,7 @@ export function useStockfishAnalysis(game: GameHistory, positions: string[]) {
     setAnalysisProgress(0);
 
     const worker =
-      typeof Worker !== "undefined" ? new Worker("/stockfish.js") : null;
+      typeof Worker !== "undefined" ? new Worker(STOCKFISH_WORKER_URL) : null;
     if (!worker) {
       setIsAnalyzing(false);
       return;

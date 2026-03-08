@@ -8,3 +8,5 @@ public/media/
 
 # Broken/legacy project snapshots
 ChessWeb2.8] Broken/
+.vercel
+.env*.local

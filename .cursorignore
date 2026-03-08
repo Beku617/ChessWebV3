@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+server/node_modules/
+
+# Build output
+dist/
+.vite/
+
+# Environment / secrets
+.env
+.env.*
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Media & large binaries (not useful for AI indexing)
+public/media/
+public/images/
+server/uploads/
+
+# Stockfish WASM worker (large, third-party)
+public/stockfish.js
+
+# Temp / scratch files
+tmp.py
+tmp_fix.py
+t.js
+temp_files.txt
+out.txt
+err.txt
+
+# Lock files
+package-lock.json
+server/package-lock.json
+yarn.lock
+
+# Legacy snapshots
+ChessWeb2.8] Broken/

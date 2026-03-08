@@ -12,6 +12,17 @@ const VALID_PRESENCE = new Set([
   "in_game",
   "away",
 ]);
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
+
+function buildAuthCookieOptions(overrides = {}) {
+  return {
+    httpOnly: true,
+    secure: IS_PRODUCTION,
+    sameSite: IS_PRODUCTION ? "none" : "lax",
+    path: "/",
+    ...overrides,
+  };
+}
 
 function normalizePresenceStatus(value) {
   const status = String(value || "offline")
@@ -88,13 +99,13 @@ router.post("/register", async (req, res) => {
       fullName: user.fullName,
     };
 
-    res.cookie("authToken", JSON.stringify(tokenData), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      path: "/",
-    });
+    res.cookie(
+      "authToken",
+      JSON.stringify(tokenData),
+      buildAuthCookieOptions({
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      }),
+    );
 
     res.json({
       success: true,
@@ -144,13 +155,11 @@ router.post("/login", async (req, res) => {
       ? 30 * 24 * 60 * 60 * 1000
       : 7 * 24 * 60 * 60 * 1000;
 
-    res.cookie("authToken", JSON.stringify(tokenData), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge,
-      path: "/",
-    });
+    res.cookie(
+      "authToken",
+      JSON.stringify(tokenData),
+      buildAuthCookieOptions({ maxAge }),
+    );
 
     res.json({
       success: true,
@@ -165,13 +174,13 @@ router.post("/login", async (req, res) => {
 
 // Logout
 router.post("/logout", (req, res) => {
-  res.cookie("authToken", "", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 0,
-    path: "/",
-  });
+  res.cookie(
+    "authToken",
+    "",
+    buildAuthCookieOptions({
+      maxAge: 0,
+    }),
+  );
   res.json({ success: true, message: "Logged out successfully" });
 });
 
@@ -184,7 +193,7 @@ router.get("/me", authMiddleware, async (req, res) => {
     }
 
     if (user.banned) {
-      res.clearCookie("authToken", { path: "/" });
+      res.clearCookie("authToken", buildAuthCookieOptions());
       return res.status(403).json({
         error: "Your account has been banned",
         banned: true,

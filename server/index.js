@@ -66,14 +66,52 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const DEFAULT_ALLOWED_ORIGINS = [
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+];
+const VERCEL_PREVIEW_ORIGIN_PATTERN = /^https:\/\/[a-z0-9-]+\.vercel\.app$/i;
+
+function parseAllowedOrigins(rawOrigins) {
+  const values = String(rawOrigins || "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+  return values.length > 0 ? values : DEFAULT_ALLOWED_ORIGINS;
+}
+
+const allowedOrigins = parseAllowedOrigins(
+  process.env.CLIENT_ORIGINS || process.env.CLIENT_ORIGIN,
+);
+const allowVercelPreviews =
+  String(process.env.ALLOW_VERCEL_PREVIEWS || "").toLowerCase() === "true";
+const PORT = Number.parseInt(process.env.PORT || "3001", 10);
+
+function isAllowedOrigin(origin) {
+  if (!origin) return true;
+  if (allowedOrigins.includes(origin)) return true;
+  if (allowVercelPreviews && VERCEL_PREVIEW_ORIGIN_PATTERN.test(origin)) {
+    return true;
+  }
+  return false;
+}
+
+const corsOptions = {
+  origin(origin, callback) {
+    if (isAllowedOrigin(origin)) {
+      callback(null, true);
+      return;
+    }
+    callback(new Error(`Origin not allowed by CORS: ${origin}`));
+  },
+  credentials: true,
+};
+
 const app = express();
-const PORT = 3001;
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: {
-    origin: ["http://localhost:5173", "http://127.0.0.1:5173"],
-    credentials: true,
-  },
+  cors: corsOptions,
 });
 
 // expose socket.io instance for notification helpers
@@ -103,12 +141,7 @@ const PRESENCE_VALID_STATUSES = new Set([
 // Middleware
 app.use(express.json());
 app.use(cookieParser());
-app.use(
-  cors({
-    origin: ["http://localhost:5173", "http://127.0.0.1:5173"],
-    credentials: true,
-  }),
-);
+app.use(cors(corsOptions));
 
 // Serve uploaded files
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
@@ -2646,5 +2679,7 @@ io.on("connection", (socket) => {
 
 // Start server
 server.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🌐 Allowed origins: ${allowedOrigins.join(", ")}`);
+  console.log(`🔓 Allow Vercel previews: ${allowVercelPreviews}`);
 });
