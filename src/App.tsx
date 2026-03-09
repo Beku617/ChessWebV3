@@ -37,6 +37,7 @@ import AdminPuzzles from "./pages/AdminPuzzles";
 import { AdminBots } from "./pages/adminBots";
 import { AdminFeaturedEvents } from "./pages/adminFeaturedEvents";
 import { AdminGames } from "./pages/adminGames";
+import AdminCommunity from "./pages/adminCommunity";
 import { Messages } from "./pages/messages";
 import { useThemeStore } from "./store/themeStore";
 import { useAuthStore, authApi } from "./store/authStore";
@@ -401,27 +402,15 @@ function App() {
           />
           <Route
             path="/u/:userId"
-            element={
-              <ProtectedRoute>
-                <UserProfile />
-              </ProtectedRoute>
-            }
+            element={<UserProfile />}
           />
           <Route
             path="/analyze/:gameId"
-            element={
-              <ProtectedRoute>
-                <Analyze />
-              </ProtectedRoute>
-            }
+            element={<Analyze />}
           />
           <Route
             path="/analyze960/:gameId"
-            element={
-              <ProtectedRoute>
-                <Analyze960 />
-              </ProtectedRoute>
-            }
+            element={<Analyze960 />}
           />
 
           {/* Admin dashboard - uses same login page, admin auth checked inside */}
@@ -432,6 +421,7 @@ function App() {
           <Route path="/admin/bots" element={<AdminBots />} />
           <Route path="/admin/events" element={<AdminFeaturedEvents />} />
           <Route path="/admin/games" element={<AdminGames />} />
+          <Route path="/admin/community" element={<AdminCommunity />} />
           <Route path="/admin/analyze/:gameId" element={<AdminAnalyze />} />
         </Routes>
       </Layout>

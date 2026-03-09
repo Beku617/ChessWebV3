@@ -13,6 +13,7 @@ export { default as Tournament } from "./Tournament.js";
 export { default as TournamentPlayer } from "./TournamentPlayer.js";
 export { default as TournamentGame } from "./TournamentGame.js";
 export { default as BlockedUser } from "./BlockedUser.js";
+export { default as CommunityPost } from "./CommunityPost.js";
 export { default as Message } from "./Message.js";
 export { default as Conversation, buildKey } from "./Conversation.js";
 export { default as DirectMessage } from "./DirectMessage.js";

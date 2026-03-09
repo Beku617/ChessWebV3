@@ -12,6 +12,21 @@ export const authMiddleware = (req, res, next) => {
   }
 };
 
+// Optional auth for public endpoints that can personalize or enforce block rules.
+export const optionalAuthMiddleware = (req, res, next) => {
+  const authToken = req.cookies.authToken;
+  if (!authToken) {
+    req.user = null;
+    return next();
+  }
+  try {
+    req.user = JSON.parse(authToken);
+  } catch {
+    req.user = null;
+  }
+  next();
+};
+
 // Admin Auth Middleware
 export const adminAuthMiddleware = (req, res, next) => {
   const adminToken = req.cookies.adminToken;

@@ -10,6 +10,8 @@ import adminPuzzlesRoutes from "./adminPuzzles.js";
 import adminBotsRoutes from "./adminBots.js";
 import featuredEventsRoutes from "./featuredEvents.js";
 import adminFeaturedEventsRoutes from "./adminFeaturedEvents.js";
+import communityRoutes from "./community.js";
+import adminCommunityRoutes from "./adminCommunity.js";
 import lichessRoutes from "./lichess.js";
 import friendsRoutes from "./friends.js";
 import ratingsRoutes from "./ratings.js";
@@ -30,6 +32,8 @@ export {
   adminBotsRoutes,
   featuredEventsRoutes,
   adminFeaturedEventsRoutes,
+  communityRoutes,
+  adminCommunityRoutes,
   lichessRoutes,
   friendsRoutes,
   ratingsRoutes,

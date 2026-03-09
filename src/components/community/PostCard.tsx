@@ -1,326 +1,250 @@
-/* ═══════════════════════════════════════════════════════
-   Post Card — Premium community post
-   ═══════════════════════════════════════════════════════ */
-import { useState } from "react";
-import {
-  MessageSquare,
-  Heart,
-  Share2,
-  Bookmark,
-  MoreHorizontal,
-  Swords,
-} from "lucide-react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import { Image as ImageIcon, PlayCircle, Trash2, X } from "lucide-react";
 import { motion } from "framer-motion";
-import { useTranslation } from "react-i18next";
+import { Avatar, RatingPill } from "./CommunityUI";
 import {
-  Avatar,
-  TitleBadge,
-  VerifiedBadge,
-  RatingPill,
-  TagChip,
-  FollowButton,
-  formatCount,
-} from "./CommunityUI";
-import type { CommunityPost } from "../../data/communityData";
+  CommunityPost,
+  formatFileSize,
+  formatRelativeTime,
+  getInitials,
+  resolveAssetUrl,
+} from "./types";
 
-/* ─── Mini Board Preview ─── */
-function MiniBoardPreview({ label }: { label?: string }) {
-  const { t } = useTranslation();
-  // 4x4 simplified chessboard pattern
-  const squares = Array.from({ length: 16 }, (_, i) => {
-    const row = Math.floor(i / 4);
-    const col = i % 4;
-    const isLight = (row + col) % 2 === 0;
-    return isLight;
-  });
-
-  return (
-    <div className="group/board relative mt-3 rounded-xl overflow-hidden border border-gray-200/40 dark:border-gray-800/40 cursor-pointer">
-      <div className="grid grid-cols-4 w-full aspect-[2/1]">
-        {squares.map((isLight, i) => (
-          <div
-            key={i}
-            className={`${
-              isLight
-                ? "bg-[#eeeed2] dark:bg-[#4a4a3a]"
-                : "bg-[#769656] dark:bg-[#5a7a42]"
-            } transition-colors duration-300`}
-          />
-        ))}
-      </div>
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent flex items-end p-3 group-hover/board:from-black/70 transition-all">
-        <div className="flex items-center gap-2">
-          <Swords className="w-3.5 h-3.5 text-white/80" />
-          <span className="text-xs font-semibold text-white/90">
-            {label ? t(label) : t("View Game")}
-          </span>
-        </div>
-      </div>
-      {/* Hover glow */}
-      <div className="absolute inset-0 opacity-0 group-hover/board:opacity-100 transition-opacity duration-300 bg-teal-500/5 pointer-events-none" />
-    </div>
-  );
-}
-
-/* ─── Poll Component ─── */
-function PollView({
-  poll,
-}: {
-  poll: { question: string; options: { label: string; votes: number }[] };
-}) {
-  const { t } = useTranslation();
-  const [voted, setVoted] = useState<string | null>(null);
-  const total = poll.options.reduce((s, o) => s + o.votes, 0);
-
-  return (
-    <div className="mt-3 space-y-2">
-      {poll.options.map((opt) => {
-        const pct = Math.round((opt.votes / total) * 100);
-        const isSelected = voted === opt.label;
-        return (
-          <button
-            key={opt.label}
-            onClick={() => setVoted(opt.label)}
-            className={`relative w-full text-left rounded-xl px-4 py-2.5 text-sm font-medium overflow-hidden transition-all duration-300 border ${
-              isSelected
-                ? "border-teal-500/40 bg-teal-500/5"
-                : voted
-                  ? "border-gray-200/40 dark:border-gray-800/40 bg-gray-50/50 dark:bg-gray-800/30"
-                  : "border-gray-200/40 dark:border-gray-800/40 hover:border-teal-500/30 hover:bg-teal-500/5"
-            }`}
-          >
-            {voted && (
-              <div
-                className={`absolute inset-y-0 left-0 rounded-xl transition-all duration-500 ${
-                  isSelected
-                    ? "bg-teal-500/15"
-                    : "bg-gray-200/30 dark:bg-gray-700/20"
-                }`}
-                style={{ width: `${pct}%` }}
-              />
-            )}
-            <div className="relative flex justify-between items-center">
-              <span className="text-gray-800 dark:text-gray-200">
-                {opt.label}
-              </span>
-              {voted && (
-                <span className="text-xs font-bold text-gray-500 dark:text-gray-400 tabular-nums">
-                  {pct}%
-                </span>
-              )}
-            </div>
-          </button>
-        );
-      })}
-      <p className="text-xs text-gray-500 dark:text-gray-400 pl-1">
-        {formatCount(total)} {t("votes")}
-      </p>
-    </div>
-  );
-}
-
-/* ─── Game Result Badge ─── */
-function GameResultBadge({
-  result,
-}: {
-  result: { white: string; black: string; result: string; format: string };
-}) {
-  return (
-    <div className="mt-3 flex items-center gap-3 px-4 py-2.5 rounded-xl bg-gray-50/80 dark:bg-gray-800/40 border border-gray-200/40 dark:border-gray-800/40">
-      <Swords className="w-4 h-4 text-teal-500 shrink-0" />
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 text-sm">
-          <span className="font-bold text-gray-800 dark:text-gray-200 truncate">
-            {result.white}
-          </span>
-          <span
-            className={`px-1.5 py-0.5 rounded text-[10px] font-black ${
-              result.result === "1-0"
-                ? "bg-green-500/15 text-green-500"
-                : result.result === "0-1"
-                  ? "bg-red-500/15 text-red-500"
-                  : "bg-gray-500/15 text-gray-500"
-            }`}
-          >
-            {result.result}
-          </span>
-          <span className="font-bold text-gray-800 dark:text-gray-200 truncate">
-            {result.black}
-          </span>
-        </div>
-        <span className="text-[11px] text-gray-500 dark:text-gray-400">
-          {result.format}
-        </span>
-      </div>
-    </div>
-  );
-}
-
-/* ═══════════════════════════════════════════════════════
-   MAIN POST CARD
-   ═══════════════════════════════════════════════════════ */
 interface PostCardProps {
   post: CommunityPost;
   index: number;
+  canDelete?: boolean;
+  onDelete?: (postId: string) => Promise<void> | void;
 }
 
-export function PostCard({ post, index }: PostCardProps) {
-  const { t } = useTranslation();
-  const [liked, setLiked] = useState(post.liked ?? false);
-  const [bookmarked, setBookmarked] = useState(post.bookmarked ?? false);
-  const [likeCount, setLikeCount] = useState(post.likes);
+export function PostCard({ post, index, canDelete = false, onDelete }: PostCardProps) {
+  const authorName = post.author?.fullName || "Chess Player";
+  const mediaUrl = resolveAssetUrl(post.mediaUrl);
+  const hasMedia = post.mediaType !== "none" && !!mediaUrl;
+  const timestamp = formatRelativeTime(post.approvedAt || post.createdAt);
+  const [isImageOpen, setIsImageOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
-  const handleLike = () => {
-    setLiked(!liked);
-    setLikeCount((c) => (liked ? c - 1 : c + 1));
+  useEffect(() => {
+    if (!isImageOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsImageOpen(false);
+    };
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [isImageOpen]);
+
+  const handleDeleteClick = () => {
+    if (!canDelete || !onDelete || isDeleting) return;
+    setDeleteError("");
+    setShowDeleteConfirm(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!canDelete || !onDelete || isDeleting) return;
+
+    setIsDeleting(true);
+    setDeleteError("");
+    try {
+      await onDelete(post.id);
+      setShowDeleteConfirm(false);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to delete post.";
+      setDeleteError(message);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
+    <motion.article
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.06, duration: 0.35, ease: "easeOut" }}
-      className="group relative rounded-2xl border border-gray-200/40 dark:border-gray-800/50 bg-white/60 dark:bg-gray-900/40 backdrop-blur-xl hover:bg-white/80 dark:hover:bg-gray-900/60 hover:shadow-lg hover:shadow-gray-900/5 dark:hover:shadow-black/20 hover:border-gray-300/50 dark:hover:border-gray-700/50 transition-all duration-300 overflow-hidden"
+      transition={{ delay: index * 0.04, duration: 0.32, ease: "easeOut" }}
+      className="group relative overflow-hidden rounded-xl bg-[#0c1728]/84 backdrop-blur-xl shadow-[0_18px_48px_rgba(0,0,0,0.22)] transition-colors duration-300 hover:bg-[#0f1c31]/88"
     >
-      {/* Subtle hover glow */}
-      <div className="absolute -top-16 -right-16 w-40 h-40 rounded-full bg-teal-500/[0.03] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-
-      <div className="relative p-5">
-        {/* Header */}
+      <div className="relative px-4 pt-4 pb-3">
         <div className="flex items-start justify-between gap-3">
-          <div className="flex items-start gap-3 min-w-0">
+          <div className="flex items-center gap-3 min-w-0">
             <Avatar
-              initials={post.user.avatar}
-              size="md"
-              online={post.user.online}
+              initials={getInitials(authorName)}
+              src={post.author?.avatar}
+              size="sm"
             />
             <div className="min-w-0">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                {post.user.title && <TitleBadge title={post.user.title} />}
-                <span className="text-sm font-bold text-gray-900 dark:text-white truncate hover:underline cursor-pointer">
-                  {post.user.name}
-                </span>
-                {post.user.verified && <VerifiedBadge />}
-                <RatingPill rating={post.user.rating} />
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-white">{authorName}</h3>
+                <RatingPill rating={Number(post.author?.rating || 0)} />
               </div>
-              <div className="flex items-center gap-1.5 mt-0.5">
-                <span className="text-xs text-gray-500 dark:text-gray-400">
-                  {post.user.handle}
-                </span>
-                <span className="text-gray-400 dark:text-gray-600">·</span>
-                <span className="text-xs text-gray-500 dark:text-gray-400">
-                  {post.time}
-                </span>
-              </div>
+              <div className="mt-0.5 text-xs text-gray-500">{timestamp}</div>
             </div>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <FollowButton compact />
-            <button className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-              <MoreHorizontal className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
 
-        {/* Content */}
-        <div className="mt-3 text-sm text-gray-800 dark:text-gray-200 leading-relaxed whitespace-pre-wrap">
-          {post.content}
-        </div>
-
-        {/* Tags */}
-        {post.tags && post.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mt-3">
-            {post.tags.map((tag) => (
-              <TagChip key={tag} tag={tag} />
-            ))}
-          </div>
-        )}
-
-        {/* Game Result */}
-        {post.gameResult && <GameResultBadge result={post.gameResult} />}
-
-        {/* PGN / FEN Mini Board */}
-        {(post.pgn || post.fen) && !post.gameResult && (
-          <MiniBoardPreview label="View Position" />
-        )}
-        {post.pgn && post.gameResult && (
-          <MiniBoardPreview label="Replay Game" />
-        )}
-
-        {/* Poll */}
-        {post.poll && <PollView poll={post.poll} />}
-
-        {/* Image placeholder */}
-        {post.image && !post.poll && (
-          <div className="mt-3 rounded-xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-800/60 h-48 flex items-center justify-center border border-gray-200/30 dark:border-gray-800/30 overflow-hidden group-hover:scale-[1.005] transition-transform duration-500">
-            <div className="text-center">
-              <div className="w-10 h-10 mx-auto rounded-full bg-gray-300/50 dark:bg-gray-700/50 flex items-center justify-center">
-                <span className="text-lg">🏆</span>
-              </div>
-              <span className="text-xs text-gray-400 mt-2 block">
-                {t("Tournament Banner")}
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* Action Row */}
-        <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100/80 dark:border-gray-800/40">
-          <div className="flex items-center gap-1">
-            {/* Comment */}
-            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:text-teal-500 hover:bg-teal-500/10 transition-all duration-150 group/btn">
-              <MessageSquare className="w-4 h-4" />
-              <span className="text-xs font-semibold tabular-nums">
-                {formatCount(post.comments)}
-              </span>
-            </button>
-
-            {/* Like */}
+          {canDelete && (
             <button
-              onClick={handleLike}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-150 group/btn ${
-                liked
-                  ? "text-pink-500 bg-pink-500/10"
-                  : "text-gray-500 dark:text-gray-400 hover:text-pink-500 hover:bg-pink-500/10"
-              }`}
+              type="button"
+              disabled={isDeleting}
+              onClick={handleDeleteClick}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-red-500/15 hover:text-red-200 transition-colors disabled:opacity-50"
+              title="Delete your post"
             >
-              <Heart
-                className={`w-4 h-4 transition-transform duration-200 ${
-                  liked
-                    ? "fill-pink-500 scale-110"
-                    : "group-hover/btn:scale-110"
-                }`}
-              />
-              <span className="text-xs font-semibold tabular-nums">
-                {formatCount(likeCount)}
-              </span>
+              <Trash2 className="w-4 h-4" />
             </button>
-
-            {/* Share */}
-            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:text-blue-500 hover:bg-blue-500/10 transition-all duration-150">
-              <Share2 className="w-4 h-4" />
-              <span className="text-xs font-semibold tabular-nums">
-                {formatCount(post.shares)}
-              </span>
-            </button>
-          </div>
-
-          {/* Bookmark */}
-          <button
-            onClick={() => setBookmarked(!bookmarked)}
-            className={`p-2 rounded-lg transition-all duration-150 ${
-              bookmarked
-                ? "text-amber-500 bg-amber-500/10"
-                : "text-gray-400 dark:text-gray-500 hover:text-amber-500 hover:bg-amber-500/10"
-            }`}
-          >
-            <Bookmark
-              className={`w-4 h-4 ${bookmarked ? "fill-amber-500" : ""}`}
-            />
-          </button>
+          )}
         </div>
+
+        {post.text && (
+          <div className="mt-2.5 whitespace-pre-wrap text-sm leading-6 text-gray-200">
+            {post.text}
+          </div>
+        )}
       </div>
-    </motion.div>
+
+      {hasMedia && (
+        <div className="px-4 pb-3">
+          <div className="relative overflow-hidden rounded-[14px] bg-black/50">
+            <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-white/5 via-transparent to-black/30" />
+            {post.mediaType === "video" ? (
+              <video
+                src={mediaUrl}
+                controls
+                playsInline
+                preload="metadata"
+                className="relative w-full max-h-[420px] bg-black object-contain"
+              />
+            ) : (
+              <img
+                src={mediaUrl}
+                alt={post.mediaOriginalName || "Community post media"}
+                className="relative w-full max-h-[420px] object-contain bg-black cursor-zoom-in"
+                onClick={() => setIsImageOpen(true)}
+              />
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-center justify-between gap-4 px-4 pb-4 pt-1 text-xs text-gray-500">
+        <div className="inline-flex items-center gap-2 text-gray-400">
+          {post.mediaType === "video" ? (
+            <>
+              <PlayCircle className="w-3.5 h-3.5 text-teal-300" />
+              <span>Video</span>
+            </>
+          ) : post.mediaType === "image" ? (
+            <>
+              <ImageIcon className="w-3.5 h-3.5 text-teal-300" />
+              <span>Image</span>
+            </>
+          ) : (
+            <span>Text only</span>
+          )}
+        </div>
+
+        {hasMedia && <span className="text-gray-500">{formatFileSize(post.mediaSize)}</span>}
+      </div>
+
+      {deleteError && (
+        <div className="px-4 pb-4 -mt-1 text-xs text-red-300">{deleteError}</div>
+      )}
+
+      {showDeleteConfirm &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[170] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={() => {
+              if (isDeleting) return;
+              setShowDeleteConfirm(false);
+            }}
+          >
+            <div
+              className="w-full max-w-md rounded-2xl bg-[#0d192c]/95 border border-white/10 shadow-[0_28px_90px_rgba(0,0,0,0.45)] p-5"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <h3 className="text-base font-semibold text-white">Delete post?</h3>
+              <p className="mt-2 text-sm leading-6 text-gray-400">
+                This removes your post from the community feed.
+              </p>
+              <div className="mt-5 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  disabled={isDeleting}
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="rounded-lg bg-white/[0.08] px-4 py-2 text-sm text-gray-200 hover:bg-white/[0.14] transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={isDeleting}
+                  onClick={handleConfirmDelete}
+                  className="rounded-lg bg-red-500/80 px-4 py-2 text-sm font-semibold text-white hover:bg-red-500 transition-colors disabled:opacity-50"
+                >
+                  {isDeleting ? "Deleting..." : "Delete"}
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )}
+
+      {isImageOpen &&
+        post.mediaType === "image" &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[160] bg-black/95"
+            onClick={() => setIsImageOpen(false)}
+          >
+            <div
+              className="absolute inset-x-0 top-0 h-16 flex items-center justify-between px-4 sm:px-6 bg-gradient-to-b from-black/70 to-transparent"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <Avatar
+                  initials={getInitials(authorName)}
+                  src={post.author?.avatar}
+                  size="sm"
+                />
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold text-white truncate">
+                    {authorName}
+                  </div>
+                  <div className="text-xs text-gray-400">{timestamp}</div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsImageOpen(false)}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
+                aria-label="Close image preview"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div
+              className="h-full w-full p-4 sm:p-8 flex items-center justify-center"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <img
+                src={mediaUrl}
+                alt={post.mediaOriginalName || "Community post media"}
+                className="w-[94vw] h-[90vh] object-contain"
+              />
+            </div>
+          </div>,
+          document.body,
+        )}
+    </motion.article>
   );
 }

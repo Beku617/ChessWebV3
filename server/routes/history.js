@@ -1,7 +1,8 @@
 import { Router } from "express";
 import mongoose from "mongoose";
-import { History, History960 } from "../models/index.js";
-import { authMiddleware } from "../middleware/index.js";
+import { History, History960, User } from "../models/index.js";
+import { authMiddleware, optionalAuthMiddleware } from "../middleware/index.js";
+import { canViewerAccessUser } from "../utils/visibility.js";
 
 const router = Router();
 const MIN_STORED_MOVES = 3;
@@ -251,12 +252,21 @@ router.post("/", authMiddleware, async (req, res) => {
   }
 });
 
-// Get game history for a specific user (public)
-router.get("/user/:userId", authMiddleware, async (req, res) => {
+// Get game history for a specific user (public unless either user has blocked the other)
+router.get("/user/:userId", optionalAuthMiddleware, async (req, res) => {
   try {
     const userId = normalizeObjectId(req.params.userId);
     if (!userId) {
       return res.status(400).json({ error: "Invalid userId" });
+    }
+    const viewerId = normalizeObjectId(req.user?.userId);
+    const owner = await User.findById(userId).select("_id banned").lean();
+    if (!owner || owner.banned) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    const canAccess = await canViewerAccessUser(viewerId, owner._id);
+    if (!canAccess) {
+      return res.status(404).json({ error: "User not found" });
     }
 
     const { limit = 50, skip = 0 } = req.query;
@@ -307,25 +317,29 @@ router.get("/", authMiddleware, async (req, res) => {
 });
 
 // Get single game by ID
-router.get("/:id", authMiddleware, async (req, res) => {
+router.get("/:id", optionalAuthMiddleware, async (req, res) => {
   try {
     const gameId = normalizeObjectId(req.params.id);
     if (!gameId) {
       return res.status(400).json({ error: "Invalid game id" });
     }
-    const userId = normalizeObjectId(req.user?.userId);
-    if (!userId) {
-      return res.status(401).json({ error: "Not authenticated" });
-    }
+    const viewerId = normalizeObjectId(req.user?.userId);
 
-    const query = { _id: gameId, userId };
-
-    let game = await History.findOne(query).lean();
+    let game = await History.findById(gameId).lean();
     if (!game) {
-      game = await History960.findOne(query).lean();
+      game = await History960.findById(gameId).lean();
     }
 
     if (!game) {
+      return res.status(404).json({ error: "Game not found" });
+    }
+
+    const owner = await User.findById(game.userId).select("_id banned").lean();
+    if (!owner || owner.banned) {
+      return res.status(404).json({ error: "Game not found" });
+    }
+    const canAccess = await canViewerAccessUser(viewerId, owner._id);
+    if (!canAccess) {
       return res.status(404).json({ error: "Game not found" });
     }
 

@@ -31,7 +31,11 @@ interface PublicUser {
 export default function UserProfile() {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
-  const { user: authUser } = useAuthStore();
+  const {
+    user: authUser,
+    isAuthenticated,
+    isLoading: authLoading,
+  } = useAuthStore();
   const sendFriendRequest = useFriendStore((state) => state.sendRequest);
   const acceptFriendRequest = useFriendStore((state) => state.acceptRequest);
   const ignoreFriendRequest = useFriendStore((state) => state.ignoreRequest);
@@ -50,10 +54,10 @@ export default function UserProfile() {
 
   // If viewing own profile, redirect to /profile
   useEffect(() => {
-    if (authUser?.id && userId === authUser.id) {
+    if (!authLoading && isAuthenticated && authUser?.id && userId === authUser.id) {
       navigate("/profile", { replace: true });
     }
-  }, [authUser?.id, userId, navigate]);
+  }, [authLoading, isAuthenticated, authUser?.id, userId, navigate]);
 
   // Fetch profile + games in parallel
   useEffect(() => {
@@ -116,6 +120,8 @@ export default function UserProfile() {
           { month: "long", year: "numeric" },
         )
       : "New Player";
+  const canUseFriendActions =
+    !authLoading && isAuthenticated && Boolean(authUser?.id);
 
   const handleAddFriend = useCallback(async () => {
     if (!userId || friendLoading) return;
@@ -225,11 +231,11 @@ export default function UserProfile() {
           setActiveTab={setActiveTab}
           isMe={isMe}
           relationship={relationship}
-          onAddFriend={handleAddFriend}
-          onRemoveFriend={handleRemoveFriend}
-          onChallenge={handleChallenge}
-          onAcceptRequest={handleAcceptRequest}
-          onIgnoreRequest={handleIgnoreRequest}
+          onAddFriend={canUseFriendActions ? handleAddFriend : undefined}
+          onRemoveFriend={canUseFriendActions ? handleRemoveFriend : undefined}
+          onChallenge={canUseFriendActions ? handleChallenge : undefined}
+          onAcceptRequest={canUseFriendActions ? handleAcceptRequest : undefined}
+          onIgnoreRequest={canUseFriendActions ? handleIgnoreRequest : undefined}
           friendLoading={friendLoading}
         />
 

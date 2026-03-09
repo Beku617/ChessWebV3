@@ -35,6 +35,7 @@ export default function AdminSidebar() {
     { icon: Brain, label: "Puzzles", path: "/admin/puzzles" },
     { icon: Trophy, label: "Events", path: "/admin/events" },
     { icon: Gamepad2, label: "Games", path: "/admin/games" },
+    { icon: MessageSquare, label: "Community", path: "/admin/community" },
     { icon: Settings, label: "Settings", path: "/admin/settings" },
   ];
 

@@ -56,6 +56,8 @@ import {
   adminBotsRoutes,
   featuredEventsRoutes,
   adminFeaturedEventsRoutes,
+  communityRoutes,
+  adminCommunityRoutes,
   lichessRoutes,
   friendsRoutes,
   ratingsRoutes,
@@ -168,6 +170,8 @@ app.use("/api/admin/games", adminGamesRoutes);
 app.use("/api/admin/puzzles", adminPuzzlesRoutes);
 app.use("/api/admin/bots", adminBotsRoutes);
 app.use("/api/admin/featured-events", adminFeaturedEventsRoutes);
+app.use("/api/community", communityRoutes);
+app.use("/api/admin/community", adminCommunityRoutes);
 app.use("/api/featured-events", featuredEventsRoutes);
 app.use("/api/lichess", lichessRoutes);
 app.use("/api/friends", friendsRoutes);

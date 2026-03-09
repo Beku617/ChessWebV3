@@ -4,6 +4,7 @@
 import type { ReactNode } from "react";
 import { Crown, CheckCircle2, Circle, Wifi } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { resolveAssetUrl } from "./types";
 
 /* ─── Title Badge (GM, IM, etc.) ─── */
 export function TitleBadge({ title }: { title: string }) {
@@ -36,7 +37,7 @@ export function VerifiedBadge() {
 export function RatingPill({ rating }: { rating: number }) {
   if (!rating) return null;
   return (
-    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800/80 text-[10px] font-bold text-gray-500 dark:text-gray-400 tabular-nums">
+    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-white/[0.06] text-[10px] font-bold text-gray-300 tabular-nums">
       <Crown className="w-2.5 h-2.5" />
       {rating}
     </span>
@@ -57,14 +58,15 @@ export function Avatar({ initials, src, size = "md", online }: AvatarProps) {
     md: "w-10 h-10 text-sm",
     lg: "w-12 h-12 text-base",
   };
+  const resolvedSrc = resolveAssetUrl(src);
   return (
     <div className="relative shrink-0">
       <div
-        className={`${sizeMap[size]} rounded-full bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white font-bold shadow-lg shadow-teal-900/10 overflow-hidden ring-2 ring-white/10`}
+        className={`${sizeMap[size]} rounded-full bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white font-bold shadow-lg shadow-teal-900/10 overflow-hidden ring-2 ring-black/25`}
       >
-        {src ? (
+        {resolvedSrc ? (
           <img
-            src={src}
+            src={resolvedSrc}
             alt={initials}
             className="w-full h-full object-cover"
           />
@@ -103,17 +105,17 @@ export function SidebarCard({
   action,
 }: SidebarCardProps) {
   return (
-    <div className="rounded-2xl border border-gray-200/50 dark:border-gray-800/60 bg-white/60 dark:bg-gray-900/50 backdrop-blur-xl shadow-sm overflow-hidden">
-      <div className="flex items-center justify-between px-4 pt-4 pb-3">
+    <div className="rounded-2xl bg-[#0c1728]/82 backdrop-blur-xl shadow-[0_18px_55px_rgba(0,0,0,0.22)] overflow-hidden">
+      <div className="flex items-center justify-between px-5 pt-4 pb-3">
         <div className="flex items-center gap-2">
           {icon}
-          <h3 className="text-sm font-bold text-gray-900 dark:text-white">
+          <h3 className="text-sm font-semibold text-white">
             {title}
           </h3>
         </div>
         {action}
       </div>
-      <div className="px-4 pb-4">{children}</div>
+      <div className="px-5 pb-5">{children}</div>
     </div>
   );
 }

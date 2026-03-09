@@ -1,7 +1,9 @@
 import { Router } from "express";
+import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import { User, Friend, FriendRequest } from "../models/index.js";
-import { authMiddleware } from "../middleware/index.js";
+import { authMiddleware, optionalAuthMiddleware } from "../middleware/index.js";
+import { canViewerAccessUser } from "../utils/visibility.js";
 
 const router = Router();
 
@@ -209,22 +211,30 @@ router.get("/me", authMiddleware, async (req, res) => {
 });
 
 // Get public profile of any user by ID
-router.get("/users/:userId", authMiddleware, async (req, res) => {
+router.get("/users/:userId", optionalAuthMiddleware, async (req, res) => {
   try {
     const { userId } = req.params;
-    const viewerId = req.user.userId;
+    if (!mongoose.Types.ObjectId.isValid(String(userId || ""))) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    const viewerId = req.user?.userId || null;
     const user = await User.findById(userId).select("-password");
     if (!user || user.banned) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const canAccess = await canViewerAccessUser(viewerId, user._id);
+    if (!canAccess) {
       return res.status(404).json({ error: "User not found" });
     }
 
     // Determine relationship
     let relationship = "none";
     let relationshipRequestId = null;
-    const viewerIdStr = String(viewerId);
-    if (String(user._id) === viewerIdStr) {
+    const viewerIdStr = viewerId ? String(viewerId) : "";
+    if (viewerId && String(user._id) === viewerIdStr) {
       relationship = "self";
-    } else {
+    } else if (viewerId) {
       const isFriend = await Friend.findOne({
         userId: viewerId,
         friendId: user._id,

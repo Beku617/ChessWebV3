@@ -1,6 +1,8 @@
 import { useSettingsStore } from "../store/settingsStore";
 
 type MoveWithSoundHints = {
+  from?: string | null;
+  to?: string | null;
   san?: string | null;
   flags?: string | null;
   captured?: unknown;
@@ -33,6 +35,9 @@ const audioCache: Partial<Record<keyof typeof SOUND_PATHS, HTMLAudioElement>> =
   {};
 let prewarmed = false;
 let lastTerminalSoundAt = 0;
+let lastMoveSoundKey = "";
+let lastMoveSoundAt = 0;
+const MOVE_SOUND_DEDUPE_MS = 120;
 
 function getAudio(name: keyof typeof SOUND_PATHS): HTMLAudioElement | null {
   if (typeof window === "undefined" || typeof Audio === "undefined") {
@@ -166,36 +171,71 @@ type MoveSoundOptions = {
   isOpponentMove?: boolean;
 };
 
+function resolveChessMoveSoundName(
+  move?: MoveWithSoundHints | null,
+  options: MoveSoundOptions = {},
+): keyof typeof SOUND_PATHS {
+  if (isCheckmateMove(move)) {
+    return "checkmate";
+  }
+
+  if (isPromotionMove(move)) {
+    return "promote";
+  }
+
+  if (isCastlingMove(move)) {
+    return "castle";
+  }
+
+  if (isCheckMove(move)) {
+    return "check";
+  }
+
+  if (isCaptureMove(move)) {
+    return "capture";
+  }
+
+  return options.isOpponentMove ? "moveOpponent" : "moveSelf";
+}
+
+function getMoveSoundKey(
+  soundName: keyof typeof SOUND_PATHS,
+  move?: MoveWithSoundHints | null,
+  options: MoveSoundOptions = {},
+) {
+  return [
+    soundName,
+    options.isOpponentMove ? "opp" : "self",
+    move?.from ?? "",
+    move?.to ?? "",
+    move?.san ?? "",
+    move?.flags ?? "",
+    move?.promotion ?? "",
+    move?.captured == null ? "" : String(move.captured),
+    move?.castlingSide ?? "",
+    move?.check === true || move?.isCheck === true ? "check" : "",
+    move?.checkmate === true || move?.isCheckmate === true ? "mate" : "",
+  ].join("|");
+}
+
 export function playChessMoveSound(
   move?: MoveWithSoundHints | null,
   options: MoveSoundOptions = {},
 ) {
-  if (isCheckmateMove(move)) {
-    playSound("checkmate");
+  const soundName = resolveChessMoveSoundName(move, options);
+  const dedupeKey = getMoveSoundKey(soundName, move, options);
+  const now = Date.now();
+
+  if (
+    dedupeKey === lastMoveSoundKey &&
+    now - lastMoveSoundAt < MOVE_SOUND_DEDUPE_MS
+  ) {
     return;
   }
 
-  if (isPromotionMove(move)) {
-    playSound("promote");
-    return;
-  }
-
-  if (isCastlingMove(move)) {
-    playSound("castle");
-    return;
-  }
-
-  if (isCheckMove(move)) {
-    playSound("check");
-    return;
-  }
-
-  if (isCaptureMove(move)) {
-    playSound("capture");
-    return;
-  }
-
-  playSound(options.isOpponentMove ? "moveOpponent" : "moveSelf");
+  lastMoveSoundKey = dedupeKey;
+  lastMoveSoundAt = now;
+  playSound(soundName);
 }
 
 type UiSoundName = "puzzleCorrect" | "puzzleWrong";

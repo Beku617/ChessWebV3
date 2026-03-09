@@ -13,6 +13,7 @@ import {
   Zap,
   Radio,
   Flame,
+  ShieldCheck,
 } from "lucide-react";
 import {
   SidebarCard,
@@ -35,38 +36,61 @@ import { useTranslation } from "react-i18next";
 /* ─── Trending Topics ─── */
 export function TrendingWidget() {
   const { t } = useTranslation();
+  const topics = TRENDING_TOPICS.slice(0, 3);
   return (
     <SidebarCard
-      title={t("Trending")}
-      icon={<TrendingUp className="w-4 h-4 text-orange-500" />}
-      action={
-        <button className="text-[11px] font-semibold text-teal-500 hover:text-teal-400 transition-colors">
-          {t("See all")}
-        </button>
-      }
+      title={t("Trending in chess")}
+      icon={<TrendingUp className="w-4 h-4 text-orange-400" />}
     >
       <div className="space-y-1">
-        {TRENDING_TOPICS.map((topic, i) => (
+        {topics.map((topic) => (
           <button
             key={topic.tag}
-            className="w-full flex items-start justify-between p-2.5 -mx-1 rounded-xl hover:bg-gray-100/60 dark:hover:bg-gray-800/40 transition-all duration-150 text-left group"
+            className="w-full flex items-start justify-between rounded-xl px-3 py-2 hover:bg-white/[0.04] transition-all duration-150 text-left group"
           >
             <div>
-              <div className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">
+              <div className="text-[10px] uppercase tracking-[0.18em] text-gray-500 font-medium">
                 {topic.category}
               </div>
-              <div className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-teal-500 transition-colors">
+              <div className="mt-0.5 text-sm font-semibold text-gray-100 group-hover:text-teal-300 transition-colors">
                 {topic.tag}
               </div>
-              <div className="text-[10px] text-gray-400 dark:text-gray-500">
+              <div className="text-[11px] text-gray-500 mt-0.5">
                 {topic.posts} {t("posts")}
               </div>
             </div>
-            <span className="text-xs font-bold text-gray-400 dark:text-gray-600 mt-1">
-              #{i + 1}
-            </span>
           </button>
         ))}
+      </div>
+    </SidebarCard>
+  );
+}
+
+export function CommunityGuidelinesWidget() {
+  return (
+    <SidebarCard
+      title="Community Notes"
+      icon={<ShieldCheck className="w-4 h-4 text-teal-400" />}
+    >
+      <div className="space-y-3 text-sm text-gray-300 leading-6">
+        <p className="text-gray-300">
+          Chess-first, calm, and readable. Every post is reviewed before it hits the
+          feed.
+        </p>
+        <ul className="space-y-2 text-[13px] text-gray-400">
+          <li className="flex items-start gap-2">
+            <span className="mt-2 h-1.5 w-1.5 rounded-full bg-teal-400 shrink-0" />
+            One image or one video per post right now.
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="mt-2 h-1.5 w-1.5 rounded-full bg-teal-400 shrink-0" />
+            Off-topic, spam, or abusive content is declined.
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="mt-2 h-1.5 w-1.5 rounded-full bg-teal-400 shrink-0" />
+            Tournament moments, ideas, clips, analysis, and tasteful memes welcome.
+          </li>
+        </ul>
       </div>
     </SidebarCard>
   );
