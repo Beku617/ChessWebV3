@@ -20,7 +20,7 @@ import {
 
 const router = Router();
 const POSTING_ACCESS_USER_FIELDS =
-  "communityPostingRestrictedForever communityPostingRestrictedUntil communityPostingRestrictionReason communityPostingRestrictionUpdatedAt communitySubmissionTimestamps";
+  "communityPostingRestrictedForever communityPostingRestrictedUntil communityPostingRestrictionReason communityPostingRestrictionUpdatedAt communityPostingRateLimitBypass communitySubmissionTimestamps";
 
 function parsePagination(
   query,
@@ -62,6 +62,7 @@ function serializePostingAccess(access) {
       used: Number(access?.rateLimit?.used || 0),
       remaining: Number(access?.rateLimit?.remaining || 0),
       retryAt: toIsoOrNull(access?.rateLimit?.retryAt),
+      bypass: Boolean(access?.rateLimit?.bypass),
     },
   };
 }
@@ -110,22 +111,33 @@ async function reserveCommunitySubmissionSlot(userId, now) {
         $set: {
           communitySubmissionTimestamps: {
             $cond: [
+              "$communityPostingRateLimitBypass",
+              "$communitySubmissionTimestamps",
               {
-                $lt: [
-                  { $size: "$communitySubmissionTimestamps" },
-                  COMMUNITY_RATE_LIMIT_MAX_POSTS,
+                $cond: [
+                  {
+                    $lt: [
+                      { $size: "$communitySubmissionTimestamps" },
+                      COMMUNITY_RATE_LIMIT_MAX_POSTS,
+                    ],
+                  },
+                  { $concatArrays: ["$communitySubmissionTimestamps", [now]] },
+                  "$communitySubmissionTimestamps",
                 ],
               },
-              { $concatArrays: ["$communitySubmissionTimestamps", [now]] },
-              "$communitySubmissionTimestamps",
             ],
           },
           communityLastSubmissionReservationToken: {
             $cond: [
               {
-                $lt: [
-                  { $size: "$communitySubmissionTimestamps" },
-                  COMMUNITY_RATE_LIMIT_MAX_POSTS,
+                $or: [
+                  "$communityPostingRateLimitBypass",
+                  {
+                    $lt: [
+                      { $size: "$communitySubmissionTimestamps" },
+                      COMMUNITY_RATE_LIMIT_MAX_POSTS,
+                    ],
+                  },
                 ],
               },
               reservationToken,

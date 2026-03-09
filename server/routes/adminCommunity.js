@@ -19,9 +19,9 @@ import {
 
 const router = Router();
 const AUTHOR_POPULATE_FIELDS =
-  "fullName avatar rating email communityPostingRestrictedForever communityPostingRestrictedUntil communityPostingRestrictionReason communityPostingRestrictionUpdatedAt";
+  "fullName avatar rating email communityPostingRestrictedForever communityPostingRestrictedUntil communityPostingRestrictionReason communityPostingRestrictionUpdatedAt communityPostingRateLimitBypass";
 const RESTRICTION_FIELD_SELECT =
-  "communityPostingRestrictedForever communityPostingRestrictedUntil communityPostingRestrictionReason communityPostingRestrictionUpdatedAt";
+  "communityPostingRestrictedForever communityPostingRestrictedUntil communityPostingRestrictionReason communityPostingRestrictionUpdatedAt communityPostingRateLimitBypass";
 
 function isValidObjectId(value) {
   return mongoose.Types.ObjectId.isValid(String(value || ""));
@@ -50,6 +50,10 @@ function serializeRestrictionState(userDoc) {
     reason: String(access.restriction?.reason || ""),
     updatedAt: toIsoOrNull(access.restriction?.updatedAt),
   };
+}
+
+function serializeRateLimitBypass(userDoc) {
+  return Boolean(userDoc?.communityPostingRateLimitBypass);
 }
 
 function normalizeRestrictionDuration(value) {
@@ -174,6 +178,7 @@ router.get("/", adminAuthMiddleware, async (req, res) => {
     const posts = items.map((post) => ({
       ...toCommunityPostDTO(post),
       authorPostingRestriction: serializeRestrictionState(post.authorId),
+      authorPostingRateLimitBypass: serializeRateLimitBypass(post.authorId),
       reviewedBy: post.reviewedBy
         ? {
             id: String(post.reviewedBy._id),
@@ -261,9 +266,55 @@ router.patch(
           fullName: updatedUser.fullName || "User",
         },
         restriction: serializeRestrictionState(updatedUser),
+        rateLimitBypass: serializeRateLimitBypass(updatedUser),
       });
     } catch (err) {
       console.error("Update posting restriction error:", err);
+      res.status(500).json({ error: "Server error" });
+    }
+  },
+);
+
+router.patch(
+  "/users/:userId/posting-rate-limit-bypass",
+  adminAuthMiddleware,
+  async (req, res) => {
+    try {
+      const userId = String(req.params.userId || "");
+      if (!isValidObjectId(userId)) {
+        return res.status(400).json({ error: "Invalid user id." });
+      }
+
+      const enabled = Boolean(req.body?.enabled);
+
+      const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        {
+          $set: {
+            communityPostingRateLimitBypass: enabled,
+          },
+        },
+        { new: true },
+      )
+        .select(`_id fullName ${RESTRICTION_FIELD_SELECT}`)
+        .lean();
+
+      if (!updatedUser) {
+        return res.status(404).json({ error: "User not found." });
+      }
+
+      res.json({
+        success: true,
+        enabled,
+        user: {
+          id: String(updatedUser._id),
+          fullName: updatedUser.fullName || "User",
+        },
+        restriction: serializeRestrictionState(updatedUser),
+        rateLimitBypass: serializeRateLimitBypass(updatedUser),
+      });
+    } catch (err) {
+      console.error("Update posting rate-limit bypass error:", err);
       res.status(500).json({ error: "Server error" });
     }
   },
@@ -344,6 +395,7 @@ router.post("/", adminAuthMiddleware, uploadCommunityMedia, async (req, res) => 
       post: {
         ...toCommunityPostDTO(created),
         authorPostingRestriction: serializeRestrictionState(created?.authorId),
+        authorPostingRateLimitBypass: serializeRateLimitBypass(created?.authorId),
         reviewedBy: created?.reviewedBy
           ? {
               id: String(created.reviewedBy._id),
@@ -394,6 +446,7 @@ router.patch("/:postId/approve", adminAuthMiddleware, async (req, res) => {
       post: {
         ...toCommunityPostDTO(post),
         authorPostingRestriction: serializeRestrictionState(post?.authorId),
+        authorPostingRateLimitBypass: serializeRateLimitBypass(post?.authorId),
         reviewedBy: post.reviewedBy
           ? {
               id: String(post.reviewedBy._id),
@@ -449,6 +502,7 @@ router.patch("/:postId/reject", adminAuthMiddleware, async (req, res) => {
       post: {
         ...toCommunityPostDTO(post),
         authorPostingRestriction: serializeRestrictionState(post?.authorId),
+        authorPostingRateLimitBypass: serializeRateLimitBypass(post?.authorId),
         reviewedBy: post.reviewedBy
           ? {
               id: String(post.reviewedBy._id),
@@ -581,6 +635,7 @@ router.patch("/:postId", adminAuthMiddleware, uploadCommunityMedia, async (req, 
       post: {
         ...toCommunityPostDTO(post),
         authorPostingRestriction: serializeRestrictionState(post?.authorId),
+        authorPostingRateLimitBypass: serializeRateLimitBypass(post?.authorId),
         reviewedBy: post?.reviewedBy
           ? {
               id: String(post.reviewedBy._id),

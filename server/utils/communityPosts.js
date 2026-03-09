@@ -176,9 +176,11 @@ export function getCommunityRestrictionState(userDoc, now = new Date()) {
 export function getCommunityRateLimitState(
   timestampsInput,
   now = new Date(),
+  bypass = false,
 ) {
   const safeNow = now instanceof Date ? now : new Date(now);
   const windowStart = safeNow.getTime() - COMMUNITY_RATE_LIMIT_WINDOW_MS;
+  const bypassEnabled = Boolean(bypass);
   const timestamps = Array.isArray(timestampsInput)
     ? timestampsInput
         .map((value) => new Date(value))
@@ -188,10 +190,12 @@ export function getCommunityRateLimitState(
         )
         .sort((a, b) => a.getTime() - b.getTime())
     : [];
-  const used = timestamps.length;
-  const remaining = Math.max(0, COMMUNITY_RATE_LIMIT_MAX_POSTS - used);
+  const used = bypassEnabled ? 0 : timestamps.length;
+  const remaining = bypassEnabled
+    ? COMMUNITY_RATE_LIMIT_MAX_POSTS
+    : Math.max(0, COMMUNITY_RATE_LIMIT_MAX_POSTS - used);
   const retryAt =
-    remaining > 0 || timestamps.length === 0
+    bypassEnabled || remaining > 0 || timestamps.length === 0
       ? null
       : new Date(timestamps[0].getTime() + COMMUNITY_RATE_LIMIT_WINDOW_MS);
 
@@ -200,6 +204,7 @@ export function getCommunityRateLimitState(
     remaining,
     retryAt,
     timestamps,
+    bypass: bypassEnabled,
   };
 }
 
@@ -208,11 +213,12 @@ export function buildCommunityPostingAccess(userDoc, now = new Date()) {
   const rateLimit = getCommunityRateLimitState(
     userDoc?.communitySubmissionTimestamps,
     now,
+    userDoc?.communityPostingRateLimitBypass,
   );
-  const canSubmit = !restriction.active && rateLimit.remaining > 0;
+  const canSubmit = !restriction.active && (rateLimit.bypass || rateLimit.remaining > 0);
   const reason = restriction.active
     ? "restricted"
-    : rateLimit.remaining <= 0
+    : !rateLimit.bypass && rateLimit.remaining <= 0
       ? "rate_limited"
       : null;
 
@@ -232,6 +238,7 @@ export function buildCommunityPostingAccess(userDoc, now = new Date()) {
       used: rateLimit.used,
       remaining: rateLimit.remaining,
       retryAt: rateLimit.retryAt,
+      bypass: rateLimit.bypass,
     },
   };
 }

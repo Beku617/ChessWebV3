@@ -20,6 +20,8 @@ interface PostCardProps {
   preferCreatedTimestamp?: boolean;
 }
 
+const SOUND_UNLOCK_SESSION_KEY = "communityVideoSoundUnlocked";
+
 function moderationStatusClass(status: CommunityPost["status"]) {
   if (status === "approved") return "bg-teal-500/12 text-teal-200";
   if (status === "rejected") return "bg-red-500/12 text-red-200";
@@ -52,6 +54,10 @@ export function PostCard({
   const [deleteError, setDeleteError] = useState("");
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [hasVideoInteraction, setHasVideoInteraction] = useState(false);
+  const [soundUnlocked, setSoundUnlocked] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.sessionStorage.getItem(SOUND_UNLOCK_SESSION_KEY) === "1";
+  });
 
   useEffect(() => {
     if (!isImageOpen) return;
@@ -69,14 +75,42 @@ export function PostCard({
 
   useEffect(() => {
     if (post.mediaType !== "video") return;
+    if (soundUnlocked || typeof window === "undefined") return;
+
+    const unlockSound = () => {
+      window.sessionStorage.setItem(SOUND_UNLOCK_SESSION_KEY, "1");
+      setSoundUnlocked(true);
+    };
+
+    window.addEventListener("pointerdown", unlockSound, { once: true });
+    window.addEventListener("keydown", unlockSound, { once: true });
+
+    return () => {
+      window.removeEventListener("pointerdown", unlockSound);
+      window.removeEventListener("keydown", unlockSound);
+    };
+  }, [post.mediaType, soundUnlocked]);
+
+  useEffect(() => {
+    if (post.mediaType !== "video") return;
     const video = videoRef.current;
     if (!video) return;
 
     const tryPlay = async () => {
+      const shouldPlayWithSound = soundUnlocked || hasVideoInteraction;
+      video.muted = !shouldPlayWithSound;
       try {
         if (video.paused) await video.play();
       } catch {
-        // autoplay can be blocked by browser policy
+        // Fallback to muted playback if autoplay with sound is blocked.
+        video.muted = true;
+        if (video.paused) {
+          try {
+            await video.play();
+          } catch {
+            // playback blocked entirely, keep current state
+          }
+        }
       }
     };
 
@@ -103,7 +137,15 @@ export function PostCard({
       observer.disconnect();
       pause();
     };
-  }, [post.mediaType, mediaUrl]);
+  }, [post.mediaType, mediaUrl, hasVideoInteraction, soundUnlocked]);
+
+  useEffect(() => {
+    if (post.mediaType !== "video") return;
+    if (!soundUnlocked) return;
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = false;
+  }, [post.mediaType, soundUnlocked]);
 
   const handleVideoClick = () => {
     if (post.mediaType !== "video") return;
@@ -112,6 +154,10 @@ export function PostCard({
 
     if (!hasVideoInteraction) {
       setHasVideoInteraction(true);
+    }
+    if (!soundUnlocked && typeof window !== "undefined") {
+      window.sessionStorage.setItem(SOUND_UNLOCK_SESSION_KEY, "1");
+      setSoundUnlocked(true);
     }
     if (video.muted) {
       video.muted = false;
@@ -212,7 +258,7 @@ export function PostCard({
               <video
                 ref={videoRef}
                 src={mediaUrl}
-                muted={!hasVideoInteraction}
+                muted={!(soundUnlocked || hasVideoInteraction)}
                 loop
                 controls={hasVideoInteraction}
                 playsInline

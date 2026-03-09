@@ -120,6 +120,7 @@ type AdminCommunityResponse = {
   posts: (CommunityPost & {
     reviewedBy?: { id: string; username: string; email: string } | null;
     authorPostingRestriction?: CommunityPostingRestrictionState | null;
+    authorPostingRateLimitBypass?: boolean;
   })[];
   stats: CommunityStats;
   pagination: {
@@ -152,6 +153,7 @@ type RestrictionDuration = "none" | "1d" | "3d" | "7d" | "30d" | "forever";
 type RestrictionDraft = {
   duration: RestrictionDuration;
   reason: string;
+  unlimitedPosts: boolean;
 };
 
 function formatRestrictionLabel(
@@ -229,6 +231,8 @@ export default function AdminCommunity() {
   const [restrictionProcessingUserId, setRestrictionProcessingUserId] = useState<
     string | null
   >(null);
+  const [rateLimitBypassProcessingUserId, setRateLimitBypassProcessingUserId] =
+    useState<string | null>(null);
 
   useEffect(() => {
     checkAuth();
@@ -308,6 +312,7 @@ export default function AdminCommunity() {
         next[authorId] = {
           duration: inferRestrictionDuration(post.authorPostingRestriction),
           reason: post.authorPostingRestriction?.reason || "",
+          unlimitedPosts: Boolean(post.authorPostingRateLimitBypass),
         };
       }
       return next;
@@ -420,6 +425,7 @@ export default function AdminCommunity() {
       [userId]: {
         duration: "none",
         reason: "",
+        unlimitedPosts: false,
         ...(previous[userId] || {}),
         ...patch,
       },
@@ -463,6 +469,48 @@ export default function AdminCommunity() {
       showToast("error", message);
     } finally {
       setRestrictionProcessingUserId(null);
+    }
+  };
+
+  const updatePostingRateLimitBypass = async (
+    userId: string,
+    enabled: boolean,
+  ) => {
+    if (!userId) return;
+    setRateLimitBypassProcessingUserId(userId);
+    setActionError("");
+    try {
+      const res = await fetch(
+        `${API_URL}/api/admin/community/users/${userId}/posting-rate-limit-bypass`,
+        {
+          method: "PATCH",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ enabled }),
+        },
+      );
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to update posting limit access.");
+      }
+
+      setRestrictionDraftValue(userId, { unlimitedPosts: enabled });
+      await refreshCurrentPage();
+      showToast(
+        "success",
+        enabled
+          ? "Unlimited posting enabled for this user."
+          : "Standard posting limit restored.",
+      );
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Failed to update posting limit access.";
+      setActionError(message);
+      showToast("error", message);
+    } finally {
+      setRateLimitBypassProcessingUserId(null);
     }
   };
 
@@ -843,9 +891,12 @@ export default function AdminCommunity() {
                   ? restrictionDrafts[authorId] || {
                       duration: inferRestrictionDuration(restriction),
                       reason: restriction?.reason || "",
+                      unlimitedPosts: Boolean(post.authorPostingRateLimitBypass),
                     }
                   : null;
                 const isRestrictionBusy = restrictionProcessingUserId === authorId;
+                const isRateLimitBypassBusy =
+                  rateLimitBypassProcessingUserId === authorId;
 
                 return (
                   <article
@@ -1047,6 +1098,43 @@ export default function AdminCommunity() {
                             </div>
 
                             <div className="space-y-2.5">
+                              <div className="flex items-center justify-between rounded-lg bg-white/[0.06] px-3.5 py-2.5 text-xs">
+                                <span className="text-gray-300">Posting quota</span>
+                                <span
+                                  className={`font-semibold ${
+                                    restrictionDraft.unlimitedPosts
+                                      ? "text-emerald-200"
+                                      : "text-gray-400"
+                                  }`}
+                                >
+                                  {restrictionDraft.unlimitedPosts
+                                    ? "Unlimited enabled"
+                                    : "5 posts / 3 hours"}
+                                </span>
+                              </div>
+
+                              <button
+                                type="button"
+                                disabled={isRateLimitBypassBusy}
+                                onClick={() =>
+                                  updatePostingRateLimitBypass(
+                                    authorId,
+                                    !restrictionDraft.unlimitedPosts,
+                                  )
+                                }
+                                className={`w-full inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2.5 text-sm font-semibold transition-colors disabled:opacity-50 ${
+                                  restrictionDraft.unlimitedPosts
+                                    ? "bg-emerald-500/15 text-emerald-200 hover:bg-emerald-500/25"
+                                    : "bg-white/[0.08] text-gray-100 hover:bg-white/[0.14]"
+                                }`}
+                              >
+                                {isRateLimitBypassBusy
+                                  ? "Saving..."
+                                  : restrictionDraft.unlimitedPosts
+                                    ? "Disable unlimited posting"
+                                    : "Enable unlimited posting"}
+                              </button>
+
                               <FilterDropdown
                                 ariaLabel={`Posting restriction for ${authorName}`}
                                 value={restrictionDraft.duration}

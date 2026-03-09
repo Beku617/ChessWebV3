@@ -60,6 +60,10 @@ const UserSchema = new mongoose.Schema(
       ref: "Admin",
       default: null,
     },
+    communityPostingRateLimitBypass: {
+      type: Boolean,
+      default: false,
+    },
     communitySubmissionTimestamps: {
       type: [Date],
       default: [],

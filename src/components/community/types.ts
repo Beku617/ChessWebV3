@@ -21,6 +21,7 @@ export interface CommunityPostingRateLimitState {
   used: number;
   remaining: number;
   retryAt: string | null;
+  bypass: boolean;
 }
 
 export interface CommunityPostingAccess {
