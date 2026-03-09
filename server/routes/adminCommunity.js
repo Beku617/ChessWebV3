@@ -4,8 +4,11 @@ import { Router } from "express";
 import { adminAuthMiddleware } from "../middleware/index.js";
 import { CommunityPost, User } from "../models/index.js";
 import {
+  COMMUNITY_MAX_POSTING_RESTRICTION_REASON_LENGTH,
   COMMUNITY_MAX_TEXT_LENGTH,
+  COMMUNITY_POSTING_RESTRICTION_DURATIONS,
   COMMUNITY_MAX_REJECTION_REASON_LENGTH,
+  buildCommunityPostingAccess,
   cleanupCommunityMedia,
   communityUploadsRoot,
   detectCommunityMediaType,
@@ -15,6 +18,10 @@ import {
 } from "../utils/communityPosts.js";
 
 const router = Router();
+const AUTHOR_POPULATE_FIELDS =
+  "fullName avatar rating email communityPostingRestrictedForever communityPostingRestrictedUntil communityPostingRestrictionReason communityPostingRestrictionUpdatedAt";
+const RESTRICTION_FIELD_SELECT =
+  "communityPostingRestrictedForever communityPostingRestrictedUntil communityPostingRestrictionReason communityPostingRestrictionUpdatedAt";
 
 function isValidObjectId(value) {
   return mongoose.Types.ObjectId.isValid(String(value || ""));
@@ -25,6 +32,34 @@ function parsePagination(query) {
   const limit = Math.min(24, Math.max(1, Number(query.limit) || 12));
   const skip = (page - 1) * limit;
   return { page, limit, skip };
+}
+
+function toIsoOrNull(value) {
+  if (!value) return null;
+  const parsed = new Date(value);
+  if (!Number.isFinite(parsed.getTime())) return null;
+  return parsed.toISOString();
+}
+
+function serializeRestrictionState(userDoc) {
+  const access = buildCommunityPostingAccess(userDoc || {}, new Date());
+  return {
+    active: Boolean(access.restriction?.active),
+    forever: Boolean(access.restriction?.forever),
+    until: toIsoOrNull(access.restriction?.until),
+    reason: String(access.restriction?.reason || ""),
+    updatedAt: toIsoOrNull(access.restriction?.updatedAt),
+  };
+}
+
+function normalizeRestrictionDuration(value) {
+  const normalized = String(value || "none").trim().toLowerCase();
+  return Object.prototype.hasOwnProperty.call(
+    COMMUNITY_POSTING_RESTRICTION_DURATIONS,
+    normalized,
+  )
+    ? normalized
+    : null;
 }
 
 async function buildAdminCommunityQuery(rawQuery) {
@@ -126,7 +161,7 @@ router.get("/", adminAuthMiddleware, async (req, res) => {
 
     const [items, total, stats] = await Promise.all([
       CommunityPost.find(query)
-        .populate("authorId", "fullName avatar rating email")
+        .populate("authorId", AUTHOR_POPULATE_FIELDS)
         .populate("reviewedBy", "username email")
         .sort(sort)
         .skip(skip)
@@ -138,6 +173,7 @@ router.get("/", adminAuthMiddleware, async (req, res) => {
 
     const posts = items.map((post) => ({
       ...toCommunityPostDTO(post),
+      authorPostingRestriction: serializeRestrictionState(post.authorId),
       reviewedBy: post.reviewedBy
         ? {
             id: String(post.reviewedBy._id),
@@ -162,6 +198,76 @@ router.get("/", adminAuthMiddleware, async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
+
+router.patch(
+  "/users/:userId/posting-restriction",
+  adminAuthMiddleware,
+  async (req, res) => {
+    try {
+      const userId = String(req.params.userId || "");
+      if (!isValidObjectId(userId)) {
+        return res.status(400).json({ error: "Invalid user id." });
+      }
+
+      const duration = normalizeRestrictionDuration(req.body?.duration);
+      if (!duration) {
+        return res.status(400).json({
+          error: "Invalid restriction duration. Use none, 1d, 3d, 7d, 30d, or forever.",
+        });
+      }
+
+      const reason = String(req.body?.reason || "").trim();
+      if (reason.length > COMMUNITY_MAX_POSTING_RESTRICTION_REASON_LENGTH) {
+        return res.status(400).json({
+          error: `Restriction reason is too long (${COMMUNITY_MAX_POSTING_RESTRICTION_REASON_LENGTH} characters max).`,
+        });
+      }
+
+      const now = new Date();
+      const durationMs = COMMUNITY_POSTING_RESTRICTION_DURATIONS[duration];
+      const update = {
+        communityPostingRestrictedForever: false,
+        communityPostingRestrictedUntil: null,
+        communityPostingRestrictionReason: "",
+        communityPostingRestrictionUpdatedAt: now,
+        communityPostingRestrictionUpdatedBy: req.admin.adminId,
+      };
+
+      if (duration === "forever") {
+        update.communityPostingRestrictedForever = true;
+        update.communityPostingRestrictionReason = reason;
+      } else if (durationMs > 0) {
+        update.communityPostingRestrictedUntil = new Date(now.getTime() + durationMs);
+        update.communityPostingRestrictionReason = reason;
+      }
+
+      const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        { $set: update },
+        { new: true },
+      )
+        .select(`_id fullName ${RESTRICTION_FIELD_SELECT}`)
+        .lean();
+
+      if (!updatedUser) {
+        return res.status(404).json({ error: "User not found." });
+      }
+
+      res.json({
+        success: true,
+        duration,
+        user: {
+          id: String(updatedUser._id),
+          fullName: updatedUser.fullName || "User",
+        },
+        restriction: serializeRestrictionState(updatedUser),
+      });
+    } catch (err) {
+      console.error("Update posting restriction error:", err);
+      res.status(500).json({ error: "Server error" });
+    }
+  },
+);
 
 router.post("/", adminAuthMiddleware, uploadCommunityMedia, async (req, res) => {
   try {
@@ -229,7 +335,7 @@ router.post("/", adminAuthMiddleware, uploadCommunityMedia, async (req, res) => 
     });
 
     const created = await CommunityPost.findById(post._id)
-      .populate("authorId", "fullName avatar rating email")
+      .populate("authorId", AUTHOR_POPULATE_FIELDS)
       .populate("reviewedBy", "username email")
       .lean();
 
@@ -237,6 +343,7 @@ router.post("/", adminAuthMiddleware, uploadCommunityMedia, async (req, res) => 
       message: "Post created.",
       post: {
         ...toCommunityPostDTO(created),
+        authorPostingRestriction: serializeRestrictionState(created?.authorId),
         reviewedBy: created?.reviewedBy
           ? {
               id: String(created.reviewedBy._id),
@@ -274,7 +381,7 @@ router.patch("/:postId/approve", adminAuthMiddleware, async (req, res) => {
       },
       { new: true },
     )
-      .populate("authorId", "fullName avatar rating email")
+      .populate("authorId", AUTHOR_POPULATE_FIELDS)
       .populate("reviewedBy", "username email")
       .lean();
 
@@ -286,6 +393,7 @@ router.patch("/:postId/approve", adminAuthMiddleware, async (req, res) => {
       message: "Post approved.",
       post: {
         ...toCommunityPostDTO(post),
+        authorPostingRestriction: serializeRestrictionState(post?.authorId),
         reviewedBy: post.reviewedBy
           ? {
               id: String(post.reviewedBy._id),
@@ -328,7 +436,7 @@ router.patch("/:postId/reject", adminAuthMiddleware, async (req, res) => {
       },
       { new: true },
     )
-      .populate("authorId", "fullName avatar rating email")
+      .populate("authorId", AUTHOR_POPULATE_FIELDS)
       .populate("reviewedBy", "username email")
       .lean();
 
@@ -340,6 +448,7 @@ router.patch("/:postId/reject", adminAuthMiddleware, async (req, res) => {
       message: "Post rejected.",
       post: {
         ...toCommunityPostDTO(post),
+        authorPostingRestriction: serializeRestrictionState(post?.authorId),
         reviewedBy: post.reviewedBy
           ? {
               id: String(post.reviewedBy._id),
@@ -459,7 +568,7 @@ router.patch("/:postId", adminAuthMiddleware, uploadCommunityMedia, async (req, 
     }
 
     const post = await CommunityPost.findByIdAndUpdate(postId, { $set: update }, { new: true })
-      .populate("authorId", "fullName avatar rating email")
+      .populate("authorId", AUTHOR_POPULATE_FIELDS)
       .populate("reviewedBy", "username email")
       .lean();
 
@@ -471,6 +580,7 @@ router.patch("/:postId", adminAuthMiddleware, uploadCommunityMedia, async (req, 
       message: "Post updated.",
       post: {
         ...toCommunityPostDTO(post),
+        authorPostingRestriction: serializeRestrictionState(post?.authorId),
         reviewedBy: post?.reviewedBy
           ? {
               id: String(post.reviewedBy._id),

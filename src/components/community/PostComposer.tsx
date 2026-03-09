@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "../../store/authStore";
 import { Avatar } from "./CommunityUI";
-import { API_URL, getInitials } from "./types";
+import { API_URL, CommunityPostingAccess, getInitials } from "./types";
 
 const MAX_CHARS = 1200;
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
@@ -24,6 +24,7 @@ interface ComposerSummary {
 
 interface PostComposerProps {
   summary?: ComposerSummary | null;
+  postingAccess?: CommunityPostingAccess | null;
   onSubmitted?: () => void | Promise<void>;
 }
 
@@ -47,7 +48,67 @@ function validateFile(file: File, expectedKind: "image" | "video") {
   return null;
 }
 
-export function PostComposer({ onSubmitted }: PostComposerProps) {
+function formatDateTime(value?: string | null) {
+  if (!value) return "";
+  const parsed = new Date(value);
+  if (!Number.isFinite(parsed.getTime())) return "";
+  return parsed.toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+function formatDuration(valueMs: number) {
+  const totalMinutes = Math.max(1, Math.ceil(valueMs / (60 * 1000)));
+  if (totalMinutes < 60) return `${totalMinutes}m`;
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (minutes === 0) return `${hours}h`;
+  return `${hours}h ${minutes}m`;
+}
+
+function buildSubmissionBlockedMessage(postingAccess?: CommunityPostingAccess | null) {
+  if (!postingAccess || postingAccess.canSubmit) return "";
+
+  if (postingAccess.reason === "restricted") {
+    if (postingAccess.restriction?.forever) {
+      return postingAccess.restriction.reason
+        ? `Posting is restricted by moderation. Reason: ${postingAccess.restriction.reason}`
+        : "Posting is currently restricted by moderation.";
+    }
+
+    const untilLabel = formatDateTime(postingAccess.restriction?.until);
+    const base = untilLabel
+      ? `Posting is temporarily restricted until ${untilLabel}.`
+      : "Posting is temporarily restricted by moderation.";
+    return postingAccess.restriction.reason
+      ? `${base} Reason: ${postingAccess.restriction.reason}`
+      : base;
+  }
+
+  if (postingAccess.reason === "rate_limited") {
+    const retryAt = postingAccess.rateLimit?.retryAt
+      ? new Date(postingAccess.rateLimit.retryAt)
+      : null;
+    const remainingMs =
+      retryAt && Number.isFinite(retryAt.getTime())
+        ? Math.max(0, retryAt.getTime() - Date.now())
+        : 0;
+    const waitText =
+      remainingMs > 0 ? ` Try again in ${formatDuration(remainingMs)}.` : "";
+    return `You've reached the posting limit (${postingAccess.rateLimit.maxPosts} posts every 3 hours).${waitText}`;
+  }
+
+  return "Posting is unavailable right now.";
+}
+
+export function PostComposer({
+  summary,
+  postingAccess,
+  onSubmitted,
+}: PostComposerProps) {
   const { user } = useAuthStore();
   const [content, setContent] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -60,6 +121,18 @@ export function PostComposer({ onSubmitted }: PostComposerProps) {
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
+  const resetFileInputs = () => {
+    if (imageInputRef.current) imageInputRef.current.value = "";
+    if (videoInputRef.current) videoInputRef.current.value = "";
+  };
+
+  const openFilePicker = (kind: "image" | "video") => {
+    const input = kind === "image" ? imageInputRef.current : videoInputRef.current;
+    if (!input) return;
+    input.value = "";
+    input.click();
+  };
+
   useEffect(() => {
     return () => {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -70,8 +143,10 @@ export function PostComposer({ onSubmitted }: PostComposerProps) {
     const textarea = textareaRef.current;
     if (!textarea) return;
     textarea.style.height = "auto";
-    textarea.style.height = `${Math.max(textarea.scrollHeight, 124)}px`;
-  }, [content]);
+    const hasText = content.trim().length > 0;
+    const minHeight = selectedFile ? (hasText ? 30 : 48) : 124;
+    textarea.style.height = `${Math.max(textarea.scrollHeight, minHeight)}px`;
+  }, [content, selectedFile]);
 
   const remainingChars = MAX_CHARS - content.length;
   const isOverLimit = remainingChars < 0;
@@ -81,8 +156,18 @@ export function PostComposer({ onSubmitted }: PostComposerProps) {
     if (!selectedFile) return "none";
     return selectedFile.type.startsWith("video/") ? "video" : "image";
   }, [selectedFile]);
+  const submissionBlockedMessage = useMemo(
+    () => buildSubmissionBlockedMessage(postingAccess),
+    [postingAccess],
+  );
+  const isSubmissionBlocked = submissionBlockedMessage.length > 0;
+  const canSubmitNow = canSubmit && !isSubmissionBlocked;
 
   const handlePickFile = (kind: "image" | "video", file?: File | null) => {
+    if (isSubmissionBlocked) {
+      setError(submissionBlockedMessage);
+      return;
+    }
     if (!file) return;
     const validationError = validateFile(file, kind);
     if (validationError) {
@@ -102,6 +187,7 @@ export function PostComposer({ onSubmitted }: PostComposerProps) {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setSelectedFile(null);
     setPreviewUrl("");
+    resetFileInputs();
   };
 
   const resetComposer = () => {
@@ -110,7 +196,11 @@ export function PostComposer({ onSubmitted }: PostComposerProps) {
   };
 
   const handleSubmit = async () => {
-    if (!canSubmit) return;
+    if (isSubmissionBlocked) {
+      setError(submissionBlockedMessage);
+      return;
+    }
+    if (!canSubmitNow) return;
 
     setIsSubmitting(true);
     setError("");
@@ -170,31 +260,26 @@ export function PostComposer({ onSubmitted }: PostComposerProps) {
                 if (successMessage) setSuccessMessage("");
               }}
               placeholder="Share a game idea, opening line, clip, puzzle moment, or tournament update..."
-              className="w-full bg-transparent border-none focus:ring-0 focus:outline-none text-sm text-white placeholder:text-gray-500 resize-none min-h-[124px] leading-8 premium-scrollbar"
+              className={`w-full bg-transparent border-none focus:ring-0 focus:outline-none text-sm text-white placeholder:text-gray-500 resize-none premium-scrollbar ${
+                selectedFile
+                  ? content.trim().length > 0
+                    ? "min-h-[30px] leading-6"
+                    : "min-h-[48px] leading-6"
+                  : "min-h-[124px] leading-8"
+              }`}
             />
 
             {selectedFile && (
-              <div className="mt-3 space-y-3 rounded-xl bg-black/20 p-3">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="text-sm font-medium text-white truncate">
-                      {selectedMediaType === "video" ? "Video attached" : "Image attached"}
-                    </div>
-                    <div className="mt-1 text-xs text-gray-500 truncate">
-                      {selectedFile.name}
-                    </div>
-                  </div>
+              <div className="mt-1.5">
+                <div className="relative overflow-hidden rounded-xl border border-black/80 bg-black/55">
                   <button
                     type="button"
                     onClick={clearSelectedMedia}
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white/[0.05] text-gray-400 hover:bg-red-500/15 hover:text-red-200 transition-colors"
+                    className="absolute right-2 top-2 z-10 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-black/60 text-gray-200 hover:bg-black/80 hover:text-white transition-colors"
                     title="Remove media"
                   >
                     <X className="w-4 h-4" />
                   </button>
-                </div>
-
-                <div className="overflow-hidden rounded-xl bg-black/45">
                   {selectedMediaType === "video" ? (
                     <video
                       src={previewUrl}
@@ -212,20 +297,36 @@ export function PostComposer({ onSubmitted }: PostComposerProps) {
               </div>
             )}
 
-            {(error || successMessage) && (
+            {(error || successMessage || submissionBlockedMessage) && (
               <div
                 className={`mt-3 flex items-start gap-2 rounded-xl px-3.5 py-2.5 text-sm ${
                   error
                     ? "bg-red-500/10 text-red-200"
-                    : "bg-teal-500/10 text-teal-100"
+                    : submissionBlockedMessage
+                      ? "bg-amber-500/10 text-amber-100"
+                      : "bg-teal-500/10 text-teal-100"
                 }`}
               >
-                {error ? (
+                {error || submissionBlockedMessage ? (
                   <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                 ) : (
                   <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
                 )}
-                <span>{error || successMessage}</span>
+                <span>{error || submissionBlockedMessage || successMessage}</span>
+              </div>
+            )}
+
+            {summary && (
+              <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-gray-500">
+                <span className="rounded-full bg-white/[0.04] px-2.5 py-1">
+                  Pending {summary.pending}
+                </span>
+                <span className="rounded-full bg-white/[0.04] px-2.5 py-1">
+                  Approved {summary.approved}
+                </span>
+                <span className="rounded-full bg-white/[0.04] px-2.5 py-1">
+                  Rejected {summary.rejected}
+                </span>
               </div>
             )}
 
@@ -248,16 +349,18 @@ export function PostComposer({ onSubmitted }: PostComposerProps) {
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => imageInputRef.current?.click()}
-                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm text-gray-300 bg-white/[0.04] hover:bg-white/[0.08] hover:text-teal-200 transition-colors"
+                  disabled={isSubmissionBlocked}
+                  onClick={() => openFilePicker("image")}
+                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm text-gray-300 bg-white/[0.04] hover:bg-white/[0.08] hover:text-teal-200 transition-colors disabled:opacity-45 disabled:cursor-not-allowed"
                 >
                   <ImageIcon className="w-4 h-4" />
                   Image
                 </button>
                 <button
                   type="button"
-                  onClick={() => videoInputRef.current?.click()}
-                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm text-gray-300 bg-white/[0.04] hover:bg-white/[0.08] hover:text-teal-200 transition-colors"
+                  disabled={isSubmissionBlocked}
+                  onClick={() => openFilePicker("video")}
+                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm text-gray-300 bg-white/[0.04] hover:bg-white/[0.08] hover:text-teal-200 transition-colors disabled:opacity-45 disabled:cursor-not-allowed"
                 >
                   <Video className="w-4 h-4" />
                   Video
@@ -271,19 +374,22 @@ export function PostComposer({ onSubmitted }: PostComposerProps) {
                 <button
                   type="button"
                   onClick={handleSubmit}
-                  disabled={!canSubmit}
+                  disabled={!canSubmitNow}
                   className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                    canSubmit
+                    canSubmitNow
                       ? "bg-teal-600 hover:bg-teal-500 text-white shadow-[0_12px_30px_rgba(13,148,136,0.28)]"
                       : "bg-white/[0.06] text-gray-500 cursor-not-allowed"
                   }`}
                 >
                   <Send className="w-4 h-4" />
-                  {isSubmitting ? "Submitting..." : "Submit"}
+                  {isSubmitting
+                    ? "Submitting..."
+                    : isSubmissionBlocked
+                      ? "Unavailable"
+                      : "Submit"}
                 </button>
               </div>
             </div>
-
           </div>
         </div>
       </div>

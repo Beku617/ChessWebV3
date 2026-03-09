@@ -44,15 +44,15 @@ export default function AdminSidebar() {
       {/* Logo */}
       <Link
         to="/admin"
-        className="px-5 py-4 flex items-center gap-3 border-b border-gray-200/70 dark:border-gray-800"
+        className="px-6 py-4 flex items-center gap-3 border-b border-gray-200/70 dark:border-gray-800"
       >
         <img
           src={logoSrc}
           alt="NeonGambit"
-          className="h-14 object-contain shrink-0"
+          className="h-12 object-contain shrink-0"
         />
-        <div className="min-w-0">
-          <div className="text-gray-900 dark:text-white font-bold text-[2rem] tracking-tight leading-none">
+        <div className="min-w-0 pr-2">
+          <div className="text-gray-900 dark:text-white font-bold text-[1.72rem] tracking-tight leading-none">
             NeonGambit
           </div>
           <span className="mt-1 inline-flex text-xs bg-teal-500/20 text-teal-600 dark:text-teal-400 px-2 py-0.5 rounded-full font-medium">

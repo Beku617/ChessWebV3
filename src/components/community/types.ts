@@ -7,6 +7,29 @@ export interface CommunityAuthor {
   rating?: number;
 }
 
+export interface CommunityPostingRestrictionState {
+  active: boolean;
+  forever: boolean;
+  until: string | null;
+  reason: string;
+  updatedAt?: string | null;
+}
+
+export interface CommunityPostingRateLimitState {
+  maxPosts: number;
+  windowMs: number;
+  used: number;
+  remaining: number;
+  retryAt: string | null;
+}
+
+export interface CommunityPostingAccess {
+  canSubmit: boolean;
+  reason: "restricted" | "rate_limited" | null;
+  restriction: CommunityPostingRestrictionState;
+  rateLimit: CommunityPostingRateLimitState;
+}
+
 export interface CommunityPost {
   id: string;
   text: string;
@@ -43,6 +66,14 @@ export interface CommunityMineResponse {
     rejected: number;
     removed: number;
   };
+  total: number;
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+  postingAccess: CommunityPostingAccess;
 }
 
 export function resolveAssetUrl(url?: string | null): string {

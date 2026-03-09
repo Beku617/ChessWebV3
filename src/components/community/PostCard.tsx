@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Image as ImageIcon, PlayCircle, Trash2, X } from "lucide-react";
 import { motion } from "framer-motion";
@@ -16,17 +16,42 @@ interface PostCardProps {
   index: number;
   canDelete?: boolean;
   onDelete?: (postId: string) => Promise<void> | void;
+  showModerationStatus?: boolean;
+  preferCreatedTimestamp?: boolean;
 }
 
-export function PostCard({ post, index, canDelete = false, onDelete }: PostCardProps) {
+function moderationStatusClass(status: CommunityPost["status"]) {
+  if (status === "approved") return "bg-teal-500/12 text-teal-200";
+  if (status === "rejected") return "bg-red-500/12 text-red-200";
+  if (status === "removed") return "bg-gray-500/15 text-gray-300";
+  return "bg-amber-500/12 text-amber-200";
+}
+
+function formatModerationStatus(status: CommunityPost["status"]) {
+  if (!status) return "Pending";
+  return status.charAt(0).toUpperCase() + status.slice(1);
+}
+
+export function PostCard({
+  post,
+  index,
+  canDelete = false,
+  onDelete,
+  showModerationStatus = false,
+  preferCreatedTimestamp = false,
+}: PostCardProps) {
   const authorName = post.author?.fullName || "Chess Player";
   const mediaUrl = resolveAssetUrl(post.mediaUrl);
   const hasMedia = post.mediaType !== "none" && !!mediaUrl;
-  const timestamp = formatRelativeTime(post.approvedAt || post.createdAt);
+  const timestamp = formatRelativeTime(
+    preferCreatedTimestamp ? post.createdAt : post.approvedAt || post.createdAt,
+  );
   const [isImageOpen, setIsImageOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [hasVideoInteraction, setHasVideoInteraction] = useState(false);
 
   useEffect(() => {
     if (!isImageOpen) return;
@@ -41,6 +66,60 @@ export function PostCard({ post, index, canDelete = false, onDelete }: PostCardP
       window.removeEventListener("keydown", onKeyDown);
     };
   }, [isImageOpen]);
+
+  useEffect(() => {
+    if (post.mediaType !== "video") return;
+    const video = videoRef.current;
+    if (!video) return;
+
+    const tryPlay = async () => {
+      try {
+        if (video.paused) await video.play();
+      } catch {
+        // autoplay can be blocked by browser policy
+      }
+    };
+
+    const pause = () => {
+      if (!video.paused) video.pause();
+    };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (!entry) return;
+        if (entry.isIntersecting && entry.intersectionRatio >= 0.65) {
+          void tryPlay();
+          return;
+        }
+        pause();
+      },
+      { threshold: [0, 0.25, 0.45, 0.65, 0.85] },
+    );
+
+    observer.observe(video);
+
+    return () => {
+      observer.disconnect();
+      pause();
+    };
+  }, [post.mediaType, mediaUrl]);
+
+  const handleVideoClick = () => {
+    if (post.mediaType !== "video") return;
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (!hasVideoInteraction) {
+      setHasVideoInteraction(true);
+    }
+    if (video.muted) {
+      video.muted = false;
+    }
+    if (video.paused) {
+      void video.play().catch(() => null);
+    }
+  };
 
   const handleDeleteClick = () => {
     if (!canDelete || !onDelete || isDeleting) return;
@@ -88,22 +167,39 @@ export function PostCard({ post, index, canDelete = false, onDelete }: PostCardP
             </div>
           </div>
 
-          {canDelete && (
-            <button
-              type="button"
-              disabled={isDeleting}
-              onClick={handleDeleteClick}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-red-500/15 hover:text-red-200 transition-colors disabled:opacity-50"
-              title="Delete your post"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {showModerationStatus && (
+              <span
+                className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ${moderationStatusClass(
+                  post.status,
+                )}`}
+              >
+                {formatModerationStatus(post.status)}
+              </span>
+            )}
+            {canDelete && (
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={handleDeleteClick}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-red-500/15 hover:text-red-200 transition-colors disabled:opacity-50"
+                title="Delete your post"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
+          </div>
         </div>
 
         {post.text && (
           <div className="mt-2.5 whitespace-pre-wrap text-sm leading-6 text-gray-200">
             {post.text}
+          </div>
+        )}
+
+        {showModerationStatus && post.status === "rejected" && post.rejectionReason && (
+          <div className="mt-3 rounded-xl bg-red-500/10 px-3.5 py-2.5 text-xs text-red-200">
+            <span className="font-semibold">Reason:</span> {post.rejectionReason}
           </div>
         )}
       </div>
@@ -114,10 +210,14 @@ export function PostCard({ post, index, canDelete = false, onDelete }: PostCardP
             <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-white/5 via-transparent to-black/30" />
             {post.mediaType === "video" ? (
               <video
+                ref={videoRef}
                 src={mediaUrl}
-                controls
+                muted={!hasVideoInteraction}
+                loop
+                controls={hasVideoInteraction}
                 playsInline
                 preload="metadata"
+                onClick={handleVideoClick}
                 className="relative w-full max-h-[420px] bg-black object-contain"
               />
             ) : (

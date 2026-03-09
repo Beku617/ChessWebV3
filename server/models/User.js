@@ -46,6 +46,29 @@ const UserSchema = new mongoose.Schema(
     banned: { type: Boolean, default: false },
     bannedAt: { type: Date, default: null },
     banReason: { type: String, default: "" },
+    communityPostingRestrictedForever: { type: Boolean, default: false },
+    communityPostingRestrictedUntil: { type: Date, default: null },
+    communityPostingRestrictionReason: {
+      type: String,
+      default: "",
+      trim: true,
+      maxlength: 300,
+    },
+    communityPostingRestrictionUpdatedAt: { type: Date, default: null },
+    communityPostingRestrictionUpdatedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Admin",
+      default: null,
+    },
+    communitySubmissionTimestamps: {
+      type: [Date],
+      default: [],
+    },
+    communityLastSubmissionReservationToken: {
+      type: String,
+      default: "",
+      trim: true,
+    },
   },
   { timestamps: true },
 );
@@ -54,6 +77,8 @@ UserSchema.index({ bulletRating: -1 });
 UserSchema.index({ blitzRating: -1 });
 UserSchema.index({ rapidRating: -1 });
 UserSchema.index({ classicalRating: -1 });
+UserSchema.index({ communityPostingRestrictedForever: 1 });
+UserSchema.index({ communityPostingRestrictedUntil: 1 });
 
 const User = mongoose.models.User || mongoose.model("User", UserSchema);
 

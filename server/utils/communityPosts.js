@@ -28,7 +28,19 @@ export const COMMUNITY_MAX_TEXT_LENGTH = 1200;
 export const COMMUNITY_MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 export const COMMUNITY_MAX_VIDEO_BYTES = 50 * 1024 * 1024;
 export const COMMUNITY_MAX_REJECTION_REASON_LENGTH = 300;
+export const COMMUNITY_MAX_POSTING_RESTRICTION_REASON_LENGTH = 300;
 export const COMMUNITY_DUPLICATE_WINDOW_MS = 15 * 1000;
+export const COMMUNITY_RATE_LIMIT_MAX_POSTS = 5;
+export const COMMUNITY_RATE_LIMIT_WINDOW_MS = 3 * 60 * 60 * 1000;
+
+export const COMMUNITY_POSTING_RESTRICTION_DURATIONS = Object.freeze({
+  none: 0,
+  "1d": 24 * 60 * 60 * 1000,
+  "3d": 3 * 24 * 60 * 60 * 1000,
+  "7d": 7 * 24 * 60 * 60 * 1000,
+  "30d": 30 * 24 * 60 * 60 * 1000,
+  forever: -1,
+});
 
 function safeExtension(filename = "") {
   const ext = path.extname(filename || "").toLowerCase();
@@ -134,6 +146,94 @@ export function buildCommunitySubmissionFingerprint({
   ].join("|");
 
   return crypto.createHash("sha1").update(signature).digest("hex");
+}
+
+export function getCommunityRestrictionState(userDoc, now = new Date()) {
+  const safeNow = now instanceof Date ? now : new Date(now);
+  const forever = Boolean(userDoc?.communityPostingRestrictedForever);
+  const reason = String(userDoc?.communityPostingRestrictionReason || "").trim();
+  const updatedAt = userDoc?.communityPostingRestrictionUpdatedAt
+    ? new Date(userDoc.communityPostingRestrictionUpdatedAt)
+    : null;
+  const untilRaw = userDoc?.communityPostingRestrictedUntil
+    ? new Date(userDoc.communityPostingRestrictedUntil)
+    : null;
+  const until =
+    untilRaw && Number.isFinite(untilRaw.getTime()) ? untilRaw : null;
+  const activeTemporary = Boolean(until && until.getTime() > safeNow.getTime());
+  const active = forever || activeTemporary;
+
+  return {
+    active,
+    forever,
+    until: activeTemporary ? until : null,
+    reason,
+    updatedAt:
+      updatedAt && Number.isFinite(updatedAt.getTime()) ? updatedAt : null,
+  };
+}
+
+export function getCommunityRateLimitState(
+  timestampsInput,
+  now = new Date(),
+) {
+  const safeNow = now instanceof Date ? now : new Date(now);
+  const windowStart = safeNow.getTime() - COMMUNITY_RATE_LIMIT_WINDOW_MS;
+  const timestamps = Array.isArray(timestampsInput)
+    ? timestampsInput
+        .map((value) => new Date(value))
+        .filter(
+          (value) =>
+            Number.isFinite(value.getTime()) && value.getTime() > windowStart,
+        )
+        .sort((a, b) => a.getTime() - b.getTime())
+    : [];
+  const used = timestamps.length;
+  const remaining = Math.max(0, COMMUNITY_RATE_LIMIT_MAX_POSTS - used);
+  const retryAt =
+    remaining > 0 || timestamps.length === 0
+      ? null
+      : new Date(timestamps[0].getTime() + COMMUNITY_RATE_LIMIT_WINDOW_MS);
+
+  return {
+    used,
+    remaining,
+    retryAt,
+    timestamps,
+  };
+}
+
+export function buildCommunityPostingAccess(userDoc, now = new Date()) {
+  const restriction = getCommunityRestrictionState(userDoc, now);
+  const rateLimit = getCommunityRateLimitState(
+    userDoc?.communitySubmissionTimestamps,
+    now,
+  );
+  const canSubmit = !restriction.active && rateLimit.remaining > 0;
+  const reason = restriction.active
+    ? "restricted"
+    : rateLimit.remaining <= 0
+      ? "rate_limited"
+      : null;
+
+  return {
+    canSubmit,
+    reason,
+    restriction: {
+      active: restriction.active,
+      forever: restriction.forever,
+      until: restriction.until,
+      reason: restriction.reason,
+      updatedAt: restriction.updatedAt,
+    },
+    rateLimit: {
+      maxPosts: COMMUNITY_RATE_LIMIT_MAX_POSTS,
+      windowMs: COMMUNITY_RATE_LIMIT_WINDOW_MS,
+      used: rateLimit.used,
+      remaining: rateLimit.remaining,
+      retryAt: rateLimit.retryAt,
+    },
+  };
 }
 
 function normalizeAuthor(author) {

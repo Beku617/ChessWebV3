@@ -19,6 +19,7 @@ import { useAdminStore } from "../../store/adminStore";
 import {
   API_URL,
   CommunityPost,
+  CommunityPostingRestrictionState,
   formatFileSize,
   formatRelativeTime,
   getInitials,
@@ -118,6 +119,7 @@ type CommunityStats = {
 type AdminCommunityResponse = {
   posts: (CommunityPost & {
     reviewedBy?: { id: string; username: string; email: string } | null;
+    authorPostingRestriction?: CommunityPostingRestrictionState | null;
   })[];
   stats: CommunityStats;
   pagination: {
@@ -144,6 +146,44 @@ function statusClass(status: string) {
     return "bg-red-500/12 text-red-200";
   }
   return "bg-amber-500/12 text-amber-200";
+}
+
+type RestrictionDuration = "none" | "1d" | "3d" | "7d" | "30d" | "forever";
+type RestrictionDraft = {
+  duration: RestrictionDuration;
+  reason: string;
+};
+
+function formatRestrictionLabel(
+  restriction?: CommunityPostingRestrictionState | null,
+) {
+  if (!restriction?.active) return "No restriction";
+  if (restriction.forever) return "Restricted forever";
+  const until = restriction.until ? new Date(restriction.until) : null;
+  if (until && Number.isFinite(until.getTime())) {
+    return `Restricted until ${until.toLocaleString(undefined, {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    })}`;
+  }
+  return "Temporarily restricted";
+}
+
+function inferRestrictionDuration(
+  restriction?: CommunityPostingRestrictionState | null,
+): RestrictionDuration {
+  if (!restriction?.active) return "none";
+  if (restriction.forever) return "forever";
+  if (!restriction.until) return "1d";
+  const untilMs = new Date(restriction.until).getTime();
+  if (!Number.isFinite(untilMs)) return "1d";
+  const remainingMs = Math.max(0, untilMs - Date.now());
+  if (remainingMs >= 29 * 24 * 60 * 60 * 1000) return "30d";
+  if (remainingMs >= 6 * 24 * 60 * 60 * 1000) return "7d";
+  if (remainingMs >= 2 * 24 * 60 * 60 * 1000) return "3d";
+  return "1d";
 }
 
 export default function AdminCommunity() {
@@ -183,6 +223,12 @@ export default function AdminCommunity() {
   const [editRejectionReason, setEditRejectionReason] = useState("");
   const [editRemoveMedia, setEditRemoveMedia] = useState(false);
   const [editMediaFile, setEditMediaFile] = useState<File | null>(null);
+  const [restrictionDrafts, setRestrictionDrafts] = useState<
+    Record<string, RestrictionDraft>
+  >({});
+  const [restrictionProcessingUserId, setRestrictionProcessingUserId] = useState<
+    string | null
+  >(null);
 
   useEffect(() => {
     checkAuth();
@@ -251,6 +297,22 @@ export default function AdminCommunity() {
       cancelled = true;
     };
   }, [isAuthenticated, mediaFilter, page, search, statusFilter]);
+
+  useEffect(() => {
+    if (posts.length === 0) return;
+    setRestrictionDrafts((previous) => {
+      const next = { ...previous };
+      for (const post of posts) {
+        const authorId = String(post.author?.id || "");
+        if (!authorId || next[authorId]) continue;
+        next[authorId] = {
+          duration: inferRestrictionDuration(post.authorPostingRestriction),
+          reason: post.authorPostingRestriction?.reason || "",
+        };
+      }
+      return next;
+    });
+  }, [posts]);
 
   const showToast = (type: "success" | "error", message: string) => {
     setToast({ type, message });
@@ -346,6 +408,62 @@ export default function AdminCommunity() {
         }),
       "Post deleted.",
     );
+  };
+
+  const setRestrictionDraftValue = (
+    userId: string,
+    patch: Partial<RestrictionDraft>,
+  ) => {
+    if (!userId) return;
+    setRestrictionDrafts((previous) => ({
+      ...previous,
+      [userId]: {
+        duration: "none",
+        reason: "",
+        ...(previous[userId] || {}),
+        ...patch,
+      },
+    }));
+  };
+
+  const updatePostingRestriction = async (
+    userId: string,
+    duration: RestrictionDuration,
+    reason: string,
+  ) => {
+    if (!userId) return;
+    setRestrictionProcessingUserId(userId);
+    setActionError("");
+    try {
+      const res = await fetch(
+        `${API_URL}/api/admin/community/users/${userId}/posting-restriction`,
+        {
+          method: "PATCH",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ duration, reason: reason.trim() }),
+        },
+      );
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to update posting restriction.");
+      }
+
+      await refreshCurrentPage();
+      showToast(
+        "success",
+        duration === "none"
+          ? "Posting restriction removed."
+          : "Posting restriction updated.",
+      );
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to update posting restriction.";
+      setActionError(message);
+      showToast("error", message);
+    } finally {
+      setRestrictionProcessingUserId(null);
+    }
   };
 
   const resetCreateDraft = () => {
@@ -503,6 +621,18 @@ export default function AdminCommunity() {
       { value: "none", label: "Text only" },
       { value: "image", label: "Image" },
       { value: "video", label: "Video" },
+    ],
+    [],
+  );
+
+  const restrictionDurationOptions = useMemo<FilterOption[]>(
+    () => [
+      { value: "none", label: "No restriction" },
+      { value: "1d", label: "1 day" },
+      { value: "3d", label: "3 days" },
+      { value: "7d", label: "7 days" },
+      { value: "30d", label: "30 days" },
+      { value: "forever", label: "Forever" },
     ],
     [],
   );
@@ -702,11 +832,20 @@ export default function AdminCommunity() {
             <div className="space-y-5">
               {posts.map((post) => {
                 const authorName = post.author?.fullName || "Chess Player";
+                const authorId = String(post.author?.id || "");
                 const mediaUrl = resolveAssetUrl(post.mediaUrl);
                 const rejectionDraft = rejectionDrafts[post.id] || "";
                 const isBusy = processingId === post.id;
                 const showRejectBox = activeRejectId === post.id;
                 const isEditing = editingPostId === post.id;
+                const restriction = post.authorPostingRestriction || null;
+                const restrictionDraft = authorId
+                  ? restrictionDrafts[authorId] || {
+                      duration: inferRestrictionDuration(restriction),
+                      reason: restriction?.reason || "",
+                    }
+                  : null;
+                const isRestrictionBusy = restrictionProcessingUserId === authorId;
 
                 return (
                   <article
@@ -891,6 +1030,81 @@ export default function AdminCommunity() {
                             </div>
                           )}
                         </div>
+
+                        {authorId && restrictionDraft && (
+                          <div className="space-y-3 rounded-xl bg-white/[0.05] p-4">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-gray-500 uppercase tracking-[0.16em] text-[11px]">
+                                Posting access
+                              </span>
+                              <span
+                                className={`text-[11px] font-semibold ${
+                                  restriction?.active ? "text-amber-200" : "text-emerald-200"
+                                }`}
+                              >
+                                {formatRestrictionLabel(restriction)}
+                              </span>
+                            </div>
+
+                            <div className="space-y-2.5">
+                              <FilterDropdown
+                                ariaLabel={`Posting restriction for ${authorName}`}
+                                value={restrictionDraft.duration}
+                                options={restrictionDurationOptions}
+                                onChange={(value) =>
+                                  setRestrictionDraftValue(authorId, {
+                                    duration: value as RestrictionDuration,
+                                  })
+                                }
+                              />
+
+                              <input
+                                value={restrictionDraft.reason}
+                                onChange={(e) =>
+                                  setRestrictionDraftValue(authorId, {
+                                    reason: e.target.value,
+                                  })
+                                }
+                                placeholder="Optional restriction reason..."
+                                className="w-full rounded-lg bg-white/[0.06] px-3.5 py-2.5 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
+                              />
+
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  disabled={isRestrictionBusy}
+                                  onClick={() =>
+                                    updatePostingRestriction(
+                                      authorId,
+                                      restrictionDraft.duration,
+                                      restrictionDraft.reason,
+                                    )
+                                  }
+                                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-white/[0.08] px-3.5 py-2.5 text-sm font-semibold text-gray-100 hover:bg-white/[0.14] disabled:opacity-50"
+                                >
+                                  {isRestrictionBusy ? "Saving..." : "Apply restriction"}
+                                </button>
+
+                                {restriction?.active && (
+                                  <button
+                                    type="button"
+                                    disabled={isRestrictionBusy}
+                                    onClick={() => {
+                                      setRestrictionDraftValue(authorId, {
+                                        duration: "none",
+                                        reason: "",
+                                      });
+                                      void updatePostingRestriction(authorId, "none", "");
+                                    }}
+                                    className="inline-flex items-center justify-center rounded-lg bg-emerald-500/15 px-3.5 py-2.5 text-sm font-semibold text-emerald-200 hover:bg-emerald-500/25 disabled:opacity-50"
+                                  >
+                                    Clear
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
 
                         {post.rejectionReason && (
                           <div className="rounded-xl bg-red-500/10 px-4 py-3 text-sm text-red-200">
