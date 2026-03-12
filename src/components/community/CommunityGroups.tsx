@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import { Plus, Users, X } from "lucide-react";
 import { Avatar, SidebarCard, formatCount } from "./CommunityUI";
 import { CommunityGroup, getInitials, resolveAssetUrl } from "./types";
+import { useBlockingModalLock } from "../../hooks/useBlockingModal";
 
 function groupInitials(group: CommunityGroup) {
   return getInitials(group.name || "Group");
@@ -226,6 +227,9 @@ export function CommunityGroupCreateModal({
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [topic, setTopic] = useState("");
+  const nameInputRef = useRef<HTMLInputElement | null>(null);
+
+  useBlockingModalLock(open);
 
   useEffect(() => {
     if (!open) return;
@@ -246,81 +250,98 @@ export function CommunityGroupCreateModal({
     }
   }, [open]);
 
+  useEffect(() => {
+    if (!open) return;
+    const timeout = window.setTimeout(() => {
+      nameInputRef.current?.focus();
+    }, 24);
+    return () => window.clearTimeout(timeout);
+  }, [open]);
+
   if (!open || typeof document === "undefined") return null;
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[190] flex items-center justify-center bg-black/82 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[190] flex items-center justify-center bg-[rgba(4,10,18,0.78)] p-4 backdrop-blur-[2px]"
       onClick={() => {
         if (!busy) onClose();
       }}
     >
       <div
-        className="w-full max-w-xl rounded-[28px] border border-white/[0.08] bg-[#0d192c]/96 shadow-[0_32px_90px_rgba(0,0,0,0.42)]"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="community-group-modal-title"
+        className="w-full max-w-xl overflow-hidden rounded-[28px] border border-white/[0.1] bg-[linear-gradient(180deg,rgba(12,22,38,0.92),rgba(8,15,27,0.9))] shadow-[0_32px_90px_rgba(0,0,0,0.48)] backdrop-blur-xl"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-white/[0.06] px-6 py-5">
+        <div className="flex items-center justify-between border-b border-white/[0.08] px-6 py-5">
           <div>
-            <div className="text-[10px] uppercase tracking-[0.22em] text-teal-200/70">
+            <div className="text-[10px] uppercase tracking-[0.22em] text-teal-100/80">
               Community Group
             </div>
-            <div className="mt-1 text-lg font-semibold text-white">Create a group</div>
+            <div
+              id="community-group-modal-title"
+              className="mt-1 text-lg font-semibold text-white"
+            >
+              Create a group
+            </div>
           </div>
           <button
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.05] text-gray-300 transition-colors hover:bg-white/[0.1] hover:text-white disabled:opacity-50"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.08] text-gray-200 transition-colors hover:bg-white/[0.14] hover:text-white disabled:opacity-50"
             aria-label="Close group modal"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="space-y-4 px-6 py-5">
+        <div className="max-h-[min(78vh,720px)] overflow-y-auto px-6 py-5 premium-scrollbar">
           <label className="block">
-            <div className="mb-2 text-xs font-medium text-gray-300">Group name</div>
+            <div className="mb-2 text-xs font-semibold text-gray-200">Group name</div>
             <input
+              ref={nameInputRef}
               value={name}
               onChange={(event) => setName(event.target.value)}
               placeholder="Opening Lab"
-              className="w-full rounded-2xl bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
+              className="w-full rounded-2xl border border-white/[0.08] bg-black/30 px-4 py-3 text-sm text-white placeholder:text-gray-400 focus:border-teal-400/35 focus:outline-none focus:ring-2 focus:ring-teal-400/25"
             />
           </label>
 
-          <label className="block">
-            <div className="mb-2 text-xs font-medium text-gray-300">Description</div>
+          <label className="mt-4 block">
+            <div className="mb-2 text-xs font-semibold text-gray-200">Description</div>
             <textarea
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               placeholder="A place for sharp opening prep, traps, and post-game notes."
-              className="min-h-[120px] w-full rounded-2xl bg-white/[0.05] px-4 py-3 text-sm leading-6 text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
+              className="min-h-[120px] w-full rounded-2xl border border-white/[0.08] bg-black/30 px-4 py-3 text-sm leading-6 text-white placeholder:text-gray-400 focus:border-teal-400/35 focus:outline-none focus:ring-2 focus:ring-teal-400/25 premium-scrollbar"
             />
           </label>
 
-          <label className="block">
-            <div className="mb-2 text-xs font-medium text-gray-300">Topic</div>
+          <label className="mt-4 block">
+            <div className="mb-2 text-xs font-semibold text-gray-200">Topic</div>
             <input
               value={topic}
               onChange={(event) => setTopic(event.target.value)}
               placeholder="Openings, Tactics, Clubs..."
-              className="w-full rounded-2xl bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
+              className="w-full rounded-2xl border border-white/[0.08] bg-black/30 px-4 py-3 text-sm text-white placeholder:text-gray-400 focus:border-teal-400/35 focus:outline-none focus:ring-2 focus:ring-teal-400/25"
             />
           </label>
 
           {error && (
-            <div className="rounded-2xl bg-red-500/10 px-4 py-3 text-sm text-red-200">
+            <div className="mt-4 rounded-2xl bg-red-500/12 px-4 py-3 text-sm text-red-100">
               {error}
             </div>
           )}
         </div>
 
-        <div className="flex items-center justify-end gap-3 border-t border-white/[0.06] px-6 py-5">
+        <div className="flex items-center justify-end gap-3 border-t border-white/[0.08] px-6 py-5">
           <button
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="rounded-xl bg-white/[0.06] px-4 py-2.5 text-sm font-semibold text-gray-200 transition-colors hover:bg-white/[0.12] disabled:opacity-50"
+            className="rounded-xl bg-white/[0.08] px-4 py-2.5 text-sm font-semibold text-gray-100 transition-colors hover:bg-white/[0.14] disabled:opacity-50"
           >
             Cancel
           </button>

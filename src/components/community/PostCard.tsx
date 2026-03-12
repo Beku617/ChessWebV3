@@ -16,6 +16,10 @@ import {
   resolveAssetUrl,
 } from "./types";
 import { useAuthStore } from "../../store/authStore";
+import {
+  useBlockingModalLock,
+  useBlockingModalState,
+} from "../../hooks/useBlockingModal";
 
 interface PostCardProps {
   post: CommunityPost;
@@ -88,6 +92,7 @@ export function PostCard({
   const [likedByMe, setLikedByMe] = useState(Boolean(post.likedByMe));
   const [isLikeUpdating, setIsLikeUpdating] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const isBlockingModalOpen = useBlockingModalState();
   const [hasVideoInteraction, setHasVideoInteraction] = useState(false);
   const [soundUnlocked, setSoundUnlocked] = useState(() => {
     if (typeof window === "undefined") return false;
@@ -97,6 +102,7 @@ export function PostCard({
     activeImageIndex !== null && imageItems[activeImageIndex]
       ? imageItems[activeImageIndex]
       : null;
+  useBlockingModalLock(showDeleteConfirm || activeImageIndex !== null);
   const showLikeAction = post.status === "approved" || likeCount > 0 || likedByMe;
   const canToggleLike = post.status === "approved" && !isOwnPost;
   const footerHasContent = showLikeAction || Boolean(footerMediaLabel);
@@ -159,6 +165,10 @@ export function PostCard({
     if (post.mediaType !== "video") return;
     const video = videoRef.current;
     if (!video) return;
+    if (isBlockingModalOpen) {
+      video.pause();
+      return;
+    }
 
     const tryPlay = async () => {
       const shouldPlayWithSound = soundUnlocked || hasVideoInteraction;
@@ -201,15 +211,19 @@ export function PostCard({
       observer.disconnect();
       pause();
     };
-  }, [post.mediaType, mediaUrl, hasVideoInteraction, soundUnlocked]);
+  }, [post.mediaType, mediaUrl, hasVideoInteraction, soundUnlocked, isBlockingModalOpen]);
 
   useEffect(() => {
     if (post.mediaType !== "video") return;
     if (!soundUnlocked) return;
     const video = videoRef.current;
     if (!video) return;
+    if (isBlockingModalOpen) {
+      video.pause();
+      return;
+    }
     video.muted = false;
-  }, [post.mediaType, soundUnlocked]);
+  }, [post.mediaType, soundUnlocked, isBlockingModalOpen]);
 
   const handleVideoClick = () => {
     if (post.mediaType !== "video") return;
