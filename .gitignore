@@ -10,3 +10,4 @@ public/media/
 ChessWeb2.8] Broken/
 .vercel
 .env*.local
+vercel-deploy-temp/  
