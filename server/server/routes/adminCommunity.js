@@ -1,4 +1,3 @@
-import path from "path";
 import mongoose from "mongoose";
 import { Router } from "express";
 import { adminAuthMiddleware } from "../middleware/index.js";
@@ -16,9 +15,9 @@ import {
   COMMUNITY_MAX_REJECTION_REASON_LENGTH,
   buildCommunityPostingAccess,
   cleanupCommunityMedia,
-  communityUploadsRoot,
   detectCommunityMediaType,
   getCommunityMediaUrls,
+  migrateLegacyCommunityMediaForPost,
   normalizeCommunityPostType,
   toCommunityPostDTO,
   uploadCommunityMedia,
@@ -169,14 +168,6 @@ async function resolvePostAuthorId(rawAuthorId, adminEmail) {
   return null;
 }
 
-async function cleanupMediaByUrl(url) {
-  const filePath = url ? path.join(communityUploadsRoot, path.basename(url)) : "";
-  if (!filePath) return;
-  await import("fs/promises").then((fs) =>
-    fs.unlink(filePath).catch(() => null),
-  );
-}
-
 router.get("/", adminAuthMiddleware, async (req, res) => {
   try {
     const { page, limit, skip } = parsePagination(req.query);
@@ -202,7 +193,10 @@ router.get("/", adminAuthMiddleware, async (req, res) => {
       buildStats(),
     ]);
 
-    const posts = items.map((post) => ({
+    const normalizedItems = await Promise.all(
+      items.map((post) => migrateLegacyCommunityMediaForPost(post)),
+    );
+    const posts = normalizedItems.map((post) => ({
       ...toCommunityPostDTO(post),
       authorPostingRestriction: serializeRestrictionState(post.authorId),
       authorPostingRateLimitBypass: serializeRateLimitBypass(post.authorId),
@@ -348,6 +342,7 @@ router.patch(
 );
 
 router.post("/", adminAuthMiddleware, uploadCommunityMedia, async (req, res) => {
+  let uploadedMediaItems = [];
   try {
     const files = Array.isArray(req.files) ? req.files : [];
     const text =
@@ -425,7 +420,9 @@ router.post("/", adminAuthMiddleware, uploadCommunityMedia, async (req, res) => 
       }
     }
 
-    const mediaItems = postType === "game" ? [] : buildCommunityMediaItems(files);
+    uploadedMediaItems =
+      postType === "game" ? [] : await buildCommunityMediaItems(files);
+    const mediaItems = uploadedMediaItems;
     const primaryMedia = mediaItems[0] || null;
     const mediaType = postType === "game" ? "none" : detectCommunityMediaType(files);
     const post = await CommunityPost.create({
@@ -476,7 +473,9 @@ router.post("/", adminAuthMiddleware, uploadCommunityMedia, async (req, res) => 
     });
   } catch (err) {
     console.error("Create admin community post error:", err);
-    await cleanupCommunityMedia(req.files);
+    await cleanupCommunityMedia(
+      uploadedMediaItems.length > 0 ? uploadedMediaItems : req.files,
+    );
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -596,6 +595,7 @@ router.patch("/:postId/reject", adminAuthMiddleware, async (req, res) => {
 });
 
 router.patch("/:postId", adminAuthMiddleware, uploadCommunityMedia, async (req, res) => {
+  let uploadedMediaItems = [];
   try {
     const { postId } = req.params;
     const files = Array.isArray(req.files) ? req.files : [];
@@ -681,7 +681,8 @@ router.patch("/:postId", adminAuthMiddleware, uploadCommunityMedia, async (req, 
     let previousMediaUrls = [];
     const hasExistingMedia = getCommunityMediaUrls(existing).length > 0;
     if (files.length > 0) {
-      const mediaItems = buildCommunityMediaItems(files);
+      uploadedMediaItems = await buildCommunityMediaItems(files);
+      const mediaItems = uploadedMediaItems;
       const primaryMedia = mediaItems[0] || null;
       update.mediaItems = mediaItems;
       update.mediaType = detectCommunityMediaType(files);
@@ -726,7 +727,7 @@ router.patch("/:postId", adminAuthMiddleware, uploadCommunityMedia, async (req, 
       .lean();
 
     if (previousMediaUrls.length > 0) {
-      await Promise.all(previousMediaUrls.map((url) => cleanupMediaByUrl(url)));
+      await cleanupCommunityMedia(previousMediaUrls.map((url) => ({ url })));
     }
 
     res.json({
@@ -746,7 +747,9 @@ router.patch("/:postId", adminAuthMiddleware, uploadCommunityMedia, async (req, 
     });
   } catch (err) {
     console.error("Update admin community post error:", err);
-    await cleanupCommunityMedia(req.files);
+    await cleanupCommunityMedia(
+      uploadedMediaItems.length > 0 ? uploadedMediaItems : req.files,
+    );
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -763,7 +766,7 @@ router.delete("/:postId", adminAuthMiddleware, async (req, res) => {
       return res.status(404).json({ error: "Post not found" });
     }
 
-    await Promise.all(getCommunityMediaUrls(post).map((url) => cleanupMediaByUrl(url)));
+    await cleanupCommunityMedia(getCommunityMediaUrls(post).map((url) => ({ url })));
     await deleteCommunityPostLikes(post._id);
 
     res.json({ message: "Post deleted.", success: true });

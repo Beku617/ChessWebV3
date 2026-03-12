@@ -3,7 +3,13 @@ import path from "path";
 import crypto from "crypto";
 import multer from "multer";
 import { fileURLToPath } from "url";
+import { CommunityPost } from "../models/index.js";
 import { normalizeCommunityGroup } from "./communityGroups.js";
+import {
+  deleteCommunityMediaAsset,
+  extractCommunityMediaAssetId,
+  storeCommunityMediaAsset,
+} from "./communityMediaStorage.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -50,14 +56,7 @@ function safeExtension(filename = "") {
   return /^[.a-z0-9]+$/.test(ext) ? ext : "";
 }
 
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, communityUploadsRoot),
-  filename: (_req, file, cb) => {
-    const ext = safeExtension(file.originalname || "");
-    const name = crypto.randomBytes(12).toString("hex");
-    cb(null, `${Date.now()}-${name}${ext}`);
-  },
-});
+const storage = multer.memoryStorage();
 
 const upload = multer({
   storage,
@@ -115,6 +114,15 @@ function normalizeCommunityFiles(input) {
   return [input].filter(Boolean);
 }
 
+function isLegacyCommunityUploadUrl(value = "") {
+  return /^\/uploads\/community\/[^/?#]+$/i.test(String(value || "").trim());
+}
+
+function getLegacyCommunityFilePath(value = "") {
+  if (!isLegacyCommunityUploadUrl(value)) return "";
+  return path.join(communityUploadsRoot, path.basename(String(value || "").trim()));
+}
+
 function detectCommunityMediaItemType(file) {
   if (COMMUNITY_ALLOWED_VIDEO_TYPES.has(file?.mimetype)) return "video";
   return "image";
@@ -124,12 +132,22 @@ export async function cleanupCommunityMedia(input) {
   const files = normalizeCommunityFiles(input);
   if (files.length === 0) return;
 
+  const seenAssetIds = new Set();
   const seenPaths = new Set();
   await Promise.all(
     files.map(async (file) => {
-      if (!file?.path || seenPaths.has(file.path)) return;
-      seenPaths.add(file.path);
-      await fs.promises.unlink(file.path).catch(() => null);
+      const assetId = String(
+        file?.assetId || extractCommunityMediaAssetId(file?.url),
+      ).trim();
+      if (assetId && !seenAssetIds.has(assetId)) {
+        seenAssetIds.add(assetId);
+        await deleteCommunityMediaAsset(assetId).catch(() => null);
+      }
+
+      const legacyPath = file?.path || getLegacyCommunityFilePath(file?.url);
+      if (!legacyPath || seenPaths.has(legacyPath)) return;
+      seenPaths.add(legacyPath);
+      await fs.promises.unlink(legacyPath).catch(() => null);
     }),
   );
 }
@@ -203,15 +221,28 @@ export function validateCommunityMediaFile(input) {
   return null;
 }
 
-export function buildCommunityMediaItems(input) {
+export async function buildCommunityMediaItems(input) {
   const files = normalizeCommunityFiles(input);
-  return files.map((file) => ({
-    type: detectCommunityMediaItemType(file),
-    url: `/uploads/community/${path.basename(file.filename)}`,
-    mimeType: String(file.mimetype || ""),
-    originalName: String(file.originalname || ""),
-    size: Number(file.size || 0),
-  }));
+  const items = [];
+
+  try {
+    for (const file of files) {
+      const stored = await storeCommunityMediaAsset(file);
+      items.push({
+        assetId: stored.assetId,
+        type: detectCommunityMediaItemType(file),
+        url: stored.url,
+        mimeType: String(file.mimetype || ""),
+        originalName: String(file.originalname || ""),
+        size: Number(file.size || 0),
+      });
+    }
+  } catch (err) {
+    await cleanupCommunityMedia(items);
+    throw err;
+  }
+
+  return items;
 }
 
 function normalizeCommunityMediaItem(item) {
@@ -224,7 +255,11 @@ function normalizeCommunityMediaItem(item) {
         : detectCommunityMediaItemType(item);
   const url = String(item.url || "").trim();
   if (!url) return null;
+  const assetId = String(
+    item.assetId || extractCommunityMediaAssetId(url),
+  ).trim();
   return {
+    assetId,
     type,
     url,
     mimeType: String(item.mimeType || item.mimetype || "").trim(),
@@ -405,6 +440,145 @@ export function buildCommunityPostingAccess(userDoc, now = new Date()) {
   };
 }
 
+const COMMUNITY_MIME_BY_EXTENSION = Object.freeze({
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".png": "image/png",
+  ".webp": "image/webp",
+  ".gif": "image/gif",
+  ".mp4": "video/mp4",
+  ".webm": "video/webm",
+  ".mov": "video/quicktime",
+  ".qt": "video/quicktime",
+});
+
+function guessCommunityMimeType(value = "") {
+  const ext = safeExtension(value);
+  return COMMUNITY_MIME_BY_EXTENSION[ext] || "application/octet-stream";
+}
+
+async function migrateLegacyCommunityMediaItem(item) {
+  const legacyPath = getLegacyCommunityFilePath(item?.url);
+  if (!legacyPath || !fs.existsSync(legacyPath)) {
+    return item;
+  }
+
+  const buffer = await fs.promises.readFile(legacyPath);
+  const mimetype =
+    String(item?.mimeType || "").trim() || guessCommunityMimeType(legacyPath);
+  const originalname =
+    String(item?.originalName || "").trim() || path.basename(legacyPath);
+  const stored = await storeCommunityMediaAsset({
+    buffer,
+    size: Number(item?.size || buffer.length),
+    mimetype,
+    originalname,
+  });
+
+  return {
+    assetId: stored.assetId,
+    type: item?.type === "video" ? "video" : "image",
+    url: stored.url,
+    mimeType: mimetype,
+    originalName: originalname,
+    size: Number(item?.size || buffer.length),
+  };
+}
+
+export async function migrateLegacyCommunityMediaForPost(postDoc) {
+  if (!postDoc?._id) return postDoc;
+
+  const mediaItems = normalizeCommunityMediaItems(postDoc);
+  if (mediaItems.length === 0) {
+    return postDoc;
+  }
+
+  let changed = false;
+  const nextItems = [];
+  const createdItems = [];
+
+  try {
+    for (const item of mediaItems) {
+      if (!item?.assetId && isLegacyCommunityUploadUrl(item?.url)) {
+        const migrated = await migrateLegacyCommunityMediaItem(item);
+        if (
+          String(migrated?.assetId || "") !== String(item?.assetId || "") ||
+          String(migrated?.url || "") !== String(item?.url || "")
+        ) {
+          changed = true;
+          createdItems.push(migrated);
+        }
+        nextItems.push(migrated);
+        continue;
+      }
+
+      nextItems.push(item);
+    }
+
+    if (!changed) {
+      return postDoc;
+    }
+
+    const primaryMedia = nextItems[0] || null;
+    const update = {
+      mediaItems: nextItems.map((item) => ({
+        assetId: String(item?.assetId || ""),
+        type: item?.type === "video" ? "video" : "image",
+        url: String(item?.url || ""),
+        mimeType: String(item?.mimeType || ""),
+        originalName: String(item?.originalName || ""),
+        size: Number(item?.size || 0),
+      })),
+      mediaUrl: primaryMedia?.url || "",
+      mediaMimeType: primaryMedia?.mimeType || "",
+      mediaOriginalName: primaryMedia?.originalName || "",
+      mediaSize: nextItems.reduce(
+        (total, item) => total + Number(item?.size || 0),
+        0,
+      ),
+    };
+
+    await CommunityPost.updateOne({ _id: postDoc._id }, { $set: update });
+    return {
+      ...postDoc,
+      ...update,
+    };
+  } catch (err) {
+    if (createdItems.length > 0) {
+      await cleanupCommunityMedia(createdItems);
+    }
+    throw err;
+  }
+}
+
+export async function migrateLegacyCommunityMediaPosts(limit = 200) {
+  const posts = await CommunityPost.find({
+    $or: [
+      { mediaUrl: /^\/uploads\/community\//i },
+      { "mediaItems.url": /^\/uploads\/community\//i },
+    ],
+  })
+    .select(
+      "_id mediaItems mediaType mediaUrl mediaMimeType mediaOriginalName mediaSize",
+    )
+    .sort({ createdAt: -1, _id: -1 })
+    .limit(Math.max(1, Number(limit) || 200))
+    .lean();
+
+  let migratedCount = 0;
+  for (const post of posts) {
+    const migrated = await migrateLegacyCommunityMediaForPost(post);
+    if (String(migrated?.mediaUrl || "") !== String(post?.mediaUrl || "")) {
+      migratedCount += 1;
+    }
+  }
+
+  return {
+    scanned: posts.length,
+    migrated: migratedCount,
+  };
+}
+
 function normalizeAuthor(author) {
   if (!author || typeof author !== "object") return null;
   return {
@@ -454,6 +628,13 @@ export function toCommunityPostDTO(postDoc, options = {}) {
   if (!postDoc) return null;
   const likedPostIds = options?.likedPostIds instanceof Set ? options.likedPostIds : null;
   const mediaItems = normalizeCommunityMediaItems(postDoc);
+  const mediaDTOItems = mediaItems.map((item) => ({
+    type: item.type,
+    url: item.url,
+    mimeType: item.mimeType,
+    originalName: item.originalName,
+    size: item.size,
+  }));
   const primaryMedia = mediaItems[0] || null;
   const primaryMediaSize = mediaItems.reduce(
     (total, item) => total + Number(item?.size || 0),
@@ -476,7 +657,7 @@ export function toCommunityPostDTO(postDoc, options = {}) {
     mediaOriginalName:
       postDoc.mediaOriginalName || primaryMedia?.originalName || "",
     mediaSize: Number(postDoc.mediaSize || primaryMediaSize || 0),
-    mediaItems,
+    mediaItems: mediaDTOItems,
     group: normalizeCommunityGroup(postDoc.groupId),
     game: normalizeCommunityGame(postDoc.gameSnapshot),
     status: postDoc.status || "pending",

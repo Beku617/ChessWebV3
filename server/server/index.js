@@ -65,6 +65,7 @@ import {
   tournamentRoutes,
   messagesRoutes,
 } from "./routes/index.js";
+import { migrateLegacyCommunityMediaPosts } from "./utils/communityPosts.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -158,6 +159,17 @@ mongoose.connection.once("open", () => {
   seedPuzzles().catch(console.error);
   seedGamePageConfig().catch(console.error);
   seedBots().catch(console.error);
+  migrateLegacyCommunityMediaPosts()
+    .then((result) => {
+      if (Number(result?.migrated || 0) > 0) {
+        console.log(
+          `Migrated ${result.migrated}/${result.scanned} legacy community media posts to persistent storage.`,
+        );
+      }
+    })
+    .catch((error) => {
+      console.error("Community media migration error:", error);
+    });
 });
 
 // API Routes

@@ -92,6 +92,12 @@ const CommunityGameSnapshotSchema = new mongoose.Schema(
 
 const CommunityMediaItemSchema = new mongoose.Schema(
   {
+    assetId: {
+      type: String,
+      default: "",
+      trim: true,
+      index: true,
+    },
     type: {
       type: String,
       enum: ["image", "video"],

@@ -1,4 +1,3 @@
-import path from "path";
 import mongoose from "mongoose";
 import { Router } from "express";
 import { authMiddleware } from "../middleware/index.js";
@@ -37,14 +36,18 @@ import {
   buildCommunityPostingAccess,
   buildCommunitySubmissionFingerprint,
   cleanupCommunityMedia,
-  communityUploadsRoot,
   detectCommunityMediaType,
   getCommunityMediaUrls,
+  migrateLegacyCommunityMediaForPost,
   normalizeCommunityPostType,
   toCommunityPostDTO,
   uploadCommunityMedia,
   validateCommunityMediaFile,
 } from "../utils/communityPosts.js";
+import {
+  getCommunityMediaAssetInfo,
+  openCommunityMediaAssetStream,
+} from "../utils/communityMediaStorage.js";
 
 const router = Router();
 const POSTING_ACCESS_USER_FIELDS =
@@ -128,12 +131,17 @@ function populateCommunityPostQuery(query) {
 }
 
 async function serializeCommunityPosts(items, userId) {
+  const normalizedItems = await Promise.all(
+    (Array.isArray(items) ? items : []).map((post) =>
+      migrateLegacyCommunityMediaForPost(post),
+    ),
+  );
   const likedPostIds = await getCommunityLikedPostIdSet(
-    Array.isArray(items) ? items.map((item) => item?._id).filter(Boolean) : [],
+    normalizedItems.map((item) => item?._id).filter(Boolean),
     userId,
   );
 
-  return (Array.isArray(items) ? items : [])
+  return normalizedItems
     .map((post) => toCommunityPostDTO(post, { likedPostIds }))
     .filter((post) => post?.author?.id);
 }
@@ -224,6 +232,43 @@ function restrictionErrorMessage(restriction) {
 
 function rateLimitErrorMessage() {
   return "You've reached the posting limit (5 posts in 3 hours). Try again later.";
+}
+
+function parseHttpByteRange(value, fileSize) {
+  const match = String(value || "")
+    .trim()
+    .match(/^bytes=(\d*)-(\d*)$/i);
+  if (!match || !Number.isFinite(fileSize) || fileSize <= 0) {
+    return null;
+  }
+
+  const rawStart = match[1];
+  const rawEnd = match[2];
+  let start = rawStart === "" ? null : Number(rawStart);
+  let end = rawEnd === "" ? null : Number(rawEnd);
+
+  if (rawStart === "" && rawEnd !== "") {
+    const suffixLength = Number(rawEnd);
+    if (!Number.isFinite(suffixLength) || suffixLength <= 0) {
+      return null;
+    }
+    start = Math.max(0, fileSize - suffixLength);
+    end = fileSize - 1;
+  }
+
+  if (start === null) start = 0;
+  if (end === null || end >= fileSize) end = fileSize - 1;
+  if (
+    !Number.isFinite(start) ||
+    !Number.isFinite(end) ||
+    start < 0 ||
+    end < start ||
+    start >= fileSize
+  ) {
+    return null;
+  }
+
+  return { start, end };
 }
 
 async function reserveCommunitySubmissionSlot(userId, now) {
@@ -317,6 +362,53 @@ async function reserveCommunitySubmissionSlot(userId, now) {
     postingAccess,
   };
 }
+
+router.get("/media/:assetId/:filename?", async (req, res) => {
+  try {
+    const assetId = String(req.params.assetId || "").trim();
+    const asset = await getCommunityMediaAssetInfo(assetId);
+    if (!asset?._id) {
+      return res.status(404).end();
+    }
+
+    const totalSize = Number(asset.length || 0);
+    const mimeType = String(asset.contentType || "application/octet-stream");
+    const range = parseHttpByteRange(req.headers.range, totalSize);
+
+    res.setHeader("Content-Type", mimeType);
+    res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+    res.setHeader("Accept-Ranges", "bytes");
+
+    let stream;
+    if (range) {
+      res.status(206);
+      res.setHeader("Content-Range", `bytes ${range.start}-${range.end}/${totalSize}`);
+      res.setHeader("Content-Length", String(range.end - range.start + 1));
+      stream = openCommunityMediaAssetStream(assetId, {
+        start: range.start,
+        end: range.end + 1,
+      });
+    } else {
+      if (totalSize > 0) {
+        res.setHeader("Content-Length", String(totalSize));
+      }
+      stream = openCommunityMediaAssetStream(assetId);
+    }
+
+    stream.on("error", (error) => {
+      console.error("Community media stream error:", error);
+      if (!res.headersSent) {
+        res.status(404).end();
+      } else {
+        res.end();
+      }
+    });
+    stream.pipe(res);
+  } catch (err) {
+    console.error("Community media route error:", err);
+    res.status(500).end();
+  }
+});
 
 router.get("/", authMiddleware, async (req, res) => {
   try {
@@ -686,10 +778,18 @@ router.post("/groups/:groupIdentifier/join", authMiddleware, async (req, res) =>
       return res.status(404).json({ error: "Group not found." });
     }
 
-    await addUserToCommunityGroup(group._id, userId);
+    const result = await addUserToCommunityGroup(group._id, userId);
+    if (!result.ok) {
+      return res.status(result.code === "user_not_found" ? 404 : 500).json({
+        error:
+          result.code === "user_not_found"
+            ? "User not found."
+            : "Failed to join group.",
+      });
+    }
     const detail = await buildCommunityGroupDetail(String(group.slug || group._id), userId);
     res.json({
-      message: "Joined group.",
+      message: result.joined ? "Joined group." : "Already in group.",
       group: detail,
     });
   } catch (err) {
@@ -710,10 +810,18 @@ router.post("/groups/:groupIdentifier/leave", authMiddleware, async (req, res) =
       return res.status(404).json({ error: "Group not found." });
     }
 
-    await removeUserFromCommunityGroup(group._id, userId);
+    const result = await removeUserFromCommunityGroup(group._id, userId);
+    if (!result.ok) {
+      return res.status(result.code === "user_not_found" ? 404 : 500).json({
+        error:
+          result.code === "user_not_found"
+            ? "User not found."
+            : "Failed to leave group.",
+      });
+    }
     const detail = await buildCommunityGroupDetail(String(group.slug || group._id), userId);
     res.json({
-      message: "Left group.",
+      message: result.left ? "Left group." : "You were not a member of this group.",
       group: detail,
     });
   } catch (err) {
@@ -726,6 +834,7 @@ router.post("/", authMiddleware, uploadCommunityMedia, async (req, res) => {
   const userId = String(req.user?.userId || "");
   let reservedSlot = false;
   let reservedAt = null;
+  let uploadedMediaItems = [];
 
   try {
     const files = Array.isArray(req.files) ? req.files : [];
@@ -881,7 +990,9 @@ router.post("/", authMiddleware, uploadCommunityMedia, async (req, res) => {
     reservedSlot = true;
     reservedAt = now;
 
-    const mediaItems = postType === "game" ? [] : buildCommunityMediaItems(files);
+    uploadedMediaItems =
+      postType === "game" ? [] : await buildCommunityMediaItems(files);
+    const mediaItems = uploadedMediaItems;
     const primaryMedia = mediaItems[0] || null;
     const mediaType =
       postType === "game" ? "none" : detectCommunityMediaType(files);
@@ -931,7 +1042,9 @@ router.post("/", authMiddleware, uploadCommunityMedia, async (req, res) => {
     });
   } catch (err) {
     console.error("Create community post error:", err);
-    await cleanupCommunityMedia(req.files);
+    await cleanupCommunityMedia(
+      uploadedMediaItems.length > 0 ? uploadedMediaItems : req.files,
+    );
 
     if (reservedSlot && reservedAt) {
       await User.updateOne(
@@ -1024,14 +1137,7 @@ router.delete("/:postId", authMiddleware, async (req, res) => {
 
     const mediaUrls = getCommunityMediaUrls(post);
     if (mediaUrls.length > 0) {
-      await Promise.all(
-        mediaUrls.map(async (url) => {
-          const filePath = path.join(communityUploadsRoot, path.basename(url));
-          await import("fs/promises").then((fs) =>
-            fs.unlink(filePath).catch(() => null),
-          );
-        }),
-      );
+      await cleanupCommunityMedia(mediaUrls.map((url) => ({ url })));
     }
 
     await deleteCommunityPostLikes(post._id);

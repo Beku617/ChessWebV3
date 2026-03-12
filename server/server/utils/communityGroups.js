@@ -115,16 +115,23 @@ export function normalizeCommunityGroup(groupDoc, currentUserId = "") {
   };
 }
 
-export async function findCommunityGroupByIdentifier(identifier) {
+export function findCommunityGroupByIdentifier(identifier) {
   const raw = String(identifier || "").trim();
-  if (!raw) return null;
-
-  if (mongoose.Types.ObjectId.isValid(raw)) {
-    const byId = await CommunityGroup.findById(raw);
-    if (byId) return byId;
+  if (!raw) {
+    return null;
   }
 
-  return CommunityGroup.findOne({ slug: raw.toLowerCase() });
+  const normalizedSlug = raw.toLowerCase();
+  const query = mongoose.Types.ObjectId.isValid(raw)
+    ? {
+        $or: [
+          { _id: new mongoose.Types.ObjectId(raw) },
+          { slug: normalizedSlug },
+        ],
+      }
+    : { slug: normalizedSlug };
+
+  return CommunityGroup.findOne(query);
 }
 
 export async function buildCommunityGroupsOverview(userId, { joinedLimit = 4, discoverLimit = 6 } = {}) {
@@ -248,11 +255,36 @@ export async function buildCommunityGroupDetail(identifier, userId) {
   };
 }
 
+async function syncCommunityGroupMemberCount(groupId) {
+  const groupObjectId = new mongoose.Types.ObjectId(String(groupId));
+  const memberCount = await User.countDocuments({
+    communityJoinedGroupIds: groupObjectId,
+  });
+
+  await CommunityGroup.updateOne(
+    { _id: groupObjectId },
+    { $set: { memberCount } },
+  );
+
+  return Number(memberCount || 0);
+}
+
 export async function addUserToCommunityGroup(groupId, userId) {
   const groupObjectId = new mongoose.Types.ObjectId(String(groupId));
   const userObjectId = new mongoose.Types.ObjectId(String(userId));
+  const [groupExists, userExists] = await Promise.all([
+    CommunityGroup.exists({ _id: groupObjectId }),
+    User.exists({ _id: userObjectId }),
+  ]);
 
-  const updatedUser = await User.findOneAndUpdate(
+  if (!groupExists) {
+    return { ok: false, code: "group_not_found" };
+  }
+  if (!userExists) {
+    return { ok: false, code: "user_not_found" };
+  }
+
+  const updateResult = await User.updateOne(
     {
       _id: userObjectId,
       communityJoinedGroupIds: { $ne: groupObjectId },
@@ -260,21 +292,32 @@ export async function addUserToCommunityGroup(groupId, userId) {
     {
       $addToSet: { communityJoinedGroupIds: groupObjectId },
     },
-    { new: true },
-  )
-    .select("communityJoinedGroupIds")
-    .lean();
+  );
 
-  if (updatedUser) {
-    await CommunityGroup.updateOne({ _id: groupObjectId }, { $inc: { memberCount: 1 } });
-  }
+  const memberCount = await syncCommunityGroupMemberCount(groupObjectId);
+  return {
+    ok: true,
+    joined: Number(updateResult.modifiedCount || 0) > 0,
+    memberCount,
+  };
 }
 
 export async function removeUserFromCommunityGroup(groupId, userId) {
   const groupObjectId = new mongoose.Types.ObjectId(String(groupId));
   const userObjectId = new mongoose.Types.ObjectId(String(userId));
+  const [groupExists, userExists] = await Promise.all([
+    CommunityGroup.exists({ _id: groupObjectId }),
+    User.exists({ _id: userObjectId }),
+  ]);
 
-  const updatedUser = await User.findOneAndUpdate(
+  if (!groupExists) {
+    return { ok: false, code: "group_not_found" };
+  }
+  if (!userExists) {
+    return { ok: false, code: "user_not_found" };
+  }
+
+  const updateResult = await User.updateOne(
     {
       _id: userObjectId,
       communityJoinedGroupIds: groupObjectId,
@@ -282,15 +325,12 @@ export async function removeUserFromCommunityGroup(groupId, userId) {
     {
       $pull: { communityJoinedGroupIds: groupObjectId },
     },
-    { new: true },
-  )
-    .select("communityJoinedGroupIds")
-    .lean();
+  );
 
-  if (updatedUser) {
-    await CommunityGroup.updateOne(
-      { _id: groupObjectId, memberCount: { $gt: 0 } },
-      { $inc: { memberCount: -1 } },
-    );
-  }
+  const memberCount = await syncCommunityGroupMemberCount(groupObjectId);
+  return {
+    ok: true,
+    left: Number(updateResult.modifiedCount || 0) > 0,
+    memberCount,
+  };
 }
