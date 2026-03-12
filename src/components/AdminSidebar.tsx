@@ -36,6 +36,7 @@ export default function AdminSidebar() {
     { icon: Trophy, label: "Events", path: "/admin/events" },
     { icon: Gamepad2, label: "Games", path: "/admin/games" },
     { icon: MessageSquare, label: "Community", path: "/admin/community" },
+    { icon: Users, label: "Groups", path: "/admin/groups" },
     { icon: Settings, label: "Settings", path: "/admin/settings" },
   ];
 

@@ -21,6 +21,8 @@ import Learn from "./pages/Learn";
 import Tournaments from "./pages/tournaments";
 import Watch from "./pages/watch";
 import Community from "./pages/Community";
+import CommunityGroups from "./pages/CommunityGroups";
+import CommunityGroupDetail from "./pages/CommunityGroupDetail";
 import Friends from "./pages/friends";
 import Settings from "./pages/Settings";
 import Login from "./pages/Login";
@@ -38,6 +40,7 @@ import { AdminBots } from "./pages/adminBots";
 import { AdminFeaturedEvents } from "./pages/adminFeaturedEvents";
 import { AdminGames } from "./pages/adminGames";
 import AdminCommunity from "./pages/adminCommunity";
+import AdminGroups from "./pages/adminGroups";
 import { Messages } from "./pages/messages";
 import { useThemeStore } from "./store/themeStore";
 import { useAuthStore, authApi } from "./store/authStore";
@@ -166,7 +169,6 @@ function Layout({ children }: { children: React.ReactNode }) {
   const hasOwnLayout =
     [
       "/watch",
-      "/community",
       "/friends",
       "/messages",
       "/settings",
@@ -174,6 +176,7 @@ function Layout({ children }: { children: React.ReactNode }) {
       "/register",
       "/profile",
     ].includes(location.pathname) ||
+    location.pathname.startsWith("/community") ||
     location.pathname.startsWith("/u/") ||
     location.pathname.startsWith("/puzzles/train") ||
     location.pathname.startsWith("/analyze") ||
@@ -369,6 +372,22 @@ function App() {
             }
           />
           <Route
+            path="/community/groups"
+            element={
+              <ProtectedRoute>
+                <CommunityGroups />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/community/groups/:groupIdentifier"
+            element={
+              <ProtectedRoute>
+                <CommunityGroupDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/friends"
             element={
               <ProtectedRoute>
@@ -422,6 +441,7 @@ function App() {
           <Route path="/admin/events" element={<AdminFeaturedEvents />} />
           <Route path="/admin/games" element={<AdminGames />} />
           <Route path="/admin/community" element={<AdminCommunity />} />
+          <Route path="/admin/groups" element={<AdminGroups />} />
           <Route path="/admin/analyze/:gameId" element={<AdminAnalyze />} />
         </Routes>
       </Layout>

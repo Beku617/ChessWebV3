@@ -7,6 +7,7 @@ import {
   buildCommunityGameSnapshot,
   findShareableCommunityGameForUser,
 } from "../utils/communityGames.js";
+import { deleteCommunityPostLikes } from "../utils/communityLikes.js";
 import {
   buildCommunityMediaItems,
   COMMUNITY_MAX_POSTING_RESTRICTION_REASON_LENGTH,
@@ -188,6 +189,10 @@ router.get("/", adminAuthMiddleware, async (req, res) => {
     const [items, total, stats] = await Promise.all([
       CommunityPost.find(query)
         .populate("authorId", AUTHOR_POPULATE_FIELDS)
+        .populate({
+          path: "groupId",
+          populate: { path: "creatorId", select: "fullName avatar" },
+        })
         .populate("reviewedBy", "username email")
         .sort(sort)
         .skip(skip)
@@ -447,6 +452,10 @@ router.post("/", adminAuthMiddleware, uploadCommunityMedia, async (req, res) => 
 
     const created = await CommunityPost.findById(post._id)
       .populate("authorId", AUTHOR_POPULATE_FIELDS)
+      .populate({
+        path: "groupId",
+        populate: { path: "creatorId", select: "fullName avatar" },
+      })
       .populate("reviewedBy", "username email")
       .lean();
 
@@ -494,6 +503,10 @@ router.patch("/:postId/approve", adminAuthMiddleware, async (req, res) => {
       { new: true },
     )
       .populate("authorId", AUTHOR_POPULATE_FIELDS)
+      .populate({
+        path: "groupId",
+        populate: { path: "creatorId", select: "fullName avatar" },
+      })
       .populate("reviewedBy", "username email")
       .lean();
 
@@ -550,6 +563,10 @@ router.patch("/:postId/reject", adminAuthMiddleware, async (req, res) => {
       { new: true },
     )
       .populate("authorId", AUTHOR_POPULATE_FIELDS)
+      .populate({
+        path: "groupId",
+        populate: { path: "creatorId", select: "fullName avatar" },
+      })
       .populate("reviewedBy", "username email")
       .lean();
 
@@ -701,6 +718,10 @@ router.patch("/:postId", adminAuthMiddleware, uploadCommunityMedia, async (req, 
 
     const post = await CommunityPost.findByIdAndUpdate(postId, { $set: update }, { new: true })
       .populate("authorId", AUTHOR_POPULATE_FIELDS)
+      .populate({
+        path: "groupId",
+        populate: { path: "creatorId", select: "fullName avatar" },
+      })
       .populate("reviewedBy", "username email")
       .lean();
 
@@ -743,6 +764,7 @@ router.delete("/:postId", adminAuthMiddleware, async (req, res) => {
     }
 
     await Promise.all(getCommunityMediaUrls(post).map((url) => cleanupMediaByUrl(url)));
+    await deleteCommunityPostLikes(post._id);
 
     res.json({ message: "Post deleted.", success: true });
   } catch (err) {

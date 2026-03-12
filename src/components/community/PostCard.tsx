@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Trash2, X } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Heart, Trash2, X } from "lucide-react";
 import { motion } from "framer-motion";
 import { CommunityImageGrid } from "./CommunityImageGrid";
 import { Avatar } from "./CommunityUI";
 import { CommunityGameViewer } from "./CommunityGameViewer";
 import {
+  API_URL,
   CommunityPost,
   formatFileSize,
   formatRelativeTime,
@@ -13,12 +15,14 @@ import {
   getInitials,
   resolveAssetUrl,
 } from "./types";
+import { useAuthStore } from "../../store/authStore";
 
 interface PostCardProps {
   post: CommunityPost;
   index: number;
   canDelete?: boolean;
   onDelete?: (postId: string) => Promise<void> | void;
+  onLikeChanged?: () => Promise<void> | void;
   showModerationStatus?: boolean;
   preferCreatedTimestamp?: boolean;
 }
@@ -42,9 +46,11 @@ export function PostCard({
   index,
   canDelete = false,
   onDelete,
+  onLikeChanged,
   showModerationStatus = false,
   preferCreatedTimestamp = false,
 }: PostCardProps) {
+  const { user } = useAuthStore();
   const authorName = post.author?.fullName || "Chess Player";
   const mediaItems = getCommunityMediaItems(post);
   const primaryMedia = mediaItems[0] || null;
@@ -67,10 +73,20 @@ export function PostCard({
   const timestamp = formatRelativeTime(
     preferCreatedTimestamp ? post.createdAt : post.approvedAt || post.createdAt,
   );
+  const isOwnPost = Boolean(user?.id && post.author?.id === user.id);
+  const footerMediaLabel = hasMedia
+    ? hasMultiImage
+      ? `${imageItems.length} images`
+      : formatFileSize(post.mediaSize)
+    : "";
   const [activeImageIndex, setActiveImageIndex] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+  const [actionError, setActionError] = useState("");
+  const [likeCount, setLikeCount] = useState(Math.max(0, Number(post.likeCount || 0)));
+  const [likedByMe, setLikedByMe] = useState(Boolean(post.likedByMe));
+  const [isLikeUpdating, setIsLikeUpdating] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [hasVideoInteraction, setHasVideoInteraction] = useState(false);
   const [soundUnlocked, setSoundUnlocked] = useState(() => {
@@ -81,6 +97,14 @@ export function PostCard({
     activeImageIndex !== null && imageItems[activeImageIndex]
       ? imageItems[activeImageIndex]
       : null;
+  const showLikeAction = post.status === "approved" || likeCount > 0 || likedByMe;
+  const canToggleLike = post.status === "approved" && !isOwnPost;
+  const footerHasContent = showLikeAction || Boolean(footerMediaLabel);
+
+  useEffect(() => {
+    setLikeCount(Math.max(0, Number(post.likeCount || 0)));
+    setLikedByMe(Boolean(post.likedByMe));
+  }, [post.id, post.likeCount, post.likedByMe]);
 
   useEffect(() => {
     if (activeImageIndex === null) return;
@@ -207,9 +231,43 @@ export function PostCard({
     }
   };
 
+  const handleToggleLike = async () => {
+    if (!showLikeAction || !canToggleLike || isLikeUpdating) return;
+
+    const previousLikeCount = likeCount;
+    const previousLiked = likedByMe;
+    const nextLiked = !likedByMe;
+    setActionError("");
+    setIsLikeUpdating(true);
+    setLikedByMe(nextLiked);
+    setLikeCount((current) => Math.max(0, current + (nextLiked ? 1 : -1)));
+
+    try {
+      const res = await fetch(`${API_URL}/api/community/${post.id}/like`, {
+        method: nextLiked ? "POST" : "DELETE",
+        credentials: "include",
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to update like.");
+      }
+
+      setLikedByMe(Boolean(data.likedByMe));
+      setLikeCount(Math.max(0, Number(data.likeCount || 0)));
+      await onLikeChanged?.();
+    } catch (err) {
+      setLikedByMe(previousLiked);
+      setLikeCount(previousLikeCount);
+      setActionError(err instanceof Error ? err.message : "Failed to update like.");
+    } finally {
+      setIsLikeUpdating(false);
+    }
+  };
+
   const handleDeleteClick = () => {
     if (!canDelete || !onDelete || isDeleting) return;
     setDeleteError("");
+    setActionError("");
     setShowDeleteConfirm(true);
   };
 
@@ -231,6 +289,7 @@ export function PostCard({
 
   return (
     <motion.article
+      id={`post-${post.id}`}
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04, duration: 0.32, ease: "easeOut" }}
@@ -246,7 +305,17 @@ export function PostCard({
             />
             <div className="min-w-0">
               <h3 className="text-sm font-semibold text-white">{authorName}</h3>
-              <div className="mt-0.5 text-xs text-gray-500">{timestamp}</div>
+              <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-gray-500">
+                <span>{timestamp}</span>
+                {post.group?.slug && (
+                  <Link
+                    to={`/community/groups/${post.group.slug}`}
+                    className="rounded-full bg-teal-500/10 px-2.5 py-1 text-[11px] font-medium text-teal-100 transition-colors hover:bg-teal-500/18"
+                  >
+                    {post.group.name}
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
 
@@ -338,18 +407,50 @@ export function PostCard({
         </div>
       )}
 
-      {hasMedia && (post.mediaType === "video" || hasSingleImage || hasMultiImage) && (
-        <div className="flex items-center justify-end px-4 pb-4 pt-1 text-xs text-gray-500">
-          <span className="text-gray-500">
-            {hasMultiImage
-              ? `${imageItems.length} images`
-              : formatFileSize(post.mediaSize)}
-          </span>
+      {footerHasContent && (
+        <div
+          className={`flex items-center gap-3 px-4 pb-4 pt-1 text-xs ${
+            showLikeAction && footerMediaLabel
+              ? "justify-between"
+              : showLikeAction
+                ? "justify-start"
+                : "justify-end"
+          }`}
+        >
+          {showLikeAction && (
+            <button
+              type="button"
+              disabled={!canToggleLike || isLikeUpdating}
+              onClick={() => void handleToggleLike()}
+              title={
+                isOwnPost
+                  ? "You can't like your own post."
+                  : likedByMe
+                    ? "Unlike post"
+                    : "Like post"
+              }
+              className={`inline-flex items-center gap-2 rounded-full px-3 py-2 transition-all ${
+                likedByMe
+                  ? "bg-teal-500/12 text-teal-100"
+                  : "bg-white/[0.04] text-gray-400 hover:bg-white/[0.08] hover:text-gray-200"
+              } disabled:cursor-not-allowed disabled:hover:bg-white/[0.04] disabled:hover:text-gray-400 disabled:opacity-70`}
+            >
+              <Heart
+                className={`h-4 w-4 ${likedByMe ? "fill-current opacity-80" : ""}`}
+              />
+              <span className="text-[12px] font-medium tabular-nums">{likeCount}</span>
+            </button>
+          )}
+
+          {footerMediaLabel && <span className="text-gray-500">{footerMediaLabel}</span>}
         </div>
       )}
 
       {deleteError && (
         <div className="px-4 pb-4 -mt-1 text-xs text-red-300">{deleteError}</div>
+      )}
+      {actionError && (
+        <div className="px-4 pb-4 -mt-1 text-xs text-red-300">{actionError}</div>
       )}
 
       {showDeleteConfirm &&

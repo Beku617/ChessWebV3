@@ -1068,6 +1068,24 @@ export default function AdminCommunity() {
                             </div>
                           )}
 
+                          {post.group && (
+                            <div className="rounded-[18px] border border-white/[0.04] bg-white/[0.02] px-4 py-3 text-sm text-gray-300">
+                              <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500">
+                                Group
+                              </div>
+                              <div className="mt-2 flex flex-wrap items-center gap-2">
+                                <span className="rounded-full bg-teal-500/10 px-2.5 py-1 text-[11px] font-semibold text-teal-100">
+                                  {post.group.name}
+                                </span>
+                                {post.group.topic && (
+                                  <span className="rounded-full bg-white/[0.04] px-2.5 py-1 text-[11px] text-gray-400">
+                                    {post.group.topic}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
                           {isEditing && (
                             <div className="space-y-3 rounded-[18px] border border-white/[0.05] bg-[#091321]/78 p-4">
                               <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500">
@@ -1267,6 +1285,14 @@ export default function AdminCommunity() {
                                 <span className="text-gray-500">Content type</span>
                                 <span className="text-gray-100">{contentTypeLabel}</span>
                               </div>
+                              {post.group && (
+                                <div className="flex items-center justify-between gap-3 text-sm">
+                                  <span className="text-gray-500">Group</span>
+                                  <span className="text-right text-gray-200">
+                                    {post.group.name}
+                                  </span>
+                                </div>
+                              )}
                               {isGamePost && post.game && (
                                 <>
                                   <div className="flex items-center justify-between gap-3 text-sm">

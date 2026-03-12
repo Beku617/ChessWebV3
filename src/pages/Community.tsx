@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Loader2, Search } from "lucide-react";
 import Sidebar from "../components/Sidebar";
+import {
+  CommunityGroupCreateModal,
+  CommunityGroupsSidebarSection,
+} from "../components/community/CommunityGroups";
 import { PostComposer } from "../components/community/PostComposer";
 import { PostCard } from "../components/community/PostCard";
 import { FeedPagination } from "../components/community/FeedPagination";
@@ -10,9 +14,12 @@ import {
 import {
   API_URL,
   CommunityFeedResponse,
+  CommunityGroup,
+  CommunityGroupsOverviewResponse,
   CommunityMineResponse,
   CommunityPost,
   CommunityPostingAccess,
+  CommunityTrendingResponse,
 } from "../components/community/types";
 import { useAuthStore } from "../store/authStore";
 
@@ -36,6 +43,10 @@ export default function Community() {
   const [minePage, setMinePage] = useState(1);
   const [mineLoading, setMineLoading] = useState(true);
   const [mineError, setMineError] = useState("");
+  const [trendingPosts, setTrendingPosts] = useState<CommunityPost[]>([]);
+  const [trendingMode, setTrendingMode] = useState<CommunityTrendingResponse["mode"]>("latest");
+  const [trendingLoading, setTrendingLoading] = useState(true);
+  const [trendingError, setTrendingError] = useState("");
 
   const [summary, setSummary] = useState<CommunityMineResponse["summary"] | null>(
     null,
@@ -43,6 +54,15 @@ export default function Community() {
   const [postingAccess, setPostingAccess] = useState<CommunityPostingAccess | null>(
     null,
   );
+  const [joinedGroups, setJoinedGroups] = useState<CommunityGroup[]>([]);
+  const [discoverGroups, setDiscoverGroups] = useState<CommunityGroup[]>([]);
+  const [composerGroups, setComposerGroups] = useState<CommunityGroup[]>([]);
+  const [busyGroupId, setBusyGroupId] = useState<string | null>(null);
+  const [groupsLoading, setGroupsLoading] = useState(true);
+  const [groupError, setGroupError] = useState("");
+  const [isCreateGroupOpen, setIsCreateGroupOpen] = useState(false);
+  const [isCreatingGroup, setIsCreatingGroup] = useState(false);
+  const [createGroupError, setCreateGroupError] = useState("");
 
   const loadFeedPage = useCallback(async () => {
     setFeedLoading(true);
@@ -96,6 +116,68 @@ export default function Community() {
     }
   }, [minePage]);
 
+  const loadTrending = useCallback(async () => {
+    setTrendingLoading(true);
+    setTrendingError("");
+    try {
+      const res = await fetch(`${API_URL}/api/community/trending`, {
+        credentials: "include",
+      });
+      const data: CommunityTrendingResponse & { error?: string } =
+        await res.json().catch(() => ({ posts: [], mode: "latest" }));
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to load trending posts.");
+      }
+
+      setTrendingPosts(data.posts || []);
+      setTrendingMode(data.mode || "latest");
+    } catch (err) {
+      setTrendingError(
+        err instanceof Error ? err.message : "Failed to load trending posts.",
+      );
+    } finally {
+      setTrendingLoading(false);
+    }
+  }, []);
+
+  const loadGroupsOverview = useCallback(async () => {
+    setGroupsLoading(true);
+    setGroupError("");
+    try {
+      const [overviewRes, joinedRes] = await Promise.all([
+        fetch(`${API_URL}/api/community/groups/overview`, {
+          credentials: "include",
+        }),
+        fetch(`${API_URL}/api/community/groups?scope=joined&limit=40`, {
+          credentials: "include",
+        }),
+      ]);
+      const overviewData: CommunityGroupsOverviewResponse & { error?: string } =
+        await overviewRes.json().catch(() => ({
+          joinedGroups: [],
+          discoverGroups: [],
+          joinedCount: 0,
+          joinedGroupIds: [],
+        }));
+      const joinedData: { groups: CommunityGroup[]; error?: string } =
+        await joinedRes.json().catch(() => ({ groups: [] }));
+      if (!overviewRes.ok) {
+        throw new Error(overviewData.error || "Failed to load groups.");
+      }
+      if (!joinedRes.ok) {
+        throw new Error(joinedData.error || "Failed to load joined groups.");
+      }
+
+      setJoinedGroups(overviewData.joinedGroups || []);
+      setDiscoverGroups(overviewData.discoverGroups || []);
+      setComposerGroups(joinedData.groups || []);
+    } catch (err) {
+      setGroupError(err instanceof Error ? err.message : "Failed to load groups.");
+    } finally {
+      setGroupsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     void loadFeedPage();
   }, [loadFeedPage]);
@@ -103,6 +185,14 @@ export default function Community() {
   useEffect(() => {
     void loadMinePage();
   }, [loadMinePage]);
+
+  useEffect(() => {
+    void loadTrending();
+  }, [loadTrending]);
+
+  useEffect(() => {
+    void loadGroupsOverview();
+  }, [loadGroupsOverview]);
 
   const handleRefreshAfterSubmit = async () => {
     if (minePage !== 1) {
@@ -133,6 +223,67 @@ export default function Community() {
     } else {
       await loadFeedPage();
     }
+
+    await loadTrending();
+  };
+
+  const handlePostLikeChanged = async () => {
+    await loadTrending();
+  };
+
+  const handleToggleGroupMembership = async (group: CommunityGroup) => {
+    setBusyGroupId(group.id);
+    setGroupError("");
+    try {
+      const action = group.joined ? "leave" : "join";
+      const res = await fetch(
+        `${API_URL}/api/community/groups/${group.slug || group.id}/${action}`,
+        {
+          method: "POST",
+          credentials: "include",
+        },
+      );
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || `Failed to ${action} group.`);
+      }
+
+      await Promise.all([loadGroupsOverview(), loadFeedPage()]);
+    } catch (err) {
+      setGroupError(err instanceof Error ? err.message : "Failed to update group.");
+    } finally {
+      setBusyGroupId(null);
+    }
+  };
+
+  const handleCreateGroup = async (payload: {
+    name: string;
+    description: string;
+    topic: string;
+  }) => {
+    setIsCreatingGroup(true);
+    setCreateGroupError("");
+    try {
+      const res = await fetch(`${API_URL}/api/community/groups`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to create group.");
+      }
+
+      setIsCreateGroupOpen(false);
+      await loadGroupsOverview();
+    } catch (err) {
+      setCreateGroupError(
+        err instanceof Error ? err.message : "Failed to create group.",
+      );
+    } finally {
+      setIsCreatingGroup(false);
+    }
   };
 
   const feedRange = useMemo(() => {
@@ -159,6 +310,7 @@ export default function Community() {
             <PostComposer
               summary={summary}
               postingAccess={postingAccess}
+              availableGroups={composerGroups}
               onSubmitted={handleRefreshAfterSubmit}
             />
 
@@ -187,12 +339,6 @@ export default function Community() {
                   My Posts
                 </button>
               </div>
-
-              <span className="text-xs text-gray-500">
-                {activeTab === "feed"
-                  ? `${feedTotalPosts} published`
-                  : `${mineTotalPosts} submitted`}
-              </span>
             </div>
 
             {activeTab === "feed" ? (
@@ -223,6 +369,7 @@ export default function Community() {
                         index={index}
                         canDelete={Boolean(user?.id && post.author?.id === user.id)}
                         onDelete={handleDeleteOwnPost}
+                        onLikeChanged={handlePostLikeChanged}
                       />
                     ))}
                   </div>
@@ -267,6 +414,7 @@ export default function Community() {
                       index={index}
                       canDelete={Boolean(user?.id && post.author?.id === user.id)}
                       onDelete={handleDeleteOwnPost}
+                      onLikeChanged={handlePostLikeChanged}
                       showModerationStatus
                       preferCreatedTimestamp
                     />
@@ -291,11 +439,51 @@ export default function Community() {
 
           <aside className="hidden xl:block w-80 shrink-0">
             <div className="sticky top-6 space-y-4">
-              <TrendingWidget />
+              <TrendingWidget
+                posts={trendingPosts}
+                mode={trendingMode}
+                loading={trendingLoading}
+                error={trendingError}
+              />
+              {groupsLoading ? (
+                <div className="rounded-2xl bg-[#0c1728]/82 px-5 py-10 text-center text-sm text-gray-500 shadow-[0_18px_55px_rgba(0,0,0,0.22)]">
+                  Loading groups...
+                </div>
+              ) : (
+                <CommunityGroupsSidebarSection
+                  joinedGroups={joinedGroups}
+                  discoverGroups={discoverGroups}
+                  busyGroupId={busyGroupId}
+                  onToggleGroup={handleToggleGroupMembership}
+                  onOpenCreate={() => setIsCreateGroupOpen(true)}
+                />
+              )}
+              {groupError && (
+                <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                  {groupError}
+                </div>
+              )}
+              {!groupsLoading && joinedGroups.length === 0 && discoverGroups.length === 0 && (
+                <div className="rounded-2xl bg-[#0c1728]/82 px-5 py-5 text-sm text-gray-400 shadow-[0_18px_55px_rgba(0,0,0,0.22)]">
+                  No groups yet. Create the first one from here.
+                </div>
+              )}
             </div>
           </aside>
         </div>
       </main>
+
+      <CommunityGroupCreateModal
+        open={isCreateGroupOpen}
+        busy={isCreatingGroup}
+        error={createGroupError}
+        onClose={() => {
+          if (isCreatingGroup) return;
+          setIsCreateGroupOpen(false);
+          setCreateGroupError("");
+        }}
+        onSubmit={handleCreateGroup}
+      />
     </div>
   );
 }

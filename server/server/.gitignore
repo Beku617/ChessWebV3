@@ -1,0 +1,9 @@
+node_modules/
+.env
+.env.*
+uploads/bot-avatars/*
+uploads/community/*
+uploads/messages/*
+!uploads/bot-avatars/.gitkeep
+!uploads/community/.gitkeep
+!uploads/messages/.gitkeep

@@ -16,6 +16,7 @@ import { CommunityImageGrid } from "./CommunityImageGrid";
 import { Avatar } from "./CommunityUI";
 import {
   API_URL,
+  CommunityGroup,
   CommunityPostingAccess,
   CommunityShareableGameSummary,
   CommunityShareableGamesResponse,
@@ -50,6 +51,9 @@ interface ComposerSummary {
 interface PostComposerProps {
   summary?: ComposerSummary | null;
   postingAccess?: CommunityPostingAccess | null;
+  availableGroups?: CommunityGroup[];
+  defaultGroupId?: string | null;
+  lockGroupSelection?: boolean;
   onSubmitted?: () => void | Promise<void>;
 }
 
@@ -157,6 +161,9 @@ async function fetchGameDetail(gameId: string) {
 
 export function PostComposer({
   postingAccess,
+  availableGroups = [],
+  defaultGroupId = "",
+  lockGroupSelection = false,
   onSubmitted,
 }: PostComposerProps) {
   const { user } = useAuthStore();
@@ -177,6 +184,7 @@ export function PostComposer({
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedGroupId, setSelectedGroupId] = useState(String(defaultGroupId || ""));
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
@@ -267,6 +275,26 @@ export function PostComposer({
     };
   }, [gameSearch, isGamePickerOpen]);
 
+  useEffect(() => {
+    const nextDefault = String(defaultGroupId || "");
+    if (lockGroupSelection) {
+      setSelectedGroupId(nextDefault);
+      return;
+    }
+
+    if (nextDefault && !selectedGroupId) {
+      setSelectedGroupId(nextDefault);
+    }
+  }, [defaultGroupId, lockGroupSelection, selectedGroupId]);
+
+  useEffect(() => {
+    if (lockGroupSelection) return;
+    if (!selectedGroupId) return;
+    if (!availableGroups.some((group) => group.id === selectedGroupId)) {
+      setSelectedGroupId("");
+    }
+  }, [availableGroups, lockGroupSelection, selectedGroupId]);
+
   const remainingChars = MAX_CHARS - content.length;
   const isOverLimit = remainingChars < 0;
   const hasSelectedGame = Boolean(selectedGameSummary && selectedGame);
@@ -293,6 +321,7 @@ export function PostComposer({
   const openingLabel = selectedGameSummary
     ? getCommunityOpeningLabel(selectedGameSummary.eco, selectedGameSummary.event)
     : "";
+  const selectedGroup = availableGroups.find((group) => group.id === selectedGroupId) || null;
 
   const clearSelectedImages = () => {
     setSelectedImages((current) => {
@@ -412,6 +441,7 @@ export function PostComposer({
     clearSelectedGame();
     setGameSearch("");
     setIsGamePickerOpen(false);
+    setSelectedGroupId(String(defaultGroupId || ""));
   };
 
   const handleChooseGame = async (gameSummary: CommunityShareableGameSummary) => {
@@ -458,6 +488,9 @@ export function PostComposer({
         formData.append("gameId", selectedGameSummary.id);
       } else {
         formData.append("postType", "standard");
+      }
+      if (selectedGroupId) {
+        formData.append("groupId", selectedGroupId);
       }
       if (selectedVideoFile) {
         formData.append("media", selectedVideoFile);
@@ -846,6 +879,42 @@ export function PostComposer({
 
             <div className="mt-4 flex items-center justify-between border-t border-white/5 pt-3">
               <div className="flex flex-wrap items-center gap-2">
+                {(availableGroups.length > 0 || selectedGroupId) && (
+                  lockGroupSelection ? (
+                    <div className="inline-flex items-center gap-2 rounded-lg bg-teal-500/12 px-3.5 py-2 text-sm text-teal-100">
+                      <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-teal-200/70">
+                        Group
+                      </span>
+                      <span className="font-medium">
+                        {selectedGroup?.name || "Selected group"}
+                      </span>
+                    </div>
+                  ) : (
+                    <label className="inline-flex items-center gap-2 rounded-lg bg-white/[0.04] px-3 py-2 text-sm text-gray-300 transition-colors hover:bg-white/[0.08]">
+                      <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500">
+                        Group
+                      </span>
+                      <select
+                        value={selectedGroupId}
+                        onChange={(e) => setSelectedGroupId(e.target.value)}
+                        className="min-w-[150px] bg-transparent text-sm text-gray-200 focus:outline-none"
+                      >
+                        <option value="" className="bg-[#0d192c] text-white">
+                          General community
+                        </option>
+                        {availableGroups.map((group) => (
+                          <option
+                            key={group.id}
+                            value={group.id}
+                            className="bg-[#0d192c] text-white"
+                          >
+                            {group.name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  )
+                )}
                 <button
                   type="button"
                   disabled={isSubmissionBlocked}

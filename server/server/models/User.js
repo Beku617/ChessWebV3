@@ -73,6 +73,12 @@ const UserSchema = new mongoose.Schema(
       default: "",
       trim: true,
     },
+    communityJoinedGroupIds: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "CommunityGroup",
+      default: [],
+      index: true,
+    },
   },
   { timestamps: true },
 );
@@ -83,6 +89,7 @@ UserSchema.index({ rapidRating: -1 });
 UserSchema.index({ classicalRating: -1 });
 UserSchema.index({ communityPostingRestrictedForever: 1 });
 UserSchema.index({ communityPostingRestrictedUntil: 1 });
+UserSchema.index({ communityJoinedGroupIds: 1 });
 
 const User = mongoose.models.User || mongoose.model("User", UserSchema);
 

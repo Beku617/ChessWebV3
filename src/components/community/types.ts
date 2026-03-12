@@ -18,6 +18,31 @@ export interface CommunityMediaItem {
   size: number;
 }
 
+export interface CommunityGroupCreator {
+  id: string;
+  fullName: string;
+  avatar?: string;
+}
+
+export interface CommunityGroup {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  topic: string;
+  visibility: "public";
+  avatarUrl: string;
+  coverUrl: string;
+  memberCount: number;
+  createdAt: string | null;
+  updatedAt?: string | null;
+  creator: CommunityGroupCreator | null;
+  joined: boolean;
+  isCreator: boolean;
+  approvedPostCount?: number;
+  totalPostCount?: number;
+}
+
 export type CommunityPostType = "standard" | "game";
 export type CommunityPerspectiveResult = "win" | "loss" | "draw" | "unknown";
 
@@ -95,9 +120,12 @@ export interface CommunityPost {
   mediaOriginalName: string;
   mediaSize: number;
   mediaItems: CommunityMediaItem[];
+  group: CommunityGroup | null;
   game: CommunitySharedGame | null;
   status: "pending" | "approved" | "rejected" | "removed";
   rejectionReason?: string;
+  likeCount: number;
+  likedByMe: boolean;
   author: CommunityAuthor | null;
   createdAt: string | null;
   updatedAt?: string | null;
@@ -108,6 +136,7 @@ export interface CommunityPost {
 export interface CommunityFeedResponse {
   posts: CommunityPost[];
   total: number;
+  feedMode?: "group_weighted" | "general";
   pagination: {
     page: number;
     limit: number;
@@ -137,6 +166,39 @@ export interface CommunityMineResponse {
 export interface CommunityShareableGamesResponse {
   games: CommunityShareableGameSummary[];
   total: number;
+}
+
+export interface CommunityGroupsOverviewResponse {
+  joinedGroups: CommunityGroup[];
+  discoverGroups: CommunityGroup[];
+  joinedCount: number;
+  joinedGroupIds: string[];
+}
+
+export interface CommunityGroupsListResponse {
+  groups: CommunityGroup[];
+  total: number;
+}
+
+export interface CommunityGroupDetailResponse {
+  group: CommunityGroup | null;
+}
+
+export interface CommunityGroupPostsResponse {
+  group: CommunityGroup | null;
+  posts: CommunityPost[];
+  total: number;
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+}
+
+export interface CommunityTrendingResponse {
+  posts: CommunityPost[];
+  mode: "likes" | "latest";
 }
 
 export function resolveAssetUrl(url?: string | null): string {
@@ -192,6 +254,31 @@ export function formatFileSize(bytes?: number | null): string {
   if (value >= 1024 * 1024) return `${(value / (1024 * 1024)).toFixed(1)} MB`;
   if (value >= 1024) return `${Math.round(value / 1024)} KB`;
   return `${value} B`;
+}
+
+export function summarizeCommunityPost(post?: CommunityPost | null): string {
+  const text = String(post?.text || "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (text) {
+    return text.length > 78 ? `${text.slice(0, 75).trimEnd()}...` : text;
+  }
+
+  if (post?.postType === "game") {
+    return "Shared game";
+  }
+
+  if (post?.mediaType === "video") {
+    return "Video post";
+  }
+
+  if (post?.mediaType === "image") {
+    const count = Array.isArray(post.mediaItems) ? post.mediaItems.length : 0;
+    return count > 1 ? "Image set" : "Image post";
+  }
+
+  return "Community post";
 }
 
 export function getCommunityMediaItems(post?: Pick<

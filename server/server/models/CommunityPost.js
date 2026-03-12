@@ -128,6 +128,12 @@ const CommunityPostSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    groupId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "CommunityGroup",
+      default: null,
+      index: true,
+    },
     postType: {
       type: String,
       enum: ["standard", "game"],
@@ -173,6 +179,12 @@ const CommunityPostSchema = new mongoose.Schema(
       type: CommunityGameSnapshotSchema,
       default: null,
     },
+    likeCount: {
+      type: Number,
+      default: 0,
+      min: 0,
+      index: true,
+    },
     status: {
       type: String,
       enum: ["pending", "approved", "rejected", "removed"],
@@ -210,6 +222,7 @@ const CommunityPostSchema = new mongoose.Schema(
 );
 
 CommunityPostSchema.index({ status: 1, approvedAt: -1, createdAt: -1 });
+CommunityPostSchema.index({ status: 1, likeCount: -1, createdAt: -1 });
 CommunityPostSchema.index({ authorId: 1, createdAt: -1 });
 CommunityPostSchema.index({ postType: 1, status: 1, approvedAt: -1, createdAt: -1 });
 

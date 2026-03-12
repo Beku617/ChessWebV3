@@ -3,6 +3,7 @@
    ═══════════════════════════════════════════════════════ */
 import {
   TrendingUp,
+  Heart,
   Tv,
   Crown,
   Puzzle,
@@ -15,6 +16,7 @@ import {
   Flame,
   ShieldCheck,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import {
   SidebarCard,
   Avatar,
@@ -24,44 +26,111 @@ import {
   formatCount,
 } from "./CommunityUI";
 import {
-  TRENDING_TOPICS,
   LIVE_GAMES,
   TOP_PLAYERS_ONLINE,
   PUZZLE_LEADERBOARD,
   SUGGESTED_USERS,
   UPCOMING_EVENTS,
 } from "../../data/communityData";
+import {
+  CommunityPost,
+  formatRelativeTime,
+  summarizeCommunityPost,
+} from "./types";
 import { useTranslation } from "react-i18next";
 
 /* ─── Trending Topics ─── */
-export function TrendingWidget() {
+interface TrendingWidgetProps {
+  posts?: CommunityPost[];
+  mode?: "likes" | "latest";
+  loading?: boolean;
+  error?: string;
+}
+
+export function TrendingWidget({
+  posts = [],
+  mode = "latest",
+  loading = false,
+  error = "",
+}: TrendingWidgetProps) {
   const { t } = useTranslation();
-  const topics = TRENDING_TOPICS.slice(0, 3);
   return (
     <SidebarCard
       title={t("Trending in chess")}
       icon={<TrendingUp className="w-4 h-4 text-orange-400" />}
+      action={
+        <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gray-500">
+          {mode === "likes" ? "Most liked" : "Fresh picks"}
+        </span>
+      }
     >
-      <div className="space-y-1">
-        {topics.map((topic) => (
-          <button
-            key={topic.tag}
-            className="w-full flex items-start justify-between rounded-xl px-3 py-2 hover:bg-white/[0.04] transition-all duration-150 text-left group"
-          >
-            <div>
-              <div className="text-[10px] uppercase tracking-[0.18em] text-gray-500 font-medium">
-                {topic.category}
-              </div>
-              <div className="mt-0.5 text-sm font-semibold text-gray-100 group-hover:text-teal-300 transition-colors">
-                {topic.tag}
-              </div>
-              <div className="text-[11px] text-gray-500 mt-0.5">
-                {topic.posts} {t("posts")}
-              </div>
-            </div>
-          </button>
-        ))}
-      </div>
+      {loading ? (
+        <div className="space-y-2">
+          {Array.from({ length: 3 }, (_, index) => (
+            <div
+              key={`trending-skeleton-${index}`}
+              className="h-[74px] animate-pulse rounded-2xl bg-white/[0.05]"
+            />
+          ))}
+        </div>
+      ) : error ? (
+        <div className="rounded-2xl bg-red-500/10 px-4 py-4 text-sm text-red-200">
+          {error}
+        </div>
+      ) : posts.length === 0 ? (
+        <div className="rounded-2xl bg-white/[0.03] px-4 py-5 text-sm leading-6 text-gray-400">
+          No approved posts yet.
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {posts.slice(0, 3).map((post, index) => {
+            const summary = summarizeCommunityPost(post);
+            const authorLabel = post.author?.fullName || "Chess Player";
+            const subline = [
+              `by ${authorLabel}`,
+              post.group?.name || "",
+              formatRelativeTime(post.createdAt),
+            ]
+              .filter(Boolean)
+              .join(" · ");
+            const showLikes = post.likeCount > 0 || mode === "likes";
+
+            return (
+              <Link
+                key={post.id}
+                to={`/community#post-${post.id}`}
+                className="flex items-start gap-3 rounded-2xl px-3 py-3 text-left transition-all duration-150 hover:bg-white/[0.04] group"
+              >
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/[0.05] text-[11px] font-semibold text-gray-300">
+                  #{index + 1}
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <div className="line-clamp-2 text-sm font-semibold leading-6 text-gray-100 transition-colors group-hover:text-teal-200">
+                    {summary}
+                  </div>
+                  <div className="mt-1 text-[11px] leading-5 text-gray-500">
+                    {subline}
+                  </div>
+                </div>
+
+                <div className="shrink-0">
+                  {showLikes ? (
+                    <div className="inline-flex items-center gap-1.5 rounded-full bg-teal-500/10 px-2.5 py-1 text-[11px] font-medium text-teal-100">
+                      <Heart className="h-3.5 w-3.5 fill-current opacity-75" />
+                      {formatCount(post.likeCount)}
+                    </div>
+                  ) : (
+                    <div className="rounded-full bg-white/[0.05] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-gray-400">
+                      New
+                    </div>
+                  )}
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      )}
     </SidebarCard>
   );
 }

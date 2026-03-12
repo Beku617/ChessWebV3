@@ -3,6 +3,7 @@ import path from "path";
 import crypto from "crypto";
 import multer from "multer";
 import { fileURLToPath } from "url";
+import { normalizeCommunityGroup } from "./communityGroups.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -281,6 +282,7 @@ export function buildCommunitySubmissionFingerprint({
   files,
   postType = "standard",
   gameId = "",
+  groupId = "",
 }) {
   const normalizedText = String(text || "").trim().replace(/\s+/g, " ");
   const normalizedFiles = normalizeCommunityFiles(files);
@@ -301,6 +303,7 @@ export function buildCommunitySubmissionFingerprint({
     normalizedText,
     mediaType,
     String(gameId || "").trim(),
+    String(groupId || "").trim(),
     mediaSignature,
   ].join("|");
 
@@ -447,8 +450,9 @@ function normalizeCommunityGame(snapshot) {
   };
 }
 
-export function toCommunityPostDTO(postDoc) {
+export function toCommunityPostDTO(postDoc, options = {}) {
   if (!postDoc) return null;
+  const likedPostIds = options?.likedPostIds instanceof Set ? options.likedPostIds : null;
   const mediaItems = normalizeCommunityMediaItems(postDoc);
   const primaryMedia = mediaItems[0] || null;
   const primaryMediaSize = mediaItems.reduce(
@@ -473,9 +477,12 @@ export function toCommunityPostDTO(postDoc) {
       postDoc.mediaOriginalName || primaryMedia?.originalName || "",
     mediaSize: Number(postDoc.mediaSize || primaryMediaSize || 0),
     mediaItems,
+    group: normalizeCommunityGroup(postDoc.groupId),
     game: normalizeCommunityGame(postDoc.gameSnapshot),
     status: postDoc.status || "pending",
     rejectionReason: postDoc.rejectionReason || "",
+    likeCount: Math.max(0, Number(postDoc.likeCount || 0)),
+    likedByMe: likedPostIds ? likedPostIds.has(String(postDoc._id)) : Boolean(postDoc.likedByMe),
     author: normalizeAuthor(postDoc.authorId),
     createdAt: postDoc.createdAt || null,
     updatedAt: postDoc.updatedAt || null,
