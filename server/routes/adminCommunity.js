@@ -4,6 +4,11 @@ import { Router } from "express";
 import { adminAuthMiddleware } from "../middleware/index.js";
 import { CommunityPost, User } from "../models/index.js";
 import {
+  buildCommunityGameSnapshot,
+  findShareableCommunityGameForUser,
+} from "../utils/communityGames.js";
+import {
+  buildCommunityMediaItems,
   COMMUNITY_MAX_POSTING_RESTRICTION_REASON_LENGTH,
   COMMUNITY_MAX_TEXT_LENGTH,
   COMMUNITY_POSTING_RESTRICTION_DURATIONS,
@@ -12,6 +17,8 @@ import {
   cleanupCommunityMedia,
   communityUploadsRoot,
   detectCommunityMediaType,
+  getCommunityMediaUrls,
+  normalizeCommunityPostType,
   toCommunityPostDTO,
   uploadCommunityMedia,
   validateCommunityMediaFile,
@@ -76,7 +83,15 @@ async function buildAdminCommunityQuery(rawQuery) {
     query.status = status;
   }
 
-  if (["image", "video", "none"].includes(mediaType)) {
+  if (mediaType === "game") {
+    query.postType = "game";
+  } else if (["image", "video", "none"].includes(mediaType)) {
+    query.$and = [
+      ...(Array.isArray(query.$and) ? query.$and : []),
+      {
+        $or: [{ postType: "standard" }, { postType: { $exists: false } }],
+      },
+    ];
     query.mediaType = mediaType;
   }
 
@@ -90,6 +105,13 @@ async function buildAdminCommunityQuery(rawQuery) {
     query.$or = [
       { text: regex },
       { mediaOriginalName: regex },
+      { "mediaItems.originalName": regex },
+      { "gameSnapshot.white": regex },
+      { "gameSnapshot.black": regex },
+      { "gameSnapshot.opponent": regex },
+      { "gameSnapshot.eco": regex },
+      { "gameSnapshot.event": regex },
+      { "gameSnapshot.timeControl": regex },
       ...(authorIds.length > 0 ? [{ authorId: { $in: authorIds } }] : []),
     ];
   }
@@ -322,37 +344,50 @@ router.patch(
 
 router.post("/", adminAuthMiddleware, uploadCommunityMedia, async (req, res) => {
   try {
+    const files = Array.isArray(req.files) ? req.files : [];
     const text =
       typeof req.body?.text === "string"
         ? req.body.text.trim()
         : typeof req.body?.content === "string"
           ? req.body.content.trim()
           : "";
-    const file = req.file || null;
     const status = normalizeStatus(req.body?.status, "approved");
     const rejectionReason = String(req.body?.rejectionReason || "").trim();
+    const postType = normalizeCommunityPostType(req.body?.postType, "standard");
+    const gameId = String(req.body?.gameId || "").trim();
 
     if (text.length > COMMUNITY_MAX_TEXT_LENGTH) {
-      await cleanupCommunityMedia(file);
+      await cleanupCommunityMedia(files);
       return res.status(400).json({
         error: `Post text is too long (${COMMUNITY_MAX_TEXT_LENGTH} characters max).`,
       });
     }
 
     if (rejectionReason.length > COMMUNITY_MAX_REJECTION_REASON_LENGTH) {
-      await cleanupCommunityMedia(file);
+      await cleanupCommunityMedia(files);
       return res.status(400).json({
         error: `Rejection reason is too long (${COMMUNITY_MAX_REJECTION_REASON_LENGTH} characters max).`,
       });
     }
 
-    const fileError = validateCommunityMediaFile(file);
+    const fileError = validateCommunityMediaFile(files);
     if (fileError) {
-      await cleanupCommunityMedia(file);
+      await cleanupCommunityMedia(files);
       return res.status(400).json({ error: fileError });
     }
 
-    if (!text && !file) {
+    if (postType === "game" && files.length > 0) {
+      await cleanupCommunityMedia(files);
+      return res.status(400).json({
+        error: "Game posts currently support a caption and one shared game only.",
+      });
+    }
+
+    if (postType === "game" && !gameId) {
+      return res.status(400).json({ error: "A valid gameId is required for game posts." });
+    }
+
+    if (postType === "standard" && !text && files.length === 0) {
       return res
         .status(400)
         .json({ error: "Post must include text, an image, or a video." });
@@ -360,7 +395,7 @@ router.post("/", adminAuthMiddleware, uploadCommunityMedia, async (req, res) => 
 
     const authorId = await resolvePostAuthorId(req.body?.authorId, req.admin.email);
     if (!authorId) {
-      await cleanupCommunityMedia(file);
+      await cleanupCommunityMedia(files);
       return res.status(400).json({
         error:
           "No valid post author found. Provide a valid authorId or use an admin email linked to a user account.",
@@ -368,15 +403,40 @@ router.post("/", adminAuthMiddleware, uploadCommunityMedia, async (req, res) => 
     }
 
     const now = new Date();
-    const mediaType = detectCommunityMediaType(file);
+    let gameSnapshot = null;
+    if (postType === "game") {
+      const selectedGame = await findShareableCommunityGameForUser(authorId, gameId);
+      if (!selectedGame) {
+        return res.status(404).json({
+          error: "That game could not be found in the selected author's history.",
+        });
+      }
+
+      gameSnapshot = buildCommunityGameSnapshot(selectedGame);
+      if (!gameSnapshot || gameSnapshot.totalMoves <= 0) {
+        return res.status(400).json({
+          error: "This game does not have enough move data to be shared.",
+        });
+      }
+    }
+
+    const mediaItems = postType === "game" ? [] : buildCommunityMediaItems(files);
+    const primaryMedia = mediaItems[0] || null;
+    const mediaType = postType === "game" ? "none" : detectCommunityMediaType(files);
     const post = await CommunityPost.create({
       authorId,
+      postType,
       text,
+      mediaItems,
       mediaType,
-      mediaUrl: file ? `/uploads/community/${path.basename(file.filename)}` : "",
-      mediaMimeType: file?.mimetype || "",
-      mediaOriginalName: file?.originalname || "",
-      mediaSize: Number(file?.size || 0),
+      mediaUrl: primaryMedia?.url || "",
+      mediaMimeType: primaryMedia?.mimeType || "",
+      mediaOriginalName: primaryMedia?.originalName || "",
+      mediaSize: mediaItems.reduce(
+        (total, item) => total + Number(item?.size || 0),
+        0,
+      ),
+      gameSnapshot,
       status,
       reviewedAt: now,
       reviewedBy: req.admin.adminId,
@@ -407,7 +467,7 @@ router.post("/", adminAuthMiddleware, uploadCommunityMedia, async (req, res) => 
     });
   } catch (err) {
     console.error("Create admin community post error:", err);
-    await cleanupCommunityMedia(req.file);
+    await cleanupCommunityMedia(req.files);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -521,14 +581,15 @@ router.patch("/:postId/reject", adminAuthMiddleware, async (req, res) => {
 router.patch("/:postId", adminAuthMiddleware, uploadCommunityMedia, async (req, res) => {
   try {
     const { postId } = req.params;
+    const files = Array.isArray(req.files) ? req.files : [];
     if (!isValidObjectId(postId)) {
-      await cleanupCommunityMedia(req.file);
+      await cleanupCommunityMedia(files);
       return res.status(400).json({ error: "Invalid post id" });
     }
 
     const existing = await CommunityPost.findById(postId).lean();
     if (!existing) {
-      await cleanupCommunityMedia(req.file);
+      await cleanupCommunityMedia(files);
       return res.status(404).json({ error: "Post not found" });
     }
 
@@ -542,16 +603,15 @@ router.patch("/:postId", adminAuthMiddleware, uploadCommunityMedia, async (req, 
       nextTextRaw === null ? existing.text || "" : String(nextTextRaw || "").trim();
 
     if (nextText.length > COMMUNITY_MAX_TEXT_LENGTH) {
-      await cleanupCommunityMedia(req.file);
+      await cleanupCommunityMedia(files);
       return res.status(400).json({
         error: `Post text is too long (${COMMUNITY_MAX_TEXT_LENGTH} characters max).`,
       });
     }
 
-    const file = req.file || null;
-    const fileError = validateCommunityMediaFile(file);
+    const fileError = validateCommunityMediaFile(files);
     if (fileError) {
-      await cleanupCommunityMedia(file);
+      await cleanupCommunityMedia(files);
       return res.status(400).json({ error: fileError });
     }
 
@@ -564,7 +624,7 @@ router.patch("/:postId", adminAuthMiddleware, uploadCommunityMedia, async (req, 
     ).trim();
 
     if (rejectionReason.length > COMMUNITY_MAX_REJECTION_REASON_LENGTH) {
-      await cleanupCommunityMedia(file);
+      await cleanupCommunityMedia(files);
       return res.status(400).json({
         error: `Rejection reason is too long (${COMMUNITY_MAX_REJECTION_REASON_LENGTH} characters max).`,
       });
@@ -574,7 +634,7 @@ router.patch("/:postId", adminAuthMiddleware, uploadCommunityMedia, async (req, 
     if (req.body?.authorId !== undefined) {
       const resolved = await resolvePostAuthorId(req.body.authorId, req.admin.email);
       if (!resolved) {
-        await cleanupCommunityMedia(file);
+        await cleanupCommunityMedia(files);
         return res.status(400).json({ error: "Invalid authorId." });
       }
       nextAuthorId = resolved;
@@ -590,32 +650,50 @@ router.patch("/:postId", adminAuthMiddleware, uploadCommunityMedia, async (req, 
       rejectionReason: nextStatus === "rejected" ? rejectionReason : "",
     };
 
-    let previousMediaUrl = "";
-    const hasExistingMedia = existing.mediaType !== "none" && !!existing.mediaUrl;
-    if (file) {
-      update.mediaType = detectCommunityMediaType(file);
-      update.mediaUrl = `/uploads/community/${path.basename(file.filename)}`;
-      update.mediaMimeType = file.mimetype || "";
-      update.mediaOriginalName = file.originalname || "";
-      update.mediaSize = Number(file.size || 0);
-      previousMediaUrl = existing.mediaUrl || "";
+    const existingPostType = normalizeCommunityPostType(
+      existing.postType,
+      existing.gameSnapshot ? "game" : "standard",
+    );
+    if (existingPostType === "game" && (files.length > 0 || removeMedia)) {
+      await cleanupCommunityMedia(files);
+      return res.status(400).json({
+        error: "Game posts cannot be edited with image or video attachments.",
+      });
+    }
+
+    let previousMediaUrls = [];
+    const hasExistingMedia = getCommunityMediaUrls(existing).length > 0;
+    if (files.length > 0) {
+      const mediaItems = buildCommunityMediaItems(files);
+      const primaryMedia = mediaItems[0] || null;
+      update.mediaItems = mediaItems;
+      update.mediaType = detectCommunityMediaType(files);
+      update.mediaUrl = primaryMedia?.url || "";
+      update.mediaMimeType = primaryMedia?.mimeType || "";
+      update.mediaOriginalName = primaryMedia?.originalName || "";
+      update.mediaSize = mediaItems.reduce(
+        (total, item) => total + Number(item?.size || 0),
+        0,
+      );
+      previousMediaUrls = getCommunityMediaUrls(existing);
     } else if (removeMedia && hasExistingMedia) {
+      update.mediaItems = [];
       update.mediaType = "none";
       update.mediaUrl = "";
       update.mediaMimeType = "";
       update.mediaOriginalName = "";
       update.mediaSize = 0;
-      previousMediaUrl = existing.mediaUrl || "";
+      previousMediaUrls = getCommunityMediaUrls(existing);
     }
 
-    const resultingMediaType = file
+    const resultingMediaType = files.length > 0
       ? update.mediaType
       : removeMedia
         ? "none"
         : existing.mediaType || "none";
     const resultingText = update.text || "";
-    if (!resultingText && resultingMediaType === "none") {
-      await cleanupCommunityMedia(file);
+    if (existingPostType === "standard" && !resultingText && resultingMediaType === "none") {
+      await cleanupCommunityMedia(files);
       return res
         .status(400)
         .json({ error: "Post must include text, an image, or a video." });
@@ -626,8 +704,8 @@ router.patch("/:postId", adminAuthMiddleware, uploadCommunityMedia, async (req, 
       .populate("reviewedBy", "username email")
       .lean();
 
-    if (previousMediaUrl) {
-      await cleanupMediaByUrl(previousMediaUrl);
+    if (previousMediaUrls.length > 0) {
+      await Promise.all(previousMediaUrls.map((url) => cleanupMediaByUrl(url)));
     }
 
     res.json({
@@ -647,7 +725,7 @@ router.patch("/:postId", adminAuthMiddleware, uploadCommunityMedia, async (req, 
     });
   } catch (err) {
     console.error("Update admin community post error:", err);
-    await cleanupCommunityMedia(req.file);
+    await cleanupCommunityMedia(req.files);
     res.status(500).json({ error: "Server error" });
   }
 });
@@ -664,7 +742,7 @@ router.delete("/:postId", adminAuthMiddleware, async (req, res) => {
       return res.status(404).json({ error: "Post not found" });
     }
 
-    await cleanupMediaByUrl(post.mediaUrl || "");
+    await Promise.all(getCommunityMediaUrls(post).map((url) => cleanupMediaByUrl(url)));
 
     res.json({ message: "Post deleted.", success: true });
   } catch (err) {

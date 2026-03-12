@@ -27,6 +27,8 @@ export const COMMUNITY_ALLOWED_VIDEO_TYPES = new Set([
 export const COMMUNITY_MAX_TEXT_LENGTH = 1200;
 export const COMMUNITY_MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 export const COMMUNITY_MAX_VIDEO_BYTES = 50 * 1024 * 1024;
+export const COMMUNITY_MAX_IMAGE_COUNT = 10;
+export const COMMUNITY_MAX_TOTAL_IMAGE_BYTES = 40 * 1024 * 1024;
 export const COMMUNITY_MAX_REJECTION_REASON_LENGTH = 300;
 export const COMMUNITY_MAX_POSTING_RESTRICTION_REASON_LENGTH = 300;
 export const COMMUNITY_DUPLICATE_WINDOW_MS = 15 * 1000;
@@ -60,7 +62,7 @@ const upload = multer({
   storage,
   limits: {
     fileSize: COMMUNITY_MAX_VIDEO_BYTES,
-    files: 1,
+    files: COMMUNITY_MAX_IMAGE_COUNT,
   },
   fileFilter: (_req, file, cb) => {
     if (
@@ -80,69 +82,226 @@ const upload = multer({
 });
 
 export const uploadCommunityMedia = (req, res, next) =>
-  upload.single("media")(req, res, (err) => {
+  upload.array("media", COMMUNITY_MAX_IMAGE_COUNT)(req, res, (err) => {
     if (!err) {
       return next();
     }
-    const message =
+    let message =
       err instanceof multer.MulterError
         ? err.message || "Failed to upload media."
         : "Failed to upload media.";
+
+    if (err instanceof multer.MulterError) {
+      if (err.code === "LIMIT_FILE_COUNT") {
+        message = `You can upload up to ${COMMUNITY_MAX_IMAGE_COUNT} images per post.`;
+      } else if (
+        err.code === "LIMIT_UNEXPECTED_FILE" &&
+        err.message === "Unexpected field"
+      ) {
+        message = `You can upload up to ${COMMUNITY_MAX_IMAGE_COUNT} images per post.`;
+      } else if (err.code === "LIMIT_FILE_SIZE") {
+        message =
+          "One of the selected files is too large. Images must be 8MB or less, and videos must be 50MB or less.";
+      }
+    }
+
     return res.status(400).json({ error: message });
   });
 
-export async function cleanupCommunityMedia(file) {
-  if (!file?.path) return;
-  await fs.promises.unlink(file.path).catch(() => null);
+function normalizeCommunityFiles(input) {
+  if (!input) return [];
+  if (Array.isArray(input)) return input.filter(Boolean);
+  return [input].filter(Boolean);
 }
 
-export function detectCommunityMediaType(file) {
-  if (!file) return "none";
-  if (COMMUNITY_ALLOWED_VIDEO_TYPES.has(file.mimetype)) return "video";
+function detectCommunityMediaItemType(file) {
+  if (COMMUNITY_ALLOWED_VIDEO_TYPES.has(file?.mimetype)) return "video";
   return "image";
 }
 
-export function validateCommunityMediaFile(file) {
-  if (!file) return null;
+export async function cleanupCommunityMedia(input) {
+  const files = normalizeCommunityFiles(input);
+  if (files.length === 0) return;
 
-  if (
-    !COMMUNITY_ALLOWED_IMAGE_TYPES.has(file.mimetype) &&
-    !COMMUNITY_ALLOWED_VIDEO_TYPES.has(file.mimetype)
-  ) {
-    return "Unsupported file type.";
+  const seenPaths = new Set();
+  await Promise.all(
+    files.map(async (file) => {
+      if (!file?.path || seenPaths.has(file.path)) return;
+      seenPaths.add(file.path);
+      await fs.promises.unlink(file.path).catch(() => null);
+    }),
+  );
+}
+
+export function detectCommunityMediaType(input) {
+  const files = normalizeCommunityFiles(input);
+  if (files.length === 0) return "none";
+  if (files.some((file) => detectCommunityMediaItemType(file) === "video")) {
+    return "video";
+  }
+  return "image";
+}
+
+export function normalizeCommunityPostType(value, fallback = "standard") {
+  const normalized = String(value || "").trim().toLowerCase();
+  if (normalized === "game") return "game";
+  return fallback === "game" ? "game" : "standard";
+}
+
+export function validateCommunityMediaFile(input) {
+  const files = normalizeCommunityFiles(input);
+  if (files.length === 0) return null;
+
+  if (files.length > COMMUNITY_MAX_IMAGE_COUNT) {
+    return `You can upload up to ${COMMUNITY_MAX_IMAGE_COUNT} images per post.`;
   }
 
-  if (
-    COMMUNITY_ALLOWED_IMAGE_TYPES.has(file.mimetype) &&
-    Number(file.size || 0) > COMMUNITY_MAX_IMAGE_BYTES
-  ) {
-    return "Image is too large. Maximum size is 8MB.";
+  let imageCount = 0;
+  let videoCount = 0;
+  let totalImageBytes = 0;
+
+  for (const file of files) {
+    if (
+      !COMMUNITY_ALLOWED_IMAGE_TYPES.has(file.mimetype) &&
+      !COMMUNITY_ALLOWED_VIDEO_TYPES.has(file.mimetype)
+    ) {
+      return "Unsupported file type.";
+    }
+
+    if (COMMUNITY_ALLOWED_IMAGE_TYPES.has(file.mimetype)) {
+      imageCount += 1;
+      totalImageBytes += Number(file.size || 0);
+      if (Number(file.size || 0) > COMMUNITY_MAX_IMAGE_BYTES) {
+        return "One of the images is too large. Maximum size is 8MB.";
+      }
+      continue;
+    }
+
+    videoCount += 1;
+    if (Number(file.size || 0) > COMMUNITY_MAX_VIDEO_BYTES) {
+      return "Video is too large. Maximum size is 50MB.";
+    }
   }
 
-  if (
-    COMMUNITY_ALLOWED_VIDEO_TYPES.has(file.mimetype) &&
-    Number(file.size || 0) > COMMUNITY_MAX_VIDEO_BYTES
-  ) {
-    return "Video is too large. Maximum size is 50MB.";
+  if (videoCount > 1) {
+    return "Only one video can be attached to a post.";
+  }
+
+  if (videoCount > 0 && imageCount > 0) {
+    return "Please upload either images or one video, not both.";
+  }
+
+  if (imageCount > COMMUNITY_MAX_IMAGE_COUNT) {
+    return `You can upload up to ${COMMUNITY_MAX_IMAGE_COUNT} images per post.`;
+  }
+
+  if (totalImageBytes > COMMUNITY_MAX_TOTAL_IMAGE_BYTES) {
+    return "Selected images are too large together. Maximum total size is 40MB.";
   }
 
   return null;
 }
 
+export function buildCommunityMediaItems(input) {
+  const files = normalizeCommunityFiles(input);
+  return files.map((file) => ({
+    type: detectCommunityMediaItemType(file),
+    url: `/uploads/community/${path.basename(file.filename)}`,
+    mimeType: String(file.mimetype || ""),
+    originalName: String(file.originalname || ""),
+    size: Number(file.size || 0),
+  }));
+}
+
+function normalizeCommunityMediaItem(item) {
+  if (!item || typeof item !== "object") return null;
+  const type =
+    String(item.type || "").trim().toLowerCase() === "video"
+      ? "video"
+      : String(item.type || "").trim().toLowerCase() === "image"
+        ? "image"
+        : detectCommunityMediaItemType(item);
+  const url = String(item.url || "").trim();
+  if (!url) return null;
+  return {
+    type,
+    url,
+    mimeType: String(item.mimeType || item.mimetype || "").trim(),
+    originalName: String(item.originalName || item.originalname || "").trim(),
+    size: Number(item.size || 0),
+  };
+}
+
+export function normalizeCommunityMediaItems(postDoc) {
+  const fromItems = Array.isArray(postDoc?.mediaItems)
+    ? postDoc.mediaItems.map(normalizeCommunityMediaItem).filter(Boolean)
+    : [];
+  if (fromItems.length > 0) {
+    return fromItems;
+  }
+
+  const legacyType =
+    postDoc?.mediaType === "video"
+      ? "video"
+      : postDoc?.mediaType === "image"
+        ? "image"
+        : "";
+  const legacyUrl = String(postDoc?.mediaUrl || "").trim();
+  if (!legacyType || !legacyUrl) {
+    return [];
+  }
+
+  return [
+    {
+      type: legacyType,
+      url: legacyUrl,
+      mimeType: String(postDoc?.mediaMimeType || "").trim(),
+      originalName: String(postDoc?.mediaOriginalName || "").trim(),
+      size: Number(postDoc?.mediaSize || 0),
+    },
+  ];
+}
+
+export function getCommunityMediaUrls(postDoc) {
+  const urls = normalizeCommunityMediaItems(postDoc)
+    .map((item) => String(item.url || "").trim())
+    .filter(Boolean);
+
+  if (urls.length > 0) {
+    return [...new Set(urls)];
+  }
+
+  const legacyUrl = String(postDoc?.mediaUrl || "").trim();
+  return legacyUrl ? [legacyUrl] : [];
+}
+
 export function buildCommunitySubmissionFingerprint({
   authorId,
   text,
-  file,
+  files,
+  postType = "standard",
+  gameId = "",
 }) {
   const normalizedText = String(text || "").trim().replace(/\s+/g, " ");
-  const mediaType = detectCommunityMediaType(file);
+  const normalizedFiles = normalizeCommunityFiles(files);
+  const mediaType = detectCommunityMediaType(normalizedFiles);
+  const mediaSignature = normalizedFiles
+    .map((file) =>
+      [
+        detectCommunityMediaItemType(file),
+        String(file?.mimetype || ""),
+        String(file?.originalname || "").trim().toLowerCase(),
+        String(file?.size || 0),
+      ].join(":"),
+    )
+    .join("||");
   const signature = [
     String(authorId || ""),
+    normalizeCommunityPostType(postType),
     normalizedText,
     mediaType,
-    String(file?.mimetype || ""),
-    String(file?.originalname || "").trim().toLowerCase(),
-    String(file?.size || 0),
+    String(gameId || "").trim(),
+    mediaSignature,
   ].join("|");
 
   return crypto.createHash("sha1").update(signature).digest("hex");
@@ -253,16 +412,68 @@ function normalizeAuthor(author) {
   };
 }
 
+function normalizeCommunityGame(snapshot) {
+  if (!snapshot || typeof snapshot !== "object") return null;
+
+  const moves = Array.isArray(snapshot.moves)
+    ? snapshot.moves.map((move) => String(move || "").trim()).filter(Boolean)
+    : [];
+
+  return {
+    sourceGameId: String(snapshot.sourceGameId || ""),
+    variant:
+      String(snapshot.variant || "").trim().toLowerCase() === "chess960"
+        ? "chess960"
+        : "standard",
+    startingFen: String(snapshot.startingFen || ""),
+    currentPosition: String(snapshot.currentPosition || ""),
+    moves,
+    result: String(snapshot.result || "*"),
+    timeControl: String(snapshot.timeControl || ""),
+    eco: String(snapshot.eco || ""),
+    event: String(snapshot.event || "NeonGambit Game"),
+    white: String(snapshot.white || "White"),
+    black: String(snapshot.black || "Black"),
+    whiteElo: Number(snapshot.whiteElo || 1200),
+    blackElo: Number(snapshot.blackElo || 1200),
+    playAs:
+      String(snapshot.playAs || "").trim().toLowerCase() === "black"
+        ? "black"
+        : "white",
+    opponent: String(snapshot.opponent || "Opponent"),
+    rated: Boolean(snapshot.rated),
+    totalMoves: Number(snapshot.totalMoves || moves.length || 0),
+    playedAt: snapshot.playedAt || null,
+  };
+}
+
 export function toCommunityPostDTO(postDoc) {
   if (!postDoc) return null;
+  const mediaItems = normalizeCommunityMediaItems(postDoc);
+  const primaryMedia = mediaItems[0] || null;
+  const primaryMediaSize = mediaItems.reduce(
+    (total, item) => total + Number(item?.size || 0),
+    0,
+  );
+  const normalizedMediaType =
+    postDoc.mediaType === "image" || postDoc.mediaType === "video"
+      ? postDoc.mediaType
+      : primaryMedia?.type || "none";
   return {
     id: String(postDoc._id),
+    postType: normalizeCommunityPostType(
+      postDoc.postType,
+      postDoc.gameSnapshot ? "game" : "standard",
+    ),
     text: postDoc.text || "",
-    mediaType: postDoc.mediaType || "none",
-    mediaUrl: postDoc.mediaUrl || "",
-    mediaMimeType: postDoc.mediaMimeType || "",
-    mediaOriginalName: postDoc.mediaOriginalName || "",
-    mediaSize: Number(postDoc.mediaSize || 0),
+    mediaType: normalizedMediaType,
+    mediaUrl: postDoc.mediaUrl || primaryMedia?.url || "",
+    mediaMimeType: postDoc.mediaMimeType || primaryMedia?.mimeType || "",
+    mediaOriginalName:
+      postDoc.mediaOriginalName || primaryMedia?.originalName || "",
+    mediaSize: Number(postDoc.mediaSize || primaryMediaSize || 0),
+    mediaItems,
+    game: normalizeCommunityGame(postDoc.gameSnapshot),
     status: postDoc.status || "pending",
     rejectionReason: postDoc.rejectionReason || "",
     author: normalizeAuthor(postDoc.authorId),

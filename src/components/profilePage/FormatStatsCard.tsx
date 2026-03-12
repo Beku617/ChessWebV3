@@ -2,7 +2,6 @@ import { useMemo, type ComponentType } from "react";
 import {
   Area,
   AreaChart,
-  ResponsiveContainer,
   XAxis,
   YAxis,
 } from "recharts";
@@ -17,6 +16,7 @@ import {
 } from "lucide-react";
 import { useAuthStore } from "../../store/authStore";
 import { type RatingPool, type RatingTimelinePoint, useRatingTimeline } from "../../hooks/useRatingsData";
+import { useElementSize } from "../../hooks/useElementSize";
 
 const CARD_THEME: Record<
   RatingPool,
@@ -76,6 +76,66 @@ function buildSparkline(points: RatingTimelinePoint[], fallbackRating: number) {
 function ratingChange(points: RatingTimelinePoint[]) {
   if (points.length < 2) return 0;
   return points[points.length - 1].rating - points[0].rating;
+}
+
+interface FormatSparklineProps {
+  id: string;
+  data: Array<{ x: number; rating: number }>;
+  lineColor: string;
+  loading: boolean;
+}
+
+function FormatSparkline({
+  id,
+  data,
+  lineColor,
+  loading,
+}: FormatSparklineProps) {
+  const chart = useElementSize<HTMLDivElement>();
+
+  return (
+    <div
+      ref={chart.ref}
+      className="mt-3 h-14 w-full min-w-0 overflow-hidden rounded-lg bg-slate-900/45"
+    >
+      {loading || !chart.hasSize ? (
+        <div className="h-full w-full bg-gradient-to-r from-slate-700/20 via-slate-600/20 to-slate-700/20 animate-pulse" />
+      ) : (
+        <AreaChart
+          width={chart.width}
+          height={chart.height}
+          data={data}
+          margin={{ top: 4, right: 0, left: 0, bottom: 0 }}
+        >
+          <XAxis dataKey="x" hide />
+          <YAxis
+            hide
+            domain={[
+              (dataMin: number) => Math.floor(dataMin - 10),
+              (dataMax: number) => Math.ceil(dataMax + 10),
+            ]}
+          />
+          <defs>
+            <linearGradient id={`poolFill-${id}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={lineColor} stopOpacity={0.24} />
+              <stop offset="100%" stopColor={lineColor} stopOpacity={0.03} />
+            </linearGradient>
+          </defs>
+          <Area
+            type="monotone"
+            dataKey="rating"
+            stroke={lineColor}
+            strokeWidth={2.5}
+            fill={`url(#poolFill-${id})`}
+            dot={false}
+            activeDot={false}
+            isAnimationActive
+            animationDuration={700}
+          />
+        </AreaChart>
+      )}
+    </div>
+  );
 }
 
 export function FormatStatsCard() {
@@ -141,7 +201,7 @@ export function FormatStatsCard() {
         {cards.map((format) => (
           <div
             key={format.id}
-            className="group rounded-2xl border border-white/10 bg-[linear-gradient(140deg,rgba(31,41,55,0.94),rgba(28,33,45,0.9))] p-4 shadow-[0_14px_30px_rgba(0,0,0,0.32)] hover:translate-y-[-1px] hover:shadow-[0_18px_38px_rgba(0,0,0,0.42)] transition-all"
+            className="group min-w-0 rounded-2xl border border-white/10 bg-[linear-gradient(140deg,rgba(31,41,55,0.94),rgba(28,33,45,0.9))] p-4 shadow-[0_14px_30px_rgba(0,0,0,0.32)] hover:translate-y-[-1px] hover:shadow-[0_18px_38px_rgba(0,0,0,0.42)] transition-all"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-start gap-3">
@@ -178,46 +238,12 @@ export function FormatStatsCard() {
               </div>
             </div>
 
-            <div className="mt-3 h-14 w-full rounded-lg bg-slate-900/45 overflow-hidden">
-              <div className="h-full w-full">
-                {format.loading ? (
-                  <div className="h-full w-full bg-gradient-to-r from-slate-700/20 via-slate-600/20 to-slate-700/20 animate-pulse" />
-                ) : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart
-                      data={format.sparkline}
-                      margin={{ top: 4, right: 0, left: 0, bottom: 0 }}
-                    >
-                      <XAxis dataKey="x" hide />
-                      <YAxis
-                        hide
-                        domain={[
-                          (dataMin: number) => Math.floor(dataMin - 10),
-                          (dataMax: number) => Math.ceil(dataMax + 10),
-                        ]}
-                      />
-                      <defs>
-                        <linearGradient id={`poolFill-${format.id}`} x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor={format.meta.lineColor} stopOpacity={0.24} />
-                          <stop offset="100%" stopColor={format.meta.lineColor} stopOpacity={0.03} />
-                        </linearGradient>
-                      </defs>
-                      <Area
-                        type="monotone"
-                        dataKey="rating"
-                        stroke={format.meta.lineColor}
-                        strokeWidth={2.5}
-                        fill={`url(#poolFill-${format.id})`}
-                        dot={false}
-                        activeDot={false}
-                        isAnimationActive
-                        animationDuration={700}
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                )}
-              </div>
-            </div>
+            <FormatSparkline
+              id={format.id}
+              data={format.sparkline}
+              lineColor={format.meta.lineColor}
+              loading={format.loading}
+            />
           </div>
         ))}
       </div>

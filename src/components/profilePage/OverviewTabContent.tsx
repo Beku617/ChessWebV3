@@ -30,11 +30,15 @@ export function OverviewTabContent({
       transition={{ duration: 0.3 }}
     >
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div className="lg:col-span-2">
+        <div className="min-w-0 lg:col-span-2">
           <FormatStatsCard />
         </div>
-        <RatingTimelineCard />
-        <PoolLeaderboardCard />
+        <div className="min-w-0">
+          <RatingTimelineCard />
+        </div>
+        <div className="min-w-0">
+          <PoolLeaderboardCard />
+        </div>
       </div>
 
       <RecentGames

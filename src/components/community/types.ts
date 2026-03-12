@@ -1,3 +1,6 @@
+import type { GameHistory } from "../../historyTypes";
+import { findOpeningByEco } from "../../utils/openingExplorer";
+
 export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 export interface CommunityAuthor {
@@ -5,6 +8,57 @@ export interface CommunityAuthor {
   fullName: string;
   avatar?: string;
   rating?: number;
+}
+
+export interface CommunityMediaItem {
+  type: "image" | "video";
+  url: string;
+  mimeType: string;
+  originalName: string;
+  size: number;
+}
+
+export type CommunityPostType = "standard" | "game";
+export type CommunityPerspectiveResult = "win" | "loss" | "draw" | "unknown";
+
+export interface CommunitySharedGame {
+  sourceGameId: string;
+  variant: "standard" | "chess960";
+  startingFen: string;
+  currentPosition: string;
+  moves: string[];
+  result: string;
+  timeControl: string;
+  eco: string;
+  event: string;
+  white: string;
+  black: string;
+  whiteElo: number;
+  blackElo: number;
+  playAs: "white" | "black";
+  opponent: string;
+  rated: boolean;
+  totalMoves: number;
+  playedAt: string | null;
+}
+
+export interface CommunityShareableGameSummary {
+  id: string;
+  opponent: string;
+  result: string;
+  perspectiveResult: CommunityPerspectiveResult;
+  playedAt: string | null;
+  timeControl: string;
+  eco: string;
+  event: string;
+  white: string;
+  black: string;
+  whiteElo: number;
+  blackElo: number;
+  playAs: "white" | "black";
+  rated: boolean;
+  totalMoves: number;
+  variant: "standard" | "chess960";
 }
 
 export interface CommunityPostingRestrictionState {
@@ -33,12 +87,15 @@ export interface CommunityPostingAccess {
 
 export interface CommunityPost {
   id: string;
+  postType: CommunityPostType;
   text: string;
   mediaType: "none" | "image" | "video";
   mediaUrl: string;
   mediaMimeType: string;
   mediaOriginalName: string;
   mediaSize: number;
+  mediaItems: CommunityMediaItem[];
+  game: CommunitySharedGame | null;
   status: "pending" | "approved" | "rejected" | "removed";
   rejectionReason?: string;
   author: CommunityAuthor | null;
@@ -75,6 +132,11 @@ export interface CommunityMineResponse {
     pages: number;
   };
   postingAccess: CommunityPostingAccess;
+}
+
+export interface CommunityShareableGamesResponse {
+  games: CommunityShareableGameSummary[];
+  total: number;
 }
 
 export function resolveAssetUrl(url?: string | null): string {
@@ -130,4 +192,143 @@ export function formatFileSize(bytes?: number | null): string {
   if (value >= 1024 * 1024) return `${(value / (1024 * 1024)).toFixed(1)} MB`;
   if (value >= 1024) return `${Math.round(value / 1024)} KB`;
   return `${value} B`;
+}
+
+export function getCommunityMediaItems(post?: Pick<
+  CommunityPost,
+  | "mediaItems"
+  | "mediaType"
+  | "mediaUrl"
+  | "mediaMimeType"
+  | "mediaOriginalName"
+  | "mediaSize"
+> | null): CommunityMediaItem[] {
+  const normalized = Array.isArray(post?.mediaItems)
+    ? post.mediaItems
+        .map((item) => ({
+          type: item?.type === "video" ? "video" : "image",
+          url: String(item?.url || ""),
+          mimeType: String(item?.mimeType || ""),
+          originalName: String(item?.originalName || ""),
+          size: Number(item?.size || 0),
+        }))
+        .filter((item) => item.url)
+    : [];
+
+  if (normalized.length > 0) {
+    return normalized;
+  }
+
+  const legacyType =
+    post?.mediaType === "video"
+      ? "video"
+      : post?.mediaType === "image"
+        ? "image"
+        : null;
+  const legacyUrl = String(post?.mediaUrl || "");
+
+  if (!legacyType || !legacyUrl) {
+    return [];
+  }
+
+  return [
+    {
+      type: legacyType,
+      url: legacyUrl,
+      mimeType: String(post?.mediaMimeType || ""),
+      originalName: String(post?.mediaOriginalName || ""),
+      size: Number(post?.mediaSize || 0),
+    },
+  ];
+}
+
+export function formatGamePlayedAt(value?: string | null): string {
+  if (!value) return "";
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return "";
+  return date.toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+export function formatCommunityTimeControl(value?: string | null): string {
+  const raw = String(value || "").trim();
+  if (!raw) return "Custom";
+  const normalized = raw.replace("|", "+");
+  const [initialRaw, incrementRaw = "0"] = normalized.split("+");
+  const initialSeconds = Number(initialRaw);
+  const incrementSeconds = Number(incrementRaw);
+  if (!Number.isFinite(initialSeconds) || !Number.isFinite(incrementSeconds)) {
+    return raw;
+  }
+
+  const baseMinutes = initialSeconds / 60;
+  const baseLabel = Number.isInteger(baseMinutes)
+    ? `${baseMinutes}`
+    : `${baseMinutes.toFixed(1)}`;
+  return `${baseLabel}+${Math.max(0, incrementSeconds)}`;
+}
+
+export function getCommunityOpeningLabel(
+  eco?: string | null,
+  event?: string | null,
+): string {
+  const opening = eco ? findOpeningByEco(eco) : null;
+  if (opening) {
+    return opening.variation
+      ? `${opening.name}: ${opening.variation}`
+      : opening.name;
+  }
+
+  const eventLabel = String(event || "").trim();
+  if (!eventLabel || /^neongambit game$/i.test(eventLabel)) {
+    return "";
+  }
+  return eventLabel;
+}
+
+export function formatCommunityPerspectiveResult(
+  value?: CommunityPerspectiveResult | null,
+): string {
+  if (value === "win") return "Won";
+  if (value === "loss") return "Lost";
+  if (value === "draw") return "Draw";
+  return "Result unavailable";
+}
+
+export function formatCommunityResult(result?: string | null): string {
+  const normalized = String(result || "").trim();
+  if (normalized === "1-0" || normalized === "0-1" || normalized === "1/2-1/2") {
+    return normalized;
+  }
+  return "Result unavailable";
+}
+
+export function communityGameFromHistory(game: GameHistory): CommunitySharedGame {
+  const playAs = game.playAs === "black" ? "black" : "white";
+  return {
+    sourceGameId: String(game._id || ""),
+    variant: game.variant === "chess960" ? "chess960" : "standard",
+    startingFen: String(game.startingFen || ""),
+    currentPosition: String(game.currentPosition || ""),
+    moves: Array.isArray(game.moves)
+      ? game.moves.map((move) => String(move || "").trim()).filter(Boolean)
+      : [],
+    result: String(game.result || "*"),
+    timeControl: String(game.timeControl || ""),
+    eco: String(game.eco || ""),
+    event: String(game.event || "NeonGambit Game"),
+    white: String(game.white || "White"),
+    black: String(game.black || "Black"),
+    whiteElo: Number(game.whiteElo || 1200),
+    blackElo: Number(game.blackElo || 1200),
+    playAs,
+    opponent: String(game.opponent || (playAs === "white" ? game.black : game.white) || "Opponent"),
+    rated: Boolean(game.rated),
+    totalMoves: Array.isArray(game.moves) ? game.moves.length : 0,
+    playedAt: game.createdAt || null,
+  };
 }

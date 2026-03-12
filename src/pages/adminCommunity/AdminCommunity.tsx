@@ -20,12 +20,18 @@ import {
   API_URL,
   CommunityPost,
   CommunityPostingRestrictionState,
+  formatCommunityResult,
+  formatCommunityTimeControl,
   formatFileSize,
   formatRelativeTime,
+  getCommunityMediaItems,
+  getCommunityOpeningLabel,
   getInitials,
   resolveAssetUrl,
 } from "../../components/community/types";
-import { Avatar, RatingPill } from "../../components/community/CommunityUI";
+import { Avatar } from "../../components/community/CommunityUI";
+import { CommunityGameViewer } from "../../components/community/CommunityGameViewer";
+import { CommunityImageGrid } from "../../components/community/CommunityImageGrid";
 
 type FilterOption = {
   value: string;
@@ -146,7 +152,26 @@ function statusClass(status: string) {
   if (status === "rejected") {
     return "bg-red-500/12 text-red-200";
   }
+  if (status === "removed") {
+    return "bg-gray-500/15 text-gray-300";
+  }
   return "bg-amber-500/12 text-amber-200";
+}
+
+function formatStatusLabel(status: string) {
+  if (!status) return "Pending";
+  return status.charAt(0).toUpperCase() + status.slice(1);
+}
+
+function formatAdminContentType(post: CommunityPost) {
+  if (post.postType === "game") return "Shared game";
+  const mediaItems = getCommunityMediaItems(post);
+  if (post.mediaType === "video") return "Video";
+  if (post.mediaType === "image" && mediaItems.length > 1) {
+    return `${mediaItems.length} images`;
+  }
+  if (post.mediaType === "image") return "Image";
+  return "Text only";
 }
 
 type RestrictionDuration = "none" | "1d" | "3d" | "7d" | "30d" | "forever";
@@ -210,9 +235,10 @@ export default function AdminCommunity() {
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(
     null,
   );
-  const [previewImage, setPreviewImage] = useState<{ src: string; alt: string } | null>(
-    null,
-  );
+  const [previewGallery, setPreviewGallery] = useState<{
+    items: { src: string; alt: string }[];
+    index: number;
+  } | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [createText, setCreateText] = useState("");
@@ -245,9 +271,32 @@ export default function AdminCommunity() {
   }, [authLoading, isAuthenticated, navigate]);
 
   useEffect(() => {
-    if (!previewImage) return;
+    if (!previewGallery) return;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setPreviewImage(null);
+      if (event.key === "Escape") {
+        setPreviewGallery(null);
+        return;
+      }
+
+      if (event.key === "ArrowRight" && previewGallery.items.length > 1) {
+        setPreviewGallery((current) => {
+          if (!current) return current;
+          return {
+            ...current,
+            index: (current.index + 1) % current.items.length,
+          };
+        });
+      }
+
+      if (event.key === "ArrowLeft" && previewGallery.items.length > 1) {
+        setPreviewGallery((current) => {
+          if (!current) return current;
+          return {
+            ...current,
+            index: (current.index - 1 + current.items.length) % current.items.length,
+          };
+        });
+      }
     };
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -256,7 +305,7 @@ export default function AdminCommunity() {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [previewImage]);
+  }, [previewGallery]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -665,10 +714,11 @@ export default function AdminCommunity() {
 
   const mediaOptions = useMemo<FilterOption[]>(
     () => [
-      { value: "", label: "All media" },
+      { value: "", label: "All content" },
       { value: "none", label: "Text only" },
       { value: "image", label: "Image" },
       { value: "video", label: "Video" },
+      { value: "game", label: "Shared game" },
     ],
     [],
   );
@@ -712,25 +762,68 @@ export default function AdminCommunity() {
         </div>
       )}
 
-      {previewImage && (
+      {previewGallery && (
         <div
           className="fixed inset-0 z-[130] bg-black/90 backdrop-blur-sm p-4 sm:p-8 flex items-center justify-center"
-          onClick={() => setPreviewImage(null)}
+          onClick={() => setPreviewGallery(null)}
         >
           <button
             type="button"
-            onClick={() => setPreviewImage(null)}
+            onClick={() => setPreviewGallery(null)}
             className="absolute top-4 right-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
             aria-label="Close image preview"
           >
             <X className="w-5 h-5" />
           </button>
           <img
-            src={previewImage.src}
-            alt={previewImage.alt}
+            src={previewGallery.items[previewGallery.index]?.src}
+            alt={previewGallery.items[previewGallery.index]?.alt}
             className="w-[94vw] h-[90vh] object-contain rounded-lg"
             onClick={(event) => event.stopPropagation()}
           />
+
+          {previewGallery.items.length > 1 && (
+            <div
+              className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/88 to-transparent px-4 pb-5 pt-12"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 text-xs text-gray-400">
+                <span>
+                  {previewGallery.index + 1} / {previewGallery.items.length}
+                </span>
+                <span>Use keyboard arrows to browse</span>
+              </div>
+              <div className="mx-auto mt-3 flex max-w-4xl gap-2 overflow-x-auto pb-1 premium-scrollbar">
+                {previewGallery.items.map((item, index) => (
+                  <button
+                    key={`${item.src}-${index}`}
+                    type="button"
+                    onClick={() =>
+                      setPreviewGallery((current) =>
+                        current
+                          ? {
+                              ...current,
+                              index,
+                            }
+                          : current,
+                      )
+                    }
+                    className={`h-14 w-14 shrink-0 overflow-hidden rounded-xl transition-all ${
+                      index === previewGallery.index
+                        ? "ring-2 ring-teal-400/60"
+                        : "opacity-70 hover:opacity-100"
+                    }`}
+                  >
+                    <img
+                      src={item.src}
+                      alt={item.alt}
+                      className="h-full w-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -781,7 +874,7 @@ export default function AdminCommunity() {
                       setSearch(e.target.value);
                       setPage(1);
                     }}
-                    placeholder="Search by author, caption, or file name..."
+                    placeholder="Search by author, caption, file name, or game info..."
                     className="w-full rounded-lg bg-white/[0.06] pl-11 pr-4 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
                   />
                 </div>
@@ -881,7 +974,19 @@ export default function AdminCommunity() {
               {posts.map((post) => {
                 const authorName = post.author?.fullName || "Chess Player";
                 const authorId = String(post.author?.id || "");
-                const mediaUrl = resolveAssetUrl(post.mediaUrl);
+                const mediaItems = getCommunityMediaItems(post);
+                const mediaUrl = resolveAssetUrl(mediaItems[0]?.url || post.mediaUrl);
+                const imageItems = mediaItems
+                  .filter((item) => item.type === "image")
+                  .map((item) => ({
+                    ...item,
+                    url: resolveAssetUrl(item.url),
+                  }));
+                const isGamePost = post.postType === "game";
+                const gameOpening = getCommunityOpeningLabel(
+                  post.game?.eco,
+                  post.game?.event,
+                );
                 const rejectionDraft = rejectionDrafts[post.id] || "";
                 const isBusy = processingId === post.id;
                 const showRejectBox = activeRejectId === post.id;
@@ -897,47 +1002,82 @@ export default function AdminCommunity() {
                 const isRestrictionBusy = restrictionProcessingUserId === authorId;
                 const isRateLimitBypassBusy =
                   rateLimitBypassProcessingUserId === authorId;
+                const contentTypeLabel = formatAdminContentType(post);
+                const reviewStatusLabel = formatStatusLabel(post.status);
+                const reviewStateLabel = post.reviewedAt
+                  ? `Reviewed ${formatRelativeTime(post.reviewedAt)}`
+                  : "Awaiting review";
+                const postingQuotaLabel = restrictionDraft?.unlimitedPosts
+                  ? "Unlimited posting"
+                  : "5 posts / 3 hours";
+                const showApproveAction = post.status !== "approved";
+                const showRejectAction = post.status !== "rejected";
+                const showSecondaryActionRow = !isEditing || showRejectBox || showRejectAction;
+                const secondaryActionGridClass =
+                  !isEditing && (showRejectBox || showRejectAction)
+                    ? "grid-cols-2"
+                    : "grid-cols-1";
 
                 return (
                   <article
                     key={post.id}
-                    className="group overflow-hidden rounded-xl bg-[#0c1728]/84 backdrop-blur-xl shadow-[0_18px_48px_rgba(0,0,0,0.22)]"
+                    className="group overflow-hidden rounded-[24px] border border-white/[0.05] bg-[#0c1728]/88 backdrop-blur-xl shadow-[0_22px_60px_rgba(0,0,0,0.24)]"
                   >
-                    <div className="grid xl:grid-cols-[minmax(0,1fr)_300px]">
-                      <div className="min-w-0">
-                        <div className="px-4 pt-4 pb-3">
-                          <div className="flex items-start gap-3">
+                    <div className="grid xl:grid-cols-[minmax(0,1fr)_340px]">
+                      <div className="min-w-0 px-5 py-5 sm:px-6 sm:py-6">
+                        <div className="flex flex-col gap-4">
+                          <div className="flex items-start justify-between gap-4 border-b border-white/[0.05] pb-4">
+                            <div className="flex items-center gap-3.5 min-w-0">
                             <Avatar
                               initials={getInitials(authorName)}
                               src={post.author?.avatar}
                               size="sm"
                             />
-                            <div className="min-w-0 flex-1">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <h3 className="text-sm font-semibold text-white">
+                            <div className="min-w-0">
+                                <h3 className="truncate text-[15px] font-semibold text-white">
                                   {authorName}
                                 </h3>
-                                <RatingPill rating={Number(post.author?.rating || 0)} />
+                              <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
+                                <span>Submitted {formatRelativeTime(post.createdAt)}</span>
+                                {post.updatedAt && (
+                                  <span>Updated {formatRelativeTime(post.updatedAt)}</span>
+                                )}
                               </div>
-                              <div className="mt-0.5 text-xs text-gray-500">
-                                Submitted {formatRelativeTime(post.createdAt)}
+                            </div>
+
+                            </div>
+
+                            <div className="shrink-0 text-right">
+                              <div className="text-[10px] uppercase tracking-[0.22em] text-gray-500">
+                                Preview
+                              </div>
+                              <div className="mt-1 text-xs text-gray-400">
+                                {contentTypeLabel}
                               </div>
                             </div>
                           </div>
 
                           {post.text && (
-                            <div className="mt-2.5 whitespace-pre-wrap text-sm leading-6 text-gray-200">
-                              {post.text}
+                            <div className="rounded-[18px] border border-white/[0.04] bg-white/[0.025] px-4 py-3.5">
+                              <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500">
+                                Caption
+                              </div>
+                              <div className="mt-2 whitespace-pre-wrap text-sm leading-6 text-gray-100/90">
+                                {post.text}
+                              </div>
                             </div>
                           )}
 
                           {isEditing && (
-                            <div className="mt-4 space-y-3 rounded-xl bg-white/[0.05] p-3">
+                            <div className="space-y-3 rounded-[18px] border border-white/[0.05] bg-[#091321]/78 p-4">
+                              <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500">
+                                Edit Submission
+                              </div>
                               <textarea
                                 value={editText}
                                 onChange={(e) => setEditText(e.target.value)}
                                 placeholder="Edit post text..."
-                                className="w-full min-h-[120px] rounded-lg bg-white/[0.06] px-3.5 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
+                                className="w-full min-h-[120px] rounded-xl bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
                               />
                               <div className="max-w-[220px]">
                                 <FilterDropdown
@@ -952,31 +1092,39 @@ export default function AdminCommunity() {
                                   value={editRejectionReason}
                                   onChange={(e) => setEditRejectionReason(e.target.value)}
                                   placeholder="Rejection reason"
-                                  className="w-full rounded-lg bg-white/[0.06] px-3.5 py-2.5 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
+                                  className="w-full rounded-xl bg-white/[0.05] px-4 py-2.5 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
                                 />
                               )}
-                              <input
-                                type="file"
-                                accept="image/png,image/jpeg,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
-                                onChange={(e) => setEditMediaFile(e.target.files?.[0] || null)}
-                                className="block w-full text-sm text-gray-300 file:mr-3 file:rounded-lg file:border-0 file:bg-white/[0.1] file:px-3 file:py-2 file:text-sm file:text-gray-100 hover:file:bg-white/[0.16]"
-                              />
-                              {post.mediaType !== "none" && (
-                                <label className="inline-flex items-center gap-2 text-xs text-gray-400">
+                              {isGamePost ? (
+                                <div className="rounded-xl bg-white/[0.04] px-4 py-3 text-sm leading-6 text-gray-400">
+                                  Shared game snapshot is locked for moderation edits. You can update the caption, status, and rejection reason here.
+                                </div>
+                              ) : (
+                                <>
                                   <input
-                                    type="checkbox"
-                                    checked={editRemoveMedia}
-                                    onChange={(e) => setEditRemoveMedia(e.target.checked)}
-                                    className="rounded border-white/20 bg-transparent text-teal-500 focus:ring-teal-500/30"
+                                    type="file"
+                                    accept="image/png,image/jpeg,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
+                                    onChange={(e) => setEditMediaFile(e.target.files?.[0] || null)}
+                                    className="block w-full text-sm text-gray-300 file:mr-3 file:rounded-xl file:border-0 file:bg-white/[0.1] file:px-3 file:py-2 file:text-sm file:text-gray-100 hover:file:bg-white/[0.16]"
                                   />
-                                  Remove existing media
-                                </label>
+                                  {post.mediaType !== "none" && (
+                                    <label className="inline-flex items-center gap-2 text-xs text-gray-400">
+                                      <input
+                                        type="checkbox"
+                                        checked={editRemoveMedia}
+                                        onChange={(e) => setEditRemoveMedia(e.target.checked)}
+                                        className="rounded border-white/20 bg-transparent text-teal-500 focus:ring-teal-500/30"
+                                      />
+                                      Remove existing media
+                                    </label>
+                                  )}
+                                </>
                               )}
                               <div className="flex items-center justify-end gap-2">
                                 <button
                                   type="button"
                                   onClick={cancelEditPost}
-                                  className="inline-flex items-center gap-2 rounded-lg bg-white/[0.08] px-3.5 py-2 text-sm text-gray-200 hover:bg-white/[0.14]"
+                                  className="inline-flex items-center gap-2 rounded-xl bg-white/[0.08] px-4 py-2.5 text-sm text-gray-200 hover:bg-white/[0.14]"
                                 >
                                   <X className="w-4 h-4" />
                                   Cancel
@@ -985,131 +1133,202 @@ export default function AdminCommunity() {
                                   type="button"
                                   disabled={isBusy}
                                   onClick={() => handleSaveEdit(post.id)}
-                                  className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-teal-500 disabled:opacity-50"
+                                  className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-500 disabled:opacity-50"
                                 >
                                   <Check className="w-4 h-4" />
-                                  Save
+                                  Save changes
                                 </button>
                               </div>
                             </div>
                           )}
                         </div>
 
-                        {post.mediaType !== "none" && mediaUrl && (
-                          <div className="px-4 pb-3">
-                            <div className="overflow-hidden rounded-[14px] bg-black/45">
+                          {isGamePost && (
+                            <div className="mt-4 rounded-[20px] bg-[#091321]/45 p-1.5">
+                              <CommunityGameViewer
+                                game={post.game}
+                                analyzeHref={
+                                  post.game?.sourceGameId
+                                    ? `/admin/analyze/${post.game.sourceGameId}`
+                                    : ""
+                                }
+                              />
+                            </div>
+                          )}
+
+                          {!isGamePost && post.mediaType !== "none" && mediaItems.length > 0 && (
+                            <div className="mt-4 rounded-[20px] border border-white/[0.04] bg-[#091321]/78 p-3">
                               {post.mediaType === "video" ? (
-                                <video
-                                  src={mediaUrl}
-                                  controls
-                                  playsInline
-                                  preload="metadata"
-                                  className="w-full max-h-[360px] bg-black object-contain"
-                                />
+                                <div className="overflow-hidden rounded-[16px] bg-black/55">
+                                  <video
+                                    src={mediaUrl}
+                                    controls
+                                    playsInline
+                                    preload="metadata"
+                                    className="w-full max-h-[420px] bg-black object-contain"
+                                  />
+                                </div>
+                              ) : imageItems.length === 1 ? (
+                                <div className="overflow-hidden rounded-[16px] bg-black/55">
+                                  <img
+                                    src={imageItems[0].url}
+                                    alt={imageItems[0].originalName || "Community post media"}
+                                    className="w-full max-h-[420px] object-contain bg-black cursor-zoom-in"
+                                    onClick={() =>
+                                      setPreviewGallery({
+                                        items: [
+                                          {
+                                            src: imageItems[0].url,
+                                            alt:
+                                              imageItems[0].originalName ||
+                                              "Community post media",
+                                          },
+                                        ],
+                                        index: 0,
+                                      })
+                                    }
+                                  />
+                                </div>
                               ) : (
-                                <img
-                                  src={mediaUrl}
-                                  alt={post.mediaOriginalName || "Community post media"}
-                                  className="w-full max-h-[360px] object-contain bg-black cursor-zoom-in"
-                                  onClick={() =>
-                                    setPreviewImage({
-                                      src: mediaUrl,
-                                      alt: post.mediaOriginalName || "Community post media",
-                                    })
-                                  }
-                                />
+                                <div className="rounded-[16px] bg-black/18 p-1.5">
+                                  <CommunityImageGrid
+                                    items={imageItems.map((item) => ({
+                                      url: item.url,
+                                      alt: item.originalName || "Community post image",
+                                    }))}
+                                    onImageClick={(index) => {
+                                      const galleryItems = imageItems.map((item) => ({
+                                        src: item.url,
+                                        alt: item.originalName || "Community post media",
+                                      }));
+                                      if (!galleryItems[index]) return;
+                                      setPreviewGallery({
+                                        items: galleryItems,
+                                        index,
+                                      });
+                                    }}
+                                  />
+                                </div>
+                              )}
+
+                              <div className="mt-3 flex items-center justify-between rounded-[14px] bg-white/[0.03] px-3.5 py-2.5 text-xs text-gray-500">
+                                <div className="inline-flex items-center gap-2">
+                                  {post.mediaType === "video" ? (
+                                    <>
+                                      <PlayCircle className="w-3.5 h-3.5 text-teal-300" />
+                                      <span>Video preview</span>
+                                    </>
+                                  ) : post.mediaType === "image" ? (
+                                    <>
+                                      <ImageIcon className="w-3.5 h-3.5 text-teal-300" />
+                                      <span>
+                                        {imageItems.length > 1
+                                          ? "Image set"
+                                          : "Image preview"}
+                                      </span>
+                                    </>
+                                  ) : (
+                                    <span>{contentTypeLabel}</span>
+                                  )}
+                                </div>
+                                {post.mediaType !== "none" && (
+                                  <span>
+                                    {imageItems.length > 1
+                                      ? `${imageItems.length} images`
+                                      : formatFileSize(post.mediaSize)}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                      </div>
+
+                      <aside className="border-t border-white/[0.05] bg-[linear-gradient(180deg,rgba(255,255,255,0.015),rgba(255,255,255,0.01))] px-5 py-5 xl:border-l xl:border-t-0 sm:px-6 sm:py-6">
+                        <div className="flex h-full flex-col">
+                          <div className="rounded-[20px] border border-white/[0.04] bg-white/[0.025] p-4">
+                            <div className="text-[10px] uppercase tracking-[0.22em] text-gray-500">
+                              Review
+                            </div>
+                            <div className="mt-3 flex items-start justify-between gap-3">
+                              <span
+                                className={`inline-flex items-center rounded-full px-3 py-1.5 text-xs font-semibold ${statusClass(
+                                  post.status,
+                                )}`}
+                              >
+                                {reviewStatusLabel}
+                              </span>
+                              <span className="text-xs text-right text-gray-500">
+                                {reviewStateLabel}
+                              </span>
+                            </div>
+
+                            <div className="mt-4 space-y-3 border-t border-white/[0.05] pt-4">
+                              <div className="flex items-center justify-between text-sm">
+                                <span className="text-gray-500">Content type</span>
+                                <span className="text-gray-100">{contentTypeLabel}</span>
+                              </div>
+                              {isGamePost && post.game && (
+                                <>
+                                  <div className="flex items-center justify-between gap-3 text-sm">
+                                    <span className="text-gray-500">Result</span>
+                                    <span className="text-right text-gray-200">
+                                      {formatCommunityResult(post.game.result)}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center justify-between gap-3 text-sm">
+                                    <span className="text-gray-500">Time control</span>
+                                    <span className="text-right text-gray-200">
+                                      {formatCommunityTimeControl(post.game.timeControl)}
+                                    </span>
+                                  </div>
+                                  {gameOpening && (
+                                    <div className="flex items-center justify-between gap-3 text-sm">
+                                      <span className="text-gray-500">Opening</span>
+                                      <span className="truncate text-right text-gray-200">
+                                        {gameOpening}
+                                      </span>
+                                    </div>
+                                  )}
+                                </>
+                              )}
+                              {post.reviewedBy && (
+                                <div className="flex items-center justify-between gap-3 text-sm">
+                                  <span className="text-gray-500">Reviewed by</span>
+                                  <span className="text-right text-gray-200">
+                                    {post.reviewedBy.username}
+                                  </span>
+                                </div>
                               )}
                             </div>
                           </div>
-                        )}
-
-                        <div className="flex items-center justify-between gap-4 px-4 pb-4 pt-1 text-xs text-gray-500">
-                          <div className="inline-flex items-center gap-2">
-                            {post.mediaType === "video" ? (
-                              <>
-                                <PlayCircle className="w-3.5 h-3.5 text-teal-300" />
-                                <span>Video</span>
-                              </>
-                            ) : post.mediaType === "image" ? (
-                              <>
-                                <ImageIcon className="w-3.5 h-3.5 text-teal-300" />
-                                <span>Image</span>
-                              </>
-                            ) : (
-                              <span>Text only</span>
-                            )}
-                          </div>
-                          {post.mediaType !== "none" && (
-                            <span>{formatFileSize(post.mediaSize)}</span>
-                          )}
-                        </div>
-                      </div>
-
-                      <aside className="bg-black/15 p-5 flex flex-col gap-4">
-                        <div className="flex items-start justify-between gap-3">
-                          <span
-                            className={`inline-flex items-center rounded-full px-3 py-1.5 text-xs font-semibold ${statusClass(
-                              post.status,
-                            )}`}
-                          >
-                            {post.status}
-                          </span>
-                          <span className="text-xs text-gray-500 text-right">
-                            {post.reviewedAt
-                              ? `Reviewed ${formatRelativeTime(post.reviewedAt)}`
-                              : "Awaiting review"}
-                          </span>
-                        </div>
-
-                        <div className="space-y-3 rounded-xl bg-white/[0.05] p-4">
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="text-gray-500 uppercase tracking-[0.16em] text-[11px]">
-                              Media
-                            </span>
-                            <span className="text-gray-200 capitalize">
-                              {post.mediaType === "none" ? "Text only" : post.mediaType}
-                            </span>
-                          </div>
-                          {post.reviewedBy && (
-                            <div className="flex items-center justify-between text-sm">
-                              <span className="text-gray-500 uppercase tracking-[0.16em] text-[11px]">
-                                Reviewed by
-                              </span>
-                              <span className="text-gray-200">
-                                {post.reviewedBy.username}
-                              </span>
-                            </div>
-                          )}
-                        </div>
 
                         {authorId && restrictionDraft && (
-                          <div className="space-y-3 rounded-xl bg-white/[0.05] p-4">
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="text-gray-500 uppercase tracking-[0.16em] text-[11px]">
-                                Posting access
-                              </span>
-                              <span
-                                className={`text-[11px] font-semibold ${
-                                  restriction?.active ? "text-amber-200" : "text-emerald-200"
-                                }`}
-                              >
-                                {formatRestrictionLabel(restriction)}
+                          <div className="mt-4 rounded-[20px] border border-white/[0.04] bg-white/[0.025] p-4">
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <div className="text-[10px] uppercase tracking-[0.22em] text-gray-500">
+                                  Posting access
+                                </div>
+                                <div className="mt-2 text-sm font-medium text-gray-100">
+                                  {formatRestrictionLabel(restriction)}
+                                </div>
+                              </div>
+                              <span className="rounded-full bg-white/[0.05] px-2.5 py-1 text-[11px] font-medium text-gray-400">
+                                {postingQuotaLabel}
                               </span>
                             </div>
 
-                            <div className="space-y-2.5">
-                              <div className="flex items-center justify-between rounded-lg bg-white/[0.06] px-3.5 py-2.5 text-xs">
-                                <span className="text-gray-300">Posting quota</span>
+                            <div className="mt-4 space-y-3 border-t border-white/[0.05] pt-4">
+                              <div className="flex items-center justify-between rounded-[14px] bg-black/10 px-3.5 py-2.5 text-xs">
+                                <span className="text-gray-400">Posting quota</span>
                                 <span
                                   className={`font-semibold ${
                                     restrictionDraft.unlimitedPosts
                                       ? "text-emerald-200"
-                                      : "text-gray-400"
+                                      : "text-gray-300"
                                   }`}
                                 >
-                                  {restrictionDraft.unlimitedPosts
-                                    ? "Unlimited enabled"
-                                    : "5 posts / 3 hours"}
+                                  {postingQuotaLabel}
                                 </span>
                               </div>
 
@@ -1122,10 +1341,10 @@ export default function AdminCommunity() {
                                     !restrictionDraft.unlimitedPosts,
                                   )
                                 }
-                                className={`w-full inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2.5 text-sm font-semibold transition-colors disabled:opacity-50 ${
+                                className={`w-full inline-flex items-center justify-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-colors disabled:opacity-50 ${
                                   restrictionDraft.unlimitedPosts
-                                    ? "bg-emerald-500/15 text-emerald-200 hover:bg-emerald-500/25"
-                                    : "bg-white/[0.08] text-gray-100 hover:bg-white/[0.14]"
+                                    ? "bg-emerald-500/14 text-emerald-200 hover:bg-emerald-500/22"
+                                    : "bg-white/[0.06] text-gray-100 hover:bg-white/[0.12]"
                                 }`}
                               >
                                 {isRateLimitBypassBusy
@@ -1154,10 +1373,10 @@ export default function AdminCommunity() {
                                   })
                                 }
                                 placeholder="Optional restriction reason..."
-                                className="w-full rounded-lg bg-white/[0.06] px-3.5 py-2.5 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
+                                className="w-full rounded-xl bg-white/[0.05] px-3.5 py-2.5 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
                               />
 
-                              <div className="flex items-center gap-2">
+                              <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2.5">
                                 <button
                                   type="button"
                                   disabled={isRestrictionBusy}
@@ -1168,7 +1387,7 @@ export default function AdminCommunity() {
                                       restrictionDraft.reason,
                                     )
                                   }
-                                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-white/[0.08] px-3.5 py-2.5 text-sm font-semibold text-gray-100 hover:bg-white/[0.14] disabled:opacity-50"
+                                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/[0.08] px-3.5 py-2.5 text-sm font-semibold text-gray-100 hover:bg-white/[0.14] disabled:opacity-50"
                                 >
                                   {isRestrictionBusy ? "Saving..." : "Apply restriction"}
                                 </button>
@@ -1184,7 +1403,7 @@ export default function AdminCommunity() {
                                       });
                                       void updatePostingRestriction(authorId, "none", "");
                                     }}
-                                    className="inline-flex items-center justify-center rounded-lg bg-emerald-500/15 px-3.5 py-2.5 text-sm font-semibold text-emerald-200 hover:bg-emerald-500/25 disabled:opacity-50"
+                                    className="inline-flex items-center justify-center rounded-xl bg-emerald-500/14 px-3.5 py-2.5 text-sm font-semibold text-emerald-200 hover:bg-emerald-500/22 disabled:opacity-50"
                                   >
                                     Clear
                                   </button>
@@ -1195,92 +1414,106 @@ export default function AdminCommunity() {
                         )}
 
                         {post.rejectionReason && (
-                          <div className="rounded-xl bg-red-500/10 px-4 py-3 text-sm text-red-200">
-                            <span className="font-semibold">Reason:</span>{" "}
-                            {post.rejectionReason}
+                          <div className="mt-4 rounded-[18px] bg-red-500/10 px-4 py-3.5 text-sm text-red-200">
+                            <div className="text-[10px] uppercase tracking-[0.2em] text-red-200/75">
+                              Rejection note
+                            </div>
+                            <div className="mt-2 leading-6">{post.rejectionReason}</div>
                           </div>
                         )}
 
-                        {showRejectBox && (
-                          <textarea
-                            value={rejectionDraft}
-                            onChange={(e) =>
-                              setRejectionDrafts((prev) => ({
-                                ...prev,
-                                [post.id]: e.target.value,
-                              }))
-                            }
-                            placeholder="Optional rejection reason..."
-                            className="w-full min-h-[110px] rounded-xl bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
-                          />
-                        )}
+                          <div className="mt-4 border-t border-white/[0.05] pt-4">
+                            <div className="text-[10px] uppercase tracking-[0.22em] text-gray-500">
+                              Review actions
+                            </div>
 
-                        <div className="mt-auto flex flex-col gap-2">
-                          {!isEditing && (
-                            <button
-                              type="button"
-                              disabled={isBusy}
-                              onClick={() => startEditPost(post)}
-                              className="inline-flex items-center justify-center gap-2 rounded-lg bg-white/[0.05] px-4 py-2.5 text-sm font-semibold text-gray-300 hover:bg-white/[0.1] disabled:opacity-50"
-                            >
-                              <Pencil className="w-4 h-4" />
-                              Edit
-                            </button>
-                          )}
+                            {showRejectBox && (
+                              <textarea
+                                value={rejectionDraft}
+                                onChange={(e) =>
+                                  setRejectionDrafts((prev) => ({
+                                    ...prev,
+                                    [post.id]: e.target.value,
+                                  }))
+                                }
+                                placeholder="Optional rejection reason..."
+                                className="mt-3 w-full min-h-[110px] rounded-[18px] bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
+                              />
+                            )}
 
-                          {post.status !== "approved" && (
-                            <button
-                              type="button"
-                              disabled={isBusy}
-                              onClick={() => handleApprove(post.id)}
-                              className="inline-flex items-center justify-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-500 disabled:opacity-50"
-                            >
-                              <Check className="w-4 h-4" />
-                              Approve
-                            </button>
-                          )}
+                            <div className="mt-3 space-y-2.5">
+                              {showApproveAction && (
+                                <button
+                                  type="button"
+                                  disabled={isBusy}
+                                  onClick={() => handleApprove(post.id)}
+                                  className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-teal-600 px-4 py-3 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(13,148,136,0.22)] hover:bg-teal-500 disabled:opacity-50"
+                                >
+                                  <Check className="w-4 h-4" />
+                                  Approve
+                                </button>
+                              )}
 
-                          {showRejectBox ? (
-                            <div className="flex gap-2">
+                              {showSecondaryActionRow && (
+                                <div className={`grid gap-2.5 ${secondaryActionGridClass}`}>
+                                  {!isEditing && (
+                                    <button
+                                      type="button"
+                                      disabled={isBusy}
+                                      onClick={() => startEditPost(post)}
+                                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/[0.05] px-4 py-2.5 text-sm font-semibold text-gray-200 hover:bg-white/[0.1] disabled:opacity-50"
+                                    >
+                                      <Pencil className="w-4 h-4" />
+                                      Edit
+                                    </button>
+                                  )}
+
+                                  {showRejectBox ? (
+                                    <button
+                                      type="button"
+                                      disabled={isBusy}
+                                      onClick={() => setActiveRejectId(null)}
+                                      className="inline-flex items-center justify-center rounded-xl bg-white/[0.05] px-4 py-2.5 text-sm font-semibold text-gray-300 hover:bg-white/[0.1] disabled:opacity-50"
+                                    >
+                                      Cancel
+                                    </button>
+                                  ) : showRejectAction ? (
+                                    <button
+                                      type="button"
+                                      disabled={isBusy}
+                                      onClick={() => setActiveRejectId(post.id)}
+                                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-red-500/10 px-4 py-2.5 text-sm font-semibold text-red-200 hover:bg-red-500/18 disabled:opacity-50"
+                                    >
+                                      <X className="w-4 h-4" />
+                                      Reject
+                                    </button>
+                                  ) : null}
+                                </div>
+                              )}
+
+                              {showRejectBox && (
+                                <button
+                                  type="button"
+                                  disabled={isBusy}
+                                  onClick={() => handleReject(post.id)}
+                                  className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-red-500/12 px-4 py-3 text-sm font-semibold text-red-200 hover:bg-red-500/20 disabled:opacity-50"
+                                >
+                                  <X className="w-4 h-4" />
+                                  Confirm reject
+                                </button>
+                              )}
+
                               <button
                                 type="button"
                                 disabled={isBusy}
-                                onClick={() => handleReject(post.id)}
-                                className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg bg-red-500/12 px-4 py-2.5 text-sm font-semibold text-red-200 hover:bg-red-500/20 disabled:opacity-50"
+                                onClick={() => handleDelete(post.id)}
+                                className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-white/[0.04] px-4 py-2.5 text-sm font-semibold text-gray-300 hover:bg-white/[0.08] disabled:opacity-50"
                               >
-                                <X className="w-4 h-4" />
-                                Confirm reject
-                              </button>
-                              <button
-                                type="button"
-                                disabled={isBusy}
-                                onClick={() => setActiveRejectId(null)}
-                                className="inline-flex items-center justify-center rounded-lg bg-white/[0.05] px-4 py-2.5 text-sm font-semibold text-gray-300 hover:bg-white/[0.1] disabled:opacity-50"
-                              >
-                                Cancel
+                                <Trash2 className="w-4 h-4" />
+                                Delete
                               </button>
                             </div>
-                          ) : post.status !== "rejected" ? (
-                            <button
-                              type="button"
-                              disabled={isBusy}
-                              onClick={() => setActiveRejectId(post.id)}
-                              className="inline-flex items-center justify-center gap-2 rounded-lg bg-red-500/12 px-4 py-2.5 text-sm font-semibold text-red-200 hover:bg-red-500/20 disabled:opacity-50"
-                            >
-                              <X className="w-4 h-4" />
-                              Reject
-                            </button>
-                          ) : null}
-
-                          <button
-                            type="button"
-                            disabled={isBusy}
-                            onClick={() => handleDelete(post.id)}
-                            className="inline-flex items-center justify-center gap-2 rounded-lg bg-white/[0.05] px-4 py-2.5 text-sm font-semibold text-gray-300 hover:bg-white/[0.1] disabled:opacity-50"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                            Delete
-                          </button>
+                          </div>
                         </div>
                       </aside>
                     </div>

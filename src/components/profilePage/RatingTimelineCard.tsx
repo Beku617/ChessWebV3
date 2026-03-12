@@ -5,7 +5,6 @@ import {
   Area,
   AreaChart,
   CartesianGrid,
-  ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
@@ -15,6 +14,7 @@ import {
   type RatingRange,
   useRatingTimeline,
 } from "../../hooks/useRatingsData";
+import { useElementSize } from "../../hooks/useElementSize";
 
 const POOLS: Array<{ id: RatingPool; label: string }> = [
   { id: "bullet", label: "Bullet" },
@@ -60,6 +60,7 @@ export function RatingTimelineCard() {
   const [pool, setPool] = useState<RatingPool>("blitz");
   const [range, setRange] = useState<RatingRange>("90d");
   const { points, loading, error } = useRatingTimeline(pool, range);
+  const chartSize = useElementSize<HTMLDivElement>();
 
   const chart = useMemo(() => {
     if (points.length === 0) {
@@ -121,7 +122,7 @@ export function RatingTimelineCard() {
   const deltaLabel = delta > 0 ? `+${delta}` : `${delta}`;
 
   return (
-    <div className="bg-white/85 dark:bg-slate-900/70 rounded-2xl p-6 border border-gray-200/70 dark:border-white/10 shadow-[0_10px_30px_rgba(15,23,42,0.08)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.4)] backdrop-blur">
+    <div className="min-w-0 bg-white/85 dark:bg-slate-900/70 rounded-2xl p-6 border border-gray-200/70 dark:border-white/10 shadow-[0_10px_30px_rgba(15,23,42,0.08)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.4)] backdrop-blur">
       <div className="flex items-center justify-between gap-2">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
           Rating Timeline
@@ -182,7 +183,7 @@ export function RatingTimelineCard() {
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.28, ease: "easeOut" }}
-            className="space-y-2"
+            className="min-w-0 space-y-2"
           >
             <div className="flex items-center justify-end">
               <span className="text-[12px] font-semibold text-gray-700 dark:text-gray-200">
@@ -192,9 +193,11 @@ export function RatingTimelineCard() {
                   : ""}
               </span>
             </div>
-            <div className="h-[210px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
+            <div ref={chartSize.ref} className="h-[210px] w-full min-w-0">
+              {chartSize.hasSize ? (
                 <AreaChart
+                  width={chartSize.width}
+                  height={chartSize.height}
                   data={chart.data}
                   margin={{ top: 8, right: 6, left: 0, bottom: 0 }}
                 >
@@ -287,7 +290,9 @@ export function RatingTimelineCard() {
                     }}
                   />
                 </AreaChart>
-              </ResponsiveContainer>
+              ) : (
+                <div className="h-full w-full animate-pulse rounded-lg bg-slate-200/60 dark:bg-slate-800/50" />
+              )}
             </div>
             <div className="mt-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
               <span>Low {chart.min}</span>

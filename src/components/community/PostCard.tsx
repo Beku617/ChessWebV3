@@ -1,12 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Image as ImageIcon, PlayCircle, Trash2, X } from "lucide-react";
+import { Trash2, X } from "lucide-react";
 import { motion } from "framer-motion";
-import { Avatar, RatingPill } from "./CommunityUI";
+import { CommunityImageGrid } from "./CommunityImageGrid";
+import { Avatar } from "./CommunityUI";
+import { CommunityGameViewer } from "./CommunityGameViewer";
 import {
   CommunityPost,
   formatFileSize,
   formatRelativeTime,
+  getCommunityMediaItems,
   getInitials,
   resolveAssetUrl,
 } from "./types";
@@ -43,12 +46,28 @@ export function PostCard({
   preferCreatedTimestamp = false,
 }: PostCardProps) {
   const authorName = post.author?.fullName || "Chess Player";
-  const mediaUrl = resolveAssetUrl(post.mediaUrl);
-  const hasMedia = post.mediaType !== "none" && !!mediaUrl;
+  const mediaItems = getCommunityMediaItems(post);
+  const primaryMedia = mediaItems[0] || null;
+  const mediaUrl = resolveAssetUrl(primaryMedia?.url || post.mediaUrl);
+  const imageItems = mediaItems
+    .filter((item) => item.type === "image")
+    .map((item) => ({
+      ...item,
+      url: resolveAssetUrl(item.url),
+    }));
+  const isGamePost = post.postType === "game";
+  const gameAnalyzeHref = post.game?.sourceGameId
+    ? post.game.variant === "chess960"
+      ? `/analyze960/${post.game.sourceGameId}`
+      : `/analyze/${post.game.sourceGameId}`
+    : "";
+  const hasMedia = post.mediaType !== "none" && mediaItems.length > 0;
+  const hasSingleImage = post.mediaType === "image" && imageItems.length === 1;
+  const hasMultiImage = post.mediaType === "image" && imageItems.length > 1;
   const timestamp = formatRelativeTime(
     preferCreatedTimestamp ? post.createdAt : post.approvedAt || post.createdAt,
   );
-  const [isImageOpen, setIsImageOpen] = useState(false);
+  const [activeImageIndex, setActiveImageIndex] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteError, setDeleteError] = useState("");
@@ -58,11 +77,32 @@ export function PostCard({
     if (typeof window === "undefined") return false;
     return window.sessionStorage.getItem(SOUND_UNLOCK_SESSION_KEY) === "1";
   });
+  const currentImage =
+    activeImageIndex !== null && imageItems[activeImageIndex]
+      ? imageItems[activeImageIndex]
+      : null;
 
   useEffect(() => {
-    if (!isImageOpen) return;
+    if (activeImageIndex === null) return;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setIsImageOpen(false);
+      if (event.key === "Escape") {
+        setActiveImageIndex(null);
+        return;
+      }
+
+      if (event.key === "ArrowRight" && imageItems.length > 1) {
+        setActiveImageIndex((current) => {
+          if (current === null) return 0;
+          return (current + 1) % imageItems.length;
+        });
+      }
+
+      if (event.key === "ArrowLeft" && imageItems.length > 1) {
+        setActiveImageIndex((current) => {
+          if (current === null) return 0;
+          return (current - 1 + imageItems.length) % imageItems.length;
+        });
+      }
     };
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -71,7 +111,7 @@ export function PostCard({
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [isImageOpen]);
+  }, [activeImageIndex, imageItems.length]);
 
   useEffect(() => {
     if (post.mediaType !== "video") return;
@@ -196,7 +236,7 @@ export function PostCard({
       transition={{ delay: index * 0.04, duration: 0.32, ease: "easeOut" }}
       className="group relative overflow-hidden rounded-xl bg-[#0c1728]/84 backdrop-blur-xl shadow-[0_18px_48px_rgba(0,0,0,0.22)] transition-colors duration-300 hover:bg-[#0f1c31]/88"
     >
-      <div className="relative px-4 pt-4 pb-3">
+      <div className={`relative px-4 pt-4 ${isGamePost ? "pb-0" : "pb-3"}`}>
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <Avatar
@@ -205,10 +245,7 @@ export function PostCard({
               size="sm"
             />
             <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <h3 className="text-sm font-semibold text-white">{authorName}</h3>
-                <RatingPill rating={Number(post.author?.rating || 0)} />
-              </div>
+              <h3 className="text-sm font-semibold text-white">{authorName}</h3>
               <div className="mt-0.5 text-xs text-gray-500">{timestamp}</div>
             </div>
           </div>
@@ -238,7 +275,11 @@ export function PostCard({
         </div>
 
         {post.text && (
-          <div className="mt-2.5 whitespace-pre-wrap text-sm leading-6 text-gray-200">
+          <div
+            className={`whitespace-pre-wrap text-sm leading-6 text-gray-200 ${
+              isGamePost ? "mt-1" : "mt-2.5"
+            }`}
+          >
             {post.text}
           </div>
         )}
@@ -250,11 +291,17 @@ export function PostCard({
         )}
       </div>
 
+      {isGamePost && (
+        <div className="px-4 pb-1">
+          <CommunityGameViewer game={post.game} analyzeHref={gameAnalyzeHref} />
+        </div>
+      )}
+
       {hasMedia && (
         <div className="px-4 pb-3">
-          <div className="relative overflow-hidden rounded-[14px] bg-black/50">
-            <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-white/5 via-transparent to-black/30" />
-            {post.mediaType === "video" ? (
+          {post.mediaType === "video" ? (
+            <div className="relative overflow-hidden rounded-[14px] bg-black/50">
+              <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-white/5 via-transparent to-black/30" />
               <video
                 ref={videoRef}
                 src={mediaUrl}
@@ -266,37 +313,40 @@ export function PostCard({
                 onClick={handleVideoClick}
                 className="relative w-full max-h-[420px] bg-black object-contain"
               />
-            ) : (
+            </div>
+          ) : hasSingleImage ? (
+            <div className="relative overflow-hidden rounded-[14px] bg-black/50">
+              <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-white/5 via-transparent to-black/30" />
               <img
-                src={mediaUrl}
-                alt={post.mediaOriginalName || "Community post media"}
+                src={imageItems[0].url}
+                alt={imageItems[0].originalName || "Community post media"}
                 className="relative w-full max-h-[420px] object-contain bg-black cursor-zoom-in"
-                onClick={() => setIsImageOpen(true)}
+                onClick={() => setActiveImageIndex(0)}
               />
-            )}
-          </div>
+            </div>
+          ) : hasMultiImage ? (
+            <div className="rounded-[20px] bg-black/26 p-1.5">
+              <CommunityImageGrid
+                items={imageItems.map((item) => ({
+                  url: item.url,
+                  alt: item.originalName || "Community post image",
+                }))}
+                onImageClick={(index) => setActiveImageIndex(index)}
+              />
+            </div>
+          ) : null}
         </div>
       )}
 
-      <div className="flex items-center justify-between gap-4 px-4 pb-4 pt-1 text-xs text-gray-500">
-        <div className="inline-flex items-center gap-2 text-gray-400">
-          {post.mediaType === "video" ? (
-            <>
-              <PlayCircle className="w-3.5 h-3.5 text-teal-300" />
-              <span>Video</span>
-            </>
-          ) : post.mediaType === "image" ? (
-            <>
-              <ImageIcon className="w-3.5 h-3.5 text-teal-300" />
-              <span>Image</span>
-            </>
-          ) : (
-            <span>Text only</span>
-          )}
+      {hasMedia && (post.mediaType === "video" || hasSingleImage || hasMultiImage) && (
+        <div className="flex items-center justify-end px-4 pb-4 pt-1 text-xs text-gray-500">
+          <span className="text-gray-500">
+            {hasMultiImage
+              ? `${imageItems.length} images`
+              : formatFileSize(post.mediaSize)}
+          </span>
         </div>
-
-        {hasMedia && <span className="text-gray-500">{formatFileSize(post.mediaSize)}</span>}
-      </div>
+      )}
 
       {deleteError && (
         <div className="px-4 pb-4 -mt-1 text-xs text-red-300">{deleteError}</div>
@@ -343,13 +393,13 @@ export function PostCard({
           document.body,
         )}
 
-      {isImageOpen &&
+      {currentImage &&
         post.mediaType === "image" &&
         typeof document !== "undefined" &&
         createPortal(
           <div
             className="fixed inset-0 z-[160] bg-black/95"
-            onClick={() => setIsImageOpen(false)}
+            onClick={() => setActiveImageIndex(null)}
           >
             <div
               className="absolute inset-x-0 top-0 h-16 flex items-center justify-between px-4 sm:px-6 bg-gradient-to-b from-black/70 to-transparent"
@@ -370,7 +420,7 @@ export function PostCard({
               </div>
               <button
                 type="button"
-                onClick={() => setIsImageOpen(false)}
+                onClick={() => setActiveImageIndex(null)}
                 className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
                 aria-label="Close image preview"
               >
@@ -383,11 +433,45 @@ export function PostCard({
               onClick={(event) => event.stopPropagation()}
             >
               <img
-                src={mediaUrl}
-                alt={post.mediaOriginalName || "Community post media"}
+                src={currentImage.url}
+                alt={currentImage.originalName || "Community post media"}
                 className="w-[94vw] h-[90vh] object-contain"
               />
             </div>
+
+            {imageItems.length > 1 && (
+              <div
+                className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/88 to-transparent px-4 pb-5 pt-12"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 text-xs text-gray-400">
+                  <span>
+                    {activeImageIndex + 1} / {imageItems.length}
+                  </span>
+                  <span>Use keyboard arrows to browse</span>
+                </div>
+                <div className="mx-auto mt-3 flex max-w-4xl gap-2 overflow-x-auto pb-1 premium-scrollbar">
+                  {imageItems.map((item, index) => (
+                    <button
+                      key={`${item.url}-${index}`}
+                      type="button"
+                      onClick={() => setActiveImageIndex(index)}
+                      className={`h-14 w-14 shrink-0 overflow-hidden rounded-xl transition-all ${
+                        index === activeImageIndex
+                          ? "ring-2 ring-teal-400/60"
+                          : "opacity-70 hover:opacity-100"
+                      }`}
+                    >
+                      <img
+                        src={item.url}
+                        alt={item.originalName || `Community post image ${index + 1}`}
+                        className="h-full w-full object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>,
           document.body,
         )}

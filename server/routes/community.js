@@ -4,6 +4,12 @@ import { Router } from "express";
 import { authMiddleware } from "../middleware/index.js";
 import { CommunityPost, User } from "../models/index.js";
 import {
+  buildCommunityGameSnapshot,
+  findShareableCommunityGameForUser,
+  listShareableCommunityGamesForUser,
+} from "../utils/communityGames.js";
+import {
+  buildCommunityMediaItems,
   COMMUNITY_DUPLICATE_WINDOW_MS,
   COMMUNITY_MAX_TEXT_LENGTH,
   COMMUNITY_RATE_LIMIT_MAX_POSTS,
@@ -13,6 +19,8 @@ import {
   cleanupCommunityMedia,
   communityUploadsRoot,
   detectCommunityMediaType,
+  getCommunityMediaUrls,
+  normalizeCommunityPostType,
   toCommunityPostDTO,
   uploadCommunityMedia,
   validateCommunityMediaFile,
@@ -278,14 +286,40 @@ router.get("/mine", authMiddleware, async (req, res) => {
   }
 });
 
+router.get("/shareable-games", authMiddleware, async (req, res) => {
+  try {
+    const userId = String(req.user?.userId || "");
+    if (!isValidObjectId(userId)) {
+      return res.status(401).json({ error: "Invalid user session." });
+    }
+
+    const limit = Math.min(24, Math.max(1, Number(req.query.limit) || 16));
+    const search = String(req.query.search || "").trim();
+
+    const games = await listShareableCommunityGamesForUser(userId, {
+      limit,
+      search,
+    });
+
+    res.json({
+      games,
+      total: games.length,
+    });
+  } catch (err) {
+    console.error("Community shareable games error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 router.post("/", authMiddleware, uploadCommunityMedia, async (req, res) => {
   const userId = String(req.user?.userId || "");
   let reservedSlot = false;
   let reservedAt = null;
 
   try {
+    const files = Array.isArray(req.files) ? req.files : [];
     if (!isValidObjectId(userId)) {
-      await cleanupCommunityMedia(req.file);
+      await cleanupCommunityMedia(files);
       return res.status(401).json({ error: "Invalid user session." });
     }
 
@@ -295,31 +329,64 @@ router.post("/", authMiddleware, uploadCommunityMedia, async (req, res) => {
         : typeof req.body?.content === "string"
           ? req.body.content.trim()
           : "";
-    const file = req.file || null;
+    const postType = normalizeCommunityPostType(req.body?.postType, "standard");
+    const gameId = String(req.body?.gameId || "").trim();
 
     if (text.length > COMMUNITY_MAX_TEXT_LENGTH) {
-      await cleanupCommunityMedia(file);
+      await cleanupCommunityMedia(files);
       return res.status(400).json({
         error: `Post text is too long (${COMMUNITY_MAX_TEXT_LENGTH} characters max).`,
       });
     }
 
-    const fileError = validateCommunityMediaFile(file);
+    const fileError = validateCommunityMediaFile(files);
     if (fileError) {
-      await cleanupCommunityMedia(file);
+      await cleanupCommunityMedia(files);
       return res.status(400).json({ error: fileError });
     }
 
-    if (!text && !file) {
+    if (postType === "game" && files.length > 0) {
+      await cleanupCommunityMedia(files);
+      return res.status(400).json({
+        error: "Game posts currently support a caption and one shared game only.",
+      });
+    }
+
+    if (postType === "game" && !gameId) {
+      return res.status(400).json({
+        error: "Please choose one of your games to share.",
+      });
+    }
+
+    if (postType === "standard" && !text && files.length === 0) {
       return res
         .status(400)
         .json({ error: "Post must include text, an image, or a video." });
     }
 
+    let gameSnapshot = null;
+    if (postType === "game") {
+      const selectedGame = await findShareableCommunityGameForUser(userId, gameId);
+      if (!selectedGame) {
+        return res.status(404).json({
+          error: "That game could not be found in your history.",
+        });
+      }
+
+      gameSnapshot = buildCommunityGameSnapshot(selectedGame);
+      if (!gameSnapshot || gameSnapshot.totalMoves <= 0) {
+        return res.status(400).json({
+          error: "This game does not have enough move data to be shared.",
+        });
+      }
+    }
+
     const submissionFingerprint = buildCommunitySubmissionFingerprint({
       authorId: userId,
       text,
-      file,
+      files,
+      postType,
+      gameId,
     });
 
     const duplicate = await CommunityPost.findOne({
@@ -342,7 +409,7 @@ router.post("/", authMiddleware, uploadCommunityMedia, async (req, res) => {
     const now = new Date();
     const slotResult = await reserveCommunitySubmissionSlot(userId, now);
     if (!slotResult.ok) {
-      await cleanupCommunityMedia(file);
+      await cleanupCommunityMedia(files);
 
       if (slotResult.reason === "rate_limited") {
         return res.status(429).json({
@@ -378,15 +445,24 @@ router.post("/", authMiddleware, uploadCommunityMedia, async (req, res) => {
     reservedSlot = true;
     reservedAt = now;
 
-    const mediaType = detectCommunityMediaType(file);
+    const mediaItems = postType === "game" ? [] : buildCommunityMediaItems(files);
+    const primaryMedia = mediaItems[0] || null;
+    const mediaType =
+      postType === "game" ? "none" : detectCommunityMediaType(files);
     const post = await CommunityPost.create({
       authorId: userId,
+      postType,
       text,
+      mediaItems,
       mediaType,
-      mediaUrl: file ? `/uploads/community/${path.basename(file.filename)}` : "",
-      mediaMimeType: file?.mimetype || "",
-      mediaOriginalName: file?.originalname || "",
-      mediaSize: Number(file?.size || 0),
+      mediaUrl: primaryMedia?.url || "",
+      mediaMimeType: primaryMedia?.mimeType || "",
+      mediaOriginalName: primaryMedia?.originalName || "",
+      mediaSize: mediaItems.reduce(
+        (total, item) => total + Number(item?.size || 0),
+        0,
+      ),
+      gameSnapshot,
       submissionFingerprint,
       status: "pending",
     });
@@ -407,7 +483,7 @@ router.post("/", authMiddleware, uploadCommunityMedia, async (req, res) => {
     });
   } catch (err) {
     console.error("Create community post error:", err);
-    await cleanupCommunityMedia(req.file);
+    await cleanupCommunityMedia(req.files);
 
     if (reservedSlot && reservedAt) {
       await User.updateOne(
@@ -441,12 +517,15 @@ router.delete("/:postId", authMiddleware, async (req, res) => {
         });
     }
 
-    const filePath = post.mediaUrl
-      ? path.join(communityUploadsRoot, path.basename(post.mediaUrl))
-      : "";
-    if (filePath) {
-      await import("fs/promises").then((fs) =>
-        fs.unlink(filePath).catch(() => null),
+    const mediaUrls = getCommunityMediaUrls(post);
+    if (mediaUrls.length > 0) {
+      await Promise.all(
+        mediaUrls.map(async (url) => {
+          const filePath = path.join(communityUploadsRoot, path.basename(url));
+          await import("fs/promises").then((fs) =>
+            fs.unlink(filePath).catch(() => null),
+          );
+        }),
       );
     }
 

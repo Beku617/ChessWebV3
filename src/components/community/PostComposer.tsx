@@ -1,19 +1,44 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertCircle,
+  Gamepad2,
   Image as ImageIcon,
+  Search,
   Send,
   ShieldCheck,
   Video,
   X,
 } from "lucide-react";
+import type { GameHistory } from "../../historyTypes";
 import { useAuthStore } from "../../store/authStore";
+import { CommunityGameViewer } from "./CommunityGameViewer";
+import { CommunityImageGrid } from "./CommunityImageGrid";
 import { Avatar } from "./CommunityUI";
-import { API_URL, CommunityPostingAccess, getInitials } from "./types";
+import {
+  API_URL,
+  CommunityPostingAccess,
+  CommunityShareableGameSummary,
+  CommunityShareableGamesResponse,
+  CommunitySharedGame,
+  communityGameFromHistory,
+  formatCommunityPerspectiveResult,
+  formatCommunityTimeControl,
+  formatGamePlayedAt,
+  getCommunityOpeningLabel,
+  getInitials,
+} from "./types";
 
 const MAX_CHARS = 1200;
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
+const MAX_IMAGE_COUNT = 10;
+const MAX_TOTAL_IMAGE_BYTES = 40 * 1024 * 1024;
+
+interface SelectedComposerImage {
+  id: string;
+  file: File;
+  previewUrl: string;
+}
 
 interface ComposerSummary {
   pending: number;
@@ -69,6 +94,14 @@ function formatDuration(valueMs: number) {
   return `${hours}h ${minutes}m`;
 }
 
+function getImageSelectionId(file: File) {
+  return `${file.name}:${file.size}:${file.lastModified}`;
+}
+
+function totalImageBytes(items: Pick<SelectedComposerImage, "file">[]) {
+  return items.reduce((total, item) => total + Number(item.file.size || 0), 0);
+}
+
 function buildSubmissionBlockedMessage(postingAccess?: CommunityPostingAccess | null) {
   if (!postingAccess || postingAccess.canSubmit) return "";
 
@@ -104,15 +137,42 @@ function buildSubmissionBlockedMessage(postingAccess?: CommunityPostingAccess | 
   return "Posting is unavailable right now.";
 }
 
+function perspectiveTone(value: CommunityShareableGameSummary["perspectiveResult"]) {
+  if (value === "win") return "bg-emerald-500/12 text-emerald-200";
+  if (value === "loss") return "bg-red-500/12 text-red-200";
+  if (value === "draw") return "bg-slate-500/14 text-slate-200";
+  return "bg-white/[0.06] text-gray-300";
+}
+
+async function fetchGameDetail(gameId: string) {
+  const res = await fetch(`${API_URL}/api/history/${gameId}`, {
+    credentials: "include",
+  });
+  const data: { game?: GameHistory; error?: string } = await res.json().catch(() => ({}));
+  if (!res.ok || !data.game) {
+    throw new Error(data.error || "Failed to load the selected game.");
+  }
+  return data.game;
+}
+
 export function PostComposer({
-  summary,
   postingAccess,
   onSubmitted,
 }: PostComposerProps) {
   const { user } = useAuthStore();
   const [content, setContent] = useState("");
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState("");
+  const [selectedImages, setSelectedImages] = useState<SelectedComposerImage[]>([]);
+  const [selectedVideoFile, setSelectedVideoFile] = useState<File | null>(null);
+  const [selectedVideoPreviewUrl, setSelectedVideoPreviewUrl] = useState("");
+  const [selectedGameSummary, setSelectedGameSummary] =
+    useState<CommunityShareableGameSummary | null>(null);
+  const [selectedGame, setSelectedGame] = useState<CommunitySharedGame | null>(null);
+  const [isLoadingSelectedGame, setIsLoadingSelectedGame] = useState(false);
+  const [isGamePickerOpen, setIsGamePickerOpen] = useState(false);
+  const [gameSearch, setGameSearch] = useState("");
+  const [availableGames, setAvailableGames] = useState<CommunityShareableGameSummary[]>([]);
+  const [gamesLoading, setGamesLoading] = useState(false);
+  const [gamesError, setGamesError] = useState("");
   const [focused, setFocused] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -120,6 +180,8 @@ export function PostComposer({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
+  const selectedImagesRef = useRef<SelectedComposerImage[]>([]);
+  const selectedVideoPreviewRef = useRef("");
 
   const resetFileInputs = () => {
     if (imageInputRef.current) imageInputRef.current.value = "";
@@ -133,66 +195,248 @@ export function PostComposer({
     input.click();
   };
 
+  const clearSelectedGame = () => {
+    setSelectedGameSummary(null);
+    setSelectedGame(null);
+    setIsLoadingSelectedGame(false);
+  };
+
+  useEffect(() => {
+    selectedImagesRef.current = selectedImages;
+  }, [selectedImages]);
+
+  useEffect(() => {
+    selectedVideoPreviewRef.current = selectedVideoPreviewUrl;
+  }, [selectedVideoPreviewUrl]);
+
   useEffect(() => {
     return () => {
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      selectedImagesRef.current.forEach((image) => {
+        URL.revokeObjectURL(image.previewUrl);
+      });
+      if (selectedVideoPreviewRef.current) {
+        URL.revokeObjectURL(selectedVideoPreviewRef.current);
+      }
     };
-  }, [previewUrl]);
+  }, []);
 
   useEffect(() => {
     const textarea = textareaRef.current;
     if (!textarea) return;
     textarea.style.height = "auto";
     const hasText = content.trim().length > 0;
-    const minHeight = selectedFile ? (hasText ? 30 : 48) : 124;
+    const hasSelectedMedia = selectedImages.length > 0 || !!selectedVideoFile;
+    const minHeight = hasSelectedMedia || selectedGameSummary ? (hasText ? 30 : 48) : 124;
     textarea.style.height = `${Math.max(textarea.scrollHeight, minHeight)}px`;
-  }, [content, selectedFile]);
+  }, [content, selectedGameSummary, selectedImages.length, selectedVideoFile]);
+
+  useEffect(() => {
+    if (!isGamePickerOpen) return;
+
+    const controller = new AbortController();
+    const timeout = window.setTimeout(async () => {
+      setGamesLoading(true);
+      setGamesError("");
+      try {
+        const params = new URLSearchParams({ limit: "16" });
+        if (gameSearch.trim()) params.set("search", gameSearch.trim());
+
+        const res = await fetch(`${API_URL}/api/community/shareable-games?${params}`, {
+          credentials: "include",
+          signal: controller.signal,
+        });
+        const data: CommunityShareableGamesResponse & { error?: string } =
+          await res.json().catch(() => ({ games: [], total: 0 }));
+        if (!res.ok) {
+          throw new Error(data.error || "Failed to load your games.");
+        }
+        setAvailableGames(data.games || []);
+      } catch (err) {
+        if (controller.signal.aborted) return;
+        setGamesError(err instanceof Error ? err.message : "Failed to load your games.");
+      } finally {
+        if (!controller.signal.aborted) {
+          setGamesLoading(false);
+        }
+      }
+    }, 180);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(timeout);
+    };
+  }, [gameSearch, isGamePickerOpen]);
 
   const remainingChars = MAX_CHARS - content.length;
   const isOverLimit = remainingChars < 0;
+  const hasSelectedGame = Boolean(selectedGameSummary && selectedGame);
+  const hasSelectedImages = selectedImages.length > 0;
+  const hasSelectedVideo = Boolean(selectedVideoFile);
   const canSubmit =
-    !isSubmitting && !isOverLimit && (content.trim().length > 0 || !!selectedFile);
+    !isSubmitting &&
+    !isOverLimit &&
+    (hasSelectedGame ||
+      content.trim().length > 0 ||
+      hasSelectedImages ||
+      hasSelectedVideo);
   const selectedMediaType = useMemo(() => {
-    if (!selectedFile) return "none";
-    return selectedFile.type.startsWith("video/") ? "video" : "image";
-  }, [selectedFile]);
+    if (selectedVideoFile) return "video";
+    if (selectedImages.length > 0) return "image";
+    return "none";
+  }, [selectedImages.length, selectedVideoFile]);
   const submissionBlockedMessage = useMemo(
     () => buildSubmissionBlockedMessage(postingAccess),
     [postingAccess],
   );
   const isSubmissionBlocked = submissionBlockedMessage.length > 0;
-  const canSubmitNow = canSubmit && !isSubmissionBlocked;
+  const canSubmitNow = canSubmit && !isSubmissionBlocked && !isLoadingSelectedGame;
+  const openingLabel = selectedGameSummary
+    ? getCommunityOpeningLabel(selectedGameSummary.eco, selectedGameSummary.event)
+    : "";
 
-  const handlePickFile = (kind: "image" | "video", file?: File | null) => {
+  const clearSelectedImages = () => {
+    setSelectedImages((current) => {
+      current.forEach((image) => URL.revokeObjectURL(image.previewUrl));
+      return [];
+    });
+    if (imageInputRef.current) imageInputRef.current.value = "";
+  };
+
+  const clearSelectedVideo = () => {
+    if (selectedVideoPreviewUrl) {
+      URL.revokeObjectURL(selectedVideoPreviewUrl);
+    }
+    setSelectedVideoFile(null);
+    setSelectedVideoPreviewUrl("");
+    if (videoInputRef.current) videoInputRef.current.value = "";
+  };
+
+  const clearSelectedMedia = () => {
+    clearSelectedImages();
+    clearSelectedVideo();
+    resetFileInputs();
+  };
+
+  const handleRemoveSelectedImage = (index: number) => {
+    setSelectedImages((current) => {
+      const image = current[index];
+      if (!image) return current;
+      URL.revokeObjectURL(image.previewUrl);
+      const next = current.filter((_, currentIndex) => currentIndex !== index);
+      if (next.length === 0 && imageInputRef.current) {
+        imageInputRef.current.value = "";
+      }
+      return next;
+    });
+  };
+
+  const handlePickImages = (fileList?: FileList | null) => {
+    if (isSubmissionBlocked) {
+      setError(submissionBlockedMessage);
+      return;
+    }
+
+    const incomingFiles = Array.from(fileList || []).filter(Boolean);
+    if (incomingFiles.length === 0) return;
+
+    for (const file of incomingFiles) {
+      const validationError = validateFile(file, "image");
+      if (validationError) {
+        setError(validationError);
+        return;
+      }
+    }
+
+    const existingById = new Map(selectedImages.map((image) => [image.id, image]));
+    const nextImages = [...selectedImages];
+
+    for (const file of incomingFiles) {
+      const id = getImageSelectionId(file);
+      if (existingById.has(id)) continue;
+      nextImages.push({
+        id,
+        file,
+        previewUrl: URL.createObjectURL(file),
+      });
+    }
+
+    if (nextImages.length > MAX_IMAGE_COUNT) {
+      nextImages
+        .slice(selectedImages.length)
+        .forEach((image) => URL.revokeObjectURL(image.previewUrl));
+      setError(`You can upload up to ${MAX_IMAGE_COUNT} images per post.`);
+      return;
+    }
+
+    if (totalImageBytes(nextImages) > MAX_TOTAL_IMAGE_BYTES) {
+      nextImages
+        .slice(selectedImages.length)
+        .forEach((image) => URL.revokeObjectURL(image.previewUrl));
+      setError("Selected images are too large together. Maximum total size is 40MB.");
+      return;
+    }
+
+    clearSelectedGame();
+    clearSelectedVideo();
+    setIsGamePickerOpen(false);
+    setError("");
+    setSuccessMessage("");
+    setSelectedImages(nextImages);
+  };
+
+  const handlePickVideo = (file?: File | null) => {
     if (isSubmissionBlocked) {
       setError(submissionBlockedMessage);
       return;
     }
     if (!file) return;
-    const validationError = validateFile(file, kind);
+    const validationError = validateFile(file, "video");
     if (validationError) {
       setError(validationError);
       return;
     }
 
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-
+    clearSelectedGame();
+    clearSelectedImages();
+    setIsGamePickerOpen(false);
     setError("");
     setSuccessMessage("");
-    setSelectedFile(file);
-    setPreviewUrl(URL.createObjectURL(file));
-  };
-
-  const clearSelectedMedia = () => {
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
-    setSelectedFile(null);
-    setPreviewUrl("");
-    resetFileInputs();
+    clearSelectedVideo();
+    setSelectedVideoFile(file);
+    setSelectedVideoPreviewUrl(URL.createObjectURL(file));
   };
 
   const resetComposer = () => {
     setContent("");
     clearSelectedMedia();
+    clearSelectedGame();
+    setGameSearch("");
+    setIsGamePickerOpen(false);
+  };
+
+  const handleChooseGame = async (gameSummary: CommunityShareableGameSummary) => {
+    if (isSubmissionBlocked) {
+      setError(submissionBlockedMessage);
+      return;
+    }
+
+    setError("");
+    setSuccessMessage("");
+    setIsLoadingSelectedGame(true);
+    setSelectedGameSummary(gameSummary);
+    setSelectedGame(null);
+    try {
+      const game = await fetchGameDetail(gameSummary.id);
+      clearSelectedMedia();
+      setSelectedGame(communityGameFromHistory(game));
+      setIsGamePickerOpen(false);
+    } catch (err) {
+      setSelectedGameSummary(null);
+      setSelectedGame(null);
+      setError(err instanceof Error ? err.message : "Failed to load the selected game.");
+    } finally {
+      setIsLoadingSelectedGame(false);
+    }
   };
 
   const handleSubmit = async () => {
@@ -209,7 +453,18 @@ export function PostComposer({
     try {
       const formData = new FormData();
       if (content.trim()) formData.append("text", content.trim());
-      if (selectedFile) formData.append("media", selectedFile);
+      if (hasSelectedGame && selectedGameSummary) {
+        formData.append("postType", "game");
+        formData.append("gameId", selectedGameSummary.id);
+      } else {
+        formData.append("postType", "standard");
+      }
+      if (selectedVideoFile) {
+        formData.append("media", selectedVideoFile);
+      }
+      if (selectedImages.length > 0) {
+        selectedImages.forEach((image) => formData.append("media", image.file));
+      }
 
       const res = await fetch(`${API_URL}/api/community`, {
         method: "POST",
@@ -259,9 +514,13 @@ export function PostComposer({
                 if (error) setError("");
                 if (successMessage) setSuccessMessage("");
               }}
-              placeholder="Share a game idea, opening line, clip, puzzle moment, or tournament update..."
+              placeholder={
+                hasSelectedGame
+                  ? "Add a caption for this game..."
+                  : "Share a game idea, opening line, clip, puzzle moment, tournament update, or one of your games..."
+              }
               className={`w-full bg-transparent border-none focus:ring-0 focus:outline-none text-sm text-white placeholder:text-gray-500 resize-none premium-scrollbar ${
-                selectedFile
+                hasSelectedImages || hasSelectedVideo || selectedGameSummary
                   ? content.trim().length > 0
                     ? "min-h-[30px] leading-6"
                     : "min-h-[48px] leading-6"
@@ -269,8 +528,8 @@ export function PostComposer({
               }`}
             />
 
-            {selectedFile && (
-              <div className="mt-1.5">
+            {selectedMediaType === "video" && selectedVideoPreviewUrl && (
+              <div className="mt-2">
                 <div className="relative overflow-hidden rounded-xl border border-black/80 bg-black/55">
                   <button
                     type="button"
@@ -280,18 +539,271 @@ export function PostComposer({
                   >
                     <X className="w-4 h-4" />
                   </button>
-                  {selectedMediaType === "video" ? (
-                    <video
-                      src={previewUrl}
-                      controls
-                      className="w-full max-h-[420px] bg-black object-contain"
-                    />
+                  <video
+                    src={selectedVideoPreviewUrl}
+                    controls
+                    className="w-full max-h-[420px] bg-black object-contain"
+                  />
+                </div>
+              </div>
+            )}
+
+            {selectedMediaType === "image" && selectedImages.length === 1 && (
+              <div className="mt-2">
+                <div className="relative overflow-hidden rounded-xl border border-black/80 bg-black/55">
+                  <button
+                    type="button"
+                    onClick={clearSelectedMedia}
+                    className="absolute right-2 top-2 z-10 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-black/60 text-gray-200 hover:bg-black/80 hover:text-white transition-colors"
+                    title="Remove media"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                  <img
+                    src={selectedImages[0].previewUrl}
+                    alt={selectedImages[0].file.name || "Selected preview"}
+                    className="w-full max-h-[420px] object-contain bg-black"
+                  />
+                </div>
+              </div>
+            )}
+
+            {selectedMediaType === "image" && selectedImages.length > 1 && (
+              <div className="mt-2 overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.025] p-3">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="text-[10px] font-semibold uppercase tracking-[0.24em] text-teal-200/70">
+                      Image Set
+                    </div>
+                    <div className="mt-1 text-sm font-semibold text-white">
+                      {selectedImages.length} images selected
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={clearSelectedImages}
+                    className="inline-flex items-center gap-2 rounded-lg bg-white/[0.06] px-3 py-2 text-xs font-semibold text-gray-200 transition-colors hover:bg-white/[0.12]"
+                  >
+                    <X className="h-4 w-4" />
+                    Clear all
+                  </button>
+                </div>
+
+                <CommunityImageGrid
+                  items={selectedImages.map((image) => ({
+                    url: image.previewUrl,
+                    alt: image.file.name || "Selected preview",
+                  }))}
+                  onRemoveImage={handleRemoveSelectedImage}
+                />
+
+                {selectedImages.length > 5 && (
+                  <div className="mt-3 flex gap-2 overflow-x-auto pb-1 premium-scrollbar">
+                    {selectedImages.map((image, index) => (
+                      <div
+                        key={image.id}
+                        className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-black/60"
+                      >
+                        <img
+                          src={image.previewUrl}
+                          alt={image.file.name || `Selected image ${index + 1}`}
+                          className="h-full w-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveSelectedImage(index)}
+                          className="absolute right-1 top-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-black/70 text-white hover:bg-black/85"
+                          aria-label={`Remove image ${index + 1}`}
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {selectedGameSummary && (
+              <div className="mt-2 overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.025]">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] px-4 py-3">
+                  <div className="min-w-0">
+                    <div className="text-[10px] font-semibold uppercase tracking-[0.24em] text-teal-200/70">
+                      Share Game
+                    </div>
+                    <div className="mt-1 truncate text-sm font-semibold text-white">
+                      vs {selectedGameSummary.opponent}
+                    </div>
+                    <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-400">
+                      <span
+                        className={`inline-flex items-center rounded-full px-2.5 py-1 font-semibold ${perspectiveTone(
+                          selectedGameSummary.perspectiveResult,
+                        )}`}
+                      >
+                        {formatCommunityPerspectiveResult(
+                          selectedGameSummary.perspectiveResult,
+                        )}
+                      </span>
+                      <span>{formatCommunityTimeControl(selectedGameSummary.timeControl)}</span>
+                      {openingLabel && <span className="truncate">{openingLabel}</span>}
+                      {selectedGameSummary.playedAt && (
+                        <span>{formatGamePlayedAt(selectedGameSummary.playedAt)}</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      disabled={isLoadingSelectedGame}
+                      onClick={() => setIsGamePickerOpen((value) => !value)}
+                      className="inline-flex items-center gap-2 rounded-lg bg-white/[0.06] px-3 py-2 text-xs font-semibold text-gray-200 hover:bg-white/[0.12] disabled:opacity-50"
+                    >
+                      <Gamepad2 className="h-4 w-4" />
+                      Change
+                    </button>
+                    <button
+                      type="button"
+                      disabled={isLoadingSelectedGame}
+                      onClick={clearSelectedGame}
+                      className="inline-flex items-center gap-2 rounded-lg bg-white/[0.06] px-3 py-2 text-xs font-semibold text-gray-200 hover:bg-white/[0.12] disabled:opacity-50"
+                    >
+                      <X className="h-4 w-4" />
+                      Remove
+                    </button>
+                  </div>
+                </div>
+
+                <div className="px-4 pb-4">
+                  {isLoadingSelectedGame || !selectedGame ? (
+                    <div className="mt-3 rounded-[20px] border border-white/8 bg-white/[0.03] p-4">
+                      <div className="h-[320px] animate-pulse rounded-[18px] bg-white/[0.06]" />
+                    </div>
                   ) : (
-                    <img
-                      src={previewUrl}
-                      alt="Selected preview"
-                      className="w-full max-h-[420px] object-contain bg-black"
+                    <CommunityGameViewer game={selectedGame} />
+                  )}
+                </div>
+              </div>
+            )}
+
+            {isGamePickerOpen && (
+              <div className="mt-3 overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0b1424]/96 shadow-[0_20px_50px_rgba(0,0,0,0.28)]">
+                <div className="flex items-center justify-between gap-3 border-b border-white/[0.06] px-4 py-3">
+                  <div>
+                    <div className="text-sm font-semibold text-white">Choose a game</div>
+                    <div className="mt-1 text-xs text-gray-500">
+                      Share one of your recent games with a caption and mini-board replay.
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsGamePickerOpen(false)}
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white/[0.06] text-gray-300 hover:bg-white/[0.12]"
+                    aria-label="Close game picker"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+
+                <div className="border-b border-white/[0.06] px-4 py-3">
+                  <div className="relative">
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+                    <input
+                      value={gameSearch}
+                      onChange={(e) => setGameSearch(e.target.value)}
+                      placeholder="Search by opponent, opening, result, or time control..."
+                      className="w-full rounded-xl bg-white/[0.05] py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
                     />
+                  </div>
+                </div>
+
+                <div className="max-h-[420px] overflow-y-auto premium-scrollbar p-3">
+                  {gamesLoading ? (
+                    <div className="space-y-3">
+                      {Array.from({ length: 4 }, (_, index) => (
+                        <div
+                          key={`game-skeleton-${index}`}
+                          className="h-24 animate-pulse rounded-2xl bg-white/[0.05]"
+                        />
+                      ))}
+                    </div>
+                  ) : gamesError ? (
+                    <div className="rounded-2xl bg-red-500/10 px-4 py-4 text-sm text-red-200">
+                      {gamesError}
+                    </div>
+                  ) : availableGames.length === 0 ? (
+                    <div className="rounded-2xl bg-white/[0.04] px-4 py-8 text-center">
+                      <div className="text-sm font-medium text-white">No games found</div>
+                      <div className="mt-2 text-xs leading-6 text-gray-500">
+                        Finish a few games first, or try a broader search.
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {availableGames.map((gameOption) => {
+                        const isSelected = selectedGameSummary?.id === gameOption.id;
+                        const optionOpening = getCommunityOpeningLabel(
+                          gameOption.eco,
+                          gameOption.event,
+                        );
+
+                        return (
+                          <button
+                            key={gameOption.id}
+                            type="button"
+                            onClick={() => void handleChooseGame(gameOption)}
+                            disabled={isLoadingSelectedGame}
+                            className={`w-full rounded-2xl border px-4 py-3 text-left transition-all ${
+                              isSelected
+                                ? "border-teal-400/35 bg-teal-500/10"
+                                : "border-white/[0.06] bg-white/[0.03] hover:border-white/[0.12] hover:bg-white/[0.05]"
+                            } disabled:opacity-60`}
+                          >
+                            <div className="flex flex-wrap items-start justify-between gap-3">
+                              <div className="min-w-0">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span className="truncate text-sm font-semibold text-white">
+                                    vs {gameOption.opponent}
+                                  </span>
+                                  <span
+                                    className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ${perspectiveTone(
+                                      gameOption.perspectiveResult,
+                                    )}`}
+                                  >
+                                    {formatCommunityPerspectiveResult(
+                                      gameOption.perspectiveResult,
+                                    )}
+                                  </span>
+                                </div>
+                                <div className="mt-1 text-xs text-gray-400">
+                                  {gameOption.white} vs {gameOption.black}
+                                </div>
+                              </div>
+
+                              <div className="shrink-0 text-right text-xs text-gray-500">
+                                <div>{formatGamePlayedAt(gameOption.playedAt)}</div>
+                                <div className="mt-1">{gameOption.totalMoves} moves</div>
+                              </div>
+                            </div>
+
+                            <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-gray-400">
+                              <span className="rounded-full bg-white/[0.05] px-2.5 py-1">
+                                {formatCommunityTimeControl(gameOption.timeControl)}
+                              </span>
+                              <span className="rounded-full bg-white/[0.05] px-2.5 py-1">
+                                {gameOption.variant === "chess960" ? "Chess960" : "Standard"}
+                              </span>
+                              {optionOpening && (
+                                <span className="rounded-full bg-white/[0.05] px-2.5 py-1">
+                                  {optionOpening}
+                                </span>
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
                   )}
                 </div>
               </div>
@@ -316,42 +828,29 @@ export function PostComposer({
               </div>
             )}
 
-            {summary && (
-              <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-gray-500">
-                <span className="rounded-full bg-white/[0.04] px-2.5 py-1">
-                  Pending {summary.pending}
-                </span>
-                <span className="rounded-full bg-white/[0.04] px-2.5 py-1">
-                  Approved {summary.approved}
-                </span>
-                <span className="rounded-full bg-white/[0.04] px-2.5 py-1">
-                  Rejected {summary.rejected}
-                </span>
-              </div>
-            )}
-
             <input
               ref={imageInputRef}
               type="file"
               accept="image/png,image/jpeg,image/webp,image/gif"
+              multiple
               className="hidden"
-              onChange={(e) => handlePickFile("image", e.target.files?.[0])}
+              onChange={(e) => handlePickImages(e.target.files)}
             />
             <input
               ref={videoInputRef}
               type="file"
               accept="video/mp4,video/webm,video/quicktime"
               className="hidden"
-              onChange={(e) => handlePickFile("video", e.target.files?.[0])}
+              onChange={(e) => handlePickVideo(e.target.files?.[0])}
             />
 
-            <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/5">
-              <div className="flex items-center gap-2">
+            <div className="mt-4 flex items-center justify-between border-t border-white/5 pt-3">
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
                   disabled={isSubmissionBlocked}
                   onClick={() => openFilePicker("image")}
-                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm text-gray-300 bg-white/[0.04] hover:bg-white/[0.08] hover:text-teal-200 transition-colors disabled:opacity-45 disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-2 rounded-lg bg-white/[0.04] px-3.5 py-2 text-sm text-gray-300 transition-colors hover:bg-white/[0.08] hover:text-teal-200 disabled:cursor-not-allowed disabled:opacity-45"
                 >
                   <ImageIcon className="w-4 h-4" />
                   Image
@@ -360,10 +859,31 @@ export function PostComposer({
                   type="button"
                   disabled={isSubmissionBlocked}
                   onClick={() => openFilePicker("video")}
-                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm text-gray-300 bg-white/[0.04] hover:bg-white/[0.08] hover:text-teal-200 transition-colors disabled:opacity-45 disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-2 rounded-lg bg-white/[0.04] px-3.5 py-2 text-sm text-gray-300 transition-colors hover:bg-white/[0.08] hover:text-teal-200 disabled:cursor-not-allowed disabled:opacity-45"
                 >
                   <Video className="w-4 h-4" />
                   Video
+                </button>
+                <button
+                  type="button"
+                  disabled={isSubmissionBlocked}
+                  onClick={() => {
+                    if (isSubmissionBlocked) {
+                      setError(submissionBlockedMessage);
+                      return;
+                    }
+                    setError("");
+                    setSuccessMessage("");
+                    setIsGamePickerOpen((value) => !value);
+                  }}
+                  className={`inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-45 ${
+                    isGamePickerOpen || selectedGameSummary
+                      ? "bg-teal-500/16 text-teal-100 hover:bg-teal-500/22"
+                      : "bg-white/[0.04] text-gray-300 hover:bg-white/[0.08] hover:text-teal-200"
+                  }`}
+                >
+                  <Gamepad2 className="w-4 h-4" />
+                  {selectedGameSummary ? "Change Game" : "Share Game"}
                 </button>
               </div>
 
@@ -375,10 +895,10 @@ export function PostComposer({
                   type="button"
                   onClick={handleSubmit}
                   disabled={!canSubmitNow}
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                  className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
                     canSubmitNow
-                      ? "bg-teal-600 hover:bg-teal-500 text-white shadow-[0_12px_30px_rgba(13,148,136,0.28)]"
-                      : "bg-white/[0.06] text-gray-500 cursor-not-allowed"
+                      ? "bg-teal-600 text-white shadow-[0_12px_30px_rgba(13,148,136,0.28)] hover:bg-teal-500"
+                      : "cursor-not-allowed bg-white/[0.06] text-gray-500"
                   }`}
                 >
                   <Send className="w-4 h-4" />

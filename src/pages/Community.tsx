@@ -151,8 +151,10 @@ export default function Community() {
     <div className="min-h-screen bg-[#060f1d] text-white flex transition-colors duration-300">
       <Sidebar />
 
-      <main className="flex-1 ml-72 min-h-screen">
-        <div className="max-w-[1500px] mx-auto flex justify-center gap-5 px-5 py-7">
+      <main className="relative flex-1 ml-72 min-h-screen overflow-x-hidden">
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-0 h-24 bg-gradient-to-b from-[#060f1d] via-[#060f1d]/96 to-transparent" />
+
+        <div className="relative z-10 max-w-[1500px] mx-auto flex justify-center gap-5 px-5 py-7">
           <section className="flex-1 min-w-0 max-w-[860px] space-y-5">
             <PostComposer
               summary={summary}

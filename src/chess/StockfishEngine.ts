@@ -1,3 +1,5 @@
+import { createStockfishWorker } from "../utils/stockfishWorker";
+
 export type PlayStyle = "aggressive" | "defensive" | "balanced" | "random";
 
 export interface BotConfig {
@@ -8,9 +10,6 @@ export interface BotConfig {
   blunderChance: number;
   aggressiveness: number;
 }
-
-const STOCKFISH_WORKER_URL =
-  "https://cdn.jsdelivr.net/npm/stockfish@16/stockfish.js";
 
 export class StockfishEngine {
   private stockfish: Worker | null;
@@ -23,13 +22,7 @@ export class StockfishEngine {
   private allLegalMoves: string[] = [];
 
   constructor() {
-    const workerUrl =
-      typeof window !== "undefined" && typeof Worker !== "undefined"
-        ? STOCKFISH_WORKER_URL
-        : "/stockfish.js";
-
-    this.stockfish =
-      typeof Worker !== "undefined" ? new Worker(workerUrl) : null;
+    this.stockfish = createStockfishWorker();
     this.onMessage = this.onMessage.bind(this);
 
     if (this.stockfish) {
