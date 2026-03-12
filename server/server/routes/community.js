@@ -329,16 +329,23 @@ router.get("/", authMiddleware, async (req, res) => {
       return res.status(401).json({ error: "Invalid user session." });
     }
 
-    const { items, total, joinedGroupIds } = await loadRankedCommunityFeed(userId, {
-      page,
-      limit,
-    });
+    const [feedResult, postingUser] = await Promise.all([
+      loadRankedCommunityFeed(userId, {
+        page,
+        limit,
+      }),
+      User.findById(userId).select(POSTING_ACCESS_USER_FIELDS).lean(),
+    ]);
+    const { items, total, joinedGroupIds } = feedResult;
     const posts = await serializeCommunityPosts(items, userId);
 
     res.json({
       posts,
       total,
       feedMode: joinedGroupIds.length > 0 ? "group_weighted" : "general",
+      postingAccess: serializePostingAccess(
+        buildCommunityPostingAccess(postingUser || {}, new Date()),
+      ),
       pagination: {
         page,
         limit,

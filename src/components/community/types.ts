@@ -137,6 +137,7 @@ export interface CommunityFeedResponse {
   posts: CommunityPost[];
   total: number;
   feedMode?: "group_weighted" | "general";
+  postingAccess?: CommunityPostingAccess;
   pagination: {
     page: number;
     limit: number;

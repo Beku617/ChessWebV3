@@ -41,8 +41,9 @@ export default function Community() {
   const [mineTotalPosts, setMineTotalPosts] = useState(0);
   const [mineTotalPages, setMineTotalPages] = useState(1);
   const [minePage, setMinePage] = useState(1);
-  const [mineLoading, setMineLoading] = useState(true);
+  const [mineLoading, setMineLoading] = useState(false);
   const [mineError, setMineError] = useState("");
+  const [hasLoadedMine, setHasLoadedMine] = useState(false);
   const [trendingPosts, setTrendingPosts] = useState<CommunityPost[]>([]);
   const [trendingMode, setTrendingMode] = useState<CommunityTrendingResponse["mode"]>("latest");
   const [trendingLoading, setTrendingLoading] = useState(true);
@@ -81,6 +82,9 @@ export default function Community() {
       setFeedPosts(feedData.posts || []);
       setFeedTotalPosts(feedData.total || 0);
       setFeedTotalPages(feedData.pagination?.pages || 1);
+      if (feedData.postingAccess) {
+        setPostingAccess(feedData.postingAccess);
+      }
     } catch (err) {
       setFeedError(err instanceof Error ? err.message : "Failed to load feed.");
     } finally {
@@ -107,6 +111,7 @@ export default function Community() {
       setMineTotalPages(mineData.pagination?.pages || 1);
       setSummary(mineData.summary || null);
       setPostingAccess(mineData.postingAccess || null);
+      setHasLoadedMine(true);
     } catch (err) {
       setMineError(
         err instanceof Error ? err.message : "Failed to load your posts.",
@@ -183,8 +188,10 @@ export default function Community() {
   }, [loadFeedPage]);
 
   useEffect(() => {
+    if (activeTab !== "my_posts") return;
+    if (hasLoadedMine && minePage === 1) return;
     void loadMinePage();
-  }, [loadMinePage]);
+  }, [activeTab, hasLoadedMine, loadMinePage, minePage]);
 
   useEffect(() => {
     void loadTrending();
@@ -194,12 +201,27 @@ export default function Community() {
     void loadGroupsOverview();
   }, [loadGroupsOverview]);
 
+  useEffect(() => {
+    if (trendingLoading || !trendingError) return;
+    if (feedPosts.length === 0) return;
+
+    setTrendingPosts(feedPosts.slice(0, 3));
+    setTrendingMode("latest");
+    setTrendingError("");
+  }, [feedPosts, trendingError, trendingLoading]);
+
   const handleRefreshAfterSubmit = async () => {
-    if (minePage !== 1) {
-      setMinePage(1);
+    await loadFeedPage();
+
+    if (activeTab !== "my_posts") {
       return;
     }
-    await loadMinePage();
+
+    if (minePage !== 1) {
+      setMinePage(1);
+    } else {
+      await loadMinePage();
+    }
   };
 
   const handleDeleteOwnPost = async (postId: string) => {
@@ -212,9 +234,9 @@ export default function Community() {
       throw new Error(data.error || "Failed to delete post.");
     }
 
-    if (minePosts.length === 1 && minePage > 1) {
+    if (hasLoadedMine && minePosts.length === 1 && minePage > 1) {
       setMinePage((page) => Math.max(1, page - 1));
-    } else {
+    } else if (hasLoadedMine) {
       await loadMinePage();
     }
 
