@@ -4,6 +4,17 @@ import { Admin, User, History, Puzzle } from "../models/index.js";
 import { adminAuthMiddleware } from "../middleware/index.js";
 
 const router = Router();
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
+
+function buildAdminCookieOptions(overrides = {}) {
+  return {
+    httpOnly: true,
+    secure: IS_PRODUCTION,
+    sameSite: IS_PRODUCTION ? "none" : "lax",
+    path: "/",
+    ...overrides,
+  };
+}
 
 // Admin Login
 router.post("/login", async (req, res) => {
@@ -31,13 +42,13 @@ router.post("/login", async (req, res) => {
       isAdmin: true,
     };
 
-    res.cookie("adminToken", JSON.stringify(tokenData), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 24 * 60 * 60 * 1000,
-      path: "/",
-    });
+    res.cookie(
+      "adminToken",
+      JSON.stringify(tokenData),
+      buildAdminCookieOptions({
+        maxAge: 24 * 60 * 60 * 1000,
+      }),
+    );
 
     res.json({
       success: true,
@@ -52,13 +63,13 @@ router.post("/login", async (req, res) => {
 
 // Admin Logout
 router.post("/logout", (req, res) => {
-  res.cookie("adminToken", "", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 0,
-    path: "/",
-  });
+  res.cookie(
+    "adminToken",
+    "",
+    buildAdminCookieOptions({
+      maxAge: 0,
+    }),
+  );
   res.json({ success: true, message: "Admin logged out successfully" });
 });
 

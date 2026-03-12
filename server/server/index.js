@@ -72,6 +72,7 @@ const __dirname = path.dirname(__filename);
 const DEFAULT_ALLOWED_ORIGINS = [
   "http://localhost:5173",
   "http://127.0.0.1:5173",
+  "https://neongambit-chesswebv3.vercel.app",
 ];
 const VERCEL_PREVIEW_ORIGIN_PATTERN = /^https:\/\/[a-z0-9-]+\.vercel\.app$/i;
 
