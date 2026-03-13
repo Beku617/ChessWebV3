@@ -13,6 +13,7 @@ import adminFeaturedEventsRoutes from "./adminFeaturedEvents.js";
 import communityRoutes from "./community.js";
 import adminCommunityRoutes from "./adminCommunity.js";
 import adminGroupsRoutes from "./adminGroups.js";
+import mediaRoutes from "./media.js";
 import lichessRoutes from "./lichess.js";
 import friendsRoutes from "./friends.js";
 import ratingsRoutes from "./ratings.js";
@@ -36,6 +37,7 @@ export {
   communityRoutes,
   adminCommunityRoutes,
   adminGroupsRoutes,
+  mediaRoutes,
   lichessRoutes,
   friendsRoutes,
   ratingsRoutes,

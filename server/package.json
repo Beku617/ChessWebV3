@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "dev": "node --watch index.js",
-    "test": "node --test server/tests",
+    "test": "npm --prefix server test",
     "seed:admin": "node server/seedAdmin.js",
     "migrate:ratings:pools": "node server/migrateRatingsToPools.js",
     "seed:leaderboard": "node server/seedLeaderboardUsers.js"

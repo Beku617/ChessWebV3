@@ -2,21 +2,20 @@ import fs from "fs";
 import path from "path";
 import crypto from "crypto";
 import multer from "multer";
-import { fileURLToPath } from "url";
 import { CommunityPost } from "../models/index.js";
 import { normalizeCommunityGroup } from "./communityGroups.js";
 import {
+  buildCommunityMediaAssetUrl,
   deleteCommunityMediaAsset,
   extractCommunityMediaAssetId,
   storeCommunityMediaAsset,
 } from "./communityMediaStorage.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-export const communityUploadsRoot = path.resolve(__dirname, "../uploads/community");
-
-fs.mkdirSync(communityUploadsRoot, { recursive: true });
+import {
+  createMediaUploadStorage,
+  deleteLegacyUploadFiles,
+  guessMediaMimeType,
+  resolveLegacyUploadFilePath,
+} from "./mediaStorage.js";
 
 export const COMMUNITY_ALLOWED_IMAGE_TYPES = new Set([
   "image/jpeg",
@@ -51,12 +50,9 @@ export const COMMUNITY_POSTING_RESTRICTION_DURATIONS = Object.freeze({
   forever: -1,
 });
 
-function safeExtension(filename = "") {
-  const ext = path.extname(filename || "").toLowerCase();
-  return /^[.a-z0-9]+$/.test(ext) ? ext : "";
-}
-
-const storage = multer.memoryStorage();
+const storage = createMediaUploadStorage({
+  category: "community",
+});
 
 const upload = multer({
   storage,
@@ -119,8 +115,9 @@ function isLegacyCommunityUploadUrl(value = "") {
 }
 
 function getLegacyCommunityFilePath(value = "") {
-  if (!isLegacyCommunityUploadUrl(value)) return "";
-  return path.join(communityUploadsRoot, path.basename(String(value || "").trim()));
+  return isLegacyCommunityUploadUrl(value)
+    ? resolveLegacyUploadFilePath(value)
+    : "";
 }
 
 function detectCommunityMediaItemType(file) {
@@ -133,7 +130,6 @@ export async function cleanupCommunityMedia(input) {
   if (files.length === 0) return;
 
   const seenAssetIds = new Set();
-  const seenPaths = new Set();
   await Promise.all(
     files.map(async (file) => {
       const assetId = String(
@@ -144,10 +140,7 @@ export async function cleanupCommunityMedia(input) {
         await deleteCommunityMediaAsset(assetId).catch(() => null);
       }
 
-      const legacyPath = file?.path || getLegacyCommunityFilePath(file?.url);
-      if (!legacyPath || seenPaths.has(legacyPath)) return;
-      seenPaths.add(legacyPath);
-      await fs.promises.unlink(legacyPath).catch(() => null);
+      await deleteLegacyUploadFiles(file?.url).catch(() => null);
     }),
   );
 }
@@ -227,14 +220,23 @@ export async function buildCommunityMediaItems(input) {
 
   try {
     for (const file of files) {
-      const stored = await storeCommunityMediaAsset(file);
+      const stored =
+        String(file?.assetId || "").trim() && String(file?.url || "").trim()
+          ? {
+              assetId: String(file.assetId || "").trim(),
+              url: String(file.url || "").trim(),
+              filename: String(file.filename || file.originalName || file.originalname || ""),
+            }
+          : await storeCommunityMediaAsset(file);
       items.push({
         assetId: stored.assetId,
         type: detectCommunityMediaItemType(file),
         url: stored.url,
         mimeType: String(file.mimetype || ""),
-        originalName: String(file.originalname || ""),
-        size: Number(file.size || 0),
+        originalName: String(
+          file.originalName || file.originalname || stored.originalName || "",
+        ),
+        size: Number(file.size || stored.size || 0),
       });
     }
   } catch (err) {
@@ -253,11 +255,15 @@ function normalizeCommunityMediaItem(item) {
       : String(item.type || "").trim().toLowerCase() === "image"
         ? "image"
         : detectCommunityMediaItemType(item);
-  const url = String(item.url || "").trim();
-  if (!url) return null;
+  const rawUrl = String(item.url || "").trim();
   const assetId = String(
-    item.assetId || extractCommunityMediaAssetId(url),
+    item.assetId || extractCommunityMediaAssetId(rawUrl),
   ).trim();
+  const url =
+    assetId && (rawUrl === "" || isLegacyCommunityUploadUrl(rawUrl))
+      ? buildCommunityMediaAssetUrl(assetId)
+      : rawUrl || buildCommunityMediaAssetUrl(assetId);
+  if (!url) return null;
   return {
     assetId,
     type,
@@ -440,37 +446,19 @@ export function buildCommunityPostingAccess(userDoc, now = new Date()) {
   };
 }
 
-const COMMUNITY_MIME_BY_EXTENSION = Object.freeze({
-  ".jpg": "image/jpeg",
-  ".jpeg": "image/jpeg",
-  ".png": "image/png",
-  ".webp": "image/webp",
-  ".gif": "image/gif",
-  ".mp4": "video/mp4",
-  ".webm": "video/webm",
-  ".mov": "video/quicktime",
-  ".qt": "video/quicktime",
-});
-
-function guessCommunityMimeType(value = "") {
-  const ext = safeExtension(value);
-  return COMMUNITY_MIME_BY_EXTENSION[ext] || "application/octet-stream";
-}
-
 async function migrateLegacyCommunityMediaItem(item) {
   const legacyPath = getLegacyCommunityFilePath(item?.url);
   if (!legacyPath || !fs.existsSync(legacyPath)) {
     return item;
   }
 
-  const buffer = await fs.promises.readFile(legacyPath);
   const mimetype =
-    String(item?.mimeType || "").trim() || guessCommunityMimeType(legacyPath);
+    String(item?.mimeType || "").trim() || guessMediaMimeType(legacyPath);
   const originalname =
     String(item?.originalName || "").trim() || path.basename(legacyPath);
   const stored = await storeCommunityMediaAsset({
-    buffer,
-    size: Number(item?.size || buffer.length),
+    stream: fs.createReadStream(legacyPath),
+    size: Number(item?.size || 0),
     mimetype,
     originalname,
   });
@@ -481,7 +469,7 @@ async function migrateLegacyCommunityMediaItem(item) {
     url: stored.url,
     mimeType: mimetype,
     originalName: originalname,
-    size: Number(item?.size || buffer.length),
+    size: Number(item?.size || stored.size || 0),
   };
 }
 
@@ -489,6 +477,7 @@ export async function migrateLegacyCommunityMediaForPost(postDoc) {
   if (!postDoc?._id) return postDoc;
 
   const mediaItems = normalizeCommunityMediaItems(postDoc);
+  const sourceItems = Array.isArray(postDoc?.mediaItems) ? postDoc.mediaItems : [];
   if (mediaItems.length === 0) {
     return postDoc;
   }
@@ -498,12 +487,19 @@ export async function migrateLegacyCommunityMediaForPost(postDoc) {
   const createdItems = [];
 
   try {
-    for (const item of mediaItems) {
-      if (!item?.assetId && isLegacyCommunityUploadUrl(item?.url)) {
+    for (let index = 0; index < mediaItems.length; index += 1) {
+      const item = mediaItems[index];
+      const sourceItem = sourceItems[index] || null;
+      const sourceUrl = String(sourceItem?.url || item?.url || "").trim();
+      const sourceAssetId = String(
+        sourceItem?.assetId || item?.assetId || "",
+      ).trim();
+
+      if (!item?.assetId && isLegacyCommunityUploadUrl(sourceUrl)) {
         const migrated = await migrateLegacyCommunityMediaItem(item);
         if (
           String(migrated?.assetId || "") !== String(item?.assetId || "") ||
-          String(migrated?.url || "") !== String(item?.url || "")
+          String(migrated?.url || "") !== String(sourceUrl || "")
         ) {
           changed = true;
           createdItems.push(migrated);
@@ -512,6 +508,12 @@ export async function migrateLegacyCommunityMediaForPost(postDoc) {
         continue;
       }
 
+      if (
+        String(item?.url || "") !== sourceUrl ||
+        String(item?.assetId || "") !== sourceAssetId
+      ) {
+        changed = true;
+      }
       nextItems.push(item);
     }
 
@@ -552,30 +554,42 @@ export async function migrateLegacyCommunityMediaForPost(postDoc) {
 }
 
 export async function migrateLegacyCommunityMediaPosts(limit = 200) {
-  const posts = await CommunityPost.find({
-    $or: [
-      { mediaUrl: /^\/uploads\/community\//i },
-      { "mediaItems.url": /^\/uploads\/community\//i },
-    ],
-  })
-    .select(
-      "_id mediaItems mediaType mediaUrl mediaMimeType mediaOriginalName mediaSize",
-    )
-    .sort({ createdAt: -1, _id: -1 })
-    .limit(Math.max(1, Number(limit) || 200))
-    .lean();
+  const batchSize = Math.max(1, Number(limit) || 200);
+  let scanned = 0;
+  let migrated = 0;
 
-  let migratedCount = 0;
-  for (const post of posts) {
-    const migrated = await migrateLegacyCommunityMediaForPost(post);
-    if (String(migrated?.mediaUrl || "") !== String(post?.mediaUrl || "")) {
-      migratedCount += 1;
+  while (true) {
+    const posts = await CommunityPost.find({
+      $or: [
+        { mediaUrl: /^\/uploads\/community\//i },
+        { "mediaItems.url": /^\/uploads\/community\//i },
+      ],
+    })
+      .select(
+        "_id mediaItems mediaType mediaUrl mediaMimeType mediaOriginalName mediaSize",
+      )
+      .sort({ createdAt: -1, _id: -1 })
+      .limit(batchSize)
+      .lean();
+
+    if (posts.length === 0) {
+      break;
+    }
+
+    scanned += posts.length;
+    for (const post of posts) {
+      const migratedPost = await migrateLegacyCommunityMediaForPost(post);
+      if (
+        String(migratedPost?.mediaUrl || "") !== String(post?.mediaUrl || "")
+      ) {
+        migrated += 1;
+      }
     }
   }
 
   return {
-    scanned: posts.length,
-    migrated: migratedCount,
+    scanned,
+    migrated,
   };
 }
 
@@ -629,6 +643,7 @@ export function toCommunityPostDTO(postDoc, options = {}) {
   const likedPostIds = options?.likedPostIds instanceof Set ? options.likedPostIds : null;
   const mediaItems = normalizeCommunityMediaItems(postDoc);
   const mediaDTOItems = mediaItems.map((item) => ({
+    assetId: item.assetId,
     type: item.type,
     url: item.url,
     mimeType: item.mimeType,

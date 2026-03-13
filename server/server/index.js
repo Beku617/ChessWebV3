@@ -2,8 +2,6 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import mongoose from "mongoose";
-import path from "path";
-import { fileURLToPath } from "url";
 import http from "http";
 import crypto from "crypto";
 import { Server } from "socket.io";
@@ -18,12 +16,9 @@ import { connectDB } from "./config/db.js";
 import {
   Friend,
   RatingEvent,
-  Conversation,
-  DirectMessage,
   Tournament,
   TournamentGame,
   User,
-  buildKey as buildConversationKey,
 } from "./models/index.js";
 import {
   gamesFieldForPool,
@@ -59,16 +54,14 @@ import {
   communityRoutes,
   adminCommunityRoutes,
   adminGroupsRoutes,
+  mediaRoutes,
   lichessRoutes,
   friendsRoutes,
   ratingsRoutes,
   tournamentRoutes,
   messagesRoutes,
 } from "./routes/index.js";
-import { migrateLegacyCommunityMediaPosts } from "./utils/communityPosts.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { migrateLegacyRuntimeMedia } from "./utils/runtimeMediaMigration.js";
 
 const DEFAULT_ALLOWED_ORIGINS = [
   "http://localhost:5173",
@@ -118,6 +111,12 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: corsOptions,
 });
+const DB_STATE_LABELS = Object.freeze({
+  0: "disconnected",
+  1: "connected",
+  2: "connecting",
+  3: "disconnecting",
+});
 
 // expose socket.io instance for notification helpers
 app.set("io", io);
@@ -148,8 +147,14 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(cors(corsOptions));
 
-// Serve uploaded files
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.get("/healthz", (_req, res) => {
+  res.status(200).json({
+    ok: true,
+    service: "neongambit-server",
+    db: DB_STATE_LABELS[mongoose.connection.readyState] || "unknown",
+    timestamp: new Date().toISOString(),
+  });
+});
 
 // Connect to MongoDB
 connectDB();
@@ -159,16 +164,23 @@ mongoose.connection.once("open", () => {
   seedPuzzles().catch(console.error);
   seedGamePageConfig().catch(console.error);
   seedBots().catch(console.error);
-  migrateLegacyCommunityMediaPosts()
+  migrateLegacyRuntimeMedia()
     .then((result) => {
-      if (Number(result?.migrated || 0) > 0) {
-        console.log(
-          `Migrated ${result.migrated}/${result.scanned} legacy community media posts to persistent storage.`,
-        );
-      }
+      const summaries = [
+        ["community", result?.community],
+        ["messages", result?.messages],
+        ["bots", result?.bots],
+      ];
+      summaries.forEach(([label, summary]) => {
+        if (Number(summary?.migrated || 0) > 0) {
+          console.log(
+            `Migrated ${summary.migrated}/${summary.scanned} legacy ${label} media records to persistent storage.`,
+          );
+        }
+      });
     })
     .catch((error) => {
-      console.error("Community media migration error:", error);
+      console.error("Runtime media migration error:", error);
     });
 });
 
@@ -184,6 +196,7 @@ app.use("/api/admin/games", adminGamesRoutes);
 app.use("/api/admin/puzzles", adminPuzzlesRoutes);
 app.use("/api/admin/bots", adminBotsRoutes);
 app.use("/api/admin/featured-events", adminFeaturedEventsRoutes);
+app.use("/api/media", mediaRoutes);
 app.use("/api/community", communityRoutes);
 app.use("/api/admin/community", adminCommunityRoutes);
 app.use("/api/admin/groups", adminGroupsRoutes);
@@ -1631,155 +1644,10 @@ io.on("connection", (socket) => {
     }
   };
 
-  const emitDmToUser = (userId, event, payload) => {
-    const room = getUserRoom(userId);
-    io.to(room).emit(event, payload);
-  };
-
-  const normalizeMessageBody = (body) => {
-    return String(body || "").trim();
-  };
-
-  const toObjectId = (value) => {
-    if (!mongoose.Types.ObjectId.isValid(value)) return null;
-    return new mongoose.Types.ObjectId(value);
-  };
-
-  const ensureConversation = async (userA, userB) => {
-    const a = toObjectId(userA);
-    const b = toObjectId(userB);
-    if (!a || !b || a.equals(b)) return null;
-    const participants = [a, b];
-    const participantsKey = buildConversationKey(participants);
-    let convo = await Conversation.findOne({ participantsKey });
-    if (!convo) {
-      try {
-        convo = await Conversation.create({
-          participants,
-          participantsKey,
-          unreadCounts: {
-            [participants[0]]: 0,
-            [participants[1]]: 0,
-          },
-        });
-      } catch (err) {
-        if (err?.code === 11000) {
-          convo = await Conversation.findOne({ participantsKey });
-        } else {
-          throw err;
-        }
-      }
-    }
-    return convo;
-  };
-
   socket.on("presence:ping", () => {
     const userId = normalizeId(socket.data.userId);
     if (!userId) return;
     syncUserPresenceFromSockets(userId);
-  });
-
-  socket.on("dm:send", async (payload = {}, ack) => {
-    try {
-      const fromUserId = normalizeId(socket.data.userId);
-      const toUserId = normalizeId(payload.toUserId);
-      const body = normalizeMessageBody(payload.body);
-      if (!mongoose.Types.ObjectId.isValid(toUserId)) {
-        return safeAck(ack, { success: false, error: "Invalid recipient." });
-      }
-      if (!fromUserId) return safeAck(ack, { success: false, error: "Not authenticated." });
-      if (!toUserId) return safeAck(ack, { success: false, error: "Recipient required." });
-      if (!body) return safeAck(ack, { success: false, error: "Message cannot be empty." });
-      if (fromUserId === toUserId) {
-        return safeAck(ack, { success: false, error: "Cannot message yourself." });
-      }
-
-      if (!(await areUsersFriends(fromUserId, toUserId))) {
-        return safeAck(ack, {
-          success: false,
-          error: "Direct messages are limited to friends.",
-        });
-      }
-
-      const convo = await ensureConversation(fromUserId, toUserId);
-      if (!convo) {
-        return safeAck(ack, { success: false, error: "Conversation error." });
-      }
-      if (!convo) return safeAck(ack, { success: false, error: "Conversation error." });
-
-      const message = await DirectMessage.create({
-        conversationId: convo._id,
-        fromUserId,
-        toUserId,
-        body,
-      });
-
-      const unreadCounts =
-        convo.unreadCounts instanceof Map
-          ? new Map(convo.unreadCounts)
-          : new Map(Object.entries(convo.unreadCounts || {}));
-      unreadCounts.set(toUserId, (unreadCounts.get(toUserId) || 0) + 1);
-      unreadCounts.set(fromUserId, unreadCounts.get(fromUserId) || 0);
-
-      await Conversation.updateOne(
-        { _id: convo._id },
-        {
-          $set: {
-            lastMessage: body,
-            lastSender: fromUserId,
-            lastMessageAt: message.createdAt,
-            unreadCounts,
-          },
-        },
-      );
-
-      const payloadMsg = {
-        id: normalizeId(message._id),
-        conversationId: normalizeId(convo._id),
-        fromUserId,
-        toUserId,
-        body,
-        createdAt: message.createdAt,
-        readAt: null,
-      };
-
-      emitDmToUser(fromUserId, "dm:newMessage", payloadMsg);
-      emitDmToUser(toUserId, "dm:newMessage", payloadMsg);
-      safeAck(ack, { success: true, message: payloadMsg });
-    } catch (error) {
-      console.error("dm:send error", error);
-      safeAck(ack, { success: false, error: "Failed to send." });
-    }
-  });
-
-  socket.on("dm:read", async (payload = {}, ack) => {
-    try {
-      const userId = normalizeId(socket.data.userId);
-      const convoId = normalizeId(payload.conversationId);
-      if (!mongoose.Types.ObjectId.isValid(convoId)) {
-        return safeAck(ack, { success: false, error: "Invalid conversation." });
-      }
-      if (!userId) return safeAck(ack, { success: false, error: "Not authenticated." });
-      if (!convoId) return safeAck(ack, { success: false, error: "Conversation required." });
-      const convo = await Conversation.findById(convoId);
-      if (!convo || !convo.participants.map(normalizeId).includes(userId)) {
-        return safeAck(ack, { success: false, error: "Conversation not found." });
-      }
-
-      await DirectMessage.updateMany(
-        { conversationId: convo._id, toUserId: userId, readAt: null },
-        { $set: { readAt: new Date() } },
-      );
-      await Conversation.updateOne(
-        { _id: convo._id },
-        { $set: { [`unreadCounts.${userId}`]: 0 } },
-      );
-      emitDmToUser(userId, "dm:read", { conversationId: convoId });
-      safeAck(ack, { success: true });
-    } catch (error) {
-      console.error("dm:read error", error);
-      safeAck(ack, { success: false, error: "Failed to mark read." });
-    }
   });
 
   socket.on("joinTournamentGame", async (payload = {}, ack) => {

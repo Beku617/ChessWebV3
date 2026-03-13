@@ -1,5 +1,6 @@
 import express from "express";
 import Bot from "../models/Bot.js";
+import { ensureBotAvatarMedia, ensureBotAvatarMediaMany } from "../utils/botMedia.js";
 
 const router = express.Router();
 
@@ -8,7 +9,9 @@ router.get("/", async (req, res) => {
   try {
     const bots = await Bot.find({ isActive: true })
       .sort({ difficulty: 1, eloRating: 1 })
-      .select("-__v");
+      .select("-__v")
+      .lean();
+    const normalizedBots = await ensureBotAvatarMediaMany(bots);
 
     // Group bots by difficulty
     const grouped = {
@@ -19,7 +22,7 @@ router.get("/", async (req, res) => {
       master: [],
     };
 
-    bots.forEach((bot) => {
+    normalizedBots.forEach((bot) => {
       if (grouped[bot.difficulty]) {
         grouped[bot.difficulty].push(bot);
       }
@@ -27,9 +30,9 @@ router.get("/", async (req, res) => {
 
     res.json({
       success: true,
-      bots,
+      bots: normalizedBots,
       grouped,
-      total: bots.length,
+      total: normalizedBots.length,
     });
   } catch (error) {
     console.error("Error fetching bots:", error);
@@ -45,13 +48,15 @@ router.get("/:id", async (req, res) => {
     const bot = await Bot.findOne({
       _id: req.params.id,
       isActive: true,
-    }).select("-__v");
+    })
+      .select("-__v")
+      .lean();
 
     if (!bot) {
       return res.status(404).json({ message: "Bot not found" });
     }
 
-    res.json({ success: true, bot });
+    res.json({ success: true, bot: await ensureBotAvatarMedia(bot) });
   } catch (error) {
     console.error("Error fetching bot:", error);
     res

@@ -22,6 +22,11 @@ const MessageSchema = new mongoose.Schema(
     },
     attachments: [
       {
+        assetId: {
+          type: String,
+          default: "",
+          trim: true,
+        },
         type: {
           type: String,
           enum: ["image", "video"],
@@ -29,6 +34,7 @@ const MessageSchema = new mongoose.Schema(
         },
         url: { type: String, required: true },
         filename: { type: String, required: true },
+        originalName: { type: String, default: "", trim: true },
         mimeType: { type: String, required: true },
         size: { type: Number, required: true },
         width: { type: Number, default: null },
@@ -70,6 +76,7 @@ MessageSchema.index({ sender: 1, receiver: 1, createdAt: -1 });
 MessageSchema.index({ receiver: 1, read: 1 });
 MessageSchema.index({ receiver: 1, status: 1, createdAt: -1 });
 MessageSchema.index({ sender: 1, receiver: 1, createdAt: -1, "attachments.url": 1 });
+MessageSchema.index({ "attachments.assetId": 1 });
 
 const Message = mongoose.models.Message || mongoose.model("Message", MessageSchema);
 

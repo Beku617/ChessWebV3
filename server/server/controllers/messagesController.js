@@ -1,10 +1,6 @@
 import { Router } from "express";
 import mongoose from "mongoose";
 import multer from "multer";
-import path from "path";
-import fs from "fs";
-import crypto from "crypto";
-import { fileURLToPath } from "url";
 import { authMiddleware } from "../middleware/index.js";
 import {
   BlockedUser,
@@ -17,13 +13,12 @@ import {
 } from "../models/index.js";
 import { notifyUser } from "../services/notify.js";
 import { areFriends } from "../utils/friendship.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const uploadsRoot = path.resolve(__dirname, "../uploads/messages");
-
-// Ensure uploads directory exists
-fs.mkdirSync(uploadsRoot, { recursive: true });
+import { createMediaUploadStorage } from "../utils/mediaStorage.js";
+import {
+  buildMessageAttachments,
+  cleanupMessageMedia,
+  ensureMessageAttachmentMedia,
+} from "../utils/messageMedia.js";
 
 const ALLOWED_IMAGE_TYPES = new Set([
   "image/jpeg",
@@ -42,13 +37,8 @@ const MAX_IMAGES_PER_MESSAGE = 10;
 const MAX_VIDEOS_PER_MESSAGE = 1;
 const MAX_VIDEO_BYTES = 50 * 1024 * 1024; // 50MB per video
 
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, uploadsRoot),
-  filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname || "");
-    const name = crypto.randomBytes(10).toString("hex");
-    cb(null, `${Date.now()}-${name}${ext}`);
-  },
+const storage = createMediaUploadStorage({
+  category: "messages",
 });
 
 const upload = multer({
@@ -103,40 +93,6 @@ const visibleStatusQuery = () => ({
     { status: { $exists: false } },
   ],
 });
-
-const cleanupFiles = async (files = []) => {
-  await Promise.all(
-    files.map((file) =>
-      file?.path
-        ? fs.promises.unlink(file.path).catch(() => null)
-        : Promise.resolve(),
-    ),
-  );
-};
-
-const mapAttachments = (files = []) =>
-  files.map((file) => {
-    const storedName = path.basename(
-      file.filename || file.originalname || "image",
-    );
-    const displayName = path.basename(file.originalname || storedName);
-    const type =
-      ALLOWED_VIDEO_TYPES.has(file.mimetype) ||
-      (file.mimetype || "").startsWith("video/")
-        ? "video"
-        : "image";
-    return {
-      type,
-      url: `/uploads/messages/${storedName}`,
-      filename: displayName,
-      mimeType: file.mimetype,
-      size: file.size,
-      width: type === "image" ? (file.width ?? null) : null,
-      height: type === "image" ? (file.height ?? null) : null,
-      duration: type === "video" ? (file.duration ?? null) : null,
-      thumbnail: type === "video" ? (file.thumbnail ?? null) : null,
-    };
-  });
 
 const summarizeAttachmentLabel = (attachments = []) => {
   const list = Array.isArray(attachments) ? attachments : [];
@@ -501,10 +457,13 @@ router.get("/:friendId", async (req, res) => {
       query.createdAt = createdAt;
     }
 
-    const messages = await Message.find(query)
+    const rawMessages = await Message.find(query)
       .sort({ createdAt: -1 })
       .limit(limit)
       .lean();
+    const messages = await Promise.all(
+      rawMessages.map((message) => ensureMessageAttachmentMedia(message)),
+    );
 
     res.json({ messages: messages.reverse() });
   } catch (err) {
@@ -531,11 +490,12 @@ router.post("/", uploadAttachments, async (req, res) => {
       return res.status(400).json({ error: "Receiver id required" });
     }
     if (!isValidObjectId(receiverId)) {
+      await cleanupMessageMedia(files);
       return res.status(400).json({ error: "Invalid receiver id" });
     }
 
     if (content.length > MAX_MESSAGE_LENGTH) {
-      await cleanupFiles(files);
+      await cleanupMessageMedia(files);
       return res
         .status(400)
         .json({ error: "Message text is too long (2000 characters max)." });
@@ -549,12 +509,12 @@ router.post("/", uploadAttachments, async (req, res) => {
     );
 
     if (images.length + videos.length !== files.length) {
-      await cleanupFiles(files);
+      await cleanupMessageMedia(files);
       return res.status(400).json({ error: "Unsupported file type." });
     }
 
     if (!content && images.length === 0 && videos.length === 0) {
-      await cleanupFiles(files);
+      await cleanupMessageMedia(files);
       return res
         .status(400)
         .json({
@@ -563,7 +523,7 @@ router.post("/", uploadAttachments, async (req, res) => {
     }
 
     if (images.length > 0 && videos.length > 0) {
-      await cleanupFiles(files);
+      await cleanupMessageMedia(files);
       return res
         .status(400)
         .json({
@@ -573,7 +533,7 @@ router.post("/", uploadAttachments, async (req, res) => {
     }
 
     if (images.length > MAX_IMAGES_PER_MESSAGE) {
-      await cleanupFiles(files);
+      await cleanupMessageMedia(files);
       return res
         .status(400)
         .json({
@@ -582,7 +542,7 @@ router.post("/", uploadAttachments, async (req, res) => {
     }
 
     if (videos.length > MAX_VIDEOS_PER_MESSAGE) {
-      await cleanupFiles(files);
+      await cleanupMessageMedia(files);
       return res
         .status(400)
         .json({ error: "Only one video can be sent per message." });
@@ -590,7 +550,7 @@ router.post("/", uploadAttachments, async (req, res) => {
 
     const invalidImage = images.find((file) => file.size > MAX_IMAGE_BYTES);
     if (invalidImage) {
-      await cleanupFiles(files);
+      await cleanupMessageMedia(files);
       return res
         .status(400)
         .json({
@@ -603,7 +563,7 @@ router.post("/", uploadAttachments, async (req, res) => {
       0,
     );
     if (images.length > 0 && totalImageBytes > MAX_TOTAL_IMAGE_BYTES) {
-      await cleanupFiles(files);
+      await cleanupMessageMedia(files);
       const limitMb = Math.round(MAX_TOTAL_IMAGE_BYTES / (1024 * 1024));
       return res
         .status(400)
@@ -614,7 +574,7 @@ router.post("/", uploadAttachments, async (req, res) => {
 
     const invalidVideo = videos.find((file) => file.size > MAX_VIDEO_BYTES);
     if (invalidVideo) {
-      await cleanupFiles(files);
+      await cleanupMessageMedia(files);
       const limitMb = Math.round(MAX_VIDEO_BYTES / (1024 * 1024));
       return res
         .status(400)
@@ -624,7 +584,7 @@ router.post("/", uploadAttachments, async (req, res) => {
     }
 
     if (receiverId === senderId) {
-      await cleanupFiles(files);
+      await cleanupMessageMedia(files);
       return res.status(400).json({ error: "Cannot message yourself" });
     }
 
@@ -632,25 +592,25 @@ router.post("/", uploadAttachments, async (req, res) => {
       .select("_id")
       .lean();
     if (!receiver) {
-      await cleanupFiles(files);
+      await cleanupMessageMedia(files);
       return res.status(404).json({ error: "Receiver not found" });
     }
 
     if (!(await areFriends(senderId, receiverId))) {
-      await cleanupFiles(files);
+      await cleanupMessageMedia(files);
       return res
         .status(403)
         .json({ error: "You must be friends to send direct messages." });
     }
 
     if (await hasBlockRelation(senderId, receiverId)) {
-      await cleanupFiles(files);
+      await cleanupMessageMedia(files);
       return res
         .status(403)
         .json({ error: "Messaging is blocked between users" });
     }
 
-    const attachments = mapAttachments([...images, ...videos]);
+    const attachments = buildMessageAttachments([...images, ...videos]);
 
     const message = await Message.create({
       sender: senderId,
@@ -720,7 +680,7 @@ router.post("/", uploadAttachments, async (req, res) => {
   } catch (err) {
     console.error("Send message error:", err);
     if (Array.isArray(req.files) && req.files.length > 0) {
-      await cleanupFiles(req.files);
+      await cleanupMessageMedia(req.files);
     }
     res.status(500).json({ error: "Server error" });
   }

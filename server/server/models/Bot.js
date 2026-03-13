@@ -18,6 +18,25 @@ const BotSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    avatarAssetId: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    avatarMimeType: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    avatarOriginalName: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    avatarSize: {
+      type: Number,
+      default: 0,
+    },
     eloRating: {
       type: Number,
       required: true,
@@ -116,6 +135,7 @@ const BotSchema = new mongoose.Schema(
 BotSchema.index({ difficulty: 1, isActive: 1 });
 BotSchema.index({ category: 1 });
 BotSchema.index({ name: "text" });
+BotSchema.index({ avatarAssetId: 1 });
 
 const Bot = mongoose.models.Bot || mongoose.model("Bot", BotSchema);
 

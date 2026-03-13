@@ -385,6 +385,7 @@ router.get("/media/:assetId/:filename?", async (req, res) => {
       res.setHeader("Content-Range", `bytes ${range.start}-${range.end}/${totalSize}`);
       res.setHeader("Content-Length", String(range.end - range.start + 1));
       stream = openCommunityMediaAssetStream(assetId, {
+        bucketName: asset.bucketName,
         start: range.start,
         end: range.end + 1,
       });
@@ -392,7 +393,9 @@ router.get("/media/:assetId/:filename?", async (req, res) => {
       if (totalSize > 0) {
         res.setHeader("Content-Length", String(totalSize));
       }
-      stream = openCommunityMediaAssetStream(assetId);
+      stream = openCommunityMediaAssetStream(assetId, {
+        bucketName: asset.bucketName,
+      });
     }
 
     stream.on("error", (error) => {

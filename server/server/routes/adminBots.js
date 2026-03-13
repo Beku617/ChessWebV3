@@ -1,31 +1,15 @@
 import { Router } from "express";
 import multer from "multer";
-import path from "path";
-import fs from "fs";
-import { fileURLToPath } from "url";
 import { Bot } from "../models/index.js";
 import { adminAuthMiddleware } from "../middleware/index.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { createMediaUploadStorage } from "../utils/mediaStorage.js";
+import {
+  cleanupBotAvatarMedia,
+  ensureBotAvatarMedia,
+  ensureBotAvatarMediaMany,
+} from "../utils/botMedia.js";
 
 const router = Router();
-
-// Setup multer for file uploads
-const uploadDir = path.join(__dirname, "../uploads/bot-avatars");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, "bot-" + uniqueSuffix + path.extname(file.originalname));
-  },
-});
 
 const fileFilter = (req, file, cb) => {
   const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
@@ -40,10 +24,33 @@ const fileFilter = (req, file, cb) => {
 };
 
 const upload = multer({
-  storage,
+  storage: createMediaUploadStorage({
+    category: "bot-avatar",
+  }),
   fileFilter,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
 });
+
+const uploadAvatarFile = (req, res, next) =>
+  upload.single("avatarFile")(req, res, async (error) => {
+    if (!error) {
+      return next();
+    }
+
+    await cleanupBotAvatarMedia(req.file);
+
+    let message = "Failed to upload avatar.";
+    if (error instanceof multer.MulterError) {
+      message =
+        error.code === "LIMIT_FILE_SIZE"
+          ? "Avatar image is too large. Maximum size is 5MB."
+          : error.message || message;
+    } else if (error instanceof Error && error.message) {
+      message = error.message;
+    }
+
+    return res.status(400).json({ error: message });
+  });
 
 // GET /api/admin/bots - List all bots with pagination, search, filter
 router.get("/", adminAuthMiddleware, async (req, res) => {
@@ -96,12 +103,13 @@ router.get("/", adminAuthMiddleware, async (req, res) => {
         .lean(),
       Bot.countDocuments(query),
     ]);
+    const normalizedBots = await ensureBotAvatarMediaMany(bots);
 
     // Get unique categories for filter dropdown
     const categories = await Bot.distinct("category");
 
     res.json({
-      bots,
+      bots: normalizedBots,
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
@@ -149,7 +157,7 @@ router.get("/:id", adminAuthMiddleware, async (req, res) => {
     if (!bot) {
       return res.status(404).json({ error: "Bot not found" });
     }
-    res.json(bot);
+    res.json(await ensureBotAvatarMedia(bot));
   } catch (error) {
     console.error("Failed to fetch bot:", error);
     res.status(500).json({ error: "Failed to fetch bot" });
@@ -160,7 +168,7 @@ router.get("/:id", adminAuthMiddleware, async (req, res) => {
 router.post(
   "/",
   adminAuthMiddleware,
-  upload.single("avatarFile"),
+  uploadAvatarFile,
   async (req, res) => {
     try {
       const {
@@ -187,6 +195,7 @@ router.post(
 
       // Validate required fields
       if (!name || name.length < 2 || name.length > 50) {
+        await cleanupBotAvatarMedia(req.file);
         return res
           .status(400)
           .json({ error: "Bot name must be 2-50 characters" });
@@ -194,6 +203,7 @@ router.post(
 
       const rating = parseInt(eloRating);
       if (isNaN(rating) || rating < 100 || rating > 3000) {
+        await cleanupBotAvatarMedia(req.file);
         return res
           .status(400)
           .json({ error: "ELO rating must be between 100-3000" });
@@ -204,6 +214,7 @@ router.post(
         name: { $regex: `^${name}$`, $options: "i" },
       });
       if (existing) {
+        await cleanupBotAvatarMedia(req.file);
         return res
           .status(400)
           .json({ error: "A bot with this name already exists" });
@@ -212,7 +223,11 @@ router.post(
       const botData = {
         name,
         avatar: avatar || "🤖",
-        avatarUrl: req.file ? `/uploads/bot-avatars/${req.file.filename}` : "",
+        avatarUrl: req.file ? req.file.url : "",
+        avatarAssetId: req.file ? String(req.file.assetId || "") : "",
+        avatarMimeType: req.file ? String(req.file.mimetype || "") : "",
+        avatarOriginalName: req.file ? String(req.file.originalName || "") : "",
+        avatarSize: req.file ? Number(req.file.size || 0) : 0,
         eloRating: rating,
         difficulty: difficulty || "beginner",
         category: category || "general",
@@ -235,9 +250,10 @@ router.post(
       const bot = new Bot(botData);
       await bot.save();
 
-      res.status(201).json(bot);
+      res.status(201).json(await ensureBotAvatarMedia(bot.toObject()));
     } catch (error) {
       console.error("Failed to create bot:", error);
+      await cleanupBotAvatarMedia(req.file);
       if (error.code === 11000) {
         return res
           .status(400)
@@ -252,7 +268,7 @@ router.post(
 router.put(
   "/:id",
   adminAuthMiddleware,
-  upload.single("avatarFile"),
+  uploadAvatarFile,
   async (req, res) => {
     try {
       const {
@@ -279,6 +295,7 @@ router.put(
 
       // Validate required fields
       if (name && (name.length < 2 || name.length > 50)) {
+        await cleanupBotAvatarMedia(req.file);
         return res
           .status(400)
           .json({ error: "Bot name must be 2-50 characters" });
@@ -287,6 +304,7 @@ router.put(
       if (eloRating) {
         const rating = parseInt(eloRating);
         if (isNaN(rating) || rating < 100 || rating > 3000) {
+          await cleanupBotAvatarMedia(req.file);
           return res
             .status(400)
             .json({ error: "ELO rating must be between 100-3000" });
@@ -300,17 +318,29 @@ router.put(
           _id: { $ne: req.params.id },
         });
         if (existing) {
+          await cleanupBotAvatarMedia(req.file);
           return res
             .status(400)
             .json({ error: "A bot with this name already exists" });
         }
       }
 
+      const currentBot = await Bot.findById(req.params.id).lean();
+      if (!currentBot) {
+        await cleanupBotAvatarMedia(req.file);
+        return res.status(404).json({ error: "Bot not found" });
+      }
+
       const updateData = {};
       if (name) updateData.name = name;
       if (avatar) updateData.avatar = avatar;
-      if (req.file)
-        updateData.avatarUrl = `/uploads/bot-avatars/${req.file.filename}`;
+      if (req.file) {
+        updateData.avatarUrl = req.file.url;
+        updateData.avatarAssetId = String(req.file.assetId || "");
+        updateData.avatarMimeType = String(req.file.mimetype || "");
+        updateData.avatarOriginalName = String(req.file.originalName || "");
+        updateData.avatarSize = Number(req.file.size || 0);
+      }
       if (eloRating) updateData.eloRating = parseInt(eloRating);
       if (difficulty) updateData.difficulty = difficulty;
       if (category !== undefined) updateData.category = category;
@@ -339,13 +369,19 @@ router.put(
         new: true,
       });
 
-      if (!bot) {
-        return res.status(404).json({ error: "Bot not found" });
+      if (req.file) {
+        await cleanupBotAvatarMedia({
+          avatarUrl: currentBot.avatarUrl,
+          avatarAssetId: currentBot.avatarAssetId,
+        }).catch((cleanupError) => {
+          console.error("Failed to cleanup previous bot avatar:", cleanupError);
+        });
       }
 
-      res.json(bot);
+      res.json(await ensureBotAvatarMedia(bot?.toObject ? bot.toObject() : bot));
     } catch (error) {
       console.error("Failed to update bot:", error);
+      await cleanupBotAvatarMedia(req.file);
       if (error.code === 11000) {
         return res
           .status(400)
@@ -359,20 +395,15 @@ router.put(
 // DELETE /api/admin/bots/:id - Delete bot
 router.delete("/:id", adminAuthMiddleware, async (req, res) => {
   try {
-    const bot = await Bot.findById(req.params.id);
+    const bot = await Bot.findById(req.params.id).lean();
     if (!bot) {
       return res.status(404).json({ error: "Bot not found" });
     }
 
-    // Delete avatar file if exists
-    if (bot.avatarUrl) {
-      const filePath = path.join(__dirname, "..", bot.avatarUrl);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
-    }
-
     await Bot.findByIdAndDelete(req.params.id);
+    await cleanupBotAvatarMedia(bot).catch((cleanupError) => {
+      console.error("Failed to cleanup bot avatar during delete:", cleanupError);
+    });
     res.json({ success: true, message: "Bot deleted successfully" });
   } catch (error) {
     console.error("Failed to delete bot:", error);

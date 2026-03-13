@@ -89,7 +89,6 @@ UserSchema.index({ rapidRating: -1 });
 UserSchema.index({ classicalRating: -1 });
 UserSchema.index({ communityPostingRestrictedForever: 1 });
 UserSchema.index({ communityPostingRestrictedUntil: 1 });
-UserSchema.index({ communityJoinedGroupIds: 1 });
 
 const User = mongoose.models.User || mongoose.model("User", UserSchema);
 

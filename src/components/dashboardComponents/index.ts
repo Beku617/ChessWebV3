@@ -3,5 +3,3 @@ export { TournamentsSection } from "./TournamentsSection";
 export { PuzzlesSection } from "./PuzzlesSection";
 export { FormatRatingsCard } from "./FormatRatingsCard";
 export { RecentMatchesCard } from "./RecentMatchesCard";
-export type { DashboardProps } from "./types";
-export { difficultyBadge } from "./types";
