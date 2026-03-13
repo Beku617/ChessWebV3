@@ -14,7 +14,9 @@ export function ShareGameModal({ game, onClose }: ShareGameModalProps) {
   const friends = useFriendStore((s) => s.friends);
   const loadFriends = useFriendStore((s) => s.loadAll);
   const [search, setSearch] = useState("");
-  const [selectedFriend, setSelectedFriend] = useState<FriendListItem | null>(null);
+  const [selectedFriend, setSelectedFriend] = useState<FriendListItem | null>(
+    null,
+  );
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,9 +43,13 @@ export function ShareGameModal({ game, onClose }: ShareGameModalProps) {
   const playerIsWhite = game.playAs === "white";
   const resultText =
     game.result === "1-0"
-      ? playerIsWhite ? "Win" : "Loss"
+      ? playerIsWhite
+        ? "Win"
+        : "Loss"
       : game.result === "0-1"
-        ? playerIsWhite ? "Loss" : "Win"
+        ? playerIsWhite
+          ? "Loss"
+          : "Win"
         : "Draw";
 
   const resultColor =
@@ -87,7 +93,9 @@ export function ShareGameModal({ game, onClose }: ShareGameModalProps) {
     <div
       ref={backdropRef}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
-      onClick={(e) => { if (e.target === backdropRef.current) onClose(); }}
+      onClick={(e) => {
+        if (e.target === backdropRef.current) onClose();
+      }}
     >
       <div
         onClick={(e) => e.stopPropagation()}
@@ -118,7 +126,9 @@ export function ShareGameModal({ game, onClose }: ShareGameModalProps) {
                 <span className="font-medium text-slate-100">{game.black}</span>
               </div>
               <div className="mt-0.5 flex items-center gap-2 text-xs text-slate-400">
-                <span className={`font-semibold ${resultColor}`}>{resultText}</span>
+                <span className={`font-semibold ${resultColor}`}>
+                  {resultText}
+                </span>
                 <span>·</span>
                 <span>{game.timeControl || "—"}</span>
                 {game.eco && (
@@ -147,10 +157,15 @@ export function ShareGameModal({ game, onClose }: ShareGameModalProps) {
         </div>
 
         {/* Friend list */}
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-2 premium-scrollbar" style={{ maxHeight: "260px" }}>
+        <div
+          className="min-h-0 flex-1 overflow-y-auto px-5 py-2 premium-scrollbar"
+          style={{ maxHeight: "260px" }}
+        >
           {filtered.length === 0 ? (
             <div className="rounded-xl border border-dashed border-[#27354f] bg-[#0f192b]/65 px-3 py-6 text-center text-xs text-slate-500">
-              {friends.length === 0 ? "No friends yet." : "No matching friends."}
+              {friends.length === 0
+                ? "No friends yet."
+                : "No matching friends."}
             </div>
           ) : (
             <div className="space-y-1">
@@ -168,17 +183,30 @@ export function ShareGameModal({ game, onClose }: ShareGameModalProps) {
                   >
                     <div className="relative h-9 w-9 shrink-0 rounded-full bg-[#1a2940] text-xs font-semibold text-slate-100 ring-1 ring-[#2a3a57]">
                       {f.avatar ? (
-                        <img src={f.avatar} alt={f.name} className="h-full w-full rounded-full object-cover" />
+                        <img
+                          src={f.avatar}
+                          alt={f.name}
+                          className="h-full w-full rounded-full object-cover"
+                        />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center">
-                          {f.name.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase() || "").join("")}
+                          {f.name
+                            .split(" ")
+                            .filter(Boolean)
+                            .slice(0, 2)
+                            .map((p) => p[0]?.toUpperCase() || "")
+                            .join("")}
                         </div>
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <span className="truncate text-sm font-medium text-slate-100">{f.name}</span>
+                      <span className="truncate text-sm font-medium text-slate-100">
+                        {f.name}
+                      </span>
                       {f.rating != null && (
-                        <span className="ml-2 text-xs text-slate-400">{f.rating}</span>
+                        <span className="ml-2 text-xs text-slate-400">
+                          {f.rating}
+                        </span>
                       )}
                     </div>
                     {selected && (

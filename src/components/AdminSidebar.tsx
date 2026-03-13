@@ -11,6 +11,7 @@ import {
   Bot,
   Trophy,
   MessageSquare,
+  UserCircle,
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useThemeStore } from "../store/themeStore";
@@ -37,6 +38,7 @@ export default function AdminSidebar() {
     { icon: Gamepad2, label: "Games", path: "/admin/games" },
     { icon: MessageSquare, label: "Community", path: "/admin/community" },
     { icon: Users, label: "Groups", path: "/admin/groups" },
+    { icon: UserCircle, label: "Profile", path: "/admin/profile" },
     { icon: Settings, label: "Settings", path: "/admin/settings" },
   ];
 
@@ -100,15 +102,19 @@ export default function AdminSidebar() {
 
         {/* Admin Profile */}
         <div className="flex items-center space-x-3 px-4 py-3 rounded-lg bg-gray-100 dark:bg-gray-800">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center shadow-lg">
+          <Link
+            to="/admin/profile"
+            className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center shadow-lg hover:opacity-80 transition-opacity flex-shrink-0"
+            title="View admin profile"
+          >
             <Shield className="w-5 h-5 text-white" />
-          </div>
-          <div className="flex-1 min-w-0">
+          </Link>
+          <Link to="/admin/profile" className="flex-1 min-w-0 hover:opacity-80 transition-opacity">
             <div className="text-sm font-medium text-gray-900 dark:text-white truncate">
               {admin?.username || "Admin"}
             </div>
             <div className="text-xs text-gray-500 truncate">Administrator</div>
-          </div>
+          </Link>
           <Link
             to="/messages"
             className="flex-shrink-0 p-2 rounded-lg text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"

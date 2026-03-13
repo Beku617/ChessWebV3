@@ -63,6 +63,8 @@ const AdminGames = lazy(async () => {
 });
 const AdminCommunity = lazy(() => import("./pages/adminCommunity"));
 const AdminGroups = lazy(() => import("./pages/adminGroups"));
+const AdminProfile = lazy(() => import("./pages/adminProfile"));
+const AdminSettings = lazy(() => import("./pages/adminSettings"));
 const Messages = lazy(async () => {
   const module = await import("./pages/messages");
   return { default: module.Messages };
@@ -164,7 +166,15 @@ function RealtimeBridge() {
     disconnect();
     resetFriends();
     bindFriendSocket(null);
-  }, [disconnect, initialize, isAuthenticated, user, loadFriends, resetFriends, bindFriendSocket]);
+  }, [
+    disconnect,
+    initialize,
+    isAuthenticated,
+    user,
+    loadFriends,
+    resetFriends,
+    bindFriendSocket,
+  ]);
 
   useEffect(() => {
     bindFriendSocket(socket);
@@ -448,18 +458,9 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/u/:userId"
-              element={<UserProfile />}
-            />
-            <Route
-              path="/analyze/:gameId"
-              element={<Analyze />}
-            />
-            <Route
-              path="/analyze960/:gameId"
-              element={<Analyze960 />}
-            />
+            <Route path="/u/:userId" element={<UserProfile />} />
+            <Route path="/analyze/:gameId" element={<Analyze />} />
+            <Route path="/analyze960/:gameId" element={<Analyze960 />} />
 
             {/* Admin dashboard - uses same login page, admin auth checked inside */}
             <Route path="/admin" element={<AdminDashboard />} />
@@ -471,6 +472,8 @@ function App() {
             <Route path="/admin/games" element={<AdminGames />} />
             <Route path="/admin/community" element={<AdminCommunity />} />
             <Route path="/admin/groups" element={<AdminGroups />} />
+            <Route path="/admin/profile" element={<AdminProfile />} />
+            <Route path="/admin/settings" element={<AdminSettings />} />
             <Route path="/admin/analyze/:gameId" element={<AdminAnalyze />} />
           </Routes>
         </Suspense>
