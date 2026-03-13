@@ -109,7 +109,10 @@ export default function AdminSidebar() {
           >
             <Shield className="w-5 h-5 text-white" />
           </Link>
-          <Link to="/admin/profile" className="flex-1 min-w-0 hover:opacity-80 transition-opacity">
+          <Link
+            to="/admin/profile"
+            className="flex-1 min-w-0 hover:opacity-80 transition-opacity"
+          >
             <div className="text-sm font-medium text-gray-900 dark:text-white truncate">
               {admin?.username || "Admin"}
             </div>

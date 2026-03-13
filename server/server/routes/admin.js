@@ -16,6 +16,18 @@ function buildAdminCookieOptions(overrides = {}) {
   };
 }
 
+function serializeAdmin(admin) {
+  if (!admin) return null;
+  return {
+    id: admin._id,
+    email: admin.email,
+    username: admin.username,
+    puzzleElo: admin.puzzleElo,
+    createdAt: admin.createdAt,
+    updatedAt: admin.updatedAt,
+  };
+}
+
 // Admin Login
 router.post("/login", async (req, res) => {
   try {
@@ -53,7 +65,7 @@ router.post("/login", async (req, res) => {
     res.json({
       success: true,
       message: "Admin login successful",
-      admin: { id: admin._id, email: admin.email, username: admin.username },
+      admin: serializeAdmin(admin),
     });
   } catch (err) {
     console.error("Admin login error:", err);
@@ -80,7 +92,7 @@ router.get("/me", adminAuthMiddleware, async (req, res) => {
     if (!admin) {
       return res.status(404).json({ error: "Admin not found" });
     }
-    res.json({ admin });
+    res.json({ admin: serializeAdmin(admin) });
   } catch (err) {
     console.error("Get admin error:", err);
     res.status(500).json({ error: "Server error" });

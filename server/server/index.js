@@ -85,6 +85,7 @@ const allowedOrigins = parseAllowedOrigins(
 const allowVercelPreviews =
   String(process.env.ALLOW_VERCEL_PREVIEWS || "").toLowerCase() === "true";
 const PORT = Number.parseInt(process.env.PORT || "3001", 10);
+const BODY_LIMIT = process.env.BODY_LIMIT || "10mb";
 
 function isAllowedOrigin(origin) {
   if (!origin) return true;
@@ -143,7 +144,8 @@ const PRESENCE_VALID_STATUSES = new Set([
 ]);
 
 // Middleware
-app.use(express.json());
+app.use(express.json({ limit: BODY_LIMIT }));
+app.use(express.urlencoded({ extended: true, limit: BODY_LIMIT }));
 app.use(cookieParser());
 app.use(cors(corsOptions));
 

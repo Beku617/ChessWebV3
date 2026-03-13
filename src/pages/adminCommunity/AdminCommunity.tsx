@@ -16,6 +16,7 @@ import {
 import AdminSidebar from "../../components/AdminSidebar";
 import { FeedPagination } from "../../components/community/FeedPagination";
 import { useAdminStore } from "../../store/adminStore";
+import { useThemeStore } from "../../store/themeStore";
 import {
   API_URL,
   CommunityPost,
@@ -80,14 +81,14 @@ function FilterDropdown({
         aria-label={ariaLabel}
         aria-expanded={isOpen}
         onClick={() => setIsOpen((open) => !open)}
-        className="w-full inline-flex items-center justify-between gap-2 rounded-lg bg-white/[0.06] px-4 py-3 text-sm text-white hover:bg-white/[0.1] focus:outline-none focus:ring-2 focus:ring-teal-500/30 transition-colors"
+        className="w-full inline-flex items-center justify-between gap-2 rounded-lg bg-gray-100 px-4 py-3 text-sm text-gray-900 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500/30 transition-colors dark:bg-white/[0.06] dark:text-white dark:hover:bg-white/[0.1]"
       >
         <span className="truncate">{selected?.label || "Select"}</span>
         <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </button>
 
       {isOpen && (
-        <div className="absolute z-[180] mt-2 w-full rounded-xl border border-white/10 bg-[#0f1a2d] shadow-[0_18px_48px_rgba(0,0,0,0.35)] p-1">
+        <div className="absolute z-[180] mt-2 w-full rounded-xl border border-gray-200 bg-white shadow-[0_18px_48px_rgba(0,0,0,0.16)] p-1 dark:border-white/10 dark:bg-[#0f1a2d] dark:shadow-[0_18px_48px_rgba(0,0,0,0.35)]">
           {options.map((option) => {
             const active = option.value === value;
             return (
@@ -100,8 +101,8 @@ function FilterDropdown({
                 }}
                 className={`w-full text-left rounded-lg px-3 py-2 text-sm transition-colors ${
                   active
-                    ? "bg-teal-500/20 text-teal-100"
-                    : "text-gray-200 hover:bg-white/[0.08]"
+                    ? "bg-teal-100 text-teal-700 dark:bg-teal-500/20 dark:text-teal-100"
+                    : "text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-white/[0.08]"
                 }`}
               >
                 {option.label}
@@ -147,15 +148,15 @@ const DEFAULT_STATS: CommunityStats = {
 
 function statusClass(status: string) {
   if (status === "approved") {
-    return "bg-teal-500/12 text-teal-200";
+    return "bg-teal-500/10 text-teal-200";
   }
   if (status === "rejected") {
-    return "bg-red-500/12 text-red-200";
+    return "bg-red-500/10 text-red-200";
   }
   if (status === "removed") {
     return "bg-gray-500/15 text-gray-300";
   }
-  return "bg-amber-500/12 text-amber-200";
+  return "bg-amber-500/10 text-amber-200";
 }
 
 function formatStatusLabel(status: string) {
@@ -276,6 +277,7 @@ function matchesAdminPostFilters(
 export default function AdminCommunity() {
   const navigate = useNavigate();
   const { isAuthenticated, isLoading: authLoading, checkAuth } = useAdminStore();
+  const { isDarkMode } = useThemeStore();
   const [posts, setPosts] = useState<AdminCommunityResponse["posts"]>([]);
   const [stats, setStats] = useState<CommunityStats>(DEFAULT_STATS);
   const [page, setPage] = useState(1);
@@ -850,25 +852,25 @@ export default function AdminCommunity() {
         label: "Pending",
         value: stats.pending,
         filterValue: "pending",
-        tone: "text-amber-300 bg-amber-500/10",
+        tone: "bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300",
       },
       {
         label: "Approved",
         value: stats.approved,
         filterValue: "approved",
-        tone: "text-teal-300 bg-teal-500/10",
+        tone: "bg-teal-100 text-teal-700 dark:bg-teal-500/10 dark:text-teal-300",
       },
       {
         label: "Rejected",
         value: stats.rejected,
         filterValue: "rejected",
-        tone: "text-red-300 bg-red-500/10",
+        tone: "bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-300",
       },
       {
         label: "Total",
         value: stats.total,
         filterValue: "",
-        tone: "text-gray-300 bg-white/[0.06]",
+        tone: "bg-gray-100 text-gray-700 dark:bg-white/[0.06] dark:text-gray-300",
       },
     ],
     [stats],
@@ -927,8 +929,9 @@ export default function AdminCommunity() {
   }
 
   return (
-    <div className="min-h-screen bg-[#060f1d] text-white">
-      <AdminSidebar />
+    <div className={isDarkMode ? "dark" : ""}>
+      <div className="min-h-screen bg-[#f5f5f7] text-gray-900 dark:bg-[#060f1d] dark:text-white">
+        <AdminSidebar />
 
       {toast && (
         <div
@@ -967,7 +970,7 @@ export default function AdminCommunity() {
 
           {previewGallery.items.length > 1 && (
             <div
-              className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/88 to-transparent px-4 pb-5 pt-12"
+              className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 to-transparent px-4 pb-5 pt-12"
               onClick={(event) => event.stopPropagation()}
             >
               <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 text-xs text-gray-400">
@@ -1012,7 +1015,7 @@ export default function AdminCommunity() {
 
       <main className="ml-72 px-8 py-7">
         <div className="max-w-[1400px]">
-          <section className="relative z-30 rounded-2xl bg-[#0c1728]/82 backdrop-blur p-5 mb-6 shadow-[0_18px_55px_rgba(0,0,0,0.22)]">
+          <section className="relative z-30 mb-6 rounded-2xl border border-gray-200/80 bg-white/95 p-5 shadow-[0_18px_42px_rgba(15,23,42,0.08)] backdrop-blur dark:border-white/[0.05] dark:bg-[#0c1728]/80 dark:shadow-[0_18px_55px_rgba(0,0,0,0.22)]">
             <div className="flex items-center justify-between gap-3">
               <div className="flex flex-wrap items-center gap-2">
                 {statPills.map((pill) => (
@@ -1027,12 +1030,12 @@ export default function AdminCommunity() {
                       pill.tone
                     } ${
                       statusFilter === pill.filterValue
-                        ? "ring-1 ring-white/25"
+                        ? "ring-1 ring-gray-300 dark:ring-white/25"
                         : "opacity-85 hover:opacity-100"
                     }`}
                   >
-                    <span className="text-gray-400">{pill.label}</span>
-                    <span className="font-semibold text-white">{pill.value}</span>
+                    <span className="text-gray-500 dark:text-gray-400">{pill.label}</span>
+                    <span className="font-semibold text-gray-900 dark:text-white">{pill.value}</span>
                   </button>
                 ))}
               </div>
@@ -1040,7 +1043,7 @@ export default function AdminCommunity() {
               <button
                 type="button"
                 onClick={() => setIsCreateOpen((value) => !value)}
-                className="inline-flex items-center gap-2 rounded-full bg-white/[0.08] px-3.5 py-2 text-sm text-gray-200 hover:bg-white/[0.14] transition-colors shrink-0"
+                className="inline-flex shrink-0 items-center gap-2 rounded-full bg-gray-100 px-3.5 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-200 dark:bg-white/[0.08] dark:text-gray-200 dark:hover:bg-white/[0.14]"
               >
                 {isCreateOpen ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
                 {isCreateOpen ? "Close" : "New Post"}
@@ -1058,7 +1061,7 @@ export default function AdminCommunity() {
                       setPage(1);
                     }}
                     placeholder="Search by author, caption, file name, or game info..."
-                    className="w-full rounded-lg bg-white/[0.06] pl-11 pr-4 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
+                    className="w-full rounded-lg border border-gray-200 bg-gray-50 py-3 pl-11 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-white/[0.05] dark:bg-white/[0.06] dark:text-white dark:placeholder:text-gray-500"
                   />
                 </div>
               </div>
@@ -1090,7 +1093,7 @@ export default function AdminCommunity() {
                   value={createText}
                   onChange={(e) => setCreateText(e.target.value)}
                   placeholder="Post text..."
-                  className="w-full min-h-[120px] rounded-xl bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
+                  className="min-h-[120px] w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-white/[0.05] dark:bg-white/[0.05] dark:text-white dark:placeholder:text-gray-500"
                 />
                 <div className="max-w-[220px]">
                   <FilterDropdown
@@ -1105,14 +1108,14 @@ export default function AdminCommunity() {
                     value={createRejectionReason}
                     onChange={(e) => setCreateRejectionReason(e.target.value)}
                     placeholder="Rejection reason"
-                    className="w-full rounded-lg bg-white/[0.06] px-4 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
+                    className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-white/[0.05] dark:bg-white/[0.06] dark:text-white dark:placeholder:text-gray-500"
                   />
                 )}
                 <input
                   type="file"
                   accept="image/png,image/jpeg,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
                   onChange={(e) => setCreateMediaFile(e.target.files?.[0] || null)}
-                  className="block w-full text-sm text-gray-300 file:mr-3 file:rounded-lg file:border-0 file:bg-white/[0.1] file:px-3 file:py-2 file:text-sm file:text-gray-100 hover:file:bg-white/[0.16]"
+                  className="block w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm file:text-gray-700 hover:file:bg-gray-200 dark:text-gray-300 dark:file:bg-white/[0.1] dark:file:text-gray-100 dark:hover:file:bg-white/[0.16]"
                 />
                 <div className="flex justify-end">
                   <button
@@ -1145,10 +1148,10 @@ export default function AdminCommunity() {
               <Loader2 className="w-8 h-8 text-teal-400 animate-spin" />
             </div>
           ) : posts.length === 0 ? (
-            <div className="rounded-2xl bg-[#0c1728]/82 py-24 text-center shadow-[0_24px_75px_rgba(0,0,0,0.24)]">
+            <div className="rounded-2xl border border-gray-200/80 bg-white/95 py-24 text-center shadow-[0_18px_42px_rgba(15,23,42,0.08)] dark:border-white/[0.05] dark:bg-[#0c1728]/80 dark:shadow-[0_24px_75px_rgba(0,0,0,0.24)]">
               <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-500" />
-              <p className="text-base font-medium text-white">No posts found</p>
-              <p className="mt-2 text-sm text-gray-500">
+              <p className="text-base font-medium text-gray-900 dark:text-white">No posts found</p>
+              <p className="mt-2 text-sm text-gray-500 dark:text-gray-500">
                 Try a different status or search filter.
               </p>
             </div>
@@ -1204,7 +1207,7 @@ export default function AdminCommunity() {
                 return (
                   <article
                     key={post.id}
-                    className="group overflow-hidden rounded-[24px] border border-white/[0.05] bg-[#0c1728]/88 backdrop-blur-xl shadow-[0_22px_60px_rgba(0,0,0,0.24)]"
+                    className="group overflow-hidden rounded-[24px] border border-gray-200/80 bg-white/95 backdrop-blur-xl shadow-[0_18px_42px_rgba(15,23,42,0.08)] dark:border-white/[0.05] dark:bg-[#0c1728]/90 dark:shadow-[0_22px_60px_rgba(0,0,0,0.24)]"
                   >
                     <div className="grid xl:grid-cols-[minmax(0,1fr)_340px]">
                       <div className="min-w-0 px-5 py-5 sm:px-6 sm:py-6">
@@ -1270,7 +1273,7 @@ export default function AdminCommunity() {
                           )}
 
                           {isEditing && (
-                            <div className="space-y-3 rounded-[18px] border border-white/[0.05] bg-[#091321]/78 p-4">
+                            <div className="space-y-3 rounded-[18px] border border-white/[0.05] bg-[#091321]/80 p-4">
                               <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500">
                                 Edit Submission
                               </div>
@@ -1358,7 +1361,7 @@ export default function AdminCommunity() {
                           )}
 
                           {!isGamePost && post.mediaType !== "none" && mediaItems.length > 0 && (
-                            <div className="mt-4 rounded-[20px] border border-white/[0.04] bg-[#091321]/78 p-3">
+                            <div className="mt-4 rounded-[20px] border border-white/[0.04] bg-[#091321]/80 p-3">
                               {post.mediaType === "video" ? (
                                 <div className="overflow-hidden rounded-[16px] bg-black/55">
                                   <video
@@ -1391,7 +1394,7 @@ export default function AdminCommunity() {
                                   />
                                 </div>
                               ) : (
-                                <div className="rounded-[16px] bg-black/18 p-1.5">
+                                <div className="rounded-[16px] bg-black/20 p-1.5">
                                   <CommunityImageGrid
                                     items={imageItems.map((item) => ({
                                       url: item.url,
@@ -1412,7 +1415,7 @@ export default function AdminCommunity() {
                                 </div>
                               )}
 
-                              <div className="mt-3 flex items-center justify-between rounded-[14px] bg-white/[0.03] px-3.5 py-2.5 text-xs text-gray-500">
+                              <div className="mt-3 flex items-center justify-between rounded-[14px] bg-gray-100 px-3.5 py-2.5 text-xs text-gray-500 dark:bg-white/[0.03] dark:text-gray-500">
                                 <div className="inline-flex items-center gap-2">
                                   {post.mediaType === "video" ? (
                                     <>
@@ -1444,10 +1447,10 @@ export default function AdminCommunity() {
                           )}
                       </div>
 
-                      <aside className="border-t border-white/[0.05] bg-[linear-gradient(180deg,rgba(255,255,255,0.015),rgba(255,255,255,0.01))] px-5 py-5 xl:border-l xl:border-t-0 sm:px-6 sm:py-6">
+                      <aside className="border-t border-gray-200 bg-[linear-gradient(180deg,rgba(248,250,252,0.96),rgba(241,245,249,0.94))] px-5 py-5 xl:border-l xl:border-t-0 sm:px-6 sm:py-6 dark:border-white/[0.05] dark:bg-[linear-gradient(180deg,rgba(255,255,255,0.015),rgba(255,255,255,0.01))]">
                         <div className="flex h-full flex-col">
-                          <div className="rounded-[20px] border border-white/[0.04] bg-white/[0.025] p-4">
-                            <div className="text-[10px] uppercase tracking-[0.22em] text-gray-500">
+                          <div className="rounded-[20px] border border-gray-200/80 bg-white/90 p-4 dark:border-white/[0.04] dark:bg-white/[0.025]">
+                            <div className="text-[10px] uppercase tracking-[0.22em] text-gray-500 dark:text-gray-500">
                               Review
                             </div>
                             <div className="mt-3 flex items-start justify-between gap-3">
@@ -1458,20 +1461,20 @@ export default function AdminCommunity() {
                               >
                                 {reviewStatusLabel}
                               </span>
-                              <span className="text-xs text-right text-gray-500">
+                              <span className="text-xs text-right text-gray-500 dark:text-gray-500">
                                 {reviewStateLabel}
                               </span>
                             </div>
 
-                            <div className="mt-4 space-y-3 border-t border-white/[0.05] pt-4">
+                            <div className="mt-4 space-y-3 border-t border-gray-200 pt-4 dark:border-white/[0.05]">
                               <div className="flex items-center justify-between text-sm">
-                                <span className="text-gray-500">Content type</span>
-                                <span className="text-gray-100">{contentTypeLabel}</span>
+                                <span className="text-gray-500 dark:text-gray-500">Content type</span>
+                                <span className="text-gray-900 dark:text-gray-100">{contentTypeLabel}</span>
                               </div>
                               {post.group && (
                                 <div className="flex items-center justify-between gap-3 text-sm">
-                                  <span className="text-gray-500">Group</span>
-                                  <span className="text-right text-gray-200">
+                                  <span className="text-gray-500 dark:text-gray-500">Group</span>
+                                  <span className="text-right text-gray-800 dark:text-gray-200">
                                     {post.group.name}
                                   </span>
                                 </div>
@@ -1552,7 +1555,7 @@ export default function AdminCommunity() {
                                 }
                                 className={`w-full inline-flex items-center justify-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-colors disabled:opacity-50 ${
                                   restrictionDraft.unlimitedPosts
-                                    ? "bg-emerald-500/14 text-emerald-200 hover:bg-emerald-500/22"
+                                    ? "bg-emerald-500/15 text-emerald-200 hover:bg-emerald-500/20"
                                     : "bg-white/[0.06] text-gray-100 hover:bg-white/[0.12]"
                                 }`}
                               >
@@ -1612,7 +1615,7 @@ export default function AdminCommunity() {
                                       });
                                       void updatePostingRestriction(authorId, "none", "");
                                     }}
-                                    className="inline-flex items-center justify-center rounded-xl bg-emerald-500/14 px-3.5 py-2.5 text-sm font-semibold text-emerald-200 hover:bg-emerald-500/22 disabled:opacity-50"
+                                    className="inline-flex items-center justify-center rounded-xl bg-emerald-500/15 px-3.5 py-2.5 text-sm font-semibold text-emerald-200 hover:bg-emerald-500/20 disabled:opacity-50"
                                   >
                                     Clear
                                   </button>
@@ -1705,7 +1708,7 @@ export default function AdminCommunity() {
                                   type="button"
                                   disabled={isBusy}
                                   onClick={() => handleReject(post.id)}
-                                  className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-red-500/12 px-4 py-3 text-sm font-semibold text-red-200 hover:bg-red-500/20 disabled:opacity-50"
+                                  className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-200 hover:bg-red-500/20 disabled:opacity-50"
                                 >
                                   <X className="w-4 h-4" />
                                   Confirm reject
@@ -1745,7 +1748,8 @@ export default function AdminCommunity() {
             </div>
           )}
         </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

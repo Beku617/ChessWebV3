@@ -5,6 +5,7 @@ import { RecentGames } from "./RecentGames";
 import { FormatStatsCard } from "./FormatStatsCard";
 import { RatingTimelineCard } from "./RatingTimelineCard";
 import { PoolLeaderboardCard } from "./PoolLeaderboardCard";
+import type { RatingSnapshot } from "./FormatStatsCard";
 
 interface OverviewTabContentProps {
   stats: ProfileStats;
@@ -13,6 +14,9 @@ interface OverviewTabContentProps {
   setExpandedId: (id: string | null) => void;
   setActiveTab: (tab: TabType) => void;
   analyzeBaseUrl?: string;
+  enableSelfRatingAnalytics?: boolean;
+  ratingSnapshot?: RatingSnapshot | null;
+  timelineUnavailableMessage?: string;
 }
 
 export function OverviewTabContent({
@@ -22,6 +26,9 @@ export function OverviewTabContent({
   setExpandedId,
   setActiveTab,
   analyzeBaseUrl,
+  enableSelfRatingAnalytics = true,
+  ratingSnapshot,
+  timelineUnavailableMessage,
 }: OverviewTabContentProps) {
   return (
     <motion.div
@@ -31,10 +38,16 @@ export function OverviewTabContent({
     >
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <div className="min-w-0 lg:col-span-2">
-          <FormatStatsCard />
+          <FormatStatsCard
+            ratingSnapshot={ratingSnapshot}
+            enableTimeline={enableSelfRatingAnalytics}
+          />
         </div>
         <div className="min-w-0">
-          <RatingTimelineCard />
+          <RatingTimelineCard
+            enabled={enableSelfRatingAnalytics}
+            unavailableMessage={timelineUnavailableMessage}
+          />
         </div>
         <div className="min-w-0">
           <PoolLeaderboardCard />

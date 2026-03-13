@@ -56,10 +56,20 @@ function formatTooltipDate(value: string) {
   });
 }
 
-export function RatingTimelineCard() {
+interface RatingTimelineCardProps {
+  enabled?: boolean;
+  unavailableMessage?: string;
+}
+
+export function RatingTimelineCard({
+  enabled = true,
+  unavailableMessage = "Timeline is only available for the signed-in player.",
+}: RatingTimelineCardProps) {
   const [pool, setPool] = useState<RatingPool>("blitz");
   const [range, setRange] = useState<RatingRange>("90d");
-  const { points, loading, error } = useRatingTimeline(pool, range);
+  const { points, loading, error } = useRatingTimeline(pool, range, {
+    enabled,
+  });
   const chartSize = useElementSize<HTMLDivElement>();
 
   const chart = useMemo(() => {
@@ -136,11 +146,12 @@ export function RatingTimelineCard() {
             key={option.id}
             type="button"
             onClick={() => setPool(option.id)}
+            disabled={!enabled}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${
               pool === option.id
                 ? "bg-teal-500 text-white"
                 : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200"
-            }`}
+            } ${!enabled ? "cursor-not-allowed opacity-60" : ""}`}
           >
             {option.label}
           </button>
@@ -153,11 +164,12 @@ export function RatingTimelineCard() {
             key={option.id}
             type="button"
             onClick={() => setRange(option.id)}
+            disabled={!enabled}
             className={`px-2.5 py-1 rounded-md text-[11px] font-semibold ${
               range === option.id
                 ? "bg-teal-100 text-teal-700 dark:bg-teal-500/20 dark:text-teal-300"
                 : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
-            }`}
+            } ${!enabled ? "cursor-not-allowed opacity-60" : ""}`}
           >
             {option.label}
           </button>
@@ -165,7 +177,11 @@ export function RatingTimelineCard() {
       </div>
 
       <div className="mt-4 rounded-xl border border-gray-200/70 dark:border-white/10 bg-gray-50/90 dark:bg-black/20 p-3">
-        {loading ? (
+        {!enabled ? (
+          <div className="flex h-[190px] items-center justify-center text-center text-sm text-gray-500 dark:text-gray-400">
+            {unavailableMessage}
+          </div>
+        ) : loading ? (
           <div className="h-[190px] flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">
             Loading timeline...
           </div>

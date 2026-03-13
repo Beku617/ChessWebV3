@@ -21,9 +21,21 @@ interface UserData {
   _id: string;
   fullName: string;
   email: string;
+  avatar?: string;
   rating: number;
+  bulletRating?: number;
+  blitzRating?: number;
+  rapidRating?: number;
+  classicalRating?: number;
+  bulletGames?: number;
+  blitzGames?: number;
+  rapidGames?: number;
+  classicalGames?: number;
   gamesPlayed: number;
   gamesWon: number;
+  presenceStatus?: "online" | "offline" | "searching_match" | "in_game" | "away";
+  lastSeenAt?: string | null;
+  lastActiveAt?: string | null;
   createdAt: string;
 }
 
@@ -136,7 +148,21 @@ export default function AdminUserProfile() {
     id: user._id,
     fullName: user.fullName,
     email: user.email,
+    avatar: user.avatar,
     rating: user.rating,
+    bulletRating: user.bulletRating,
+    blitzRating: user.blitzRating,
+    rapidRating: user.rapidRating,
+    classicalRating: user.classicalRating,
+    bulletGames: user.bulletGames,
+    blitzGames: user.blitzGames,
+    rapidGames: user.rapidGames,
+    classicalGames: user.classicalGames,
+    gamesPlayed: user.gamesPlayed,
+    gamesWon: user.gamesWon,
+    presenceStatus: user.presenceStatus,
+    lastSeenAt: user.lastSeenAt,
+    lastActiveAt: user.lastActiveAt,
   };
 
   return (
@@ -174,6 +200,9 @@ export default function AdminUserProfile() {
                 setExpandedId={setExpandedId}
                 setActiveTab={setActiveTab}
                 analyzeBaseUrl="/admin/analyze"
+                enableSelfRatingAnalytics={false}
+                ratingSnapshot={profileUser}
+                timelineUnavailableMessage="Timeline is unavailable in admin view for this player."
               />
             ) : (
               <GamesTabContent

@@ -23,9 +23,19 @@ interface PublicUser {
   email?: string;
   avatar?: string;
   rating?: number;
+  bulletRating?: number;
   blitzRating?: number;
+  rapidRating?: number;
+  classicalRating?: number;
+  bulletGames?: number;
+  blitzGames?: number;
+  rapidGames?: number;
+  classicalGames?: number;
   gamesPlayed?: number;
   gamesWon?: number;
+  presenceStatus?: "online" | "offline" | "searching_match" | "in_game" | "away";
+  lastSeenAt?: string | null;
+  lastActiveAt?: string | null;
 }
 
 export default function UserProfile() {
@@ -248,6 +258,9 @@ export default function UserProfile() {
                 expandedId={expandedId}
                 setExpandedId={setExpandedId}
                 setActiveTab={setActiveTab}
+                enableSelfRatingAnalytics={false}
+                ratingSnapshot={profileUser}
+                timelineUnavailableMessage="Timeline is only available on the player's own account."
               />
             ) : (
               <GamesTabContent

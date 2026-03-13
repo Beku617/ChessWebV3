@@ -18,6 +18,18 @@ import { useAuthStore } from "../../store/authStore";
 import { type RatingPool, type RatingTimelinePoint, useRatingTimeline } from "../../hooks/useRatingsData";
 import { useElementSize } from "../../hooks/useElementSize";
 
+export interface RatingSnapshot {
+  rating?: number;
+  bulletRating?: number;
+  blitzRating?: number;
+  rapidRating?: number;
+  classicalRating?: number;
+  bulletGames?: number;
+  blitzGames?: number;
+  rapidGames?: number;
+  classicalGames?: number;
+}
+
 const CARD_THEME: Record<
   RatingPool,
   {
@@ -96,10 +108,10 @@ function FormatSparkline({
   return (
     <div
       ref={chart.ref}
-      className="mt-3 h-14 w-full min-w-0 overflow-hidden rounded-lg bg-slate-900/45"
+      className="mt-3 h-14 w-full min-w-0 overflow-hidden rounded-lg bg-slate-100/95 dark:bg-slate-900/45"
     >
       {loading || !chart.hasSize ? (
-        <div className="h-full w-full bg-gradient-to-r from-slate-700/20 via-slate-600/20 to-slate-700/20 animate-pulse" />
+        <div className="h-full w-full animate-pulse bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 dark:from-slate-700/20 dark:via-slate-600/20 dark:to-slate-700/20" />
       ) : (
         <AreaChart
           width={chart.width}
@@ -138,37 +150,56 @@ function FormatSparkline({
   );
 }
 
-export function FormatStatsCard() {
+interface FormatStatsCardProps {
+  ratingSnapshot?: RatingSnapshot | null;
+  enableTimeline?: boolean;
+}
+
+export function FormatStatsCard({
+  ratingSnapshot,
+  enableTimeline = true,
+}: FormatStatsCardProps) {
   const { user } = useAuthStore();
-  const bulletTimeline = useRatingTimeline("bullet", "30d");
-  const blitzTimeline = useRatingTimeline("blitz", "30d");
-  const rapidTimeline = useRatingTimeline("rapid", "30d");
-  const classicalTimeline = useRatingTimeline("classical", "30d");
+  const sourceUser = ratingSnapshot ?? user;
+  const bulletTimeline = useRatingTimeline("bullet", "30d", {
+    enabled: enableTimeline,
+  });
+  const blitzTimeline = useRatingTimeline("blitz", "30d", {
+    enabled: enableTimeline,
+  });
+  const rapidTimeline = useRatingTimeline("rapid", "30d", {
+    enabled: enableTimeline,
+  });
+  const classicalTimeline = useRatingTimeline("classical", "30d", {
+    enabled: enableTimeline,
+  });
 
   const formats = [
     {
       id: "rapid",
       timeline: rapidTimeline,
-      rating: Number(user?.rapidRating ?? user?.rating ?? 1200),
-      games: Number(user?.rapidGames ?? 0),
+      rating: Number(sourceUser?.rapidRating ?? sourceUser?.rating ?? 1200),
+      games: Number(sourceUser?.rapidGames ?? 0),
     },
     {
       id: "blitz",
       timeline: blitzTimeline,
-      rating: Number(user?.blitzRating ?? user?.rating ?? 1200),
-      games: Number(user?.blitzGames ?? 0),
+      rating: Number(sourceUser?.blitzRating ?? sourceUser?.rating ?? 1200),
+      games: Number(sourceUser?.blitzGames ?? 0),
     },
     {
       id: "bullet",
       timeline: bulletTimeline,
-      rating: Number(user?.bulletRating ?? user?.rating ?? 1200),
-      games: Number(user?.bulletGames ?? 0),
+      rating: Number(sourceUser?.bulletRating ?? sourceUser?.rating ?? 1200),
+      games: Number(sourceUser?.bulletGames ?? 0),
     },
     {
       id: "classical",
       timeline: classicalTimeline,
-      rating: Number(user?.classicalRating ?? user?.rating ?? 1200),
-      games: Number(user?.classicalGames ?? 0),
+      rating: Number(
+        sourceUser?.classicalRating ?? sourceUser?.rating ?? 1200,
+      ),
+      games: Number(sourceUser?.classicalGames ?? 0),
     },
   ] as const;
 
@@ -201,7 +232,7 @@ export function FormatStatsCard() {
         {cards.map((format) => (
           <div
             key={format.id}
-            className="group min-w-0 rounded-2xl border border-white/10 bg-[linear-gradient(140deg,rgba(31,41,55,0.94),rgba(28,33,45,0.9))] p-4 shadow-[0_14px_30px_rgba(0,0,0,0.32)] hover:translate-y-[-1px] hover:shadow-[0_18px_38px_rgba(0,0,0,0.42)] transition-all"
+            className="group min-w-0 rounded-2xl border border-slate-200/90 bg-[linear-gradient(140deg,rgba(255,255,255,0.96),rgba(241,245,249,0.94))] p-4 shadow-[0_12px_28px_rgba(15,23,42,0.08)] transition-all hover:-translate-y-[1px] hover:shadow-[0_18px_34px_rgba(15,23,42,0.14)] dark:border-white/10 dark:bg-[linear-gradient(140deg,rgba(31,41,55,0.94),rgba(28,33,45,0.9))] dark:shadow-[0_14px_30px_rgba(0,0,0,0.32)] dark:hover:shadow-[0_18px_38px_rgba(0,0,0,0.42)]"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-start gap-3">
@@ -209,9 +240,11 @@ export function FormatStatsCard() {
                   className={`w-7 h-7 mt-1 ${format.meta.iconColor}`}
                 />
                 <div>
-                  <div className="text-gray-300 text-sm">{format.meta.label}</div>
+                  <div className="text-sm text-slate-500 dark:text-gray-300">
+                    {format.meta.label}
+                  </div>
                   <div className="mt-0.5 flex items-end gap-2">
-                    <span className="text-white text-[42px] font-bold leading-none tracking-tight">
+                    <span className="text-[42px] font-bold leading-none tracking-tight text-slate-900 dark:text-white">
                       {format.rating}
                     </span>
                     <span
@@ -230,7 +263,7 @@ export function FormatStatsCard() {
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-[11px] text-gray-400">
+                <div className="text-[11px] text-slate-500 dark:text-gray-400">
                   {format.games < 10
                     ? `Provisional (${format.games}/10)`
                     : `${format.games} games`}

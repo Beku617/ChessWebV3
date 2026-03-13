@@ -25,12 +25,28 @@ export interface LeaderboardEntry {
   isProvisional: boolean;
 }
 
-export function useRatingTimeline(pool: RatingPool, range: RatingRange) {
+interface RatingTimelineOptions {
+  enabled?: boolean;
+}
+
+export function useRatingTimeline(
+  pool: RatingPool,
+  range: RatingRange,
+  options?: RatingTimelineOptions,
+) {
+  const enabled = options?.enabled ?? true;
   const [points, setPoints] = useState<RatingTimelinePoint[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!enabled) {
+      setPoints([]);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
     let cancelled = false;
 
     async function load() {
@@ -64,7 +80,7 @@ export function useRatingTimeline(pool: RatingPool, range: RatingRange) {
     return () => {
       cancelled = true;
     };
-  }, [pool, range]);
+  }, [pool, range, enabled]);
 
   return { points, loading, error };
 }

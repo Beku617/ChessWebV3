@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect, useLayoutEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -12,6 +12,7 @@ import { useAuthStore, authApi } from "./store/authStore";
 import { useFriendChallengeStore } from "./store/friendChallengeStore";
 import { useFriendStore } from "./store/friendStore";
 import FriendChallengeOverlay from "./components/FriendChallengeOverlay";
+import { applyThemeClass } from "./utils/theme";
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Game = lazy(() => import("./pages/game"));
@@ -72,9 +73,15 @@ const Messages = lazy(async () => {
 
 // Auth check component
 function AuthChecker() {
+  const location = useLocation();
   const { setUser, setLoading, setBanned } = useAuthStore();
 
   useEffect(() => {
+    if (location.pathname.startsWith("/admin")) {
+      setLoading(false);
+      return;
+    }
+
     const checkAuth = async () => {
       try {
         const user = await authApi.getMe();
@@ -90,7 +97,7 @@ function AuthChecker() {
       }
     };
     checkAuth();
-  }, [setUser, setLoading, setBanned]);
+  }, [location.pathname, setUser, setLoading, setBanned]);
 
   return null;
 }
@@ -137,18 +144,15 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 function ThemeController() {
   const { isDarkMode } = useThemeStore();
 
-  useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
+  useLayoutEffect(() => {
+    applyThemeClass(isDarkMode);
   }, [isDarkMode]);
 
   return null;
 }
 
 function RealtimeBridge() {
+  const location = useLocation();
   const { isAuthenticated, user } = useAuthStore();
   const initialize = useFriendChallengeStore((state) => state.initialize);
   const disconnect = useFriendChallengeStore((state) => state.disconnect);
@@ -158,6 +162,13 @@ function RealtimeBridge() {
   const resetFriends = useFriendStore((state) => state.reset);
 
   useEffect(() => {
+    if (location.pathname.startsWith("/admin")) {
+      disconnect();
+      resetFriends();
+      bindFriendSocket(null);
+      return;
+    }
+
     if (isAuthenticated && user) {
       initialize(user);
       void loadFriends();
@@ -174,6 +185,7 @@ function RealtimeBridge() {
     loadFriends,
     resetFriends,
     bindFriendSocket,
+    location.pathname,
   ]);
 
   useEffect(() => {
@@ -185,6 +197,7 @@ function RealtimeBridge() {
 
 function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
+  const { isDarkMode } = useThemeStore();
   const isDashboardPage = location.pathname === "/";
   const isGamePage =
     location.pathname === "/play" ||
@@ -194,6 +207,8 @@ function Layout({ children }: { children: React.ReactNode }) {
     location.pathname === "/play/variants" ||
     location.pathname === "/play/four-player" ||
     location.pathname === "/play/practice";
+
+  const isAdminRoute = location.pathname.startsWith("/admin");
 
   // Pages that have their own sidebar or are auth pages
   const hasOwnLayout =
@@ -212,6 +227,10 @@ function Layout({ children }: { children: React.ReactNode }) {
     location.pathname.startsWith("/analyze") ||
     location.pathname.startsWith("/admin") ||
     location.pathname.match(/^\/play\/bot\/.+/);
+
+  if (isAdminRoute) {
+    return <div className={isDarkMode ? "dark" : ""}>{children}</div>;
+  }
 
   // For pages with their own layout, just render children
   if (hasOwnLayout) {

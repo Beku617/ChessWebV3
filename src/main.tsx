@@ -5,6 +5,9 @@ import App from "./App.tsx";
 import "./i18n";
 import i18n from "./i18n";
 import { I18nextProvider } from "react-i18next";
+import { applyThemeClass, readStoredTheme } from "./utils/theme";
+
+applyThemeClass(readStoredTheme());
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

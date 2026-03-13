@@ -24,8 +24,8 @@ function rankAccent(rank: number) {
     return {
       bg: "bg-gray-300/10 dark:bg-gray-400/10",
       ring: "ring-1 ring-gray-400/20",
-      text: "text-gray-300",
-      icon: <Medal size={14} className="text-gray-300" />,
+      text: "text-slate-500 dark:text-gray-300",
+      icon: <Medal size={14} className="text-slate-500 dark:text-gray-300" />,
     };
   if (rank === 3)
     return {

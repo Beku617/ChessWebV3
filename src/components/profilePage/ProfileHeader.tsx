@@ -212,7 +212,7 @@ export function ProfileHeader({
                         className={`px-4 py-2.5 rounded-lg text-sm font-semibold inline-flex items-center gap-2 transition-colors ${
                           canChallenge
                             ? "bg-teal-600 hover:bg-teal-700 text-white shadow-[0_8px_20px_rgba(13,148,136,0.35)]"
-                            : "bg-slate-800/60 text-slate-400 cursor-not-allowed"
+                            : "cursor-not-allowed bg-slate-200 text-slate-500 dark:bg-slate-800/60 dark:text-slate-400"
                         }`}
                       >
                         <Swords size={16} />
@@ -243,14 +243,14 @@ export function ProfileHeader({
                         type="button"
                         onClick={() => onIgnoreRequest?.()}
                         disabled={friendLoading}
-                        className="px-4 py-2.5 rounded-lg border border-slate-500/40 bg-slate-800/70 text-sm font-semibold text-slate-200 inline-flex items-center gap-2 transition-colors disabled:opacity-50"
+                        className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors disabled:opacity-50 dark:border-slate-500/40 dark:bg-slate-800/70 dark:text-slate-200"
                       >
                         <Hourglass size={16} />
                         Ignore
                       </button>
                     </div>
                   ) : relationship === "outgoing_pending" ? (
-                    <span className="px-4 py-2.5 rounded-lg border border-slate-500/40 bg-slate-800/70 text-sm font-semibold text-slate-200 inline-flex items-center gap-2">
+                    <span className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 dark:border-slate-500/40 dark:bg-slate-800/70 dark:text-slate-200">
                       <Hourglass size={16} />
                       Request sent
                     </span>

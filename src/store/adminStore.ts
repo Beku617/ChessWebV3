@@ -7,6 +7,9 @@ interface Admin {
   id: string;
   email: string;
   username: string;
+  puzzleElo?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface AdminState {
@@ -84,11 +87,7 @@ export const useAdminStore = create<AdminState>()(
 
           const data = await res.json();
           set({
-            admin: {
-              id: data.admin._id,
-              email: data.admin.email,
-              username: data.admin.username,
-            },
+            admin: data.admin,
             isAuthenticated: true,
             isLoading: false,
           });

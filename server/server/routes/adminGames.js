@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { History } from "../models/index.js";
+import { History, History960 } from "../models/index.js";
 import { adminAuthMiddleware } from "../middleware/index.js";
 import mongoose from "mongoose";
 
@@ -78,6 +78,91 @@ const NUMBER_FIELDS = [
 ];
 
 const BOOLEAN_FIELDS = ["rated", "isProvisional", "opponentIsProvisional"];
+
+function withSource(docs, source) {
+  return (docs || []).map((doc) => ({ ...doc, source }));
+}
+
+function sortValueForField(doc, field) {
+  const value = doc?.[field];
+  if (value === null || value === undefined) return null;
+  if (field === "createdAt" || field === "updatedAt") {
+    const time = new Date(value).getTime();
+    return Number.isFinite(time) ? time : null;
+  }
+  if (typeof value === "string") return value.toLowerCase();
+  if (typeof value === "number") return value;
+  if (typeof value === "boolean") return value ? 1 : 0;
+  if (typeof value === "object" && typeof value.toString === "function") {
+    return value.toString();
+  }
+  return value;
+}
+
+function compareByField(a, b, field, order) {
+  const left = sortValueForField(a, field);
+  const right = sortValueForField(b, field);
+  if (left === null && right === null) return 0;
+  if (left === null) return 1 * order;
+  if (right === null) return -1 * order;
+  if (left < right) return -1 * order;
+  if (left > right) return 1 * order;
+  return 0;
+}
+
+async function fetchCombinedGames({ query, sortBy, sortOrder, skip, limit }) {
+  const fetchLimit = Math.max(1, skip + limit);
+  const [historyGames, chess960Games] = await Promise.all([
+    History.find(query)
+      .populate("userId", "fullName email")
+      .sort({ [sortBy]: sortOrder, _id: -1 })
+      .limit(fetchLimit)
+      .lean(),
+    History960.find(query)
+      .populate("userId", "fullName email")
+      .sort({ [sortBy]: sortOrder, _id: -1 })
+      .limit(fetchLimit)
+      .lean(),
+  ]);
+
+  const combined = [
+    ...withSource(historyGames, "history"),
+    ...withSource(chess960Games, "history960"),
+  ];
+
+  combined.sort((a, b) => {
+    const primary = compareByField(a, b, sortBy, sortOrder);
+    if (primary !== 0) return primary;
+    return compareByField(a, b, "_id", -1);
+  });
+
+  const deduped = [];
+  const seen = new Set();
+  for (const game of combined) {
+    const id = String(game?._id || "");
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    deduped.push(game);
+  }
+
+  return deduped.slice(skip, skip + limit);
+}
+
+async function findAdminGameById(gameId) {
+  const game = await History.findById(gameId)
+    .populate("userId", "fullName email")
+    .lean();
+  if (game) {
+    return { game: { ...game, source: "history" }, source: "history" };
+  }
+  const chess960Game = await History960.findById(gameId)
+    .populate("userId", "fullName email")
+    .lean();
+  if (chess960Game) {
+    return { game: { ...chess960Game, source: "history960" }, source: "history960" };
+  }
+  return { game: null, source: null };
+}
 
 function toBoolean(value) {
   if (typeof value === "boolean") return value;
@@ -352,14 +437,19 @@ router.get("/", adminAuthMiddleware, async (req, res) => {
 
     const query = buildAdminGameQuery(req.query);
 
-    const games = await History.find(query)
-      .populate("userId", "fullName email")
-      .sort({ [safeSortBy]: sortOrder, _id: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean();
+    const [historyCount, chess960Count, games] = await Promise.all([
+      History.countDocuments(query),
+      History960.countDocuments(query),
+      fetchCombinedGames({
+        query,
+        sortBy: safeSortBy,
+        sortOrder,
+        skip,
+        limit,
+      }),
+    ]);
 
-    const total = await History.countDocuments(query);
+    const total = historyCount + chess960Count;
 
     res.json({
       games,
@@ -380,24 +470,52 @@ router.get("/", adminAuthMiddleware, async (req, res) => {
 // Get game stats for dashboard cards
 router.get("/stats", adminAuthMiddleware, async (req, res) => {
   try {
-    const [total, rated, standard, chess960, recent24h, results] =
-      await Promise.all([
-        History.countDocuments(),
-        History.countDocuments({ rated: true }),
-        History.countDocuments({
-          $or: [
-            { variant: "standard" },
-            { variant: { $exists: false } },
-            { variant: null },
-            { variant: "" },
-          ],
-        }),
-        History.countDocuments({ variant: "chess960" }),
-        History.countDocuments({
-          createdAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
-        }),
-        History.aggregate([{ $group: { _id: "$result", count: { $sum: 1 } } }]),
-      ]);
+    const standardQuery = {
+      $or: [
+        { variant: "standard" },
+        { variant: { $exists: false } },
+        { variant: null },
+        { variant: "" },
+      ],
+    };
+    const recentQuery = {
+      createdAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+    };
+
+    const [
+      historyTotal,
+      chess960Total,
+      historyRated,
+      chess960Rated,
+      historyStandard,
+      chess960Standard,
+      historyChess960,
+      chess960Chess960,
+      historyRecent,
+      chess960Recent,
+      historyResults,
+      chess960Results,
+    ] = await Promise.all([
+      History.countDocuments(),
+      History960.countDocuments(),
+      History.countDocuments({ rated: true }),
+      History960.countDocuments({ rated: true }),
+      History.countDocuments(standardQuery),
+      History960.countDocuments(standardQuery),
+      History.countDocuments({ variant: "chess960" }),
+      History960.countDocuments({ variant: "chess960" }),
+      History.countDocuments(recentQuery),
+      History960.countDocuments(recentQuery),
+      History.aggregate([{ $group: { _id: "$result", count: { $sum: 1 } } }]),
+      History960.aggregate([{ $group: { _id: "$result", count: { $sum: 1 } } }]),
+    ]);
+
+    const total = historyTotal + chess960Total;
+    const rated = historyRated + chess960Rated;
+    const standard = historyStandard + chess960Standard;
+    const chess960 = historyChess960 + chess960Chess960;
+    const recent24h = historyRecent + chess960Recent;
+    const results = [...historyResults, ...chess960Results];
 
     const byResult = { "1-0": 0, "0-1": 0, "1/2-1/2": 0, other: 0 };
     for (const item of results) {
@@ -427,11 +545,33 @@ router.get("/stats", adminAuthMiddleware, async (req, res) => {
 router.get("/export/csv", adminAuthMiddleware, async (req, res) => {
   try {
     const query = buildAdminGameQuery(req.query);
-    const games = await History.find(query)
-      .populate("userId", "fullName email")
-      .sort({ createdAt: -1 })
-      .limit(5000)
-      .lean();
+    const [historyGames, chess960Games] = await Promise.all([
+      History.find(query)
+        .populate("userId", "fullName email")
+        .sort({ createdAt: -1 })
+        .limit(5000)
+        .lean(),
+      History960.find(query)
+        .populate("userId", "fullName email")
+        .sort({ createdAt: -1 })
+        .limit(5000)
+        .lean(),
+    ]);
+
+    const combined = [
+      ...withSource(historyGames, "history"),
+      ...withSource(chess960Games, "history960"),
+    ].sort((a, b) => compareByField(a, b, "createdAt", -1));
+
+    const games = [];
+    const seen = new Set();
+    for (const game of combined) {
+      const id = String(game?._id || "");
+      if (!id || seen.has(id)) continue;
+      seen.add(id);
+      games.push(game);
+      if (games.length >= 5000) break;
+    }
 
     const headers = [
       "ID",
@@ -489,9 +629,7 @@ router.get("/:gameId", adminAuthMiddleware, async (req, res) => {
       return res.status(400).json({ error: "Invalid game ID" });
     }
 
-    const game = await History.findById(req.params.gameId)
-      .populate("userId", "fullName email")
-      .lean();
+    const { game } = await findAdminGameById(req.params.gameId);
 
     if (!game) {
       return res.status(404).json({ error: "Game not found" });
@@ -512,10 +650,21 @@ router.post("/", adminAuthMiddleware, async (req, res) => {
       return res.status(400).json({ error });
     }
 
-    const created = await History.create(data);
-    const game = await History.findById(created._id)
-      .populate("userId", "fullName email")
-      .lean();
+    const targetModel = data.variant === "chess960" ? History960 : History;
+    let created;
+    try {
+      created = await targetModel.create(data);
+    } catch (primaryError) {
+      const shouldRetryInStandard =
+        data.variant === "chess960" &&
+        targetModel === History960 &&
+        primaryError?.name !== "ValidationError";
+      if (!shouldRetryInStandard) {
+        throw primaryError;
+      }
+      created = await History.create(data);
+    }
+    const { game } = await findAdminGameById(created._id);
     res.status(201).json({ game });
   } catch (err) {
     console.error("Admin create game error:", err);
@@ -542,12 +691,21 @@ router.put("/:gameId", adminAuthMiddleware, async (req, res) => {
       return res.status(400).json({ error: "No valid fields provided" });
     }
 
-    const game = await History.findByIdAndUpdate(req.params.gameId, data, {
+    let game = await History.findByIdAndUpdate(req.params.gameId, data, {
       new: true,
       runValidators: true,
     })
       .populate("userId", "fullName email")
       .lean();
+
+    if (!game) {
+      game = await History960.findByIdAndUpdate(req.params.gameId, data, {
+        new: true,
+        runValidators: true,
+      })
+        .populate("userId", "fullName email")
+        .lean();
+    }
 
     if (!game) {
       return res.status(404).json({ error: "Game not found" });
@@ -570,7 +728,10 @@ router.delete("/:gameId", adminAuthMiddleware, async (req, res) => {
       return res.status(400).json({ error: "Invalid game ID" });
     }
 
-    const game = await History.findByIdAndDelete(req.params.gameId).lean();
+    let game = await History.findByIdAndDelete(req.params.gameId).lean();
+    if (!game) {
+      game = await History960.findByIdAndDelete(req.params.gameId).lean();
+    }
     if (!game) {
       return res.status(404).json({ error: "Game not found" });
     }

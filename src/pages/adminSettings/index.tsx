@@ -160,7 +160,7 @@ function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden">
+    <div className="overflow-hidden rounded-[28px] border border-gray-200/80 bg-white/95 shadow-[0_14px_38px_rgba(15,23,42,0.08)] dark:border-gray-800 dark:bg-gray-900">
       <div className={`h-1 ${accent}`} />
       <div className="px-6 pt-5 pb-1 flex items-center gap-3">
         <div className="w-9 h-9 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
@@ -176,6 +176,25 @@ function SectionCard({
         </div>
       </div>
       <div className="px-6 pb-4">{children}</div>
+    </div>
+  );
+}
+
+function StatusPill({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone: string;
+}) {
+  return (
+    <div
+      className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold ${tone}`}
+    >
+      <span className="uppercase tracking-[0.16em] opacity-75">{label}</span>
+      <span>{value}</span>
     </div>
   );
 }
@@ -276,24 +295,94 @@ export default function AdminSettings() {
     <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-950 text-gray-900 dark:text-white">
       <AdminSidebar />
 
-      <main className="ml-72 min-h-screen">
-        {/* Sticky Header */}
-        <div className="sticky top-0 z-30 backdrop-blur-xl bg-[#f5f5f7]/80 dark:bg-gray-950/80 border-b border-gray-200/50 dark:border-gray-800/50">
-          <div className="px-8 py-5 flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold flex items-center gap-3">
-                <Settings className="w-7 h-7 text-teal-500" />
-                Admin Settings
-              </h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-                Configure platform behaviour and admin preferences
-              </p>
+      <main className="ml-72 min-h-screen px-8 py-8">
+        <div className="mx-auto max-w-6xl space-y-8">
+          <section className="relative overflow-hidden rounded-[32px] border border-gray-200/80 bg-[radial-gradient(circle_at_top_left,_rgba(45,212,191,0.18),_transparent_38%),linear-gradient(135deg,rgba(255,255,255,0.98),rgba(241,245,249,0.96))] p-7 shadow-[0_18px_48px_rgba(15,23,42,0.1)] dark:border-white/10 dark:bg-[radial-gradient(circle_at_top_left,_rgba(45,212,191,0.14),_transparent_34%),linear-gradient(135deg,rgba(15,23,42,0.98),rgba(2,8,23,0.94))] dark:shadow-[0_28px_70px_rgba(0,0,0,0.35)]">
+            <div className="pointer-events-none absolute right-0 top-0 h-48 w-48 rounded-full bg-cyan-400/10 blur-3xl dark:bg-cyan-400/12" />
+            <div className="relative z-10 flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
+              <div>
+                <div className="inline-flex items-center gap-2 rounded-full border border-teal-500/20 bg-teal-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-teal-700 dark:text-teal-300">
+                  <Settings className="h-3.5 w-3.5" />
+                  Admin Controls
+                </div>
+                <h1 className="mt-4 flex items-center gap-3 text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+                  <Settings className="w-7 h-7 text-teal-500" />
+                  Admin Settings
+                </h1>
+                <p className="mt-2 max-w-2xl text-sm leading-7 text-gray-600 dark:text-gray-300">
+                  Configure platform behaviour, moderation preferences, and admin workspace defaults from a single control surface.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                <StatusPill
+                  label="State"
+                  value={isDirty ? "Unsaved" : "Saved"}
+                  tone={
+                    isDirty
+                      ? "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300"
+                      : "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300"
+                  }
+                />
+                <StatusPill
+                  label="Theme"
+                  value={isDarkMode ? "Dark" : "Light"}
+                  tone="bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300"
+                />
+                <StatusPill
+                  label="Platform"
+                  value={settings.maintenanceMode ? "Maintenance" : "Live"}
+                  tone={
+                    settings.maintenanceMode
+                      ? "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300"
+                      : "bg-teal-100 text-teal-700 dark:bg-teal-500/15 dark:text-teal-300"
+                  }
+                />
+              </div>
             </div>
-            <div className="flex items-center gap-3">
+
+            <div className="relative z-10 mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <div className="rounded-2xl border border-gray-200/70 bg-white/85 px-4 py-3 dark:border-white/10 dark:bg-white/[0.05]">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
+                  Active Theme
+                </div>
+                <div className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
+                  {isDarkMode ? "Dark interface" : "Light interface"}
+                </div>
+              </div>
+              <div className="rounded-2xl border border-gray-200/70 bg-white/85 px-4 py-3 dark:border-white/10 dark:bg-white/[0.05]">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
+                  Session Timeout
+                </div>
+                <div className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
+                  {settings.sessionTimeout}
+                </div>
+              </div>
+              <div className="rounded-2xl border border-gray-200/70 bg-white/85 px-4 py-3 dark:border-white/10 dark:bg-white/[0.05]">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
+                  Registrations
+                </div>
+                <div className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
+                  {settings.registrationOpen ? "Open" : "Closed"}
+                </div>
+              </div>
+              <div className="rounded-2xl border border-gray-200/70 bg-white/85 px-4 py-3 dark:border-white/10 dark:bg-white/[0.05]">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
+                  Motion
+                </div>
+                <div className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
+                  {settings.showAnimations ? "Enabled" : "Reduced"}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="rounded-[28px] border border-gray-200/80 bg-white/90 p-4 shadow-[0_14px_34px_rgba(15,23,42,0.06)] dark:border-gray-800 dark:bg-gray-900/80">
+            <div className="flex flex-wrap items-center gap-3">
               <button
                 onClick={handleReset}
                 disabled={!isDirty}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                className="flex items-center gap-2 rounded-xl border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-600 transition-all hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-30 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 Reset
@@ -301,21 +390,24 @@ export default function AdminSettings() {
               <button
                 onClick={handleSave}
                 disabled={!isDirty}
-                className={`flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-bold transition-all shadow-lg ${
+                className={`flex items-center gap-2 rounded-xl px-5 py-2 text-sm font-bold transition-all shadow-lg ${
                   isDirty
-                    ? "bg-teal-600 hover:bg-teal-500 text-white shadow-teal-900/25"
-                    : "bg-gray-300 dark:bg-gray-800 text-gray-500 cursor-not-allowed shadow-none"
+                    ? "bg-teal-600 text-white shadow-teal-900/25 hover:bg-teal-500"
+                    : "cursor-not-allowed bg-gray-300 text-gray-500 shadow-none dark:bg-gray-800"
                 }`}
               >
                 <Save className="w-4 h-4" />
                 Save Changes
               </button>
+              <div className="text-sm text-gray-500 dark:text-gray-400">
+                {isDirty
+                  ? "You have pending changes ready to be applied."
+                  : "All admin preferences are currently saved."}
+              </div>
             </div>
-          </div>
-        </div>
+          </section>
 
-        <div className="px-8 py-8">
-          <div className="max-w-4xl space-y-6">
+          <div className="space-y-6">
             {/* ─── Appearance ─── */}
             <SectionCard
               icon={<Monitor className="w-4.5 h-4.5 text-purple-500" />}
