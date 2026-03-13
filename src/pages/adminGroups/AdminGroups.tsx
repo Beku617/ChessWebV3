@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Edit3, Loader2, Plus, Search, Trash2, Users } from "lucide-react";
 import AdminSidebar from "../../components/AdminSidebar";
@@ -23,6 +23,26 @@ const emptyDraft: GroupDraft = {
   topic: "",
 };
 
+function compareGroups(a: CommunityGroup, b: CommunityGroup) {
+  const memberDiff = Number(b.memberCount || 0) - Number(a.memberCount || 0);
+  if (memberDiff !== 0) return memberDiff;
+  const createdA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+  const createdB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+  return createdB - createdA;
+}
+
+function matchesGroupSearch(group: CommunityGroup, search: string) {
+  const query = search.trim().toLowerCase();
+  if (!query) return true;
+
+  return [
+    group.name,
+    group.description,
+    group.topic,
+    group.slug,
+  ].some((value) => String(value || "").toLowerCase().includes(query));
+}
+
 export default function AdminGroups() {
   const navigate = useNavigate();
   const { isAuthenticated, isLoading: authLoading, checkAuth } = useAdminStore();
@@ -30,6 +50,7 @@ export default function AdminGroups() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
+  const deferredSearch = useDeferredValue(search);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [createDraft, setCreateDraft] = useState<GroupDraft>(emptyDraft);
   const [isCreating, setIsCreating] = useState(false);
@@ -52,7 +73,7 @@ export default function AdminGroups() {
     setError("");
     try {
       const params = new URLSearchParams({ limit: "60" });
-      if (search.trim()) params.set("search", search.trim());
+      if (deferredSearch.trim()) params.set("search", deferredSearch.trim());
       const res = await fetch(`${API_URL}/api/admin/groups?${params}`, {
         credentials: "include",
       });
@@ -67,7 +88,17 @@ export default function AdminGroups() {
     } finally {
       setLoading(false);
     }
-  }, [search]);
+  }, [deferredSearch]);
+
+  const upsertGroupLocally = useCallback((nextGroup: CommunityGroup) => {
+    setGroups((prev) => {
+      const filtered = prev.filter((group) => group.id !== nextGroup.id);
+      if (!matchesGroupSearch(nextGroup, deferredSearch)) {
+        return filtered.sort(compareGroups);
+      }
+      return [nextGroup, ...filtered].sort(compareGroups);
+    });
+  }, [deferredSearch]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -90,7 +121,11 @@ export default function AdminGroups() {
       }
       setCreateDraft(emptyDraft);
       setIsCreateOpen(false);
-      await loadGroups();
+      if (data.group) {
+        upsertGroupLocally(data.group);
+      } else {
+        await loadGroups();
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create group.");
     } finally {
@@ -123,7 +158,11 @@ export default function AdminGroups() {
       }
       setEditingId(null);
       setEditDraft(emptyDraft);
-      await loadGroups();
+      if (data.group) {
+        upsertGroupLocally(data.group);
+      } else {
+        await loadGroups();
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update group.");
     } finally {
@@ -148,7 +187,7 @@ export default function AdminGroups() {
       if (!res.ok) {
         throw new Error(data.error || "Failed to delete group.");
       }
-      await loadGroups();
+      setGroups((prev) => prev.filter((item) => item.id !== group.id));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to delete group.");
     } finally {

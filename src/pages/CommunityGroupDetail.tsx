@@ -120,6 +120,16 @@ export default function CommunityGroupDetail() {
     if (!group) return;
     setBusyMembership(true);
     setError("");
+    const previousGroup = group;
+    const optimisticGroup: CommunityGroup = {
+      ...group,
+      joined: !group.joined,
+      memberCount: Math.max(
+        0,
+        Number(group.memberCount || 0) + (group.joined ? -1 : 1),
+      ),
+    };
+    setGroup(optimisticGroup);
     try {
       const action = group.joined ? "leave" : "join";
       const res = await fetch(
@@ -133,8 +143,10 @@ export default function CommunityGroupDetail() {
       if (!res.ok) {
         throw new Error(data.error || `Failed to ${action} group.`);
       }
-      await Promise.all([loadGroup(), loadMineMeta()]);
+      setGroup(data.group || optimisticGroup);
+      await loadMineMeta();
     } catch (err) {
+      setGroup(previousGroup);
       setError(err instanceof Error ? err.message : "Failed to update group.");
     } finally {
       setBusyMembership(false);
@@ -142,11 +154,7 @@ export default function CommunityGroupDetail() {
   };
 
   const handleRefreshAfterSubmit = async () => {
-    if (page !== 1) {
-      setPage(1);
-      return;
-    }
-    await loadGroup();
+    await loadMineMeta();
   };
 
   const handleCreateGroup = async (payload: {

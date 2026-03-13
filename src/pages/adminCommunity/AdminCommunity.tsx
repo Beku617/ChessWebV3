@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Check,
@@ -181,6 +181,8 @@ type RestrictionDraft = {
   unlimitedPosts: boolean;
 };
 
+type AdminCommunityPost = AdminCommunityResponse["posts"][number];
+
 function formatRestrictionLabel(
   restriction?: CommunityPostingRestrictionState | null,
 ) {
@@ -213,6 +215,64 @@ function inferRestrictionDuration(
   return "1d";
 }
 
+function compareAdminPosts(
+  left: AdminCommunityPost,
+  right: AdminCommunityPost,
+  statusFilter: string,
+) {
+  if (statusFilter === "pending") {
+    const leftCreatedAt = left.createdAt ? new Date(left.createdAt).getTime() : 0;
+    const rightCreatedAt = right.createdAt ? new Date(right.createdAt).getTime() : 0;
+    return leftCreatedAt - rightCreatedAt;
+  }
+
+  const leftReviewedAt = left.reviewedAt || left.createdAt || "";
+  const rightReviewedAt = right.reviewedAt || right.createdAt || "";
+  return new Date(rightReviewedAt).getTime() - new Date(leftReviewedAt).getTime();
+}
+
+function matchesAdminPostFilters(
+  post: AdminCommunityPost,
+  statusFilter: string,
+  mediaFilter: string,
+  search: string,
+) {
+  if (statusFilter && post.status !== statusFilter) {
+    return false;
+  }
+
+  if (mediaFilter === "game") {
+    if (post.postType !== "game") return false;
+  } else if (mediaFilter) {
+    if (post.postType === "game") return false;
+    if (post.mediaType !== mediaFilter) return false;
+  }
+
+  const query = search.trim().toLowerCase();
+  if (!query) return true;
+
+  const mediaNames = getCommunityMediaItems(post)
+    .map((item) => item.originalName)
+    .filter(Boolean);
+  const haystacks = [
+    post.text,
+    post.mediaOriginalName,
+    post.author?.fullName,
+    post.group?.name,
+    post.game?.white,
+    post.game?.black,
+    post.game?.opponent,
+    post.game?.eco,
+    post.game?.event,
+    post.game?.timeControl,
+    ...mediaNames,
+  ];
+
+  return haystacks.some((value) =>
+    String(value || "").toLowerCase().includes(query),
+  );
+}
+
 export default function AdminCommunity() {
   const navigate = useNavigate();
   const { isAuthenticated, isLoading: authLoading, checkAuth } = useAdminStore();
@@ -224,6 +284,7 @@ export default function AdminCommunity() {
   const [statusFilter, setStatusFilter] = useState("pending");
   const [mediaFilter, setMediaFilter] = useState("");
   const [search, setSearch] = useState("");
+  const deferredSearch = useDeferredValue(search);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [actionError, setActionError] = useState("");
@@ -316,13 +377,13 @@ export default function AdminCommunity() {
       setLoading(true);
       setError("");
       try {
-        const params = new URLSearchParams({
-          page: String(page),
-          limit: "8",
-        });
-        if (statusFilter) params.set("status", statusFilter);
-        if (mediaFilter) params.set("mediaType", mediaFilter);
-        if (search.trim()) params.set("search", search.trim());
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: "8",
+      });
+      if (statusFilter) params.set("status", statusFilter);
+      if (mediaFilter) params.set("mediaType", mediaFilter);
+      if (deferredSearch.trim()) params.set("search", deferredSearch.trim());
 
         const res = await fetch(`${API_URL}/api/admin/community?${params}`, {
           credentials: "include",
@@ -349,7 +410,7 @@ export default function AdminCommunity() {
     return () => {
       cancelled = true;
     };
-  }, [isAuthenticated, mediaFilter, page, search, statusFilter]);
+  }, [deferredSearch, isAuthenticated, mediaFilter, page, statusFilter]);
 
   useEffect(() => {
     if (posts.length === 0) return;
@@ -373,6 +434,69 @@ export default function AdminCommunity() {
     window.setTimeout(() => setToast(null), 2800);
   };
 
+  const adjustVisibleTotal = useCallback((delta: number) => {
+    if (delta === 0) return;
+    setTotal((previous) => {
+      const nextTotal = Math.max(0, previous + delta);
+      setPages(Math.max(1, Math.ceil(nextTotal / 8)));
+      return nextTotal;
+    });
+  }, []);
+
+  const adjustStatsForPostChange = useCallback(
+    (previousPost: AdminCommunityPost | null, nextPost: AdminCommunityPost | null) => {
+      const previousStatus = previousPost?.status || "";
+      const nextStatus = nextPost?.status || "";
+      if (!previousStatus && !nextStatus) return;
+
+      setStats((previous) => {
+        const next = { ...previous };
+        if (previousStatus && previousStatus !== nextStatus) {
+          const statKey = previousStatus as keyof CommunityStats;
+          if (typeof next[statKey] === "number") {
+            next[statKey] = Math.max(0, Number(next[statKey]) - 1);
+          }
+          next.total = Math.max(0, next.total - 1);
+        }
+        if (nextStatus && previousStatus !== nextStatus) {
+          const statKey = nextStatus as keyof CommunityStats;
+          if (typeof next[statKey] === "number") {
+            next[statKey] = Number(next[statKey]) + 1;
+          }
+          next.total += 1;
+        }
+        return next;
+      });
+    },
+    [],
+  );
+
+  const applyLocalPostMutation = useCallback(
+    (nextPost: AdminCommunityPost | null, previousPost: AdminCommunityPost | null) => {
+      const wasVisible = previousPost
+        ? matchesAdminPostFilters(previousPost, statusFilter, mediaFilter, deferredSearch)
+        : false;
+      const isVisible = nextPost
+        ? matchesAdminPostFilters(nextPost, statusFilter, mediaFilter, deferredSearch)
+        : false;
+
+      adjustStatsForPostChange(previousPost, nextPost);
+      adjustVisibleTotal(Number(isVisible) - Number(wasVisible));
+
+      setPosts((previous) => {
+        const filtered = previous.filter(
+          (post) => post.id !== (previousPost?.id || nextPost?.id),
+        );
+        const nextVisiblePosts =
+          isVisible && nextPost ? [nextPost, ...filtered] : filtered;
+        return nextVisiblePosts.sort((left, right) =>
+          compareAdminPosts(left, right, statusFilter),
+        );
+      });
+    },
+    [adjustStatsForPostChange, adjustVisibleTotal, deferredSearch, mediaFilter, statusFilter],
+  );
+
   const refreshCurrentPage = async () => {
     const params = new URLSearchParams({
       page: String(page),
@@ -380,7 +504,7 @@ export default function AdminCommunity() {
     });
     if (statusFilter) params.set("status", statusFilter);
     if (mediaFilter) params.set("mediaType", mediaFilter);
-    if (search.trim()) params.set("search", search.trim());
+    if (deferredSearch.trim()) params.set("search", deferredSearch.trim());
 
     const res = await fetch(`${API_URL}/api/admin/community?${params}`, {
       credentials: "include",
@@ -402,13 +526,18 @@ export default function AdminCommunity() {
   ) => {
     setProcessingId(postId);
     setActionError("");
+    const currentPost = posts.find((post) => post.id === postId) || null;
     try {
       const res = await request();
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         throw new Error(data.error || "Failed to update post.");
       }
-      await refreshCurrentPage();
+      if (data.post) {
+        applyLocalPostMutation(data.post, currentPost);
+      } else {
+        await refreshCurrentPage();
+      }
       showToast("success", successMessage);
       setActiveRejectId(null);
     } catch (err) {
@@ -452,16 +581,32 @@ export default function AdminCommunity() {
       "Delete this post permanently? The uploaded media will be removed too.",
     );
     if (!confirmed) return;
+    const currentPost = posts.find((post) => post.id === postId) || null;
+    setProcessingId(postId);
+    setActionError("");
+    try {
+      const res = await fetch(`${API_URL}/api/admin/community/${postId}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to delete post.");
+      }
 
-    await runAction(
-      postId,
-      () =>
-        fetch(`${API_URL}/api/admin/community/${postId}`, {
-          method: "DELETE",
-          credentials: "include",
-        }),
-      "Post deleted.",
-    );
+      if (currentPost) {
+        applyLocalPostMutation(null, currentPost);
+      } else {
+        await refreshCurrentPage();
+      }
+      showToast("success", "Post deleted.");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to delete post.";
+      setActionError(message);
+      showToast("error", message);
+    } finally {
+      setProcessingId(null);
+    }
   };
 
   const setRestrictionDraftValue = (
@@ -504,7 +649,22 @@ export default function AdminCommunity() {
         throw new Error(data.error || "Failed to update posting restriction.");
       }
 
-      await refreshCurrentPage();
+      setPosts((previous) =>
+        previous.map((post) =>
+          String(post.author?.id || "") === userId
+            ? {
+                ...post,
+                authorPostingRestriction: data.restriction || null,
+                authorPostingRateLimitBypass: Boolean(data.rateLimitBypass),
+              }
+            : post,
+        ),
+      );
+      setRestrictionDraftValue(userId, {
+        duration: inferRestrictionDuration(data.restriction),
+        reason: String(data.restriction?.reason || ""),
+        unlimitedPosts: Boolean(data.rateLimitBypass),
+      });
       showToast(
         "success",
         duration === "none"
@@ -543,8 +703,22 @@ export default function AdminCommunity() {
         throw new Error(data.error || "Failed to update posting limit access.");
       }
 
-      setRestrictionDraftValue(userId, { unlimitedPosts: enabled });
-      await refreshCurrentPage();
+      setPosts((previous) =>
+        previous.map((post) =>
+          String(post.author?.id || "") === userId
+            ? {
+                ...post,
+                authorPostingRestriction: data.restriction || post.authorPostingRestriction || null,
+                authorPostingRateLimitBypass: Boolean(data.rateLimitBypass),
+              }
+            : post,
+        ),
+      );
+      setRestrictionDraftValue(userId, {
+        duration: inferRestrictionDuration(data.restriction),
+        reason: String(data.restriction?.reason || ""),
+        unlimitedPosts: Boolean(data.rateLimitBypass),
+      });
       showToast(
         "success",
         enabled
@@ -595,7 +769,11 @@ export default function AdminCommunity() {
 
       resetCreateDraft();
       setIsCreateOpen(false);
-      await refreshCurrentPage();
+      if (data.post) {
+        applyLocalPostMutation(data.post, null);
+      } else {
+        await refreshCurrentPage();
+      }
       showToast("success", "Post created.");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to create post.";
@@ -627,6 +805,7 @@ export default function AdminCommunity() {
   const handleSaveEdit = async (postId: string) => {
     setProcessingId(postId);
     setActionError("");
+    const currentPost = posts.find((post) => post.id === postId) || null;
     try {
       const formData = new FormData();
       formData.append("text", editText.trim());
@@ -649,7 +828,11 @@ export default function AdminCommunity() {
         throw new Error(data.error || "Failed to update post.");
       }
 
-      await refreshCurrentPage();
+      if (data.post) {
+        applyLocalPostMutation(data.post, currentPost);
+      } else {
+        await refreshCurrentPage();
+      }
       cancelEditPost();
       showToast("success", "Post updated.");
     } catch (err) {

@@ -35,13 +35,19 @@ export default function Sidebar() {
 
   useEffect(() => {
     void loadAllFriends();
-    const id = window.setInterval(() => void loadAllFriends(), 10000);
+    const id = window.setInterval(() => {
+      if (document.visibilityState !== "visible") return;
+      void loadAllFriends();
+    }, 20000);
     return () => window.clearInterval(id);
   }, [loadAllFriends]);
 
   useEffect(() => {
     void refreshUnread();
-    const id = window.setInterval(() => void refreshUnread(), 7000);
+    const id = window.setInterval(() => {
+      if (document.visibilityState !== "visible") return;
+      void refreshUnread();
+    }, 15000);
     return () => window.clearInterval(id);
   }, [refreshUnread]);
 

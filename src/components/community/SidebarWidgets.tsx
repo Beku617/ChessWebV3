@@ -1,8 +1,8 @@
 /* ═══════════════════════════════════════════════════════
    Community Right Sidebar Widgets
    ═══════════════════════════════════════════════════════ */
+import { memo } from "react";
 import {
-  TrendingUp,
   Heart,
   Tv,
   Crown,
@@ -47,7 +47,7 @@ interface TrendingWidgetProps {
   error?: string;
 }
 
-export function TrendingWidget({
+export const TrendingWidget = memo(function TrendingWidget({
   posts = [],
   mode = "latest",
   loading = false,
@@ -57,7 +57,6 @@ export function TrendingWidget({
   return (
     <SidebarCard
       title={t("Trending in chess")}
-      icon={<TrendingUp className="w-4 h-4 text-orange-400" />}
       action={
         <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gray-500">
           {mode === "likes" ? "Most liked" : "Fresh picks"}
@@ -133,7 +132,7 @@ export function TrendingWidget({
       )}
     </SidebarCard>
   );
-}
+});
 
 export function CommunityGuidelinesWidget() {
   return (

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import { Plus, Users, X } from "lucide-react";
@@ -130,7 +130,7 @@ export function CommunityGroupCard({
   );
 }
 
-export function CommunityGroupsSidebarSection({
+export const CommunityGroupsSidebarSection = memo(function CommunityGroupsSidebarSection({
   joinedGroups,
   discoverGroups,
   busyGroupId,
@@ -189,11 +189,7 @@ export function CommunityGroupsSidebarSection({
           <div className="mb-2 text-[10px] uppercase tracking-[0.2em] text-gray-500">
             Discover
           </div>
-          {discoverGroups.length === 0 ? (
-            <div className="rounded-xl bg-white/[0.03] px-4 py-4 text-sm text-gray-400">
-              More groups will show up here as the community grows.
-            </div>
-          ) : (
+          {discoverGroups.length > 0 && (
             <div className="space-y-1.5">
               {discoverGroups.map((group) => (
                 <CommunityGroupMiniRow
@@ -209,7 +205,7 @@ export function CommunityGroupsSidebarSection({
       </div>
     </SidebarCard>
   );
-}
+});
 
 export function CommunityGroupCreateModal({
   open,

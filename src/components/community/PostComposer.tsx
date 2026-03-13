@@ -197,6 +197,7 @@ export function PostComposer({
   };
 
   const openFilePicker = (kind: "image" | "video") => {
+    if (isSubmitting) return;
     const input = kind === "image" ? imageInputRef.current : videoInputRef.current;
     if (!input) return;
     input.value = "";
@@ -318,6 +319,7 @@ export function PostComposer({
   );
   const isSubmissionBlocked = submissionBlockedMessage.length > 0;
   const canSubmitNow = canSubmit && !isSubmissionBlocked && !isLoadingSelectedGame;
+  const mediaControlsDisabled = isSubmissionBlocked || isSubmitting;
   const openingLabel = selectedGameSummary
     ? getCommunityOpeningLabel(selectedGameSummary.eco, selectedGameSummary.event)
     : "";
@@ -347,6 +349,7 @@ export function PostComposer({
   };
 
   const handleRemoveSelectedImage = (index: number) => {
+    if (isSubmitting) return;
     setSelectedImages((current) => {
       const image = current[index];
       if (!image) return current;
@@ -360,6 +363,7 @@ export function PostComposer({
   };
 
   const handlePickImages = (fileList?: FileList | null) => {
+    if (isSubmitting) return;
     if (isSubmissionBlocked) {
       setError(submissionBlockedMessage);
       return;
@@ -414,6 +418,7 @@ export function PostComposer({
   };
 
   const handlePickVideo = (file?: File | null) => {
+    if (isSubmitting) return;
     if (isSubmissionBlocked) {
       setError(submissionBlockedMessage);
       return;
@@ -445,6 +450,7 @@ export function PostComposer({
   };
 
   const handleChooseGame = async (gameSummary: CommunityShareableGameSummary) => {
+    if (isSubmitting) return;
     if (isSubmissionBlocked) {
       setError(submissionBlockedMessage);
       return;
@@ -567,7 +573,8 @@ export function PostComposer({
                   <button
                     type="button"
                     onClick={clearSelectedMedia}
-                    className="absolute right-2 top-2 z-10 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-black/60 text-gray-200 hover:bg-black/80 hover:text-white transition-colors"
+                    disabled={isSubmitting}
+                    className="absolute right-2 top-2 z-10 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-black/60 text-gray-200 hover:bg-black/80 hover:text-white transition-colors disabled:cursor-not-allowed disabled:opacity-45"
                     title="Remove media"
                   >
                     <X className="w-4 h-4" />
@@ -587,7 +594,8 @@ export function PostComposer({
                   <button
                     type="button"
                     onClick={clearSelectedMedia}
-                    className="absolute right-2 top-2 z-10 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-black/60 text-gray-200 hover:bg-black/80 hover:text-white transition-colors"
+                    disabled={isSubmitting}
+                    className="absolute right-2 top-2 z-10 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-black/60 text-gray-200 hover:bg-black/80 hover:text-white transition-colors disabled:cursor-not-allowed disabled:opacity-45"
                     title="Remove media"
                   >
                     <X className="w-4 h-4" />
@@ -616,7 +624,8 @@ export function PostComposer({
                   <button
                     type="button"
                     onClick={clearSelectedImages}
-                    className="inline-flex items-center gap-2 rounded-lg bg-white/[0.06] px-3 py-2 text-xs font-semibold text-gray-200 transition-colors hover:bg-white/[0.12]"
+                    disabled={isSubmitting}
+                    className="inline-flex items-center gap-2 rounded-lg bg-white/[0.06] px-3 py-2 text-xs font-semibold text-gray-200 transition-colors hover:bg-white/[0.12] disabled:cursor-not-allowed disabled:opacity-45"
                   >
                     <X className="h-4 w-4" />
                     Clear all
@@ -646,7 +655,8 @@ export function PostComposer({
                         <button
                           type="button"
                           onClick={() => handleRemoveSelectedImage(index)}
-                          className="absolute right-1 top-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-black/70 text-white hover:bg-black/85"
+                          disabled={isSubmitting}
+                          className="absolute right-1 top-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-black/70 text-white hover:bg-black/85 disabled:cursor-not-allowed disabled:opacity-45"
                           aria-label={`Remove image ${index + 1}`}
                         >
                           <X className="h-3 w-3" />
@@ -689,7 +699,7 @@ export function PostComposer({
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      disabled={isLoadingSelectedGame}
+                      disabled={isLoadingSelectedGame || isSubmitting}
                       onClick={() => setIsGamePickerOpen((value) => !value)}
                       className="inline-flex items-center gap-2 rounded-lg bg-white/[0.06] px-3 py-2 text-xs font-semibold text-gray-200 hover:bg-white/[0.12] disabled:opacity-50"
                     >
@@ -698,7 +708,7 @@ export function PostComposer({
                     </button>
                     <button
                       type="button"
-                      disabled={isLoadingSelectedGame}
+                      disabled={isLoadingSelectedGame || isSubmitting}
                       onClick={clearSelectedGame}
                       className="inline-flex items-center gap-2 rounded-lg bg-white/[0.06] px-3 py-2 text-xs font-semibold text-gray-200 hover:bg-white/[0.12] disabled:opacity-50"
                     >
@@ -732,7 +742,8 @@ export function PostComposer({
                   <button
                     type="button"
                     onClick={() => setIsGamePickerOpen(false)}
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white/[0.06] text-gray-300 hover:bg-white/[0.12]"
+                    disabled={isSubmitting}
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white/[0.06] text-gray-300 hover:bg-white/[0.12] disabled:cursor-not-allowed disabled:opacity-45"
                     aria-label="Close game picker"
                   >
                     <X className="h-4 w-4" />
@@ -744,9 +755,10 @@ export function PostComposer({
                     <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
                     <input
                       value={gameSearch}
+                      disabled={isSubmitting}
                       onChange={(e) => setGameSearch(e.target.value)}
                       placeholder="Search by opponent, opening, result, or time control..."
-                      className="w-full rounded-xl bg-white/[0.05] py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
+                      className="w-full rounded-xl bg-white/[0.05] py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500/30 disabled:cursor-not-allowed disabled:opacity-45"
                     />
                   </div>
                 </div>
@@ -786,7 +798,7 @@ export function PostComposer({
                             key={gameOption.id}
                             type="button"
                             onClick={() => void handleChooseGame(gameOption)}
-                            disabled={isLoadingSelectedGame}
+                            disabled={isLoadingSelectedGame || isSubmitting}
                             className={`w-full rounded-2xl border px-4 py-3 text-left transition-all ${
                               isSelected
                                 ? "border-teal-400/35 bg-teal-500/10"
@@ -917,7 +929,7 @@ export function PostComposer({
                 )}
                 <button
                   type="button"
-                  disabled={isSubmissionBlocked}
+                  disabled={mediaControlsDisabled}
                   onClick={() => openFilePicker("image")}
                   className="inline-flex items-center gap-2 rounded-lg bg-white/[0.04] px-3.5 py-2 text-sm text-gray-300 transition-colors hover:bg-white/[0.08] hover:text-teal-200 disabled:cursor-not-allowed disabled:opacity-45"
                 >
@@ -926,7 +938,7 @@ export function PostComposer({
                 </button>
                 <button
                   type="button"
-                  disabled={isSubmissionBlocked}
+                  disabled={mediaControlsDisabled}
                   onClick={() => openFilePicker("video")}
                   className="inline-flex items-center gap-2 rounded-lg bg-white/[0.04] px-3.5 py-2 text-sm text-gray-300 transition-colors hover:bg-white/[0.08] hover:text-teal-200 disabled:cursor-not-allowed disabled:opacity-45"
                 >
@@ -935,9 +947,9 @@ export function PostComposer({
                 </button>
                 <button
                   type="button"
-                  disabled={isSubmissionBlocked}
+                  disabled={mediaControlsDisabled}
                   onClick={() => {
-                    if (isSubmissionBlocked) {
+                    if (mediaControlsDisabled) {
                       setError(submissionBlockedMessage);
                       return;
                     }

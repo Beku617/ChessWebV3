@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import { Heart, Trash2, X } from "lucide-react";
@@ -45,7 +45,7 @@ function formatModerationStatus(status: CommunityPost["status"]) {
   return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
-export function PostCard({
+function PostCardComponent({
   post,
   index,
   canDelete = false,
@@ -593,3 +593,5 @@ export function PostCard({
     </motion.article>
   );
 }
+
+export const PostCard = memo(PostCardComponent);

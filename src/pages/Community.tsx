@@ -26,6 +26,11 @@ import { useAuthStore } from "../store/authStore";
 const POSTS_PER_PAGE = 8;
 type CommunityTab = "feed" | "my_posts";
 
+function upsertGroup(groups: CommunityGroup[], nextGroup: CommunityGroup) {
+  const filtered = groups.filter((group) => group.id !== nextGroup.id);
+  return [nextGroup, ...filtered];
+}
+
 export default function Community() {
   const { user } = useAuthStore();
   const [activeTab, setActiveTab] = useState<CommunityTab>("feed");
@@ -121,6 +126,30 @@ export default function Community() {
     }
   }, [minePage]);
 
+  const loadMineMeta = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/community/mine?page=1&limit=1`, {
+        credentials: "include",
+      });
+      const data: CommunityMineResponse & { error?: string } = await res.json().catch(
+        () => ({
+          posts: [],
+          total: 0,
+          pagination: { page: 1, limit: 1, total: 0, pages: 1 },
+          summary: null,
+          postingAccess: null,
+        }),
+      );
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to load posting access.");
+      }
+      setSummary(data.summary || null);
+      setPostingAccess(data.postingAccess || null);
+    } catch {
+      // keep the main feed responsive if this lightweight sync fails
+    }
+  }, []);
+
   const loadTrending = useCallback(async () => {
     setTrendingLoading(true);
     setTrendingError("");
@@ -183,6 +212,23 @@ export default function Community() {
     }
   }, []);
 
+  const syncGroupMembershipState = useCallback((nextGroup: CommunityGroup) => {
+    setJoinedGroups((prev) =>
+      nextGroup.joined
+        ? upsertGroup(prev, nextGroup)
+        : prev.filter((group) => group.id !== nextGroup.id),
+    );
+    setComposerGroups((prev) =>
+      nextGroup.joined
+        ? upsertGroup(prev, nextGroup)
+        : prev.filter((group) => group.id !== nextGroup.id),
+    );
+    setDiscoverGroups((prev) => {
+      const filtered = prev.filter((group) => group.id !== nextGroup.id);
+      return nextGroup.joined ? filtered : upsertGroup(filtered, nextGroup);
+    });
+  }, []);
+
   useEffect(() => {
     void loadFeedPage();
   }, [loadFeedPage]);
@@ -210,9 +256,8 @@ export default function Community() {
     setTrendingError("");
   }, [feedPosts, trendingError, trendingLoading]);
 
-  const handleRefreshAfterSubmit = async () => {
-    await loadFeedPage();
-
+  const handleRefreshAfterSubmit = useCallback(async () => {
+    await loadMineMeta();
     if (activeTab !== "my_posts") {
       return;
     }
@@ -222,9 +267,9 @@ export default function Community() {
     } else {
       await loadMinePage();
     }
-  };
+  }, [activeTab, loadMineMeta, loadMinePage, minePage]);
 
-  const handleDeleteOwnPost = async (postId: string) => {
+  const handleDeleteOwnPost = useCallback(async (postId: string) => {
     const res = await fetch(`${API_URL}/api/community/${postId}`, {
       method: "DELETE",
       credentials: "include",
@@ -247,15 +292,33 @@ export default function Community() {
     }
 
     await loadTrending();
-  };
+  }, [
+    feedPage,
+    feedPosts.length,
+    hasLoadedMine,
+    loadFeedPage,
+    loadMinePage,
+    loadTrending,
+    minePage,
+    minePosts.length,
+  ]);
 
-  const handlePostLikeChanged = async () => {
+  const handlePostLikeChanged = useCallback(async () => {
     await loadTrending();
-  };
+  }, [loadTrending]);
 
-  const handleToggleGroupMembership = async (group: CommunityGroup) => {
+  const handleToggleGroupMembership = useCallback(async (group: CommunityGroup) => {
     setBusyGroupId(group.id);
     setGroupError("");
+    const optimisticGroup: CommunityGroup = {
+      ...group,
+      joined: !group.joined,
+      memberCount: Math.max(
+        0,
+        Number(group.memberCount || 0) + (group.joined ? -1 : 1),
+      ),
+    };
+    syncGroupMembershipState(optimisticGroup);
     try {
       const action = group.joined ? "leave" : "join";
       const res = await fetch(
@@ -269,16 +332,18 @@ export default function Community() {
       if (!res.ok) {
         throw new Error(data.error || `Failed to ${action} group.`);
       }
-
-      await Promise.all([loadGroupsOverview(), loadFeedPage()]);
+      if (data.group) {
+        syncGroupMembershipState(data.group);
+      }
     } catch (err) {
+      syncGroupMembershipState(group);
       setGroupError(err instanceof Error ? err.message : "Failed to update group.");
     } finally {
       setBusyGroupId(null);
     }
-  };
+  }, [syncGroupMembershipState]);
 
-  const handleCreateGroup = async (payload: {
+  const handleCreateGroup = useCallback(async (payload: {
     name: string;
     description: string;
     topic: string;
@@ -298,7 +363,11 @@ export default function Community() {
       }
 
       setIsCreateGroupOpen(false);
-      await loadGroupsOverview();
+      if (data.group) {
+        syncGroupMembershipState(data.group);
+      } else {
+        await loadGroupsOverview();
+      }
     } catch (err) {
       setCreateGroupError(
         err instanceof Error ? err.message : "Failed to create group.",
@@ -306,7 +375,11 @@ export default function Community() {
     } finally {
       setIsCreatingGroup(false);
     }
-  };
+  }, [loadGroupsOverview, syncGroupMembershipState]);
+
+  const handleOpenCreateGroup = useCallback(() => {
+    setIsCreateGroupOpen(true);
+  }, []);
 
   const feedRange = useMemo(() => {
     const start = feedTotalPosts === 0 ? 0 : (feedPage - 1) * POSTS_PER_PAGE + 1;
@@ -477,7 +550,7 @@ export default function Community() {
                   discoverGroups={discoverGroups}
                   busyGroupId={busyGroupId}
                   onToggleGroup={handleToggleGroupMembership}
-                  onOpenCreate={() => setIsCreateGroupOpen(true)}
+                  onOpenCreate={handleOpenCreateGroup}
                 />
               )}
               {groupError && (
