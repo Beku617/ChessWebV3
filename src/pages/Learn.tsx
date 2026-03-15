@@ -33,42 +33,6 @@ export default function Learn() {
 
   return (
     <div className="space-y-8">
-      {/* Hero Section */}
-      <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-teal-600 dark:from-teal-900 to-gray-700 dark:to-gray-900 border border-teal-500 dark:border-teal-900/50 shadow-2xl">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1529699211952-734e80c4d42b?auto=format&fit=crop&q=80')] bg-cover bg-center opacity-10 mix-blend-overlay"></div>
-        <div className="relative z-10 p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-8">
-          <div className="space-y-4 max-w-xl">
-            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-teal-500/20 text-teal-100 dark:text-teal-300 text-xs font-bold uppercase tracking-wider border border-teal-500/30">
-              <Star className="w-3 h-3" />
-              <span>{t("Premium Content")}</span>
-            </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-white leading-tight">
-              {t("Master the Game")} <br />
-              <span className="text-teal-200 dark:text-teal-400">
-                {t("One Move at a Time")}
-              </span>
-            </h1>
-            <p className="text-gray-200 dark:text-gray-300 text-lg">
-              {t(
-                "Interactive lessons, video courses, and personalized training plans designed by Grandmasters.",
-              )}
-            </p>
-            <div className="flex flex-wrap gap-4 pt-2">
-              <button className="px-6 py-3 bg-teal-600 hover:bg-teal-500 text-white font-semibold rounded-lg transition-all shadow-lg shadow-teal-900/20 flex items-center gap-2">
-                {t("Start Learning")} <ChevronRight className="w-5 h-5" />
-              </button>
-              <button className="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-medium rounded-lg transition-colors border border-white/20">
-                {t("Browse Catalog")}
-              </button>
-            </div>
-          </div>
-          <div className="hidden md:block relative">
-            <div className="w-64 h-64 bg-gradient-to-br from-teal-500/20 to-emerald-500/20 rounded-full blur-3xl absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
-            <GraduationCap className="w-48 h-48 text-teal-100/80 relative z-10 drop-shadow-2xl" />
-          </div>
-        </div>
-      </div>
-
       {/* Categories */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {["Openings", "Middlegame", "Endgame", "Strategy"].map((cat, i) => (
