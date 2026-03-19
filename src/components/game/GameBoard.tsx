@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import type { CSSProperties } from "react";
 import { PromotionModal } from "./PromotionModal";
 import type { PromotionState } from "./types";
+import { useBoardTheme } from "../../hooks/useBoardTheme";
 
 const CLOSED_PROMOTION_STATE: PromotionState = {
   isOpen: false,
@@ -47,6 +48,7 @@ export function GameBoard({
   promotionState = CLOSED_PROMOTION_STATE,
   onPromotionPieceSelect,
 }: GameBoardProps) {
+  const { colors } = useBoardTheme();
   const isPromotionOpen = Boolean(
     promotionState.isOpen &&
       promotionState.from &&
@@ -121,8 +123,14 @@ export function GameBoard({
           boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3)",
         }}
         customSquareStyles={{ ...customSquareStyles, ...lastMoveStyles }}
-        customDarkSquareStyle={{ backgroundColor: "#779556" }}
-        customLightSquareStyle={{ backgroundColor: "#ebecd0" }}
+        customDarkSquareStyle={{
+          backgroundColor: colors.dark,
+          transition: "background-color 160ms ease",
+        }}
+        customLightSquareStyle={{
+          backgroundColor: colors.light,
+          transition: "background-color 160ms ease",
+        }}
       />
 
       <PromotionModal

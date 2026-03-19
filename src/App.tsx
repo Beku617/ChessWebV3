@@ -65,6 +65,9 @@ const AdminGames = lazy(async () => {
 });
 const AdminCommunity = lazy(() => import("./pages/adminCommunity"));
 const AdminGroups = lazy(() => import("./pages/adminGroups"));
+const AdminLearn = lazy(() => import("./pages/adminLearn"));
+const AdminLearnCourse = lazy(() => import("./pages/adminLearn/AdminLearnCourse"));
+const AdminLearnLesson = lazy(() => import("./pages/adminLearn/AdminLearnLesson"));
 const AdminProfile = lazy(() => import("./pages/adminProfile"));
 const AdminSettings = lazy(() => import("./pages/adminSettings"));
 const Messages = lazy(async () => {
@@ -200,6 +203,8 @@ function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const { isDarkMode } = useThemeStore();
   const isDashboardPage = location.pathname === "/";
+  const isLearnCatalogPage = location.pathname === "/learn";
+  const isLearnLessonPage = /^\/learn\/[^/]+\/[^/]+$/.test(location.pathname);
   const isGamePage =
     location.pathname === "/play" ||
     location.pathname === "/play/bot" ||
@@ -208,6 +213,8 @@ function Layout({ children }: { children: React.ReactNode }) {
     location.pathname === "/play/variants" ||
     location.pathname === "/play/four-player" ||
     location.pathname === "/play/practice";
+  const isWorkspacePage = isGamePage || isLearnLessonPage;
+  const sidebarOffsetClass = isLearnLessonPage ? "ml-56" : "ml-72";
 
   const isAdminRoute = location.pathname.startsWith("/admin");
 
@@ -241,25 +248,27 @@ function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div
       className={`bg-[#f5f5f7] dark:bg-gray-950 text-gray-900 dark:text-white font-sans selection:bg-teal-500/30 transition-colors duration-300 ${
-        isGamePage ? "h-screen overflow-hidden" : "min-h-screen"
+        isWorkspacePage ? "h-screen overflow-hidden" : "min-h-screen"
       }`}
     >
       <Sidebar />
 
       {/* Main Content Wrapper */}
       <div
-        className={`flex-1 flex flex-col ml-72 relative z-10 ${
-          isGamePage ? "h-screen overflow-hidden" : "min-h-screen"
+        className={`flex-1 flex flex-col ${sidebarOffsetClass} relative z-10 ${
+          isWorkspacePage ? "h-screen overflow-hidden" : "min-h-screen"
         }`}
       >
         {/* Main Content */}
         <main
           className={`w-full flex-1 flex flex-col ${
-            isGamePage
+            isWorkspacePage
               ? "min-h-0 overflow-hidden px-0 py-0"
               : isDashboardPage
                 ? "w-full px-4 sm:px-5 lg:px-6 xl:px-8 py-8"
-                : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
+                : isLearnCatalogPage
+                  ? "w-full max-w-[88rem] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-8"
+                  : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
           }`}
         >
           {children}
@@ -500,6 +509,15 @@ function App() {
             <Route path="/admin/games" element={<AdminGames />} />
             <Route path="/admin/community" element={<AdminCommunity />} />
             <Route path="/admin/groups" element={<AdminGroups />} />
+            <Route path="/admin/learn" element={<AdminLearn />} />
+            <Route
+              path="/admin/learn/courses/:courseId"
+              element={<AdminLearnCourse />}
+            />
+            <Route
+              path="/admin/learn/courses/:courseId/lessons/:lessonId"
+              element={<AdminLearnLesson />}
+            />
             <Route path="/admin/profile" element={<AdminProfile />} />
             <Route path="/admin/settings" element={<AdminSettings />} />
             <Route path="/admin/analyze/:gameId" element={<AdminAnalyze />} />

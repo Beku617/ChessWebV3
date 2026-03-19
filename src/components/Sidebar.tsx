@@ -27,11 +27,14 @@ export default function Sidebar() {
   const refreshUnread = useMessageStore((state) => state.refreshUnread);
   const unreadCount = useMessageStore((state) => state.unreadCount);
   const isActive = (path: string) => location.pathname === path;
+  const isLearnLessonPage = /^\/learn\/[^/]+\/[^/]+$/.test(location.pathname);
   const isCompact =
+    isLearnLessonPage ||
     location.pathname.startsWith("/play/quick") ||
     location.pathname.startsWith("/play/friend") ||
     location.pathname.startsWith("/play/variants") ||
     location.pathname.startsWith("/play/practice");
+  const sidebarWidthClass = isLearnLessonPage ? "w-56" : "w-72";
 
   useEffect(() => {
     void loadAllFriends();
@@ -94,7 +97,7 @@ export default function Sidebar() {
     logoHeight: isCompact ? "h-14" : "h-16",
     navWrapper: isCompact ? "px-3 py-3" : "px-3 py-4",
     navGap: isCompact ? "gap-1" : "gap-1.5",
-    rowPadding: isCompact ? "px-3 py-2" : "px-4 py-2.5",
+    rowPadding: isCompact ? "px-3 py-2" : "px-3.5 py-2.5",
     rowIcon: isCompact ? "w-4 h-4" : "w-5 h-5",
     profileRowPadding: isCompact ? "px-3 py-2" : "px-3 py-2.5",
     iconButtonPadding: isCompact ? "p-1.5" : "p-2",
@@ -103,7 +106,7 @@ export default function Sidebar() {
   const formatCount = (value: number) => (value > 99 ? "99+" : value.toString());
 
   return (
-    <div className="w-72 h-screen bg-[#ebebed] dark:bg-gray-900 flex flex-col fixed left-0 top-0 z-50 transition-colors duration-300">
+    <div className={`${sidebarWidthClass} h-screen bg-[#ebebed] dark:bg-gray-900 flex flex-col fixed left-0 top-0 z-50 transition-colors duration-300`}>
       {/* Logo */}
       <Link
         to="/"
@@ -130,16 +133,16 @@ export default function Sidebar() {
             <Link
               key={item.path}
               to={item.path}
-              className={`flex items-center gap-3 min-h-[44px] ${styleGroup.rowPadding} rounded-xl transition-all duration-200 group ${
+              className={`flex items-center gap-2.5 min-h-[44px] ${styleGroup.rowPadding} rounded-xl border border-transparent transition-all duration-200 group ${
                 isActive(item.path)
-                  ? "bg-teal-500/10 text-teal-600 dark:text-teal-400"
-                  : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
+                  ? "bg-teal-500/14 border-teal-400/35 text-teal-700 dark:text-teal-300 shadow-[0_8px_18px_rgba(20,184,166,0.16)]"
+                  : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/80 hover:text-gray-900 dark:hover:text-white"
               }`}
             >
               <item.icon
                 className={`shrink-0 ${styleGroup.rowIcon} ${
                   isActive(item.path)
-                    ? "text-teal-600 dark:text-teal-400"
+                    ? "text-teal-700 dark:text-teal-300"
                     : "text-gray-400 dark:text-gray-500 group-hover:text-gray-900 dark:group-hover:text-white"
                 }`}
               />
@@ -155,17 +158,17 @@ export default function Sidebar() {
 
       {/* Bottom Section */}
       <div
-        className={`border-t border-gray-200/70 dark:border-gray-800 flex flex-col ${isCompact ? "px-3 py-3 gap-1" : "px-3 py-4 gap-1.5"}`}
+        className={`border-t border-gray-200/70 dark:border-gray-800/90 flex flex-col ${isCompact ? "px-3 py-3 gap-1" : "px-3 py-4 gap-1.5"}`}
       >
         {/* User Profile & Quick Actions */}
         <div className={`${isCompact ? "pt-1" : "pt-1.5"}`}>
-          <div className="flex items-center gap-2 w-full">
+          <div className="flex items-center gap-1.5 w-full">
             {/* Click avatar/name to go to Profile */}
             <Link
               to="/profile"
-              className={`flex-1 min-w-0 flex items-center gap-3 ${styleGroup.profileRowPadding} rounded-xl transition-colors cursor-pointer group ${
+              className={`flex-1 min-w-0 flex items-center gap-2.5 ${styleGroup.profileRowPadding} rounded-xl border border-transparent transition-colors cursor-pointer group ${
                 isActive("/profile")
-                  ? "bg-teal-500/10"
+                  ? "bg-teal-500/10 border-teal-400/25"
                   : "hover:bg-gray-100 dark:hover:bg-gray-800"
               }`}
             >
@@ -208,7 +211,7 @@ export default function Sidebar() {
               to="/messages"
               className={`relative inline-flex items-center justify-center flex-shrink-0 rounded-lg transition-colors ${
                 isActive("/messages")
-                  ? "bg-teal-500/10 text-teal-600 dark:text-teal-400"
+                  ? "bg-teal-500/10 text-teal-600 dark:text-teal-300"
                   : "text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300"
               } ${styleGroup.iconButtonPadding}`}
               title={t("nav.messages", "Messages")}
@@ -226,7 +229,7 @@ export default function Sidebar() {
               to="/friends"
               className={`relative inline-flex items-center justify-center flex-shrink-0 rounded-lg transition-colors ${
                 isActive("/friends")
-                  ? "bg-teal-500/10 text-teal-600 dark:text-teal-400"
+                  ? "bg-teal-500/10 text-teal-600 dark:text-teal-300"
                   : "text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300"
               } ${styleGroup.iconButtonPadding}`}
               title={t("nav.friends", "Friends")}
@@ -244,7 +247,7 @@ export default function Sidebar() {
               to="/settings"
               className={`flex-shrink-0 rounded-lg transition-colors ${
                 isActive("/settings")
-                  ? "bg-teal-500/10 text-teal-600 dark:text-teal-400"
+                  ? "bg-teal-500/10 text-teal-600 dark:text-teal-300"
                   : "text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300"
               } ${styleGroup.iconButtonPadding}`}
               title={t("nav.settings", "Settings")}

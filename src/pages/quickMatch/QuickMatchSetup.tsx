@@ -13,6 +13,7 @@ import type { LucideIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../../store/authStore";
 import { BOARD_FRAME } from "./types";
+import { useBoardTheme } from "../../hooks/useBoardTheme";
 
 type MatchVariant = "standard" | "chess960";
 
@@ -140,6 +141,7 @@ export function QuickMatchSetup({
 }: QuickMatchSetupProps) {
   const { t } = useTranslation();
   const { user } = useAuthStore();
+  const { colors } = useBoardTheme();
 
   const [searchElapsedSeconds, setSearchElapsedSeconds] = useState(0);
   const [isGameTypeOpen, setIsGameTypeOpen] = useState(false);
@@ -271,8 +273,14 @@ export function QuickMatchSetup({
               boardWidth={boardWidth}
               position="start"
               arePiecesDraggable={false}
-              customDarkSquareStyle={{ backgroundColor: "#779556" }}
-              customLightSquareStyle={{ backgroundColor: "#ebecd0" }}
+              customDarkSquareStyle={{
+                backgroundColor: colors.dark,
+                transition: "background-color 160ms ease",
+              }}
+              customLightSquareStyle={{
+                backgroundColor: colors.light,
+                transition: "background-color 160ms ease",
+              }}
             />
           </div>
 

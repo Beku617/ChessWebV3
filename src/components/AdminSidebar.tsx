@@ -12,6 +12,7 @@ import {
   Trophy,
   MessageSquare,
   UserCircle,
+  BookOpen,
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useThemeStore } from "../store/themeStore";
@@ -34,6 +35,7 @@ export default function AdminSidebar() {
     { icon: Users, label: "Users", path: "/admin/users" },
     { icon: Bot, label: "Bots", path: "/admin/bots" },
     { icon: Brain, label: "Puzzles", path: "/admin/puzzles" },
+    { icon: BookOpen, label: "Learn", path: "/admin/learn" },
     { icon: Trophy, label: "Events", path: "/admin/events" },
     { icon: Gamepad2, label: "Games", path: "/admin/games" },
     { icon: MessageSquare, label: "Community", path: "/admin/community" },

@@ -20,3 +20,7 @@ export { default as Message } from "./Message.js";
 export { default as Notification } from "./Notification.js";
 export { default as FriendRequest } from "./FriendRequest.js";
 export { default as UserConversationState } from "./UserConversationState.js";
+export { default as LearnCourse } from "./LearnCourse.js";
+export { default as LearnLesson } from "./LearnLesson.js";
+export { default as LearnLessonStep } from "./LearnLessonStep.js";
+export { default as UserLearnProgress } from "./UserLearnProgress.js";

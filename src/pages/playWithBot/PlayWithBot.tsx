@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../../store/authStore";
 import type { BotPersonality } from "../../data/botPersonalities";
 import { BOARD_FRAME } from "./types";
+import { useBoardTheme } from "../../hooks/useBoardTheme";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
@@ -52,6 +53,7 @@ export default function PlayWithBot() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuthStore();
+  const { colors } = useBoardTheme();
 
   // Bot data state
   const [bots, setBots] = useState<BotPersonality[]>([]);
@@ -211,8 +213,14 @@ export default function PlayWithBot() {
               boardWidth={boardWidth}
               position="start"
               arePiecesDraggable={false}
-              customDarkSquareStyle={{ backgroundColor: "#779556" }}
-              customLightSquareStyle={{ backgroundColor: "#ebecd0" }}
+              customDarkSquareStyle={{
+                backgroundColor: colors.dark,
+                transition: "background-color 160ms ease",
+              }}
+              customLightSquareStyle={{
+                backgroundColor: colors.light,
+                transition: "background-color 160ms ease",
+              }}
             />
           </div>
 

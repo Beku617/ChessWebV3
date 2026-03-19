@@ -17,6 +17,7 @@ import {
   lichessRoutes,
   mediaRoutes,
   messagesRoutes,
+  learnRoutes,
   puzzleRoutes,
   ratingsRoutes,
   tournamentRoutes,
@@ -44,6 +45,7 @@ function registerApiRoutes(app) {
   app.use("/api/ratings", ratingsRoutes);
   app.use("/api/tournaments", tournamentRoutes);
   app.use("/api/messages", messagesRoutes);
+  app.use("/api/learn", learnRoutes);
 }
 
 export { registerApiRoutes };

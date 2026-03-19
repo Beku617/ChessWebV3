@@ -1,6 +1,11 @@
 import mongoose from "mongoose";
 import { connectDB } from "../config/db.js";
-import { seedPuzzles, seedGamePageConfig, seedBots } from "../seeds/index.js";
+import {
+  seedPuzzles,
+  seedGamePageConfig,
+  seedBots,
+  seedLearn,
+} from "../seeds/index.js";
 import { migrateLegacyRuntimeMedia } from "../utils/runtimeMediaMigration.js";
 
 function runStartupTasks() {
@@ -10,6 +15,7 @@ function runStartupTasks() {
     seedPuzzles().catch(console.error);
     seedGamePageConfig().catch(console.error);
     seedBots().catch(console.error);
+    seedLearn().catch(console.error);
     migrateLegacyRuntimeMedia()
       .then((result) => {
         const summaries = [

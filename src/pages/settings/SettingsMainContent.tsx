@@ -22,6 +22,7 @@ import {
   Slider,
   Toggle,
 } from "../../components/settings";
+import { BOARD_THEME_OPTIONS } from "../../config/boardThemes";
 import { supportedLanguages } from "../../i18n";
 import type { User as AuthUser } from "../../store/authStore";
 import type { SettingsValues } from "../../store/settingsStore";
@@ -46,26 +47,12 @@ export function SettingsMainContent({
   groqConfigured,
   onOpenPasswordModal,
 }: SettingsMainContentProps) {
-  const boardThemes = [
-    { value: "green", light: "bg-[#eeeed2]", dark: "bg-[#769656]", label: t("settings.appearance.boardThemes.green", "Green") },
-    { value: "brown", light: "bg-[#f0d9b5]", dark: "bg-[#b58863]", label: t("settings.appearance.boardThemes.brown", "Brown") },
-    { value: "blue", light: "bg-[#dee3e6]", dark: "bg-[#8ca2ad]", label: t("settings.appearance.boardThemes.blue", "Blue") },
-    { value: "purple", light: "bg-[#e8daf4]", dark: "bg-[#9b72cf]", label: t("settings.appearance.boardThemes.purple", "Purple") },
-    { value: "gray", light: "bg-[#e8e8e8]", dark: "bg-[#a0a0a0]", label: t("settings.appearance.boardThemes.gray", "Gray") },
-    { value: "neon", light: "bg-[#1a1a2e]", dark: "bg-[#0f3460]", label: t("settings.appearance.boardThemes.neon", "Neon") },
-  ];
+  const boardThemes = BOARD_THEME_OPTIONS;
 
   const accentOptions = [
     { value: "teal", bg: "bg-teal-500", label: t("settings.appearance.accent.teal", "Teal") },
     { value: "purple", bg: "bg-purple-500", label: t("settings.appearance.accent.purple", "Purple") },
     { value: "blue", bg: "bg-blue-500", label: t("settings.appearance.accent.blue", "Blue") },
-  ];
-
-  const pieceStyles = [
-    { label: t("settings.appearance.pieces.neo", "Neo"), value: "neo" },
-    { label: t("settings.appearance.pieces.classic", "Classic"), value: "classic" },
-    { label: t("settings.appearance.pieces.alpha", "Alpha"), value: "alpha" },
-    { label: t("settings.appearance.pieces.merida", "Merida"), value: "merida" },
   ];
 
   return (
@@ -193,17 +180,6 @@ export function SettingsMainContent({
             options={boardThemes}
             value={settings.boardTheme}
             onChange={(value) => update("boardTheme", value)}
-          />
-        </SettingRow>
-
-        <SettingRow
-          label={t("settings.appearance.pieceStyle", "Piece Style")}
-          helper={t("settings.appearance.pieceStyleHelper", "Visual style of chess pieces")}
-        >
-          <SegmentedControl
-            options={pieceStyles}
-            value={settings.pieceStyle}
-            onChange={(value) => update("pieceStyle", value)}
           />
         </SettingRow>
 

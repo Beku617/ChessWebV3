@@ -23,6 +23,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { useAuthStore } from "../../store/authStore";
 import { BOARD_FRAME } from "./types";
+import { useBoardTheme } from "../../hooks/useBoardTheme";
 
 interface FriendGameSetupProps {
   playAs: "white" | "black" | "random";
@@ -161,6 +162,7 @@ export function FriendGameSetup({
   isRealtimeConnected = true,
 }: FriendGameSetupProps) {
   const { user } = useAuthStore();
+  const { colors } = useBoardTheme();
   const [friendSearch, setFriendSearch] = useState("");
   const [friends, setFriends] = useState<FriendPreview[]>([]);
   const [loadingFriends, setLoadingFriends] = useState(false);
@@ -346,8 +348,14 @@ export function FriendGameSetup({
               boardWidth={boardWidth}
               position="start"
               arePiecesDraggable={false}
-              customDarkSquareStyle={{ backgroundColor: "#779556" }}
-              customLightSquareStyle={{ backgroundColor: "#ebecd0" }}
+              customDarkSquareStyle={{
+                backgroundColor: colors.dark,
+                transition: "background-color 160ms ease",
+              }}
+              customLightSquareStyle={{
+                backgroundColor: colors.light,
+                transition: "background-color 160ms ease",
+              }}
             />
           </div>
 

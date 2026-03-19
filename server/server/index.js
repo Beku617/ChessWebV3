@@ -33,7 +33,12 @@ import {
   updateGlickoPair,
   volatilityFieldForPool,
 } from "./utils/glicko2.js";
-import { seedPuzzles, seedGamePageConfig, seedBots } from "./seeds/index.js";
+import {
+  seedPuzzles,
+  seedGamePageConfig,
+  seedBots,
+  seedLearn,
+} from "./seeds/index.js";
 import {
   markTournamentGameStarted,
   syncTournamentGameResultByGameId,
@@ -60,6 +65,8 @@ import {
   ratingsRoutes,
   tournamentRoutes,
   messagesRoutes,
+  learnRoutes,
+  adminLearnRoutes,
 } from "./routes/index.js";
 import { migrateLegacyRuntimeMedia } from "./utils/runtimeMediaMigration.js";
 
@@ -158,14 +165,11 @@ app.get("/healthz", (_req, res) => {
   });
 });
 
-// Connect to MongoDB
-connectDB();
-
-// Run seeds after DB connection
-mongoose.connection.once("open", () => {
+function runPostConnectTasks() {
   seedPuzzles().catch(console.error);
   seedGamePageConfig().catch(console.error);
   seedBots().catch(console.error);
+  seedLearn().catch(console.error);
   migrateLegacyRuntimeMedia()
     .then((result) => {
       const summaries = [
@@ -184,7 +188,7 @@ mongoose.connection.once("open", () => {
     .catch((error) => {
       console.error("Runtime media migration error:", error);
     });
-});
+}
 
 // API Routes
 app.use("/api", authRoutes);
@@ -208,6 +212,8 @@ app.use("/api/friends", friendsRoutes);
 app.use("/api/ratings", ratingsRoutes);
 app.use("/api/tournaments", tournamentRoutes);
 app.use("/api/messages", messagesRoutes);
+app.use("/api/learn", learnRoutes);
+app.use("/api/admin/learn", adminLearnRoutes);
 
 function getQueueKey(timeControl, variant) {
   const initial = Number(timeControl?.initial ?? 300);
@@ -2566,9 +2572,18 @@ io.on("connection", (socket) => {
   });
 });
 
-// Start server
-server.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`🌐 Allowed origins: ${allowedOrigins.join(", ")}`);
-  console.log(`🔓 Allow Vercel previews: ${allowVercelPreviews}`);
+async function bootstrapServer() {
+  await connectDB();
+  runPostConnectTasks();
+
+  server.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`🌐 Allowed origins: ${allowedOrigins.join(", ")}`);
+    console.log(`🔓 Allow Vercel previews: ${allowVercelPreviews}`);
+  });
+}
+
+bootstrapServer().catch((error) => {
+  console.error("❌ Server bootstrap error:", error);
+  process.exit(1);
 });

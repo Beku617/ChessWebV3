@@ -4,6 +4,7 @@ import { Target, Timer } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../../store/authStore";
 import { BOARD_FRAME } from "../quickMatch/types";
+import { useBoardTheme } from "../../hooks/useBoardTheme";
 
 interface PracticeOption {
   key: string;
@@ -51,6 +52,7 @@ const SESSION_OPTIONS = [
 export default function PlayPractice() {
   const { t } = useTranslation();
   const { user } = useAuthStore();
+  const { colors } = useBoardTheme();
   const [selectedFocus, setSelectedFocus] = useState(PRACTICE_OPTIONS[0]);
   const [sessionLength, setSessionLength] = useState(20);
 
@@ -133,8 +135,14 @@ export default function PlayPractice() {
               boardWidth={boardWidth}
               position="start"
               arePiecesDraggable={false}
-              customDarkSquareStyle={{ backgroundColor: "#779556" }}
-              customLightSquareStyle={{ backgroundColor: "#ebecd0" }}
+              customDarkSquareStyle={{
+                backgroundColor: colors.dark,
+                transition: "background-color 160ms ease",
+              }}
+              customLightSquareStyle={{
+                backgroundColor: colors.light,
+                transition: "background-color 160ms ease",
+              }}
             />
           </div>
 

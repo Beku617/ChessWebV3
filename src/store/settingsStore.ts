@@ -1,5 +1,11 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import {
+  BOARD_THEME_STORAGE_KEY,
+  readBoardThemeFromStorage,
+  resolveBoardThemeId,
+  writeBoardThemeToStorage,
+} from "../config/boardThemes";
 
 /* ─── Settings values shape ─── */
 export interface SettingsValues {
@@ -38,10 +44,12 @@ export interface SettingsValues {
   engineStrength: number;
 }
 
+const initialBoardTheme = readBoardThemeFromStorage();
+
 export const defaultSettings: SettingsValues = {
   theme: "dark",
   accentColor: "teal",
-  boardTheme: "green",
+  boardTheme: initialBoardTheme,
   pieceStyle: "neo",
   reducedMotion: false,
 
@@ -72,10 +80,12 @@ export const defaultSettings: SettingsValues = {
 interface SettingsState {
   settings: SettingsValues;
   savedSettings: SettingsValues;
+  selectedTheme: string;
   update: <K extends keyof SettingsValues>(
     key: K,
     value: SettingsValues[K],
   ) => void;
+  setTheme: (themeId: string) => void;
   save: () => void;
   reset: () => void;
   isDirty: () => boolean;
@@ -90,26 +100,58 @@ export const useSettingsStore = create<SettingsState>()(
     (set, get) => ({
       settings: { ...defaultSettings },
       savedSettings: { ...defaultSettings },
+      selectedTheme: initialBoardTheme,
 
       update: (key, value) =>
-        set((state) => ({
-          settings: { ...state.settings, [key]: value },
-          enableAiExplanations:
-            key === "enableAiExplanations"
-              ? (value as boolean)
-              : state.enableAiExplanations,
-        })),
+        set((state) => {
+          if (key === "boardTheme") {
+            const nextTheme = resolveBoardThemeId(String(value));
+            writeBoardThemeToStorage(nextTheme);
+            return {
+              settings: { ...state.settings, boardTheme: nextTheme },
+              selectedTheme: nextTheme,
+            };
+          }
+
+          return {
+            settings: { ...state.settings, [key]: value },
+            enableAiExplanations:
+              key === "enableAiExplanations"
+                ? (value as boolean)
+                : state.enableAiExplanations,
+          };
+        }),
+
+      setTheme: (themeId) =>
+        set((state) => {
+          const nextTheme = resolveBoardThemeId(themeId);
+          writeBoardThemeToStorage(nextTheme);
+          return {
+            selectedTheme: nextTheme,
+            settings: { ...state.settings, boardTheme: nextTheme },
+          };
+        }),
 
       save: () =>
-        set((state) => ({
-          savedSettings: { ...state.settings },
-        })),
+        set((state) => {
+          const nextTheme = resolveBoardThemeId(state.settings.boardTheme);
+          writeBoardThemeToStorage(nextTheme);
+          return {
+            selectedTheme: nextTheme,
+            savedSettings: { ...state.settings, boardTheme: nextTheme },
+          };
+        }),
 
       reset: () =>
-        set((state) => ({
-          settings: { ...state.savedSettings },
-          enableAiExplanations: state.savedSettings.enableAiExplanations,
-        })),
+        set((state) => {
+          const nextTheme = resolveBoardThemeId(state.savedSettings.boardTheme);
+          writeBoardThemeToStorage(nextTheme);
+          return {
+            selectedTheme: nextTheme,
+            settings: { ...state.savedSettings, boardTheme: nextTheme },
+            enableAiExplanations: state.savedSettings.enableAiExplanations,
+          };
+        }),
 
       isDirty: () => {
         const { settings, savedSettings } = get();
@@ -129,8 +171,50 @@ export const useSettingsStore = create<SettingsState>()(
       partialize: (state) => ({
         settings: state.settings,
         savedSettings: state.savedSettings,
+        selectedTheme: state.selectedTheme,
         enableAiExplanations: state.enableAiExplanations,
       }),
+      merge: (persistedState, currentState) => {
+        const persisted = persistedState as Partial<SettingsState>;
+        const mergedSettings = {
+          ...currentState.settings,
+          ...(persisted.settings || {}),
+        };
+        const mergedSavedSettings = {
+          ...currentState.savedSettings,
+          ...(persisted.savedSettings || {}),
+        };
+
+        let storageThemeRaw: string | null = null;
+        if (typeof window !== "undefined") {
+          try {
+            storageThemeRaw = window.localStorage.getItem(
+              BOARD_THEME_STORAGE_KEY,
+            );
+          } catch {
+            storageThemeRaw = null;
+          }
+        }
+        const nextTheme = resolveBoardThemeId(
+          storageThemeRaw ||
+            mergedSettings.boardTheme ||
+            mergedSavedSettings.boardTheme ||
+            persisted.selectedTheme ||
+            currentState.selectedTheme,
+        );
+
+        writeBoardThemeToStorage(nextTheme);
+
+        return {
+          ...currentState,
+          ...persisted,
+          settings: { ...mergedSettings, boardTheme: nextTheme },
+          savedSettings: { ...mergedSavedSettings, boardTheme: nextTheme },
+          selectedTheme: nextTheme,
+          enableAiExplanations:
+            persisted.enableAiExplanations ?? currentState.enableAiExplanations,
+        };
+      },
     },
   ),
 );
