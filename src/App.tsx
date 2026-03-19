@@ -32,6 +32,7 @@ const PlayPractice = lazy(() => import("./pages/playPractice"));
 const Puzzles = lazy(() => import("./pages/puzzles"));
 const PuzzleTrainer = lazy(() => import("./pages/puzzleTrainer"));
 const Learn = lazy(() => import("./pages/Learn"));
+const LearnLesson = lazy(() => import("./pages/LearnLesson"));
 const Tournaments = lazy(() => import("./pages/tournaments"));
 const Watch = lazy(() => import("./pages/watch"));
 const Community = lazy(() => import("./pages/Community"));
@@ -402,6 +403,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Learn />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/learn/:courseSlug/:lessonSlug"
+              element={
+                <ProtectedRoute>
+                  <LearnLesson />
                 </ProtectedRoute>
               }
             />
