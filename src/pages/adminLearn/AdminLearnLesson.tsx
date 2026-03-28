@@ -46,13 +46,18 @@ type StepDraft = {
   explanationBeforeMove: string;
   fen: string;
   sideToMove: "white" | "black";
+  boardOrientation: "white" | "black";
+  validationMode: "exact" | "one_of_many";
   acceptedMoves: string;
-  feedbackCorrect: string;
-  feedbackWrong: string;
+  successMessage: string;
+  wrongMoveMessage: string;
   hintText: string;
+  allowRetry: boolean;
   autoAdvance: boolean;
   keepPositionOnWrong: boolean;
   nextFen: string;
+  annotations: string;
+  isPublished: boolean;
 };
 
 const EMPTY_STEP_DRAFT: StepDraft = {
@@ -61,13 +66,18 @@ const EMPTY_STEP_DRAFT: StepDraft = {
   explanationBeforeMove: "",
   fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
   sideToMove: "white",
+  boardOrientation: "white",
+  validationMode: "one_of_many",
   acceptedMoves: "",
-  feedbackCorrect: "",
-  feedbackWrong: "",
+  successMessage: "",
+  wrongMoveMessage: "",
   hintText: "",
+  allowRetry: true,
   autoAdvance: false,
   keepPositionOnWrong: false,
   nextFen: "",
+  annotations: "{}",
+  isPublished: true,
 };
 
 function toLessonMetaDraft(lesson: AdminLearnLesson): LessonMetaDraft {
@@ -88,13 +98,18 @@ function toStepDraft(step: AdminLearnStep): StepDraft {
     explanationBeforeMove: step.explanationBeforeMove || "",
     fen: step.fen,
     sideToMove: step.sideToMove,
-    acceptedMoves: (step.acceptedMoves || []).join(", "),
-    feedbackCorrect: step.feedbackCorrect || "",
-    feedbackWrong: step.feedbackWrong || "",
+    boardOrientation: step.boardOrientation || "white",
+    validationMode: step.validationMode || "one_of_many",
+    acceptedMoves: (step.correctMoves || step.acceptedMoves || []).join(", "),
+    successMessage: step.successMessage || step.feedbackCorrect || "",
+    wrongMoveMessage: step.wrongMoveMessage || step.feedbackWrong || "",
     hintText: step.hintText || "",
+    allowRetry: step.allowRetry !== false,
     autoAdvance: !!step.autoAdvance,
     keepPositionOnWrong: !!step.keepPositionOnWrong,
     nextFen: step.nextFen || "",
+    annotations: JSON.stringify(step.annotations || {}, null, 2),
+    isPublished: step.isPublished !== false,
   };
 }
 
@@ -214,30 +229,43 @@ export default function AdminLearnLesson() {
     setSavingStep(true);
     setError("");
     try {
+      let parsedAnnotations: Record<string, unknown> = {};
+      if (stepDraft.annotations.trim()) {
+        parsedAnnotations = JSON.parse(stepDraft.annotations);
+      }
+
       const payload: StepPayload = {
         title: stepDraft.title,
         instructionText: stepDraft.instructionText,
         explanationBeforeMove: stepDraft.explanationBeforeMove,
         fen: stepDraft.fen,
         sideToMove: stepDraft.sideToMove,
-        acceptedMoves: stepDraft.acceptedMoves,
-        feedbackCorrect: stepDraft.feedbackCorrect,
-        feedbackWrong: stepDraft.feedbackWrong,
+        boardOrientation: stepDraft.boardOrientation,
+        validationMode: stepDraft.validationMode,
+        correctMoves: stepDraft.acceptedMoves,
+        successMessage: stepDraft.successMessage,
+        wrongMoveMessage: stepDraft.wrongMoveMessage,
         hintText: stepDraft.hintText,
+        allowRetry: stepDraft.allowRetry,
         autoAdvance: stepDraft.autoAdvance,
         keepPositionOnWrong: stepDraft.keepPositionOnWrong,
         nextFen: stepDraft.nextFen,
+        annotations: parsedAnnotations,
+        isPublished: stepDraft.isPublished,
         successCondition: "accepted_move",
       };
 
+      let savedStepId = selectedStepId;
       if (selectedStepId) {
         const response = await updateAdminLearnStep(selectedStepId, payload);
+        savedStepId = response.step.id;
         setSteps((prev) =>
           prev.map((entry) => (entry.id === selectedStepId ? response.step : entry)),
         );
         setStepDraft(toStepDraft(response.step));
       } else {
         const response = await createAdminLearnStep(lessonId, payload);
+        savedStepId = response.step.id;
         setSteps((prev) =>
           [...prev, response.step].sort((a, b) => a.orderIndex - b.orderIndex),
         );
@@ -245,7 +273,7 @@ export default function AdminLearnLesson() {
         setStepDraft(toStepDraft(response.step));
       }
 
-      await loadSteps(response.step.id);
+      await loadSteps(savedStepId || undefined);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save step.");
     } finally {
@@ -286,10 +314,30 @@ export default function AdminLearnLesson() {
     setProcessingStepId(step.id);
     setError("");
     try {
+      const draft = toStepDraft(step);
+      let parsedAnnotations: Record<string, unknown> = {};
+      if (draft.annotations.trim()) {
+        parsedAnnotations = JSON.parse(draft.annotations);
+      }
       const payload: StepPayload = {
-        ...toStepDraft(step),
         title: step.title ? `${step.title} (Copy)` : "Step copy",
-        acceptedMoves: step.acceptedMoves,
+        instructionText: draft.instructionText,
+        explanationBeforeMove: draft.explanationBeforeMove,
+        fen: draft.fen,
+        sideToMove: draft.sideToMove,
+        boardOrientation: draft.boardOrientation,
+        validationMode: draft.validationMode,
+        correctMoves: draft.acceptedMoves,
+        successMessage: draft.successMessage,
+        wrongMoveMessage: draft.wrongMoveMessage,
+        hintText: draft.hintText,
+        allowRetry: draft.allowRetry,
+        autoAdvance: draft.autoAdvance,
+        keepPositionOnWrong: draft.keepPositionOnWrong,
+        nextFen: draft.nextFen,
+        annotations: parsedAnnotations,
+        isPublished: draft.isPublished,
+        successCondition: "accepted_move",
       };
       const response = await createAdminLearnStep(lessonId, payload);
       setSteps((prev) =>
@@ -330,49 +378,100 @@ export default function AdminLearnLesson() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f5f5f7] dark:bg-gray-950">
+      <div
+        className={`min-h-screen flex items-center justify-center ${
+          isDarkMode ? "bg-slate-950" : "bg-[#f5f5f7]"
+        }`}
+      >
         <Loader2 className="w-8 h-8 text-teal-500 animate-spin" />
       </div>
     );
   }
 
+  const pageToneClass = isDarkMode
+    ? "bg-slate-950 text-white"
+    : "bg-[#f5f5f7] text-gray-900";
+  const surfaceClass = isDarkMode
+    ? "border-slate-800 bg-slate-900/80 shadow-[0_20px_60px_rgba(0,0,0,0.22)]"
+    : "border-gray-200/80 bg-white/95 shadow-[0_18px_44px_rgba(15,23,42,0.08)]";
+  const neutralButtonClass = isDarkMode
+    ? "inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-medium text-slate-200 hover:bg-slate-800"
+    : "inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-800 hover:bg-gray-100";
+  const compactNeutralButtonClass = isDarkMode
+    ? "rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-[11px] font-medium text-slate-200 hover:bg-slate-800 disabled:opacity-55"
+    : "rounded-md border border-gray-300 bg-white px-2 py-1 text-[11px] font-medium text-gray-800 hover:bg-gray-100 disabled:opacity-55";
+  const duplicateButtonClass = isDarkMode
+    ? "rounded-md border border-indigo-400/25 bg-indigo-500/10 px-2 py-1 text-[11px] font-medium text-indigo-200 hover:bg-indigo-500/20 disabled:opacity-55"
+    : "rounded-md border border-indigo-300 bg-indigo-100 px-2 py-1 text-[11px] font-medium text-indigo-800 hover:bg-indigo-200 disabled:opacity-55";
+  const deleteButtonClass = isDarkMode
+    ? "rounded-md border border-red-400/25 bg-red-500/10 px-2 py-1 text-[11px] font-medium text-red-200 hover:bg-red-500/20 disabled:opacity-55"
+    : "rounded-md border border-red-300 bg-red-100 px-2 py-1 text-[11px] font-medium text-red-800 hover:bg-red-200 disabled:opacity-55";
+  const alertClass = isDarkMode
+    ? "rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-200"
+    : "rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700";
+  const sectionAccentClass = isDarkMode ? "text-teal-300/80" : "text-teal-600";
+  const headingTextClass = isDarkMode ? "text-white" : "text-gray-900";
+  const mutedTextClass = isDarkMode ? "text-slate-400" : "text-gray-500";
+  const secondaryTextClass = isDarkMode ? "text-slate-300" : "text-gray-600";
+  const checkboxLabelClass = `inline-flex items-center gap-2 text-sm ${secondaryTextClass}`;
+  const interactiveFieldToneClass = isDarkMode
+    ? "border-slate-700 bg-slate-900 text-slate-100 placeholder:text-slate-400"
+    : "border-gray-200 bg-gray-50 text-gray-900 placeholder:text-gray-400";
+  const searchInputClass = `h-10 w-full rounded-xl border py-2 pl-10 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 ${interactiveFieldToneClass}`;
+  const inputClass = `h-10 rounded-xl border px-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 ${interactiveFieldToneClass}`;
+  const fullInputClass = `h-10 w-full rounded-xl border px-3 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 ${interactiveFieldToneClass}`;
+  const textareaClass = `w-full rounded-xl border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 ${interactiveFieldToneClass}`;
+  const orderHintClass = isDarkMode
+    ? "h-10 rounded-xl border border-slate-700 bg-slate-900 px-3 text-xs text-slate-400 flex items-center"
+    : "h-10 rounded-xl border border-gray-200 bg-gray-100 px-3 text-xs text-gray-500 flex items-center";
+  const inactiveStepCardClass = isDarkMode
+    ? "border-slate-800 bg-slate-900/70 hover:border-slate-700"
+    : "border-gray-200 bg-gray-50/90 hover:border-gray-300";
+  const previewSurfaceClass = isDarkMode
+    ? "rounded-2xl border border-slate-700 bg-slate-900/70 p-3"
+    : "rounded-2xl border border-gray-200 bg-gray-50/90 p-3";
+  const previewBoardBorderClass = isDarkMode ? "border-slate-700" : "border-gray-200";
+  const invalidFenClass = isDarkMode
+    ? "mt-3 rounded-lg border border-red-500/25 bg-red-500/10 px-3 py-2 text-xs text-red-200"
+    : "mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700";
+
   return (
-    <div className={isDarkMode ? "dark" : ""}>
-      <div className="min-h-screen bg-[#f5f5f7] text-gray-900 dark:bg-[#06101d] dark:text-white">
+    <div>
+      <div className={`min-h-screen ${pageToneClass}`}>
         <AdminSidebar />
 
         <main className="ml-72 px-8 py-7">
           <div className="mx-auto max-w-[1520px] space-y-6">
-            <section className="rounded-[24px] border border-gray-200/80 bg-white/95 p-6 shadow-[0_18px_44px_rgba(15,23,42,0.08)] dark:border-white/[0.05] dark:bg-[#0c1728]/82 dark:shadow-[0_20px_60px_rgba(0,0,0,0.22)]">
+            <section className={`rounded-[24px] border p-6 ${surfaceClass}`}>
               <button
                 onClick={() => navigate(`/admin/learn/courses/${courseId}`)}
-                className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-200 dark:border-white/[0.1] dark:bg-white/[0.06] dark:text-gray-200"
+                className={neutralButtonClass}
               >
                 <ArrowLeft className="h-3.5 w-3.5" />
                 Back to Course
               </button>
 
               <div className="mt-4">
-                <div className="text-[11px] uppercase tracking-[0.2em] text-teal-300/80">
+                <div className={`text-[11px] uppercase tracking-[0.2em] ${sectionAccentClass}`}>
                   Lesson Step Editor
                 </div>
-                <h1 className="mt-2 text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
+                <h1 className={`mt-2 text-3xl font-semibold tracking-tight ${headingTextClass}`}>
                   {lesson?.title || "Loading lesson..."}
                 </h1>
-                <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                <p className={`mt-2 text-sm ${mutedTextClass}`}>
                   {course?.title || "Course"} · {steps.length} steps
                 </p>
               </div>
             </section>
 
             {error && (
-              <div className="rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+              <div className={alertClass}>
                 {error}
               </div>
             )}
 
             <section className="grid gap-5 xl:grid-cols-[330px_minmax(0,1fr)]">
-              <div className="rounded-[24px] border border-gray-200/80 bg-white/95 p-4 shadow-[0_18px_44px_rgba(15,23,42,0.08)] dark:border-white/[0.05] dark:bg-[#0c1728]/82 dark:shadow-[0_20px_60px_rgba(0,0,0,0.22)]">
+              <div className={`rounded-[24px] border p-4 ${surfaceClass}`}>
                 <div className="flex items-center justify-between gap-2">
                   <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-gray-500">
                     Steps
@@ -392,7 +491,7 @@ export default function AdminLearnLesson() {
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
                     placeholder="Search steps..."
-                    className="h-10 w-full rounded-xl border border-gray-200 bg-gray-50 py-2 pl-10 pr-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-white/[0.06] dark:bg-white/[0.05] dark:text-white"
+                    className={searchInputClass}
                   />
                 </label>
 
@@ -401,7 +500,7 @@ export default function AdminLearnLesson() {
                     <Loader2 className="mx-auto h-7 w-7 animate-spin text-teal-400" />
                   </div>
                 ) : steps.length === 0 ? (
-                  <div className="py-16 text-center text-sm text-gray-500 dark:text-gray-400">
+                  <div className={`py-16 text-center text-sm ${mutedTextClass}`}>
                     No steps yet.
                   </div>
                 ) : (
@@ -415,7 +514,7 @@ export default function AdminLearnLesson() {
                           className={`rounded-xl border px-3 py-3 transition-colors ${
                             active
                               ? "border-cyan-400/35 bg-cyan-500/10"
-                              : "border-gray-200 bg-gray-50/90 hover:border-gray-300 dark:border-white/[0.06] dark:bg-white/[0.03]"
+                              : inactiveStepCardClass
                           }`}
                         >
                           <button
@@ -425,7 +524,7 @@ export default function AdminLearnLesson() {
                             <div className="text-[11px] uppercase tracking-[0.14em] text-gray-500">
                               Step {step.orderIndex + 1}
                             </div>
-                            <div className="mt-1 text-sm font-medium text-gray-900 dark:text-white">
+                            <div className={`mt-1 text-sm font-medium ${headingTextClass}`}>
                               {step.title || "Untitled Step"}
                             </div>
                             <div className="mt-1 text-xs text-gray-500 line-clamp-2">
@@ -436,28 +535,28 @@ export default function AdminLearnLesson() {
                             <button
                               disabled={busy || index === 0}
                               onClick={() => void handleMoveStep(step.id, "up")}
-                              className="rounded-md border border-gray-200 bg-gray-100 px-2 py-1 text-[11px] font-medium text-gray-700 hover:bg-gray-200 disabled:opacity-40 dark:border-white/[0.1] dark:bg-white/[0.06] dark:text-gray-200"
+                              className={compactNeutralButtonClass}
                             >
                               <ChevronUp className="h-3 w-3" />
                             </button>
                             <button
                               disabled={busy || index === steps.length - 1}
                               onClick={() => void handleMoveStep(step.id, "down")}
-                              className="rounded-md border border-gray-200 bg-gray-100 px-2 py-1 text-[11px] font-medium text-gray-700 hover:bg-gray-200 disabled:opacity-40 dark:border-white/[0.1] dark:bg-white/[0.06] dark:text-gray-200"
+                              className={compactNeutralButtonClass}
                             >
                               <ChevronDown className="h-3 w-3" />
                             </button>
                             <button
                               disabled={busy}
                               onClick={() => void handleDuplicateStep(step)}
-                              className="rounded-md border border-indigo-400/25 bg-indigo-500/10 px-2 py-1 text-[11px] font-medium text-indigo-200 hover:bg-indigo-500/20 disabled:opacity-40"
+                              className={duplicateButtonClass}
                             >
                               <Copy className="h-3 w-3" />
                             </button>
                             <button
                               disabled={busy}
                               onClick={() => void handleDeleteStep(step)}
-                              className="rounded-md border border-red-400/25 bg-red-500/10 px-2 py-1 text-[11px] font-medium text-red-200 hover:bg-red-500/20 disabled:opacity-40"
+                              className={deleteButtonClass}
                             >
                               <Trash2 className="h-3 w-3" />
                             </button>
@@ -470,7 +569,7 @@ export default function AdminLearnLesson() {
               </div>
 
               <div className="space-y-5">
-                <section className="rounded-[24px] border border-gray-200/80 bg-white/95 p-5 shadow-[0_18px_44px_rgba(15,23,42,0.08)] dark:border-white/[0.05] dark:bg-[#0c1728]/82 dark:shadow-[0_20px_60px_rgba(0,0,0,0.22)]">
+                <section className={`rounded-[24px] border p-5 ${surfaceClass}`}>
                   <div className="flex items-center justify-between gap-2">
                     <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-gray-500">
                       Lesson Metadata
@@ -499,7 +598,7 @@ export default function AdminLearnLesson() {
                           )
                         }
                         placeholder="Lesson title"
-                        className="h-10 rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white"
+                        className={inputClass}
                       />
                       <input
                         value={lessonDraft.slug}
@@ -509,7 +608,7 @@ export default function AdminLearnLesson() {
                           )
                         }
                         placeholder="Lesson slug"
-                        className="h-10 rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white"
+                        className={inputClass}
                       />
                       <input
                         value={lessonDraft.subtitle}
@@ -521,7 +620,7 @@ export default function AdminLearnLesson() {
                           )
                         }
                         placeholder="Subtitle"
-                        className="h-10 rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white"
+                        className={inputClass}
                       />
                       <input
                         type="number"
@@ -538,7 +637,7 @@ export default function AdminLearnLesson() {
                           )
                         }
                         placeholder="Estimated minutes"
-                        className="h-10 rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white"
+                        className={inputClass}
                       />
                       <textarea
                         value={lessonDraft.description}
@@ -550,9 +649,9 @@ export default function AdminLearnLesson() {
                           )
                         }
                         placeholder="Lesson description"
-                        className="min-h-[85px] rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 sm:col-span-2 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white"
+                        className={`min-h-[85px] sm:col-span-2 ${textareaClass}`}
                       />
-                      <label className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                      <label className={checkboxLabelClass}>
                         <input
                           type="checkbox"
                           checked={lessonDraft.isPublished}
@@ -571,7 +670,7 @@ export default function AdminLearnLesson() {
                   )}
                 </section>
 
-                <section className="rounded-[24px] border border-gray-200/80 bg-white/95 p-5 shadow-[0_18px_44px_rgba(15,23,42,0.08)] dark:border-white/[0.05] dark:bg-[#0c1728]/82 dark:shadow-[0_20px_60px_rgba(0,0,0,0.22)]">
+                <section className={`rounded-[24px] border p-5 ${surfaceClass}`}>
                   <div className="flex items-center justify-between gap-2">
                     <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-gray-500">
                       {selectedStep ? `Edit Step ${selectedStep.orderIndex + 1}` : "Create Step"}
@@ -606,9 +705,9 @@ export default function AdminLearnLesson() {
                               }))
                             }
                             placeholder="Step title"
-                            className="h-10 rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white"
+                            className={inputClass}
                           />
-                          <div className="h-10 rounded-xl border border-gray-200 bg-gray-100 px-3 text-xs text-gray-500 flex items-center dark:border-white/[0.08] dark:bg-white/[0.05]">
+                          <div className={orderHintClass}>
                             Order managed with Up/Down controls
                           </div>
                         </div>
@@ -628,21 +727,36 @@ export default function AdminLearnLesson() {
                               }))
                             }
                             placeholder="FEN"
-                            className="min-h-[75px] w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white"
+                            className={`min-h-[75px] ${textareaClass}`}
                           />
-                          <select
-                            value={stepDraft.sideToMove}
-                            onChange={(event) =>
-                              setStepDraft((current) => ({
-                                ...current,
-                                sideToMove: event.target.value as "white" | "black",
-                              }))
-                            }
-                            className="h-10 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white"
-                          >
-                            <option value="white">White to move</option>
-                            <option value="black">Black to move</option>
-                          </select>
+                          <div className="grid gap-3 sm:grid-cols-2">
+                            <select
+                              value={stepDraft.sideToMove}
+                              onChange={(event) =>
+                                setStepDraft((current) => ({
+                                  ...current,
+                                  sideToMove: event.target.value as "white" | "black",
+                                }))
+                              }
+                              className={fullInputClass}
+                            >
+                              <option value="white">White to move</option>
+                              <option value="black">Black to move</option>
+                            </select>
+                            <select
+                              value={stepDraft.boardOrientation}
+                              onChange={(event) =>
+                                setStepDraft((current) => ({
+                                  ...current,
+                                  boardOrientation: event.target.value as "white" | "black",
+                                }))
+                              }
+                              className={fullInputClass}
+                            >
+                              <option value="white">Board white orientation</option>
+                              <option value="black">Board black orientation</option>
+                            </select>
+                          </div>
                         </div>
                       </div>
 
@@ -660,7 +774,7 @@ export default function AdminLearnLesson() {
                               }))
                             }
                             placeholder="Instruction text"
-                            className="min-h-[82px] w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white"
+                            className={`min-h-[82px] ${textareaClass}`}
                           />
                           <textarea
                             value={stepDraft.explanationBeforeMove}
@@ -671,7 +785,7 @@ export default function AdminLearnLesson() {
                               }))
                             }
                             placeholder="Explanation before move"
-                            className="min-h-[72px] w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white"
+                            className={`min-h-[72px] ${textareaClass}`}
                           />
                           <textarea
                             value={stepDraft.hintText}
@@ -682,7 +796,7 @@ export default function AdminLearnLesson() {
                               }))
                             }
                             placeholder="Hint text"
-                            className="min-h-[62px] w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white"
+                            className={`min-h-[62px] ${textareaClass}`}
                           />
                         </div>
                       </div>
@@ -701,29 +815,44 @@ export default function AdminLearnLesson() {
                               }))
                             }
                             placeholder="Accepted moves (comma or new line)"
-                            className="min-h-[70px] w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white"
+                            className={`min-h-[70px] ${textareaClass}`}
                           />
-                          <textarea
-                            value={stepDraft.feedbackCorrect}
+                          <select
+                            value={stepDraft.validationMode}
                             onChange={(event) =>
                               setStepDraft((current) => ({
                                 ...current,
-                                feedbackCorrect: event.target.value,
+                                validationMode: event.target.value as
+                                  | "exact"
+                                  | "one_of_many",
                               }))
                             }
-                            placeholder="Correct move feedback"
-                            className="min-h-[62px] w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white"
-                          />
+                            className={fullInputClass}
+                          >
+                            <option value="one_of_many">Validation: one of many</option>
+                            <option value="exact">Validation: exact first move</option>
+                          </select>
                           <textarea
-                            value={stepDraft.feedbackWrong}
+                            value={stepDraft.successMessage}
                             onChange={(event) =>
                               setStepDraft((current) => ({
                                 ...current,
-                                feedbackWrong: event.target.value,
+                                successMessage: event.target.value,
                               }))
                             }
-                            placeholder="Wrong move feedback"
-                            className="min-h-[62px] w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white"
+                            placeholder="Success message"
+                            className={`min-h-[62px] ${textareaClass}`}
+                          />
+                          <textarea
+                            value={stepDraft.wrongMoveMessage}
+                            onChange={(event) =>
+                              setStepDraft((current) => ({
+                                ...current,
+                                wrongMoveMessage: event.target.value,
+                              }))
+                            }
+                            placeholder="Wrong move message"
+                            className={`min-h-[62px] ${textareaClass}`}
                           />
                           <input
                             value={stepDraft.nextFen}
@@ -734,10 +863,35 @@ export default function AdminLearnLesson() {
                               }))
                             }
                             placeholder="Optional next FEN"
-                            className="h-10 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white"
+                            className={fullInputClass}
+                          />
+                          <textarea
+                            value={stepDraft.annotations}
+                            onChange={(event) =>
+                              setStepDraft((current) => ({
+                                ...current,
+                                annotations: event.target.value,
+                              }))
+                            }
+                            placeholder="Annotations JSON (optional)"
+                            className={`min-h-[82px] ${textareaClass}`}
                           />
                           <div className="flex flex-wrap gap-4">
-                            <label className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                            <label className={checkboxLabelClass}>
+                              <input
+                                type="checkbox"
+                                checked={stepDraft.allowRetry}
+                                onChange={(event) =>
+                                  setStepDraft((current) => ({
+                                    ...current,
+                                    allowRetry: event.target.checked,
+                                  }))
+                                }
+                                className="h-4 w-4 rounded border-gray-300 text-teal-500 focus:ring-teal-400/40"
+                              />
+                              Allow retry
+                            </label>
+                            <label className={checkboxLabelClass}>
                               <input
                                 type="checkbox"
                                 checked={stepDraft.autoAdvance}
@@ -751,7 +905,7 @@ export default function AdminLearnLesson() {
                               />
                               Auto advance
                             </label>
-                            <label className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                            <label className={checkboxLabelClass}>
                               <input
                                 type="checkbox"
                                 checked={stepDraft.keepPositionOnWrong}
@@ -765,6 +919,20 @@ export default function AdminLearnLesson() {
                               />
                               Keep board on wrong move
                             </label>
+                            <label className={checkboxLabelClass}>
+                              <input
+                                type="checkbox"
+                                checked={stepDraft.isPublished}
+                                onChange={(event) =>
+                                  setStepDraft((current) => ({
+                                    ...current,
+                                    isPublished: event.target.checked,
+                                  }))
+                                }
+                                className="h-4 w-4 rounded border-gray-300 text-teal-500 focus:ring-teal-400/40"
+                              />
+                              Step is published
+                            </label>
                           </div>
                         </div>
                       </div>
@@ -774,24 +942,24 @@ export default function AdminLearnLesson() {
                       <h3 className="text-xs uppercase tracking-[0.14em] text-gray-500">
                         Position Preview
                       </h3>
-                      <div className="rounded-2xl border border-gray-200 bg-gray-50/90 p-3 dark:border-white/[0.08] dark:bg-white/[0.03]">
-                        <div className="mx-auto w-[280px] max-w-full rounded-xl overflow-hidden border border-gray-200 dark:border-white/[0.08]">
+                      <div className={previewSurfaceClass}>
+                        <div
+                          className={`mx-auto w-[280px] max-w-full rounded-xl overflow-hidden border ${previewBoardBorderClass}`}
+                        >
                           <Chessboard
                             id="admin-learn-step-preview"
                             position={previewValidation.valid ? stepDraft.fen : "start"}
-                            boardOrientation={
-                              stepDraft.sideToMove === "white" ? "white" : "black"
-                            }
+                            boardOrientation={stepDraft.boardOrientation}
                             arePiecesDraggable={false}
                             boardWidth={280}
                           />
                         </div>
                         {!previewValidation.valid && (
-                          <p className="mt-3 rounded-lg border border-red-500/25 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+                          <p className={invalidFenClass}>
                             {previewValidation.message}
                           </p>
                         )}
-                        <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                        <p className={`mt-3 text-xs ${mutedTextClass}`}>
                           Preview uses current FEN and side to move selection.
                         </p>
                       </div>

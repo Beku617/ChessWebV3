@@ -6,7 +6,6 @@ import {
   Moon,
   LogOut,
   Shield,
-  BarChart3,
   Brain,
   Bot,
   Trophy,
@@ -45,7 +44,7 @@ export default function AdminSidebar() {
   ];
 
   return (
-    <div className="w-72 h-screen bg-[#ebebed] dark:bg-gray-900 border-r border-gray-200/60 dark:border-gray-800 flex flex-col fixed left-0 top-0 z-50 transition-colors duration-300">
+    <div className="w-72 h-screen overflow-hidden bg-[#ebebed] dark:bg-gray-900 border-r border-gray-200/60 dark:border-gray-800 flex flex-col fixed left-0 top-0 z-50 transition-colors duration-300">
       {/* Logo */}
       <Link
         to="/admin"
@@ -67,7 +66,7 @@ export default function AdminSidebar() {
       </Link>
 
       {/* Navigation */}
-      <nav className="flex-1 px-4 space-y-2 mt-2">
+      <nav className="flex-1 min-h-0 overflow-y-auto premium-scrollbar px-4 pr-3 space-y-2 mt-2">
         {navItems.map((item) => (
           <Link
             key={item.path}
@@ -87,7 +86,7 @@ export default function AdminSidebar() {
       </nav>
 
       {/* Theme Toggle & Profile */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-800 space-y-2">
+      <div className="shrink-0 p-4 border-t border-gray-200 dark:border-gray-800 space-y-2">
         <button
           onClick={toggleTheme}
           className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-colors"

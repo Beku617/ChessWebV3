@@ -18,6 +18,7 @@ export default function Game() {
     gameResult,
     isPlayerTurn,
     savedGameId,
+    historyPersistenceStatus,
     showGameOverModal,
     optionSquares,
     preMoveSquares,
@@ -30,6 +31,7 @@ export default function Game() {
     promotionState,
     onPromotionPieceSelect,
     handleStartGame,
+    handleNewGame,
     handleTimeOut,
   } = useStockfishGame();
 
@@ -106,8 +108,10 @@ export default function Game() {
           isOpen={showGameOverModal}
           result={gameResult}
           onTryAgain={quickRematch}
-          onNewGame={quickRematch}
+          onNewGame={handleNewGame}
           savedGameId={savedGameId}
+          historyStatus={historyPersistenceStatus}
+          opponentName="Opponent"
         />
 
         {/* Main Game Area */}

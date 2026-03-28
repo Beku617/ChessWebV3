@@ -8,7 +8,9 @@ export interface LearnCourseLessonListItem {
   title: string;
   subtitle: string;
   orderIndex: number;
+  order?: number;
   estimatedMinutes: number;
+  durationMinutes?: number;
 }
 
 export interface LearnCourseProgressView {
@@ -30,9 +32,11 @@ export interface LearnCatalogCourse {
   category: LearnCategory;
   difficulty: LearnDifficulty;
   coverImage: string;
+  badge?: string;
   icon: string;
   instructorName: string;
   tags: string[];
+  sortOrder?: number;
   totalLessons: number;
   isPublished: boolean;
   lessons: LearnCourseLessonListItem[];
@@ -69,14 +73,23 @@ export interface LearnLessonStep {
   title: string;
   instructionText: string;
   explanationBeforeMove: string;
+  explanationText?: string;
   fen: string;
   sideToMove: "white" | "black";
+  boardOrientation?: "white" | "black";
+  acceptedMoves?: string[];
+  correctMoves?: string[];
+  validationMode?: "exact" | "one_of_many";
   feedbackCorrect: string;
   feedbackWrong: string;
+  successMessage?: string;
+  wrongMoveMessage?: string;
   hintText: string;
+  allowRetry?: boolean;
   autoAdvance: boolean;
   keepPositionOnWrong: boolean;
   nextFen: string;
+  annotations?: Record<string, unknown>;
 }
 
 export interface LearnLessonProgress {
@@ -97,8 +110,10 @@ export interface LearnLessonDetail {
     difficulty: LearnDifficulty;
     instructorName: string;
     coverImage: string;
+    badge?: string;
     icon: string;
     tags: string[];
+    sortOrder?: number;
     totalLessons: number;
   };
   lesson: {
@@ -107,8 +122,11 @@ export interface LearnLessonDetail {
     title: string;
     subtitle: string;
     description: string;
+    shortDescription?: string;
     estimatedMinutes: number;
+    durationMinutes?: number;
     orderIndex: number;
+    order?: number;
   };
   lessons: LearnLessonSidebarItem[];
   steps: LearnLessonStep[];
@@ -125,6 +143,7 @@ export interface LearnSubmitStepResponse {
   lessonCompleted: boolean;
   courseCompleted?: boolean;
   autoAdvance?: boolean;
+  allowRetry?: boolean;
   keepPositionOnWrong?: boolean;
   resetFen?: string;
   boardFenAfterMove?: string;

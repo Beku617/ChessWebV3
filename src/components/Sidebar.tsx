@@ -27,14 +27,12 @@ export default function Sidebar() {
   const refreshUnread = useMessageStore((state) => state.refreshUnread);
   const unreadCount = useMessageStore((state) => state.unreadCount);
   const isActive = (path: string) => location.pathname === path;
-  const isLearnLessonPage = /^\/learn\/[^/]+\/[^/]+$/.test(location.pathname);
   const isCompact =
-    isLearnLessonPage ||
     location.pathname.startsWith("/play/quick") ||
     location.pathname.startsWith("/play/friend") ||
     location.pathname.startsWith("/play/variants") ||
     location.pathname.startsWith("/play/practice");
-  const sidebarWidthClass = isLearnLessonPage ? "w-56" : "w-72";
+  const sidebarWidthClass = "w-72";
 
   useEffect(() => {
     void loadAllFriends();
@@ -166,7 +164,7 @@ export default function Sidebar() {
             {/* Click avatar/name to go to Profile */}
             <Link
               to="/profile"
-              className={`flex-1 min-w-0 flex items-center gap-2.5 ${styleGroup.profileRowPadding} rounded-xl border border-transparent transition-colors cursor-pointer group ${
+              className={`flex-1 min-w-0 flex items-center gap-2.5 rounded-xl border border-transparent transition-colors cursor-pointer group ${styleGroup.profileRowPadding} ${
                 isActive("/profile")
                   ? "bg-teal-500/10 border-teal-400/25"
                   : "hover:bg-gray-100 dark:hover:bg-gray-800"

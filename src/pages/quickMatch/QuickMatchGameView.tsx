@@ -4,6 +4,7 @@ import { Square } from "chess.js";
 import { useAuthStore } from "../../store/authStore";
 import { GameOverModal, PlayerInfo, GameBoard } from "../../components/game";
 import type { GameSettings, PromotionState } from "../../components/game";
+import type { HistoryPersistenceStatus } from "../../hooks/gameHistorySaver/historyPersistence";
 import { BOARD_FRAME } from "./types";
 import type { CSSProperties } from "react";
 
@@ -19,6 +20,7 @@ interface QuickMatchGameViewProps {
   gameResult: string | null;
   isPlayerTurn: boolean;
   savedGameId: string | null;
+  historyPersistenceStatus: HistoryPersistenceStatus;
   showGameOverModal: boolean;
   optionSquares: Record<string, CSSProperties>;
   preMoveSquares: Record<string, CSSProperties>;
@@ -35,6 +37,7 @@ interface QuickMatchGameViewProps {
   onTimeOut: (isPlayer: boolean) => void;
   onResign: () => void;
   onRematch: () => void;
+  onNewGame: () => void;
   onLeave?: () => void;
   tournamentMode?: boolean;
   opponentName?: string;
@@ -57,6 +60,7 @@ export function QuickMatchGameView({
   gameResult,
   isPlayerTurn,
   savedGameId,
+  historyPersistenceStatus,
   showGameOverModal,
   optionSquares,
   preMoveSquares,
@@ -69,6 +73,7 @@ export function QuickMatchGameView({
   onTimeOut,
   onResign,
   onRematch,
+  onNewGame,
   onLeave,
   tournamentMode = false,
   opponentName,
@@ -116,8 +121,10 @@ export function QuickMatchGameView({
           isOpen={showGameOverModal}
           result={gameResult}
           onTryAgain={onRematch}
-          onNewGame={onRematch}
+          onNewGame={onNewGame}
           savedGameId={savedGameId}
+          historyStatus={historyPersistenceStatus}
+          opponentName={opponentName || "Opponent"}
           analyzeBasePath={variant === "chess960" ? "/analyze960" : "/analyze"}
           tournamentMode={tournamentMode}
           onBackToTournament={() => navigate("/tournaments")}

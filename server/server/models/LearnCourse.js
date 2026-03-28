@@ -32,16 +32,23 @@ const LearnCourseSchema = new mongoose.Schema(
       index: true,
     },
     coverImage: { type: String, default: "", trim: true },
+    badge: { type: String, default: "", trim: true },
     icon: { type: String, default: "", trim: true },
     instructorName: { type: String, default: "", trim: true },
     tags: { type: [String], default: [] },
     totalLessons: { type: Number, default: 0, min: 0 },
+    sortOrder: { type: Number, default: 0, min: 0, index: true },
     isPublished: { type: Boolean, default: false, index: true },
   },
   { timestamps: true },
 );
 
-LearnCourseSchema.index({ category: 1, difficulty: 1, isPublished: 1 });
+LearnCourseSchema.index({
+  category: 1,
+  difficulty: 1,
+  isPublished: 1,
+  sortOrder: 1,
+});
 
 const LearnCourse =
   mongoose.models.LearnCourse ||

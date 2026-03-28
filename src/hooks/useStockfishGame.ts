@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useState, useEffect, useCallback, useRef } from "react";
 import { Chess, Square } from "chess.js";
 import { usePreMove } from "../chess/usePreMove";
 import { GameSettings } from "../components/game";
@@ -15,6 +14,7 @@ import { useSaveGameHistory } from "./useSaveGameHistory";
 import { useEngineMoves } from "./useEngineMoves";
 import { useGameStateChecker } from "./useGameStateChecker";
 import { useGameHistorySaver } from "./useGameHistorySaver";
+import type { HistoryPersistenceStatus } from "./gameHistorySaver/historyPersistence";
 import { useSquareClickHandler } from "./useSquareClickHandler";
 import { useGameActions } from "./useGameActions";
 import { useOpeningExplorer } from "./useOpeningExplorer";
@@ -46,6 +46,8 @@ export function useStockfishGame() {
   const [playerTime, setPlayerTime] = useState(300);
   const [opponentTime, setOpponentTime] = useState(300);
   const [savedGameId, setSavedGameId] = useState<string | null>(null);
+  const [historyPersistenceStatus, setHistoryPersistenceStatus] =
+    useState<HistoryPersistenceStatus>("idle");
 
   const historySavedRef = useRef(false);
   const startTimeRef = useRef<number | null>(null);
@@ -188,6 +190,7 @@ export function useStockfishGame() {
     historySavedRef,
     saveGameHistory,
     setSavedGameId,
+    setHistoryPersistenceStatus,
     fetchLatestSavedGameId,
   );
 
@@ -246,15 +249,17 @@ export function useStockfishGame() {
   const handleStartGame = useCallback(
     (settings: GameSettings) => {
       clearPreMove();
+      setHistoryPersistenceStatus("idle");
       baseHandleStartGame(settings);
     },
-    [baseHandleStartGame, clearPreMove],
+    [baseHandleStartGame, clearPreMove, setHistoryPersistenceStatus],
   );
 
   const handleNewGame = useCallback(() => {
     clearPreMove();
+    setHistoryPersistenceStatus("idle");
     baseHandleNewGame();
-  }, [baseHandleNewGame, clearPreMove]);
+  }, [baseHandleNewGame, clearPreMove, setHistoryPersistenceStatus]);
 
   const handleResign = useCallback(() => {
     clearPreMove();
@@ -288,6 +293,7 @@ export function useStockfishGame() {
     isPlayerTurn,
     playerColor,
     savedGameId,
+    historyPersistenceStatus,
     lastMove,
 
     // UI state

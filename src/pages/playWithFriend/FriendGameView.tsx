@@ -5,6 +5,7 @@ import { Square } from "chess.js";
 import { useAuthStore } from "../../store/authStore";
 import { GameOverModal, PlayerInfo, GameBoard } from "../../components/game";
 import type { GameSettings, PromotionState } from "../../components/game";
+import type { HistoryPersistenceStatus } from "../../hooks/gameHistorySaver/historyPersistence";
 import { BOARD_FRAME } from "./types";
 import type { CSSProperties } from "react";
 
@@ -36,6 +37,7 @@ interface FriendGameViewProps {
   gameResult: string | null;
   isPlayerTurn: boolean;
   savedGameId: string | null;
+  historyPersistenceStatus: HistoryPersistenceStatus;
   showGameOverModal: boolean;
   optionSquares: Record<string, CSSProperties>;
   preMoveSquares: Record<string, CSSProperties>;
@@ -74,6 +76,7 @@ export function FriendGameView({
   gameResult,
   isPlayerTurn,
   savedGameId,
+  historyPersistenceStatus,
   showGameOverModal,
   optionSquares,
   preMoveSquares,
@@ -136,6 +139,8 @@ export function FriendGameView({
           onTryAgain={onTryAgain}
           onNewGame={onNewGame}
           savedGameId={savedGameId}
+          historyStatus={historyPersistenceStatus}
+          opponentName={friendName}
           analyzeBasePath={variant === "chess960" ? "/analyze960" : "/analyze"}
         />
 

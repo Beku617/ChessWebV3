@@ -63,6 +63,58 @@ export interface GameOverPayload {
   };
 }
 
+function isStalemate(chess: Chess): boolean {
+  return typeof (chess as any).isStalemate === "function"
+    ? (chess as any).isStalemate()
+    : chess.in_stalemate();
+}
+
+function isInsufficientMaterial(chess: Chess): boolean {
+  return typeof (chess as any).isInsufficientMaterial === "function"
+    ? (chess as any).isInsufficientMaterial()
+    : chess.insufficient_material();
+}
+
+function isThreefoldRepetition(chess: Chess): boolean {
+  return typeof (chess as any).isThreefoldRepetition === "function"
+    ? (chess as any).isThreefoldRepetition()
+    : chess.in_threefold_repetition();
+}
+
+function getDrawReason(chess: Chess): string | null {
+  if (isStalemate(chess)) return "by stalemate";
+  if (isThreefoldRepetition(chess)) return "by repetition";
+  if (isInsufficientMaterial(chess)) return "by insufficient material";
+  return null;
+}
+
+export function formatPerspectiveResult(
+  payload: Pick<GameOverPayload, "reason" | "winner">,
+  playerColor: PlayerColor,
+  currentGame: Chess,
+): string {
+  if (payload.reason === "draw" || !payload.winner) {
+    const drawReason = getDrawReason(currentGame);
+    return drawReason ? `Draw (${drawReason})` : "Draw";
+  }
+
+  const win = payload.winner === playerColor;
+  const reasonMap: Record<GameOverReason, string> = {
+    checkmate: "by checkmate",
+    resign: "by resignation",
+    timeout: "on time",
+    opponent_left: "opponent left",
+    draw: "",
+  };
+  const reason = reasonMap[payload.reason];
+
+  if (!reason) {
+    return win ? "You Win" : "You Lose";
+  }
+
+  return `${win ? "You Win" : "You Lose"} (${reason})`;
+}
+
 export interface PreMove {
   from: Square;
   to: Square;

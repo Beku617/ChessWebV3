@@ -10,6 +10,10 @@ import {
   formatTime,
   formatTimeControl,
 } from "./gameHistorySaver/utils";
+import {
+  canPersistHistoryByMoveCount,
+  HistoryPersistenceStatus,
+} from "./gameHistorySaver/historyPersistence";
 import { detectOpeningFromSan } from "../utils/openingExplorer";
 import { useAuthStore } from "../store/authStore";
 import { playChessMoveSound, playGameplaySound } from "../utils/moveSounds";
@@ -17,6 +21,7 @@ import {
   FriendGameStartedPayload,
   useFriendChallengeStore,
 } from "../store/friendChallengeStore";
+import { formatPerspectiveResult } from "./onlineGameShared";
 
 type PlayerColor = "w" | "b";
 type MatchVariant = "standard" | "chess960";
@@ -155,6 +160,8 @@ export function useFriendOnlineGame() {
   const [gameResult, setGameResult] = useState<string | null>(null);
   const [showGameOverModal, setShowGameOverModal] = useState(false);
   const [savedGameId, setSavedGameId] = useState<string | null>(null);
+  const [historyPersistenceStatus, setHistoryPersistenceStatus] =
+    useState<HistoryPersistenceStatus>("idle");
   const [playerColor, setPlayerColor] = useState<PlayerColor>("w");
   const [currentTurn, setCurrentTurn] = useState<PlayerColor>("w");
   const [gameId, setGameId] = useState<string | null>(null);
@@ -280,23 +287,11 @@ export function useFriendOnlineGame() {
   }, [pendingPreMove]);
 
   const formatResult = (payload: GameOverPayload) => {
-    if (payload.reason === "draw" || !payload.winner) {
-      return "Draw";
-    }
-    const win = payload.winner === playerColorRef.current;
-    const reasonMap: Record<GameOverReason, string> = {
-      checkmate: "by checkmate",
-      resign: "by resignation",
-      timeout: "on time",
-      opponent_left: "opponent left",
-      draw: "",
-    };
-    const reason = reasonMap[payload.reason];
-    return reason
-      ? `${win ? "You Win" : "You Lose"} (${reason})`
-      : win
-        ? "You Win"
-        : "You Lose";
+    return formatPerspectiveResult(
+      payload,
+      playerColorRef.current,
+      gameRef.current,
+    );
   };
 
   const resetGameState = useCallback(() => {
@@ -320,6 +315,7 @@ export function useFriendOnlineGame() {
     currentTurnRef.current = "w";
     setGameId(null);
     setSavedGameId(null);
+    setHistoryPersistenceStatus("idle");
     gameIdRef.current = null;
     setOpponentName("Friend");
     setOpponentUserId(null);
@@ -377,6 +373,7 @@ export function useFriendOnlineGame() {
       setShowGameOverModal(false);
       setStatusMessage(null);
       setSavedGameId(null);
+      setHistoryPersistenceStatus("idle");
       historySavedRef.current = false;
       startTimeRef.current = Date.now();
       setLastGameOver(null);
@@ -584,6 +581,16 @@ export function useFriendOnlineGame() {
       movesRef.current.length > 0
         ? [...movesRef.current]
         : currentGame.history();
+    const shouldPersistHistory = canPersistHistoryByMoveCount(
+      persistedMoves.length,
+    );
+
+    if (!shouldPersistHistory) {
+      setHistoryPersistenceStatus("skipped_short_game");
+      return;
+    }
+
+    setHistoryPersistenceStatus("saving");
 
     const opening = detectOpeningFromSan(persistedMoves);
     const ecoCode = opening?.eco || "";
@@ -800,7 +807,12 @@ export function useFriendOnlineGame() {
       opponent,
       durationMs,
     }).then((id) => {
-      if (id) setSavedGameId(id);
+      if (id) {
+        setSavedGameId(id);
+        setHistoryPersistenceStatus("saved");
+        return;
+      }
+      setHistoryPersistenceStatus("failed");
     });
   }, [
     gameOver,
@@ -809,6 +821,7 @@ export function useFriendOnlineGame() {
     gameSettings.playAs,
     opponentName,
     saveGameHistory,
+    setHistoryPersistenceStatus,
     user?.fullName,
     user?.rating,
     isRated,
@@ -1274,6 +1287,7 @@ export function useFriendOnlineGame() {
     isPlayerTurn,
     playerColor,
     savedGameId,
+    historyPersistenceStatus,
     lastMove,
     opponentName,
     opponentUserId,

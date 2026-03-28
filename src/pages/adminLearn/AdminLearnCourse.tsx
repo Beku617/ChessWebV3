@@ -221,17 +221,54 @@ export default function AdminLearnCourse() {
     );
   }
 
+  const pageToneClass = isDarkMode
+    ? "bg-slate-950 text-white"
+    : "bg-[#f5f5f7] text-gray-900";
+  const surfaceClass = isDarkMode
+    ? "border-slate-800 bg-slate-900/80 shadow-[0_20px_60px_rgba(0,0,0,0.22)]"
+    : "border-gray-200/80 bg-white/95 shadow-[0_18px_44px_rgba(15,23,42,0.08)]";
+  const statCardClass = isDarkMode
+    ? "border-slate-800 bg-slate-900/70"
+    : "border-gray-200 bg-gray-50/90";
+  const sectionLabelClass = isDarkMode
+    ? "text-teal-300/80"
+    : "text-teal-600";
+  const alertClass = isDarkMode
+    ? "border-red-500/25 bg-red-500/10 text-red-200"
+    : "border-red-200 bg-red-50 text-red-700";
+  const inputClass =
+    "h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100";
+  const textInputClass =
+    "h-11 w-full rounded-xl border border-gray-200 bg-gray-50 py-2 pl-10 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100";
+  const neutralButtonClass =
+    "inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-800 hover:bg-gray-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800";
+  const openActionClass = isDarkMode
+    ? "border-cyan-400/25 bg-cyan-500/10 text-cyan-200 hover:bg-cyan-500/20"
+    : "border-cyan-300 bg-cyan-100 text-cyan-800 hover:bg-cyan-200";
+  const publishActionClass = isDarkMode
+    ? "border-teal-400/25 bg-teal-500/10 text-teal-200 hover:bg-teal-500/20"
+    : "border-teal-300 bg-teal-100 text-teal-800 hover:bg-teal-200";
+  const deleteActionClass = isDarkMode
+    ? "border-red-400/25 bg-red-500/10 text-red-200 hover:bg-red-500/20"
+    : "border-red-300 bg-red-100 text-red-800 hover:bg-red-200";
+  const publishedBadgeClass = isDarkMode
+    ? "bg-emerald-500/15 text-emerald-300"
+    : "bg-emerald-100 text-emerald-800";
+  const draftBadgeClass = isDarkMode
+    ? "bg-gray-500/15 text-gray-400"
+    : "bg-gray-200 text-gray-700";
+
   return (
     <div className={isDarkMode ? "dark" : ""}>
-      <div className="min-h-screen bg-[#f5f5f7] text-gray-900 dark:bg-[#06101d] dark:text-white">
+      <div className={`min-h-screen ${pageToneClass}`}>
         <AdminSidebar />
 
         <main className="ml-72 px-8 py-7">
           <div className="mx-auto max-w-[1450px] space-y-6">
-            <section className="rounded-[24px] border border-gray-200/80 bg-white/95 p-6 shadow-[0_18px_44px_rgba(15,23,42,0.08)] dark:border-white/[0.05] dark:bg-[#0c1728]/82 dark:shadow-[0_20px_60px_rgba(0,0,0,0.22)]">
+            <section className={`rounded-[24px] border p-6 ${surfaceClass}`}>
               <button
                 onClick={() => navigate("/admin/learn")}
-                className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-200 dark:border-white/[0.1] dark:bg-white/[0.06] dark:text-gray-200"
+                className={neutralButtonClass}
               >
                 <ArrowLeft className="h-3.5 w-3.5" />
                 Back to Learn Admin
@@ -239,7 +276,7 @@ export default function AdminLearnCourse() {
 
               <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <div className="text-[11px] uppercase tracking-[0.2em] text-teal-300/80">
+                  <div className={`text-[11px] uppercase tracking-[0.2em] ${sectionLabelClass}`}>
                     Course Detail
                   </div>
                   <h1 className="mt-2 text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
@@ -259,7 +296,7 @@ export default function AdminLearnCourse() {
               </div>
 
               <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                <div className="rounded-2xl border border-gray-200 bg-gray-50/90 px-4 py-4 dark:border-white/[0.05] dark:bg-white/[0.03]">
+                <div className={`rounded-2xl border px-4 py-4 ${statCardClass}`}>
                   <div className="text-[11px] uppercase tracking-[0.2em] text-gray-500">
                     Slug
                   </div>
@@ -267,7 +304,7 @@ export default function AdminLearnCourse() {
                     {course?.slug || "-"}
                   </div>
                 </div>
-                <div className="rounded-2xl border border-gray-200 bg-gray-50/90 px-4 py-4 dark:border-white/[0.05] dark:bg-white/[0.03]">
+                <div className={`rounded-2xl border px-4 py-4 ${statCardClass}`}>
                   <div className="text-[11px] uppercase tracking-[0.2em] text-gray-500">
                     Category / Difficulty
                   </div>
@@ -275,7 +312,7 @@ export default function AdminLearnCourse() {
                     {course?.category || "-"} / {course?.difficulty || "-"}
                   </div>
                 </div>
-                <div className="rounded-2xl border border-gray-200 bg-gray-50/90 px-4 py-4 dark:border-white/[0.05] dark:bg-white/[0.03]">
+                <div className={`rounded-2xl border px-4 py-4 ${statCardClass}`}>
                   <div className="text-[11px] uppercase tracking-[0.2em] text-gray-500">
                     Lessons
                   </div>
@@ -286,7 +323,7 @@ export default function AdminLearnCourse() {
               </div>
             </section>
 
-            <section className="rounded-[24px] border border-gray-200/80 bg-white/95 p-5 shadow-[0_18px_44px_rgba(15,23,42,0.08)] dark:border-white/[0.05] dark:bg-[#0c1728]/82 dark:shadow-[0_20px_60px_rgba(0,0,0,0.22)]">
+            <section className={`rounded-[24px] border p-5 ${surfaceClass}`}>
               <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_220px]">
                 <label className="relative">
                   <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
@@ -294,7 +331,7 @@ export default function AdminLearnCourse() {
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
                     placeholder="Search lessons..."
-                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 py-2 pl-10 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-white/[0.06] dark:bg-white/[0.05] dark:text-white"
+                    className={textInputClass}
                   />
                 </label>
                 <select
@@ -302,7 +339,7 @@ export default function AdminLearnCourse() {
                   onChange={(event) =>
                     setStatus(event.target.value as LessonStatusFilter)
                   }
-                  className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-white/[0.06] dark:bg-white/[0.05] dark:text-white"
+                  className={inputClass}
                 >
                   <option value="all">All status</option>
                   <option value="published">Published</option>
@@ -312,12 +349,12 @@ export default function AdminLearnCourse() {
             </section>
 
             {error && (
-              <div className="rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+              <div className={`rounded-xl border px-4 py-3 text-sm ${alertClass}`}>
                 {error}
               </div>
             )}
 
-            <section className="rounded-[24px] border border-gray-200/80 bg-white/95 p-4 shadow-[0_18px_44px_rgba(15,23,42,0.08)] dark:border-white/[0.05] dark:bg-[#0c1728]/82 dark:shadow-[0_20px_60px_rgba(0,0,0,0.22)]">
+            <section className={`rounded-[24px] border p-4 ${surfaceClass}`}>
               {loading ? (
                 <div className="py-24 text-center">
                   <Loader2 className="mx-auto h-8 w-8 animate-spin text-teal-400" />
@@ -333,7 +370,7 @@ export default function AdminLearnCourse() {
                     return (
                       <article
                         key={lesson.id}
-                        className="rounded-2xl border border-gray-200 bg-gray-50/90 px-4 py-4 dark:border-white/[0.06] dark:bg-white/[0.03]"
+                        className={`rounded-2xl border px-4 py-4 ${statCardClass}`}
                       >
                         <div className="flex flex-wrap items-start justify-between gap-3">
                           <div className="min-w-0">
@@ -342,8 +379,8 @@ export default function AdminLearnCourse() {
                               <span
                                 className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
                                   lesson.isPublished
-                                    ? "bg-emerald-500/15 text-emerald-300"
-                                    : "bg-gray-500/15 text-gray-400"
+                                    ? publishedBadgeClass
+                                    : draftBadgeClass
                                 }`}
                               >
                                 {lesson.isPublished ? "Published" : "Draft"}
@@ -365,7 +402,7 @@ export default function AdminLearnCourse() {
                             <button
                               disabled={busy || index === 0}
                               onClick={() => void handleMoveLesson(lesson.id, "up")}
-                              className="rounded-lg border border-gray-200 bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-200 disabled:opacity-40 dark:border-white/[0.1] dark:bg-white/[0.06] dark:text-gray-200"
+                              className={`${neutralButtonClass} disabled:opacity-55`}
                             >
                               <span className="inline-flex items-center gap-1">
                                 <ChevronUp className="h-3.5 w-3.5" />
@@ -375,7 +412,7 @@ export default function AdminLearnCourse() {
                             <button
                               disabled={busy || index === lessons.length - 1}
                               onClick={() => void handleMoveLesson(lesson.id, "down")}
-                              className="rounded-lg border border-gray-200 bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-200 disabled:opacity-40 dark:border-white/[0.1] dark:bg-white/[0.06] dark:text-gray-200"
+                              className={`${neutralButtonClass} disabled:opacity-55`}
                             >
                               <span className="inline-flex items-center gap-1">
                                 <ChevronDown className="h-3.5 w-3.5" />
@@ -388,13 +425,13 @@ export default function AdminLearnCourse() {
                                   `/admin/learn/courses/${courseId}/lessons/${lesson.id}`,
                                 )
                               }
-                              className="rounded-lg border border-cyan-400/25 bg-cyan-500/10 px-3 py-1.5 text-xs font-medium text-cyan-200 hover:bg-cyan-500/20"
+                              className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${openActionClass}`}
                             >
                               Step Editor
                             </button>
                             <button
                               onClick={() => openEdit(lesson)}
-                              className="rounded-lg border border-gray-200 bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-200 dark:border-white/[0.1] dark:bg-white/[0.06] dark:text-gray-200"
+                              className={neutralButtonClass}
                             >
                               <span className="inline-flex items-center gap-1">
                                 <PencilLine className="h-3.5 w-3.5" />
@@ -404,7 +441,7 @@ export default function AdminLearnCourse() {
                             <button
                               disabled={busy}
                               onClick={() => void handleTogglePublish(lesson)}
-                              className="rounded-lg border border-teal-400/25 bg-teal-500/10 px-3 py-1.5 text-xs font-medium text-teal-200 hover:bg-teal-500/20 disabled:opacity-50"
+                              className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50 ${publishActionClass}`}
                             >
                               <span className="inline-flex items-center gap-1">
                                 {lesson.isPublished ? (
@@ -418,7 +455,7 @@ export default function AdminLearnCourse() {
                             <button
                               disabled={busy}
                               onClick={() => void handleDeleteLesson(lesson)}
-                              className="rounded-lg border border-red-400/25 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-200 hover:bg-red-500/20 disabled:opacity-50"
+                              className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50 ${deleteActionClass}`}
                             >
                               <span className="inline-flex items-center gap-1">
                                 <Trash2 className="h-3.5 w-3.5" />
@@ -438,14 +475,14 @@ export default function AdminLearnCourse() {
 
         {modalOpen && (
           <div className="fixed inset-0 z-[100] bg-black/55 backdrop-blur-sm px-4 py-8 overflow-y-auto">
-            <div className="mx-auto w-full max-w-2xl rounded-2xl border border-gray-200 bg-white p-6 shadow-[0_24px_60px_rgba(15,23,42,0.25)] dark:border-white/[0.07] dark:bg-[#0b1523]">
+            <div className="mx-auto w-full max-w-2xl rounded-2xl border border-gray-200 bg-white p-6 shadow-[0_24px_60px_rgba(15,23,42,0.25)] dark:border-slate-700 dark:bg-slate-900">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                   {editingLesson ? "Edit lesson" : "Create lesson"}
                 </h2>
                 <button
                   onClick={() => setModalOpen(false)}
-                  className="rounded-lg border border-gray-200 bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200 dark:border-white/[0.12] dark:bg-white/[0.06] dark:text-gray-300"
+                  className="rounded-lg border border-gray-200 bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
                 >
                   Close
                 </button>
@@ -461,7 +498,7 @@ export default function AdminLearnCourse() {
                     onChange={(event) =>
                       setDraft((current) => ({ ...current, title: event.target.value }))
                     }
-                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white"
+                    className={inputClass}
                   />
                 </label>
                 <label className="space-y-1">
@@ -474,7 +511,7 @@ export default function AdminLearnCourse() {
                       setDraft((current) => ({ ...current, slug: event.target.value }))
                     }
                     placeholder="auto-from-title"
-                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white"
+                    className={inputClass}
                   />
                 </label>
                 <label className="space-y-1">
@@ -491,7 +528,7 @@ export default function AdminLearnCourse() {
                         estimatedMinutes: Number(event.target.value || 1),
                       }))
                     }
-                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white"
+                    className={inputClass}
                   />
                 </label>
                 <label className="mt-7 inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
@@ -519,7 +556,7 @@ export default function AdminLearnCourse() {
                   onChange={(event) =>
                     setDraft((current) => ({ ...current, subtitle: event.target.value }))
                   }
-                  className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white"
+                  className={inputClass}
                 />
               </label>
 
@@ -535,14 +572,14 @@ export default function AdminLearnCourse() {
                       description: event.target.value,
                     }))
                   }
-                  className="min-h-[110px] w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-white"
+                  className="min-h-[110px] w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                 />
               </label>
 
               <div className="mt-6 flex justify-end gap-3">
                 <button
                   onClick={() => setModalOpen(false)}
-                  className="rounded-xl border border-gray-200 bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:border-white/[0.1] dark:bg-white/[0.06] dark:text-gray-200"
+                  className="rounded-xl border border-gray-200 bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
                 >
                   Cancel
                 </button>

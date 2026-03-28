@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 
+export const LEARN_STEP_VALIDATION_MODES = ["exact", "one_of_many"];
+
 const LearnLessonStepSchema = new mongoose.Schema(
   {
     lessonId: {
@@ -18,6 +20,11 @@ const LearnLessonStepSchema = new mongoose.Schema(
       enum: ["white", "black"],
       required: true,
     },
+    boardOrientation: {
+      type: String,
+      enum: ["white", "black"],
+      default: "white",
+    },
     acceptedMoves: {
       type: [String],
       required: true,
@@ -26,8 +33,15 @@ const LearnLessonStepSchema = new mongoose.Schema(
         message: "At least one accepted move is required.",
       },
     },
+    validationMode: {
+      type: String,
+      enum: LEARN_STEP_VALIDATION_MODES,
+      default: "one_of_many",
+    },
     feedbackCorrect: { type: String, default: "", trim: true },
     feedbackWrong: { type: String, default: "", trim: true },
+    successMessage: { type: String, default: "", trim: true },
+    wrongMoveMessage: { type: String, default: "", trim: true },
     nextFen: { type: String, default: "", trim: true },
     hintText: { type: String, default: "", trim: true },
     successCondition: {
@@ -35,8 +49,14 @@ const LearnLessonStepSchema = new mongoose.Schema(
       default: "accepted_move",
       trim: true,
     },
+    allowRetry: { type: Boolean, default: true },
     autoAdvance: { type: Boolean, default: false },
     keepPositionOnWrong: { type: Boolean, default: false },
+    annotations: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
+    },
+    isPublished: { type: Boolean, default: true, index: true },
   },
   { timestamps: true },
 );

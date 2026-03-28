@@ -1,8 +1,8 @@
 import { useCallback } from "react";
 import { API_URL, GameHistoryPayload } from "./useStockfishGameTypes";
+import { MIN_STORED_MOVES } from "./gameHistorySaver/historyPersistence";
 
 let historyErrorLogged = false;
-const MIN_STORED_MOVES = 3;
 const CHESS960_EVENT_FALLBACK = "Live Chess960";
 const CHESS960_SITE_FALLBACK = "NeonGambit";
 const CHESS960_STRIPPED_FIELDS: Array<keyof GameHistoryPayload> = [

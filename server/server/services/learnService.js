@@ -7,6 +7,10 @@ import {
 } from "../models/index.js";
 import { validateLessonMove } from "./learnMoveValidation.js";
 
+const PUBLISHED_STEP_FILTER = {
+  $or: [{ isPublished: true }, { isPublished: { $exists: false } }],
+};
+
 function escapeRegex(value = "") {
   return String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -232,9 +236,11 @@ function serializeCatalogCourse({
     category: course.category,
     difficulty: course.difficulty,
     coverImage: course.coverImage || "",
+    badge: course.badge || "",
     icon: course.icon || "",
     instructorName: course.instructorName || "",
     tags: Array.isArray(course.tags) ? course.tags : [],
+    sortOrder: Number(course.sortOrder || 0),
     totalLessons: lessons.length,
     isPublished: !!course.isPublished,
     lessons: lessons.map((lesson) => ({
@@ -250,20 +256,46 @@ function serializeCatalogCourse({
 }
 
 function serializeLessonStep(step, index) {
+  const acceptedMoves = Array.isArray(step.acceptedMoves) ? step.acceptedMoves : [];
+  const successMessage =
+    String(step.successMessage || "").trim() ||
+    String(step.feedbackCorrect || "").trim();
+  const wrongMoveMessage =
+    String(step.wrongMoveMessage || "").trim() ||
+    String(step.feedbackWrong || "").trim();
+
   return {
     id: toId(step._id),
     orderIndex: Number(step.orderIndex || index),
     title: step.title || "",
     instructionText: step.instructionText || "",
     explanationBeforeMove: step.explanationBeforeMove || "",
+    explanationText: step.explanationBeforeMove || "",
     fen: step.fen,
     sideToMove: step.sideToMove,
-    feedbackCorrect: step.feedbackCorrect || "",
-    feedbackWrong: step.feedbackWrong || "",
+    boardOrientation:
+      String(step.boardOrientation || "").toLowerCase() === "black"
+        ? "black"
+        : "white",
+    acceptedMoves,
+    correctMoves: acceptedMoves,
+    validationMode:
+      String(step.validationMode || "").toLowerCase() === "exact"
+        ? "exact"
+        : "one_of_many",
+    feedbackCorrect: successMessage,
+    feedbackWrong: wrongMoveMessage,
+    successMessage,
+    wrongMoveMessage,
     hintText: step.hintText || "",
+    allowRetry: step.allowRetry !== false,
     autoAdvance: !!step.autoAdvance,
     keepPositionOnWrong: !!step.keepPositionOnWrong,
     nextFen: step.nextFen || "",
+    annotations:
+      step.annotations && typeof step.annotations === "object"
+        ? step.annotations
+        : {},
   };
 }
 
@@ -292,6 +324,7 @@ async function fetchLessonStepsForLessons(lessonIds) {
 
   return LearnLessonStep.find({
     lessonId: { $in: ids },
+    ...PUBLISHED_STEP_FILTER,
   })
     .sort({ lessonId: 1, orderIndex: 1, createdAt: 1 })
     .lean();
@@ -302,7 +335,12 @@ async function fetchStepCounts(lessonIds) {
   if (!ids.length) return {};
 
   const rows = await LearnLessonStep.aggregate([
-    { $match: { lessonId: { $in: ids } } },
+    {
+      $match: {
+        lessonId: { $in: ids },
+        ...PUBLISHED_STEP_FILTER,
+      },
+    },
     { $group: { _id: "$lessonId", count: { $sum: 1 } } },
   ]);
   return getStepCountsMap(rows);
@@ -420,7 +458,7 @@ async function getCourseCatalog({
   if (normalizedDifficulty) courseFilter.difficulty = normalizedDifficulty;
 
   let courses = await LearnCourse.find(courseFilter)
-    .sort({ updatedAt: -1, createdAt: -1 })
+    .sort({ sortOrder: 1, updatedAt: -1, createdAt: -1 })
     .lean();
 
   if (!courses.length) return [];
@@ -523,9 +561,11 @@ async function getCourseBySlug({ userId, courseSlug }) {
     category: course.category,
     difficulty: course.difficulty,
     coverImage: course.coverImage || "",
+    badge: course.badge || "",
     icon: course.icon || "",
     instructorName: course.instructorName || "",
     tags: Array.isArray(course.tags) ? course.tags : [],
+    sortOrder: Number(course.sortOrder || 0),
     totalLessons: lessons.length,
     lessons: lessons.map((lesson) => ({
       id: toId(lesson._id),
@@ -555,7 +595,10 @@ async function resolveCourseLessonContext({ courseSlug, lessonSlug }) {
 
   const lessonIds = lessons.map((lesson) => lesson._id);
   const [steps, stepCountsByLessonId] = await Promise.all([
-    LearnLessonStep.find({ lessonId: asObjectId(targetLesson._id) })
+    LearnLessonStep.find({
+      lessonId: asObjectId(targetLesson._id),
+      ...PUBLISHED_STEP_FILTER,
+    })
       .sort({ orderIndex: 1, createdAt: 1 })
       .lean(),
     fetchStepCounts(lessonIds),
@@ -602,8 +645,10 @@ async function getLessonBySlug({
       difficulty: context.course.difficulty,
       instructorName: context.course.instructorName || "",
       coverImage: context.course.coverImage || "",
+      badge: context.course.badge || "",
       icon: context.course.icon || "",
       tags: Array.isArray(context.course.tags) ? context.course.tags : [],
+      sortOrder: Number(context.course.sortOrder || 0),
       totalLessons: context.lessons.length,
     },
     lesson: {
@@ -612,8 +657,11 @@ async function getLessonBySlug({
       title: context.lesson.title,
       subtitle: context.lesson.subtitle || "",
       description: context.lesson.description || "",
+      shortDescription: context.lesson.description || "",
       estimatedMinutes: Number(context.lesson.estimatedMinutes || 0),
+      durationMinutes: Number(context.lesson.estimatedMinutes || 0),
       orderIndex: Number(context.lesson.orderIndex || 0),
+      order: Number(context.lesson.orderIndex || 0),
     },
     lessons: context.lessons.map((lesson) => ({
       id: toId(lesson._id),
@@ -675,6 +723,7 @@ async function submitLessonStep({
     fen: targetStep.fen,
     sideToMove: targetStep.sideToMove,
     acceptedMoves: targetStep.acceptedMoves || [],
+    validationMode: targetStep.validationMode || "one_of_many",
     payload: movePayload,
   });
 
@@ -715,12 +764,14 @@ async function submitLessonStep({
       isValid: validation.isValid,
       reason: validation.reason,
       feedback:
+        targetStep.wrongMoveMessage ||
         targetStep.feedbackWrong ||
         validation.reason ||
         "That move doesn't match this lesson idea yet. Try again.",
       stepIndex: safeStepIndex,
       nextStepIndex: safeStepIndex,
       lessonCompleted: progressView.lessonCompleted,
+      allowRetry: targetStep.allowRetry !== false,
       keepPositionOnWrong: !!targetStep.keepPositionOnWrong,
       resetFen: targetStep.keepPositionOnWrong ? "" : targetStep.fen,
       boardFenAfterMove: validation.fenAfterMove,
@@ -773,6 +824,7 @@ async function submitLessonStep({
     isValid: true,
     reason: null,
     feedback:
+      targetStep.successMessage ||
       targetStep.feedbackCorrect ||
       "Correct move. Continue to the next instructional step.",
     stepIndex: safeStepIndex,

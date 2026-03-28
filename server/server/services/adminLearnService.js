@@ -10,10 +10,13 @@ import {
   LEARN_CATEGORIES,
   LEARN_DIFFICULTIES,
 } from "../models/LearnCourse.js";
+import { LEARN_STEP_VALIDATION_MODES } from "../models/LearnLessonStep.js";
+import { deleteMediaAsset, extractMediaAssetId } from "../utils/mediaStorage.js";
 
 const COURSE_STATUS = new Set(["all", "published", "unpublished"]);
 const LESSON_STATUS = new Set(["all", "published", "unpublished"]);
 const STEP_SUCCESS_CONDITIONS = new Set(["accepted_move"]);
+const STEP_VALIDATION_MODES = new Set(LEARN_STEP_VALIDATION_MODES);
 
 class AdminLearnError extends Error {
   constructor(message, status = 400) {
@@ -116,6 +119,34 @@ function normalizeSideToMove(value) {
   throw new AdminLearnError("Side to move must be white or black.", 400);
 }
 
+function normalizeBoardOrientation(value, fallback = "white") {
+  const normalized = ensureString(value).toLowerCase();
+  if (normalized === "white" || normalized === "black") return normalized;
+  return fallback;
+}
+
+function normalizeValidationMode(value, fallback = "one_of_many") {
+  const normalized = ensureString(value).toLowerCase();
+  if (STEP_VALIDATION_MODES.has(normalized)) return normalized;
+  return fallback;
+}
+
+function normalizeAnnotations(value) {
+  if (value == null || value === "") return {};
+  if (typeof value === "object" && !Array.isArray(value)) return value;
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        return parsed;
+      }
+    } catch {
+      throw new AdminLearnError("Annotations must be a valid JSON object.", 400);
+    }
+  }
+  throw new AdminLearnError("Annotations must be an object.", 400);
+}
+
 function validateFenAndMoves({ fen, sideToMove, acceptedMoves }) {
   const safeFen = ensureString(fen);
   if (!safeFen) {
@@ -188,10 +219,12 @@ function serializeCourse(course, counts = {}) {
     difficulty: ensureString(course?.difficulty),
     instructorName: ensureString(course?.instructorName),
     coverImage: ensureString(course?.coverImage),
+    badge: ensureString(course?.badge),
     icon: ensureString(course?.icon),
     tags: Array.isArray(course?.tags) ? course.tags : [],
     totalLessons: Number(counts.totalLessons ?? course?.totalLessons ?? 0),
     publishedLessons: Number(counts.publishedLessons ?? 0),
+    sortOrder: Number(course?.sortOrder || 0),
     isPublished: !!course?.isPublished,
     createdAt: course?.createdAt || null,
     updatedAt: course?.updatedAt || null,
@@ -206,8 +239,11 @@ function serializeLesson(lesson, stepCount = 0) {
     title: ensureString(lesson?.title),
     subtitle: ensureString(lesson?.subtitle),
     description: ensureString(lesson?.description),
+    shortDescription: ensureString(lesson?.description),
     orderIndex: Number(lesson?.orderIndex || 0),
+    order: Number(lesson?.orderIndex || 0),
     estimatedMinutes: Number(lesson?.estimatedMinutes || 0),
+    durationMinutes: Number(lesson?.estimatedMinutes || 0),
     isPublished: !!lesson?.isPublished,
     stepCount: Number(stepCount || 0),
     createdAt: lesson?.createdAt || null,
@@ -216,6 +252,10 @@ function serializeLesson(lesson, stepCount = 0) {
 }
 
 function serializeStep(step) {
+  const acceptedMoves = Array.isArray(step?.acceptedMoves) ? step.acceptedMoves : [];
+  const successMessage = ensureString(step?.successMessage) || ensureString(step?.feedbackCorrect);
+  const wrongMoveMessage = ensureString(step?.wrongMoveMessage) || ensureString(step?.feedbackWrong);
+
   return {
     id: toId(step?._id),
     lessonId: toId(step?.lessonId),
@@ -223,16 +263,28 @@ function serializeStep(step) {
     title: ensureString(step?.title),
     instructionText: ensureString(step?.instructionText),
     explanationBeforeMove: ensureString(step?.explanationBeforeMove),
+    explanationText: ensureString(step?.explanationBeforeMove),
     fen: ensureString(step?.fen),
     sideToMove: step?.sideToMove === "black" ? "black" : "white",
-    acceptedMoves: Array.isArray(step?.acceptedMoves) ? step.acceptedMoves : [],
+    boardOrientation: normalizeBoardOrientation(step?.boardOrientation, "white"),
+    acceptedMoves,
+    correctMoves: acceptedMoves,
+    validationMode: normalizeValidationMode(step?.validationMode, "one_of_many"),
     feedbackCorrect: ensureString(step?.feedbackCorrect),
     feedbackWrong: ensureString(step?.feedbackWrong),
+    successMessage,
+    wrongMoveMessage,
     hintText: ensureString(step?.hintText),
+    allowRetry: step?.allowRetry !== false,
     autoAdvance: !!step?.autoAdvance,
     keepPositionOnWrong: !!step?.keepPositionOnWrong,
     nextFen: ensureString(step?.nextFen),
     successCondition: ensureString(step?.successCondition || "accepted_move"),
+    annotations:
+      step?.annotations && typeof step.annotations === "object"
+        ? step.annotations
+        : {},
+    isPublished: step?.isPublished !== false,
     createdAt: step?.createdAt || null,
     updatedAt: step?.updatedAt || null,
   };
@@ -434,6 +486,7 @@ async function listAdminCourses({
       { title: regex },
       { subtitle: regex },
       { description: regex },
+      { badge: regex },
       { slug: regex },
       { tags: regex },
     ];
@@ -448,7 +501,7 @@ async function listAdminCourses({
   if (safeStatus === "unpublished") filter.isPublished = false;
 
   const courses = await LearnCourse.find(filter)
-    .sort({ updatedAt: -1, createdAt: -1 })
+    .sort({ sortOrder: 1, updatedAt: -1, createdAt: -1 })
     .lean();
   const courseIds = courses.map((course) => asObjectId(course._id, "course id"));
   const [lessonCounts, totalCourses, totalLessons, totalPublished] =
@@ -498,10 +551,12 @@ async function createAdminCourse(payload = {}) {
     category,
     difficulty,
     coverImage: ensureString(payload.coverImage),
+    badge: ensureString(payload.badge),
     icon: ensureString(payload.icon),
     instructorName: ensureString(payload.instructorName),
     tags: normalizeTags(payload.tags),
     totalLessons: 0,
+    sortOrder: normalizePositiveInteger(payload.sortOrder, 0, 0),
     isPublished: normalizeBoolean(payload.isPublished, false),
   });
 
@@ -531,11 +586,19 @@ async function updateAdminCourse(courseId, payload = {}) {
     course.description = ensureString(payload.description);
   }
   if (payload.coverImage !== undefined) course.coverImage = ensureString(payload.coverImage);
+  if (payload.badge !== undefined) course.badge = ensureString(payload.badge);
   if (payload.icon !== undefined) course.icon = ensureString(payload.icon);
   if (payload.instructorName !== undefined) {
     course.instructorName = ensureString(payload.instructorName);
   }
   if (payload.tags !== undefined) course.tags = normalizeTags(payload.tags);
+  if (payload.sortOrder !== undefined) {
+    course.sortOrder = normalizePositiveInteger(
+      payload.sortOrder,
+      Number(course.sortOrder || 0),
+      0,
+    );
+  }
   if (payload.category !== undefined) {
     const category = ensureString(payload.category);
     assertCategory(category);
@@ -557,10 +620,33 @@ async function updateAdminCourse(courseId, payload = {}) {
   return serializeCourse(course.toObject(), lessonCountMap[toId(course._id)]);
 }
 
+async function updateAdminCourseCoverImage(courseId, file) {
+  const course = await fetchCourseOrThrow(courseId);
+  const uploadUrl = ensureString(file?.url);
+  if (!uploadUrl) {
+    throw new AdminLearnError("Cover image upload failed.", 400);
+  }
+
+  const previousCoverImage = ensureString(course.coverImage);
+  const previousAssetId = extractMediaAssetId(previousCoverImage);
+  const nextAssetId = extractMediaAssetId(uploadUrl);
+
+  course.coverImage = uploadUrl;
+  await course.save();
+
+  if (previousAssetId && previousAssetId !== nextAssetId) {
+    await deleteMediaAsset(previousAssetId).catch(() => null);
+  }
+
+  const lessonCountMap = await getLessonCountMap([asObjectId(course._id, "course id")]);
+  return serializeCourse(course.toObject(), lessonCountMap[toId(course._id)]);
+}
+
 async function deleteAdminCourse(courseId) {
   const safeCourseId = asObjectId(courseId, "course id");
   const course = await LearnCourse.findById(safeCourseId).lean();
   if (!course) throw new AdminLearnError("Course not found.", 404);
+  const courseCoverAssetId = extractMediaAssetId(course.coverImage);
 
   const lessons = await LearnLesson.find({ courseId: safeCourseId })
     .select("_id")
@@ -573,6 +659,9 @@ async function deleteAdminCourse(courseId) {
   await LearnLesson.deleteMany({ courseId: safeCourseId });
   await UserLearnProgress.deleteMany({ courseId: safeCourseId });
   await LearnCourse.deleteOne({ _id: safeCourseId });
+  if (courseCoverAssetId) {
+    await deleteMediaAsset(courseCoverAssetId).catch(() => null);
+  }
 
   return { success: true };
 }
@@ -637,9 +726,13 @@ async function createAdminLesson(courseId, payload = {}) {
     slug,
     title,
     subtitle: ensureString(payload.subtitle),
-    description: ensureString(payload.description),
+    description: ensureString(payload.shortDescription ?? payload.description),
     orderIndex: nextOrder,
-    estimatedMinutes: normalizePositiveInteger(payload.estimatedMinutes, 10, 1),
+    estimatedMinutes: normalizePositiveInteger(
+      payload.durationMinutes ?? payload.estimatedMinutes,
+      10,
+      1,
+    ),
     isPublished: normalizeBoolean(payload.isPublished, false),
   });
 
@@ -672,9 +765,19 @@ async function updateAdminLesson(lessonId, payload = {}) {
   if (payload.description !== undefined) {
     lesson.description = ensureString(payload.description);
   }
+  if (payload.shortDescription !== undefined) {
+    lesson.description = ensureString(payload.shortDescription);
+  }
   if (payload.estimatedMinutes !== undefined) {
     lesson.estimatedMinutes = normalizePositiveInteger(
       payload.estimatedMinutes,
+      lesson.estimatedMinutes,
+      1,
+    );
+  }
+  if (payload.durationMinutes !== undefined) {
+    lesson.estimatedMinutes = normalizePositiveInteger(
+      payload.durationMinutes,
       lesson.estimatedMinutes,
       1,
     );
@@ -685,7 +788,9 @@ async function updateAdminLesson(lessonId, payload = {}) {
 
   await lesson.save();
 
-  if (payload.orderIndex !== undefined) {
+  const targetOrderIndex =
+    payload.order !== undefined ? payload.order : payload.orderIndex;
+  if (targetOrderIndex !== undefined) {
     const allLessons = await LearnLesson.find({ courseId: lesson.courseId })
       .sort({ orderIndex: 1, createdAt: 1 })
       .lean();
@@ -696,7 +801,7 @@ async function updateAdminLesson(lessonId, payload = {}) {
         0,
         Math.min(
           currentIds.length - 1,
-          normalizePositiveInteger(payload.orderIndex, currentIndex, 0),
+          normalizePositiveInteger(targetOrderIndex, currentIndex, 0),
         ),
       );
       if (targetIndex !== currentIndex) {
@@ -792,6 +897,8 @@ async function listAdminSteps({ lessonId, search = "" }) {
       { explanationBeforeMove: regex },
       { feedbackCorrect: regex },
       { feedbackWrong: regex },
+      { successMessage: regex },
+      { wrongMoveMessage: regex },
     ];
   }
 
@@ -810,23 +917,30 @@ async function createAdminStep(lessonId, payload = {}) {
   const lesson = await fetchLessonOrThrow(lessonId);
 
   const sideToMove = normalizeSideToMove(payload.sideToMove);
+  const validationMode = normalizeValidationMode(payload.validationMode, "one_of_many");
+  const boardOrientation = normalizeBoardOrientation(
+    payload.boardOrientation,
+    sideToMove === "black" ? "black" : "white",
+  );
   const acceptedMoves = validateFenAndMoves({
     fen: payload.fen,
     sideToMove,
-    acceptedMoves: payload.acceptedMoves,
+    acceptedMoves: payload.correctMoves ?? payload.acceptedMoves,
   });
 
   const instructionText = ensureString(payload.instructionText);
-  const feedbackCorrect = ensureString(payload.feedbackCorrect);
-  const feedbackWrong = ensureString(payload.feedbackWrong);
+  const successMessage = ensureString(payload.successMessage || payload.feedbackCorrect);
+  const wrongMoveMessage = ensureString(
+    payload.wrongMoveMessage || payload.feedbackWrong,
+  );
 
   if (!instructionText) {
     throw new AdminLearnError("Instruction text is required.", 400);
   }
-  if (!feedbackCorrect) {
+  if (!successMessage) {
     throw new AdminLearnError("Correct feedback is required.", 400);
   }
-  if (!feedbackWrong) {
+  if (!wrongMoveMessage) {
     throw new AdminLearnError("Wrong feedback is required.", 400);
   }
 
@@ -842,16 +956,25 @@ async function createAdminStep(lessonId, payload = {}) {
     orderIndex: nextOrder,
     title: ensureString(payload.title),
     instructionText,
-    explanationBeforeMove: ensureString(payload.explanationBeforeMove),
+    explanationBeforeMove: ensureString(
+      payload.explanationText ?? payload.explanationBeforeMove,
+    ),
     fen: ensureString(payload.fen),
     sideToMove,
+    boardOrientation,
     acceptedMoves,
-    feedbackCorrect,
-    feedbackWrong,
+    validationMode,
+    feedbackCorrect: successMessage,
+    feedbackWrong: wrongMoveMessage,
+    successMessage,
+    wrongMoveMessage,
     hintText: ensureString(payload.hintText),
+    allowRetry: normalizeBoolean(payload.allowRetry, true),
     autoAdvance: normalizeBoolean(payload.autoAdvance, false),
     keepPositionOnWrong: normalizeBoolean(payload.keepPositionOnWrong, false),
     nextFen: ensureString(payload.nextFen),
+    annotations: normalizeAnnotations(payload.annotations),
+    isPublished: normalizeBoolean(payload.isPublished, true),
     successCondition: STEP_SUCCESS_CONDITIONS.has(
       ensureString(payload.successCondition),
     )
@@ -865,14 +988,14 @@ async function createAdminStep(lessonId, payload = {}) {
 async function updateAdminStep(stepId, payload = {}) {
   const step = await fetchStepOrThrow(stepId);
 
+  const payloadAcceptedMoves =
+    payload.correctMoves !== undefined ? payload.correctMoves : payload.acceptedMoves;
   const merged = {
     fen: payload.fen !== undefined ? payload.fen : step.fen,
     sideToMove:
       payload.sideToMove !== undefined ? payload.sideToMove : step.sideToMove,
     acceptedMoves:
-      payload.acceptedMoves !== undefined
-        ? payload.acceptedMoves
-        : step.acceptedMoves,
+      payloadAcceptedMoves !== undefined ? payloadAcceptedMoves : step.acceptedMoves,
   };
 
   const sideToMove = normalizeSideToMove(merged.sideToMove);
@@ -886,22 +1009,26 @@ async function updateAdminStep(stepId, payload = {}) {
     payload.instructionText !== undefined
       ? ensureString(payload.instructionText)
       : step.instructionText;
-  const feedbackCorrect =
-    payload.feedbackCorrect !== undefined
-      ? ensureString(payload.feedbackCorrect)
-      : step.feedbackCorrect;
-  const feedbackWrong =
-    payload.feedbackWrong !== undefined
-      ? ensureString(payload.feedbackWrong)
-      : step.feedbackWrong;
+  const nextSuccessMessage =
+    payload.successMessage !== undefined
+      ? ensureString(payload.successMessage)
+      : payload.feedbackCorrect !== undefined
+        ? ensureString(payload.feedbackCorrect)
+        : ensureString(step.successMessage || step.feedbackCorrect);
+  const nextWrongMoveMessage =
+    payload.wrongMoveMessage !== undefined
+      ? ensureString(payload.wrongMoveMessage)
+      : payload.feedbackWrong !== undefined
+        ? ensureString(payload.feedbackWrong)
+        : ensureString(step.wrongMoveMessage || step.feedbackWrong);
 
   if (!instructionText) {
     throw new AdminLearnError("Instruction text is required.", 400);
   }
-  if (!feedbackCorrect) {
+  if (!nextSuccessMessage) {
     throw new AdminLearnError("Correct feedback is required.", 400);
   }
-  if (!feedbackWrong) {
+  if (!nextWrongMoveMessage) {
     throw new AdminLearnError("Wrong feedback is required.", 400);
   }
 
@@ -910,12 +1037,44 @@ async function updateAdminStep(stepId, payload = {}) {
   if (payload.explanationBeforeMove !== undefined) {
     step.explanationBeforeMove = ensureString(payload.explanationBeforeMove);
   }
+  if (payload.explanationText !== undefined) {
+    step.explanationBeforeMove = ensureString(payload.explanationText);
+  }
   if (payload.fen !== undefined) step.fen = ensureString(payload.fen);
   if (payload.sideToMove !== undefined) step.sideToMove = sideToMove;
+  if (payload.boardOrientation !== undefined) {
+    step.boardOrientation = normalizeBoardOrientation(
+      payload.boardOrientation,
+      normalizeBoardOrientation(step.boardOrientation, "white"),
+    );
+  }
   step.acceptedMoves = acceptedMoves;
-  if (payload.feedbackCorrect !== undefined) step.feedbackCorrect = feedbackCorrect;
-  if (payload.feedbackWrong !== undefined) step.feedbackWrong = feedbackWrong;
+  if (payload.validationMode !== undefined) {
+    step.validationMode = normalizeValidationMode(
+      payload.validationMode,
+      normalizeValidationMode(step.validationMode, "one_of_many"),
+    );
+  }
+  if (
+    payload.feedbackCorrect !== undefined ||
+    payload.successMessage !== undefined ||
+    step.feedbackCorrect !== nextSuccessMessage
+  ) {
+    step.feedbackCorrect = nextSuccessMessage;
+    step.successMessage = nextSuccessMessage;
+  }
+  if (
+    payload.feedbackWrong !== undefined ||
+    payload.wrongMoveMessage !== undefined ||
+    step.feedbackWrong !== nextWrongMoveMessage
+  ) {
+    step.feedbackWrong = nextWrongMoveMessage;
+    step.wrongMoveMessage = nextWrongMoveMessage;
+  }
   if (payload.hintText !== undefined) step.hintText = ensureString(payload.hintText);
+  if (payload.allowRetry !== undefined) {
+    step.allowRetry = normalizeBoolean(payload.allowRetry, step.allowRetry !== false);
+  }
   if (payload.autoAdvance !== undefined) {
     step.autoAdvance = normalizeBoolean(payload.autoAdvance, step.autoAdvance);
   }
@@ -926,6 +1085,12 @@ async function updateAdminStep(stepId, payload = {}) {
     );
   }
   if (payload.nextFen !== undefined) step.nextFen = ensureString(payload.nextFen);
+  if (payload.annotations !== undefined) {
+    step.annotations = normalizeAnnotations(payload.annotations);
+  }
+  if (payload.isPublished !== undefined) {
+    step.isPublished = normalizeBoolean(payload.isPublished, !!step.isPublished);
+  }
   if (payload.successCondition !== undefined) {
     const safeCondition = ensureString(payload.successCondition);
     step.successCondition = STEP_SUCCESS_CONDITIONS.has(safeCondition)
@@ -1002,6 +1167,7 @@ export {
   reorderAdminLessons,
   reorderAdminSteps,
   updateAdminCourse,
+  updateAdminCourseCoverImage,
   updateAdminLesson,
   updateAdminStep,
 };

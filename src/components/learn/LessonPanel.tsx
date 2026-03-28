@@ -1,4 +1,4 @@
-import { CheckCircle2, ChevronLeft, ChevronRight, RotateCcw, Timer } from "lucide-react";
+import { CheckCircle2, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
 import type {
   LearnCourseProgressView,
   LearnLessonSidebarItem,
@@ -6,8 +6,6 @@ import type {
 
 interface LessonPanelProps {
   courseTitle: string;
-  lessonTitle: string;
-  lessonSubtitle: string;
   lessons: LearnLessonSidebarItem[];
   currentLessonSlug: string;
   courseProgress: LearnCourseProgressView;
@@ -18,12 +16,12 @@ interface LessonPanelProps {
   onRetryLesson: () => void;
   hasPrevLesson: boolean;
   hasNextLesson: boolean;
+  fillHeight?: boolean;
+  showNavigationFooter?: boolean;
 }
 
 export function LessonPanel({
   courseTitle,
-  lessonTitle,
-  lessonSubtitle,
   lessons,
   currentLessonSlug,
   courseProgress,
@@ -34,9 +32,15 @@ export function LessonPanel({
   onRetryLesson,
   hasPrevLesson,
   hasNextLesson,
+  fillHeight = true,
+  showNavigationFooter = true,
 }: LessonPanelProps) {
   return (
-    <aside className="flex flex-col h-full min-h-0 bg-slate-950/90 border border-slate-800 rounded-2xl overflow-hidden">
+    <aside
+      className={`flex flex-col min-h-0 bg-slate-950/90 border border-slate-800 rounded-2xl overflow-hidden ${
+        fillHeight ? "h-full" : ""
+      }`}
+    >
       <div className="px-3.5 pt-3 pb-2.5 border-b border-slate-800 bg-[radial-gradient(circle_at_top_right,rgba(20,184,166,0.15),rgba(2,6,23,0.95)_50%)]">
         <button
           onClick={onBackToCatalog}
@@ -48,10 +52,6 @@ export function LessonPanel({
         <p className="mt-1.5 text-[10px] uppercase tracking-[0.14em] text-teal-300/80">
           {courseTitle}
         </p>
-        <h2 className="mt-1 text-[17px] font-semibold text-slate-100 leading-tight">{lessonTitle}</h2>
-        {lessonSubtitle && (
-          <p className="mt-1 text-xs text-slate-400 leading-snug line-clamp-2">{lessonSubtitle}</p>
-        )}
       </div>
 
       <div className="px-3.5 py-2.5 border-b border-slate-800">
@@ -105,43 +105,41 @@ export function LessonPanel({
                     {lesson.title}
                   </span>
                 </div>
-                <div className="mt-1 flex items-center gap-2 text-[10px] text-slate-500">
-                  <Timer className="w-3 h-3" />
-                  <span>{lesson.estimatedMinutes} min</span>
-                </div>
               </button>
             );
           })}
         </div>
       </div>
 
-      <div className="mt-auto p-2.5 grid grid-cols-2 gap-2 border-t border-slate-800">
-        <button
-          onClick={onPrevLesson}
-          disabled={!hasPrevLesson}
-          className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs bg-slate-900 border border-slate-700 text-slate-300 hover:border-slate-600 disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          <ChevronLeft className="w-3.5 h-3.5" />
-          Previous
-        </button>
-        {hasNextLesson ? (
+      {showNavigationFooter && (
+        <div className="mt-auto p-2.5 grid grid-cols-2 gap-2 border-t border-slate-800">
           <button
-            onClick={onNextLesson}
-            className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs bg-teal-500/20 border border-teal-400/35 text-teal-200 hover:bg-teal-500/30"
+            onClick={onPrevLesson}
+            disabled={!hasPrevLesson}
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs bg-slate-900 border border-slate-700 text-slate-300 hover:border-slate-600 disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            <ChevronRight className="w-3.5 h-3.5" />
-            Next Lesson
+            <ChevronLeft className="w-3.5 h-3.5" />
+            Previous
           </button>
-        ) : (
-          <button
-            onClick={onRetryLesson}
-            className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs bg-slate-900 border border-slate-700 text-slate-300 hover:border-slate-600"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            Retry Lesson
-          </button>
-        )}
-      </div>
+          {hasNextLesson ? (
+            <button
+              onClick={onNextLesson}
+              className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs bg-teal-500/20 border border-teal-400/35 text-teal-200 hover:bg-teal-500/30"
+            >
+              <ChevronRight className="w-3.5 h-3.5" />
+              Next Lesson
+            </button>
+          ) : (
+            <button
+              onClick={onRetryLesson}
+              className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs bg-slate-900 border border-slate-700 text-slate-300 hover:border-slate-600"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              Retry Lesson
+            </button>
+          )}
+        </div>
+      )}
     </aside>
   );
 }

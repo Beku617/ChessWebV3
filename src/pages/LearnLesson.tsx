@@ -1,17 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Chess } from "chess.js";
+import { Chess, type Square } from "chess.js";
 import { Chessboard } from "react-chessboard";
 import {
   BookOpen,
   CheckCircle2,
-  Compass,
+  ChevronLeft,
+  ChevronRight,
   Lightbulb,
   Loader2,
   RotateCcw,
 } from "lucide-react";
 import { LessonPanel } from "../components/learn/LessonPanel";
 import { fetchLearnLesson, submitLearnLessonStep } from "../features/learn/api";
+import { playChessMoveSound, playGameplaySound } from "../utils/moveSounds";
 import type {
   LearnLessonDetail,
   LearnLessonProgress,
@@ -48,6 +50,10 @@ export default function LearnLesson() {
   const [feedback, setFeedback] = useState<FeedbackState | null>(null);
   const [showHint, setShowHint] = useState(false);
   const [canAdvanceStep, setCanAdvanceStep] = useState(false);
+  const [moveFrom, setMoveFrom] = useState<string | null>(null);
+  const [moveSquares, setMoveSquares] = useState<
+    Record<string, React.CSSProperties>
+  >({});
   const [pendingNextStepIndex, setPendingNextStepIndex] = useState<number | null>(
     null,
   );
@@ -101,6 +107,8 @@ export default function LearnLesson() {
         setFeedback(null);
         setShowHint(false);
         setCanAdvanceStep(false);
+        setMoveFrom(null);
+        setMoveSquares({});
         setPendingNextStepIndex(null);
         setLastMove(null);
       } catch (err) {
@@ -129,6 +137,8 @@ export default function LearnLesson() {
     setBoardFen(currentStep.fen);
     setShowHint(false);
     setCanAdvanceStep(false);
+    setMoveFrom(null);
+    setMoveSquares({});
     setPendingNextStepIndex(null);
     setLastMove(null);
   }, [currentStep?.id]);
@@ -149,6 +159,55 @@ export default function LearnLesson() {
   const lessonCompleted = progress?.lessonCompleted ?? lessonData?.progress.lessonCompleted ?? false;
   const completedStepIndexes =
     progress?.completedStepIndexes || lessonData?.progress.completedStepIndexes || [];
+  const boardSquareStyles = useMemo(() => {
+    const styles: Record<string, React.CSSProperties> = { ...moveSquares };
+    if (lastMove) {
+      styles[lastMove.from] = { backgroundColor: "rgba(250, 204, 21, 0.45)" };
+      styles[lastMove.to] = { backgroundColor: "rgba(16, 185, 129, 0.35)" };
+    }
+    return styles;
+  }, [lastMove, moveSquares]);
+
+  const clearMoveSelection = () => {
+    setMoveFrom(null);
+    setMoveSquares({});
+  };
+
+  const highlightMoveOptions = (sourceSquare: string) => {
+    if (!currentStep) return false;
+    const chess = new Chess(currentStep.fen);
+    const piece = chess.get(sourceSquare as Square);
+    if (!piece || piece.color !== chess.turn()) {
+      clearMoveSelection();
+      return false;
+    }
+
+    const moves = chess.moves({ square: sourceSquare as Square, verbose: true });
+    if (moves.length === 0) {
+      clearMoveSelection();
+      return false;
+    }
+
+    const optionStyles = moves.reduce<Record<string, React.CSSProperties>>(
+      (styles, move) => {
+        styles[move.to] = {
+          boxShadow:
+            "inset 0 0 0 3px rgba(20,184,166,0.8), inset 0 0 0 6px rgba(20,184,166,0.18)",
+          background:
+            "radial-gradient(circle, rgba(20,184,166,0.45) 38%, rgba(0,0,0,0) 60%)",
+        };
+        return styles;
+      },
+      {},
+    );
+
+    setMoveFrom(sourceSquare);
+    setMoveSquares({
+      [sourceSquare]: { backgroundColor: "rgba(20,184,166,0.25)" },
+      ...optionStyles,
+    });
+    return true;
+  };
 
   const submitMove = async (
     sourceSquare: string,
@@ -197,13 +256,18 @@ export default function LearnLesson() {
   const onDrop = (sourceSquare: string, targetSquare: string) => {
     if (isSubmittingMove || !currentStep || lessonCompleted) return false;
     const probe = new Chess(currentStep.fen);
-    const isLegal = probe.move({
+    const moveResult = probe.move({
       from: sourceSquare,
       to: targetSquare,
       promotion: "q",
     });
-    if (!isLegal) return false;
+    if (!moveResult) {
+      playGameplaySound("illegal");
+      return false;
+    }
 
+    playChessMoveSound(moveResult);
+    clearMoveSelection();
     void (async () => {
       const result = await submitMove(sourceSquare, targetSquare);
       if (!result) return;
@@ -240,6 +304,7 @@ export default function LearnLesson() {
           }, 650);
         }
       } else {
+        playGameplaySound("illegal");
         setFeedback({ kind: "wrong", message: result.feedback });
         setCanAdvanceStep(false);
         setPendingNextStepIndex(null);
@@ -256,6 +321,32 @@ export default function LearnLesson() {
     return true;
   };
 
+  const onSquareClick = (square: string) => {
+    if (isSubmittingMove || !currentStep || lessonCompleted) return;
+
+    if (!moveFrom) {
+      void highlightMoveOptions(square);
+      return;
+    }
+
+    if (moveFrom === square) {
+      clearMoveSelection();
+      return;
+    }
+
+    const chess = new Chess(currentStep.fen);
+    const clickedPiece = chess.get(square as Square);
+    if (clickedPiece && clickedPiece.color === chess.turn()) {
+      void highlightMoveOptions(square);
+      return;
+    }
+
+    const moved = onDrop(moveFrom, square);
+    if (moved) {
+      clearMoveSelection();
+    }
+  };
+
   const goToNextStep = () => {
     if (!lessonData || pendingNextStepIndex == null) return;
     const maxStepIndex = Math.max(0, lessonData.steps.length - 1);
@@ -268,6 +359,7 @@ export default function LearnLesson() {
   const retryCurrentStep = () => {
     if (!currentStep) return;
     setBoardFen(currentStep.fen);
+    clearMoveSelection();
     setLastMove(null);
     setFeedback(null);
     setShowHint(false);
@@ -296,6 +388,8 @@ export default function LearnLesson() {
     setFeedback(null);
     setShowHint(false);
     setCanAdvanceStep(false);
+    setMoveFrom(null);
+    setMoveSquares({});
     setPendingNextStepIndex(null);
     setLastMove(null);
   };
@@ -336,140 +430,30 @@ export default function LearnLesson() {
         : "border-cyan-400/35 bg-cyan-500/10 text-cyan-200";
 
   return (
-    <div className="h-full min-h-0 px-3 sm:px-4 lg:px-5 py-3 lg:py-4 overflow-y-auto xl:overflow-hidden">
-      <div className="h-full min-h-0 grid grid-cols-1 xl:grid-cols-[290px_minmax(0,1fr)_332px] gap-3 lg:gap-4">
-        <aside className="min-w-0 min-h-0 rounded-2xl border border-slate-800/90 bg-slate-950/85 flex flex-col overflow-hidden">
-          <div className="px-3.5 py-3 border-b border-slate-800 bg-[radial-gradient(circle_at_top_right,rgba(20,184,166,0.13),rgba(2,6,23,0.96)_55%)]">
-            <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.14em] text-teal-300/85">
-              <Compass className="w-3.5 h-3.5" />
-              <span>{lessonData.course.category}</span>
-            </div>
-            <h1 className="mt-1.5 text-xl font-semibold text-slate-50 leading-tight">
-              {lessonData.lesson.title}
-            </h1>
-            <p className="mt-1 text-xs text-slate-300/80 leading-snug line-clamp-3">
-              {lessonData.lesson.subtitle || lessonData.lesson.description}
-            </p>
-          </div>
-
-          <div className="px-3.5 py-2.5 border-b border-slate-800 flex flex-wrap items-center gap-2 text-xs text-slate-400">
-            <span className="px-2 py-1 rounded-md bg-slate-900 border border-slate-800">
-              Step {currentStepIndex + 1} / {lessonData.steps.length}
-            </span>
-            <span className="px-2 py-1 rounded-md bg-slate-900 border border-slate-800">
-              {currentStep.sideToMove === "white" ? "White to move" : "Black to move"}
-            </span>
-          </div>
-
-          <div className="px-3.5 py-3 space-y-3 min-h-0 flex-1 overflow-y-auto">
-            <h2 className="text-base font-semibold text-slate-100">
-              {currentStep.title || "Instruction"}
-            </h2>
-
-            <div className="space-y-1.5">
-              <p className="text-sm text-slate-200 leading-snug">{currentStep.instructionText}</p>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                {currentStep.explanationBeforeMove}
-              </p>
-            </div>
-
-            {showHint && currentStep.hintText && (
-              <div className="rounded-xl border border-cyan-400/35 bg-cyan-500/10 px-3 py-2 text-sm text-cyan-200">
-                Hint: {currentStep.hintText}
-              </div>
-            )}
-
-            {feedback && (
-              <div className={`rounded-xl border px-3 py-2 text-sm ${feedbackClass}`}>
-                {feedback.message}
-              </div>
-            )}
-
-            {lessonCompleted && (
-              <div className="rounded-xl border border-emerald-400/35 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200 inline-flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4" />
-                Lesson complete.
-              </div>
-            )}
-          </div>
-
-          <div className="px-3.5 py-2.5 border-t border-slate-800 space-y-2">
-            <div className="flex flex-wrap gap-2">
-              {currentStep.hintText && (
-                <button
-                  onClick={() => setShowHint((prev) => !prev)}
-                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 text-xs hover:border-slate-600"
-                >
-                  <Lightbulb className="w-3.5 h-3.5" />
-                  {showHint ? "Hide Hint" : "Show Hint"}
-                </button>
-              )}
-
-              <button
-                onClick={retryCurrentStep}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 text-xs hover:border-slate-600"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                Retry Step
-              </button>
-
-              {canAdvanceStep && !lessonCompleted && (
-                <button
-                  onClick={goToNextStep}
-                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-teal-500/20 border border-teal-400/35 text-teal-200 text-xs hover:bg-teal-500/30"
-                >
-                  Next Step
-                </button>
-              )}
-
-              {lessonCompleted && hasNextLesson && (
-                <button
-                  onClick={openNextLesson}
-                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-teal-500/20 border border-teal-400/35 text-teal-200 text-xs hover:bg-teal-500/30"
-                >
-                  Next Lesson
-                </button>
-              )}
-            </div>
-
-            {isSubmittingMove && (
-              <div className="inline-flex items-center gap-1.5 text-xs text-slate-400">
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                Checking move...
-              </div>
-            )}
-          </div>
-        </aside>
-
-        <section className="min-h-[420px] xl:min-h-0 rounded-2xl border border-slate-800/90 bg-slate-950/85 p-2.5 sm:p-3 flex items-center justify-center">
-          <div ref={boardViewportRef} className="w-full h-full min-h-[380px] xl:min-h-0 flex items-center justify-center">
+    <div className="h-full min-h-0 px-4 sm:px-5 lg:px-6 xl:px-8 py-4 lg:py-5 overflow-y-auto xl:overflow-hidden">
+      <div className="h-full min-h-0 grid grid-cols-1 xl:grid-cols-[minmax(0,780px)_minmax(420px,1fr)] gap-3 lg:gap-4 items-start xl:items-stretch">
+        <section className="min-h-[420px] xl:min-h-0 rounded-2xl border border-slate-800/90 bg-slate-950/85 p-2.5 sm:p-3 flex items-center justify-center xl:justify-start">
+          <div ref={boardViewportRef} className="w-full h-full min-h-[380px] xl:min-h-0 flex items-center justify-center xl:justify-start">
             <div className="rounded-xl overflow-hidden shadow-[0_16px_40px_rgba(2,6,23,0.7)] border border-slate-800">
               <Chessboard
                 id="learn-lesson-board"
                 position={boardFen}
                 onPieceDrop={onDrop}
-                boardOrientation="white"
+                onSquareClick={onSquareClick}
+                onSquareRightClick={clearMoveSelection}
+                boardOrientation={currentStep.boardOrientation || "white"}
                 boardWidth={boardSize}
                 arePiecesDraggable={!isSubmittingMove && !lessonCompleted}
                 customBoardStyle={{ borderRadius: "10px" }}
-                customSquareStyles={
-                  lastMove
-                    ? {
-                        [lastMove.from]: { backgroundColor: "rgba(250, 204, 21, 0.45)" },
-                        [lastMove.to]: { backgroundColor: "rgba(16, 185, 129, 0.35)" },
-                      }
-                    : {}
-                }
+                customSquareStyles={boardSquareStyles}
               />
             </div>
           </div>
         </section>
 
-        <div className="xl:min-h-0">
+        <aside className="min-w-0 xl:min-h-0 xl:h-full flex flex-col gap-3 lg:gap-4">
           <LessonPanel
             courseTitle={lessonData.course.title}
-            lessonTitle={lessonData.lesson.title}
-            lessonSubtitle={lessonData.lesson.subtitle}
             lessons={lessonData.lessons}
             currentLessonSlug={lessonData.lesson.slug}
             courseProgress={courseProgress}
@@ -480,8 +464,116 @@ export default function LearnLesson() {
             onRetryLesson={retryLesson}
             hasPrevLesson={hasPrevLesson}
             hasNextLesson={!!hasNextLesson}
+            fillHeight={false}
+            showNavigationFooter={false}
           />
-        </div>
+
+          <section className="min-w-0 min-h-0 xl:flex-1 rounded-2xl border border-slate-800/90 bg-slate-950/85 flex flex-col overflow-hidden">
+            <div className="px-3.5 py-3 space-y-3 min-h-0 flex-1 overflow-y-auto">
+              <div className="space-y-1.5">
+                <p className="text-sm text-slate-200 leading-snug">{currentStep.instructionText}</p>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  {currentStep.explanationBeforeMove}
+                </p>
+              </div>
+
+              {showHint && currentStep.hintText && (
+                <div className="rounded-xl border border-cyan-400/35 bg-cyan-500/10 px-3 py-2 text-sm text-cyan-200">
+                  Hint: {currentStep.hintText}
+                </div>
+              )}
+
+              {feedback && (
+                <div className={`rounded-xl border px-3 py-2 text-sm ${feedbackClass}`}>
+                  {feedback.message}
+                </div>
+              )}
+
+              {lessonCompleted && (
+                <div className="rounded-xl border border-emerald-400/35 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200 inline-flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4" />
+                  Lesson complete.
+                </div>
+              )}
+            </div>
+
+            <div className="px-3.5 py-2.5 border-t border-slate-800 space-y-2">
+              <div className="flex flex-wrap gap-2">
+                {currentStep.hintText && (
+                  <button
+                    onClick={() => setShowHint((prev) => !prev)}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 text-xs hover:border-slate-600"
+                  >
+                    <Lightbulb className="w-3.5 h-3.5" />
+                    {showHint ? "Hide Hint" : "Show Hint"}
+                  </button>
+                )}
+
+                <button
+                  onClick={retryCurrentStep}
+                  disabled={currentStep.allowRetry === false}
+                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 text-xs hover:border-slate-600 disabled:cursor-not-allowed disabled:opacity-45"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  Retry Step
+                </button>
+
+                {canAdvanceStep && !lessonCompleted && (
+                  <button
+                    onClick={goToNextStep}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-teal-500/20 border border-teal-400/35 text-teal-200 text-xs hover:bg-teal-500/30"
+                  >
+                    Next Step
+                  </button>
+                )}
+
+                {lessonCompleted && hasNextLesson && (
+                  <button
+                    onClick={openNextLesson}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-teal-500/20 border border-teal-400/35 text-teal-200 text-xs hover:bg-teal-500/30"
+                  >
+                    Next Lesson
+                  </button>
+                )}
+              </div>
+
+              {isSubmittingMove && (
+                <div className="inline-flex items-center gap-1.5 text-xs text-slate-400">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  Checking move...
+                </div>
+              )}
+            </div>
+          </section>
+
+          <div className="mt-auto rounded-2xl border border-slate-800/90 bg-slate-950/85 p-2.5 grid grid-cols-2 gap-2">
+            <button
+              onClick={openPrevLesson}
+              disabled={!hasPrevLesson}
+              className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs bg-slate-900 border border-slate-700 text-slate-300 hover:border-slate-600 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+              Previous
+            </button>
+            {hasNextLesson ? (
+              <button
+                onClick={openNextLesson}
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs bg-teal-500/20 border border-teal-400/35 text-teal-200 hover:bg-teal-500/30"
+              >
+                <ChevronRight className="w-3.5 h-3.5" />
+                Next Lesson
+              </button>
+            ) : (
+              <button
+                onClick={retryLesson}
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs bg-slate-900 border border-slate-700 text-slate-300 hover:border-slate-600"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                Retry Lesson
+              </button>
+            )}
+          </div>
+        </aside>
       </div>
     </div>
   );

@@ -150,20 +150,18 @@ function SectionCard({
   icon,
   title,
   subtitle,
-  accent,
   children,
 }: {
   icon: React.ReactNode;
   title: string;
   subtitle: string;
-  accent: string;
   children: React.ReactNode;
 }) {
   return (
     <div className="overflow-hidden rounded-[28px] border border-gray-200/80 bg-white/95 shadow-[0_14px_38px_rgba(15,23,42,0.08)] dark:border-gray-800 dark:bg-gray-900">
-      <div className={`h-1 ${accent}`} />
+      <div className="h-1 bg-teal-500/70 dark:bg-teal-400/70" />
       <div className="px-6 pt-5 pb-1 flex items-center gap-3">
-        <div className="w-9 h-9 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+        <div className="w-9 h-9 rounded-lg border border-teal-500/20 bg-teal-500/10 text-teal-600 dark:text-teal-300 flex items-center justify-center">
           {icon}
         </div>
         <div>
@@ -327,7 +325,11 @@ export default function AdminSettings() {
                 <StatusPill
                   label="Theme"
                   value={isDarkMode ? "Dark" : "Light"}
-                  tone="bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300"
+                  tone={
+                    isDarkMode
+                      ? "bg-slate-500/15 text-slate-300"
+                      : "bg-slate-100 text-slate-700"
+                  }
                 />
                 <StatusPill
                   label="Platform"
@@ -410,10 +412,9 @@ export default function AdminSettings() {
           <div className="space-y-6">
             {/* ─── Appearance ─── */}
             <SectionCard
-              icon={<Monitor className="w-4.5 h-4.5 text-purple-500" />}
+              icon={<Monitor className="w-4.5 h-4.5" />}
               title="Appearance"
               subtitle="Visual preferences for the admin panel"
-              accent="bg-gradient-to-r from-purple-500 to-violet-500"
             >
               <SettingRow
                 label="Dark Mode"
@@ -461,10 +462,9 @@ export default function AdminSettings() {
 
             {/* ─── Notifications ─── */}
             <SectionCard
-              icon={<Bell className="w-4.5 h-4.5 text-amber-500" />}
+              icon={<Bell className="w-4.5 h-4.5" />}
               title="Notifications"
               subtitle="Control which alerts you receive"
-              accent="bg-gradient-to-r from-amber-500 to-orange-500"
             >
               <SettingRow
                 label="Email Alerts"
@@ -510,10 +510,9 @@ export default function AdminSettings() {
 
             {/* ─── Security ─── */}
             <SectionCard
-              icon={<Lock className="w-4.5 h-4.5 text-red-500" />}
+              icon={<Lock className="w-4.5 h-4.5" />}
               title="Security"
               subtitle="Admin session and access controls"
-              accent="bg-gradient-to-r from-red-500 to-rose-500"
             >
               <SettingRow
                 label="Session Timeout"
@@ -561,10 +560,9 @@ export default function AdminSettings() {
 
             {/* ─── Platform ─── */}
             <SectionCard
-              icon={<Globe className="w-4.5 h-4.5 text-teal-500" />}
+              icon={<Globe className="w-4.5 h-4.5" />}
               title="Platform"
               subtitle="Global platform configuration"
-              accent="bg-gradient-to-r from-teal-500 to-emerald-500"
             >
               <SettingRow
                 label="Maintenance Mode"
@@ -652,10 +650,9 @@ export default function AdminSettings() {
 
             {/* ─── Performance ─── */}
             <SectionCard
-              icon={<Zap className="w-4.5 h-4.5 text-yellow-500" />}
+              icon={<Zap className="w-4.5 h-4.5" />}
               title="Performance"
               subtitle="Caching and data management"
-              accent="bg-gradient-to-r from-yellow-400 to-amber-500"
             >
               <SettingRow
                 label="Clear Cache"

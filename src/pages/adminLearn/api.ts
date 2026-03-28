@@ -10,12 +10,16 @@ import type {
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const headers = new Headers(options.headers || {});
+  const isFormDataBody =
+    typeof FormData !== "undefined" && options.body instanceof FormData;
+  if (!isFormDataBody && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
+
   const response = await fetch(`${API_URL}${path}`, {
     credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    },
+    headers,
     ...options,
   });
 
@@ -77,6 +81,21 @@ export async function deleteAdminLearnCourse(courseId: string) {
   return request<{ success: boolean }>(`/api/admin/learn/courses/${courseId}`, {
     method: "DELETE",
   });
+}
+
+export async function uploadAdminLearnCourseCoverImage(
+  courseId: string,
+  file: File,
+) {
+  const form = new FormData();
+  form.append("coverImageFile", file);
+  return request<{ course: AdminLearnOverviewResponse["courses"][number] }>(
+    `/api/admin/learn/courses/${courseId}/cover-image`,
+    {
+      method: "POST",
+      body: form,
+    },
+  );
 }
 
 export async function fetchAdminLearnLessons(params: {

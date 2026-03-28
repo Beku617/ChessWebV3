@@ -1,5 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
-import { Flame, GraduationCap, Search, Sparkles, Target } from "lucide-react";
+import { type ReactNode, useEffect, useState } from "react";
+import {
+  CheckCircle2,
+  ChevronDown,
+  Flame,
+  Search,
+  Sparkles,
+  Target,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { LearnCourseCard } from "../components/learn/LearnCourseCard";
 import { fetchLearnCatalog } from "../features/learn/api";
@@ -16,6 +23,13 @@ const CATEGORY_TABS: LearnCategory[] = [
   "Strategy",
 ];
 
+const EMPTY_CATEGORY_COUNTS: Record<LearnCategory, number> = {
+  Openings: 0,
+  Middlegame: 0,
+  Endgame: 0,
+  Strategy: 0,
+};
+
 type DifficultyFilter = "all" | "Beginner" | "Intermediate" | "Advanced";
 type ProgressFilter = "all" | "not_started" | "in_progress" | "completed";
 
@@ -27,10 +41,42 @@ const EMPTY_SUMMARY: LearnSummary = {
   completedCourses: 0,
 };
 
+interface StatTileProps {
+  label: string;
+  value: number;
+  icon: ReactNode;
+  iconToneClass: string;
+}
+
+function StatTile({ label, value, icon, iconToneClass }: StatTileProps) {
+  return (
+    <article className="rounded-2xl border border-gray-800 bg-gray-900/70 px-4 py-4 sm:px-5 sm:py-4 shadow-[0_14px_32px_-26px_rgba(15,23,42,0.9)]">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.12em] text-slate-400/70">
+            {label}
+          </p>
+          <p className="mt-2 text-4xl leading-none font-semibold font-sans text-slate-100">
+            {value}
+          </p>
+        </div>
+        <div
+          className={`flex h-12 w-12 items-center justify-center rounded-xl border border-gray-800 bg-gray-950/70 ${iconToneClass}`}
+        >
+          {icon}
+        </div>
+      </div>
+    </article>
+  );
+}
+
 export default function Learn() {
   const navigate = useNavigate();
   const [courses, setCourses] = useState<LearnCatalogCourse[]>([]);
   const [summary, setSummary] = useState<LearnSummary>(EMPTY_SUMMARY);
+  const [categoryCounts, setCategoryCounts] = useState<
+    Record<LearnCategory, number>
+  >(EMPTY_CATEGORY_COUNTS);
   const [activeCategory, setActiveCategory] = useState<LearnCategory>("Openings");
   const [searchQuery, setSearchQuery] = useState("");
   const [difficulty, setDifficulty] = useState<DifficultyFilter>("all");
@@ -71,123 +117,127 @@ export default function Learn() {
     };
   }, [activeCategory, difficulty, progressFilter, searchQuery]);
 
-  const courseCountLabel = useMemo(() => {
-    if (loading) return "Loading courses...";
-    if (courses.length === 1) return "1 course";
-    return `${courses.length} courses`;
-  }, [courses.length, loading]);
+  useEffect(() => {
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      try {
+        const data = await fetchLearnCatalog({
+          q: searchQuery,
+          difficulty: difficulty === "all" ? "" : difficulty,
+          progress: progressFilter === "all" ? "" : progressFilter,
+        });
+        if (cancelled) return;
+
+        const nextCounts: Record<LearnCategory, number> = { ...EMPTY_CATEGORY_COUNTS };
+        data.courses.forEach((course) => {
+          nextCounts[course.category] += 1;
+        });
+        setCategoryCounts(nextCounts);
+      } catch {
+        if (!cancelled) {
+          setCategoryCounts(EMPTY_CATEGORY_COUNTS);
+        }
+      }
+    }, 220);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [difficulty, progressFilter, searchQuery]);
 
   const openLesson = (courseSlug: string, lessonSlug: string) => {
     navigate(`/learn/${courseSlug}/${lessonSlug}`);
   };
 
   return (
-    <div className="space-y-6 pb-4">
-      <section className="rounded-2xl border border-slate-800/80 bg-[radial-gradient(circle_at_top_right,rgba(45,212,191,0.13),rgba(2,6,23,0.98)_52%)] shadow-[0_10px_32px_rgba(2,6,23,0.45)] p-5 sm:p-6">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <div className="rounded-xl border border-slate-800/80 bg-slate-950/65 px-3 py-2.5 flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-cyan-500/15 text-cyan-300 flex items-center justify-center">
-              <Target className="w-4 h-4" />
-            </div>
-            <div>
-              <p className="text-base font-semibold text-slate-100">{summary.watchedLessons}</p>
-              <p className="text-[10px] text-slate-500 uppercase tracking-[0.12em]">
-                Watched Lessons
-              </p>
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-slate-800/80 bg-slate-950/65 px-3 py-2.5 flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/15 text-emerald-300 flex items-center justify-center">
-              <GraduationCap className="w-4 h-4" />
-            </div>
-            <div>
-              <p className="text-base font-semibold text-slate-100">{summary.completedLessons}</p>
-              <p className="text-[10px] text-slate-500 uppercase tracking-[0.12em]">
-                Completed Lessons
-              </p>
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-slate-800/80 bg-slate-950/65 px-3 py-2.5 flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-teal-500/15 text-teal-300 flex items-center justify-center">
-              <Sparkles className="w-4 h-4" />
-            </div>
-            <div>
-              <p className="text-base font-semibold text-slate-100">{summary.inProgressCourses}</p>
-              <p className="text-[10px] text-slate-500 uppercase tracking-[0.12em]">
-                In Progress
-              </p>
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-slate-800/80 bg-slate-950/65 px-3 py-2.5 flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-orange-500/15 text-orange-300 flex items-center justify-center">
-              <Flame className="w-4 h-4" />
-            </div>
-            <div>
-              <p className="text-base font-semibold text-slate-100">{summary.dayStreak}</p>
-              <p className="text-[10px] text-slate-500 uppercase tracking-[0.12em]">
-                Day Streak
-              </p>
-            </div>
-          </div>
-        </div>
+    <div className="space-y-6 lg:space-y-7">
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatTile
+          label="Watched"
+          value={summary.watchedLessons}
+          icon={<Target className="w-6 h-6" />}
+          iconToneClass="text-cyan-300"
+        />
+        <StatTile
+          label="Completed"
+          value={summary.completedLessons}
+          icon={<CheckCircle2 className="w-6 h-6" />}
+          iconToneClass="text-emerald-300"
+        />
+        <StatTile
+          label="In Progress"
+          value={summary.inProgressCourses}
+          icon={<Sparkles className="w-6 h-6" />}
+          iconToneClass="text-teal-300"
+        />
+        <StatTile
+          label="Day Streak"
+          value={summary.dayStreak}
+          icon={<Flame className="w-6 h-6" />}
+          iconToneClass="text-orange-300"
+        />
       </section>
 
-      <section className="rounded-2xl border border-slate-800/80 bg-slate-950/80 p-4 sm:p-5 space-y-4">
-        <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-          <label className="relative flex-1">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+      <section className="space-y-4 rounded-2xl border border-gray-800 bg-gray-900/70 px-4 py-4 shadow-[0_24px_48px_-46px_rgba(8,145,178,0.45)] sm:px-5 sm:py-5">
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_220px_220px]">
+          <label className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
             <input
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search by course, lesson, or tags..."
-              className="h-11 w-full pl-10 pr-3 rounded-xl bg-slate-900/85 border border-slate-800 text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-teal-400/40"
+              placeholder="Search courses, openings, or grandmasters..."
+              className="h-11 w-full rounded-xl border border-gray-800 bg-gray-950/70 pl-12 pr-4 text-base text-gray-100 placeholder:text-gray-500 focus:outline-none focus:border-teal-300/50"
             />
           </label>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:w-[390px]">
+          <div className="relative">
             <select
               value={difficulty}
               onChange={(event) => setDifficulty(event.target.value as DifficultyFilter)}
-              className="h-11 w-full px-3 rounded-xl bg-slate-900/85 border border-slate-800 text-sm text-slate-200 focus:outline-none focus:border-teal-400/40"
+              className="h-11 w-full appearance-none rounded-xl border border-gray-800 bg-gray-950/70 px-4 pr-10 text-sm text-gray-100 focus:outline-none focus:border-teal-300/50"
             >
               <option value="all">All Difficulty</option>
               <option value="Beginner">Beginner</option>
               <option value="Intermediate">Intermediate</option>
               <option value="Advanced">Advanced</option>
             </select>
+            <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+          </div>
 
+          <div className="relative">
             <select
               value={progressFilter}
               onChange={(event) =>
                 setProgressFilter(event.target.value as ProgressFilter)
               }
-              className="h-11 w-full px-3 rounded-xl bg-slate-900/85 border border-slate-800 text-sm text-slate-200 focus:outline-none focus:border-teal-400/40"
+              className="h-11 w-full appearance-none rounded-xl border border-gray-800 bg-gray-950/70 px-4 pr-10 text-sm text-gray-100 focus:outline-none focus:border-teal-300/50"
             >
               <option value="all">All Progress</option>
               <option value="not_started">Not Started</option>
               <option value="in_progress">In Progress</option>
               <option value="completed">Completed</option>
             </select>
+            <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+        <div className="flex flex-wrap items-center gap-3">
           {CATEGORY_TABS.map((category) => {
             const active = activeCategory === category;
+            const categoryCount = categoryCounts[category] ?? 0;
             return (
               <button
                 key={category}
                 onClick={() => setActiveCategory(category)}
-                className={`h-10 rounded-xl px-3 text-sm border transition-colors ${
+                className={`min-w-[132px] h-11 rounded-full px-5 text-sm font-medium border transition-all ${
                   active
-                    ? "bg-teal-400 border-teal-200 text-slate-950 shadow-[0_8px_18px_rgba(45,212,191,0.22)]"
-                    : "bg-slate-900/85 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700"
+                    ? "border-teal-400/50 bg-teal-500/15 text-teal-100 shadow-[0_10px_18px_-16px_rgba(20,184,166,0.9)]"
+                    : "border-gray-800 bg-gray-900/70 text-gray-200 hover:border-teal-300/40 hover:text-teal-100"
                 }`}
               >
-                {category}
+                <span>{category}</span>
+                <span className="ml-1.5 text-xs opacity-80">({categoryCount})</span>
               </button>
             );
           })}
@@ -195,41 +245,32 @@ export default function Learn() {
       </section>
 
       {error && (
-        <div className="rounded-xl border border-rose-400/30 bg-rose-500/10 text-rose-200 px-4 py-3 text-sm">
+        <div className="rounded-2xl border border-rose-400/25 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
           {error}
         </div>
       )}
 
       {loading ? (
-        <div className="rounded-2xl border border-slate-800/80 bg-slate-950/80 px-4 py-14 text-center text-slate-400">
+        <div className="rounded-2xl border border-gray-800 bg-gray-900/70 px-4 py-16 text-center text-gray-400">
           Loading learn catalog...
         </div>
       ) : courses.length === 0 ? (
-        <div className="rounded-2xl border border-slate-800/80 bg-slate-950/80 px-4 py-14 text-center">
-          <p className="text-slate-300">No courses matched your filters.</p>
+        <div className="rounded-2xl border border-gray-800 bg-gray-900/70 px-4 py-16 text-center">
+          <p className="text-gray-300">No courses matched your filters.</p>
           <button
             onClick={() => {
               setSearchQuery("");
               setDifficulty("all");
               setProgressFilter("all");
             }}
-            className="mt-3 text-sm text-teal-300 hover:text-teal-200"
+            className="mt-4 inline-flex h-11 items-center rounded-xl border border-teal-400/35 bg-teal-500/12 px-5 text-sm text-teal-100 hover:bg-teal-500/20"
           >
             Clear search and filters
           </button>
         </div>
       ) : (
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base sm:text-lg font-semibold text-slate-100">
-              Course Catalog
-            </h2>
-            <p className="text-xs uppercase tracking-[0.12em] text-slate-500">
-              {courseCountLabel}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-5">
+        <section className="space-y-6">
+          <div className="space-y-6">
             {courses.map((course) => (
               <LearnCourseCard
                 key={course.id}

@@ -12,9 +12,11 @@ import {
   reorderAdminLessons,
   reorderAdminSteps,
   updateAdminCourse,
+  updateAdminCourseCoverImage,
   updateAdminLesson,
   updateAdminStep,
 } from "../services/adminLearnService.js";
+import { deleteMediaAsset } from "../utils/mediaStorage.js";
 
 function handleError(res, action, error) {
   if (error instanceof AdminLearnError) {
@@ -54,6 +56,18 @@ async function updateCourse(req, res) {
     res.json({ course });
   } catch (error) {
     handleError(res, "update course", error);
+  }
+}
+
+async function uploadCourseCoverImage(req, res) {
+  try {
+    const course = await updateAdminCourseCoverImage(req.params.courseId, req.file);
+    res.json({ course });
+  } catch (error) {
+    if (req.file?.assetId) {
+      await deleteMediaAsset(req.file.assetId).catch(() => null);
+    }
+    handleError(res, "upload course cover image", error);
   }
 }
 
@@ -173,6 +187,7 @@ export default {
   listCourses,
   createCourse,
   updateCourse,
+  uploadCourseCoverImage,
   deleteCourse,
   listLessons,
   createLesson,

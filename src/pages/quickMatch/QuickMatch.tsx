@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import { useOnlineQuickMatch } from "../../hooks/useOnlineQuickMatch";
+import { navigateToNewGameRoute } from "../../components/game/newGameRouting";
 import { QuickMatchSetup } from "./QuickMatchSetup";
 import { QuickMatchGameView } from "./QuickMatchGameView";
 
@@ -140,6 +141,7 @@ export default function QuickMatch() {
     gameResult,
     isPlayerTurn,
     savedGameId,
+    historyPersistenceStatus,
     showGameOverModal,
     optionSquares,
     preMoveSquares,
@@ -383,6 +385,15 @@ export default function QuickMatch() {
     });
   };
 
+  const handleNewGameFromModal = useCallback(() => {
+    leaveGame();
+    navigateToNewGameRoute(navigate, {
+      mode: "quick",
+      variant: matchVariant,
+      timeControl: gameSettings.timeControl,
+    });
+  }, [leaveGame, navigate, matchVariant, gameSettings.timeControl]);
+
   if (gameStarted) {
     return (
       <QuickMatchGameView
@@ -395,6 +406,7 @@ export default function QuickMatch() {
         gameResult={gameResult}
         isPlayerTurn={isPlayerTurn}
         savedGameId={savedGameId}
+        historyPersistenceStatus={historyPersistenceStatus}
         showGameOverModal={showGameOverModal}
         optionSquares={optionSquares}
         preMoveSquares={preMoveSquares}
@@ -411,6 +423,7 @@ export default function QuickMatch() {
         onTimeOut={timeOut}
         onResign={resign}
         onRematch={rematch}
+        onNewGame={handleNewGameFromModal}
         onLeave={leaveGame}
         variant={matchVariant}
       />

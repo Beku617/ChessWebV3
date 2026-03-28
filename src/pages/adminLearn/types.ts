@@ -11,10 +11,12 @@ export interface AdminLearnCourse {
   difficulty: LearnDifficulty;
   instructorName: string;
   coverImage: string;
+  badge: string;
   icon: string;
   tags: string[];
   totalLessons: number;
   publishedLessons: number;
+  sortOrder: number;
   isPublished: boolean;
   createdAt: string | null;
   updatedAt: string | null;
@@ -27,8 +29,11 @@ export interface AdminLearnLesson {
   title: string;
   subtitle: string;
   description: string;
+  shortDescription?: string;
   orderIndex: number;
+  order?: number;
   estimatedMinutes: number;
+  durationMinutes?: number;
   isPublished: boolean;
   stepCount: number;
   createdAt: string | null;
@@ -42,15 +47,24 @@ export interface AdminLearnStep {
   title: string;
   instructionText: string;
   explanationBeforeMove: string;
+  explanationText?: string;
   fen: string;
   sideToMove: "white" | "black";
+  boardOrientation: "white" | "black";
   acceptedMoves: string[];
+  correctMoves: string[];
+  validationMode: "exact" | "one_of_many";
   feedbackCorrect: string;
   feedbackWrong: string;
+  successMessage: string;
+  wrongMoveMessage: string;
   hintText: string;
+  allowRetry: boolean;
   autoAdvance: boolean;
   keepPositionOnWrong: boolean;
   nextFen: string;
+  annotations: Record<string, unknown>;
+  isPublished: boolean;
   successCondition: string;
   createdAt: string | null;
   updatedAt: string | null;
@@ -92,7 +106,9 @@ export interface CoursePayload {
   instructorName?: string;
   tags?: string[] | string;
   coverImage?: string;
+  badge?: string;
   icon?: string;
+  sortOrder?: number;
   isPublished?: boolean;
 }
 
@@ -111,14 +127,23 @@ export interface StepPayload {
   orderIndex?: number;
   instructionText: string;
   explanationBeforeMove?: string;
+  explanationText?: string;
   fen: string;
   sideToMove: "white" | "black";
-  acceptedMoves: string[] | string;
-  feedbackCorrect: string;
-  feedbackWrong: string;
+  boardOrientation?: "white" | "black";
+  acceptedMoves?: string[] | string;
+  correctMoves?: string[] | string;
+  validationMode?: "exact" | "one_of_many";
+  feedbackCorrect?: string;
+  feedbackWrong?: string;
+  successMessage?: string;
+  wrongMoveMessage?: string;
   hintText?: string;
+  allowRetry?: boolean;
   autoAdvance?: boolean;
   keepPositionOnWrong?: boolean;
   nextFen?: string;
+  annotations?: Record<string, unknown> | string;
+  isPublished?: boolean;
   successCondition?: string;
 }

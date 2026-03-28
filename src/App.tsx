@@ -203,7 +203,6 @@ function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const { isDarkMode } = useThemeStore();
   const isDashboardPage = location.pathname === "/";
-  const isLearnCatalogPage = location.pathname === "/learn";
   const isLearnLessonPage = /^\/learn\/[^/]+\/[^/]+$/.test(location.pathname);
   const isGamePage =
     location.pathname === "/play" ||
@@ -214,7 +213,7 @@ function Layout({ children }: { children: React.ReactNode }) {
     location.pathname === "/play/four-player" ||
     location.pathname === "/play/practice";
   const isWorkspacePage = isGamePage || isLearnLessonPage;
-  const sidebarOffsetClass = isLearnLessonPage ? "ml-56" : "ml-72";
+  const sidebarOffsetClass = "ml-72";
 
   const isAdminRoute = location.pathname.startsWith("/admin");
 
@@ -266,9 +265,7 @@ function Layout({ children }: { children: React.ReactNode }) {
               ? "min-h-0 overflow-hidden px-0 py-0"
               : isDashboardPage
                 ? "w-full px-4 sm:px-5 lg:px-6 xl:px-8 py-8"
-                : isLearnCatalogPage
-                  ? "w-full max-w-[88rem] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 py-8"
-                  : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"
+                : "w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-8"
           }`}
         >
           {children}

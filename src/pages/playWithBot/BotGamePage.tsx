@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import { useStockfishGame } from "../../hooks/useStockfishGame";
 import { GameOverModal, GameBoard } from "../../components/game";
+import { navigateToNewGameRoute } from "../../components/game/newGameRouting";
 import { ChessTimer } from "../../components/game/ChessTimer";
 import type { GameSettings } from "../../components/game";
 import { defaultGameSettings } from "../../hooks/useStockfishGameTypes";
@@ -60,6 +61,7 @@ export default function BotGamePage() {
     gameResult,
     isPlayerTurn,
     savedGameId,
+    historyPersistenceStatus,
     showGameOverModal,
     optionSquares,
     preMoveSquares,
@@ -155,6 +157,11 @@ export default function BotGamePage() {
     handleStartGame({ ...gameSettings });
   };
 
+  const handleNewGameFromModal = useCallback(() => {
+    handleNewGame();
+    navigateToNewGameRoute(navigate, { mode: "bot" });
+  }, [handleNewGame, navigate]);
+
   // Auto-scroll move list to bottom when new moves are added
   useEffect(() => {
     if (moveListRef.current) {
@@ -206,8 +213,10 @@ export default function BotGamePage() {
                 isOpen={showGameOverModal}
                 result={gameResult}
                 onTryAgain={handleRematch}
-                onNewGame={handleNewGame}
+                onNewGame={handleNewGameFromModal}
                 savedGameId={savedGameId}
+                historyStatus={historyPersistenceStatus}
+                opponentName={bot.name}
               />
 
               {/* Left Side - Board with Player Info */}

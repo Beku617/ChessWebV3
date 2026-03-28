@@ -415,7 +415,7 @@ export async function seedLearn() {
   const courseCount = await LearnCourse.countDocuments();
   if (courseCount > 0) return;
 
-  for (const courseSeed of learnSeedCourses) {
+  for (const [courseIndex, courseSeed] of learnSeedCourses.entries()) {
     const course = await LearnCourse.create({
       slug: courseSeed.slug,
       title: courseSeed.title,
@@ -424,10 +424,12 @@ export async function seedLearn() {
       category: courseSeed.category,
       difficulty: courseSeed.difficulty,
       coverImage: courseSeed.coverImage,
+      badge: courseSeed.badge || courseSeed.difficulty,
       icon: courseSeed.icon,
       instructorName: courseSeed.instructorName,
       tags: courseSeed.tags,
       totalLessons: courseSeed.lessons.length,
+      sortOrder: Number(courseSeed.sortOrder ?? courseIndex),
       isPublished: courseSeed.isPublished,
     });
 
@@ -454,10 +456,20 @@ export async function seedLearn() {
         acceptedMoves: stepSeed.acceptedMoves,
         feedbackCorrect: stepSeed.feedbackCorrect,
         feedbackWrong: stepSeed.feedbackWrong,
+        successMessage: stepSeed.feedbackCorrect,
+        wrongMoveMessage: stepSeed.feedbackWrong,
+        validationMode: stepSeed.validationMode || "one_of_many",
+        boardOrientation: stepSeed.boardOrientation || "white",
         nextFen: stepSeed.nextFen || "",
         hintText: stepSeed.hintText || "",
+        allowRetry: stepSeed.allowRetry !== false,
         autoAdvance: !!stepSeed.autoAdvance,
         keepPositionOnWrong: !!stepSeed.keepPositionOnWrong,
+        annotations:
+          stepSeed.annotations && typeof stepSeed.annotations === "object"
+            ? stepSeed.annotations
+            : {},
+        isPublished: stepSeed.isPublished !== false,
       }));
 
       if (stepDocs.length > 0) {

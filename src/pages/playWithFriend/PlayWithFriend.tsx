@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useFriendOnlineGame } from "../../hooks/useFriendOnlineGame";
+import { navigateToNewGameRoute } from "../../components/game/newGameRouting";
 import { useAuthStore } from "../../store/authStore";
 import { useFriendChallengeStore } from "../../store/friendChallengeStore";
 import { FriendGameSetup } from "./FriendGameSetup";
@@ -23,6 +24,7 @@ export default function PlayWithFriend() {
     gameResult,
     isPlayerTurn,
     savedGameId,
+    historyPersistenceStatus,
     showGameOverModal,
     optionSquares,
     preMoveSquares,
@@ -110,10 +112,10 @@ export default function PlayWithFriend() {
     setIsSendingChallenge(false);
   };
 
-  const handleNewGame = () => {
+  const handleNewGame = useCallback(() => {
     resetToSetup();
-    navigate("/friends");
-  };
+    navigateToNewGameRoute(navigate, { mode: "friend" });
+  }, [navigate, resetToSetup]);
 
   // If game started, show the game board
   if (gameStarted) {
@@ -129,6 +131,7 @@ export default function PlayWithFriend() {
         gameResult={gameResult}
         isPlayerTurn={isPlayerTurn}
         savedGameId={savedGameId}
+        historyPersistenceStatus={historyPersistenceStatus}
         showGameOverModal={showGameOverModal}
         optionSquares={optionSquares}
         preMoveSquares={preMoveSquares}

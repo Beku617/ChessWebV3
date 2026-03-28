@@ -4,6 +4,10 @@ import { GameSettings } from "../../components/game";
 import { GameHistoryPayload } from "../useStockfishGameTypes";
 import { detectOpeningFromSan } from "../../utils/openingExplorer";
 import {
+  canPersistHistoryByMoveCount,
+  HistoryPersistenceStatus,
+} from "./historyPersistence";
+import {
   formatDate,
   formatTime,
   formatTimeControl,
@@ -22,6 +26,7 @@ export function useGameHistorySaver(
   historySavedRef: React.MutableRefObject<boolean>,
   saveGameHistory: (payload: GameHistoryPayload) => Promise<string | null>,
   setSavedGameId: (id: string | null) => void,
+  setHistoryPersistenceStatus: (status: HistoryPersistenceStatus) => void,
   fetchLatestSavedGameId?: () => Promise<string | null>,
 ) {
   useEffect(() => {
@@ -36,9 +41,20 @@ export function useGameHistorySaver(
     const durationMs = startTimeRef.current
       ? Date.now() - startTimeRef.current
       : undefined;
+    const persistedMoves = currentGame.history();
+    const shouldPersistHistory = canPersistHistoryByMoveCount(
+      persistedMoves.length,
+    );
+
+    if (!shouldPersistHistory) {
+      setHistoryPersistenceStatus("skipped_short_game");
+      return;
+    }
+
+    setHistoryPersistenceStatus("saving");
 
     // Detect opening
-    const opening = detectOpeningFromSan(currentGame.history());
+    const opening = detectOpeningFromSan(persistedMoves);
     const ecoCode = opening?.eco || "";
     const openingName = opening
       ? opening.variation
@@ -110,7 +126,7 @@ export function useGameHistorySaver(
       blackCountry: "",
       blackTitle: "",
       termination: termination.text,
-      moves: currentGame.history(),
+      moves: persistedMoves,
       moveText: currentGame.pgn(),
       pgn: fullPgn,
       playAs: gameSettings.playAs,
@@ -121,17 +137,26 @@ export function useGameHistorySaver(
     }).then((id) => {
       if (id) {
         setSavedGameId(id);
+        setHistoryPersistenceStatus("saved");
         return;
       }
 
       // Fallback: if backend saved but did not return an id, fetch the latest game id
-      if (!fetchLatestSavedGameId) return;
+      if (!fetchLatestSavedGameId) {
+        setHistoryPersistenceStatus("failed");
+        return;
+      }
       fetchLatestSavedGameId()
         .then((latestId) => {
-          if (latestId) setSavedGameId(latestId);
+          if (latestId) {
+            setSavedGameId(latestId);
+            setHistoryPersistenceStatus("saved");
+            return;
+          }
+          setHistoryPersistenceStatus("failed");
         })
         .catch(() => {
-          // swallow; UI will remain without analyze link but game is already saved
+          setHistoryPersistenceStatus("failed");
         });
     });
   }, [
@@ -144,6 +169,7 @@ export function useGameHistorySaver(
     historySavedRef,
     saveGameHistory,
     setSavedGameId,
+    setHistoryPersistenceStatus,
     fetchLatestSavedGameId,
   ]);
 }

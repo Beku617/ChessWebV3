@@ -98,25 +98,48 @@ function parseAcceptedMove(fen, moveValue) {
   };
 }
 
-function isMoveAccepted(submittedMove, acceptedMoves, fen) {
+function isAcceptedMoveMatch(submitted, accepted) {
+  return (
+    (submitted.uci && submitted.uci === accepted.uci) ||
+    (submitted.san && submitted.san === accepted.san) ||
+    (submitted.raw && submitted.raw === accepted.raw)
+  );
+}
+
+function isMoveAccepted(
+  submittedMove,
+  acceptedMoves,
+  fen,
+  validationMode = "one_of_many",
+) {
   const submitted = {
     raw: normalizeRawMove(submittedMove.san || submittedMove.lan || ""),
     san: normalizeSan(submittedMove.san),
     uci: moveToUci(submittedMove),
   };
 
-  return acceptedMoves
+  const parsedAcceptedMoves = acceptedMoves
     .map((candidate) => parseAcceptedMove(fen, candidate))
-    .filter(Boolean)
-    .some(
-      (accepted) =>
-        (submitted.uci && submitted.uci === accepted.uci) ||
-        (submitted.san && submitted.san === accepted.san) ||
-        (submitted.raw && submitted.raw === accepted.raw),
-    );
+    .filter(Boolean);
+
+  if (parsedAcceptedMoves.length === 0) return false;
+
+  if (validationMode === "exact") {
+    return isAcceptedMoveMatch(submitted, parsedAcceptedMoves[0]);
+  }
+
+  return parsedAcceptedMoves.some((accepted) =>
+    isAcceptedMoveMatch(submitted, accepted),
+  );
 }
 
-function validateLessonMove({ fen, sideToMove, acceptedMoves, payload }) {
+function validateLessonMove({
+  fen,
+  sideToMove,
+  acceptedMoves,
+  validationMode = "one_of_many",
+  payload,
+}) {
   const chess = new Chess(fen);
   const expectedTurn = sideToMove === "black" ? "b" : "w";
 
@@ -141,7 +164,7 @@ function validateLessonMove({ fen, sideToMove, acceptedMoves, payload }) {
     };
   }
 
-  const isCorrect = isMoveAccepted(move, acceptedMoves, fen);
+  const isCorrect = isMoveAccepted(move, acceptedMoves, fen, validationMode);
 
   return {
     isValid: true,
