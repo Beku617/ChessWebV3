@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Chess } from "chess.js";
+import { Chess, type Square } from "chess.js";
 import { Chessboard } from "react-chessboard";
 import {
   ArrowLeft,
@@ -8,8 +8,11 @@ import {
   Copy,
   Loader2,
   Plus,
+  Play,
+  RotateCcw,
   Save,
   Search,
+  Square as SquareIcon,
   Trash2,
 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -113,6 +116,23 @@ function toStepDraft(step: AdminLearnStep): StepDraft {
   };
 }
 
+function splitAcceptedMoves(value: string): string[] {
+  return value
+    .split(/[\n,]+/)
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+}
+
+function mergeAcceptedMoves(values: string[]): string[] {
+  return Array.from(
+    new Set(
+      values
+        .map((entry) => entry.trim())
+        .filter(Boolean),
+    ),
+  );
+}
+
 export default function AdminLearnLesson() {
   const { courseId = "", lessonId = "" } = useParams<{
     courseId: string;
@@ -134,6 +154,11 @@ export default function AdminLearnLesson() {
   const [savingLesson, setSavingLesson] = useState(false);
   const [savingStep, setSavingStep] = useState(false);
   const [processingStepId, setProcessingStepId] = useState<string | null>(null);
+  const [isRecordingAcceptedMoves, setIsRecordingAcceptedMoves] = useState(false);
+  const [recordFromSquare, setRecordFromSquare] = useState<string | null>(null);
+  const [previewMoveSquares, setPreviewMoveSquares] = useState<
+    Record<string, React.CSSProperties>
+  >({});
 
   const selectedStep = useMemo(
     () => steps.find((entry) => entry.id === selectedStepId) || null,
@@ -148,6 +173,11 @@ export default function AdminLearnLesson() {
       return { valid: false, message: "Invalid FEN format." };
     }
   }, [stepDraft.fen]);
+
+  const acceptedMoveTokens = useMemo(
+    () => splitAcceptedMoves(stepDraft.acceptedMoves),
+    [stepDraft.acceptedMoves],
+  );
 
   const loadSteps = async (preferredStepId?: string | null) => {
     if (!lessonId) return;
@@ -192,12 +222,30 @@ export default function AdminLearnLesson() {
     };
   }, [isAuthenticated, lessonId, search]);
 
+  useEffect(() => {
+    if (!previewValidation.valid && isRecordingAcceptedMoves) {
+      setIsRecordingAcceptedMoves(false);
+    }
+  }, [isRecordingAcceptedMoves, previewValidation.valid]);
+
+  useEffect(() => {
+    if (!isRecordingAcceptedMoves) {
+      clearAcceptedMoveSelection();
+    }
+  }, [isRecordingAcceptedMoves]);
+
+  useEffect(() => {
+    clearAcceptedMoveSelection();
+  }, [stepDraft.fen, stepDraft.boardOrientation, stepDraft.sideToMove]);
+
   const handleSelectStep = (step: AdminLearnStep) => {
+    setIsRecordingAcceptedMoves(false);
     setSelectedStepId(step.id);
     setStepDraft(toStepDraft(step));
   };
 
   const handleNewStep = () => {
+    setIsRecordingAcceptedMoves(false);
     setSelectedStepId(null);
     setStepDraft(EMPTY_STEP_DRAFT);
   };
@@ -376,6 +424,125 @@ export default function AdminLearnLesson() {
     }
   };
 
+  const clearAcceptedMoveSelection = () => {
+    setRecordFromSquare(null);
+    setPreviewMoveSquares({});
+  };
+
+  const setAcceptedMoveTokens = (tokens: string[]) => {
+    setStepDraft((current) => {
+      const next = mergeAcceptedMoves(tokens);
+      const normalized =
+        current.validationMode === "exact" ? next.slice(0, 1) : next;
+      return {
+        ...current,
+        acceptedMoves: normalized.join(", "),
+      };
+    });
+  };
+
+  const handleStartAcceptedMoveRecording = () => {
+    if (!previewValidation.valid) {
+      setError("Please enter a valid FEN before recording accepted moves.");
+      return;
+    }
+    setError("");
+    clearAcceptedMoveSelection();
+    setIsRecordingAcceptedMoves(true);
+  };
+
+  const highlightAcceptedMoveOptions = (sourceSquare: string) => {
+    if (!isRecordingAcceptedMoves || !previewValidation.valid) {
+      clearAcceptedMoveSelection();
+      return false;
+    }
+
+    const game = new Chess(stepDraft.fen);
+    const piece = game.get(sourceSquare as Square);
+    if (!piece || piece.color !== game.turn()) {
+      clearAcceptedMoveSelection();
+      return false;
+    }
+
+    const moves = game.moves({ square: sourceSquare as Square, verbose: true });
+    if (moves.length === 0) {
+      clearAcceptedMoveSelection();
+      return false;
+    }
+
+    const optionStyles = moves.reduce<Record<string, React.CSSProperties>>(
+      (styles, move) => {
+        styles[move.to] = {
+          boxShadow:
+            "inset 0 0 0 3px rgba(20,184,166,0.8), inset 0 0 0 6px rgba(20,184,166,0.18)",
+          background:
+            "radial-gradient(circle, rgba(20,184,166,0.45) 38%, rgba(0,0,0,0) 60%)",
+        };
+        return styles;
+      },
+      {},
+    );
+
+    setRecordFromSquare(sourceSquare);
+    setPreviewMoveSquares({
+      [sourceSquare]: { backgroundColor: "rgba(20,184,166,0.25)" },
+      ...optionStyles,
+    });
+    return true;
+  };
+
+  const handleAcceptedMoveDrop = (sourceSquare: string, targetSquare: string) => {
+    if (!isRecordingAcceptedMoves || !previewValidation.valid) return false;
+
+    try {
+      const game = new Chess(stepDraft.fen);
+      const move = game.move({
+        from: sourceSquare,
+        to: targetSquare,
+        promotion: "q",
+      });
+
+      if (!move) return false;
+
+      const token = move.san;
+      if (stepDraft.validationMode === "exact") {
+        setAcceptedMoveTokens([token]);
+      } else {
+        setAcceptedMoveTokens([...acceptedMoveTokens, token]);
+      }
+      clearAcceptedMoveSelection();
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const handlePreviewSquareClick = (square: string) => {
+    if (!isRecordingAcceptedMoves || !previewValidation.valid) return;
+
+    if (!recordFromSquare) {
+      void highlightAcceptedMoveOptions(square);
+      return;
+    }
+
+    if (recordFromSquare === square) {
+      clearAcceptedMoveSelection();
+      return;
+    }
+
+    const game = new Chess(stepDraft.fen);
+    const clickedPiece = game.get(square as Square);
+    if (clickedPiece && clickedPiece.color === game.turn()) {
+      void highlightAcceptedMoveOptions(square);
+      return;
+    }
+
+    const moved = handleAcceptedMoveDrop(recordFromSquare, square);
+    if (moved) {
+      clearAcceptedMoveSelection();
+    }
+  };
+
   if (authLoading) {
     return (
       <div
@@ -434,6 +601,15 @@ export default function AdminLearnLesson() {
   const invalidFenClass = isDarkMode
     ? "mt-3 rounded-lg border border-red-500/25 bg-red-500/10 px-3 py-2 text-xs text-red-200"
     : "mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700";
+  const recordMovesButtonClass = isDarkMode
+    ? "inline-flex items-center gap-1.5 rounded-md border border-teal-400/30 bg-teal-500/15 px-2.5 py-1.5 text-[11px] font-semibold text-teal-200 hover:bg-teal-500/25"
+    : "inline-flex items-center gap-1.5 rounded-md border border-teal-300 bg-teal-100 px-2.5 py-1.5 text-[11px] font-semibold text-teal-800 hover:bg-teal-200";
+  const moveChipClass = isDarkMode
+    ? "inline-flex items-center gap-1 rounded-full border border-slate-700 bg-slate-900 px-2 py-1 text-[11px] text-slate-200"
+    : "inline-flex items-center gap-1 rounded-full border border-gray-300 bg-white px-2 py-1 text-[11px] text-gray-700";
+  const moveChipRemoveClass = isDarkMode
+    ? "rounded-full px-1 text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+    : "rounded-full px-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700";
 
   return (
     <div>
@@ -817,6 +993,68 @@ export default function AdminLearnLesson() {
                             placeholder="Accepted moves (comma or new line)"
                             className={`min-h-[70px] ${textareaClass}`}
                           />
+                          <div className="flex flex-wrap items-center gap-2">
+                            <button
+                              type="button"
+                              disabled={!previewValidation.valid}
+                              onClick={() => {
+                                if (isRecordingAcceptedMoves) {
+                                  clearAcceptedMoveSelection();
+                                  setIsRecordingAcceptedMoves(false);
+                                  return;
+                                }
+                                handleStartAcceptedMoveRecording();
+                              }}
+                              className={`${recordMovesButtonClass} disabled:cursor-not-allowed disabled:opacity-50`}
+                            >
+                              {isRecordingAcceptedMoves ? (
+                                <SquareIcon className="h-3.5 w-3.5" />
+                              ) : (
+                                <Play className="h-3.5 w-3.5" />
+                              )}
+                              {isRecordingAcceptedMoves
+                                ? "Stop board recording"
+                                : "Record from board"}
+                            </button>
+                            <button
+                              type="button"
+                              disabled={acceptedMoveTokens.length === 0}
+                              onClick={() => setAcceptedMoveTokens([])}
+                              className={`${compactNeutralButtonClass} inline-flex items-center gap-1.5 disabled:cursor-not-allowed`}
+                            >
+                              <RotateCcw className="h-3.5 w-3.5" />
+                              Clear moves
+                            </button>
+                            <span className={`text-xs ${mutedTextClass}`}>
+                              Drag or click a legal move on the preview board to add it.
+                            </span>
+                            {stepDraft.validationMode === "exact" && (
+                              <span className={`text-xs ${mutedTextClass}`}>
+                                Exact mode keeps only one accepted move.
+                              </span>
+                            )}
+                          </div>
+                          {acceptedMoveTokens.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5">
+                              {acceptedMoveTokens.map((token) => (
+                                <span key={token} className={moveChipClass}>
+                                  {token}
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setAcceptedMoveTokens(
+                                        acceptedMoveTokens.filter((entry) => entry !== token),
+                                      )
+                                    }
+                                    className={moveChipRemoveClass}
+                                    aria-label={`Remove move ${token}`}
+                                  >
+                                    ×
+                                  </button>
+                                </span>
+                              ))}
+                            </div>
+                          )}
                           <select
                             value={stepDraft.validationMode}
                             onChange={(event) =>
@@ -825,6 +1063,16 @@ export default function AdminLearnLesson() {
                                 validationMode: event.target.value as
                                   | "exact"
                                   | "one_of_many",
+                                acceptedMoves:
+                                  event.target.value === "exact"
+                                    ? mergeAcceptedMoves(
+                                        splitAcceptedMoves(current.acceptedMoves),
+                                      )
+                                        .slice(0, 1)
+                                        .join(", ")
+                                    : mergeAcceptedMoves(
+                                        splitAcceptedMoves(current.acceptedMoves),
+                                      ).join(", "),
                               }))
                             }
                             className={fullInputClass}
@@ -950,7 +1198,11 @@ export default function AdminLearnLesson() {
                             id="admin-learn-step-preview"
                             position={previewValidation.valid ? stepDraft.fen : "start"}
                             boardOrientation={stepDraft.boardOrientation}
-                            arePiecesDraggable={false}
+                            onPieceDrop={handleAcceptedMoveDrop}
+                            onSquareClick={handlePreviewSquareClick}
+                            onSquareRightClick={clearAcceptedMoveSelection}
+                            arePiecesDraggable={isRecordingAcceptedMoves && previewValidation.valid}
+                            customSquareStyles={previewMoveSquares}
                             boardWidth={280}
                           />
                         </div>
@@ -960,7 +1212,9 @@ export default function AdminLearnLesson() {
                           </p>
                         )}
                         <p className={`mt-3 text-xs ${mutedTextClass}`}>
-                          Preview uses current FEN and side to move selection.
+                          {isRecordingAcceptedMoves
+                            ? "Recording active: drag a legal move to add it to accepted moves."
+                            : "Preview uses current FEN and side to move selection."}
                         </p>
                       </div>
                     </aside>

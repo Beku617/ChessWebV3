@@ -6,6 +6,9 @@
     "title": "Language",
     "helper": "Choose your preferred language"
   },
+  "practice": {
+    "description": "Set up custom positions and analyze them."
+  },
   "language": {
     "label": "Language"
   },

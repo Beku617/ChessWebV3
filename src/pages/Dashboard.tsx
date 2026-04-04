@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Trophy } from "lucide-react";
@@ -47,12 +47,6 @@ export default function Dashboard() {
     const timer = setTimeout(() => setLoading(false), 650);
     return () => clearTimeout(timer);
   }, []);
-
-  const viewerCount = useMemo(
-    () =>
-      games.reduce((sum, game) => sum + (Number.parseInt(game.viewers, 10) || 0), 0),
-    [games],
-  );
 
   return (
     <div className="space-y-6 md:space-y-8 min-w-0">
@@ -126,22 +120,6 @@ export default function Dashboard() {
             })}
           </div>
 
-          <div
-            className={`mt-auto pt-6 ${fontSizeGroup.secondary} text-gray-600 dark:text-gray-300`}
-          >
-            <p>
-              <span className="font-semibold text-gray-900 dark:text-white">
-                {loading || apiLoading ? "..." : viewerCount.toLocaleString()}
-              </span>{" "}
-              {t("viewers watching now")}
-            </p>
-            <p className="mt-1">
-              <span className="font-semibold text-gray-900 dark:text-white">
-                {loading || apiLoading ? "..." : games.length.toLocaleString()}
-              </span>{" "}
-              {t("games in play")}
-            </p>
-          </div>
         </aside>
       </motion.section>
 

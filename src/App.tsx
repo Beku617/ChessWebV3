@@ -211,7 +211,7 @@ function Layout({ children }: { children: React.ReactNode }) {
     location.pathname === "/play/friend" ||
     location.pathname === "/play/variants" ||
     location.pathname === "/play/four-player" ||
-    location.pathname === "/play/practice";
+    location.pathname.startsWith("/play/practice");
   const isWorkspacePage = isGamePage || isLearnLessonPage;
   const sidebarOffsetClass = "ml-72";
 
@@ -374,6 +374,14 @@ function App() {
             />
             <Route
               path="/play/practice"
+              element={
+                <ProtectedRoute>
+                  <PlayPractice />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/play/practice/freeMove"
               element={
                 <ProtectedRoute>
                   <PlayPractice />
