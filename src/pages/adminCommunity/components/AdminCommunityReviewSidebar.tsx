@@ -163,7 +163,7 @@ export function AdminCommunityReviewSidebar({
                 <span className="text-gray-400">Posting quota</span>
                 <span
                   className={`font-semibold ${
-                    restrictionDraft.unlimitedPosts ? "text-emerald-200" : "text-gray-300"
+                    restrictionDraft.unlimitedPosts ? "text-brand-200" : "text-gray-300"
                   }`}
                 >
                   {postingQuotaLabel}
@@ -176,7 +176,7 @@ export function AdminCommunityReviewSidebar({
                 onClick={() => onToggleUnlimitedPosting(!restrictionDraft.unlimitedPosts)}
                 className={`inline-flex w-full items-center justify-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-colors disabled:opacity-50 ${
                   restrictionDraft.unlimitedPosts
-                    ? "bg-emerald-500/14 text-emerald-200 hover:bg-emerald-500/22"
+                    ? "bg-brand-500/14 text-brand-200 hover:bg-brand-500/22"
                     : "bg-white/[0.06] text-gray-100 hover:bg-white/[0.12]"
                 }`}
               >
@@ -202,7 +202,7 @@ export function AdminCommunityReviewSidebar({
                   onRestrictionDraftChange({ reason: event.target.value })
                 }
                 placeholder="Optional restriction reason..."
-                className="w-full rounded-xl bg-white/[0.05] px-3.5 py-2.5 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
+                className="w-full rounded-xl bg-white/[0.05] px-3.5 py-2.5 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
               />
 
               <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2.5">
@@ -222,7 +222,7 @@ export function AdminCommunityReviewSidebar({
                     type="button"
                     disabled={isRestrictionBusy}
                     onClick={onClearRestriction}
-                    className="inline-flex items-center justify-center rounded-xl bg-emerald-500/14 px-3.5 py-2.5 text-sm font-semibold text-emerald-200 hover:bg-emerald-500/22 disabled:opacity-50"
+                    className="inline-flex items-center justify-center rounded-xl bg-brand-500/14 px-3.5 py-2.5 text-sm font-semibold text-brand-200 hover:bg-brand-500/22 disabled:opacity-50"
                   >
                     Clear
                   </button>
@@ -251,7 +251,7 @@ export function AdminCommunityReviewSidebar({
               value={rejectionDraft}
               onChange={(event) => onRejectionDraftChange(event.target.value)}
               placeholder="Optional rejection reason..."
-              className="mt-3 min-h-[110px] w-full rounded-[18px] bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
+              className="mt-3 min-h-[110px] w-full rounded-[18px] bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
             />
           )}
 
@@ -261,7 +261,7 @@ export function AdminCommunityReviewSidebar({
                 type="button"
                 disabled={isBusy}
                 onClick={onApprove}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-teal-600 px-4 py-3 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(13,148,136,0.22)] hover:bg-teal-500 disabled:opacity-50"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(13,148,136,0.22)] hover:bg-brand-500 disabled:opacity-50"
               >
                 <Check className="h-4 w-4" />
                 Approve
@@ -332,3 +332,4 @@ export function AdminCommunityReviewSidebar({
     </aside>
   );
 }
+

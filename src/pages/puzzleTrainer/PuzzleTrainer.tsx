@@ -58,7 +58,7 @@ export default function PuzzleTrainer() {
       <div className="h-screen bg-[#0b0f19] text-white flex overflow-hidden">
         <Sidebar />
         <main className="flex-1 ml-72 flex items-center justify-center">
-          <Loader2 className="w-12 h-12 text-teal-500 animate-spin" />
+          <Loader2 className="w-12 h-12 text-brand-500 animate-spin" />
         </main>
       </div>
     );
@@ -73,7 +73,7 @@ export default function PuzzleTrainer() {
           <h2 className="text-xl font-bold text-gray-300">Puzzle not found</h2>
           <button
             onClick={() => navigate("/puzzles")}
-            className="px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-lg"
+            className="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-lg"
           >
             Back to Puzzles
           </button>
@@ -141,3 +141,4 @@ export default function PuzzleTrainer() {
     </div>
   );
 }
+

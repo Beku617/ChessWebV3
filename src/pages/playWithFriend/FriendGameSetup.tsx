@@ -372,7 +372,7 @@ export function FriendGameSetup({
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center">
+                <div className="w-full h-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center">
                   <span className="text-white font-bold text-sm">
                     {user?.fullName?.substring(0, 1).toUpperCase() || "Y"}
                   </span>
@@ -402,7 +402,7 @@ export function FriendGameSetup({
                     value={friendSearch}
                     onChange={(e) => setFriendSearch(e.target.value)}
                     placeholder="Search by username"
-                    className="w-full pl-10 pr-3 py-2 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white text-[12px] border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    className="w-full pl-10 pr-3 py-2 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white text-[12px] border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-brand-500"
                   />
                 </div>
 
@@ -443,7 +443,7 @@ export function FriendGameSetup({
                           }}
                           className={`w-full rounded-lg px-2 py-1.5 flex items-center gap-2 text-left transition-all ${
                             isActive
-                              ? "bg-teal-500/15 ring-1 ring-teal-500/70"
+                              ? "bg-brand-500/15 ring-1 ring-brand-500/70"
                               : "hover:bg-gray-100 dark:hover:bg-slate-800/80"
                           }`}
                         >
@@ -482,7 +482,7 @@ export function FriendGameSetup({
               <>
                 <div className="rounded-2xl border border-gray-200/70 dark:border-white/10 bg-white/70 dark:bg-slate-900/60 p-3">
                   <div className="flex items-center gap-2 text-[12px] font-semibold text-gray-900 dark:text-white">
-                    <Users className="w-4 h-4 text-teal-500" />
+                    <Users className="w-4 h-4 text-brand-500" />
                     <span>Play vs</span>
                   </div>
 
@@ -556,7 +556,7 @@ export function FriendGameSetup({
                             }}
                             className={`w-full px-3 py-2.5 flex items-center justify-between text-left transition-colors ${
                               active
-                                ? "bg-teal-500/15 text-teal-600 dark:text-teal-300"
+                                ? "bg-brand-500/15 text-brand-600 dark:text-brand-300"
                                 : "bg-white dark:bg-slate-900 hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-700 dark:text-gray-200"
                             }`}
                           >
@@ -618,7 +618,7 @@ export function FriendGameSetup({
                                     }}
                                     className={`py-2 rounded-lg text-[12px] font-semibold transition-all ${
                                       selected
-                                        ? "bg-teal-500/20 text-teal-600 dark:text-teal-300 ring-2 ring-teal-500"
+                                        ? "bg-brand-500/20 text-brand-600 dark:text-brand-300 ring-2 ring-brand-500"
                                         : "bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 ring-1 ring-gray-200 dark:ring-slate-700 hover:ring-gray-300 dark:hover:ring-slate-600"
                                     }`}
                                   >
@@ -642,7 +642,7 @@ export function FriendGameSetup({
                     type="button"
                     onClick={() => setIsRated((value) => !value)}
                     className={`relative w-14 h-8 rounded-full transition-colors ${
-                      isRated ? "bg-teal-500" : "bg-gray-300 dark:bg-slate-700"
+                      isRated ? "bg-brand-500" : "bg-gray-300 dark:bg-slate-700"
                     }`}
                     aria-pressed={isRated}
                   >
@@ -669,7 +669,7 @@ export function FriendGameSetup({
                           onClick={() => onPlayAsChange(option.id)}
                           className={`py-2.5 rounded-xl text-[11px] font-semibold transition-all border ${
                             active
-                              ? "bg-teal-500/20 border-teal-500 text-teal-600 dark:text-teal-300"
+                              ? "bg-brand-500/20 border-brand-500 text-brand-600 dark:text-brand-300"
                               : "bg-gray-100 dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-300"
                           }`}
                         >
@@ -689,7 +689,7 @@ export function FriendGameSetup({
                 )}
 
                 {challengeInfo && !challengeError && (
-                  <div className="rounded-xl border border-teal-200 dark:border-teal-500/30 bg-teal-50 dark:bg-teal-500/10 px-3 py-2 text-[12px] text-teal-700 dark:text-teal-300">
+                  <div className="rounded-xl border border-brand-200 dark:border-brand-500/30 bg-brand-50 dark:bg-brand-500/10 px-3 py-2 text-[12px] text-brand-700 dark:text-brand-300">
                     {challengeInfo}
                   </div>
                 )}
@@ -705,7 +705,7 @@ export function FriendGameSetup({
                 disabled={
                   isSendingChallenge || !selectedFriend || !isRealtimeConnected
                 }
-                className="w-full py-3 rounded-2xl bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold text-[15px] transition-all shadow-lg hover:shadow-xl active:scale-[0.98] disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-2"
+                className="w-full py-3 rounded-2xl bg-gradient-to-r from-brand-500 to-cyan-500 hover:from-brand-600 hover:to-cyan-600 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold text-[15px] transition-all shadow-lg hover:shadow-xl active:scale-[0.98] disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-2"
               >
                 <Play className="w-5 h-5" />
                 {isSendingChallenge
@@ -728,3 +728,4 @@ export function FriendGameSetup({
     </div>
   );
 }
+

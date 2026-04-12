@@ -1,11 +1,11 @@
 import { MoveQuality } from "../../hooks/useGameReplay";
 
 const colorMap: Record<MoveQuality, string> = {
-  Best: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200",
+  Best: "bg-brand-100 text-brand-700 dark:bg-brand-900/40 dark:text-brand-200",
   Excellent:
-    "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200",
+    "bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-200",
   Good:
-    "bg-teal-50 text-teal-700 dark:bg-teal-900/30 dark:text-teal-200",
+    "bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-200",
   Book:
     "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-200",
   Inaccuracy:
@@ -47,3 +47,4 @@ export function MoveQualityPill({ quality }: { quality: MoveQuality }) {
     </span>
   );
 }
+

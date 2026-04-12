@@ -50,7 +50,7 @@ export function SettingsMainContent({
   const boardThemes = BOARD_THEME_OPTIONS;
 
   const accentOptions = [
-    { value: "teal", bg: "bg-teal-500", label: t("settings.appearance.accent.teal", "Teal") },
+    { value: "teal", bg: "bg-brand-500", label: t("settings.appearance.accent.teal", "Teal") },
     { value: "purple", bg: "bg-purple-500", label: t("settings.appearance.accent.purple", "Purple") },
     { value: "blue", bg: "bg-blue-500", label: t("settings.appearance.accent.blue", "Blue") },
   ];
@@ -58,10 +58,10 @@ export function SettingsMainContent({
   return (
     <div className="flex-1 min-w-0 space-y-6">
       <SettingsCard
-        icon={<User className="h-5 w-5 text-teal-500" />}
+        icon={<User className="h-5 w-5 text-brand-500" />}
         title={t("settings.profile.title", "Profile & Account")}
         subtitle={t("settings.profile.subtitle", "Your personal information and security")}
-        accent="bg-teal-500"
+        accent="bg-brand-500"
       >
         <div className="flex items-start gap-6 py-2">
           <ProfileAvatarUpload currentAvatar={user?.avatar} userName={user?.fullName} size="md" />
@@ -74,7 +74,7 @@ export function SettingsMainContent({
                 <input
                   type="text"
                   defaultValue={user?.fullName || ""}
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm font-medium transition-all focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/40 dark:border-gray-700 dark:bg-gray-800/80"
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm font-medium transition-all focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/40 dark:border-gray-700 dark:bg-gray-800/80"
                 />
               </div>
               <div>
@@ -193,10 +193,10 @@ export function SettingsMainContent({
       </SettingsCard>
 
       <SettingsCard
-        icon={<Gamepad2 className="h-5 w-5 text-emerald-500" />}
+        icon={<Gamepad2 className="h-5 w-5 text-brand-500" />}
         title={t("settings.gameplay.title", "Gameplay")}
         subtitle={t("settings.gameplay.subtitle", "Tweak your playing experience")}
-        accent="bg-emerald-500"
+        accent="bg-brand-500"
       >
         <SettingRow
           label={t("settings.gameplay.defaultTime", "Default Time Control")}
@@ -367,3 +367,4 @@ export function SettingsMainContent({
     </div>
   );
 }
+

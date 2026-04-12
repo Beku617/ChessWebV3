@@ -85,7 +85,7 @@ export function GameSetupModal({ isOpen, onStart }: GameSetupModalProps) {
 
         <button
           onClick={handleStart}
-          className="w-full py-3 bg-teal-600 hover:bg-teal-500 text-white rounded-lg font-medium flex items-center justify-center gap-2"
+          className="w-full py-3 bg-brand-600 hover:bg-brand-500 text-white rounded-lg font-medium flex items-center justify-center gap-2"
         >
           <Play className="w-5 h-5" />
           {activeTab === "bots" && selectedBot
@@ -96,3 +96,4 @@ export function GameSetupModal({ isOpen, onStart }: GameSetupModalProps) {
     </div>
   );
 }
+

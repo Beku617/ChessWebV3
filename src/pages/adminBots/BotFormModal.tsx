@@ -166,7 +166,7 @@ export function BotFormModal({
                   onChange={(e) =>
                     setFormData({ ...formData, name: e.target.value })
                   }
-                  className={`w-full px-4 py-2 rounded-lg border ${errors.name ? "border-red-500" : "border-gray-300 dark:border-gray-600"} bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500 focus:border-transparent`}
+                  className={`w-full px-4 py-2 rounded-lg border ${errors.name ? "border-red-500" : "border-gray-300 dark:border-gray-600"} bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-transparent`}
                   placeholder="Enter bot name"
                 />
                 {errors.name && (
@@ -189,7 +189,7 @@ export function BotFormModal({
                       }
                       className={`w-10 h-10 text-xl rounded-lg flex items-center justify-center transition-all ${
                         formData.avatar === emoji
-                          ? "bg-teal-500 ring-2 ring-teal-400"
+                          ? "bg-brand-500 ring-2 ring-brand-400"
                           : "bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600"
                       }`}
                     >
@@ -207,7 +207,7 @@ export function BotFormModal({
                 <div className="flex items-center gap-4">
                   <div
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-20 h-20 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center cursor-pointer hover:border-teal-500 transition-colors overflow-hidden"
+                    className="w-20 h-20 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center cursor-pointer hover:border-brand-500 transition-colors overflow-hidden"
                   >
                     {previewUrl ? (
                       <img
@@ -263,7 +263,7 @@ export function BotFormModal({
                       eloRating: parseInt(e.target.value) || 1200,
                     })
                   }
-                  className={`w-full px-4 py-2 rounded-lg border ${errors.eloRating ? "border-red-500" : "border-gray-300 dark:border-gray-600"} bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500`}
+                  className={`w-full px-4 py-2 rounded-lg border ${errors.eloRating ? "border-red-500" : "border-gray-300 dark:border-gray-600"} bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500`}
                 />
                 {errors.eloRating && (
                   <p className="text-red-500 text-xs mt-1">
@@ -285,7 +285,7 @@ export function BotFormModal({
                       difficulty: e.target.value as BotFormData["difficulty"],
                     })
                   }
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500"
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500"
                 >
                   {DIFFICULTY_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -306,7 +306,7 @@ export function BotFormModal({
                   onChange={(e) =>
                     setFormData({ ...formData, category: e.target.value })
                   }
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500"
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500"
                   placeholder="e.g., general, historical, sports"
                 />
               </div>
@@ -322,7 +322,7 @@ export function BotFormModal({
                   onChange={(e) =>
                     setFormData({ ...formData, title: e.target.value })
                   }
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500"
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500"
                   placeholder="e.g., GM, IM, FM"
                 />
               </div>
@@ -342,7 +342,7 @@ export function BotFormModal({
                   }
                   rows={2}
                   maxLength={200}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500 resize-none"
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 resize-none"
                   placeholder="Bot's signature quote..."
                 />
                 <p className="text-xs text-gray-500 text-right">
@@ -361,7 +361,7 @@ export function BotFormModal({
                     setFormData({ ...formData, description: e.target.value })
                   }
                   rows={3}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500 resize-none"
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 resize-none"
                   placeholder="Describe this bot..."
                 />
               </div>
@@ -379,7 +379,7 @@ export function BotFormModal({
                       playStyle: e.target.value as BotFormData["playStyle"],
                     })
                   }
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500"
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500"
                 >
                   {PLAY_STYLE_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -445,7 +445,7 @@ export function BotFormModal({
                         openingBook: e.target.checked,
                       })
                     }
-                    className="w-4 h-4 rounded border-gray-300 text-teal-500 focus:ring-teal-500"
+                    className="w-4 h-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
                   />
                   <span className="text-sm text-gray-700 dark:text-gray-300">
                     Use Opening Book
@@ -458,7 +458,7 @@ export function BotFormModal({
                     onChange={(e) =>
                       setFormData({ ...formData, isActive: e.target.checked })
                     }
-                    className="w-4 h-4 rounded border-gray-300 text-teal-500 focus:ring-teal-500"
+                    className="w-4 h-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
                   />
                   <span className="text-sm text-gray-700 dark:text-gray-300">
                     Active
@@ -480,7 +480,7 @@ export function BotFormModal({
             <button
               type="submit"
               disabled={saving}
-              className="px-6 py-2.5 rounded-lg bg-gradient-to-r from-teal-500 to-emerald-500 text-white font-medium hover:from-teal-600 hover:to-emerald-600 transition-colors disabled:opacity-50"
+              className="px-6 py-2.5 rounded-lg bg-gradient-to-r from-brand-500 to-brand-500 text-white font-medium hover:from-brand-600 hover:to-brand-600 transition-colors disabled:opacity-50"
             >
               {saving ? "Saving..." : editingBot ? "Update Bot" : "Create Bot"}
             </button>
@@ -490,3 +490,4 @@ export function BotFormModal({
     </div>
   );
 }
+

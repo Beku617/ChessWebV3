@@ -68,7 +68,7 @@ export function UsersTable({
                 <th className="text-left px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
                   <button
                     onClick={() => onSort("rating")}
-                    className="hover:text-teal-500"
+                    className="hover:text-brand-500"
                   >
                     Rating
                   </button>
@@ -76,7 +76,7 @@ export function UsersTable({
                 <th className="text-left px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
                   <button
                     onClick={() => onSort("gamesPlayed")}
-                    className="hover:text-teal-500"
+                    className="hover:text-brand-500"
                   >
                     Games
                   </button>
@@ -93,7 +93,7 @@ export function UsersTable({
                 <th className="text-left px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
                   <button
                     onClick={() => onSort("createdAt")}
-                    className="hover:text-teal-500"
+                    className="hover:text-brand-500"
                   >
                     Joined
                   </button>
@@ -127,3 +127,4 @@ export function UsersTable({
     </>
   );
 }
+

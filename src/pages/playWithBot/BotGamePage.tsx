@@ -173,7 +173,7 @@ export default function BotGamePage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-100 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-teal-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -188,7 +188,7 @@ export default function BotGamePage() {
           </h2>
           <button
             onClick={() => navigate("/play/bot")}
-            className="px-6 py-3 rounded-xl bg-teal-500 hover:bg-teal-600 text-white font-medium"
+            className="px-6 py-3 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-medium"
           >
             Back to Bot Selection
           </button>
@@ -198,7 +198,7 @@ export default function BotGamePage() {
   }
 
   return (
-    <div className="h-screen overflow-hidden bg-[#f5f5f7] dark:bg-gray-950 text-gray-900 dark:text-white font-sans selection:bg-teal-500/30 transition-colors duration-300">
+    <div className="h-screen overflow-hidden bg-[#f5f5f7] dark:bg-gray-950 text-gray-900 dark:text-white font-sans selection:bg-brand-500/30 transition-colors duration-300">
       <Sidebar />
 
       {/* Main Content */}
@@ -297,7 +297,7 @@ export default function BotGamePage() {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center">
+                      <div className="w-full h-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center">
                         <span className="text-white font-bold text-sm">
                           {user?.fullName?.substring(0, 1).toUpperCase() || "Y"}
                         </span>
@@ -421,3 +421,4 @@ export default function BotGamePage() {
     </div>
   );
 }
+

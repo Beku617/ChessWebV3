@@ -199,7 +199,7 @@ export default function AdminBots() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-              <Bot className="w-8 h-8 text-teal-500" />
+              <Bot className="w-8 h-8 text-brand-500" />
               Bot Management
             </h1>
             <p className="text-gray-500 dark:text-gray-400 mt-1">
@@ -216,7 +216,7 @@ export default function AdminBots() {
             </button>
             <button
               onClick={handleCreate}
-              className="px-4 py-2 rounded-lg bg-gradient-to-r from-teal-500 to-emerald-500 text-white font-medium hover:from-teal-600 hover:to-emerald-600 transition-colors flex items-center gap-2"
+              className="px-4 py-2 rounded-lg bg-gradient-to-r from-brand-500 to-brand-500 text-white font-medium hover:from-brand-600 hover:to-brand-600 transition-colors flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
               Create Bot
@@ -237,8 +237,8 @@ export default function AdminBots() {
                     {stats.total}
                   </p>
                 </div>
-                <div className="w-12 h-12 rounded-xl bg-teal-500/10 flex items-center justify-center">
-                  <Bot className="w-6 h-6 text-teal-500" />
+                <div className="w-12 h-12 rounded-xl bg-brand-500/10 flex items-center justify-center">
+                  <Bot className="w-6 h-6 text-brand-500" />
                 </div>
               </div>
             </div>
@@ -302,7 +302,7 @@ export default function AdminBots() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search bots..."
-                  className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500"
+                  className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500"
                 />
               </div>
             </div>
@@ -311,7 +311,7 @@ export default function AdminBots() {
             <select
               value={difficultyFilter}
               onChange={(e) => setDifficultyFilter(e.target.value)}
-              className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500"
+              className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500"
             >
               <option value="">All Difficulties</option>
               {DIFFICULTY_OPTIONS.map((opt) => (
@@ -325,7 +325,7 @@ export default function AdminBots() {
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500"
+              className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500"
             >
               <option value="">All Categories</option>
               {categories.map((cat) => (
@@ -339,7 +339,7 @@ export default function AdminBots() {
             <select
               value={activeFilter}
               onChange={(e) => setActiveFilter(e.target.value)}
-              className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-teal-500"
+              className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500"
             >
               <option value="">All Status</option>
               <option value="true">Active</option>
@@ -352,7 +352,7 @@ export default function AdminBots() {
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center py-20">
-              <Loader2 className="w-8 h-8 text-teal-500 animate-spin" />
+              <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
             </div>
           ) : bots.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-gray-500">
@@ -360,7 +360,7 @@ export default function AdminBots() {
               <p>No bots found</p>
               <button
                 onClick={handleCreate}
-                className="mt-4 px-4 py-2 rounded-lg bg-teal-500 text-white hover:bg-teal-600 transition-colors"
+                className="mt-4 px-4 py-2 rounded-lg bg-brand-500 text-white hover:bg-brand-600 transition-colors"
               >
                 Create your first bot
               </button>
@@ -374,7 +374,7 @@ export default function AdminBots() {
                       type="checkbox"
                       checked={selectedBots.length === bots.length}
                       onChange={toggleSelectAll}
-                      className="w-4 h-4 rounded border-gray-300 text-teal-500 focus:ring-teal-500"
+                      className="w-4 h-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
                     />
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
@@ -411,7 +411,7 @@ export default function AdminBots() {
                         type="checkbox"
                         checked={selectedBots.includes(bot._id)}
                         onChange={() => toggleSelectBot(bot._id)}
-                        className="w-4 h-4 rounded border-gray-300 text-teal-500 focus:ring-teal-500"
+                        className="w-4 h-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
                       />
                     </td>
                     <td className="px-4 py-3">
@@ -466,7 +466,7 @@ export default function AdminBots() {
                       <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => handleEdit(bot)}
-                          className="p-2 rounded-lg text-gray-500 hover:text-teal-500 hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors"
+                          className="p-2 rounded-lg text-gray-500 hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"
                           title="Edit"
                         >
                           <Pencil className="w-4 h-4" />
@@ -537,3 +537,4 @@ export default function AdminBots() {
     </div>
   );
 }
+

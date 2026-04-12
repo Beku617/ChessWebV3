@@ -45,7 +45,7 @@ export function SettingsModals({
               type="password"
               value={pwFields.current}
               onChange={(event) => onPwFieldsChange({ current: event.target.value })}
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm transition-all focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/40 dark:border-gray-700 dark:bg-gray-800"
+              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm transition-all focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/40 dark:border-gray-700 dark:bg-gray-800"
               placeholder={t(
                 "settings.modals.changePassword.currentPlaceholder",
                 "Enter current password",
@@ -60,7 +60,7 @@ export function SettingsModals({
               type="password"
               value={pwFields.newPw}
               onChange={(event) => onPwFieldsChange({ newPw: event.target.value })}
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm transition-all focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/40 dark:border-gray-700 dark:bg-gray-800"
+              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm transition-all focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/40 dark:border-gray-700 dark:bg-gray-800"
               placeholder={t(
                 "settings.modals.changePassword.newPlaceholder",
                 "Enter new password",
@@ -75,7 +75,7 @@ export function SettingsModals({
               type="password"
               value={pwFields.confirm}
               onChange={(event) => onPwFieldsChange({ confirm: event.target.value })}
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm transition-all focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/40 dark:border-gray-700 dark:bg-gray-800"
+              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm transition-all focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/40 dark:border-gray-700 dark:bg-gray-800"
               placeholder={t(
                 "settings.modals.changePassword.confirmPlaceholder",
                 "Confirm new password",
@@ -88,7 +88,7 @@ export function SettingsModals({
               showToast(t("settings.toasts.passwordChanged", "Password changed successfully!"));
               onClosePasswordModal();
             }}
-            className="w-full rounded-xl bg-teal-600 py-2.5 text-sm font-bold text-white transition-all hover:bg-teal-500 disabled:bg-gray-300 disabled:text-gray-500 dark:disabled:bg-gray-800"
+            className="w-full rounded-xl bg-brand-600 py-2.5 text-sm font-bold text-white transition-all hover:bg-brand-500 disabled:bg-gray-300 disabled:text-gray-500 dark:disabled:bg-gray-800"
           >
             {t("settings.modals.changePassword.cta", "Update Password")}
           </button>
@@ -142,3 +142,4 @@ export function SettingsModals({
     </>
   );
 }
+

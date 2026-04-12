@@ -59,7 +59,7 @@ export default function AdminSidebar() {
           <div className="text-gray-900 dark:text-white font-bold text-[1.72rem] tracking-tight leading-none">
             NeonGambit
           </div>
-          <span className="mt-1 inline-flex text-xs bg-teal-500/20 text-teal-600 dark:text-teal-400 px-2 py-0.5 rounded-full font-medium">
+          <span className="mt-1 inline-flex text-xs bg-brand-500/20 text-brand-600 dark:text-brand-400 px-2 py-0.5 rounded-full font-medium">
             Admin
           </span>
         </div>
@@ -73,12 +73,12 @@ export default function AdminSidebar() {
             to={item.path}
             className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 group ${
               isActive(item.path)
-                ? "bg-teal-500/10 text-teal-600 dark:text-teal-400 border-l-4 border-teal-500"
+                ? "bg-brand-500/10 text-brand-600 dark:text-brand-400 border-l-4 border-brand-500"
                 : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
             }`}
           >
             <item.icon
-              className={`w-5 h-5 ${isActive(item.path) ? "text-teal-600 dark:text-teal-400" : "text-gray-400 dark:text-gray-500 group-hover:text-gray-900 dark:group-hover:text-white"}`}
+              className={`w-5 h-5 ${isActive(item.path) ? "text-brand-600 dark:text-brand-400" : "text-gray-400 dark:text-gray-500 group-hover:text-gray-900 dark:group-hover:text-white"}`}
             />
             <span className="font-medium">{item.label}</span>
           </Link>
@@ -105,7 +105,7 @@ export default function AdminSidebar() {
         <div className="flex items-center space-x-3 px-4 py-3 rounded-lg bg-gray-100 dark:bg-gray-800">
           <Link
             to="/admin/profile"
-            className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center shadow-lg hover:opacity-80 transition-opacity flex-shrink-0"
+            className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-lg hover:opacity-80 transition-opacity flex-shrink-0"
             title="View admin profile"
           >
             <Shield className="w-5 h-5 text-white" />
@@ -139,3 +139,4 @@ export default function AdminSidebar() {
     </div>
   );
 }
+

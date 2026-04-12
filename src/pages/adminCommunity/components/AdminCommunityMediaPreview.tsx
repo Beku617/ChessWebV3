@@ -86,12 +86,12 @@ export function AdminCommunityMediaPreview({
         <div className="inline-flex items-center gap-2">
           {post.mediaType === "video" ? (
             <>
-              <PlayCircle className="h-3.5 w-3.5 text-teal-300" />
+              <PlayCircle className="h-3.5 w-3.5 text-brand-300" />
               <span>Video preview</span>
             </>
           ) : post.mediaType === "image" ? (
             <>
-              <ImageIcon className="h-3.5 w-3.5 text-teal-300" />
+              <ImageIcon className="h-3.5 w-3.5 text-brand-300" />
               <span>{imageItems.length > 1 ? "Image set" : "Image preview"}</span>
             </>
           ) : (
@@ -107,3 +107,4 @@ export function AdminCommunityMediaPreview({
     </div>
   );
 }
+

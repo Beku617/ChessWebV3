@@ -32,7 +32,7 @@ export function ReplayHeader({
         </div>
         {opening && (
           <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
-            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-teal-50 dark:bg-teal-900/40 text-teal-700 dark:text-teal-200 border border-teal-100 dark:border-teal-800">
+            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-brand-50 dark:bg-brand-900/40 text-brand-700 dark:text-brand-200 border border-brand-100 dark:border-brand-800">
               <Compass className="w-3 h-3" />
               {opening.eco}
             </span>
@@ -55,3 +55,4 @@ export function ReplayHeader({
     </div>
   );
 }
+

@@ -50,13 +50,13 @@ export function FeaturedMatch({
                 ? t("Match")
                 : t("Event")}
           </h2>
-          <span className="text-teal-600 dark:text-teal-500 text-sm font-medium cursor-pointer hover:underline">
+          <span className="text-brand-600 dark:text-brand-500 text-sm font-medium cursor-pointer hover:underline">
             {t("View all events")}
           </span>
         </div>
 
         <div className="bg-white dark:bg-gradient-to-r dark:from-gray-900 dark:to-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-800 shadow-xl relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/5 dark:bg-teal-500/10 rounded-full blur-3xl -mr-16 -mt-16 transition-all group-hover:bg-teal-500/10 dark:group-hover:bg-teal-500/20"></div>
+          <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 dark:bg-brand-500/10 rounded-full blur-3xl -mr-16 -mt-16 transition-all group-hover:bg-brand-500/10 dark:group-hover:bg-brand-500/20"></div>
 
           {/* Event Header */}
           <div className="relative z-10 mb-6">
@@ -160,7 +160,7 @@ export function FeaturedMatch({
           </div>
 
           <div className="flex justify-center gap-4">
-            <button className="flex items-center space-x-2 bg-teal-600 hover:bg-teal-500 text-white px-8 py-3 rounded-lg font-bold transition-all shadow-lg shadow-teal-900/20 hover:scale-105">
+            <button className="flex items-center space-x-2 bg-brand-600 hover:bg-brand-500 text-white px-8 py-3 rounded-lg font-bold transition-all shadow-lg shadow-brand-900/20 hover:scale-105">
               <Eye className="w-5 h-5" />
               <span>{t("Watch Now")}</span>
             </button>
@@ -193,13 +193,13 @@ export function FeaturedMatch({
               {t("via Lichess")}
             </span>
           </h2>
-          <span className="text-teal-600 dark:text-teal-500 text-sm font-medium cursor-pointer hover:underline">
+          <span className="text-brand-600 dark:text-brand-500 text-sm font-medium cursor-pointer hover:underline">
             {t("View all tournaments")}
           </span>
         </div>
 
         <div className="bg-white dark:bg-gradient-to-r dark:from-gray-900 dark:to-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-800 shadow-xl relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/5 dark:bg-teal-500/10 rounded-full blur-3xl -mr-16 -mt-16 transition-all group-hover:bg-teal-500/10 dark:group-hover:bg-teal-500/20"></div>
+          <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 dark:bg-brand-500/10 rounded-full blur-3xl -mr-16 -mt-16 transition-all group-hover:bg-brand-500/10 dark:group-hover:bg-brand-500/20"></div>
 
           <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
             {/* Player 1 */}
@@ -267,7 +267,7 @@ export function FeaturedMatch({
               href={fallbackGame.gameUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center space-x-2 bg-teal-600 hover:bg-teal-500 text-white px-8 py-3 rounded-lg font-bold transition-all shadow-lg shadow-teal-900/20 hover:scale-105"
+              className="flex items-center space-x-2 bg-brand-600 hover:bg-brand-500 text-white px-8 py-3 rounded-lg font-bold transition-all shadow-lg shadow-brand-900/20 hover:scale-105"
             >
               <Eye className="w-5 h-5" />
               <span>{t("Watch on Lichess")}</span>
@@ -295,3 +295,4 @@ export function FeaturedMatch({
     </section>
   );
 }
+

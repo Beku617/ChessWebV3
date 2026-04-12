@@ -68,7 +68,7 @@ function PuzzlePreviewBoard({ puzzleId, fen, onClick }: PuzzlePreviewBoardProps)
     <button
       type="button"
       onClick={onClick}
-      className="w-full text-left rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70"
+      className="w-full text-left rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/70"
       aria-label={t("Open puzzle training")}
     >
       <div
@@ -126,7 +126,7 @@ export function PuzzlesSection({ showTopDivider = true }: PuzzlesSectionProps) {
     return (
       <div className={wrapperClass}>
         <div className="flex items-center justify-center py-8">
-          <Loader2 className="w-6 h-6 animate-spin text-teal-500" />
+          <Loader2 className="w-6 h-6 animate-spin text-brand-500" />
         </div>
       </div>
     );
@@ -161,7 +161,7 @@ export function PuzzlesSection({ showTopDivider = true }: PuzzlesSectionProps) {
         </div>
         <button
           onClick={() => navigate("/puzzles")}
-          className="text-sm text-teal-600 dark:text-teal-400 hover:text-teal-500 dark:hover:text-teal-300 transition-colors"
+          className="text-sm text-brand-600 dark:text-brand-400 hover:text-brand-500 dark:hover:text-brand-300 transition-colors"
         >
           {t("Browse All")}
         </button>
@@ -196,3 +196,4 @@ export function PuzzlesSection({ showTopDivider = true }: PuzzlesSectionProps) {
     </div>
   );
 }
+

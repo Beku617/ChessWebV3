@@ -65,7 +65,7 @@ export function GamePickerPanel({
             disabled={isSubmitting}
             onChange={(event) => onGameSearchChange(event.target.value)}
             placeholder="Search by opponent, opening, result, or time control..."
-            className="w-full rounded-xl bg-white/[0.05] py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500/30 disabled:cursor-not-allowed disabled:opacity-45"
+            className="w-full rounded-xl bg-white/[0.05] py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 disabled:cursor-not-allowed disabled:opacity-45"
           />
         </div>
       </div>
@@ -108,7 +108,7 @@ export function GamePickerPanel({
                   disabled={isLoadingSelectedGame || isSubmitting}
                   className={`w-full rounded-2xl border px-4 py-3 text-left transition-all ${
                     isSelected
-                      ? "border-teal-400/35 bg-teal-500/10"
+                      ? "border-brand-400/35 bg-brand-500/10"
                       : "border-white/[0.06] bg-white/[0.03] hover:border-white/[0.12] hover:bg-white/[0.05]"
                   } disabled:opacity-60`}
                 >
@@ -159,3 +159,4 @@ export function GamePickerPanel({
     </div>
   );
 }
+

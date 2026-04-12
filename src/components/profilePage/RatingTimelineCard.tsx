@@ -137,7 +137,7 @@ export function RatingTimelineCard({
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
           Rating Timeline
         </h3>
-        <LineChartIcon className="w-5 h-5 text-teal-500" />
+        <LineChartIcon className="w-5 h-5 text-brand-500" />
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -149,7 +149,7 @@ export function RatingTimelineCard({
             disabled={!enabled}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${
               pool === option.id
-                ? "bg-teal-500 text-white"
+                ? "bg-brand-500 text-white"
                 : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200"
             } ${!enabled ? "cursor-not-allowed opacity-60" : ""}`}
           >
@@ -167,7 +167,7 @@ export function RatingTimelineCard({
             disabled={!enabled}
             className={`px-2.5 py-1 rounded-md text-[11px] font-semibold ${
               range === option.id
-                ? "bg-teal-100 text-teal-700 dark:bg-teal-500/20 dark:text-teal-300"
+                ? "bg-brand-100 text-brand-700 dark:bg-brand-500/20 dark:text-brand-300"
                 : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
             } ${!enabled ? "cursor-not-allowed opacity-60" : ""}`}
           >
@@ -314,7 +314,7 @@ export function RatingTimelineCard({
               <span>Low {chart.min}</span>
               <span
                 className={`font-semibold ${
-                  delta >= 0 ? "text-emerald-500" : "text-red-500"
+                  delta >= 0 ? "text-brand-500" : "text-red-500"
                 }`}
               >
                 {deltaLabel}
@@ -327,3 +327,4 @@ export function RatingTimelineCard({
     </div>
   );
 }
+

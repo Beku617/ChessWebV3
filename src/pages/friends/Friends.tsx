@@ -89,7 +89,7 @@ function StatusBadge({ status }: { status: FriendRequestItem["status"] }) {
   const map: Record<string, { label: string; color: string }> = {
     accepted: {
       label: "Accepted",
-      color: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
+      color: "bg-brand-500/15 text-brand-300 border-brand-500/30",
     },
     denied: {
       label: "Denied",
@@ -105,7 +105,7 @@ function StatusBadge({ status }: { status: FriendRequestItem["status"] }) {
     },
     pending: {
       label: "Pending",
-      color: "bg-teal-500/10 text-teal-200 border-teal-500/30",
+      color: "bg-brand-500/10 text-brand-200 border-brand-500/30",
     },
   };
   const style = map[status] || map.pending;
@@ -133,7 +133,7 @@ function EmptyState({
 }) {
   return (
     <div className="flex flex-col items-center justify-center gap-3 rounded-2xl bg-gradient-to-b from-[#0c1524]/88 to-[#0b1220]/72 px-4 py-8 text-center shadow-[0_16px_40px_rgba(0,0,0,0.24)] ring-1 ring-[#0d1523]/18">
-      <div className="w-10 h-10 rounded-full bg-[#111b2d] ring-1 ring-[#16243a]/28 flex items-center justify-center text-teal-200/85">
+      <div className="w-10 h-10 rounded-full bg-[#111b2d] ring-1 ring-[#16243a]/28 flex items-center justify-center text-brand-200/85">
         <Icon className="w-4 h-4" />
       </div>
       <div className="text-sm font-semibold text-slate-100">{title}</div>
@@ -157,7 +157,7 @@ function SummaryStat({
 }) {
   return (
     <div className="inline-flex items-center gap-2 rounded-xl bg-[#0b1424]/75 px-3 py-2 shadow-[0_10px_24px_rgba(0,0,0,0.2)] ring-1 ring-[#132035]/18">
-      <div className="w-8 h-8 rounded-lg bg-[#0f1c30] ring-1 ring-[#16243a]/28 flex items-center justify-center text-teal-200">
+      <div className="w-8 h-8 rounded-lg bg-[#0f1c30] ring-1 ring-[#16243a]/28 flex items-center justify-center text-brand-200">
         <Icon className="w-4 h-4" />
       </div>
       <div className="leading-tight">
@@ -190,7 +190,7 @@ function TabButton({
       onClick={() => onSelect(id)}
       className={`relative inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
         isActive
-          ? "bg-gradient-to-br from-[#0f2536] via-[#0c1c2f] to-[#0d1e33] text-teal-100 shadow-[0_8px_18px_rgba(0,0,0,0.28)] ring-1 ring-[#132036]/32"
+          ? "bg-gradient-to-br from-[#0f2536] via-[#0c1c2f] to-[#0d1e33] text-brand-100 shadow-[0_8px_18px_rgba(0,0,0,0.28)] ring-1 ring-[#132036]/32"
           : "bg-[#0b1322]/70 text-slate-300 hover:bg-[#0f1c30] ring ring-transparent hover:ring-[#0f1b2d]/24"
       }`}
     >
@@ -199,7 +199,7 @@ function TabButton({
         <span
           className={`min-w-[22px] h-5 px-1.5 rounded-full text-[11px] font-semibold flex items-center justify-center ${
             isActive
-              ? "bg-teal-500/20 text-teal-100 border border-teal-500/25"
+              ? "bg-brand-500/20 text-brand-100 border border-brand-500/25"
               : "bg-[#162239] text-slate-300/90"
           }`}
         >
@@ -367,11 +367,11 @@ export default function Friends() {
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-sm font-semibold text-teal-100">
+              <div className="w-full h-full flex items-center justify-center text-sm font-semibold text-brand-100">
                 {req.userName.substring(0, 2).toUpperCase()}
               </div>
             )}
-            <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border border-[#0c1424]" />
+            <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-brand-400 border border-[#0c1424]" />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
@@ -395,7 +395,7 @@ export default function Friends() {
               <button
                 onClick={() => void handleAccept(req.id)}
                 disabled={disabled}
-                className="px-3 py-1.5 rounded-lg bg-teal-600 text-white text-xs font-semibold hover:bg-teal-500 disabled:opacity-60 transition-colors shadow-[0_10px_24px_rgba(13,148,136,0.28)]"
+                className="px-3 py-1.5 rounded-lg bg-brand-600 text-white text-xs font-semibold hover:bg-brand-500 disabled:opacity-60 transition-colors shadow-[0_10px_24px_rgba(13,148,136,0.28)]"
               >
                 Accept
               </button>
@@ -436,7 +436,7 @@ export default function Friends() {
         <div className="flex items-center gap-3 min-w-0">
           <button
             type="button"
-            className="w-11 h-11 rounded-full overflow-hidden bg-gradient-to-br from-teal-600 to-emerald-500 text-white font-bold ring-1 ring-teal-500/40"
+            className="w-11 h-11 rounded-full overflow-hidden bg-gradient-to-br from-brand-600 to-brand-500 text-white font-bold ring-1 ring-brand-500/40"
             onClick={() => navigate(`/u/${friend.id}`)}
             title="View profile"
           >
@@ -453,7 +453,7 @@ export default function Friends() {
           <div className="min-w-0 space-y-1">
             <div className="flex items-center gap-2 flex-wrap">
               <div
-                className="text-sm font-semibold text-slate-100 truncate cursor-pointer hover:text-teal-200"
+                className="text-sm font-semibold text-slate-100 truncate cursor-pointer hover:text-brand-200"
                 onClick={() => navigate(`/u/${friend.id}`)}
               >
                 {friend.name}
@@ -466,7 +466,7 @@ export default function Friends() {
             </div>
             <div className="text-xs text-slate-400 flex items-center gap-2 flex-wrap">
               <span className="inline-flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                <span className="w-2 h-2 rounded-full bg-brand-400" />
                 {formatPresence(friend.presenceStatus, friend.lastActiveAt)}
               </span>
               {friend.since && (
@@ -479,7 +479,7 @@ export default function Friends() {
         </div>
         <div className="flex items-center gap-2">
           <button
-            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-teal-500/15 text-teal-200 border border-teal-500/30 hover:bg-teal-500/25"
+            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-500/15 text-brand-200 border border-brand-500/30 hover:bg-brand-500/25"
             onClick={() =>
               navigate(
                 `/messages?chat=${encodeURIComponent(friend.id)}&name=${encodeURIComponent(friend.name)}`,
@@ -518,7 +518,7 @@ export default function Friends() {
 
     if (relation === "friends") {
       return (
-        <span className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/15 text-emerald-200 border border-emerald-500/30">
+        <span className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-500/15 text-brand-200 border border-brand-500/30">
           Friends
         </span>
       );
@@ -528,7 +528,7 @@ export default function Friends() {
         <button
           onClick={() => void handleAccept(result.requestId!)}
           disabled={isProcessing}
-          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-teal-600 text-white hover:bg-teal-500 disabled:opacity-60 shadow-[0_10px_24px_rgba(13,148,136,0.28)]"
+          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-600 text-white hover:bg-brand-500 disabled:opacity-60 shadow-[0_10px_24px_rgba(13,148,136,0.28)]"
         >
           Accept
         </button>
@@ -552,7 +552,7 @@ export default function Friends() {
       <button
         onClick={() => void handleSendRequest(result.id)}
         disabled={isProcessing}
-        className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-teal-600 text-white hover:bg-teal-500 disabled:opacity-60 shadow-[0_10px_24px_rgba(13,148,136,0.28)]"
+        className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-600 text-white hover:bg-brand-500 disabled:opacity-60 shadow-[0_10px_24px_rgba(13,148,136,0.28)]"
       >
         Add Friend
       </button>
@@ -728,7 +728,7 @@ export default function Friends() {
                 <button
                   onClick={() => void handleSearchUsers()}
                   disabled={searching}
-                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-teal-600 text-white font-semibold text-sm hover:bg-teal-500 disabled:opacity-60 shadow-[0_12px_28px_rgba(13,148,136,0.35)]"
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-brand-600 text-white font-semibold text-sm hover:bg-brand-500 disabled:opacity-60 shadow-[0_12px_28px_rgba(13,148,136,0.35)]"
                 >
                   <UserPlus className="w-4 h-4" />
                   {searching ? "Searching..." : "Search"}
@@ -763,7 +763,7 @@ export default function Friends() {
                     <div className="flex items-center gap-3 min-w-0">
                       <button
                         type="button"
-                        className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-600 to-emerald-500 text-white text-sm font-bold overflow-hidden flex items-center justify-center shrink-0"
+                        className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-600 to-brand-500 text-white text-sm font-bold overflow-hidden flex items-center justify-center shrink-0"
                         onClick={() => navigate(`/u/${result.id}`)}
                       >
                         {result.avatar ? (
@@ -779,7 +779,7 @@ export default function Friends() {
                       </button>
                       <div className="min-w-0">
                         <div
-                          className="text-sm font-semibold text-slate-100 truncate cursor-pointer hover:text-teal-200"
+                          className="text-sm font-semibold text-slate-100 truncate cursor-pointer hover:text-brand-200"
                           onClick={() => navigate(`/u/${result.id}`)}
                         >
                           {result.name}
@@ -800,3 +800,4 @@ export default function Friends() {
     </div>
   );
 }
+

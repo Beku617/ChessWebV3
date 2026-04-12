@@ -48,7 +48,7 @@ export function DeleteConversationModal({
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex h-10 items-center justify-center rounded-lg border border-[#25344e] bg-[#0e1727] px-4 text-sm font-medium text-slate-200 transition-colors hover:bg-[#162237] focus:outline-none focus:ring-2 focus:ring-teal-500/30"
+            className="inline-flex h-10 items-center justify-center rounded-lg border border-[#25344e] bg-[#0e1727] px-4 text-sm font-medium text-slate-200 transition-colors hover:bg-[#162237] focus:outline-none focus:ring-2 focus:ring-brand-500/30"
           >
             {t("common.cancel", "Cancel")}
           </button>
@@ -65,3 +65,4 @@ export function DeleteConversationModal({
     </div>
   );
 }
+

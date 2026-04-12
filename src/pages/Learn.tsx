@@ -163,13 +163,13 @@ export default function Learn() {
           label="Completed"
           value={summary.completedLessons}
           icon={<CheckCircle2 className="w-6 h-6" />}
-          iconToneClass="text-emerald-300"
+          iconToneClass="text-brand-300"
         />
         <StatTile
           label="In Progress"
           value={summary.inProgressCourses}
           icon={<Sparkles className="w-6 h-6" />}
-          iconToneClass="text-teal-300"
+          iconToneClass="text-brand-300"
         />
         <StatTile
           label="Day Streak"
@@ -187,7 +187,7 @@ export default function Learn() {
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
               placeholder="Search courses, openings, or grandmasters..."
-              className="h-11 w-full rounded-xl border border-gray-800 bg-gray-950/70 pl-12 pr-4 text-base text-gray-100 placeholder:text-gray-500 focus:outline-none focus:border-teal-300/50"
+              className="h-11 w-full rounded-xl border border-gray-800 bg-gray-950/70 pl-12 pr-4 text-base text-gray-100 placeholder:text-gray-500 focus:outline-none focus:border-brand-300/50"
             />
           </label>
 
@@ -195,7 +195,7 @@ export default function Learn() {
             <select
               value={difficulty}
               onChange={(event) => setDifficulty(event.target.value as DifficultyFilter)}
-              className="h-11 w-full appearance-none rounded-xl border border-gray-800 bg-gray-950/70 px-4 pr-10 text-sm text-gray-100 focus:outline-none focus:border-teal-300/50"
+              className="h-11 w-full appearance-none rounded-xl border border-gray-800 bg-gray-950/70 px-4 pr-10 text-sm text-gray-100 focus:outline-none focus:border-brand-300/50"
             >
               <option value="all">All Difficulty</option>
               <option value="Beginner">Beginner</option>
@@ -211,7 +211,7 @@ export default function Learn() {
               onChange={(event) =>
                 setProgressFilter(event.target.value as ProgressFilter)
               }
-              className="h-11 w-full appearance-none rounded-xl border border-gray-800 bg-gray-950/70 px-4 pr-10 text-sm text-gray-100 focus:outline-none focus:border-teal-300/50"
+              className="h-11 w-full appearance-none rounded-xl border border-gray-800 bg-gray-950/70 px-4 pr-10 text-sm text-gray-100 focus:outline-none focus:border-brand-300/50"
             >
               <option value="all">All Progress</option>
               <option value="not_started">Not Started</option>
@@ -232,8 +232,8 @@ export default function Learn() {
                 onClick={() => setActiveCategory(category)}
                 className={`min-w-[132px] h-11 rounded-full px-5 text-sm font-medium border transition-all ${
                   active
-                    ? "border-teal-400/50 bg-teal-500/15 text-teal-100 shadow-[0_10px_18px_-16px_rgba(20,184,166,0.9)]"
-                    : "border-gray-800 bg-gray-900/70 text-gray-200 hover:border-teal-300/40 hover:text-teal-100"
+                    ? "border-brand-400/50 bg-brand-500/15 text-brand-100 shadow-[0_10px_18px_-16px_rgba(20,184,166,0.9)]"
+                    : "border-gray-800 bg-gray-900/70 text-gray-200 hover:border-brand-300/40 hover:text-brand-100"
                 }`}
               >
                 <span>{category}</span>
@@ -263,7 +263,7 @@ export default function Learn() {
               setDifficulty("all");
               setProgressFilter("all");
             }}
-            className="mt-4 inline-flex h-11 items-center rounded-xl border border-teal-400/35 bg-teal-500/12 px-5 text-sm text-teal-100 hover:bg-teal-500/20"
+            className="mt-4 inline-flex h-11 items-center rounded-xl border border-brand-400/35 bg-brand-500/12 px-5 text-sm text-brand-100 hover:bg-brand-500/20"
           >
             Clear search and filters
           </button>
@@ -285,3 +285,4 @@ export default function Learn() {
     </div>
   );
 }
+

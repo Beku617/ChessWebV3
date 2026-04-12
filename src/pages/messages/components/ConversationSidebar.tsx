@@ -54,7 +54,7 @@ export function ConversationSidebar({
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
             placeholder={t("messages.search", "Search conversations")}
-            className="w-full rounded-xl border border-[#25344e] bg-[#0c1629]/90 py-2.5 pl-10 pr-3 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition-all focus:border-teal-400/80 focus:ring-2 focus:ring-teal-500/20"
+            className="w-full rounded-xl border border-[#25344e] bg-[#0c1629]/90 py-2.5 pl-10 pr-3 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition-all focus:border-brand-400/80 focus:ring-2 focus:ring-brand-500/20"
           />
         </div>
       </div>
@@ -67,7 +67,7 @@ export function ConversationSidebar({
               onClick={() => onTabChange("conversations")}
               className={`flex flex-1 items-center justify-between gap-2 border-r border-[#25344e] px-4 py-3 text-[12px] font-semibold leading-4 transition-all ${
                 chatTab === "conversations"
-                  ? "relative -mb-px border-b border-[#0c1629] bg-[#0c1629] text-teal-300 shadow-[inset_0_1px_0_rgba(37,52,78,0.8)]"
+                  ? "relative -mb-px border-b border-[#0c1629] bg-[#0c1629] text-brand-300 shadow-[inset_0_1px_0_rgba(37,52,78,0.8)]"
                   : "border-b border-[#25344e] bg-[#0c1629]/40 text-slate-400 hover:bg-gray-100 dark:hover:bg-[#13223a]/65 hover:text-slate-200"
               }`}
             >
@@ -75,7 +75,7 @@ export function ConversationSidebar({
               <span
                 className={`inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] ${
                   chatTab === "conversations"
-                    ? "bg-teal-500/15 text-teal-200"
+                    ? "bg-brand-500/15 text-brand-200"
                     : "bg-[#1b2d45] text-slate-300"
                 }`}
               >
@@ -87,7 +87,7 @@ export function ConversationSidebar({
               onClick={() => onTabChange("archived")}
               className={`flex flex-1 items-center justify-between gap-2 border-l border-[#25344e] px-4 py-3 text-[12px] font-semibold leading-4 transition-all ${
                 chatTab === "archived"
-                  ? "relative -mb-px border-b border-[#0c1629] bg-[#0c1629] text-teal-300 shadow-[inset_0_1px_0_rgba(37,52,78,0.8)]"
+                  ? "relative -mb-px border-b border-[#0c1629] bg-[#0c1629] text-brand-300 shadow-[inset_0_1px_0_rgba(37,52,78,0.8)]"
                   : "border-b border-[#25344e] bg-[#0c1629]/40 text-slate-400 hover:bg-gray-100 dark:hover:bg-[#13223a]/65 hover:text-slate-200"
               }`}
             >
@@ -95,7 +95,7 @@ export function ConversationSidebar({
               <span
                 className={`inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] ${
                   chatTab === "archived"
-                    ? "bg-teal-500/15 text-teal-200"
+                    ? "bg-brand-500/15 text-brand-200"
                     : "bg-[#1b2d45] text-slate-300"
                 }`}
               >
@@ -133,7 +133,7 @@ export function ConversationSidebar({
                       onClick={() => onSelectConversation(conversation.partnerId)}
                       className={`group w-full rounded-[14px] border px-3 py-2.5 text-left transition-all duration-200 ${
                         selected
-                          ? "border-teal-400/45 bg-teal-50 dark:bg-[#10253a]/95 shadow-[inset_0_0_0_1px_rgba(45,212,191,0.12),0_8px_18px_rgba(8,145,178,0.12)]"
+                          ? "border-brand-400/45 bg-brand-50 dark:bg-[#10253a]/95 shadow-[inset_0_0_0_1px_rgba(45,212,191,0.12),0_8px_18px_rgba(8,145,178,0.12)]"
                           : "border-[#24334d]/45 bg-[#0d1729]/72 hover:border-gray-300 dark:border-[#314664] hover:bg-[#111e32]/90"
                       }`}
                     >
@@ -188,7 +188,7 @@ export function ConversationSidebar({
                                 </span>
                               </span>
                               {conversation.unreadCount > 0 && (
-                                <span className="inline-flex h-5 min-w-[20px] shrink-0 items-center justify-center rounded-full bg-teal-500 px-1.5 text-[10px] font-semibold text-white">
+                                <span className="inline-flex h-5 min-w-[20px] shrink-0 items-center justify-center rounded-full bg-brand-500 px-1.5 text-[10px] font-semibold text-white">
                                   {conversation.unreadCount > 99
                                     ? "99+"
                                     : conversation.unreadCount}
@@ -209,3 +209,4 @@ export function ConversationSidebar({
     </aside>
   );
 }
+

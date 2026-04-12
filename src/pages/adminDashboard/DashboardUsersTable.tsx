@@ -45,7 +45,7 @@ export function DashboardUsersTable({
     <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden">
       <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h2 className="text-lg font-semibold flex items-center gap-2">
-          <Users className="w-5 h-5 text-teal-500" />
+          <Users className="w-5 h-5 text-brand-500" />
           Users
         </h2>
         <div className="relative">
@@ -55,14 +55,14 @@ export function DashboardUsersTable({
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search users..."
-            className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg pl-9 pr-4 py-2 text-sm focus:outline-none focus:border-teal-500 w-full sm:w-64"
+            className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg pl-9 pr-4 py-2 text-sm focus:outline-none focus:border-brand-500 w-full sm:w-64"
           />
         </div>
       </div>
 
       {loadingUsers ? (
         <div className="p-8 flex justify-center">
-          <Loader2 className="w-6 h-6 text-teal-500 animate-spin" />
+          <Loader2 className="w-6 h-6 text-brand-500 animate-spin" />
         </div>
       ) : users.length === 0 ? (
         <div className="p-8 text-center text-gray-500">No users found</div>
@@ -140,7 +140,7 @@ export function DashboardUsersTable({
                       <div className="flex items-center justify-end gap-1">
                         <Link
                           to={`/admin/users/${user._id}`}
-                          className="p-2 text-gray-400 hover:text-teal-500 hover:bg-teal-100 dark:hover:bg-teal-900/20 rounded-lg transition-colors"
+                          className="p-2 text-gray-400 hover:text-brand-500 hover:bg-brand-100 dark:hover:bg-brand-900/20 rounded-lg transition-colors"
                           title="View profile"
                         >
                           <Eye className="w-4 h-4" />
@@ -193,3 +193,4 @@ export function DashboardUsersTable({
     </div>
   );
 }
+

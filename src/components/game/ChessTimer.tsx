@@ -100,10 +100,11 @@ export function ChessTimer({
       className={`min-w-[108px] px-4 py-2.5 rounded-xl font-mono text-lg font-semibold text-white text-center shadow-inner shadow-black/20 flex items-center justify-center transition-colors ${
         isLowTime && isActive
           ? "bg-gradient-to-r from-amber-500 to-rose-500 animate-pulse"
-          : "bg-gradient-to-r from-teal-500 to-emerald-500"
+          : "bg-gradient-to-r from-brand-500 to-brand-500"
       }`}
     >
       {formatTime(timeLeft)}
     </div>
   );
 }
+

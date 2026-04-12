@@ -89,7 +89,7 @@ export default function Settings() {
   const accentOptions = [
     {
       value: "teal",
-      bg: "bg-teal-500",
+      bg: "bg-brand-500",
       label: t("settings.appearance.accent.teal", "Teal"),
     },
     {
@@ -137,7 +137,7 @@ export default function Settings() {
                 disabled={!dirty}
                 className={`flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-bold transition-all shadow-lg ${
                   dirty
-                    ? "bg-teal-600 hover:bg-teal-500 text-white shadow-teal-900/25"
+                    ? "bg-brand-600 hover:bg-brand-500 text-white shadow-brand-900/25"
                     : "bg-gray-300 dark:bg-gray-800 text-gray-500 cursor-not-allowed shadow-none"
                 }`}
               >
@@ -155,13 +155,13 @@ export default function Settings() {
             <div className="flex-1 min-w-0 space-y-6">
               {/* ─── Profile & Account ─── */}
               <SettingsCard
-                icon={<User className="w-5 h-5 text-teal-500" />}
+                icon={<User className="w-5 h-5 text-brand-500" />}
                 title={t("settings.profile.title", "Profile & Account")}
                 subtitle={t(
                   "settings.profile.subtitle",
                   "Your personal information and security",
                 )}
-                accent="bg-teal-500"
+                accent="bg-brand-500"
               >
                 {/* Avatar + fields row */}
                 <div className="flex items-start gap-6 py-2">
@@ -179,7 +179,7 @@ export default function Settings() {
                         <input
                           type="text"
                           defaultValue={user?.fullName || ""}
-                          className="w-full bg-gray-50 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-teal-500/40 focus:border-teal-500 transition-all"
+                          className="w-full bg-gray-50 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 transition-all"
                         />
                       </div>
                       <div>
@@ -333,13 +333,13 @@ export default function Settings() {
 
               {/* ─── Gameplay ─── */}
               <SettingsCard
-                icon={<Gamepad2 className="w-5 h-5 text-emerald-500" />}
+                icon={<Gamepad2 className="w-5 h-5 text-brand-500" />}
                 title={t("settings.gameplay.title", "Gameplay")}
                 subtitle={t(
                   "settings.gameplay.subtitle",
                   "Tweak your playing experience",
                 )}
-                accent="bg-emerald-500"
+                accent="bg-brand-500"
               >
                 <SettingRow
                   label={t(
@@ -769,9 +769,9 @@ export default function Settings() {
               <div className="rounded-2xl border border-gray-200/60 dark:border-gray-800/80 bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl shadow-sm overflow-hidden">
                 <div className="relative p-6 text-center">
                   {/* Glow */}
-                  <div className="absolute inset-0 bg-gradient-to-b from-teal-500/5 to-transparent pointer-events-none" />
+                  <div className="absolute inset-0 bg-gradient-to-b from-brand-500/5 to-transparent pointer-events-none" />
                   <div className="relative">
-                    <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-teal-900/20 ring-4 ring-white dark:ring-gray-900 overflow-hidden">
+                    <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-lg shadow-brand-900/20 ring-4 ring-white dark:ring-gray-900 overflow-hidden">
                       {user?.avatar ? (
                         <img
                           src={user.avatar}
@@ -928,7 +928,7 @@ export default function Settings() {
               onChange={(e) =>
                 setPwFields((p) => ({ ...p, current: e.target.value }))
               }
-              className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/40 focus:border-teal-500 transition-all"
+              className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 transition-all"
               placeholder={t(
                 "settings.modals.changePassword.currentPlaceholder",
                 "Enter current password",
@@ -945,7 +945,7 @@ export default function Settings() {
               onChange={(e) =>
                 setPwFields((p) => ({ ...p, newPw: e.target.value }))
               }
-              className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/40 focus:border-teal-500 transition-all"
+              className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 transition-all"
               placeholder={t(
                 "settings.modals.changePassword.newPlaceholder",
                 "Enter new password",
@@ -962,7 +962,7 @@ export default function Settings() {
               onChange={(e) =>
                 setPwFields((p) => ({ ...p, confirm: e.target.value }))
               }
-              className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/40 focus:border-teal-500 transition-all"
+              className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500 transition-all"
               placeholder={t(
                 "settings.modals.changePassword.confirmPlaceholder",
                 "Confirm new password",
@@ -985,7 +985,7 @@ export default function Settings() {
               setPasswordModal(false);
               setPwFields({ current: "", newPw: "", confirm: "" });
             }}
-            className="w-full py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 disabled:bg-gray-300 dark:disabled:bg-gray-800 disabled:text-gray-500 text-white font-bold text-sm transition-all"
+            className="w-full py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 disabled:bg-gray-300 dark:disabled:bg-gray-800 disabled:text-gray-500 text-white font-bold text-sm transition-all"
           >
             {t("settings.modals.changePassword.cta", "Update Password")}
           </button>
@@ -1055,3 +1055,4 @@ export default function Settings() {
     </div>
   );
 }
+

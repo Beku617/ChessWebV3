@@ -32,7 +32,7 @@ export function PuzzleActions({
         {status === "correct" || status === "showingSolution" ? (
           <button
             onClick={onNextPuzzle}
-            className="w-full flex items-center justify-center gap-1 py-2 rounded-lg font-bold text-sm bg-teal-600 hover:bg-teal-500 transition-colors"
+            className="w-full flex items-center justify-center gap-1 py-2 rounded-lg font-bold text-sm bg-brand-600 hover:bg-brand-500 transition-colors"
           >
             Next Puzzle <ChevronRight size={18} />
           </button>
@@ -78,3 +78,4 @@ export function PuzzleActions({
     </>
   );
 }
+

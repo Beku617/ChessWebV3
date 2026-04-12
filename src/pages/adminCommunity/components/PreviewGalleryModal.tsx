@@ -55,7 +55,7 @@ export function PreviewGalleryModal({
                 onClick={() => onSelect(index)}
                 className={`h-14 w-14 shrink-0 overflow-hidden rounded-xl transition-all ${
                   index === gallery.index
-                    ? "ring-2 ring-teal-400/60"
+                    ? "ring-2 ring-brand-400/60"
                     : "opacity-70 hover:opacity-100"
                 }`}
               >
@@ -72,3 +72,4 @@ export function PreviewGalleryModal({
     </div>
   );
 }
+

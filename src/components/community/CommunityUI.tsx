@@ -11,7 +11,7 @@ export function TitleBadge({ title }: { title: string }) {
   const colors: Record<string, string> = {
     GM: "bg-amber-500/15 text-amber-500 border-amber-500/20",
     IM: "bg-orange-500/15 text-orange-400 border-orange-500/20",
-    FM: "bg-sky-500/15 text-sky-400 border-sky-500/20",
+    FM: "bg-brand-500/15 text-brand-400 border-brand-500/20",
     WGM: "bg-pink-500/15 text-pink-400 border-pink-500/20",
     CM: "bg-violet-500/15 text-violet-400 border-violet-500/20",
   };
@@ -29,7 +29,7 @@ export function TitleBadge({ title }: { title: string }) {
 /* ─── Verified Check ─── */
 export function VerifiedBadge() {
   return (
-    <CheckCircle2 className="w-3.5 h-3.5 text-teal-400 fill-teal-400/20 shrink-0" />
+    <CheckCircle2 className="w-3.5 h-3.5 text-brand-400 fill-brand-400/20 shrink-0" />
   );
 }
 
@@ -62,7 +62,7 @@ export function Avatar({ initials, src, size = "md", online }: AvatarProps) {
   return (
     <div className="relative shrink-0">
       <div
-        className={`${sizeMap[size]} rounded-full bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white font-bold shadow-lg shadow-teal-900/10 overflow-hidden ring-2 ring-black/25`}
+        className={`${sizeMap[size]} rounded-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center text-white font-bold shadow-lg shadow-brand-900/10 overflow-hidden ring-2 ring-black/25`}
       >
         {resolvedSrc ? (
           <img
@@ -84,7 +84,7 @@ export function Avatar({ initials, src, size = "md", online }: AvatarProps) {
 /* ─── Tag Chip ─── */
 export function TagChip({ tag }: { tag: string }) {
   return (
-    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-teal-500/10 text-teal-500 hover:bg-teal-500/20 transition-colors cursor-pointer">
+    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-brand-500/10 text-brand-500 hover:bg-brand-500/20 transition-colors cursor-pointer">
       {tag}
     </span>
   );
@@ -164,7 +164,7 @@ export function FollowButton({
       className={`rounded-full font-bold transition-all duration-200 ${
         following
           ? "bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-red-100 dark:hover:bg-red-900/20 hover:text-red-500"
-          : "bg-teal-600 hover:bg-teal-500 text-white shadow-md shadow-teal-900/20 hover:shadow-lg"
+          : "bg-brand-600 hover:bg-brand-500 text-white shadow-md shadow-brand-900/20 hover:shadow-lg"
       } ${compact ? "text-[11px] px-3 py-1" : "text-xs px-4 py-1.5"}`}
     >
       {following ? t("Following") : t("Follow")}
@@ -178,3 +178,5 @@ export function formatCount(n: number): string {
   if (n >= 1_000) return `${(n / 1_000).toFixed(1)}k`;
   return String(n);
 }
+
+

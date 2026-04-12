@@ -30,7 +30,7 @@ function formatDate(value?: string): string {
 
 function resultBadgeClass(result: string): string {
   if (result === "1-0") {
-    return "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400";
+    return "bg-brand-500/10 text-brand-600 dark:text-brand-400";
   }
   if (result === "0-1") {
     return "bg-blue-500/10 text-blue-600 dark:text-blue-400";
@@ -163,7 +163,7 @@ export default function AdminGames() {
   if (authLoading) {
     return (
       <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-950 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-teal-500 animate-spin" />
+        <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
       </div>
     );
   }
@@ -176,7 +176,7 @@ export default function AdminGames() {
         <div
           className={`fixed top-5 right-5 z-[90] px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 ${
             notification.type === "success"
-              ? "bg-emerald-500 text-white"
+              ? "bg-brand-500 text-white"
               : "bg-red-500 text-white"
           }`}
         >
@@ -193,7 +193,7 @@ export default function AdminGames() {
         <div className="flex flex-wrap items-start justify-between gap-4 mb-7">
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-3">
-              <Gamepad2 className="w-8 h-8 text-teal-500" />
+              <Gamepad2 className="w-8 h-8 text-brand-500" />
               Games Management
             </h1>
             <p className="text-gray-500 dark:text-gray-400 mt-1">
@@ -214,7 +214,7 @@ export default function AdminGames() {
             <button
               type="button"
               onClick={handleCreateClick}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-teal-500 to-emerald-500 text-white font-medium hover:from-teal-600 hover:to-emerald-600 transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-brand-500 to-brand-500 text-white font-medium hover:from-brand-600 hover:to-brand-600 transition-colors"
             >
               <Plus className="w-4 h-4" />
               Create Game
@@ -232,7 +232,7 @@ export default function AdminGames() {
             </div>
             <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4">
               <p className="text-sm text-gray-500 dark:text-gray-400">Rated</p>
-              <p className="mt-1 text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+              <p className="mt-1 text-2xl font-bold text-brand-600 dark:text-brand-400">
                 {stats.rated}
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -251,7 +251,7 @@ export default function AdminGames() {
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Last 24 Hours
               </p>
-              <p className="mt-1 text-2xl font-bold text-teal-600 dark:text-teal-400">
+              <p className="mt-1 text-2xl font-bold text-brand-600 dark:text-brand-400">
                 {stats.recent24h}
               </p>
             </div>
@@ -270,7 +270,7 @@ export default function AdminGames() {
                     setPage(1);
                   }}
                   placeholder="Search by players, event, ECO..."
-                  className="w-full pl-10 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full pl-10 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
                 />
               </div>
             </div>
@@ -281,7 +281,7 @@ export default function AdminGames() {
                 setVariantFilter(e.target.value);
                 setPage(1);
               }}
-              className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
             >
               <option value="">All Variants</option>
               <option value="standard">Standard</option>
@@ -294,7 +294,7 @@ export default function AdminGames() {
                 setResultFilter(e.target.value);
                 setPage(1);
               }}
-              className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
             >
               <option value="">All Results</option>
               {GAME_RESULT_OPTIONS.map((option) => (
@@ -310,7 +310,7 @@ export default function AdminGames() {
                 setRatedFilter(e.target.value);
                 setPage(1);
               }}
-              className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
             >
               <option value="">All Types</option>
               <option value="true">Rated</option>
@@ -328,7 +328,7 @@ export default function AdminGames() {
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
           {loading ? (
             <div className="py-24 flex items-center justify-center">
-              <Loader2 className="w-8 h-8 text-teal-500 animate-spin" />
+              <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
             </div>
           ) : games.length === 0 ? (
             <div className="py-20 text-center text-gray-500 dark:text-gray-400">
@@ -337,7 +337,7 @@ export default function AdminGames() {
               <button
                 type="button"
                 onClick={handleCreateClick}
-                className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-teal-500 text-white hover:bg-teal-600 transition-colors"
+                className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-brand-500 text-white hover:bg-brand-600 transition-colors"
               >
                 <Plus className="w-4 h-4" />
                 Create First Game
@@ -399,7 +399,7 @@ export default function AdminGames() {
                         <span
                           className={`ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                             game.rated
-                              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                              ? "bg-brand-500/10 text-brand-600 dark:text-brand-400"
                               : "bg-gray-500/10 text-gray-600 dark:text-gray-400"
                           }`}
                         >
@@ -440,7 +440,7 @@ export default function AdminGames() {
                           <button
                             type="button"
                             onClick={() => navigate(`/admin/analyze/${game._id}`)}
-                            className="p-2 rounded-lg text-gray-500 hover:text-teal-500 hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-colors"
+                            className="p-2 rounded-lg text-gray-500 hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"
                             title="Analyze"
                           >
                             <Eye className="w-4 h-4" />
@@ -522,3 +522,4 @@ export default function AdminGames() {
     </div>
   );
 }
+

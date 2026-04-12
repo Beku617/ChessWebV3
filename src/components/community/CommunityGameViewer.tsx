@@ -345,7 +345,7 @@ function CommunityGameViewerComponent({
                     to={analyzeHref}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-teal-200/90 transition-colors hover:text-teal-100"
+                    className="text-brand-200/90 transition-colors hover:text-brand-100"
                   >
                     Analyze game
                   </Link>
@@ -366,3 +366,4 @@ function CommunityGameViewerComponent({
 }
 
 export const CommunityGameViewer = memo(CommunityGameViewerComponent);
+

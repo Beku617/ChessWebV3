@@ -102,7 +102,7 @@ export function buildSubmissionBlockedMessage(
 }
 
 export function perspectiveTone(value: ComposerPerspectiveResult) {
-  if (value === "win") return "bg-emerald-500/12 text-emerald-200";
+  if (value === "win") return "bg-brand-500/12 text-brand-200";
   if (value === "loss") return "bg-red-500/12 text-red-200";
   if (value === "draw") return "bg-slate-500/14 text-slate-200";
   return "bg-white/[0.06] text-gray-300";
@@ -120,3 +120,4 @@ export async function fetchGameDetail(gameId: string) {
   }
   return data.game;
 }
+

@@ -44,12 +44,12 @@ export function LessonPanel({
       <div className="px-3.5 pt-3 pb-2.5 border-b border-slate-800 bg-[radial-gradient(circle_at_top_right,rgba(20,184,166,0.15),rgba(2,6,23,0.95)_50%)]">
         <button
           onClick={onBackToCatalog}
-          className="inline-flex items-center gap-1 text-[11px] text-teal-300 hover:text-teal-200 transition-colors"
+          className="inline-flex items-center gap-1 text-[11px] text-brand-300 hover:text-brand-200 transition-colors"
         >
           <ChevronLeft className="w-3 h-3" />
           Back to Learn
         </button>
-        <p className="mt-1.5 text-[10px] uppercase tracking-[0.14em] text-teal-300/80">
+        <p className="mt-1.5 text-[10px] uppercase tracking-[0.14em] text-brand-300/80">
           {courseTitle}
         </p>
       </div>
@@ -62,7 +62,7 @@ export function LessonPanel({
           </div>
           <div className="h-1.5 rounded-full bg-slate-800 overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-teal-400 to-emerald-300"
+              className="h-full bg-gradient-to-r from-brand-400 to-brand-300"
               style={{ width: `${courseProgress.percentComplete}%` }}
             />
           </div>
@@ -83,7 +83,7 @@ export function LessonPanel({
                 onClick={() => onOpenLesson(lesson.slug)}
                 className={`w-full rounded-lg px-2.5 py-1.5 border text-left transition-colors ${
                   active
-                    ? "border-teal-400/35 bg-teal-500/10"
+                    ? "border-brand-400/35 bg-brand-500/10"
                     : "border-slate-800 bg-slate-900/80 hover:border-slate-700"
                 }`}
               >
@@ -91,9 +91,9 @@ export function LessonPanel({
                   <span
                     className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${
                       lesson.isCompleted
-                        ? "bg-emerald-500/20 text-emerald-300"
+                        ? "bg-brand-500/20 text-brand-300"
                         : active
-                          ? "bg-teal-500/30 text-teal-200"
+                          ? "bg-brand-500/30 text-brand-200"
                           : "bg-slate-800 text-slate-400"
                     }`}
                   >
@@ -124,7 +124,7 @@ export function LessonPanel({
           {hasNextLesson ? (
             <button
               onClick={onNextLesson}
-              className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs bg-teal-500/20 border border-teal-400/35 text-teal-200 hover:bg-teal-500/30"
+              className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs bg-brand-500/20 border border-brand-400/35 text-brand-200 hover:bg-brand-500/30"
             >
               <ChevronRight className="w-3.5 h-3.5" />
               Next Lesson
@@ -143,3 +143,4 @@ export function LessonPanel({
     </aside>
   );
 }
+

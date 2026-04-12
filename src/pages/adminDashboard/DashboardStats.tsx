@@ -10,9 +10,9 @@ interface StatCardProps {
 
 export function StatCard({ icon, label, value, color }: StatCardProps) {
   const colors = {
-    teal: "from-teal-500 to-emerald-600",
+    teal: "from-brand-500 to-brand-600",
     blue: "from-blue-500 to-cyan-600",
-    green: "from-green-500 to-emerald-600",
+    green: "from-green-500 to-brand-600",
     purple: "from-purple-500 to-pink-600",
   };
 
@@ -71,3 +71,4 @@ export function DashboardStats({ stats }: DashboardStatsProps) {
     </div>
   );
 }
+

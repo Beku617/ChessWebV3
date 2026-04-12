@@ -22,7 +22,7 @@ export function GameCardMoveHistory({
               {m}
             </span>
           ))}
-          <span className="font-bold text-teal-600 dark:text-teal-400 ml-2">
+          <span className="font-bold text-brand-600 dark:text-brand-400 ml-2">
             {result}
           </span>
         </p>
@@ -30,3 +30,4 @@ export function GameCardMoveHistory({
     </div>
   );
 }
+

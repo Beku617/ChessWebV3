@@ -39,9 +39,11 @@ export function presenceText(status: PresenceStatus, lastSeen?: string | Date | 
 }
 
 export function presenceDotClass(status: PresenceStatus) {
-  if (status === "online") return "bg-emerald-500";
+  if (status === "online") return "bg-brand-500";
   if (status === "in_game") return "bg-amber-500";
-  if (status === "searching_match") return "bg-sky-500";
+  if (status === "searching_match") return "bg-brand-500";
   if (status === "away") return "bg-yellow-500";
   return "bg-gray-400";
 }
+
+

@@ -98,7 +98,7 @@ export function ReplayMoveList({
                 <div
                   className={`px-3 py-2.5 cursor-pointer transition-all ${
                     currentPly === row.plyWhite
-                      ? "bg-teal-500/20 dark:bg-teal-500/20"
+                      ? "bg-brand-500/20 dark:bg-brand-500/20"
                       : "hover:bg-gray-100 dark:hover:bg-gray-700/50"
                   }`}
                   onClick={() => onJumpTo(row.plyWhite)}
@@ -107,7 +107,7 @@ export function ReplayMoveList({
                     <span
                       className={`font-mono text-sm ${
                         currentPly === row.plyWhite
-                          ? "text-teal-700 dark:text-teal-300 font-semibold"
+                          ? "text-brand-700 dark:text-brand-300 font-semibold"
                           : "text-gray-800 dark:text-gray-200"
                       }`}
                     >
@@ -123,7 +123,7 @@ export function ReplayMoveList({
                 <div
                   className={`px-3 py-2.5 cursor-pointer transition-all ${
                     row.plyBlack && currentPly === row.plyBlack
-                      ? "bg-teal-500/20 dark:bg-teal-500/20"
+                      ? "bg-brand-500/20 dark:bg-brand-500/20"
                       : row.black
                         ? "hover:bg-gray-100 dark:hover:bg-gray-700/50"
                         : ""
@@ -134,7 +134,7 @@ export function ReplayMoveList({
                     <span
                       className={`font-mono text-sm ${
                         row.plyBlack && currentPly === row.plyBlack
-                          ? "text-teal-700 dark:text-teal-300 font-semibold"
+                          ? "text-brand-700 dark:text-brand-300 font-semibold"
                           : "text-gray-800 dark:text-gray-200"
                       }`}
                     >
@@ -160,3 +160,4 @@ export function ReplayMoveList({
     </div>
   );
 }
+

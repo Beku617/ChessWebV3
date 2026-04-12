@@ -149,7 +149,7 @@ export function ProfileHeader({
           animate={{ opacity: 1, y: 0 }}
           className="relative overflow-hidden rounded-2xl border border-gray-200/70 dark:border-white/10 bg-gradient-to-br from-white via-gray-50 to-slate-100 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 shadow-[0_12px_35px_rgba(15,23,42,0.08)] dark:shadow-[0_22px_48px_rgba(0,0,0,0.5)] p-4 lg:p-5"
         >
-          <div className="pointer-events-none absolute -top-20 -left-12 w-64 h-64 rounded-full bg-teal-400/15 blur-3xl" />
+          <div className="pointer-events-none absolute -top-20 -left-12 w-64 h-64 rounded-full bg-brand-400/15 blur-3xl" />
           <div className="relative z-10 flex flex-col xl:flex-row xl:items-start gap-5">
             <div className="flex-shrink-0">
               {isMe ? (
@@ -160,7 +160,7 @@ export function ProfileHeader({
                   editable={true}
                 />
               ) : (
-                <div className="w-40 h-40 rounded-2xl bg-gradient-to-br from-teal-500 to-emerald-600 shadow-[0_0_42px_rgba(20,184,166,0.28)] ring-4 ring-white/70 dark:ring-black/30 overflow-hidden flex items-center justify-center text-white text-4xl font-bold">
+                <div className="w-40 h-40 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-600 shadow-[0_0_42px_rgba(20,184,166,0.28)] ring-4 ring-white/70 dark:ring-black/30 overflow-hidden flex items-center justify-center text-white text-4xl font-bold">
                   {user?.avatar ? (
                     <img
                       src={resolveAvatarUrl(user.avatar)}
@@ -211,7 +211,7 @@ export function ProfileHeader({
                         disabled={!canChallenge}
                         className={`px-4 py-2.5 rounded-lg text-sm font-semibold inline-flex items-center gap-2 transition-colors ${
                           canChallenge
-                            ? "bg-teal-600 hover:bg-teal-700 text-white shadow-[0_8px_20px_rgba(13,148,136,0.35)]"
+                            ? "bg-brand-600 hover:bg-brand-700 text-white shadow-[0_8px_20px_rgba(13,148,136,0.35)]"
                             : "cursor-not-allowed bg-slate-200 text-slate-500 dark:bg-slate-800/60 dark:text-slate-400"
                         }`}
                       >
@@ -223,7 +223,7 @@ export function ProfileHeader({
                       type="button"
                       onClick={onRemoveFriend}
                       disabled={friendLoading}
-                      className="px-4 py-2.5 rounded-lg border border-teal-400/40 bg-teal-50/80 dark:bg-teal-500/10 hover:bg-teal-100 dark:hover:bg-teal-500/20 text-sm font-semibold text-teal-700 dark:text-teal-300 inline-flex items-center gap-2 transition-colors disabled:opacity-50"
+                      className="px-4 py-2.5 rounded-lg border border-brand-400/40 bg-brand-50/80 dark:bg-brand-500/10 hover:bg-brand-100 dark:hover:bg-brand-500/20 text-sm font-semibold text-brand-700 dark:text-brand-300 inline-flex items-center gap-2 transition-colors disabled:opacity-50"
                     >
                       <UserCheck size={16} />
                       Friends
@@ -234,7 +234,7 @@ export function ProfileHeader({
                         type="button"
                         onClick={() => onAcceptRequest?.()}
                         disabled={friendLoading}
-                        className="px-4 py-2.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-sm font-semibold text-white inline-flex items-center gap-2 transition-colors disabled:opacity-50"
+                        className="px-4 py-2.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-sm font-semibold text-white inline-flex items-center gap-2 transition-colors disabled:opacity-50"
                       >
                         <UserCheck size={16} />
                         Accept
@@ -327,3 +327,4 @@ export function ProfileHeader({
     </div>
   );
 }
+

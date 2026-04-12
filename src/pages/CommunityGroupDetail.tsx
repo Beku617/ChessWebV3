@@ -200,7 +200,7 @@ export default function CommunityGroupDetail() {
         <div className="relative z-10 mx-auto max-w-[1500px] px-6 py-7">
           {loading ? (
             <div className="rounded-2xl bg-[#0c1728]/82 py-24 flex items-center justify-center shadow-[0_22px_65px_rgba(0,0,0,0.22)]">
-              <Loader2 className="h-8 w-8 animate-spin text-teal-400" />
+              <Loader2 className="h-8 w-8 animate-spin text-brand-400" />
             </div>
           ) : error ? (
             <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-5 py-4 text-sm text-red-200">
@@ -221,7 +221,7 @@ export default function CommunityGroupDetail() {
                   <div className="flex min-w-0 flex-1 items-start gap-4">
                     <CommunityGroupAvatar group={group} size="lg" />
                     <div className="min-w-0">
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-teal-200/70">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-brand-200/70">
                         Public Group
                       </div>
                       <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white">
@@ -355,3 +355,4 @@ export default function CommunityGroupDetail() {
     </div>
   );
 }
+

@@ -39,7 +39,7 @@ export function SettingsHeader({
             disabled={!dirty}
             className={`flex items-center gap-2 rounded-xl px-5 py-2 text-sm font-bold transition-all shadow-lg ${
               dirty
-                ? "bg-teal-600 text-white shadow-teal-900/25 hover:bg-teal-500"
+                ? "bg-brand-600 text-white shadow-brand-900/25 hover:bg-brand-500"
                 : "cursor-not-allowed bg-gray-300 text-gray-500 shadow-none dark:bg-gray-800"
             }`}
           >
@@ -51,3 +51,4 @@ export function SettingsHeader({
     </div>
   );
 }
+

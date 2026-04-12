@@ -1,8 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Chess, Square } from "chess.js";
-import { Target } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactElement } from "react";
 import { Chessboard } from "react-chessboard";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useBoardTheme } from "../../hooks/useBoardTheme";
@@ -22,9 +21,86 @@ type PracticeModeId =
 interface PracticeMode {
   id: PracticeModeId;
   title: string;
-  description: string;
-  icon: string;
+  desc: string;
+  badge: "Live" | "Soon";
+  icon: (color: string) => ReactElement;
 }
+
+type BuilderPieceId =
+  | "wK"
+  | "wQ"
+  | "wR"
+  | "wB"
+  | "wN"
+  | "wP"
+  | "bK"
+  | "bQ"
+  | "bR"
+  | "bB"
+  | "bN"
+  | "bP"
+  | "eraser";
+
+type BoardPieceConfig = {
+  color: "w" | "b";
+  type: "k" | "q" | "r" | "b" | "n" | "p";
+  label: string;
+};
+
+type FreeMoveHistoryEntry = {
+  color: "w" | "b";
+  fenAfter: string;
+  fenBefore: string;
+  from: Square;
+  promotion?: "q" | "r" | "b" | "n";
+  san: string;
+  to: Square;
+};
+
+const POSITION_BUILDER_BOARD_PIECES: Record<
+  Exclude<BuilderPieceId, "eraser">,
+  BoardPieceConfig
+> = {
+  wK: { color: "w", type: "k", label: "K" },
+  wQ: { color: "w", type: "q", label: "Q" },
+  wR: { color: "w", type: "r", label: "R" },
+  wB: { color: "w", type: "b", label: "B" },
+  wN: { color: "w", type: "n", label: "N" },
+  wP: { color: "w", type: "p", label: "P" },
+  bK: { color: "b", type: "k", label: "K" },
+  bQ: { color: "b", type: "q", label: "Q" },
+  bR: { color: "b", type: "r", label: "R" },
+  bB: { color: "b", type: "b", label: "B" },
+  bN: { color: "b", type: "n", label: "N" },
+  bP: { color: "b", type: "p", label: "P" },
+};
+
+const POSITION_BUILDER_WHITE_PIECES: Array<Exclude<BuilderPieceId, "eraser">> =
+  ["wK", "wQ", "wR", "wB", "wN", "wP"];
+const POSITION_BUILDER_BLACK_PIECES: Array<Exclude<BuilderPieceId, "eraser">> =
+  ["bK", "bQ", "bR", "bB", "bN", "bP"];
+const POSITION_BUILDER_PIECE_SYMBOLS: Record<
+  Exclude<BuilderPieceId, "eraser">,
+  string
+> = {
+  wK: "\u2654",
+  wQ: "\u2655",
+  wR: "\u2656",
+  wB: "\u2657",
+  wN: "\u2658",
+  wP: "\u2659",
+  bK: "\u265A",
+  bQ: "\u265B",
+  bR: "\u265C",
+  bB: "\u265D",
+  bN: "\u265E",
+  bP: "\u265F",
+};
+
+const PRACTICE_MODE_ROUTES: Partial<Record<PracticeModeId, string>> = {
+  "free-move": "/play/practice/freeMove",
+  "position-builder": "/play/practice/positionBuilder",
+};
 
 const PIECE_VALUES: Record<string, number> = {
   p: 1,
@@ -51,38 +127,176 @@ const LEGAL_CAPTURE_STYLE: CSSProperties = {
   borderRadius: "0",
 };
 
+const FREE_MOVE_ARROW_BUTTON_STYLE: CSSProperties = {
+  width: 36,
+  height: 36,
+  borderRadius: 9,
+  background: "#1a2540",
+  border: "1px solid #263045",
+  color: "#64748b",
+  cursor: "pointer",
+  fontSize: 14,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+};
+
+const FREE_MOVE_BASE_BUTTON_STYLE: CSSProperties = {
+  padding: 10,
+  borderRadius: 9,
+  border: "1px solid #263045",
+  fontSize: 12.5,
+  fontWeight: 600,
+  cursor: "pointer",
+};
+
 const PRACTICE_MODES: PracticeMode[] = [
   {
     id: "free-move",
     title: "Free Move",
-    description: "Move pieces freely for both sides, alternating turns.",
-    icon: "♟️",
+    desc: "Move pieces freely, alternating turns",
+    badge: "Live",
+    icon: (color) => (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke={color}
+        strokeWidth={1.8}
+        width={18}
+        height={18}
+      >
+        <path d="M5 9l7-7 7 7M5 15l7 7 7-7" />
+      </svg>
+    ),
   },
   {
     id: "position-builder",
     title: "Position Builder",
-    description: "Drag and drop pieces to set up any custom position.",
-    icon: "🧱",
+    desc: "Set up any custom position",
+    badge: "Live",
+    icon: (color) => (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke={color}
+        strokeWidth={1.8}
+        width={18}
+        height={18}
+      >
+        <rect x="3" y="3" width="7" height="7" rx="1.5" />
+        <rect x="14" y="3" width="7" height="7" rx="1.5" />
+        <rect x="3" y="14" width="7" height="7" rx="1.5" />
+        <rect x="14" y="14" width="7" height="7" rx="1.5" />
+      </svg>
+    ),
   },
   {
     id: "engine-sparring",
     title: "Engine Sparring",
-    description: "Play against the built-in engine from any position.",
-    icon: "🤖",
+    desc: "Play against the built-in engine",
+    badge: "Soon",
+    icon: (color) => (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke={color}
+        strokeWidth={1.8}
+        width={18}
+        height={18}
+      >
+        <circle cx="12" cy="12" r="3" />
+        <path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12" />
+      </svg>
+    ),
   },
   {
     id: "endgame-drills",
     title: "Endgame Drills",
-    description: "Practice common endgame patterns.",
-    icon: "🏁",
+    desc: "Practice common endgame patterns",
+    badge: "Soon",
+    icon: (color) => (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke={color}
+        strokeWidth={1.8}
+        width={18}
+        height={18}
+      >
+        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+      </svg>
+    ),
   },
   {
     id: "pattern-recognition",
     title: "Pattern Recognition",
-    description: "Solve positions by identifying the key theme.",
-    icon: "🧠",
+    desc: "Identify the key theme to solve",
+    badge: "Soon",
+    icon: (color) => (
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke={color}
+        strokeWidth={1.8}
+        width={18}
+        height={18}
+      >
+        <circle cx="12" cy="12" r="10" />
+        <path d="M12 8v4l3 3" />
+      </svg>
+    ),
   },
 ];
+
+function hasCheckMethod(game: Chess) {
+  const candidate = game as unknown as {
+    isCheck?: () => boolean;
+    in_check?: () => boolean;
+  };
+  if (typeof candidate.isCheck === "function") return candidate.isCheck();
+  if (typeof candidate.in_check === "function") return candidate.in_check();
+  return false;
+}
+
+function hasCheckmateMethod(game: Chess) {
+  const candidate = game as unknown as {
+    isCheckmate?: () => boolean;
+    in_checkmate?: () => boolean;
+  };
+  if (typeof candidate.isCheckmate === "function") return candidate.isCheckmate();
+  if (typeof candidate.in_checkmate === "function") return candidate.in_checkmate();
+  return false;
+}
+
+function hasGameOverMethod(game: Chess) {
+  const candidate = game as unknown as {
+    game_over?: () => boolean;
+    isGameOver?: () => boolean;
+  };
+  if (typeof candidate.isGameOver === "function") return candidate.isGameOver();
+  if (typeof candidate.game_over === "function") return candidate.game_over();
+  return false;
+}
+
+function hasStalemateMethod(game: Chess) {
+  const candidate = game as unknown as {
+    isStalemate?: () => boolean;
+    in_stalemate?: () => boolean;
+  };
+  if (typeof candidate.isStalemate === "function") return candidate.isStalemate();
+  if (typeof candidate.in_stalemate === "function") return candidate.in_stalemate();
+  return false;
+}
+
+function isSideInCheck(game: Chess, side: "w" | "b") {
+  const fenParts = game.fen().split(" ");
+  if (fenParts.length < 6) return false;
+  fenParts[1] = side;
+  const checkGame = new Chess();
+  const loaded = checkGame.load(fenParts.join(" "));
+  if (!loaded) return false;
+  return hasCheckMethod(checkGame);
+}
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
@@ -125,23 +339,35 @@ function buildMoveRows(moves: string[]) {
   return rows;
 }
 
-function cloneGameWithHistory(current: Chess) {
-  const clone = new Chess();
-  const verboseMoves = current.history({ verbose: true });
-
-  if (verboseMoves.length > 0) {
-    for (const move of verboseMoves) {
-      clone.move({
-        from: move.from,
-        to: move.to,
-        promotion: move.promotion ?? undefined,
-      });
+function createGameFromFen(fen: string) {
+  const game = new Chess();
+  if (fen !== "start") {
+    const loaded = game.load(fen);
+    if (!loaded) {
+      return new Chess();
     }
-    return clone;
   }
+  return game;
+}
 
-  clone.load(current.fen());
-  return clone;
+function buildGameFromHistory(initialFen: string, moves: FreeMoveHistoryEntry[]) {
+  const game = createGameFromFen(initialFen);
+  for (const move of moves) {
+    game.move({
+      from: move.from,
+      to: move.to,
+      promotion: move.promotion,
+    });
+  }
+  return game;
+}
+
+function sanitizeFenForPractice(rawFen: string, preferredTurn?: "w" | "b") {
+  const parts = rawFen.trim().split(/\s+/);
+  if (parts.length < 2) return null;
+  const board = parts[0];
+  const turn = preferredTurn ?? (parts[1] === "b" ? "b" : "w");
+  return [board, turn, "-", "-", "0", "1"].join(" ");
 }
 
 export default function PlayPractice() {
@@ -149,10 +375,51 @@ export default function PlayPractice() {
   const location = useLocation();
   const { colors } = useBoardTheme();
 
-  const [expandedModeId, setExpandedModeId] = useState<PracticeModeId | null>(
-    null,
+  const normalizedPath = location.pathname.replace(/\/+$/, "").toLowerCase();
+  const freeMoveRouteSignature = `${normalizedPath}:${location.key}`;
+  const isPracticeFreeMoveActive = normalizedPath === "/play/practice/freemove";
+  const isPositionBuilderFreeMoveActive =
+    normalizedPath === "/play/practice/positionbuilder/freemove";
+  const isFreeMoveActive =
+    isPracticeFreeMoveActive || isPositionBuilderFreeMoveActive;
+  const isPositionBuilderActive =
+    normalizedPath === "/play/practice/positionbuilder";
+  const isSessionModeActive = isFreeMoveActive || isPositionBuilderActive;
+  const builderLocationState = isPositionBuilderFreeMoveActive
+    ? (location.state as
+        | {
+            initialFen?: string;
+            fen?: string;
+            turn?: "w" | "b";
+          }
+        | null)
+    : null;
+  const rawPassedFen = typeof builderLocationState?.fen === "string"
+    ? builderLocationState.fen.trim()
+    : typeof builderLocationState?.initialFen === "string"
+      ? builderLocationState.initialFen.trim()
+      : "";
+  const passedTurn =
+    builderLocationState?.turn === "b" || builderLocationState?.turn === "w"
+      ? builderLocationState.turn
+      : rawPassedFen.split(/\s+/)[1] === "b"
+        ? "b"
+        : "w";
+  const passedFen = rawPassedFen
+    ? sanitizeFenForPractice(rawPassedFen, passedTurn)
+    : null;
+  const standardFreeMoveStartFen = "start";
+
+  const [selectedModeId, setSelectedModeId] =
+    useState<PracticeModeId>("free-move");
+  const [fen, setFen] = useState<string>(standardFreeMoveStartFen);
+  const [positionBuilderGame, setPositionBuilderGame] = useState(() => new Chess());
+  const [freeMoveInitialFen, setFreeMoveInitialFen] = useState<string>(
+    standardFreeMoveStartFen,
   );
-  const [game, setGame] = useState(() => new Chess());
+  const [freeMoveHistory, setFreeMoveHistory] = useState<FreeMoveHistoryEntry[]>(
+    [],
+  );
   const [moveFrom, setMoveFrom] = useState<Square | null>(null);
   const [optionSquares, setOptionSquares] = useState<
     Record<string, CSSProperties>
@@ -166,22 +433,44 @@ export default function PlayPractice() {
   );
   const [panelNotice, setPanelNotice] = useState<string | null>(null);
   const [exportFallback, setExportFallback] = useState("");
-  const [redoStack, setRedoStack] = useState<
-    Array<{ from: Square; to: Square; promotion?: string }>
-  >([]);
+  const [positionBuilderFenInput, setPositionBuilderFenInput] = useState("");
+  const [positionBuilderFenFallback, setPositionBuilderFenFallback] =
+    useState("");
+  const [isPositionBuilderFenFocused, setIsPositionBuilderFenFocused] =
+    useState(false);
+  const [positionBuilderValidationModal, setPositionBuilderValidationModal] =
+    useState<{ title: string; message: string } | null>(null);
+  const [positionBuilderSideToMove, setPositionBuilderSideToMove] = useState<
+    "w" | "b"
+  >("w");
+  const [positionBuilderSelectedPiece, setPositionBuilderSelectedPiece] =
+    useState<BuilderPieceId>("wK");
+  const [redoStack, setRedoStack] = useState<FreeMoveHistoryEntry[]>([]);
   const [boardWidth, setBoardWidth] = useState(620);
 
   const leftRef = useRef<HTMLDivElement>(null);
   const movesEndRef = useRef<HTMLDivElement>(null);
   const wasFreeMoveRef = useRef(false);
-  const gameRef = useRef(game);
+  const freeMovePathRef = useRef<string | null>(null);
+  const wasPositionBuilderRef = useRef(false);
+  const suppressNextSquareClickRef = useRef(false);
 
-  const normalizedPath = location.pathname.replace(/\/+$/, "").toLowerCase();
-  const isFreeMoveActive = normalizedPath === "/play/practice/freemove";
-
-  const evalState = useMemo(() => evaluateGame(game), [game]);
-  const sanMoves = useMemo(() => game.history(), [game]);
+  const evalState = useMemo(() => evaluateGame(createGameFromFen(fen)), [fen]);
+  const sanMoves = useMemo(
+    () => freeMoveHistory.map((move) => move.san),
+    [freeMoveHistory],
+  );
   const moveRows = useMemo(() => buildMoveRows(sanMoves), [sanMoves]);
+  const activeMode = useMemo(
+    () => PRACTICE_MODES.find((mode) => mode.id === selectedModeId) ?? PRACTICE_MODES[0],
+    [selectedModeId],
+  );
+  const positionBuilderModeIcon = useMemo(
+    () => PRACTICE_MODES.find((mode) => mode.id === "position-builder")?.icon,
+    [],
+  );
+  const activeModeRoute = PRACTICE_MODE_ROUTES[activeMode.id];
+  const activeModeIsLive = Boolean(activeModeRoute);
   const lastMoveSquares = useMemo<Record<string, CSSProperties>>(() => {
     if (!lastMove) return {};
     return {
@@ -193,27 +482,103 @@ export default function PlayPractice() {
     () => ({ ...lastMoveSquares, ...optionSquares }),
     [lastMoveSquares, optionSquares],
   );
+  const boardKey = isFreeMoveActive
+    ? (isPositionBuilderFreeMoveActive ? "pb-free-move" : "free-move")
+    : "position-builder-board";
+  const boardPosition = isFreeMoveActive ? fen : positionBuilderGame.fen();
+  const freeMovePanelHeight = boardWidth + 24;
+
+  const initializeFreeMoveSession = (nextFen: string, notice: string | null) => {
+    setFen(nextFen);
+    setFreeMoveInitialFen(nextFen);
+    setFreeMoveHistory([]);
+    setMoveFrom(null);
+    setOptionSquares({});
+    setLastMove(null);
+    suppressNextSquareClickRef.current = false;
+    setBoardOrientation("white");
+    setExportFallback("");
+    setRedoStack([]);
+    setPanelNotice(notice);
+    playGameplaySound("gameStart");
+    wasFreeMoveRef.current = true;
+    freeMovePathRef.current = freeMoveRouteSignature;
+  };
 
   useEffect(() => {
-    gameRef.current = game;
-  }, [game]);
+    if (isFreeMoveActive) {
+      setSelectedModeId("free-move");
+    } else if (isPositionBuilderActive) {
+      setSelectedModeId("position-builder");
+    }
+  }, [isFreeMoveActive, isPositionBuilderActive]);
 
   useEffect(() => {
-    if (isFreeMoveActive && !wasFreeMoveRef.current) {
+    if (!isFreeMoveActive) {
+      wasFreeMoveRef.current = false;
+      freeMovePathRef.current = null;
+    }
+  }, [isFreeMoveActive]);
+
+  useEffect(() => {
+    if (!isPracticeFreeMoveActive) return;
+    const hasFreeMovePathChanged = freeMovePathRef.current !== freeMoveRouteSignature;
+    if (!wasFreeMoveRef.current || hasFreeMovePathChanged) {
+      initializeFreeMoveSession(standardFreeMoveStartFen, null);
+    }
+  }, [freeMoveRouteSignature, isPracticeFreeMoveActive]);
+
+  useEffect(() => {
+    if (!isPositionBuilderFreeMoveActive) return;
+    const hasFreeMovePathChanged = freeMovePathRef.current !== freeMoveRouteSignature;
+    if (!wasFreeMoveRef.current || hasFreeMovePathChanged) {
+      let nextFen = standardFreeMoveStartFen;
+      let nextNotice = "Invalid FEN received. Loaded start position.";
+
+      if (rawPassedFen && passedFen) {
+        const importedGame = new Chess();
+        const isValidFen = importedGame.load(passedFen);
+        if (isValidFen) {
+          nextFen = passedFen;
+          nextNotice = `Loaded position from Position Builder (${importedGame.turn() === "w" ? "White" : "Black"} to move).`;
+        }
+      }
+
+      initializeFreeMoveSession(nextFen, nextNotice);
+    }
+  }, [
+    freeMoveRouteSignature,
+    isPositionBuilderFreeMoveActive,
+    passedFen,
+    rawPassedFen,
+    standardFreeMoveStartFen,
+  ]);
+
+  useEffect(() => {
+    if (isPositionBuilderActive && !wasPositionBuilderRef.current) {
       const freshGame = new Chess();
-      setGame(freshGame);
-      gameRef.current = freshGame;
+      setPositionBuilderGame(freshGame);
       setMoveFrom(null);
       setOptionSquares({});
       setLastMove(null);
       setBoardOrientation("white");
       setPanelNotice(null);
       setExportFallback("");
+      setPositionBuilderFenFallback("");
+      setPositionBuilderValidationModal(null);
       setRedoStack([]);
-      playGameplaySound("gameStart");
+      setPositionBuilderSelectedPiece("wK");
+      setPositionBuilderSideToMove("w");
+      setPositionBuilderFenInput(freshGame.fen());
     }
-    wasFreeMoveRef.current = isFreeMoveActive;
-  }, [isFreeMoveActive]);
+    wasPositionBuilderRef.current = isPositionBuilderActive;
+  }, [isPositionBuilderActive]);
+
+  useEffect(() => {
+    if (!isPositionBuilderActive) return;
+    setPositionBuilderFenInput(positionBuilderGame.fen());
+    setPositionBuilderSideToMove(positionBuilderGame.turn());
+  }, [positionBuilderGame, isPositionBuilderActive]);
 
   useEffect(() => {
     const container = leftRef.current;
@@ -250,11 +615,7 @@ export default function PlayPractice() {
   }, [panelNotice]);
 
   const handleModeClick = (mode: PracticeMode) => {
-    if (mode.id === "free-move") {
-      navigate("/play/practice/freeMove");
-      return;
-    }
-    setExpandedModeId((current) => (current === mode.id ? null : mode.id));
+    setSelectedModeId(mode.id);
   };
 
   const clearSelection = () => {
@@ -263,7 +624,7 @@ export default function PlayPractice() {
   };
 
   const getMoveOptionsForSquare = (square: Square) => {
-    const currentGame = gameRef.current;
+    const currentGame = createGameFromFen(fen);
     const legalMoves = currentGame.moves({ square, verbose: true });
     if (!legalMoves.length) {
       setOptionSquares({});
@@ -282,36 +643,54 @@ export default function PlayPractice() {
     return true;
   };
 
-  const commitMove = (sourceSquare: Square, targetSquare: Square) => {
-    const currentGame = gameRef.current;
-    const currentPiece = currentGame.get(sourceSquare);
-    if (!currentPiece || currentPiece.color !== currentGame.turn()) {
-      playGameplaySound("illegal");
-      return false;
-    }
-
+  const applyFreeMove = (
+    sourceSquare: Square,
+    targetSquare: Square,
+    options?: { debug?: boolean },
+  ) => {
     try {
-      const next = cloneGameWithHistory(currentGame);
-      const move = next.move({
+      const game = createGameFromFen(fen);
+      const move = game.move({
         from: sourceSquare,
         to: targetSquare,
         promotion: "q",
       });
+      const isGameOver = hasGameOverMethod(game);
+
+      if (options?.debug) {
+        console.log("Current FEN before move:", fen);
+        console.log("Move result:", move);
+        console.log("New FEN after move:", game.fen());
+        console.log("Is game over?", isGameOver);
+        console.log("Legal moves:", game.moves());
+      }
 
       if (!move) {
         playGameplaySound("illegal");
         return false;
       }
 
-      setGame(next);
-      gameRef.current = next;
+      const nextFen = game.fen();
+      setFen(nextFen);
+      setFreeMoveHistory((current) => [
+        ...current,
+        {
+          color: move.color,
+          fenAfter: nextFen,
+          fenBefore: fen,
+          from: sourceSquare,
+          promotion: move.promotion ?? undefined,
+          san: move.san,
+          to: targetSquare,
+        },
+      ]);
       setLastMove({ from: sourceSquare, to: targetSquare });
       clearSelection();
       setPanelNotice(null);
       setExportFallback("");
       setRedoStack([]);
       playChessMoveSound(move, { isOpponentMove: move.color === "b" });
-      if (next.isGameOver() && !next.isCheckmate()) {
+      if (isGameOver && !hasCheckmateMethod(game)) {
         playGameplaySound("gameEnd");
       }
       return true;
@@ -323,8 +702,12 @@ export default function PlayPractice() {
 
   const handleSquareClick = (squareName: string) => {
     if (!isFreeMoveActive) return;
+    if (suppressNextSquareClickRef.current) {
+      suppressNextSquareClickRef.current = false;
+      return;
+    }
 
-    const currentGame = gameRef.current;
+    const currentGame = createGameFromFen(fen);
     const square = squareName as Square;
     if (!moveFrom) {
       const clickedPiece = currentGame.get(square);
@@ -358,33 +741,309 @@ export default function PlayPractice() {
       return;
     }
 
-    commitMove(moveFrom, square);
+    applyFreeMove(moveFrom, square);
   };
 
-  const handlePieceDrop = (sourceSquare: string, targetSquare: string) => {
+  const handleFreeMovePieceDrop = (sourceSquare: string, targetSquare: string) => {
     if (!isFreeMoveActive || sourceSquare === targetSquare) return false;
-    return commitMove(sourceSquare as Square, targetSquare as Square);
+    const moved = applyFreeMove(sourceSquare as Square, targetSquare as Square, {
+      debug: true,
+    });
+    if (moved) suppressNextSquareClickRef.current = true;
+    return moved;
+  };
+
+  const handlePositionBuilderSquareClick = (squareName: string) => {
+    if (!isPositionBuilderActive) return;
+    const square = squareName as Square;
+    const next = new Chess();
+    next.load(positionBuilderGame.fen());
+
+    if (positionBuilderSelectedPiece === "eraser") {
+      const removed = next.remove(square);
+      if (!removed) {
+        setPanelNotice("No piece on that square.");
+        return;
+      }
+    } else {
+      const pieceToPlace =
+        POSITION_BUILDER_BOARD_PIECES[positionBuilderSelectedPiece];
+      next.remove(square);
+      const wasPlaced = next.put(
+        { type: pieceToPlace.type, color: pieceToPlace.color },
+        square,
+      );
+      if (!wasPlaced) {
+        setPanelNotice(
+          "Invalid setup. Keep legal piece counts and only one king per side.",
+        );
+        return;
+      }
+    }
+
+    const rawFen = next.fen();
+    const parts = rawFen.split(" ");
+    const cleanFen = [parts[0], positionBuilderSideToMove, "-", "-", "0", "1"].join(
+      " ",
+    );
+    const cleanGame = new Chess();
+    const loaded = cleanGame.load(cleanFen);
+    if (loaded) {
+      setPositionBuilderGame(cleanGame);
+    } else {
+      setPositionBuilderGame(next);
+    }
+    setLastMove(null);
+    clearSelection();
+    setPanelNotice(null);
+    setPositionBuilderFenFallback("");
+  };
+
+  const handlePositionBuilderPieceDrop = (
+    sourceSquare: string,
+    targetSquare: string,
+  ) => {
+    if (!isPositionBuilderActive || sourceSquare === targetSquare) return false;
+    const source = sourceSquare as Square;
+    const target = targetSquare as Square;
+    const currentPiece = positionBuilderGame.get(source);
+    if (!currentPiece) return false;
+
+    const next = new Chess();
+    next.load(positionBuilderGame.fen());
+    next.remove(source);
+    const moved = next.put(currentPiece, target);
+    if (!moved) {
+      setPanelNotice("Invalid placement for this position.");
+      return false;
+    }
+
+    const rawFen = next.fen();
+    const parts = rawFen.split(" ");
+    const cleanFen = [parts[0], positionBuilderSideToMove, "-", "-", "0", "1"].join(
+      " ",
+    );
+    const cleanGame = new Chess();
+    const loaded = cleanGame.load(cleanFen);
+    if (loaded) {
+      setPositionBuilderGame(cleanGame);
+    } else {
+      setPositionBuilderGame(next);
+    }
+    clearSelection();
+    setLastMove({ from: source, to: target });
+    setPanelNotice(null);
+    setPositionBuilderFenFallback("");
+    return true;
+  };
+
+  const applyPositionBuilderFen = (fen: string) => {
+    const next = new Chess();
+    const loaded = next.load(fen);
+    if (!loaded) {
+      setPanelNotice("Invalid FEN string.");
+      return false;
+    }
+    setPositionBuilderGame(next);
+    clearSelection();
+    setLastMove(null);
+    setPanelNotice("Position loaded.");
+    setPositionBuilderFenFallback("");
+    return true;
+  };
+
+  const handlePositionBuilderLoadFen = () => {
+    const fen = positionBuilderFenInput.trim();
+    if (!fen) {
+      setPanelNotice("Enter a FEN string first.");
+      return;
+    }
+    applyPositionBuilderFen(fen);
+  };
+
+  const handlePositionBuilderCopyFen = async () => {
+    const fen = positionBuilderGame.fen();
+    if (!navigator.clipboard?.writeText) {
+      setPositionBuilderFenFallback(fen);
+      setPanelNotice("Clipboard unavailable. FEN shown below.");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(fen);
+      setPositionBuilderFenFallback("");
+      setPanelNotice("FEN copied to clipboard.");
+    } catch {
+      setPositionBuilderFenFallback(fen);
+      setPanelNotice("Clipboard blocked. FEN shown below.");
+    }
+  };
+
+  const handlePositionBuilderSideChange = (side: "w" | "b") => {
+    const fenParts = positionBuilderGame.fen().split(" ");
+    if (fenParts.length < 6) {
+      setPanelNotice("Cannot update side to move.");
+      return;
+    }
+    fenParts[1] = side;
+    fenParts[2] = "-";
+    fenParts[3] = "-";
+    const nextFen = fenParts.join(" ");
+    const loaded = applyPositionBuilderFen(nextFen);
+    if (loaded) {
+      setPositionBuilderSideToMove(side);
+      setPanelNotice(`Turn set to ${side === "w" ? "White" : "Black"}.`);
+    }
+  };
+
+  const handlePositionBuilderStartPosition = () => {
+    const next = new Chess();
+    setPositionBuilderGame(next);
+    clearSelection();
+    setLastMove(null);
+    setPanelNotice("Loaded start position.");
+    setPositionBuilderFenFallback("");
+  };
+
+  const handlePositionBuilderClearBoard = () => {
+    const emptyBoardFen = `8/8/8/8/8/8/8/8 ${positionBuilderSideToMove} - - 0 1`;
+    applyPositionBuilderFen(emptyBoardFen);
+    setPanelNotice("Board cleared.");
+  };
+
+  const validatePositionBuilderBeforeStart = () => {
+    const fenParts = positionBuilderGame.fen().split(" ");
+    const validationFen = [fenParts[0], fenParts[1], "-", "-", "0", "1"].join(" ");
+    const validationGame = new Chess();
+    if (!validationGame.load(validationFen)) {
+      setPositionBuilderValidationModal({
+        title: "Invalid Position",
+        message: "Could not validate this position. Try rebuilding it.",
+      });
+      return false;
+    }
+    const validator = validationGame as unknown as {
+      validate_fen?: (value: string) => { valid: boolean; error?: string };
+    };
+
+    if (typeof validator.validate_fen === "function") {
+      const result = validator.validate_fen(validationFen);
+      if (!result.valid) {
+        setPositionBuilderValidationModal({
+          title: "Invalid Position",
+          message: result.error || "FEN validation failed.",
+        });
+        return false;
+      }
+    }
+
+    const board = validationGame.board();
+    let whiteKingCount = 0;
+    let blackKingCount = 0;
+    let whiteKingPos: { row: number; col: number } | null = null;
+    let blackKingPos: { row: number; col: number } | null = null;
+
+    board.forEach((rank, row) => {
+      rank.forEach((piece, col) => {
+        if (!piece || piece.type !== "k") return;
+        if (piece.color === "w") {
+          whiteKingCount += 1;
+          whiteKingPos = { row, col };
+        } else {
+          blackKingCount += 1;
+          blackKingPos = { row, col };
+        }
+      });
+    });
+
+    if (whiteKingCount !== 1 || blackKingCount !== 1) {
+      setPositionBuilderValidationModal({
+        title: "Invalid Position",
+        message: "Board must contain exactly 1 White king and 1 Black king.",
+      });
+      return false;
+    }
+
+    if (
+      whiteKingPos &&
+      blackKingPos &&
+      Math.abs(whiteKingPos.row - blackKingPos.row) <= 1 &&
+      Math.abs(whiteKingPos.col - blackKingPos.col) <= 1
+    ) {
+      setPositionBuilderValidationModal({
+        title: "Invalid Position",
+        message: "Kings cannot be adjacent.",
+      });
+      return false;
+    }
+
+    const sideToMove = fenParts[1] === "b" ? "b" : "w";
+    const sideNotToMove: "w" | "b" = sideToMove === "w" ? "b" : "w";
+    const sideNotToMoveLabel = sideNotToMove === "w" ? "White" : "Black";
+    const sideToMoveLabel = sideToMove === "w" ? "White" : "Black";
+
+    if (isSideInCheck(validationGame, sideNotToMove)) {
+      setPositionBuilderValidationModal({
+        title: "Invalid Position",
+        message: `${sideNotToMoveLabel} king is in check, but ${sideNotToMoveLabel} is not the side to move.`,
+      });
+      return false;
+    }
+
+    const legalMoves = validationGame.moves();
+    if (legalMoves.length === 0) {
+      const isCheckmate =
+        hasCheckmateMethod(validationGame) || hasCheckMethod(validationGame);
+      const isStalemate = hasStalemateMethod(validationGame) || !isCheckmate;
+
+      if (isCheckmate) {
+        setPositionBuilderValidationModal({
+          title: "Checkmate",
+          message: `Checkmate: No legal moves for ${sideToMoveLabel}`,
+        });
+      } else if (isStalemate) {
+        setPositionBuilderValidationModal({
+          title: "Stalemate",
+          message: `Stalemate: No legal moves for ${sideToMoveLabel}`,
+        });
+      }
+      return false;
+    }
+
+    return true;
+  };
+
+  const handlePositionBuilderStartFromPosition = () => {
+    if (!validatePositionBuilderBeforeStart()) return;
+    const rawFen = positionBuilderGame.fen();
+    const turn = rawFen.split(" ")[1] === "b" ? "b" : "w";
+    const cleanFen = sanitizeFenForPractice(rawFen, turn) ?? rawFen.trim();
+    if (cleanFen.split(/\s+/).length !== 6) {
+      setPanelNotice("Invalid FEN string.");
+      return;
+    }
+    console.log("Passing FEN to FreeMove:", cleanFen);
+    navigate("/play/practice/positionBuilder/freeMove", {
+      state: {
+        fen: cleanFen,
+        turn,
+        initialFen: cleanFen,
+      },
+    });
   };
 
   const handleUndo = () => {
-    const currentGame = gameRef.current;
-    const next = cloneGameWithHistory(currentGame);
-    const undone = next.undo();
-    if (!undone) {
+    if (!freeMoveHistory.length) {
       setPanelNotice("No moves to undo.");
       return;
     }
 
+    const undone = freeMoveHistory[freeMoveHistory.length - 1];
     setRedoStack((current) => [
       ...current,
-      {
-        from: undone.from as Square,
-        to: undone.to as Square,
-        promotion: undone.promotion ?? undefined,
-      },
+      undone,
     ]);
-    setGame(next);
-    gameRef.current = next;
+    setFreeMoveHistory((current) => current.slice(0, -1));
+    setFen(undone.fenBefore);
     setLastMove(null);
     clearSelection();
     setPanelNotice("Last move undone.");
@@ -398,23 +1057,22 @@ export default function PlayPractice() {
     }
 
     const redoMove = redoStack[redoStack.length - 1];
-    const currentGame = gameRef.current;
-    const next = cloneGameWithHistory(currentGame);
+    const next = createGameFromFen(fen);
     const move = next.move({
       from: redoMove.from,
       to: redoMove.to,
-      promotion: redoMove.promotion as "q" | "r" | "b" | "n" | undefined,
+      promotion: redoMove.promotion,
     });
 
-    if (!move) {
+    if (!move || next.fen() !== redoMove.fenAfter) {
       setPanelNotice("Cannot redo from current position.");
       setRedoStack([]);
       return;
     }
 
     setRedoStack((current) => current.slice(0, -1));
-    setGame(next);
-    gameRef.current = next;
+    setFreeMoveHistory((current) => [...current, redoMove]);
+    setFen(redoMove.fenAfter);
     setLastMove({ from: redoMove.from, to: redoMove.to });
     clearSelection();
     setPanelNotice("Move restored.");
@@ -423,12 +1081,15 @@ export default function PlayPractice() {
   };
 
   const handleReset = () => {
-    const freshGame = new Chess();
-    setGame(freshGame);
-    gameRef.current = freshGame;
+    setFen(freeMoveInitialFen);
+    setFreeMoveHistory([]);
     setLastMove(null);
     clearSelection();
-    setPanelNotice("Position reset to start.");
+    setPanelNotice(
+      isPositionBuilderFreeMoveActive
+        ? "Position reset to builder start."
+        : "Position reset to start.",
+    );
     setExportFallback("");
     setRedoStack([]);
     playGameplaySound("gameStart");
@@ -439,7 +1100,8 @@ export default function PlayPractice() {
   };
 
   const handleExportPgn = async () => {
-    const pgn = game.pgn();
+    const pgnGame = buildGameFromHistory(freeMoveInitialFen, freeMoveHistory);
+    const pgn = pgnGame.pgn();
     if (!pgn) {
       setPanelNotice("No moves to export yet.");
       return;
@@ -466,55 +1128,82 @@ export default function PlayPractice() {
       <div
         className={`h-full grid ${
           isFreeMoveActive && showEvalBar
-            ? "grid-cols-[minmax(0,1.02fr)_34px_minmax(0,0.98fr)]"
-            : "grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)]"
+            ? "grid-cols-[minmax(0,1.08fr)_38px_minmax(0,0.92fr)]"
+            : "grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)]"
         }`}
       >
         <div
           ref={leftRef}
-          className="min-w-0 flex items-center justify-center p-2 h-full"
+          className="min-w-0 flex items-center justify-center p-3 lg:p-4 h-full"
         >
           <div
-            className="rounded-2xl overflow-hidden shadow-2xl border border-gray-200/60 dark:border-white/10"
-            style={{ width: boardWidth, height: boardWidth }}
+            className="relative inline-flex rounded-[30px] border border-gray-200/80 dark:border-slate-300/15 bg-white/75 dark:bg-slate-900/55 p-2.5 lg:p-3 shadow-[0_24px_58px_-30px_rgba(8,47,73,0.65)]"
           >
-            <Chessboard
-              id="PracticeFreeMoveBoard"
-              boardWidth={boardWidth}
-              position={game.fen()}
-              boardOrientation={boardOrientation}
-              arePiecesDraggable={isFreeMoveActive}
-              onSquareClick={(squareName) => handleSquareClick(squareName)}
-              onSquareRightClick={() => clearSelection()}
-              onPieceDrop={(sourceSquare, targetSquare) =>
-                handlePieceDrop(sourceSquare, targetSquare)
-              }
-              isDraggablePiece={({ sourceSquare }) => {
-                if (!isFreeMoveActive) return false;
-                const currentGame = gameRef.current;
-                const piece = currentGame.get(sourceSquare as Square);
-                return !!piece && piece.color === currentGame.turn();
-              }}
-              customSquareStyles={boardSquareStyles}
-              customDarkSquareStyle={{
-                backgroundColor: colors.dark,
-                transition: "background-color 160ms ease",
-              }}
-              customLightSquareStyle={{
-                backgroundColor: colors.light,
-                transition: "background-color 160ms ease",
-              }}
-              customBoardStyle={{
-                borderRadius: "8px",
-                boxShadow: "0 8px 24px rgba(2, 6, 23, 0.45)",
-              }}
-            />
+            <div className="pointer-events-none absolute inset-0 rounded-[30px] dark:bg-[radial-gradient(circle_at_top,rgb(var(--color-brand-500-rgb)/0.16),transparent_58%)]" />
+            <div
+              className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-200/65 dark:border-white/12"
+              style={{ width: boardWidth, height: boardWidth }}
+            >
+              <Chessboard
+                key={boardKey}
+                id="PracticeFreeMoveBoard"
+                boardWidth={boardWidth}
+                position={boardPosition}
+                boardOrientation={boardOrientation}
+                arePiecesDraggable={isFreeMoveActive || isPositionBuilderActive}
+                onSquareClick={(squareName) => {
+                  if (isPositionBuilderActive) {
+                    handlePositionBuilderSquareClick(squareName);
+                    return;
+                  }
+                  handleSquareClick(squareName);
+                }}
+                onSquareRightClick={() => clearSelection()}
+                onPieceDrop={(sourceSquare, targetSquare) =>
+                  isPositionBuilderActive
+                    ? handlePositionBuilderPieceDrop(sourceSquare, targetSquare)
+                    : handleFreeMovePieceDrop(sourceSquare, targetSquare)
+                }
+                isDraggablePiece={({
+                  sourceSquare,
+                  piece,
+                }: {
+                  sourceSquare?: string;
+                  piece?: string;
+                }) => {
+                  if (isPositionBuilderActive) return true;
+                  if (!isFreeMoveActive) return false;
+                  const currentGame = createGameFromFen(fen);
+                  const turn = currentGame.turn();
+                  if (typeof piece === "string" && piece.length > 0) {
+                    return piece[0].toLowerCase() === turn;
+                  }
+                  if (!sourceSquare) return false;
+                  const boardPiece = currentGame.get(sourceSquare as Square);
+                  if (!boardPiece) return false;
+                  return boardPiece.color === turn;
+                }}
+                customSquareStyles={boardSquareStyles}
+                customDarkSquareStyle={{
+                  backgroundColor: colors.dark,
+                  transition: "background-color 160ms ease",
+                }}
+                customLightSquareStyle={{
+                  backgroundColor: colors.light,
+                  transition: "background-color 160ms ease",
+                }}
+                customBoardStyle={{
+                  borderRadius: "8px",
+                  boxShadow: "0 8px 24px rgba(2, 6, 23, 0.45)",
+                }}
+              />
+            </div>
           </div>
         </div>
 
         {isFreeMoveActive && showEvalBar && (
-          <div className="h-full flex items-center justify-center py-3">
-            <div className="h-full w-full flex flex-col items-center px-1">
+          <div className="h-full flex items-center justify-center py-4">
+            <div className="h-full rounded-2xl border border-gray-200/70 dark:border-white/10 bg-white/70 dark:bg-slate-900/70 px-1.5 py-2 flex flex-col items-center shadow-[0_14px_36px_-26px_rgba(6,95,70,0.8)]">
               <div className="mb-1 px-1.5 py-1 rounded bg-slate-900 text-white text-[10px] font-semibold text-center leading-none">
                 {evalState.label}
               </div>
@@ -534,8 +1223,10 @@ export default function PlayPractice() {
         )}
 
         <div
-          className={`min-w-0 w-full bg-white/90 dark:bg-slate-900/95 border-l border-gray-200/60 dark:border-white/10 overflow-hidden ${
-            isFreeMoveActive ? "h-full" : "h-full flex items-center"
+          className={`min-w-0 w-full overflow-hidden ${
+            isSessionModeActive
+              ? "h-full bg-transparent border-l-0"
+              : "h-full bg-white/90 dark:bg-slate-900/95 border-l border-gray-200/60 dark:border-white/10"
           }`}
         >
           <AnimatePresence mode="wait" initial={false}>
@@ -546,110 +1237,1083 @@ export default function PlayPractice() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -16 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}
-                className="h-full flex flex-col min-h-0"
+                className="h-full min-h-0 p-3 lg:p-4 flex items-center justify-center"
               >
-                <div className="p-3 border-b border-gray-200/60 dark:border-white/10 flex-shrink-0">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <Target className="w-4 h-4 text-teal-500" />
-                      <h2 className="font-bold text-[15px] text-gray-900 dark:text-white">
+                <div
+                  style={{
+                    background: "#0f1117",
+                    width: "100%",
+                    maxWidth: 560,
+                    height: freeMovePanelHeight,
+                    maxHeight: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                    padding: "14px 12px",
+                    gap: 10,
+                    fontFamily: "inherit",
+                    borderRadius: 18,
+                    border: "1px solid #1e2d45",
+                    boxShadow: "0 24px 58px -30px rgba(6,95,70,0.58)",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      padding: "0 2px 6px",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div
+                        style={{
+                          width: 11,
+                          height: 11,
+                          borderRadius: "50%",
+                          background: "rgb(var(--color-brand-500-rgb))",
+                          boxShadow:
+                            "0 0 0 3px rgb(var(--color-brand-500-rgb) / 0.25), 0 0 8px rgb(var(--color-brand-500-rgb) / 0.4)",
+                        }}
+                      />
+                      <h2
+                        style={{
+                          fontSize: 16,
+                          fontWeight: 700,
+                          color: "#f1f5f9",
+                          letterSpacing: "-0.01em",
+                        }}
+                      >
                         Free Move
                       </h2>
                     </div>
                     <button
-                      onClick={() => navigate("/play/practice")}
-                      className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-200 transition-colors hover:bg-gray-200 dark:hover:bg-slate-700"
+                      onClick={() =>
+                        navigate(
+                          isPositionBuilderFreeMoveActive
+                            ? "/play/practice/positionBuilder"
+                            : "/play/practice",
+                        )
+                      }
+                      className="transition-colors hover:text-slate-100"
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 500,
+                        color: "#64748b",
+                        background: "#1a2235",
+                        border: "1px solid #263045",
+                        borderRadius: 7,
+                        padding: "5px 13px",
+                        cursor: "pointer",
+                      }}
                     >
                       Back
                     </button>
                   </div>
-                </div>
 
-                <div className="flex-1 min-h-0 px-3 py-3 flex flex-col gap-3 overflow-hidden">
-                  <section className="rounded-2xl border border-gray-200/70 dark:border-white/10 bg-white/75 dark:bg-slate-900/60 p-0 overflow-hidden flex flex-col flex-1 min-h-0">
-                    <div className="px-3 py-2 border-b border-gray-200/60 dark:border-white/10 text-[12px] font-semibold text-gray-900 dark:text-white">
-                      Move History
+                  <div
+                    style={{
+                      background: "#141c2e",
+                      border: "1px solid #1e2d45",
+                      borderRadius: 14,
+                      flex: 1,
+                      minHeight: 0,
+                      overflow: "hidden",
+                      display: "flex",
+                      flexDirection: "column",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        padding: "11px 14px",
+                        borderBottom: "1px solid #1a2640",
+                        background: "#111827",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 6,
+                          height: 6,
+                          borderRadius: "50%",
+                          background: "#334155",
+                        }}
+                      />
+                      <span
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 700,
+                          color: "#64748b",
+                          letterSpacing: "0.07em",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        Move History
+                      </span>
                     </div>
-                    <div className="flex-1 min-h-0 overflow-y-auto px-3 py-2 pr-2 font-mono">
+                    <div
+                      style={{
+                        flex: 1,
+                        minHeight: 0,
+                        overflowY: "auto",
+                        padding: "10px 12px",
+                        fontFamily: '"Roboto Mono", monospace',
+                      }}
+                    >
                       {moveRows.length === 0 ? (
-                        <div className="text-xs text-gray-500 dark:text-gray-400 py-4 text-center">
-                          Make a legal move to start your PGN list.
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 10,
+                            height: "100%",
+                            minHeight: 260,
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: 44,
+                              height: 44,
+                              borderRadius: 12,
+                              background: "#1a2540",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <svg
+                              width="20"
+                              height="20"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="#334155"
+                              strokeWidth="1.8"
+                            >
+                              <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
+                              <rect x="9" y="3" width="6" height="4" rx="1" />
+                              <path d="M9 12h6M9 16h4" />
+                            </svg>
+                          </div>
+                          <p
+                            style={{
+                              fontSize: 12.5,
+                              color: "#3d4f6b",
+                              textAlign: "center",
+                              lineHeight: 1.7,
+                            }}
+                          >
+                            Make a legal move to start
+                            <br />
+                            your PGN list.
+                          </p>
                         </div>
                       ) : (
-                        <div className="space-y-1.5 text-sm">
-                          {moveRows.map((row) => (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                          {moveRows.map((row, rowIndex) => {
+                            const latestMoveIndex = sanMoves.length - 1;
+                            const latestRowIndex = Math.floor(latestMoveIndex / 2);
+                            const latestIsWhiteMove = latestMoveIndex % 2 === 0;
+                            const whiteIsActive =
+                              rowIndex === latestRowIndex && latestIsWhiteMove;
+                            const blackIsActive =
+                              rowIndex === latestRowIndex && !latestIsWhiteMove;
+
+                            return (
                             <div
                               key={row.moveNumber}
-                              className="grid grid-cols-[36px_minmax(0,1fr)_minmax(0,1fr)] gap-2"
+                              style={{
+                                display: "grid",
+                                gridTemplateColumns: "30px minmax(0,1fr) minmax(0,1fr)",
+                                gap: 6,
+                                fontSize: 12,
+                                alignItems: "center",
+                              }}
                             >
-                              <span className="text-gray-500 dark:text-gray-400">
-                                {row.moveNumber}.
-                              </span>
-                              <span className="text-gray-900 dark:text-gray-100 truncate">
+                              <span style={{ color: "#334155" }}>{row.moveNumber}.</span>
+                              <span
+                                style={{
+                                  fontSize: 12,
+                                  fontWeight: 500,
+                                  color: whiteIsActive ? "#fff" : "#94a3b8",
+                                  background: whiteIsActive
+                                    ? "linear-gradient(135deg, rgb(var(--color-brand-500-rgb)), rgb(var(--color-brand-600-rgb)))"
+                                    : "#1a2640",
+                                  borderRadius: 5,
+                                  padding: "4px 8px",
+                                  whiteSpace: "nowrap",
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  boxShadow: whiteIsActive
+                                    ? "0 2px 8px rgb(var(--color-brand-500-rgb) / 0.28)"
+                                    : "none",
+                                }}
+                              >
                                 {row.white ?? ""}
                               </span>
-                              <span className="text-gray-900 dark:text-gray-100 truncate">
-                                {row.black ?? ""}
+                              <span
+                                style={{
+                                  fontSize: 12,
+                                  fontWeight: 500,
+                                  color: blackIsActive ? "#fff" : "#94a3b8",
+                                  background: blackIsActive
+                                    ? "linear-gradient(135deg, rgb(var(--color-brand-500-rgb)), rgb(var(--color-brand-600-rgb)))"
+                                    : "#1a2640",
+                                  borderRadius: 5,
+                                  padding: "4px 8px",
+                                  whiteSpace: "nowrap",
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                  opacity: row.black ? 1 : 0.52,
+                                  boxShadow: blackIsActive
+                                    ? "0 2px 8px rgb(var(--color-brand-500-rgb) / 0.28)"
+                                    : "none",
+                                }}
+                              >
+                                {row.black ?? "--"}
                               </span>
                             </div>
-                          ))}
+                            );
+                          })}
                           <div ref={movesEndRef} />
                         </div>
                       )}
                     </div>
-                  </section>
+                  </div>
 
-                  <section className="rounded-2xl border border-gray-200/70 dark:border-white/10 bg-white/75 dark:bg-slate-900/60 p-3 flex-shrink-0">
-                    <div className="text-[12px] font-semibold text-gray-900 dark:text-white mb-2">
-                      Controls
+                  <div
+                    style={{
+                      background: "#141c2e",
+                      border: "1px solid #1e2d45",
+                      borderRadius: 14,
+                      overflow: "hidden",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        padding: "11px 14px",
+                        borderBottom: "1px solid #1a2640",
+                        background: "#111827",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 6,
+                          height: 6,
+                          borderRadius: "50%",
+                          background: "#334155",
+                        }}
+                      />
+                      <span
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 700,
+                          color: "#64748b",
+                          letterSpacing: "0.07em",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        Controls
+                      </span>
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
+
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 0,
+                        padding: "10px 12px",
+                        borderBottom: "1px solid #1a2640",
+                      }}
+                    >
                       <button
                         onClick={handleUndo}
                         disabled={sanMoves.length === 0}
-                        className="rounded-xl py-2.5 text-sm font-semibold bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
+                        className="transition-colors hover:text-slate-300"
+                        style={{
+                          ...FREE_MOVE_ARROW_BUTTON_STYLE,
+                          opacity: sanMoves.length === 0 ? 0.5 : 1,
+                          cursor: sanMoves.length === 0 ? "not-allowed" : "pointer",
+                        }}
                       >
-                        {"<-"}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ width: 14, height: 14 }}>
+                          <path d="M19 12H5M12 5l-7 7 7 7" />
+                        </svg>
                       </button>
+                      <span
+                        style={{
+                          fontSize: 12,
+                          color: "#334155",
+                          flex: 1,
+                          textAlign: "center",
+                          padding: "0 8px",
+                        }}
+                      >
+                        {sanMoves.length === 0 ? "Start position" : `${sanMoves.length} ply`}
+                      </span>
                       <button
                         onClick={handleRedo}
                         disabled={redoStack.length === 0}
-                        className="rounded-xl py-2.5 text-sm font-semibold bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
+                        className="transition-colors hover:text-slate-300"
+                        style={{
+                          ...FREE_MOVE_ARROW_BUTTON_STYLE,
+                          opacity: redoStack.length === 0 ? 0.5 : 1,
+                          cursor: redoStack.length === 0 ? "not-allowed" : "pointer",
+                        }}
                       >
-                        {"->"}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ width: 14, height: 14 }}>
+                          <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
                       </button>
+                    </div>
+
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 7, padding: "10px 12px" }}>
                       <button
                         onClick={handleReset}
-                        className="rounded-xl py-2.5 text-sm font-semibold bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
+                        className="transition-colors hover:text-slate-300"
+                        style={{
+                          ...FREE_MOVE_BASE_BUTTON_STYLE,
+                          background: "#1a2540",
+                          color: "#64748b",
+                        }}
                       >
                         Reset to Start
                       </button>
                       <button
                         onClick={handleExportPgn}
-                        className="rounded-xl py-2.5 text-sm font-semibold bg-teal-500/15 border border-teal-500/35 text-teal-700 dark:text-teal-300 hover:bg-teal-500/20 transition-colors"
+                        className="transition-all hover:brightness-105"
+                        style={{
+                          ...FREE_MOVE_BASE_BUTTON_STYLE,
+                          background:
+                            "linear-gradient(135deg, rgb(var(--color-brand-500-rgb)), rgb(var(--color-brand-600-rgb)))",
+                          color: "#fff",
+                          border: "none",
+                          fontWeight: 600,
+                          boxShadow:
+                            "0 2px 8px rgb(var(--color-brand-500-rgb) / 0.25)",
+                        }}
                       >
                         Export PGN
                       </button>
+                    </div>
+                    <div style={{ padding: "0 12px 12px" }}>
                       <button
                         onClick={handleFlipBoard}
-                        className="col-span-2 rounded-xl py-2.5 text-sm font-semibold bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
+                        className="transition-colors hover:text-slate-300"
+                        style={{
+                          width: "100%",
+                          padding: 10,
+                          borderRadius: 9,
+                          fontSize: 12.5,
+                          fontWeight: 500,
+                          background: "#141c2e",
+                          color: "#4a5f80",
+                          border: "1px dashed #1e2d45",
+                          cursor: "pointer",
+                        }}
                       >
-                        Flip Board
+                        ⇄ Flip Board
                       </button>
                     </div>
+
                     {panelNotice && (
-                      <div className="mt-2 text-[11px] text-emerald-700 dark:text-emerald-300">
+                      <div
+                        style={{
+                          padding: "0 12px 10px",
+                          fontSize: 11,
+                          color: "#64748b",
+                        }}
+                      >
                         {panelNotice}
                       </div>
                     )}
+
                     {exportFallback && (
-                      <textarea
-                        readOnly
-                        value={exportFallback}
-                        className="mt-2 w-full h-28 rounded-lg border border-gray-300 dark:border-slate-700 bg-white/80 dark:bg-slate-950/60 text-xs font-mono p-2 text-gray-700 dark:text-gray-200"
-                      />
+                      <div style={{ padding: "0 12px 12px" }}>
+                        <textarea
+                          readOnly
+                          value={exportFallback}
+                          style={{
+                            width: "100%",
+                            height: 112,
+                            borderRadius: 8,
+                            border: "1px solid #263045",
+                            background: "#111827",
+                            color: "#94a3b8",
+                            padding: 8,
+                            fontSize: 12,
+                            fontFamily: '"Roboto Mono", monospace',
+                            resize: "none",
+                          }}
+                        />
+                      </div>
                     )}
-                  </section>
+                  </div>
+                </div>
+              </motion.section>
+            ) : isPositionBuilderActive ? (
+              <motion.section
+                key="position-builder-session"
+                initial={{ opacity: 0, x: 16 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -16 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+                className="h-full min-h-0 p-3 lg:p-4 flex items-stretch justify-center"
+              >
+                <div
+                  style={{
+                    background: "#0f1117",
+                    width: "100%",
+                    maxWidth: 620,
+                    height: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                    padding: "12px",
+                    gap: 8,
+                    fontFamily: "inherit",
+                    borderRadius: 18,
+                    border: "1px solid #1e2d45",
+                    boxShadow: "0 24px 58px -30px rgba(6,95,70,0.58)",
+                    overflowY: "auto",
+                    overflowX: "hidden",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      padding: "0 2px 6px",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div
+                        style={{
+                          width: 28,
+                          height: 28,
+                          borderRadius: 8,
+                          background: "rgb(var(--color-brand-500-rgb) / 0.22)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        {positionBuilderModeIcon?.(
+                          "rgb(var(--color-brand-500-rgb))",
+                        )}
+                      </div>
+                      <h2
+                        style={{
+                          fontSize: 16,
+                          fontWeight: 700,
+                          color: "#f1f5f9",
+                          letterSpacing: "-0.01em",
+                        }}
+                      >
+                        Position Builder
+                      </h2>
+                    </div>
+                    <button
+                      onClick={() => navigate("/play/practice")}
+                      className="transition-colors hover:text-slate-100"
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 500,
+                        color: "#64748b",
+                        background: "#1a2235",
+                        border: "1px solid #263045",
+                        borderRadius: 7,
+                        padding: "5px 13px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Back
+                    </button>
+                  </div>
+
+                  <div
+                    style={{
+                      background: "#141c2e",
+                      border: "1px solid #1e2d45",
+                      borderRadius: 14,
+                      overflow: "hidden",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        padding: "10px 14px",
+                        borderBottom: "1px solid #1a2640",
+                        background: "#111827",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 6,
+                          height: 6,
+                          borderRadius: "50%",
+                          background: "#334155",
+                        }}
+                      />
+                      <span
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 700,
+                          color: "#94a3b8",
+                          letterSpacing: "0.11em",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        Turn to Move
+                      </span>
+                    </div>
+                    <div style={{ display: "flex", gap: 6, padding: "10px 12px" }}>
+                      <button
+                        type="button"
+                        onClick={() => handlePositionBuilderSideChange("w")}
+                        style={{
+                          flex: 1,
+                          padding: 9,
+                          borderRadius: 9,
+                          fontSize: 12.5,
+                          fontWeight: 600,
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: 8,
+                          border:
+                            positionBuilderSideToMove === "w"
+                              ? "1px solid #f8fafc"
+                              : "1px solid #263045",
+                          color:
+                            positionBuilderSideToMove === "w"
+                              ? "#0f172a"
+                              : "#94a3b8",
+                          background:
+                            positionBuilderSideToMove === "w"
+                              ? "#f8fafc"
+                              : "#1a2540",
+                        }}
+                      >
+                        <span
+                          style={{
+                            width: 10,
+                            height: 10,
+                            borderRadius: "50%",
+                            background: "#f8fafc",
+                            border: "1.5px solid #cbd5e1",
+                          }}
+                        />
+                        White
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handlePositionBuilderSideChange("b")}
+                        style={{
+                          flex: 1,
+                          padding: 9,
+                          borderRadius: 9,
+                          fontSize: 12.5,
+                          fontWeight: 600,
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: 8,
+                          border:
+                            positionBuilderSideToMove === "b"
+                              ? "1px solid #f8fafc"
+                              : "1px solid #263045",
+                          color:
+                            positionBuilderSideToMove === "b"
+                              ? "#0f172a"
+                              : "#94a3b8",
+                          background:
+                            positionBuilderSideToMove === "b"
+                              ? "#f8fafc"
+                              : "#1a2540",
+                        }}
+                      >
+                        <span
+                          style={{
+                            width: 10,
+                            height: 10,
+                            borderRadius: "50%",
+                            background: "#0f172a",
+                            border: "1.5px solid #475569",
+                          }}
+                        />
+                        Black
+                      </button>
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      background: "#141c2e",
+                      border: "1px solid #1e2d45",
+                      borderRadius: 14,
+                      overflow: "hidden",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        padding: "10px 14px",
+                        borderBottom: "1px solid #1a2640",
+                        background: "#111827",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 6,
+                          height: 6,
+                          borderRadius: "50%",
+                          background: "#334155",
+                        }}
+                      />
+                      <span
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 700,
+                          color: "#94a3b8",
+                          letterSpacing: "0.11em",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        Piece Palette
+                      </span>
+                    </div>
+
+                    <div style={{ paddingTop: 8 }}>
+                      <div
+                        style={{
+                          fontSize: 10,
+                          color: "#7f93b0",
+                          textAlign: "center",
+                          padding: "0 12px 6px",
+                          fontWeight: 700,
+                          letterSpacing: "0.08em",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        White Pieces
+                      </div>
+                      <div
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "repeat(6, 1fr)",
+                          gap: 5,
+                          padding: "0 12px 10px",
+                        }}
+                      >
+                        {POSITION_BUILDER_WHITE_PIECES.map((pieceId) => {
+                          const isSelected = positionBuilderSelectedPiece === pieceId;
+                          const symbol = POSITION_BUILDER_PIECE_SYMBOLS[pieceId];
+                          return (
+                            <button
+                              key={pieceId}
+                              type="button"
+                              onClick={() => setPositionBuilderSelectedPiece(pieceId)}
+                              style={{
+                                height: 56,
+                                borderRadius: 9,
+                                background: isSelected
+                                  ? "rgb(var(--color-brand-500-rgb) / 0.18)"
+                                  : "#1a2540",
+                                border: isSelected
+                                  ? "1.5px solid rgb(var(--color-brand-500-rgb) / 0.6)"
+                                  : "1.5px solid #263045",
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                              }}
+                            >
+                              <span
+                                aria-hidden="true"
+                                style={{
+                                  fontSize: 36,
+                                  lineHeight: 1,
+                                  color: "#ffffff",
+                                  textShadow: "0 0 1px rgba(0,0,0,0.9)",
+                                  userSelect: "none",
+                                }}
+                              >
+                                {symbol}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <div
+                        style={{
+                          height: 1,
+                          background: "#1a2640",
+                          margin: "0 12px 6px",
+                        }}
+                      />
+
+                      <div
+                        style={{
+                          fontSize: 10,
+                          color: "#7f93b0",
+                          textAlign: "center",
+                          padding: "0 12px 6px",
+                          fontWeight: 700,
+                          letterSpacing: "0.08em",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        Black Pieces
+                      </div>
+                      <div
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "repeat(6, 1fr)",
+                          gap: 5,
+                          padding: "0 12px 8px",
+                        }}
+                      >
+                        {POSITION_BUILDER_BLACK_PIECES.map((pieceId) => {
+                          const isSelected = positionBuilderSelectedPiece === pieceId;
+                          const symbol = POSITION_BUILDER_PIECE_SYMBOLS[pieceId];
+                          return (
+                            <button
+                              key={pieceId}
+                              type="button"
+                              onClick={() => setPositionBuilderSelectedPiece(pieceId)}
+                              style={{
+                                height: 56,
+                                borderRadius: 9,
+                                background: isSelected
+                                  ? "rgb(var(--color-brand-500-rgb) / 0.18)"
+                                  : "#1a2540",
+                                border: isSelected
+                                  ? "1.5px solid rgb(var(--color-brand-500-rgb) / 0.6)"
+                                  : "1.5px solid #263045",
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                              }}
+                            >
+                              <span
+                                aria-hidden="true"
+                                style={{
+                                  fontSize: 36,
+                                  lineHeight: 1,
+                                  color: "#0f172a",
+                                  textShadow: "0 0 1px rgba(255,255,255,0.7)",
+                                  userSelect: "none",
+                                }}
+                              >
+                                {symbol}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <div
+                        style={{
+                          height: 1,
+                          background: "#1a2640",
+                          margin: "2px 12px 8px",
+                        }}
+                      />
+                      <div style={{ padding: "0 12px 12px" }}>
+                        <button
+                          type="button"
+                          onClick={() => setPositionBuilderSelectedPiece("eraser")}
+                          style={{
+                            width: "100%",
+                            padding: "9px 10px",
+                            borderRadius: 9,
+                            fontSize: 12,
+                            fontWeight: 600,
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 7,
+                            border:
+                              positionBuilderSelectedPiece === "eraser"
+                                ? "1px solid rgba(239,68,68,0.34)"
+                                : "1px solid #263045",
+                            background:
+                              positionBuilderSelectedPiece === "eraser"
+                                ? "rgba(239,68,68,0.14)"
+                                : "#1a2540",
+                            color:
+                              positionBuilderSelectedPiece === "eraser"
+                                ? "#f87171"
+                                : "#64748b",
+                          }}
+                        >
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.9"
+                          >
+                            <path d="M3 6h18M8 6V4h8v2M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                          </svg>
+                          Eraser (click board square to remove)
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      background: "#141c2e",
+                      border: "1px solid #1e2d45",
+                      borderRadius: 14,
+                      overflow: "hidden",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        padding: "10px 14px",
+                        borderBottom: "1px solid #1a2640",
+                        background: "#111827",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 6,
+                          height: 6,
+                          borderRadius: "50%",
+                          background: "#334155",
+                        }}
+                      />
+                      <span
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 700,
+                          color: "#94a3b8",
+                          letterSpacing: "0.11em",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        FEN String
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        padding: "10px 12px",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 6,
+                      }}
+                    >
+                      <textarea
+                        value={positionBuilderFenInput}
+                        onChange={(event) =>
+                          setPositionBuilderFenInput(event.target.value)
+                        }
+                        onFocus={() => setIsPositionBuilderFenFocused(true)}
+                        onBlur={() => setIsPositionBuilderFenFocused(false)}
+                        spellCheck={false}
+                        style={{
+                          width: "100%",
+                          background: "#0f1723",
+                          border: isPositionBuilderFenFocused
+                            ? "1px solid rgba(16,185,129,0.7)"
+                            : "1px solid #1e2d45",
+                          borderRadius: 8,
+                          color: "#94a3b8",
+                          fontSize: 11,
+                          fontFamily: '"Roboto Mono", monospace',
+                          padding: "8px 10px",
+                          outline: "none",
+                          resize: "none",
+                          height: 50,
+                          boxShadow: isPositionBuilderFenFocused
+                            ? "0 0 0 2px rgba(16,185,129,0.2), 0 0 10px rgba(16,185,129,0.25)"
+                            : "none",
+                          transition: "border-color 140ms ease, box-shadow 140ms ease",
+                        }}
+                      />
+                      <div
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "1fr 1fr",
+                          gap: 6,
+                        }}
+                      >
+                        <button
+                          type="button"
+                          onClick={handlePositionBuilderLoadFen}
+                          style={{
+                            ...FREE_MOVE_BASE_BUTTON_STYLE,
+                            background: "#1a2540",
+                            color: "#94a3b8",
+                            border: "1px solid #263045",
+                            padding: 8,
+                            fontSize: 11.5,
+                            borderRadius: 8,
+                          }}
+                        >
+                          Load FEN
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handlePositionBuilderCopyFen}
+                          style={{
+                            ...FREE_MOVE_BASE_BUTTON_STYLE,
+                            background:
+                              "linear-gradient(135deg, #10b981, #059669)",
+                            color: "#ffffff",
+                            border: "none",
+                            padding: 8,
+                            fontSize: 11.5,
+                            borderRadius: 8,
+                            boxShadow: "0 2px 8px rgba(16,185,129,0.28)",
+                          }}
+                        >
+                          Copy FEN
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      background: "#141c2e",
+                      border: "1px solid #1e2d45",
+                      borderRadius: 14,
+                      overflow: "hidden",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        padding: "10px 14px",
+                        borderBottom: "1px solid #1a2640",
+                        background: "#111827",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 6,
+                          height: 6,
+                          borderRadius: "50%",
+                          background: "#334155",
+                        }}
+                      />
+                      <span
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 700,
+                          color: "#94a3b8",
+                          letterSpacing: "0.11em",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        Board Actions
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "1fr 1fr",
+                        columnGap: 10,
+                        rowGap: 12,
+                        padding: "12px 12px 14px",
+                      }}
+                    >
+                      <button
+                        type="button"
+                        onClick={handlePositionBuilderStartPosition}
+                        style={{
+                          ...FREE_MOVE_BASE_BUTTON_STYLE,
+                          background: "#1a2540",
+                          color: "#94a3b8",
+                          border: "1px solid #263045",
+                        }}
+                      >
+                        Start Position
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handlePositionBuilderClearBoard}
+                        style={{
+                          ...FREE_MOVE_BASE_BUTTON_STYLE,
+                          background: "transparent",
+                          color: "#f87171",
+                          border: "1px solid rgba(248,113,113,0.45)",
+                        }}
+                      >
+                        Clear Board
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handlePositionBuilderStartFromPosition}
+                        style={{
+                          ...FREE_MOVE_BASE_BUTTON_STYLE,
+                          gridColumn: "span 2",
+                          background:
+                            "linear-gradient(135deg, #10b981, #059669)",
+                          color: "#fff",
+                          border: "none",
+                          boxShadow: "0 4px 14px rgba(16,185,129,0.34)",
+                        }}
+                      >
+                        Start from This Position
+                      </button>
+                    </div>
+                  </div>
+
+                  {panelNotice && (
+                    <div
+                      style={{
+                        padding: "0 4px 2px",
+                        fontSize: 11,
+                        color: "#64748b",
+                      }}
+                    >
+                      {panelNotice}
+                    </div>
+                  )}
+
+                  {positionBuilderFenFallback && (
+                    <textarea
+                      readOnly
+                      value={positionBuilderFenFallback}
+                      style={{
+                        width: "100%",
+                        height: 74,
+                        borderRadius: 8,
+                        border: "1px solid #263045",
+                        background: "#111827",
+                        color: "#94a3b8",
+                        padding: 8,
+                        fontSize: 12,
+                        fontFamily: '"Roboto Mono", monospace',
+                        resize: "none",
+                      }}
+                    />
+                  )}
                 </div>
               </motion.section>
             ) : (
@@ -659,45 +2323,294 @@ export default function PlayPractice() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -16 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}
-                className="w-full flex flex-col min-h-0"
-                style={{ height: boardWidth }}
+                className="h-full min-h-0"
               >
-                <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-2.5">
-                  {PRACTICE_MODES.map((mode) => {
-                    const isExpanded = expandedModeId === mode.id;
-                    return (
-                      <button
-                        key={mode.id}
-                        onClick={() => handleModeClick(mode)}
-                        className="w-full text-left rounded-2xl border border-gray-200/70 dark:border-white/10 bg-white/75 dark:bg-slate-900/60 p-3 transition-all duration-200 hover:border-teal-500/50 hover:bg-teal-500/5 dark:hover:bg-teal-500/10"
-                      >
-                        <div className="flex items-start gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-gray-100 dark:bg-slate-800 flex items-center justify-center text-lg flex-shrink-0">
-                            {mode.icon}
+                <div
+                  style={{
+                    background: "#161d2e",
+                    width: "100%",
+                    height: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                    borderLeft: "1px solid rgba(255,255,255,0.07)",
+                  }}
+                >
+                  <div
+                    style={{
+                      padding: "20px 20px 16px",
+                      borderBottom: "1px solid rgba(255,255,255,0.07)",
+                    }}
+                  >
+                    <p
+                      style={{ fontSize: 15, fontWeight: 600, color: "#f1f5f9" }}
+                    >
+                      Practice Workspace
+                    </p>
+                    <p style={{ fontSize: 12, color: "#64748b", marginTop: 3 }}>
+                      Choose a training mode to set your next session.
+                    </p>
+                  </div>
+
+                  <div
+                    style={{
+                      flex: 1,
+                      padding: "12px",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 6,
+                      overflowY: "auto",
+                    }}
+                  >
+                    {PRACTICE_MODES.map((mode) => {
+                      const isActive = selectedModeId === mode.id;
+                      return (
+                        <button
+                          key={mode.id}
+                          type="button"
+                          onClick={() => handleModeClick(mode)}
+                          className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/70"
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 14,
+                            padding: "13px 14px",
+                            borderRadius: 10,
+                            cursor: "pointer",
+                            border: `1px solid ${
+                              isActive
+                                ? "rgb(var(--color-brand-500-rgb) / 0.32)"
+                                : "transparent"
+                            }`,
+                            background: isActive
+                              ? "rgb(var(--color-brand-500-rgb) / 0.14)"
+                              : "transparent",
+                            transition: "all 0.15s",
+                            textAlign: "left",
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: 40,
+                              height: 40,
+                              borderRadius: 10,
+                              flexShrink: 0,
+                              background: isActive
+                                ? "rgb(var(--color-brand-500-rgb) / 0.22)"
+                                : "#1e2a3a",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            {mode.icon(
+                              isActive ? "rgb(var(--color-brand-500-rgb))" : "#94a3b8",
+                            )}
                           </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="font-semibold text-gray-900 dark:text-white text-[13px]">
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <p
+                              style={{
+                                fontSize: 13.5,
+                                fontWeight: 500,
+                                color: "#e2e8f0",
+                              }}
+                            >
                               {mode.title}
-                            </div>
-                            <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
-                              {mode.description}
-                            </div>
+                            </p>
+                            <p
+                              style={{
+                                fontSize: 12,
+                                color: "#64748b",
+                                marginTop: 2,
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
+                              {mode.desc}
+                            </p>
                           </div>
-                        </div>
-                        {mode.id !== "free-move" && isExpanded && (
-                          <div className="mt-2 rounded-lg border border-dashed border-gray-300 dark:border-slate-700 px-2.5 py-2 text-[11px] text-gray-500 dark:text-gray-400">
-                            This mode is planned next. Free Move is fully active now.
-                          </div>
-                        )}
-                      </button>
-                    );
-                  })}
+                          <span
+                            style={{
+                              fontSize: 10,
+                              fontWeight: 600,
+                              padding: "2px 7px",
+                              borderRadius: 20,
+                              flexShrink: 0,
+                              ...(mode.badge === "Live"
+                                ? {
+                                    background: "rgba(34,197,94,0.15)",
+                                    color: "#4ade80",
+                                  }
+                                : {
+                                    background: "rgba(255,255,255,0.06)",
+                                    color: "#94a3b8",
+                                  }),
+                            }}
+                          >
+                            {mode.badge}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div
+                    style={{
+                      padding: "14px 16px 18px",
+                      borderTop: "1px solid rgba(255,255,255,0.07)",
+                    }}
+                  >
+                    <p
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 600,
+                        color: "#475569",
+                        letterSpacing: "0.08em",
+                        textTransform: "uppercase",
+                        marginBottom: 6,
+                      }}
+                    >
+                      Current Selection
+                    </p>
+                    <p
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 600,
+                        color: "#f1f5f9",
+                        marginBottom: 2,
+                      }}
+                    >
+                      {activeMode.title}
+                    </p>
+                    <p
+                      style={{
+                        fontSize: 12,
+                        color: "#64748b",
+                        marginBottom: 14,
+                      }}
+                    >
+                      {activeMode.desc}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (activeModeIsLive && activeModeRoute) {
+                          navigate(activeModeRoute);
+                        }
+                      }}
+                      disabled={!activeModeIsLive}
+                      style={{
+                        width: "100%",
+                        padding: "12px",
+                        background: activeModeIsLive
+                          ? "rgb(var(--color-brand-500-rgb))"
+                          : "#1e293b",
+                        color: activeModeIsLive ? "#fff" : "#94a3b8",
+                        border: "none",
+                        borderRadius: 10,
+                        fontSize: 14,
+                        fontWeight: 600,
+                        cursor: activeModeIsLive ? "pointer" : "not-allowed",
+                        letterSpacing: "0.01em",
+                      }}
+                    >
+                      Open {activeMode.title}
+                    </button>
+                  </div>
                 </div>
               </motion.section>
             )}
           </AnimatePresence>
         </div>
       </div>
+      {positionBuilderValidationModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 90,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 16,
+            background: "rgba(2, 6, 23, 0.72)",
+            backdropFilter: "blur(2px)",
+          }}
+        >
+          <div
+            style={{
+              width: "100%",
+              maxWidth: 420,
+              borderRadius: 14,
+              background: "#111827",
+              border: "1px solid #1e2d45",
+              boxShadow: "0 20px 56px -20px rgba(2,6,23,0.9)",
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                padding: "14px 16px 10px",
+                borderBottom: "1px solid #1a2640",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+              }}
+            >
+              <div
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  background: "rgb(var(--color-brand-500-rgb))",
+                }}
+              />
+              <h3
+                style={{
+                  margin: 0,
+                  fontSize: 15,
+                  fontWeight: 700,
+                  color: "#e2e8f0",
+                }}
+              >
+                {positionBuilderValidationModal.title}
+              </h3>
+            </div>
+            <div style={{ padding: "14px 16px 16px" }}>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: 13,
+                  lineHeight: 1.6,
+                  color: "#94a3b8",
+                }}
+              >
+                {positionBuilderValidationModal.message}
+              </p>
+              <div style={{ marginTop: 14, display: "flex", justifyContent: "flex-end" }}>
+                <button
+                  type="button"
+                  onClick={() => setPositionBuilderValidationModal(null)}
+                  style={{
+                    ...FREE_MOVE_BASE_BUTTON_STYLE,
+                    padding: "8px 14px",
+                    fontSize: 12,
+                    background: "linear-gradient(135deg, #10b981, #059669)",
+                    color: "#fff",
+                    border: "none",
+                    boxShadow: "0 2px 10px rgba(16,185,129,0.28)",
+                  }}
+                >
+                  OK
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+

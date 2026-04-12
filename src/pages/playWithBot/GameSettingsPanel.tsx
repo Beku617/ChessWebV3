@@ -64,7 +64,7 @@ export function GameSettingsPanel({
                 onClick={() => onPlayAsChange(color)}
                 className={`py-2 px-3 rounded-lg text-sm font-medium transition-colors capitalize ${
                   playAs === color
-                    ? "bg-teal-500 text-white"
+                    ? "bg-brand-500 text-white"
                     : "bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600"
                 }`}
               >
@@ -92,7 +92,7 @@ export function GameSettingsPanel({
                 className={`py-2 px-3 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1 ${
                   timeControl.initial === opt.initial &&
                   timeControl.increment === opt.increment
-                    ? "bg-teal-500 text-white"
+                    ? "bg-brand-500 text-white"
                     : "bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600"
                 }`}
               >
@@ -107,7 +107,7 @@ export function GameSettingsPanel({
         <button
           onClick={onStart}
           disabled={!selectedBot}
-          className="w-full py-4 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white font-bold text-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+          className="w-full py-4 rounded-xl bg-gradient-to-r from-brand-500 to-brand-500 hover:from-brand-600 hover:to-brand-600 text-white font-bold text-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
         >
           {selectedBot ? `Play vs ${selectedBot.name}` : "Select a Bot"}
         </button>
@@ -115,3 +115,4 @@ export function GameSettingsPanel({
     </div>
   );
 }
+

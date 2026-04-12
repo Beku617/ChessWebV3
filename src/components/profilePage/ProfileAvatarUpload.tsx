@@ -124,7 +124,7 @@ export function ProfileAvatarUpload({
       {/* Avatar with edit button */}
       <div className="relative group">
         <div
-          className={`${avatarSizeClass} rounded-2xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center shadow-lg ring-4 ring-white dark:ring-gray-900 overflow-hidden`}
+          className={`${avatarSizeClass} rounded-2xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-lg ring-4 ring-white dark:ring-gray-900 overflow-hidden`}
         >
           {currentAvatar ? (
             <img
@@ -183,7 +183,7 @@ export function ProfileAvatarUpload({
 
               {/* Preview Area */}
               <div className="flex flex-col items-center mb-6">
-                <div className="w-32 h-32 rounded-full bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center overflow-hidden ring-4 ring-gray-200 dark:ring-gray-700">
+                <div className="w-32 h-32 rounded-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center overflow-hidden ring-4 ring-gray-200 dark:ring-gray-700">
                   {previewUrl ? (
                     <img
                       src={previewUrl}
@@ -244,7 +244,7 @@ export function ProfileAvatarUpload({
                   <button
                     onClick={handleUpload}
                     disabled={isUploading}
-                    className="w-full py-3 px-4 bg-teal-500 hover:bg-teal-600 disabled:bg-teal-400 rounded-xl text-white font-medium flex items-center justify-center gap-2 transition-colors"
+                    className="w-full py-3 px-4 bg-brand-500 hover:bg-brand-600 disabled:bg-brand-400 rounded-xl text-white font-medium flex items-center justify-center gap-2 transition-colors"
                   >
                     {isUploading ? (
                       <>
@@ -292,3 +292,4 @@ export function ProfileAvatarUpload({
     </>
   );
 }
+

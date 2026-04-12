@@ -289,7 +289,7 @@ export default function AdminLearnOverview() {
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#f5f5f7] dark:bg-gray-950">
-        <Loader2 className="w-8 h-8 text-teal-500 animate-spin" />
+        <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
       </div>
     );
   }
@@ -310,8 +310,8 @@ export default function AdminLearnOverview() {
     ? "border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800"
     : "border-gray-300 bg-gray-100 text-gray-800 hover:bg-gray-200";
   const publishActionClass = isDarkMode
-    ? "border-teal-400/25 bg-teal-500/10 text-teal-200 hover:bg-teal-500/20"
-    : "border-teal-300 bg-teal-50 text-teal-700 hover:bg-teal-100";
+    ? "border-brand-400/25 bg-brand-500/10 text-brand-200 hover:bg-brand-500/20"
+    : "border-brand-300 bg-brand-50 text-brand-700 hover:bg-brand-100";
   const deleteActionClass = isDarkMode
     ? "border-red-400/25 bg-red-500/10 text-red-200 hover:bg-red-500/20"
     : "border-red-300 bg-red-50 text-red-700 hover:bg-red-100";
@@ -328,7 +328,7 @@ export default function AdminLearnOverview() {
             >
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-teal-300/80">
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-brand-300/80">
                     Admin Learn
                   </div>
                   <h1 className="mt-2 text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
@@ -343,7 +343,7 @@ export default function AdminLearnOverview() {
                 <button
                   type="button"
                   onClick={handleOpenCreate}
-                  className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-teal-500"
+                  className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-500"
                 >
                   <Plus className="h-4 w-4" />
                   New Course
@@ -388,14 +388,14 @@ export default function AdminLearnOverview() {
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
                     placeholder="Search by title, slug, tags..."
-                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 py-2 pl-10 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 py-2 pl-10 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                   />
                 </label>
 
                 <select
                   value={category}
                   onChange={(event) => setCategory(event.target.value)}
-                  className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                  className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                 >
                   <option value="">All categories</option>
                   {options.categories.map((entry) => (
@@ -408,7 +408,7 @@ export default function AdminLearnOverview() {
                 <select
                   value={difficulty}
                   onChange={(event) => setDifficulty(event.target.value)}
-                  className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                  className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                 >
                   <option value="">All difficulties</option>
                   {options.difficulties.map((entry) => (
@@ -421,7 +421,7 @@ export default function AdminLearnOverview() {
                 <select
                   value={status}
                   onChange={(event) => setStatus(event.target.value as PublishFilter)}
-                  className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                  className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                 >
                   <option value="all">All status</option>
                   <option value="published">Published</option>
@@ -441,7 +441,7 @@ export default function AdminLearnOverview() {
             >
               {isBusy ? (
                 <div className="py-24 text-center">
-                  <Loader2 className="mx-auto h-8 w-8 animate-spin text-teal-400" />
+                  <Loader2 className="mx-auto h-8 w-8 animate-spin text-brand-400" />
                 </div>
               ) : courses.length === 0 ? (
                 <div className="py-20 text-center">
@@ -497,7 +497,7 @@ export default function AdminLearnOverview() {
                               <span
                                 className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] ${
                                   course.isPublished
-                                    ? "bg-emerald-500/15 text-emerald-300"
+                                    ? "bg-brand-500/15 text-brand-300"
                                     : "bg-gray-500/15 text-gray-400"
                                 }`}
                               >
@@ -601,7 +601,7 @@ export default function AdminLearnOverview() {
                     onChange={(event) =>
                       setDraft((current) => ({ ...current, title: event.target.value }))
                     }
-                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                   />
                 </label>
                 <label className="space-y-1">
@@ -614,7 +614,7 @@ export default function AdminLearnOverview() {
                       setDraft((current) => ({ ...current, slug: event.target.value }))
                     }
                     placeholder="auto-from-title"
-                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                   />
                 </label>
                 <label className="space-y-1">
@@ -629,7 +629,7 @@ export default function AdminLearnOverview() {
                         category: event.target.value as CourseDraft["category"],
                       }))
                     }
-                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                   >
                     {options.categories.map((entry) => (
                       <option key={entry} value={entry}>
@@ -650,7 +650,7 @@ export default function AdminLearnOverview() {
                         difficulty: event.target.value as CourseDraft["difficulty"],
                       }))
                     }
-                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                   >
                     {options.difficulties.map((entry) => (
                       <option key={entry} value={entry}>
@@ -671,7 +671,7 @@ export default function AdminLearnOverview() {
                         instructorName: event.target.value,
                       }))
                     }
-                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                   />
                 </label>
                 <label className="space-y-1">
@@ -684,7 +684,7 @@ export default function AdminLearnOverview() {
                       setDraft((current) => ({ ...current, badge: event.target.value }))
                     }
                     placeholder="Course badge text"
-                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                   />
                 </label>
                 <label className="space-y-1">
@@ -697,7 +697,7 @@ export default function AdminLearnOverview() {
                       setDraft((current) => ({ ...current, tags: event.target.value }))
                     }
                     placeholder="opening, strategy"
-                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                   />
                 </label>
                 <label className="space-y-1">
@@ -714,7 +714,7 @@ export default function AdminLearnOverview() {
                         sortOrder: Number(event.target.value || 0),
                       }))
                     }
-                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                   />
                 </label>
                 <label className="space-y-1">
@@ -729,7 +729,7 @@ export default function AdminLearnOverview() {
                         coverImage: event.target.value,
                       }))
                     }
-                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                   />
                 </label>
                 <label className="space-y-1">
@@ -742,7 +742,7 @@ export default function AdminLearnOverview() {
                     onChange={(event) =>
                       setCoverFile(event.target.files?.[0] || null)
                     }
-                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 file:mr-3 file:rounded-md file:border-0 file:bg-teal-600/20 file:px-2.5 file:py-1.5 file:text-xs file:font-semibold file:text-teal-200 hover:file:bg-teal-600/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 file:mr-3 file:rounded-md file:border-0 file:bg-brand-600/20 file:px-2.5 file:py-1.5 file:text-xs file:font-semibold file:text-brand-200 hover:file:bg-brand-600/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                   />
                 </label>
                 <label className="space-y-1">
@@ -754,7 +754,7 @@ export default function AdminLearnOverview() {
                     onChange={(event) =>
                       setDraft((current) => ({ ...current, icon: event.target.value }))
                     }
-                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                   />
                 </label>
               </div>
@@ -787,7 +787,7 @@ export default function AdminLearnOverview() {
                   onChange={(event) =>
                     setDraft((current) => ({ ...current, subtitle: event.target.value }))
                   }
-                  className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                  className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                 />
               </label>
 
@@ -803,7 +803,7 @@ export default function AdminLearnOverview() {
                       description: event.target.value,
                     }))
                   }
-                  className="min-h-[110px] w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                  className="min-h-[110px] w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                 />
               </label>
 
@@ -817,7 +817,7 @@ export default function AdminLearnOverview() {
                       isPublished: event.target.checked,
                     }))
                   }
-                  className="h-4 w-4 rounded border-gray-300 text-teal-500 focus:ring-teal-400/40"
+                  className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-400/40"
                 />
                 Publish immediately
               </label>
@@ -835,7 +835,7 @@ export default function AdminLearnOverview() {
                 <button
                   disabled={saving}
                   onClick={() => void handleSave()}
-                  className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-500 disabled:opacity-60"
+                  className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-500 disabled:opacity-60"
                 >
                   {saving && <Loader2 className="h-4 w-4 animate-spin" />}
                   {editingCourse ? "Save Changes" : "Create Course"}
@@ -848,3 +848,4 @@ export default function AdminLearnOverview() {
     </div>
   );
 }
+

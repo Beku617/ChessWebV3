@@ -10,7 +10,7 @@ export function PuzzleInfoCard({ puzzle, isWhiteToMove }: PuzzleInfoCardProps) {
     <div className="p-3">
       <div className="bg-[#161b25] rounded-lg p-3">
         <div className="flex items-start gap-2">
-          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center text-xl flex-shrink-0">
+          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-xl flex-shrink-0">
             {puzzle.icon}
           </div>
           <div className="flex-1 min-w-0">
@@ -36,3 +36,4 @@ export function PuzzleInfoCard({ puzzle, isWhiteToMove }: PuzzleInfoCardProps) {
     </div>
   );
 }
+

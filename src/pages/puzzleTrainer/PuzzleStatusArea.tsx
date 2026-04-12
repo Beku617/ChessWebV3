@@ -17,15 +17,15 @@ export function PuzzleStatusArea({
 }: PuzzleStatusAreaProps) {
   if (status === "correct") {
     return (
-      <div className="bg-emerald-900/40 border border-emerald-600 rounded-lg p-3 flex items-center gap-2">
-        <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0">
+      <div className="bg-brand-900/40 border border-brand-600 rounded-lg p-3 flex items-center gap-2">
+        <div className="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center flex-shrink-0">
           <Check size={18} strokeWidth={3} />
         </div>
         <div>
-          <h3 className="font-bold text-emerald-400 text-sm flex items-center gap-1">
+          <h3 className="font-bold text-brand-400 text-sm flex items-center gap-1">
             Correct! <Sparkles size={14} />
           </h3>
-          <p className="text-emerald-500 text-xs">
+          <p className="text-brand-500 text-xs">
             Solved in {formatTime(elapsedTime)}
           </p>
         </div>
@@ -85,3 +85,4 @@ export function PuzzleStatusArea({
 
   return null;
 }
+

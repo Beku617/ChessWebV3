@@ -170,7 +170,7 @@ export function AdminCommunityPostCard({
                   Group
                 </div>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <span className="rounded-full bg-teal-500/10 px-2.5 py-1 text-[11px] font-semibold text-teal-100">
+                  <span className="rounded-full bg-brand-500/10 px-2.5 py-1 text-[11px] font-semibold text-brand-100">
                     {post.group.name}
                   </span>
                   {post.group.topic && (
@@ -191,7 +191,7 @@ export function AdminCommunityPostCard({
                   value={editText}
                   onChange={(event) => onEditTextChange(event.target.value)}
                   placeholder="Edit post text..."
-                  className="min-h-[120px] w-full rounded-xl bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
+                  className="min-h-[120px] w-full rounded-xl bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                 />
                 <div className="max-w-[220px]">
                   <FilterDropdown
@@ -206,7 +206,7 @@ export function AdminCommunityPostCard({
                     value={editRejectionReason}
                     onChange={(event) => onEditRejectionReasonChange(event.target.value)}
                     placeholder="Rejection reason"
-                    className="w-full rounded-xl bg-white/[0.05] px-4 py-2.5 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
+                    className="w-full rounded-xl bg-white/[0.05] px-4 py-2.5 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                   />
                 )}
                 {isGamePost ? (
@@ -228,7 +228,7 @@ export function AdminCommunityPostCard({
                           type="checkbox"
                           checked={editRemoveMedia}
                           onChange={(event) => onEditRemoveMediaChange(event.target.checked)}
-                          className="rounded border-white/20 bg-transparent text-teal-500 focus:ring-teal-500/30"
+                          className="rounded border-white/20 bg-transparent text-brand-500 focus:ring-brand-500/30"
                         />
                         Remove existing media
                       </label>
@@ -248,7 +248,7 @@ export function AdminCommunityPostCard({
                     type="button"
                     disabled={isBusy}
                     onClick={onSaveEdit}
-                    className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-500 disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-500 disabled:opacity-50"
                   >
                     <Check className="h-4 w-4" />
                     Save changes
@@ -304,3 +304,4 @@ export function AdminCommunityPostCard({
     </article>
   );
 }
+

@@ -77,7 +77,7 @@ export function MessageComposer({
             type="button"
             onClick={onUnarchive}
             disabled={actionLoading === "archive"}
-            className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-3 py-2 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(13,148,136,0.35)] transition-all hover:bg-teal-500 disabled:cursor-not-allowed disabled:bg-gray-200 dark:disabled:bg-[#1e2a40] disabled:text-slate-500 disabled:shadow-none"
+            className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(13,148,136,0.35)] transition-all hover:bg-brand-500 disabled:cursor-not-allowed disabled:bg-gray-200 dark:disabled:bg-[#1e2a40] disabled:text-slate-500 disabled:shadow-none"
           >
             <ArchiveRestore className="h-4 w-4" />
             <span>{t("messages.unarchive", "Unarchive")}</span>
@@ -115,7 +115,7 @@ export function MessageComposer({
         <div className="mb-2 rounded-2xl border border-[#27354f] bg-[#0f1829]/92 px-3 py-3">
           <div className="mb-2 flex items-center justify-between text-[12px] text-slate-200">
             <span className="inline-flex items-center gap-2">
-              <Video className="h-4 w-4 text-teal-300" />
+              <Video className="h-4 w-4 text-brand-300" />
               <span>1 video selected · {formatBytes(pendingVideo.size)}</span>
             </span>
             <button
@@ -157,7 +157,7 @@ export function MessageComposer({
         <div className="mb-2 rounded-2xl border border-[#27354f] bg-[#0f1829]/92 px-3 py-3">
           <div className="mb-2 flex items-center justify-between text-[12px] text-slate-200">
             <span className="inline-flex items-center gap-2">
-              <ImageIcon className="h-4 w-4 text-teal-300" />
+              <ImageIcon className="h-4 w-4 text-brand-300" />
               <span>
                 {pendingImages.length}{" "}
                 {pendingImages.length === 1 ? "image selected" : "images selected"} -{" "}
@@ -208,9 +208,9 @@ export function MessageComposer({
       {/^\/game\d*$/i.test(draft.trim()) &&
         pendingImages.length === 0 &&
         !pendingVideo && (
-          <div className="mb-2 flex items-center gap-2 rounded-xl border border-teal-500/20 bg-teal-500/5 px-3 py-2">
-            <Crown className="h-4 w-4 shrink-0 text-teal-400" />
-            <span className="text-xs text-teal-300/90">
+          <div className="mb-2 flex items-center gap-2 rounded-xl border border-brand-500/20 bg-brand-500/5 px-3 py-2">
+            <Crown className="h-4 w-4 shrink-0 text-brand-400" />
+            <span className="text-xs text-brand-300/90">
               Type <span className="font-mono font-semibold">/game1</span>,{" "}
               <span className="font-mono font-semibold">/game2</span>, etc. to
               share a game from your profile history
@@ -254,7 +254,7 @@ export function MessageComposer({
             sending ||
             (!draft.trim() && pendingImages.length === 0 && !pendingVideo)
           }
-          className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-teal-600 text-white shadow-[0_10px_20px_rgba(13,148,136,0.35)] transition-all hover:bg-teal-500 disabled:cursor-not-allowed disabled:bg-gray-200 dark:disabled:bg-[#1e2a40] disabled:text-gray-400 dark:disabled:text-slate-600 disabled:shadow-none"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-brand-600 text-white shadow-[0_10px_20px_rgba(13,148,136,0.35)] transition-all hover:bg-brand-500 disabled:cursor-not-allowed disabled:bg-gray-200 dark:disabled:bg-[#1e2a40] disabled:text-gray-400 dark:disabled:text-slate-600 disabled:shadow-none"
         >
           {sending ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -266,3 +266,4 @@ export function MessageComposer({
     </div>
   );
 }
+

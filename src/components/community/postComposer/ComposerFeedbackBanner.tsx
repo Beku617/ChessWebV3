@@ -22,7 +22,7 @@ export function ComposerFeedbackBanner({
           ? "bg-red-500/10 text-red-200"
           : submissionBlockedMessage
             ? "bg-amber-500/10 text-amber-100"
-            : "bg-teal-500/10 text-teal-100"
+            : "bg-brand-500/10 text-brand-100"
       }`}
     >
       {error || submissionBlockedMessage ? (
@@ -34,3 +34,4 @@ export function ComposerFeedbackBanner({
     </div>
   );
 }
+

@@ -99,7 +99,7 @@ export function PoolLeaderboardCard() {
                       "transition-all duration-200 ease-out",
                       "hover:bg-white/5 hover:translate-x-[2px]",
                       isYou
-                        ? "bg-teal-50 dark:bg-teal-500/10 ring-1 ring-teal-400/20"
+                        ? "bg-brand-50 dark:bg-brand-500/10 ring-1 ring-brand-400/20"
                         : "",
                       accent ? `${accent.bg} ${accent.ring}` : "",
                       !isLast
@@ -137,11 +137,11 @@ export function PoolLeaderboardCard() {
                       <div
                         className={`truncate text-sm ${
                           accent ? "font-semibold" : "font-medium"
-                        } text-gray-900 dark:text-white group-hover/name:text-teal-500 dark:group-hover/name:text-teal-400 transition-colors`}
+                        } text-gray-900 dark:text-white group-hover/name:text-brand-500 dark:group-hover/name:text-brand-400 transition-colors`}
                       >
                         {entry.name}
                         {isYou && (
-                          <span className="ml-1.5 text-[10px] font-semibold uppercase tracking-wide text-teal-500 dark:text-teal-400">
+                          <span className="ml-1.5 text-[10px] font-semibold uppercase tracking-wide text-brand-500 dark:text-brand-400">
                             you
                           </span>
                         )}
@@ -176,3 +176,4 @@ export function PoolLeaderboardCard() {
     </div>
   );
 }
+

@@ -105,7 +105,7 @@ export function GameFormModal({
                   setFormData((prev) => ({ ...prev, userId: e.target.value }))
                 }
                 placeholder="Paste user id or pick from list"
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
               <datalist id={userListId}>
                 {users.map((user) => (
@@ -127,7 +127,7 @@ export function GameFormModal({
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, event: e.target.value }))
                 }
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </label>
 
@@ -141,7 +141,7 @@ export function GameFormModal({
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, white: e.target.value }))
                 }
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </label>
 
@@ -155,7 +155,7 @@ export function GameFormModal({
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, black: e.target.value }))
                 }
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </label>
 
@@ -169,7 +169,7 @@ export function GameFormModal({
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, result: e.target.value }))
                 }
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
               >
                 {GAME_RESULT_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>
@@ -192,7 +192,7 @@ export function GameFormModal({
                     playAs: e.target.value as "white" | "black",
                   }))
                 }
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
               >
                 <option value="white">White</option>
                 <option value="black">Black</option>
@@ -211,7 +211,7 @@ export function GameFormModal({
                     variant: e.target.value as "standard" | "chess960",
                   }))
                 }
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
               >
                 <option value="standard">Standard</option>
                 <option value="chess960">Chess960</option>
@@ -231,7 +231,7 @@ export function GameFormModal({
                   }))
                 }
                 placeholder="e.g. 300+0"
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </label>
 
@@ -248,7 +248,7 @@ export function GameFormModal({
                     whiteElo: normalizeNumberInput(e.target.value),
                   }))
                 }
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </label>
 
@@ -265,7 +265,7 @@ export function GameFormModal({
                     blackElo: normalizeNumberInput(e.target.value),
                   }))
                 }
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </label>
 
@@ -281,7 +281,7 @@ export function GameFormModal({
                     opponent: e.target.value,
                   }))
                 }
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </label>
 
@@ -298,7 +298,7 @@ export function GameFormModal({
                     opponentLevel: normalizeNumberInput(e.target.value),
                   }))
                 }
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </label>
 
@@ -311,7 +311,7 @@ export function GameFormModal({
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, site: e.target.value }))
                 }
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </label>
 
@@ -325,7 +325,7 @@ export function GameFormModal({
                   setFormData((prev) => ({ ...prev, date: e.target.value }))
                 }
                 placeholder="YYYY.MM.DD"
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </label>
           </div>
@@ -337,7 +337,7 @@ export function GameFormModal({
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, rated: e.target.checked }))
               }
-              className="w-4 h-4 rounded border-gray-300 dark:border-gray-700 text-teal-500 focus:ring-teal-500"
+              className="w-4 h-4 rounded border-gray-300 dark:border-gray-700 text-brand-500 focus:ring-brand-500"
             />
             Rated Game
           </label>
@@ -355,7 +355,7 @@ export function GameFormModal({
                 }))
               }
               placeholder="checkmate, resign, timeout..."
-              className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
           </label>
 
@@ -373,7 +373,7 @@ export function GameFormModal({
               }
               rows={4}
               placeholder="e4 e5 Nf3 Nc6 ..."
-              className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
           </label>
 
@@ -391,7 +391,7 @@ export function GameFormModal({
               }
               rows={3}
               placeholder="1. e4 e5 2. Nf3 ..."
-              className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
             />
           </label>
 
@@ -406,7 +406,7 @@ export function GameFormModal({
               }
               rows={6}
               placeholder='[Event "NeonGambit"] ...'
-              className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono text-xs"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono text-xs"
             />
           </label>
 
@@ -422,7 +422,7 @@ export function GameFormModal({
             <button
               type="submit"
               disabled={saving}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-teal-500 to-emerald-500 text-white font-medium hover:from-teal-600 hover:to-emerald-600 transition-colors disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-brand-500 to-brand-500 text-white font-medium hover:from-brand-600 hover:to-brand-600 transition-colors disabled:opacity-50"
             >
               {saving && <Loader2 className="w-4 h-4 animate-spin" />}
               {editingGame ? "Save Changes" : "Create Game"}
@@ -433,3 +433,4 @@ export function GameFormModal({
     </div>
   );
 }
+

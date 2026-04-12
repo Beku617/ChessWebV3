@@ -312,8 +312,8 @@ export default function AdminFeaturedEvents() {
     "inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus:outline-none disabled:pointer-events-none disabled:opacity-40";
   const pBtnPage = (active: boolean) =>
     active
-      ? `${pBtnBase} w-9 h-9 bg-teal-500 text-white shadow-md shadow-teal-500/25`
-      : `${pBtnBase} w-9 h-9 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 hover:border-teal-400 dark:hover:border-teal-600 hover:text-teal-600 dark:hover:text-teal-400`;
+      ? `${pBtnBase} w-9 h-9 bg-brand-500 text-white shadow-md shadow-brand-500/25`
+      : `${pBtnBase} w-9 h-9 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 hover:border-brand-400 dark:hover:border-brand-600 hover:text-brand-600 dark:hover:text-brand-400`;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -345,7 +345,7 @@ export default function AdminFeaturedEvents() {
           </div>
           <button
             onClick={openNewModal}
-            className="flex items-center gap-2 bg-teal-600 hover:bg-teal-500 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+            className="flex items-center gap-2 bg-brand-600 hover:bg-brand-500 text-white px-4 py-2 rounded-lg font-medium transition-colors"
           >
             <Plus className="w-5 h-5" />
             Add Event
@@ -361,13 +361,13 @@ export default function AdminFeaturedEvents() {
               placeholder="Search events..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:border-teal-500 shadow-sm"
+              className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:border-brand-500 shadow-sm"
             />
           </div>
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-teal-500 shadow-sm"
+            className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500 shadow-sm"
           >
             <option value="all">All Status</option>
             <option value="upcoming">Upcoming</option>
@@ -387,7 +387,7 @@ export default function AdminFeaturedEvents() {
             <p>No events found</p>
             <button
               onClick={openNewModal}
-              className="mt-4 text-teal-500 hover:underline"
+              className="mt-4 text-brand-500 hover:underline"
             >
               Create your first event
             </button>
@@ -497,7 +497,7 @@ export default function AdminFeaturedEvents() {
                       <div className="flex justify-end gap-2">
                         <button
                           onClick={() => openEditModal(event)}
-                          className="p-2 text-gray-400 hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                          className="p-2 text-gray-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
                         >
                           <Pencil className="w-4 h-4" />
                         </button>
@@ -524,7 +524,7 @@ export default function AdminFeaturedEvents() {
                   <button
                     disabled={safePage <= 1}
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    className={`${pBtnBase} w-9 h-9 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:border-teal-400 dark:hover:border-teal-600 hover:text-teal-600 dark:hover:text-teal-400`}
+                    className={`${pBtnBase} w-9 h-9 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:border-brand-400 dark:hover:border-brand-600 hover:text-brand-600 dark:hover:text-brand-400`}
                   >
                     <ChevronLeft size={16} />
                   </button>
@@ -551,7 +551,7 @@ export default function AdminFeaturedEvents() {
                     onClick={() =>
                       setCurrentPage((p) => Math.min(totalPages, p + 1))
                     }
-                    className={`${pBtnBase} w-9 h-9 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:border-teal-400 dark:hover:border-teal-600 hover:text-teal-600 dark:hover:text-teal-400`}
+                    className={`${pBtnBase} w-9 h-9 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:border-brand-400 dark:hover:border-brand-600 hover:text-brand-600 dark:hover:text-brand-400`}
                   >
                     <ChevronRight size={16} />
                   </button>
@@ -590,7 +590,7 @@ export default function AdminFeaturedEvents() {
                     onChange={(e) =>
                       setFormData({ ...formData, title: e.target.value })
                     }
-                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-teal-500"
+                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
                   />
                 </div>
 
@@ -605,7 +605,7 @@ export default function AdminFeaturedEvents() {
                       setFormData({ ...formData, description: e.target.value })
                     }
                     rows={3}
-                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-teal-500"
+                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
                   />
                 </div>
 
@@ -623,7 +623,7 @@ export default function AdminFeaturedEvents() {
                           type: e.target.value as any,
                         })
                       }
-                      className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-teal-500"
+                      className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
                     >
                       <option value="event">Event</option>
                       <option value="tournament">Tournament</option>
@@ -643,7 +643,7 @@ export default function AdminFeaturedEvents() {
                           status: e.target.value as any,
                         })
                       }
-                      className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-teal-500"
+                      className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
                     >
                       <option value="upcoming">Upcoming</option>
                       <option value="live">Live</option>
@@ -664,7 +664,7 @@ export default function AdminFeaturedEvents() {
                       onChange={(e) =>
                         setFormData({ ...formData, startDate: e.target.value })
                       }
-                      className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-teal-500"
+                      className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
                     />
                   </div>
                   <div>
@@ -677,7 +677,7 @@ export default function AdminFeaturedEvents() {
                       onChange={(e) =>
                         setFormData({ ...formData, endDate: e.target.value })
                       }
-                      className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-teal-500"
+                      className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
                     />
                   </div>
                 </div>
@@ -694,7 +694,7 @@ export default function AdminFeaturedEvents() {
                       setFormData({ ...formData, lichessUrl: e.target.value })
                     }
                     placeholder="https://lichess.org/broadcast/..."
-                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 rounded-lg px-4 py-2 focus:outline-none focus:border-teal-500"
+                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
                   />
                 </div>
 
@@ -713,7 +713,7 @@ export default function AdminFeaturedEvents() {
                           priority: parseInt(e.target.value) || 0,
                         })
                       }
-                      className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-teal-500"
+                      className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
                     />
                   </div>
                   <div className="flex items-end gap-4">
@@ -727,7 +727,7 @@ export default function AdminFeaturedEvents() {
                             featured: e.target.checked,
                           })
                         }
-                        className="w-4 h-4 rounded border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-teal-500 focus:ring-teal-500"
+                        className="w-4 h-4 rounded border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-brand-500 focus:ring-brand-500"
                       />
                       <span className="text-sm text-gray-600 dark:text-gray-300">
                         Featured
@@ -743,7 +743,7 @@ export default function AdminFeaturedEvents() {
                             isActive: e.target.checked,
                           })
                         }
-                        className="w-4 h-4 rounded border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-teal-500 focus:ring-teal-500"
+                        className="w-4 h-4 rounded border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-brand-500 focus:ring-brand-500"
                       />
                       <span className="text-sm text-gray-600 dark:text-gray-300">
                         Active
@@ -761,7 +761,7 @@ export default function AdminFeaturedEvents() {
                     <button
                       type="button"
                       onClick={addPlayer}
-                      className="text-teal-500 hover:text-teal-400 text-sm flex items-center gap-1"
+                      className="text-brand-500 hover:text-brand-400 text-sm flex items-center gap-1"
                     >
                       <Plus className="w-4 h-4" />
                       Add Player
@@ -776,7 +776,7 @@ export default function AdminFeaturedEvents() {
                         onChange={(e) =>
                           updatePlayer(index, "name", e.target.value)
                         }
-                        className="flex-1 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-500"
+                        className="flex-1 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500"
                       />
                       <input
                         type="text"
@@ -785,7 +785,7 @@ export default function AdminFeaturedEvents() {
                         onChange={(e) =>
                           updatePlayer(index, "title", e.target.value)
                         }
-                        className="w-20 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-500"
+                        className="w-20 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500"
                       />
                       <input
                         type="number"
@@ -798,7 +798,7 @@ export default function AdminFeaturedEvents() {
                             parseInt(e.target.value) || 0,
                           )
                         }
-                        className="w-24 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-500"
+                        className="w-24 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500"
                       />
                       <button
                         type="button"
@@ -822,7 +822,7 @@ export default function AdminFeaturedEvents() {
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-lg font-medium transition-colors"
+                    className="px-6 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg font-medium transition-colors"
                   >
                     {editingEvent ? "Save Changes" : "Create Event"}
                   </button>
@@ -835,3 +835,4 @@ export default function AdminFeaturedEvents() {
     </div>
   );
 }
+

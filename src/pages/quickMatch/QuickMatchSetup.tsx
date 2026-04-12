@@ -297,7 +297,7 @@ export function QuickMatchSetup({
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center">
+                <div className="w-full h-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center">
                   <span className="text-white font-bold text-sm">
                     {user?.fullName?.substring(0, 1).toUpperCase() || t("Y")}
                   </span>
@@ -350,7 +350,7 @@ export function QuickMatchSetup({
               <div className="px-4 py-3 border-b border-gray-200/55 dark:border-white/10">
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-teal-500" />
+                    <Clock className="w-4 h-4 text-brand-500" />
                     <h2 className="font-bold text-base text-gray-900 dark:text-white">
                       {tournamentMode
                         ? t("Tournament Game")
@@ -359,7 +359,7 @@ export function QuickMatchSetup({
                   </div>
                   {!tournamentMode && (
                     <div className="flex items-center gap-2">
-                      <span className="rounded-full bg-teal-100 text-teal-700 dark:bg-teal-500/20 dark:text-teal-300 px-2 py-0.5 text-[11px] font-semibold">
+                      <span className="rounded-full bg-brand-100 text-brand-700 dark:bg-brand-500/20 dark:text-brand-300 px-2 py-0.5 text-[11px] font-semibold">
                         {timeOptionLabel}
                       </span>
                       <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
@@ -417,7 +417,7 @@ export function QuickMatchSetup({
                                 }}
                                 className={`w-full px-3 py-2.5 flex items-center justify-between text-left transition-colors ${
                                   isActive
-                                    ? "bg-teal-500/15 text-teal-600 dark:text-teal-300"
+                                    ? "bg-brand-500/15 text-brand-600 dark:text-brand-300"
                                     : "bg-white dark:bg-slate-900 hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-700 dark:text-gray-200"
                                 }`}
                               >
@@ -479,7 +479,7 @@ export function QuickMatchSetup({
                                         }}
                                         className={`py-2 rounded-lg text-[12px] font-semibold transition-all ${
                                           isSelected
-                                            ? "bg-teal-500/20 text-teal-600 dark:text-teal-300 ring-2 ring-teal-500"
+                                            ? "bg-brand-500/20 text-brand-600 dark:text-brand-300 ring-2 ring-brand-500"
                                             : "bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 ring-1 ring-gray-200 dark:ring-slate-700 hover:ring-gray-300 dark:hover:ring-slate-600"
                                         }`}
                                       >
@@ -509,7 +509,7 @@ export function QuickMatchSetup({
                   <button
                     onClick={onStart}
                     disabled={isSearching || !isConnected}
-                    className="w-full py-3 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold text-lg transition-all shadow-lg hover:shadow-xl active:scale-[0.98] disabled:cursor-not-allowed disabled:shadow-none"
+                    className="w-full py-3 rounded-xl bg-gradient-to-r from-brand-500 to-brand-500 hover:from-brand-600 hover:to-brand-600 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold text-lg transition-all shadow-lg hover:shadow-xl active:scale-[0.98] disabled:cursor-not-allowed disabled:shadow-none"
                   >
                     {isSearching
                       ? t("Searching...")
@@ -526,3 +526,4 @@ export function QuickMatchSetup({
     </div>
   );
 }
+

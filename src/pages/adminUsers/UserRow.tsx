@@ -46,7 +46,7 @@ export function UserRow({
     <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
       <td className="px-4 py-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white font-bold">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center text-white font-bold">
             {user.fullName.charAt(0).toUpperCase()}
           </div>
           <div>
@@ -81,7 +81,7 @@ export function UserRow({
         <div className="flex items-center gap-2">
           <div className="w-16 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
             <div
-              className="h-full bg-teal-500 rounded-full"
+              className="h-full bg-brand-500 rounded-full"
               style={{ width: `${winRate}%` }}
             />
           </div>
@@ -171,7 +171,7 @@ function UserRowActions({
             value={banReason}
             onChange={(e) => onBanReasonChange(e.target.value)}
             placeholder="Ban reason (optional)"
-            className="w-48 px-2 py-1 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:border-teal-500"
+            className="w-48 px-2 py-1 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:border-brand-500"
           />
         )}
         <div className="flex items-center gap-2">
@@ -206,7 +206,7 @@ function UserRowActions({
     <div className="flex items-center justify-end gap-1">
       <Link
         to={`/admin/users/${user._id}`}
-        className="p-2 text-gray-400 hover:text-teal-500 hover:bg-teal-100 dark:hover:bg-teal-900/20 rounded-lg transition-colors"
+        className="p-2 text-gray-400 hover:text-brand-500 hover:bg-brand-100 dark:hover:bg-brand-900/20 rounded-lg transition-colors"
         title="View profile"
       >
         <Eye className="w-4 h-4" />
@@ -232,3 +232,4 @@ function UserRowActions({
     </div>
   );
 }
+

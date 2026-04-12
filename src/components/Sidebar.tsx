@@ -133,14 +133,14 @@ export default function Sidebar() {
               to={item.path}
               className={`flex items-center gap-2.5 min-h-[44px] ${styleGroup.rowPadding} rounded-xl border border-transparent transition-all duration-200 group ${
                 isActive(item.path)
-                  ? "bg-teal-500/14 border-teal-400/35 text-teal-700 dark:text-teal-300 shadow-[0_8px_18px_rgba(20,184,166,0.16)]"
+                  ? "bg-brand-500/14 border-brand-400/35 text-brand-700 dark:text-brand-300 shadow-[0_8px_18px_rgba(20,184,166,0.16)]"
                   : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/80 hover:text-gray-900 dark:hover:text-white"
               }`}
             >
               <item.icon
                 className={`shrink-0 ${styleGroup.rowIcon} ${
                   isActive(item.path)
-                    ? "text-teal-700 dark:text-teal-300"
+                    ? "text-brand-700 dark:text-brand-300"
                     : "text-gray-400 dark:text-gray-500 group-hover:text-gray-900 dark:group-hover:text-white"
                 }`}
               />
@@ -166,12 +166,12 @@ export default function Sidebar() {
               to="/profile"
               className={`flex-1 min-w-0 flex items-center gap-2.5 rounded-xl border border-transparent transition-colors cursor-pointer group ${styleGroup.profileRowPadding} ${
                 isActive("/profile")
-                  ? "bg-teal-500/10 border-teal-400/25"
+                  ? "bg-brand-500/10 border-brand-400/25"
                   : "hover:bg-gray-100 dark:hover:bg-gray-800"
               }`}
             >
               <div
-                className={`flex-shrink-0 rounded-full bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center shadow-lg overflow-hidden ${
+                className={`flex-shrink-0 rounded-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-lg overflow-hidden ${
                   isCompact ? "w-8 h-8" : "w-9 h-9"
                 }`}
               >
@@ -209,7 +209,7 @@ export default function Sidebar() {
               to="/messages"
               className={`relative inline-flex items-center justify-center flex-shrink-0 rounded-lg transition-colors ${
                 isActive("/messages")
-                  ? "bg-teal-500/10 text-teal-600 dark:text-teal-300"
+                  ? "bg-brand-500/10 text-brand-600 dark:text-brand-300"
                   : "text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300"
               } ${styleGroup.iconButtonPadding}`}
               title={t("nav.messages", "Messages")}
@@ -227,14 +227,14 @@ export default function Sidebar() {
               to="/friends"
               className={`relative inline-flex items-center justify-center flex-shrink-0 rounded-lg transition-colors ${
                 isActive("/friends")
-                  ? "bg-teal-500/10 text-teal-600 dark:text-teal-300"
+                  ? "bg-brand-500/10 text-brand-600 dark:text-brand-300"
                   : "text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300"
               } ${styleGroup.iconButtonPadding}`}
               title={t("nav.friends", "Friends")}
             >
               <Users className={styleGroup.rowIcon} />
               {pendingIncomingCount > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[18px] h-5 px-1.5 rounded-full bg-teal-500 text-[10px] font-bold text-white leading-none flex items-center justify-center shadow-[0_0_0_1px_rgba(0,0,0,0.35)]">
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-5 px-1.5 rounded-full bg-brand-500 text-[10px] font-bold text-white leading-none flex items-center justify-center shadow-[0_0_0_1px_rgba(0,0,0,0.35)]">
                   {formatCount(pendingIncomingCount)}
                 </span>
               )}
@@ -245,7 +245,7 @@ export default function Sidebar() {
               to="/settings"
               className={`flex-shrink-0 rounded-lg transition-colors ${
                 isActive("/settings")
-                  ? "bg-teal-500/10 text-teal-600 dark:text-teal-300"
+                  ? "bg-brand-500/10 text-brand-600 dark:text-brand-300"
                   : "text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300"
               } ${styleGroup.iconButtonPadding}`}
               title={t("nav.settings", "Settings")}
@@ -269,3 +269,4 @@ export default function Sidebar() {
     </div>
   );
 }
+

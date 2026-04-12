@@ -40,7 +40,7 @@ export function PuzzleStatsCards({ stats, loading = false }: PuzzleStatsCardsPro
         value={rating.toLocaleString()}
         helper={`${t("Best:")} ${bestRating.toLocaleString()}`}
         icon={<Target className="h-4 w-4" />}
-        accent="border-teal-400/30 bg-teal-500/12 text-teal-200"
+        accent="border-brand-400/30 bg-brand-500/12 text-brand-200"
       />
 
       <StatCard
@@ -99,3 +99,4 @@ function StatCard({
     </motion.div>
   );
 }
+

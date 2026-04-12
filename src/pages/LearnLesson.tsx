@@ -397,7 +397,7 @@ export default function LearnLesson() {
   if (loading) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-teal-400 animate-spin" />
+        <Loader2 className="w-8 h-8 text-brand-400 animate-spin" />
       </div>
     );
   }
@@ -414,7 +414,7 @@ export default function LearnLesson() {
         </p>
         <button
           onClick={() => navigate("/learn")}
-          className="mt-6 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-500/20 border border-teal-400/35 text-teal-200 hover:bg-teal-500/30"
+          className="mt-6 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-500/20 border border-brand-400/35 text-brand-200 hover:bg-brand-500/30"
         >
           Back to Learn
         </button>
@@ -424,7 +424,7 @@ export default function LearnLesson() {
 
   const feedbackClass =
     feedback?.kind === "correct"
-      ? "border-emerald-400/35 bg-emerald-500/10 text-emerald-200"
+      ? "border-brand-400/35 bg-brand-500/10 text-brand-200"
       : feedback?.kind === "wrong"
         ? "border-rose-400/35 bg-rose-500/10 text-rose-200"
         : "border-cyan-400/35 bg-cyan-500/10 text-cyan-200";
@@ -490,7 +490,7 @@ export default function LearnLesson() {
               )}
 
               {lessonCompleted && (
-                <div className="rounded-xl border border-emerald-400/35 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200 inline-flex items-center gap-2">
+                <div className="rounded-xl border border-brand-400/35 bg-brand-500/10 px-3 py-2 text-sm text-brand-200 inline-flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4" />
                   Lesson complete.
                 </div>
@@ -521,7 +521,7 @@ export default function LearnLesson() {
                 {canAdvanceStep && !lessonCompleted && (
                   <button
                     onClick={goToNextStep}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-teal-500/20 border border-teal-400/35 text-teal-200 text-xs hover:bg-teal-500/30"
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-brand-500/20 border border-brand-400/35 text-brand-200 text-xs hover:bg-brand-500/30"
                   >
                     Next Step
                   </button>
@@ -530,7 +530,7 @@ export default function LearnLesson() {
                 {lessonCompleted && hasNextLesson && (
                   <button
                     onClick={openNextLesson}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-teal-500/20 border border-teal-400/35 text-teal-200 text-xs hover:bg-teal-500/30"
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-brand-500/20 border border-brand-400/35 text-brand-200 text-xs hover:bg-brand-500/30"
                   >
                     Next Lesson
                   </button>
@@ -558,7 +558,7 @@ export default function LearnLesson() {
             {hasNextLesson ? (
               <button
                 onClick={openNextLesson}
-                className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs bg-teal-500/20 border border-teal-400/35 text-teal-200 hover:bg-teal-500/30"
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs bg-brand-500/20 border border-brand-400/35 text-brand-200 hover:bg-brand-500/30"
               >
                 <ChevronRight className="w-3.5 h-3.5" />
                 Next Lesson
@@ -578,3 +578,4 @@ export default function LearnLesson() {
     </div>
   );
 }
+

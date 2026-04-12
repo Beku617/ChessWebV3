@@ -61,18 +61,18 @@ function getAutoStartFromSearch(search: string): boolean {
 
 const COLOR_LABEL_CLASS: Record<FourPlayerColor, string> = {
   red: "bg-rose-500/10 text-rose-600 dark:text-rose-300 border-rose-500/30",
-  blue: "bg-sky-500/10 text-sky-600 dark:text-sky-300 border-sky-500/30",
+  blue: "bg-brand-500/10 text-brand-600 dark:text-brand-300 border-brand-500/30",
   yellow:
     "bg-amber-500/10 text-amber-700 dark:text-amber-200 border-amber-500/30",
   green:
-    "bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border-emerald-500/30",
+    "bg-brand-500/10 text-brand-600 dark:text-brand-300 border-brand-500/30",
 };
 
 const COLOR_RING_CLASS: Record<FourPlayerColor, string> = {
   red: "ring-rose-400",
-  blue: "ring-sky-400",
+  blue: "ring-brand-400",
   yellow: "ring-amber-400",
-  green: "ring-emerald-400",
+  green: "ring-brand-400",
 };
 
 function FourPlayerBoard({
@@ -378,7 +378,7 @@ function FourPlayerBoard({
                   isLastFrom
                     ? "ring-2 ring-yellow-300/70 ring-inset"
                     : isLastTo
-                      ? "ring-2 ring-emerald-300/70 ring-inset"
+                      ? "ring-2 ring-brand-300/70 ring-inset"
                       : ""
                 } ${isSelected ? "ring-2 ring-cyan-400 ring-inset" : ""}`}
               >
@@ -679,12 +679,12 @@ export default function FourPlayerChess() {
                 <div className="p-4 border-b border-gray-200/60 dark:border-white/10">
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4 text-teal-500" />
+                      <Users className="w-4 h-4 text-brand-500" />
                       <h2 className="font-bold text-base text-gray-900 dark:text-white">
                         4-Player Online
                       </h2>
                     </div>
-                    <span className="text-[11px] rounded-full bg-teal-500/15 text-teal-600 dark:text-teal-300 px-2 py-0.5 font-semibold">
+                    <span className="text-[11px] rounded-full bg-brand-500/15 text-brand-600 dark:text-brand-300 px-2 py-0.5 font-semibold">
                       {selectedTimeOption?.label || "5+0"}
                     </span>
                   </div>
@@ -696,7 +696,7 @@ export default function FourPlayerChess() {
                 <div className="flex-1 overflow-y-auto p-4 space-y-3">
                   <div className="rounded-2xl border border-gray-200/70 dark:border-white/10 bg-white/60 dark:bg-slate-900/60 p-3">
                     <div className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
-                      <Clock className="w-4 h-4 text-teal-500" />
+                      <Clock className="w-4 h-4 text-brand-500" />
                       <span>Time Control</span>
                     </div>
                     <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -716,7 +716,7 @@ export default function FourPlayerChess() {
                             }
                             className={`py-2 px-3 rounded-lg text-sm font-semibold transition-all ${
                               isSelected
-                                ? "bg-teal-500 text-white ring-2 ring-teal-500"
+                                ? "bg-brand-500 text-white ring-2 ring-brand-500"
                                 : "bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 ring-1 ring-gray-200 dark:ring-slate-700 hover:ring-gray-300 dark:hover:ring-slate-600"
                             }`}
                           >
@@ -739,7 +739,7 @@ export default function FourPlayerChess() {
                     type="button"
                     onClick={handleStartMatch}
                     disabled={!isConnected}
-                    className="w-full py-3 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold text-base transition-all shadow-lg hover:shadow-xl disabled:cursor-not-allowed"
+                    className="w-full py-3 rounded-xl bg-gradient-to-r from-brand-500 to-brand-500 hover:from-brand-600 hover:to-brand-600 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold text-base transition-all shadow-lg hover:shadow-xl disabled:cursor-not-allowed"
                   >
                     {isConnected ? "Search Match" : "Server Offline"}
                   </button>
@@ -770,7 +770,7 @@ export default function FourPlayerChess() {
               <button
                 type="button"
                 onClick={handlePlayAgain}
-                className="flex-1 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-600 font-semibold"
+                className="flex-1 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 font-semibold"
               >
                 Play Again
               </button>
@@ -811,7 +811,7 @@ export default function FourPlayerChess() {
             <div
               className={`px-3 py-2 rounded-lg text-xs font-semibold ${
                 isMyTurn
-                  ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+                  ? "bg-brand-500/15 text-brand-700 dark:text-brand-300"
                   : "bg-slate-500/15 text-slate-700 dark:text-slate-300"
               }`}
             >
@@ -895,7 +895,7 @@ export default function FourPlayerChess() {
             <button
               type="button"
               onClick={handlePlayAgain}
-              className="py-2.5 rounded-xl bg-teal-500/10 hover:bg-teal-500/20 text-teal-700 dark:text-teal-300 font-semibold"
+              className="py-2.5 rounded-xl bg-brand-500/10 hover:bg-brand-500/20 text-brand-700 dark:text-brand-300 font-semibold"
             >
               Play Again
             </button>
@@ -915,3 +915,5 @@ export default function FourPlayerChess() {
     </div>
   );
 }
+
+

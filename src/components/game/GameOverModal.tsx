@@ -127,8 +127,8 @@ function toneClasses(tone: ModalTone): {
   if (tone === "win") {
     return {
       border: "border-slate-800/90",
-      glow: "from-emerald-500/15",
-      title: "text-emerald-100",
+      glow: "from-brand-500/15",
+      title: "text-brand-100",
     };
   }
   if (tone === "loss") {
@@ -141,8 +141,8 @@ function toneClasses(tone: ModalTone): {
   if (tone === "draw") {
     return {
       border: "border-slate-800/90",
-      glow: "from-sky-500/12",
-      title: "text-sky-100",
+      glow: "from-brand-500/12",
+      title: "text-brand-100",
     };
   }
   return {
@@ -229,7 +229,7 @@ export function GameOverModal({
                 <button
                   type="button"
                   onClick={onTryAgain}
-                  className="w-full h-11 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-medium transition-colors flex items-center justify-center gap-2"
+                  className="w-full h-11 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-medium transition-colors flex items-center justify-center gap-2"
                 >
                   <RotateCcw size={16} />
                   Try Again
@@ -250,3 +250,5 @@ export function GameOverModal({
     </div>
   );
 }
+
+

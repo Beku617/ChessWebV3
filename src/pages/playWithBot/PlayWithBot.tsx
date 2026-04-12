@@ -234,7 +234,7 @@ export default function PlayWithBot() {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center">
+                <div className="w-full h-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center">
                   <span className="text-white font-bold text-sm">{user?.fullName?.substring(0, 1).toUpperCase() || t("Y")}</span>
                 </div>
               )}
@@ -252,7 +252,7 @@ export default function PlayWithBot() {
           {/* Panel Header */}
           <div className="p-4 border-b border-gray-200/60 dark:border-white/10">
             <div className="flex items-center gap-2">
-              <Bot className="w-5 h-5 text-teal-500" />
+              <Bot className="w-5 h-5 text-brand-500" />
               <h2 className="font-bold text-lg text-gray-900 dark:text-white">
                 {t("Play Bots")}
               </h2>
@@ -293,7 +293,7 @@ export default function PlayWithBot() {
                     <span className="font-semibold text-gray-900 dark:text-white">
                       {selectedBot.name}
                     </span>
-                    <span className="text-sm font-medium text-teal-600 dark:text-teal-400">
+                    <span className="text-sm font-medium text-brand-600 dark:text-brand-400">
                       {selectedBot.rating}
                     </span>
                   </div>
@@ -309,7 +309,7 @@ export default function PlayWithBot() {
           <div className="flex-1 min-h-0 overflow-y-auto pr-1 pb-3 [scrollbar-width:thin] [scrollbar-color:#334155_transparent]">
             {loading ? (
               <div className="flex items-center justify-center py-10">
-                <Loader2 className="w-6 h-6 text-teal-500 animate-spin" />
+                <Loader2 className="w-6 h-6 text-brand-500 animate-spin" />
                 <span className="ml-2 text-gray-500">{t("Loading bots...")}</span>
               </div>
             ) : error ? (
@@ -363,7 +363,7 @@ export default function PlayWithBot() {
                             <div
                               className={`relative w-full aspect-square rounded-xl overflow-hidden ${
                                 selectedBot?.id === bot.id
-                                  ? "ring-2 ring-teal-500 shadow-md shadow-teal-500/20"
+                                  ? "ring-2 ring-brand-500 shadow-md shadow-brand-500/20"
                                   : "ring-1 ring-gray-200 dark:ring-slate-700 hover:ring-gray-300 dark:hover:ring-slate-600"
                               }`}
                             >
@@ -391,7 +391,7 @@ export default function PlayWithBot() {
                             <span
                               className={`mt-1 block text-[11px] font-medium truncate ${
                                 selectedBot?.id === bot.id
-                                  ? "text-teal-600 dark:text-teal-400"
+                                  ? "text-brand-600 dark:text-brand-400"
                                   : "text-gray-700 dark:text-gray-300"
                               }`}
                             >
@@ -415,7 +415,7 @@ export default function PlayWithBot() {
             <button
               onClick={handleStartMatch}
               disabled={!selectedBot}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white font-bold text-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl active:scale-[0.98]"
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-brand-500 to-brand-500 hover:from-brand-600 hover:to-brand-600 text-white font-bold text-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl active:scale-[0.98]"
             >
               {t("Play")}
             </button>
@@ -425,3 +425,4 @@ export default function PlayWithBot() {
     </div>
   );
 }
+

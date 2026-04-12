@@ -93,7 +93,7 @@ function Toggle({
       disabled={disabled}
       onClick={() => onChange(!enabled)}
       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed ${
-        enabled ? "bg-teal-500" : "bg-gray-300 dark:bg-gray-600"
+        enabled ? "bg-brand-500" : "bg-gray-300 dark:bg-gray-600"
       }`}
     >
       <span
@@ -159,9 +159,9 @@ function SectionCard({
 }) {
   return (
     <div className="overflow-hidden rounded-[28px] border border-gray-200/80 bg-white/95 shadow-[0_14px_38px_rgba(15,23,42,0.08)] dark:border-gray-800 dark:bg-gray-900">
-      <div className="h-1 bg-teal-500/70 dark:bg-teal-400/70" />
+      <div className="h-1 bg-brand-500/70 dark:bg-brand-400/70" />
       <div className="px-6 pt-5 pb-1 flex items-center gap-3">
-        <div className="w-9 h-9 rounded-lg border border-teal-500/20 bg-teal-500/10 text-teal-600 dark:text-teal-300 flex items-center justify-center">
+        <div className="w-9 h-9 rounded-lg border border-brand-500/20 bg-brand-500/10 text-brand-600 dark:text-brand-300 flex items-center justify-center">
           {icon}
         </div>
         <div>
@@ -214,7 +214,7 @@ function Toast({
     <div
       className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-xl text-sm font-semibold ${
         type === "success"
-          ? "bg-emerald-500 text-white"
+          ? "bg-brand-500 text-white"
           : "bg-red-500 text-white"
       }`}
     >
@@ -284,7 +284,7 @@ export default function AdminSettings() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-950 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-teal-500 animate-spin" />
+        <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
       </div>
     );
   }
@@ -299,12 +299,12 @@ export default function AdminSettings() {
             <div className="pointer-events-none absolute right-0 top-0 h-48 w-48 rounded-full bg-cyan-400/10 blur-3xl dark:bg-cyan-400/12" />
             <div className="relative z-10 flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
               <div>
-                <div className="inline-flex items-center gap-2 rounded-full border border-teal-500/20 bg-teal-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-teal-700 dark:text-teal-300">
+                <div className="inline-flex items-center gap-2 rounded-full border border-brand-500/20 bg-brand-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-brand-700 dark:text-brand-300">
                   <Settings className="h-3.5 w-3.5" />
                   Admin Controls
                 </div>
                 <h1 className="mt-4 flex items-center gap-3 text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
-                  <Settings className="w-7 h-7 text-teal-500" />
+                  <Settings className="w-7 h-7 text-brand-500" />
                   Admin Settings
                 </h1>
                 <p className="mt-2 max-w-2xl text-sm leading-7 text-gray-600 dark:text-gray-300">
@@ -319,7 +319,7 @@ export default function AdminSettings() {
                   tone={
                     isDirty
                       ? "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300"
-                      : "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300"
+                      : "bg-brand-100 text-brand-700 dark:bg-brand-500/15 dark:text-brand-300"
                   }
                 />
                 <StatusPill
@@ -337,7 +337,7 @@ export default function AdminSettings() {
                   tone={
                     settings.maintenanceMode
                       ? "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300"
-                      : "bg-teal-100 text-teal-700 dark:bg-teal-500/15 dark:text-teal-300"
+                      : "bg-brand-100 text-brand-700 dark:bg-brand-500/15 dark:text-brand-300"
                   }
                 />
               </div>
@@ -394,7 +394,7 @@ export default function AdminSettings() {
                 disabled={!isDirty}
                 className={`flex items-center gap-2 rounded-xl px-5 py-2 text-sm font-bold transition-all shadow-lg ${
                   isDirty
-                    ? "bg-teal-600 text-white shadow-teal-900/25 hover:bg-teal-500"
+                    ? "bg-brand-600 text-white shadow-brand-900/25 hover:bg-brand-500"
                     : "cursor-not-allowed bg-gray-300 text-gray-500 shadow-none dark:bg-gray-800"
                 }`}
               >
@@ -526,7 +526,7 @@ export default function AdminSettings() {
                       e.target.value as AdminSettingsState["sessionTimeout"],
                     )
                   }
-                  className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-1.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-teal-500/40 transition-all"
+                  className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-1.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-500/40 transition-all"
                 >
                   <option value="30m">30 Minutes</option>
                   <option value="1h">1 Hour</option>
@@ -639,7 +639,7 @@ export default function AdminSettings() {
                         Math.max(50, Math.min(5000, Number(e.target.value))),
                       )
                     }
-                    className="w-24 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-1.5 text-sm font-medium text-center focus:outline-none focus:ring-2 focus:ring-teal-500/40 transition-all"
+                    className="w-24 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-1.5 text-sm font-medium text-center focus:outline-none focus:ring-2 focus:ring-brand-500/40 transition-all"
                   />
                   <span className="text-xs text-gray-500 dark:text-gray-400">
                     games
@@ -695,3 +695,4 @@ export default function AdminSettings() {
     </div>
   );
 }
+

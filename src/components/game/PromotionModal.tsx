@@ -53,13 +53,13 @@ export function PromotionModal({ state, onSelect }: PromotionModalProps) {
               key={piece}
               type="button"
               onClick={() => onSelect(piece)}
-              className="group flex h-20 flex-col items-center justify-center rounded-xl border border-white/15 bg-slate-900/80 transition hover:-translate-y-0.5 hover:border-teal-300/70 hover:bg-slate-800"
+              className="group flex h-20 flex-col items-center justify-center rounded-xl border border-white/15 bg-slate-900/80 transition hover:-translate-y-0.5 hover:border-brand-300/70 hover:bg-slate-800"
               aria-label={`Promote to ${PIECE_LABELS[piece]}`}
             >
               <span className="text-4xl leading-none text-slate-100">
                 {symbols[piece]}
               </span>
-              <span className="mt-1 text-[10px] font-medium uppercase tracking-wide text-slate-400 group-hover:text-teal-200">
+              <span className="mt-1 text-[10px] font-medium uppercase tracking-wide text-slate-400 group-hover:text-brand-200">
                 {PIECE_LABELS[piece]}
               </span>
             </button>
@@ -69,3 +69,4 @@ export function PromotionModal({ state, onSelect }: PromotionModalProps) {
     </div>
   );
 }
+

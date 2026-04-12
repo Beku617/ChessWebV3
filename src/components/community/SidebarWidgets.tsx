@@ -105,7 +105,7 @@ export const TrendingWidget = memo(function TrendingWidget({
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <div className="line-clamp-2 text-sm font-semibold leading-6 text-gray-100 transition-colors group-hover:text-teal-200">
+                  <div className="line-clamp-2 text-sm font-semibold leading-6 text-gray-100 transition-colors group-hover:text-brand-200">
                     {summary}
                   </div>
                   <div className="mt-1 text-[11px] leading-5 text-gray-500">
@@ -115,7 +115,7 @@ export const TrendingWidget = memo(function TrendingWidget({
 
                 <div className="shrink-0">
                   {showLikes ? (
-                    <div className="inline-flex items-center gap-1.5 rounded-full bg-teal-500/10 px-2.5 py-1 text-[11px] font-medium text-teal-100">
+                    <div className="inline-flex items-center gap-1.5 rounded-full bg-brand-500/10 px-2.5 py-1 text-[11px] font-medium text-brand-100">
                       <Heart className="h-3.5 w-3.5 fill-current opacity-75" />
                       {formatCount(post.likeCount)}
                     </div>
@@ -138,7 +138,7 @@ export function CommunityGuidelinesWidget() {
   return (
     <SidebarCard
       title="Community Notes"
-      icon={<ShieldCheck className="w-4 h-4 text-teal-400" />}
+      icon={<ShieldCheck className="w-4 h-4 text-brand-400" />}
     >
       <div className="space-y-3 text-sm text-gray-300 leading-6">
         <p className="text-gray-300">
@@ -147,15 +147,15 @@ export function CommunityGuidelinesWidget() {
         </p>
         <ul className="space-y-2 text-[13px] text-gray-400">
           <li className="flex items-start gap-2">
-            <span className="mt-2 h-1.5 w-1.5 rounded-full bg-teal-400 shrink-0" />
+            <span className="mt-2 h-1.5 w-1.5 rounded-full bg-brand-400 shrink-0" />
             One image or one video per post right now.
           </li>
           <li className="flex items-start gap-2">
-            <span className="mt-2 h-1.5 w-1.5 rounded-full bg-teal-400 shrink-0" />
+            <span className="mt-2 h-1.5 w-1.5 rounded-full bg-brand-400 shrink-0" />
             Off-topic, spam, or abusive content is declined.
           </li>
           <li className="flex items-start gap-2">
-            <span className="mt-2 h-1.5 w-1.5 rounded-full bg-teal-400 shrink-0" />
+            <span className="mt-2 h-1.5 w-1.5 rounded-full bg-brand-400 shrink-0" />
             Tournament moments, ideas, clips, analysis, and tasteful memes welcome.
           </li>
         </ul>
@@ -278,7 +278,7 @@ export function PuzzleLeaderboardWidget() {
       title={t("Puzzle Leaders")}
       icon={<Puzzle className="w-4 h-4 text-violet-500" />}
       action={
-        <button className="text-[11px] font-semibold text-teal-500 hover:text-teal-400 transition-colors">
+        <button className="text-[11px] font-semibold text-brand-500 hover:text-brand-400 transition-colors">
           {t("Full board")}
         </button>
       }
@@ -324,7 +324,7 @@ export function WhoToFollowWidget() {
   return (
     <SidebarCard
       title={t("Who to Follow")}
-      icon={<UserPlus className="w-4 h-4 text-teal-500" />}
+      icon={<UserPlus className="w-4 h-4 text-brand-500" />}
     >
       <div className="space-y-3">
         {SUGGESTED_USERS.map((su) => (
@@ -356,7 +356,7 @@ export function EventsWidget() {
     tournament: { icon: Trophy, color: "text-amber-500 bg-amber-500/10" },
     stream: { icon: Tv, color: "text-red-500 bg-red-500/10" },
     puzzle: { icon: Puzzle, color: "text-violet-500 bg-violet-500/10" },
-    match: { icon: Zap, color: "text-teal-500 bg-teal-500/10" },
+    match: { icon: Zap, color: "text-brand-500 bg-brand-500/10" },
   };
 
   return (
@@ -431,7 +431,7 @@ export function DailyPuzzleWidget() {
           </div>
         </div>
         <div className="mt-2 text-center">
-          <span className="text-xs font-bold text-teal-500 group-hover:text-teal-400 transition-colors">
+          <span className="text-xs font-bold text-brand-500 group-hover:text-brand-400 transition-colors">
             {t("Solve Today's Puzzle →")}
           </span>
         </div>
@@ -439,3 +439,4 @@ export function DailyPuzzleWidget() {
     </SidebarCard>
   );
 }
+

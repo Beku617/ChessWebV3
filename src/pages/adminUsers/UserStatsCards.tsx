@@ -22,8 +22,8 @@ export function UserStatsCards({ users, totalUsers }: UserStatsCardsProps) {
     <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 mb-6">
       <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-teal-500/10 flex items-center justify-center">
-            <Users className="w-5 h-5 text-teal-500" />
+          <div className="w-10 h-10 rounded-lg bg-brand-500/10 flex items-center justify-center">
+            <Users className="w-5 h-5 text-brand-500" />
           </div>
           <div>
             <div className="text-xl font-bold">{totalUsers}</div>
@@ -82,3 +82,4 @@ export function UserStatsCards({ users, totalUsers }: UserStatsCardsProps) {
     </div>
   );
 }
+

@@ -48,8 +48,8 @@ export function ComposerActionBar({
       <div className="flex flex-wrap items-center gap-2">
         {(availableGroups.length > 0 || selectedGroupId) &&
           (lockGroupSelection ? (
-            <div className="inline-flex items-center gap-2 rounded-lg bg-teal-500/12 px-3.5 py-2 text-sm text-teal-100">
-              <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-teal-200/70">
+            <div className="inline-flex items-center gap-2 rounded-lg bg-brand-500/12 px-3.5 py-2 text-sm text-brand-100">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-brand-200/70">
                 Group
               </span>
               <span className="font-medium">
@@ -86,7 +86,7 @@ export function ComposerActionBar({
           type="button"
           disabled={mediaControlsDisabled}
           onClick={onOpenImagePicker}
-          className="inline-flex items-center gap-2 rounded-lg bg-white/[0.04] px-3.5 py-2 text-sm text-gray-300 transition-colors hover:bg-white/[0.08] hover:text-teal-200 disabled:cursor-not-allowed disabled:opacity-45"
+          className="inline-flex items-center gap-2 rounded-lg bg-white/[0.04] px-3.5 py-2 text-sm text-gray-300 transition-colors hover:bg-white/[0.08] hover:text-brand-200 disabled:cursor-not-allowed disabled:opacity-45"
         >
           <ImageIcon className="h-4 w-4" />
           Image
@@ -95,7 +95,7 @@ export function ComposerActionBar({
           type="button"
           disabled={mediaControlsDisabled}
           onClick={onOpenVideoPicker}
-          className="inline-flex items-center gap-2 rounded-lg bg-white/[0.04] px-3.5 py-2 text-sm text-gray-300 transition-colors hover:bg-white/[0.08] hover:text-teal-200 disabled:cursor-not-allowed disabled:opacity-45"
+          className="inline-flex items-center gap-2 rounded-lg bg-white/[0.04] px-3.5 py-2 text-sm text-gray-300 transition-colors hover:bg-white/[0.08] hover:text-brand-200 disabled:cursor-not-allowed disabled:opacity-45"
         >
           <Video className="h-4 w-4" />
           Video
@@ -109,8 +109,8 @@ export function ComposerActionBar({
           }}
           className={`inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-45 ${
             isGamePickerOpen || selectedGameSummary
-              ? "bg-teal-500/16 text-teal-100 hover:bg-teal-500/22"
-              : "bg-white/[0.04] text-gray-300 hover:bg-white/[0.08] hover:text-teal-200"
+              ? "bg-brand-500/16 text-brand-100 hover:bg-brand-500/22"
+              : "bg-white/[0.04] text-gray-300 hover:bg-white/[0.08] hover:text-brand-200"
           }`}
         >
           <Gamepad2 className="h-4 w-4" />
@@ -126,7 +126,7 @@ export function ComposerActionBar({
           disabled={!canSubmitNow}
           className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
             canSubmitNow
-              ? "bg-teal-600 text-white shadow-[0_12px_30px_rgba(13,148,136,0.28)] hover:bg-teal-500"
+              ? "bg-brand-600 text-white shadow-[0_12px_30px_rgba(13,148,136,0.28)] hover:bg-brand-500"
               : "cursor-not-allowed bg-white/[0.06] text-gray-500"
           }`}
         >
@@ -137,3 +137,4 @@ export function ComposerActionBar({
     </div>
   );
 }
+

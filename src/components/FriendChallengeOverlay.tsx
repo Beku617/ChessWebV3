@@ -34,7 +34,7 @@ export default function FriendChallengeOverlay() {
   return (
     <div className="fixed right-4 bottom-4 z-[80] w-[320px] max-w-[calc(100vw-2rem)] rounded-2xl border border-gray-200 dark:border-white/10 bg-white/95 dark:bg-slate-900/95 shadow-2xl p-3 backdrop-blur">
       <div className="flex items-center gap-2">
-        <Users className="w-4 h-4 text-teal-500" />
+        <Users className="w-4 h-4 text-brand-500" />
         <h3 className="text-sm font-bold text-gray-900 dark:text-white">
           Friend Challenge
         </h3>
@@ -86,7 +86,7 @@ export default function FriendChallengeOverlay() {
             }
             setIsResponding(false);
           }}
-          className="py-2 rounded-xl bg-teal-500 text-white font-semibold hover:bg-teal-600 transition-colors flex items-center justify-center gap-1"
+          className="py-2 rounded-xl bg-brand-500 text-white font-semibold hover:bg-brand-600 transition-colors flex items-center justify-center gap-1"
         >
           <Check className="w-4 h-4" />
           Accept
@@ -95,4 +95,5 @@ export default function FriendChallengeOverlay() {
     </div>
   );
 }
+
 

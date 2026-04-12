@@ -54,7 +54,7 @@ export function ShareGameModal({ game, onClose }: ShareGameModalProps) {
 
   const resultColor =
     resultText === "Win"
-      ? "text-emerald-400"
+      ? "text-brand-400"
       : resultText === "Loss"
         ? "text-rose-400"
         : "text-amber-400";
@@ -116,7 +116,7 @@ export function ShareGameModal({ game, onClose }: ShareGameModalProps) {
         {/* Game preview */}
         <div className="border-b border-[#1f2c45] px-5 py-3">
           <div className="flex items-center gap-3 rounded-xl border border-[#25344e] bg-[#0b1424]/80 px-4 py-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-teal-500/10 text-teal-400">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-500/10 text-brand-400">
               <Crown className="h-5 w-5" />
             </div>
             <div className="min-w-0 flex-1">
@@ -150,7 +150,7 @@ export function ShareGameModal({ game, onClose }: ShareGameModalProps) {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search friends..."
-              className="w-full rounded-xl border border-[#25344e] bg-[#0c1629]/90 py-2.5 pl-10 pr-3 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition-all focus:border-teal-400/80 focus:ring-2 focus:ring-teal-500/20"
+              className="w-full rounded-xl border border-[#25344e] bg-[#0c1629]/90 py-2.5 pl-10 pr-3 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition-all focus:border-brand-400/80 focus:ring-2 focus:ring-brand-500/20"
               autoFocus
             />
           </div>
@@ -177,7 +177,7 @@ export function ShareGameModal({ game, onClose }: ShareGameModalProps) {
                     onClick={() => setSelectedFriend(selected ? null : f)}
                     className={`group flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-all ${
                       selected
-                        ? "border-teal-400/45 bg-teal-500/8 shadow-[inset_0_0_0_1px_rgba(45,212,191,0.12)]"
+                        ? "border-brand-400/45 bg-brand-500/8 shadow-[inset_0_0_0_1px_rgba(45,212,191,0.12)]"
                         : "border-transparent hover:border-[#314664] hover:bg-[#111e32]/90"
                     }`}
                   >
@@ -210,7 +210,7 @@ export function ShareGameModal({ game, onClose }: ShareGameModalProps) {
                       )}
                     </div>
                     {selected && (
-                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-teal-500 text-white">
+                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-500 text-white">
                         <Check className="h-3.5 w-3.5" />
                       </div>
                     )}
@@ -241,8 +241,8 @@ export function ShareGameModal({ game, onClose }: ShareGameModalProps) {
             disabled={!selectedFriend || sending || sent}
             className={`inline-flex h-10 items-center justify-center gap-2 rounded-lg px-5 text-sm font-semibold text-white transition-all ${
               sent
-                ? "bg-emerald-600 shadow-[0_10px_20px_rgba(16,185,129,0.3)]"
-                : "bg-teal-600 shadow-[0_10px_20px_rgba(13,148,136,0.35)] hover:bg-teal-500"
+                ? "bg-brand-600 shadow-[0_10px_20px_rgba(16,185,129,0.3)]"
+                : "bg-brand-600 shadow-[0_10px_20px_rgba(13,148,136,0.35)] hover:bg-brand-500"
             } disabled:cursor-not-allowed disabled:bg-[#1e2a40] disabled:text-slate-600 disabled:shadow-none`}
           >
             {sent ? (
@@ -264,3 +264,4 @@ export function ShareGameModal({ game, onClose }: ShareGameModalProps) {
     </div>
   );
 }
+

@@ -31,11 +31,11 @@ export function LiveGamesSection({
       <div className="p-6 border-b border-gray-200 dark:border-gray-800">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Users className="w-5 h-5 text-teal-500 dark:text-teal-400" />
+            <Users className="w-5 h-5 text-brand-500 dark:text-brand-400" />
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
               {t("Live Games")}
             </h2>
-            <span className="px-2 py-1 bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400 text-xs rounded-full">
+            <span className="px-2 py-1 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 text-xs rounded-full">
               {games.length} {t("active")}
             </span>
           </div>
@@ -43,14 +43,14 @@ export function LiveGamesSection({
             <button
               onClick={refetch}
               disabled={apiLoading}
-              className="flex items-center space-x-1 text-sm text-gray-500 dark:text-gray-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors disabled:opacity-50"
+              className="flex items-center space-x-1 text-sm text-gray-500 dark:text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors disabled:opacity-50"
               title={t("Refresh live games")}
             >
               <RefreshCw
                 className={`w-3.5 h-3.5 ${apiLoading ? "animate-spin" : ""}`}
               />
             </button>
-            <button className="text-sm text-teal-600 dark:text-teal-400 hover:text-teal-500 dark:hover:text-teal-300 transition-colors">
+            <button className="text-sm text-brand-600 dark:text-brand-400 hover:text-brand-500 dark:hover:text-brand-300 transition-colors">
               {t("View All")}
             </button>
           </div>
@@ -140,7 +140,7 @@ export function LiveGamesSection({
                       href={game.gameUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-3 py-1 bg-teal-600 hover:bg-teal-500 text-white text-sm rounded-md transition-colors opacity-0 group-hover:opacity-100 shadow-sm hover:shadow-teal-600/20"
+                      className="px-3 py-1 bg-brand-600 hover:bg-brand-500 text-white text-sm rounded-md transition-colors opacity-0 group-hover:opacity-100 shadow-sm hover:shadow-brand-600/20"
                     >
                       {t("Watch")}
                     </a>
@@ -152,3 +152,4 @@ export function LiveGamesSection({
     </motion.div>
   );
 }
+

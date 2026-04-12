@@ -114,7 +114,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-950 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-teal-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -133,7 +133,7 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-950 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-teal-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -246,7 +246,7 @@ function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div
-      className={`bg-[#f5f5f7] dark:bg-gray-950 text-gray-900 dark:text-white font-sans selection:bg-teal-500/30 transition-colors duration-300 ${
+      className={`bg-[#f5f5f7] dark:bg-gray-950 text-gray-900 dark:text-white font-sans selection:bg-brand-500/30 transition-colors duration-300 ${
         isWorkspacePage ? "h-screen overflow-hidden" : "min-h-screen"
       }`}
     >
@@ -278,7 +278,7 @@ function Layout({ children }: { children: React.ReactNode }) {
 function RouteFallback() {
   return (
     <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-950 flex items-center justify-center">
-      <div className="w-8 h-8 border-4 border-teal-500 border-t-transparent rounded-full animate-spin" />
+      <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
     </div>
   );
 }
@@ -382,6 +382,22 @@ function App() {
             />
             <Route
               path="/play/practice/freeMove"
+              element={
+                <ProtectedRoute>
+                  <PlayPractice />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/play/practice/positionBuilder"
+              element={
+                <ProtectedRoute>
+                  <PlayPractice />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/play/practice/positionBuilder/freeMove"
               element={
                 <ProtectedRoute>
                   <PlayPractice />
@@ -535,3 +551,4 @@ function App() {
 }
 
 export default App;
+

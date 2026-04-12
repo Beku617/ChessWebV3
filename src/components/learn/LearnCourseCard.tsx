@@ -18,7 +18,7 @@ interface LearnCourseCardProps {
 
 function difficultyClass(value: string) {
   if (value === "Beginner") {
-    return "bg-emerald-500/15 text-emerald-200 border-emerald-400/30";
+    return "bg-brand-500/15 text-brand-200 border-brand-400/30";
   }
   if (value === "Advanced") {
     return "bg-rose-500/15 text-rose-200 border-rose-400/30";
@@ -65,7 +65,7 @@ export function LearnCourseCard({
 
           <div className="relative z-10 flex h-full flex-col justify-between p-5 sm:p-6">
             <div className="flex items-start justify-between gap-3">
-              <span className="inline-flex h-8 items-center rounded-full border border-teal-400/35 bg-teal-500/12 px-3 text-[10px] font-semibold uppercase tracking-[0.1em] text-teal-100">
+              <span className="inline-flex h-8 items-center rounded-full border border-brand-400/35 bg-brand-500/12 px-3 text-[10px] font-semibold uppercase tracking-[0.1em] text-brand-100">
                 {badgeText}
               </span>
             </div>
@@ -92,7 +92,7 @@ export function LearnCourseCard({
             <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-gray-400/90">
               Course Progress
             </p>
-            <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-gray-800 bg-gray-950/70 text-teal-200">
+            <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-gray-800 bg-gray-950/70 text-brand-200">
               <Crown className="h-5 w-5" />
             </div>
           </div>
@@ -106,7 +106,7 @@ export function LearnCourseCard({
             </div>
             <div className="h-2 overflow-hidden rounded-full bg-gray-800">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-teal-300 to-cyan-300 transition-all duration-500"
+                className="h-full rounded-full bg-gradient-to-r from-brand-300 to-cyan-300 transition-all duration-500"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
@@ -129,9 +129,9 @@ export function LearnCourseCard({
                 <button
                   key={lesson.id}
                   onClick={() => onOpenLesson(course.slug, lesson.slug)}
-                  className="group flex h-11 w-full items-center gap-3 rounded-xl border border-gray-800 bg-gray-950/70 px-3 text-left transition-colors hover:border-teal-300/35 hover:bg-gray-950/90"
+                  className="group flex h-11 w-full items-center gap-3 rounded-xl border border-gray-800 bg-gray-950/70 px-3 text-left transition-colors hover:border-brand-300/35 hover:bg-gray-950/90"
                 >
-                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-800 bg-gray-900/85 text-gray-300 group-hover:text-teal-200">
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-800 bg-gray-900/85 text-gray-300 group-hover:text-brand-200">
                     <Play className="h-4 w-4" />
                   </span>
                   <span className="min-w-0 flex-1 truncate text-sm text-slate-100">
@@ -155,7 +155,7 @@ export function LearnCourseCard({
           <button
             onClick={() => actionSlug && onContinue(course.slug, actionSlug)}
             disabled={!actionSlug}
-            className="group inline-flex h-11 w-full items-center justify-center rounded-xl border border-cyan-300/35 bg-gradient-to-r from-teal-300 via-cyan-300 to-teal-300 px-5 text-sm font-semibold text-slate-950 transition-all hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:brightness-100"
+            className="group inline-flex h-11 w-full items-center justify-center rounded-xl border border-cyan-300/35 bg-gradient-to-r from-brand-300 via-cyan-300 to-brand-300 px-5 text-sm font-semibold text-slate-950 transition-all hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:brightness-100"
           >
             <span className="inline-flex items-center gap-2">
               {isCompleted ? (
@@ -178,3 +178,4 @@ export function LearnCourseCard({
     </article>
   );
 }
+

@@ -101,7 +101,7 @@ export function AdminCommunityToolbar({
                 value={search}
                 onChange={(event) => onSearchChange(event.target.value)}
                 placeholder="Search by author, caption, file name, or game info..."
-                className="w-full rounded-lg bg-white/[0.06] pl-11 pr-4 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
+                className="w-full rounded-lg bg-white/[0.06] pl-11 pr-4 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
               />
             </div>
           </div>
@@ -127,7 +127,7 @@ export function AdminCommunityToolbar({
               value={createText}
               onChange={(event) => onCreateTextChange(event.target.value)}
               placeholder="Post text..."
-              className="w-full min-h-[120px] rounded-xl bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
+              className="w-full min-h-[120px] rounded-xl bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
             />
             <div className="max-w-[220px]">
               <FilterDropdown
@@ -144,7 +144,7 @@ export function AdminCommunityToolbar({
                   onCreateRejectionReasonChange(event.target.value)
                 }
                 placeholder="Rejection reason"
-                className="w-full rounded-lg bg-white/[0.06] px-4 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
+                className="w-full rounded-lg bg-white/[0.06] px-4 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
               />
             )}
             <input
@@ -160,7 +160,7 @@ export function AdminCommunityToolbar({
                 type="button"
                 onClick={onCreatePost}
                 disabled={isCreating}
-                className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-500 disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-500 disabled:opacity-50"
               >
                 <Plus className="w-4 h-4" />
                 {isCreating ? "Creating..." : "Create Post"}
@@ -178,3 +178,4 @@ export function AdminCommunityToolbar({
     </>
   );
 }
+

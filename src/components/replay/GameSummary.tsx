@@ -33,7 +33,7 @@ export function GameSummary({
   return (
     <div className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl p-3 shadow-sm space-y-3 h-full min-h-0 overflow-y-auto no-scrollbar">
       <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 dark:border-white/10 bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-[#0b1324] dark:via-[#0a1426] dark:to-[#090f1c] p-4 sm:p-5 shadow-[0_10px_30px_rgba(15,23,42,0.08)] dark:shadow-[0_16px_40px_rgba(2,6,23,0.5)]">
-        <div className="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-teal-300/20 dark:bg-teal-400/10 blur-2xl" />
+        <div className="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-brand-300/20 dark:bg-brand-400/10 blur-2xl" />
         <div className="pointer-events-none absolute -left-10 -bottom-10 h-24 w-24 rounded-full bg-amber-300/20 dark:bg-amber-200/10 blur-2xl" />
 
         <div className="relative">
@@ -56,7 +56,7 @@ export function GameSummary({
 
             {opening && openingLabel && (
               <div className="mt-3 inline-flex max-w-full items-center gap-2 rounded-full border border-slate-300/70 dark:border-white/10 bg-white/75 dark:bg-slate-900/65 px-3.5 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_8px_24px_rgba(15,23,42,0.12)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_10px_28px_rgba(2,6,23,0.45)] backdrop-blur-md mx-auto">
-                <span className="inline-flex items-center rounded-full border border-teal-200 dark:border-teal-400/30 bg-teal-50 dark:bg-teal-400/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-teal-700 dark:text-teal-200 shrink-0">
+                <span className="inline-flex items-center rounded-full border border-brand-200 dark:border-brand-400/30 bg-brand-50 dark:bg-brand-400/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-700 dark:text-brand-200 shrink-0">
                   Opening
                 </span>
                 <span className="h-1 w-1 rounded-full bg-amber-500/80 shrink-0" />
@@ -97,3 +97,4 @@ export function GameSummary({
     </div>
   );
 }
+

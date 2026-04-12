@@ -31,7 +31,7 @@ export const QUICK_ACTIONS: QuickAction[] = [
     title: "Play Online",
     description: "Play with other online players",
     icon: "Gamepad2",
-    accent: "from-teal-500/80 to-emerald-500/80",
+    accent: "from-brand-500/80 to-brand-500/80",
     route: "/play/quick",
     action: "",
   },
@@ -49,7 +49,7 @@ export const QUICK_ACTIONS: QuickAction[] = [
     title: "Play a Friend",
     description: "Create a private game with a friend.",
     icon: "Users",
-    accent: "from-sky-500/80 to-indigo-500/80",
+    accent: "from-brand-500/80 to-indigo-500/80",
     route: "/play/friend",
     action: "",
   },
@@ -74,3 +74,5 @@ export const QUICK_ACTIONS: QuickAction[] = [
 ];
 
 export const BOARD_FRAME = 16;
+
+

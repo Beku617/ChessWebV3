@@ -37,7 +37,7 @@ export function FilterTabs({ active, onChange }: FilterTabsProps) {
             onClick={() => onChange(tab)}
             className={`relative px-4 py-4 text-sm font-semibold whitespace-nowrap transition-colors duration-200 rounded-lg ${
               active === tab
-                ? "text-teal-600 dark:text-teal-400"
+                ? "text-brand-600 dark:text-brand-400"
                 : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100/60 dark:hover:bg-gray-800/40"
             }`}
           >
@@ -47,9 +47,10 @@ export function FilterTabs({ active, onChange }: FilterTabsProps) {
       </div>
       {/* Animated underline */}
       <div
-        className="absolute bottom-0 h-0.5 bg-teal-500 rounded-full transition-all duration-300 ease-out"
+        className="absolute bottom-0 h-0.5 bg-brand-500 rounded-full transition-all duration-300 ease-out"
         style={{ left: indicator.left, width: indicator.width }}
       />
     </div>
   );
 }
+

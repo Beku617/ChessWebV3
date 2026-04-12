@@ -232,14 +232,14 @@ export function FriendGameView({
             {/* Header */}
             <div className="flex items-center justify-center mb-3 pb-3 border-b border-gray-200/60 dark:border-white/10">
               <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                <Users className="w-4 h-4 text-teal-500" />
+                <Users className="w-4 h-4 text-brand-500" />
                 Play with Friend
               </h2>
             </div>
 
             {/* Turn Indicator */}
-            <div className="mb-3 p-2.5 rounded-xl bg-teal-500/10 border border-teal-500/20 text-center">
-              <p className="text-xs font-medium text-teal-600 dark:text-teal-400">
+            <div className="mb-3 p-2.5 rounded-xl bg-brand-500/10 border border-brand-500/20 text-center">
+              <p className="text-xs font-medium text-brand-600 dark:text-brand-400">
                 {isPlayerTurn ? "Your turn" : `${friendName}'s turn`}
               </p>
               <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1">
@@ -307,3 +307,4 @@ export function FriendGameView({
     </div>
   );
 }
+

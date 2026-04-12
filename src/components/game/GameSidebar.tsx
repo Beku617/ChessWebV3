@@ -32,7 +32,7 @@ export function GameSidebar({
   const statusTone = gameOver
     ? "bg-rose-500/10 text-rose-400 border border-rose-500/30"
     : gameStarted
-      ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
+      ? "bg-brand-500/10 text-brand-400 border border-brand-500/30"
       : "bg-gray-500/10 text-gray-500 border border-gray-500/20";
 
   const statusLabel = gameOver
@@ -45,7 +45,7 @@ export function GameSidebar({
     <div className="w-full h-full min-h-0 rounded-3xl border border-gray-200/70 dark:border-white/5 bg-white/70 dark:bg-slate-900/70 shadow-2xl overflow-hidden backdrop-blur-xl flex flex-col">
       <div className="px-5 py-4 border-b border-gray-200/60 dark:border-white/5 flex items-start justify-between gap-3">
         <div>
-          <p className="text-[11px] uppercase tracking-[0.2em] text-teal-600 dark:text-teal-300 font-semibold">
+          <p className="text-[11px] uppercase tracking-[0.2em] text-brand-600 dark:text-brand-300 font-semibold">
             Game log
           </p>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -62,7 +62,7 @@ export function GameSidebar({
 
       <div className="px-5 py-4 border-b border-gray-200/60 dark:border-white/5 bg-white/70 dark:bg-white/5">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-teal-500/15 text-teal-600 dark:text-teal-200">
+          <div className="p-2 rounded-xl bg-brand-500/15 text-brand-600 dark:text-brand-200">
             <Compass className="w-5 h-5" />
           </div>
           <div className="flex-1 min-w-0">
@@ -79,7 +79,7 @@ export function GameSidebar({
                     : "Waiting for your first move"}
               </span>
               {openingLoading && (
-                <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
+                <span className="w-2 h-2 rounded-full bg-brand-500 animate-pulse" />
               )}
             </div>
             <div className="text-xs text-gray-500 dark:text-gray-400">
@@ -126,3 +126,4 @@ export function GameSidebar({
     </div>
   );
 }
+

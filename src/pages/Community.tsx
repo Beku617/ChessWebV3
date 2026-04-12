@@ -416,7 +416,7 @@ export default function Community() {
                   onClick={() => setActiveTab("feed")}
                   className={`rounded-md px-4 py-2 text-sm font-semibold transition-colors ${
                     activeTab === "feed"
-                      ? "bg-teal-500/25 text-teal-100"
+                      ? "bg-brand-500/25 text-brand-100"
                       : "text-gray-300 hover:bg-white/[0.06]"
                   }`}
                 >
@@ -427,7 +427,7 @@ export default function Community() {
                   onClick={() => setActiveTab("my_posts")}
                   className={`rounded-md px-4 py-2 text-sm font-semibold transition-colors ${
                     activeTab === "my_posts"
-                      ? "bg-teal-500/25 text-teal-100"
+                      ? "bg-brand-500/25 text-brand-100"
                       : "text-gray-300 hover:bg-white/[0.06]"
                   }`}
                 >
@@ -439,7 +439,7 @@ export default function Community() {
             {activeTab === "feed" ? (
               feedLoading ? (
                 <div className="rounded-2xl bg-[#0c1728]/82 py-24 flex items-center justify-center shadow-[0_22px_65px_rgba(0,0,0,0.22)]">
-                  <Loader2 className="w-8 h-8 text-teal-400 animate-spin" />
+                  <Loader2 className="w-8 h-8 text-brand-400 animate-spin" />
                 </div>
               ) : feedError ? (
                 <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-5 py-4 text-sm text-red-200">
@@ -485,7 +485,7 @@ export default function Community() {
               )
             ) : mineLoading ? (
               <div className="rounded-2xl bg-[#0c1728]/82 py-24 flex items-center justify-center shadow-[0_22px_65px_rgba(0,0,0,0.22)]">
-                <Loader2 className="w-8 h-8 text-teal-400 animate-spin" />
+                <Loader2 className="w-8 h-8 text-brand-400 animate-spin" />
               </div>
             ) : mineError ? (
               <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-5 py-4 text-sm text-red-200">
@@ -582,3 +582,4 @@ export default function Community() {
     </div>
   );
 }
+

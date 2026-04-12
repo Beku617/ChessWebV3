@@ -140,7 +140,7 @@ export function StreamersSection({
           href="https://lichess.org/streamer"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-teal-600 dark:text-teal-500 hover:underline"
+          className="text-brand-600 dark:text-brand-500 hover:underline"
         >
           Lichess.org
         </a>
@@ -148,3 +148,4 @@ export function StreamersSection({
     </section>
   );
 }
+

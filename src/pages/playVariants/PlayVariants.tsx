@@ -387,7 +387,7 @@ export default function PlayVariants() {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center">
+                <div className="w-full h-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center">
                   <span className="text-white font-bold text-sm">
                     {user?.fullName?.substring(0, 1).toUpperCase() || t("Y")}
                   </span>
@@ -407,7 +407,7 @@ export default function PlayVariants() {
           {/* Panel Header */}
           <div className="p-3 border-b border-gray-200/60 dark:border-white/10">
             <div className="flex items-center gap-2">
-              <Shuffle className="w-4 h-4 text-teal-500" />
+              <Shuffle className="w-4 h-4 text-brand-500" />
               <h2 className="font-bold text-[15px] text-gray-900 dark:text-white">
                 {t("Chess Variants")}
               </h2>
@@ -432,7 +432,7 @@ export default function PlayVariants() {
                       onClick={() => setSelectedVariant(variant)}
                       className={`rounded-xl p-2.5 text-left transition-all border ${
                         isSelected
-                          ? "bg-teal-500/10 border-teal-500 text-teal-600 dark:text-teal-400"
+                          ? "bg-brand-500/10 border-brand-500 text-brand-600 dark:text-brand-400"
                           : "bg-gray-100 dark:bg-slate-800 border-gray-200/60 dark:border-white/10 text-gray-700 dark:text-gray-300"
                       }`}
                     >
@@ -454,7 +454,7 @@ export default function PlayVariants() {
             {/* Time Control */}
             <div className="flex-1 min-h-0 rounded-2xl border border-gray-200/70 dark:border-white/10 bg-white/70 dark:bg-slate-900/60 p-3 flex flex-col">
               <div className="flex items-center gap-2 text-[13px] font-semibold text-gray-900 dark:text-white mb-2">
-                <Clock className="w-4 h-4 text-teal-500" />
+                <Clock className="w-4 h-4 text-brand-500" />
                 <span>{t("Time Control")}</span>
               </div>
               <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 gap-2 auto-rows-min">
@@ -473,7 +473,7 @@ export default function PlayVariants() {
                       }
                       className={`py-2 px-3 rounded-xl text-center text-[13px] font-semibold transition-all ${
                         isSelected
-                          ? "bg-teal-500 text-white ring-2 ring-teal-500"
+                          ? "bg-brand-500 text-white ring-2 ring-brand-500"
                           : "bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 ring-1 ring-gray-200 dark:ring-slate-700 hover:ring-gray-300 dark:hover:ring-slate-600"
                       }`}
                     >
@@ -489,7 +489,7 @@ export default function PlayVariants() {
           <div className="p-3 border-t border-gray-200/60 dark:border-white/10 flex-shrink-0">
             <button
               onClick={handleStart}
-              className="w-full py-3 rounded-2xl bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white font-bold text-[15px] transition-all shadow-lg hover:shadow-xl active:scale-[0.98]"
+              className="w-full py-3 rounded-2xl bg-gradient-to-r from-brand-500 to-brand-500 hover:from-brand-600 hover:to-brand-600 text-white font-bold text-[15px] transition-all shadow-lg hover:shadow-xl active:scale-[0.98]"
             >
               {t("Start Variant")}
             </button>
@@ -499,3 +499,4 @@ export default function PlayVariants() {
     </div>
   );
 }
+

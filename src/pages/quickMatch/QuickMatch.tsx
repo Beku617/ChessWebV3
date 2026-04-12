@@ -5,13 +5,89 @@ import { useOnlineQuickMatch } from "../../hooks/useOnlineQuickMatch";
 import { navigateToNewGameRoute } from "../../components/game/newGameRouting";
 import { QuickMatchSetup } from "./QuickMatchSetup";
 import { QuickMatchGameView } from "./QuickMatchGameView";
+import type { GameHistory } from "../../historyTypes";
 
 type MatchVariant = "standard" | "chess960";
 const LAST_QUICK_TIME_CONTROL_KEY = "quickMatch:lastTimeControl";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const DEFAULT_TIME_CONTROL = { initial: 300, increment: 0 };
+const QUICK_MATCH_PRESETS = [
+  { initial: 60, increment: 0 },
+  { initial: 120, increment: 1 },
+  { initial: 180, increment: 0 },
+  { initial: 180, increment: 2 },
+  { initial: 300, increment: 0 },
+  { initial: 300, increment: 3 },
+  { initial: 600, increment: 0 },
+  { initial: 600, increment: 5 },
+  { initial: 900, increment: 10 },
+  { initial: 1800, increment: 0 },
+  { initial: 1800, increment: 20 },
+] as const;
 
 function normalizeVariant(value: unknown): MatchVariant {
   if (typeof value !== "string") return "standard";
   return value.trim().toLowerCase() === "chess960" ? "chess960" : "standard";
+}
+
+function normalizeTimeControlValue(value: {
+  initial: unknown;
+  increment: unknown;
+}): { initial: number; increment: number } | null {
+  const initial = Number(value.initial);
+  const increment = Number(value.increment);
+
+  if (
+    !Number.isFinite(initial) ||
+    !Number.isFinite(increment) ||
+    initial <= 0 ||
+    increment < 0
+  ) {
+    return null;
+  }
+
+  return {
+    initial: Math.round(initial),
+    increment: Math.round(increment),
+  };
+}
+
+function findClosestPresetTimeControl(value: {
+  initial: number;
+  increment: number;
+}): { initial: number; increment: number } {
+  const exactMatch = QUICK_MATCH_PRESETS.find(
+    (preset) =>
+      preset.initial === value.initial && preset.increment === value.increment,
+  );
+  if (exactMatch) {
+    return { initial: exactMatch.initial, increment: exactMatch.increment };
+  }
+
+  const closestMatch = QUICK_MATCH_PRESETS.reduce((best, preset) => {
+    const bestScore =
+      Math.abs(best.initial - value.initial) +
+      Math.abs(best.increment - value.increment) * 60;
+    const presetScore =
+      Math.abs(preset.initial - value.initial) +
+      Math.abs(preset.increment - value.increment) * 60;
+
+    return presetScore < bestScore ? preset : best;
+  }, QUICK_MATCH_PRESETS[0]);
+
+  return {
+    initial: closestMatch.initial,
+    increment: closestMatch.increment,
+  };
+}
+
+function getValidQuickMatchTimeControl(
+  value: { initial: unknown; increment: unknown } | null,
+): { initial: number; increment: number } | null {
+  if (!value) return null;
+  const normalized = normalizeTimeControlValue(value);
+  if (!normalized) return null;
+  return findClosestPresetTimeControl(normalized);
 }
 
 function getTimeControlFromState(
@@ -24,10 +100,10 @@ function getTimeControlFromState(
     typeof maybeState.initial === "number" &&
     typeof maybeState.increment === "number"
   ) {
-    return {
+    return getValidQuickMatchTimeControl({
       initial: maybeState.initial,
       increment: maybeState.increment,
-    };
+    });
   }
 
   return null;
@@ -41,40 +117,23 @@ function getTimeControlFromSearch(
   const increment = Number(params.get("increment"));
 
   if (Number.isFinite(initial) && Number.isFinite(increment)) {
-    return { initial, increment };
+    return getValidQuickMatchTimeControl({ initial, increment });
   }
 
   return null;
 }
 
-function getStoredTimeControl():
-  | { initial: number; increment: number }
-  | null {
-  if (typeof window === "undefined") return null;
+function getTimeControlFromHistory(
+  game: Pick<GameHistory, "timeControl"> | null | undefined,
+): { initial: number; increment: number } | null {
+  const raw = String(game?.timeControl || "").trim();
+  if (!raw || raw === "-") return null;
 
-  try {
-    const raw = window.localStorage.getItem(LAST_QUICK_TIME_CONTROL_KEY);
-    if (!raw) return null;
-
-    const parsed = JSON.parse(raw) as { initial?: unknown; increment?: unknown };
-    if (
-      typeof parsed.initial === "number" &&
-      Number.isFinite(parsed.initial) &&
-      parsed.initial >= 0 &&
-      typeof parsed.increment === "number" &&
-      Number.isFinite(parsed.increment) &&
-      parsed.increment >= 0
-    ) {
-      return {
-        initial: parsed.initial,
-        increment: parsed.increment,
-      };
-    }
-  } catch {
-    return null;
-  }
-
-  return null;
+  const [initialPart, incrementPart = "0"] = raw.split("+");
+  return getValidQuickMatchTimeControl({
+    initial: Number(initialPart),
+    increment: Number(incrementPart),
+  });
 }
 
 function storeTimeControl(value: { initial: number; increment: number }) {
@@ -172,10 +231,7 @@ export default function QuickMatch() {
     return (
       getTimeControlFromState(location.state) ||
       getTimeControlFromSearch(location.search) ||
-      getStoredTimeControl() || {
-        initial: 300,
-        increment: 0,
-      }
+      DEFAULT_TIME_CONTROL
     );
   });
   const [variant, setVariant] = useState<MatchVariant>(() => {
@@ -200,7 +256,44 @@ export default function QuickMatch() {
       setTimeControl(selectedTimeControl);
       return;
     }
-    setTimeControl(getStoredTimeControl() || { initial: 300, increment: 0 });
+    setTimeControl(DEFAULT_TIME_CONTROL);
+  }, [location.state, location.search]);
+
+  useEffect(() => {
+    const selectedTimeControl =
+      getTimeControlFromState(location.state) ||
+      getTimeControlFromSearch(location.search);
+    if (selectedTimeControl) return;
+
+    let cancelled = false;
+
+    const loadLatestPlayedFormat = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/history?limit=1`, {
+          credentials: "include",
+        });
+        if (!res.ok) {
+          throw new Error("Failed to load history");
+        }
+
+        const data = (await res.json()) as { games?: GameHistory[] };
+        if (cancelled) return;
+
+        setTimeControl(
+          getTimeControlFromHistory(data.games?.[0]) || DEFAULT_TIME_CONTROL,
+        );
+      } catch {
+        if (!cancelled) {
+          setTimeControl(DEFAULT_TIME_CONTROL);
+        }
+      }
+    };
+
+    void loadLatestPlayedFormat();
+
+    return () => {
+      cancelled = true;
+    };
   }, [location.state, location.search]);
 
   useEffect(() => {

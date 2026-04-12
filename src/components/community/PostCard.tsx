@@ -34,7 +34,7 @@ interface PostCardProps {
 const SOUND_UNLOCK_SESSION_KEY = "communityVideoSoundUnlocked";
 
 function moderationStatusClass(status: CommunityPost["status"]) {
-  if (status === "approved") return "bg-teal-500/12 text-teal-200";
+  if (status === "approved") return "bg-brand-500/12 text-brand-200";
   if (status === "rejected") return "bg-red-500/12 text-red-200";
   if (status === "removed") return "bg-gray-500/15 text-gray-300";
   return "bg-amber-500/12 text-amber-200";
@@ -324,7 +324,7 @@ function PostCardComponent({
                 {post.group?.slug && (
                   <Link
                     to={`/community/groups/${post.group.slug}`}
-                    className="rounded-full bg-teal-500/10 px-2.5 py-1 text-[11px] font-medium text-teal-100 transition-colors hover:bg-teal-500/18"
+                    className="rounded-full bg-brand-500/10 px-2.5 py-1 text-[11px] font-medium text-brand-100 transition-colors hover:bg-brand-500/18"
                   >
                     {post.group.name}
                   </Link>
@@ -445,7 +445,7 @@ function PostCardComponent({
               }
               className={`inline-flex items-center gap-2 rounded-full px-3 py-2 transition-all ${
                 likedByMe
-                  ? "bg-teal-500/12 text-teal-100"
+                  ? "bg-brand-500/12 text-brand-100"
                   : "bg-white/[0.04] text-gray-400 hover:bg-white/[0.08] hover:text-gray-200"
               } disabled:cursor-not-allowed disabled:hover:bg-white/[0.04] disabled:hover:text-gray-400 disabled:opacity-70`}
             >
@@ -573,7 +573,7 @@ function PostCardComponent({
                       onClick={() => setActiveImageIndex(index)}
                       className={`h-14 w-14 shrink-0 overflow-hidden rounded-xl transition-all ${
                         index === activeImageIndex
-                          ? "ring-2 ring-teal-400/60"
+                          ? "ring-2 ring-brand-400/60"
                           : "opacity-70 hover:opacity-100"
                       }`}
                     >
@@ -595,3 +595,4 @@ function PostCardComponent({
 }
 
 export const PostCard = memo(PostCardComponent);
+

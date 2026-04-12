@@ -22,8 +22,8 @@ interface PuzzleBrowseFiltersProps {
 
 function chipClass(active: boolean) {
   return active
-    ? "border-teal-400/50 bg-teal-500/15 text-teal-100 shadow-[0_10px_18px_-16px_rgba(20,184,166,0.9)]"
-    : "border-gray-800 bg-gray-900/70 text-gray-200 hover:border-teal-300/40 hover:text-teal-100";
+    ? "border-brand-400/50 bg-brand-500/15 text-brand-100 shadow-[0_10px_18px_-16px_rgba(20,184,166,0.9)]"
+    : "border-gray-800 bg-gray-900/70 text-gray-200 hover:border-brand-300/40 hover:text-brand-100";
 }
 
 export function PuzzleBrowseFilters({
@@ -53,7 +53,7 @@ export function PuzzleBrowseFilters({
             value={query}
             onChange={(event) => onQueryChange(event.target.value)}
             placeholder={t("Search puzzle title, theme, or motif...")}
-            className="h-11 w-full rounded-xl border border-gray-800 bg-gray-950/70 pl-9 pr-3 text-sm text-gray-100 placeholder:text-gray-500 outline-none transition-colors focus:border-teal-300/50"
+            className="h-11 w-full rounded-xl border border-gray-800 bg-gray-950/70 pl-9 pr-3 text-sm text-gray-100 placeholder:text-gray-500 outline-none transition-colors focus:border-brand-300/50"
           />
         </div>
 
@@ -112,3 +112,4 @@ export function PuzzleBrowseFilters({
     </div>
   );
 }
+

@@ -1093,7 +1093,7 @@ export default function Messages() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={t("messages.search", "Search conversations")}
-                className="w-full rounded-xl border border-[#25344e] bg-[#0c1629]/90 py-2.5 pl-10 pr-3 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition-all focus:border-teal-400/80 focus:ring-2 focus:ring-teal-500/20"
+                className="w-full rounded-xl border border-[#25344e] bg-[#0c1629]/90 py-2.5 pl-10 pr-3 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition-all focus:border-brand-400/80 focus:ring-2 focus:ring-brand-500/20"
               />
             </div>
           </div>
@@ -1106,7 +1106,7 @@ export default function Messages() {
                   onClick={() => setChatTab("conversations")}
                   className={`flex flex-1 items-center justify-between gap-2 border-r border-[#25344e] px-4 py-3 text-[12px] font-semibold leading-4 transition-all ${
                     chatTab === "conversations"
-                      ? "relative -mb-px border-b border-[#0c1629] bg-[#0c1629] text-teal-300 shadow-[inset_0_1px_0_rgba(37,52,78,0.8)]"
+                      ? "relative -mb-px border-b border-[#0c1629] bg-[#0c1629] text-brand-300 shadow-[inset_0_1px_0_rgba(37,52,78,0.8)]"
                       : "border-b border-[#25344e] bg-[#0c1629]/40 text-slate-400 hover:bg-[#13223a]/65 hover:text-slate-200"
                   }`}
                 >
@@ -1114,7 +1114,7 @@ export default function Messages() {
                   <span
                     className={`inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] ${
                       chatTab === "conversations"
-                        ? "bg-teal-500/15 text-teal-200"
+                        ? "bg-brand-500/15 text-brand-200"
                         : "bg-[#1b2d45] text-slate-300"
                     }`}
                   >
@@ -1126,7 +1126,7 @@ export default function Messages() {
                   onClick={() => setChatTab("archived")}
                   className={`flex flex-1 items-center justify-between gap-2 border-l border-[#25344e] px-4 py-3 text-[12px] font-semibold leading-4 transition-all ${
                     chatTab === "archived"
-                      ? "relative -mb-px border-b border-[#0c1629] bg-[#0c1629] text-teal-300 shadow-[inset_0_1px_0_rgba(37,52,78,0.8)]"
+                      ? "relative -mb-px border-b border-[#0c1629] bg-[#0c1629] text-brand-300 shadow-[inset_0_1px_0_rgba(37,52,78,0.8)]"
                       : "border-b border-[#25344e] bg-[#0c1629]/40 text-slate-400 hover:bg-[#13223a]/65 hover:text-slate-200"
                   }`}
                 >
@@ -1134,7 +1134,7 @@ export default function Messages() {
                   <span
                     className={`inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] ${
                       chatTab === "archived"
-                        ? "bg-teal-500/15 text-teal-200"
+                        ? "bg-brand-500/15 text-brand-200"
                         : "bg-[#1b2d45] text-slate-300"
                     }`}
                   >
@@ -1167,7 +1167,7 @@ export default function Messages() {
                         onClick={() => setSearchParams({ chat: c.partnerId })}
                         className={`group w-full rounded-[14px] border px-3 py-2.5 text-left transition-all duration-200 ${
                           selected
-                            ? "border-teal-400/45 bg-[#10253a]/95 shadow-[inset_0_0_0_1px_rgba(45,212,191,0.12),0_8px_18px_rgba(8,145,178,0.12)]"
+                            ? "border-brand-400/45 bg-[#10253a]/95 shadow-[inset_0_0_0_1px_rgba(45,212,191,0.12),0_8px_18px_rgba(8,145,178,0.12)]"
                             : "border-[#24334d]/45 bg-[#0d1729]/72 hover:border-[#314664] hover:bg-[#111e32]/90"
                         }`}
                       >
@@ -1214,7 +1214,7 @@ export default function Messages() {
                                   <span className="truncate max-w-[110px]">{presenceLabel}</span>
                                 </span>
                                 {c.unreadCount > 0 && (
-                                  <span className="inline-flex h-5 min-w-[20px] shrink-0 items-center justify-center rounded-full bg-teal-500 px-1.5 text-[10px] font-semibold text-white">
+                                  <span className="inline-flex h-5 min-w-[20px] shrink-0 items-center justify-center rounded-full bg-brand-500 px-1.5 text-[10px] font-semibold text-white">
                                     {c.unreadCount > 99 ? "99+" : c.unreadCount}
                                   </span>
                                 )}
@@ -1245,7 +1245,7 @@ export default function Messages() {
             ) : (
               <div className="flex flex-1 items-center justify-center p-8">
                 <div className="w-full max-w-md rounded-3xl border border-[#26344c] bg-[#101a2d]/88 p-8 text-center shadow-[0_28px_52px_rgba(0,0,0,0.3)]">
-                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-teal-400/30 bg-teal-500/10 text-teal-300">
+                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-brand-400/30 bg-brand-500/10 text-brand-300">
                     <MessageSquare className="h-8 w-8" />
                   </div>
                   <h3 className="text-xl font-semibold tracking-tight text-slate-100">
@@ -1291,7 +1291,7 @@ export default function Messages() {
                 <div className="relative flex items-center gap-1.5">
                   <button
                     type="button"
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#2a3a57] bg-[#152238] text-slate-400 transition-colors hover:text-teal-300 hover:bg-teal-500/10"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#2a3a57] bg-[#152238] text-slate-400 transition-colors hover:text-brand-300 hover:bg-brand-500/10"
                   >
                     <Swords className="h-4 w-4" />
                   </button>
@@ -1300,7 +1300,7 @@ export default function Messages() {
                     ref={actionButtonRef}
                     aria-expanded={actionMenuOpen}
                     onClick={() => setActionMenuOpen((v) => !v)}
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#2a3a57] bg-[#152238] text-slate-300 transition-colors hover:text-slate-100 hover:bg-[#1b2a41] focus:outline-none focus:ring-2 focus:ring-teal-500/30"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#2a3a57] bg-[#152238] text-slate-300 transition-colors hover:text-slate-100 hover:bg-[#1b2a41] focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                   >
                     <MoreHorizontal className="h-4 w-4" />
                   </button>
@@ -1329,7 +1329,7 @@ export default function Messages() {
                             : t("messages.archive", "Archive")}
                         </span>
                         {actionLoading === "archive" && (
-                          <span className="text-[11px] text-teal-300">{t("messages.action", "Working...")}</span>
+                          <span className="text-[11px] text-brand-300">{t("messages.action", "Working...")}</span>
                         )}
                       </button>
                       <div className="h-px bg-gradient-to-r from-transparent via-[#243556] to-transparent" />
@@ -1357,7 +1357,7 @@ export default function Messages() {
                 className="flex-1 min-h-0 overflow-y-auto premium-scrollbar px-5 py-4"
               >
                 {info && !activeConversationArchived && (
-                  <div className="mb-3 rounded-xl border border-teal-500/30 bg-teal-500/12 px-3 py-2 text-xs font-medium text-teal-300">
+                  <div className="mb-3 rounded-xl border border-brand-500/30 bg-brand-500/12 px-3 py-2 text-xs font-medium text-brand-300">
                     {info}
                   </div>
                 )}
@@ -1396,7 +1396,7 @@ export default function Messages() {
                         <div
                           className={`max-w-[76%] rounded-2xl text-sm leading-relaxed ${
                             mine
-                              ? "rounded-br-md bg-gradient-to-br from-teal-500 to-cyan-500 text-white shadow-[0_10px_24px_rgba(20,184,166,0.28)]"
+                              ? "rounded-br-md bg-gradient-to-br from-brand-500 to-cyan-500 text-white shadow-[0_10px_24px_rgba(20,184,166,0.28)]"
                               : "rounded-bl-md border border-[#27354f] bg-[#132036] text-slate-100 shadow-[0_8px_20px_rgba(0,0,0,0.22)]"
                           } ${
                             hasAttachments || hasSharedGame ? "px-3 py-3" : "px-4 py-2.5"
@@ -1412,7 +1412,7 @@ export default function Messages() {
                             const gameResultText =
                               sg.result === "1-0" ? "White wins" : sg.result === "0-1" ? "Black wins" : sg.result === "1/2-1/2" ? "Draw" : sg.result || "—";
                             const resultAccent =
-                              sg.result === "1-0" || sg.result === "0-1" ? "text-emerald-300" : "text-amber-300";
+                              sg.result === "1-0" || sg.result === "0-1" ? "text-brand-300" : "text-amber-300";
                             const variant = sg.variant === "chess960" ? "960" : "";
                             const analyzeUrl = sg.variant === "chess960" ? `/analyze960/${sg.gameId}` : `/analyze/${sg.gameId}`;
                             const cardBg = mine
@@ -1429,7 +1429,7 @@ export default function Messages() {
                                 className={`mt-1 block rounded-xl border ${cardBg} p-3 transition-colors cursor-pointer group`}
                               >
                                 <div className="flex items-start gap-3">
-                                  <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${mine ? "bg-white/15 text-white" : "bg-teal-500/10 text-teal-400"}`}>
+                                  <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${mine ? "bg-white/15 text-white" : "bg-brand-500/10 text-brand-400"}`}>
                                     <Crown className="h-4.5 w-4.5" />
                                   </div>
                                   <div className="min-w-0 flex-1">
@@ -1467,7 +1467,7 @@ export default function Messages() {
                                         </>
                                       )}
                                     </div>
-                                    <div className={`mt-1.5 inline-flex items-center gap-1 text-[11px] font-medium ${mine ? "text-white/80 group-hover:text-white" : "text-teal-400/80 group-hover:text-teal-300"} transition-colors`}>
+                                    <div className={`mt-1.5 inline-flex items-center gap-1 text-[11px] font-medium ${mine ? "text-white/80 group-hover:text-white" : "text-brand-400/80 group-hover:text-brand-300"} transition-colors`}>
                                       <ExternalLink className="h-3 w-3" />
                                       View Game
                                     </div>
@@ -1502,7 +1502,7 @@ export default function Messages() {
                       type="button"
                       onClick={() => void handleUnarchiveConversation()}
                       disabled={actionLoading === "archive"}
-                      className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-3 py-2 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(13,148,136,0.35)] transition-all hover:bg-teal-500 disabled:cursor-not-allowed disabled:bg-[#1e2a40] disabled:text-slate-500 disabled:shadow-none"
+                      className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(13,148,136,0.35)] transition-all hover:bg-brand-500 disabled:cursor-not-allowed disabled:bg-[#1e2a40] disabled:text-slate-500 disabled:shadow-none"
                     >
                       <ArchiveRestore className="h-4 w-4" />
                       <span>{t("messages.unarchive", "Unarchive")}</span>
@@ -1537,7 +1537,7 @@ export default function Messages() {
                     <div className="mb-2 rounded-2xl border border-[#27354f] bg-[#0f1829]/92 px-3 py-3">
                       <div className="mb-2 flex items-center justify-between text-[12px] text-slate-200">
                         <span className="inline-flex items-center gap-2">
-                          <Video className="h-4 w-4 text-teal-300" />
+                          <Video className="h-4 w-4 text-brand-300" />
                           <span>1 video selected · {formatBytes(pendingVideo.size)}</span>
                         </span>
                         <button
@@ -1579,7 +1579,7 @@ export default function Messages() {
                     <div className="mb-2 rounded-2xl border border-[#27354f] bg-[#0f1829]/92 px-3 py-3">
                       <div className="mb-2 flex items-center justify-between text-[12px] text-slate-200">
                         <span className="inline-flex items-center gap-2">
-                          <ImageIcon className="h-4 w-4 text-teal-300" />
+                          <ImageIcon className="h-4 w-4 text-brand-300" />
                           <span>
                             {pendingImages.length}{" "}
                             {pendingImages.length === 1 ? "image selected" : "images selected"} -{" "}
@@ -1627,9 +1627,9 @@ export default function Messages() {
 
                   {/* /gameN command hint */}
                   {/^\/game\d*$/i.test(draft.trim()) && !pendingImages.length && !pendingVideo && (
-                    <div className="mb-2 flex items-center gap-2 rounded-xl border border-teal-500/20 bg-teal-500/5 px-3 py-2">
-                      <Crown className="h-4 w-4 shrink-0 text-teal-400" />
-                      <span className="text-xs text-teal-300/90">
+                    <div className="mb-2 flex items-center gap-2 rounded-xl border border-brand-500/20 bg-brand-500/5 px-3 py-2">
+                      <Crown className="h-4 w-4 shrink-0 text-brand-400" />
+                      <span className="text-xs text-brand-300/90">
                         Type <span className="font-mono font-semibold">/game1</span>, <span className="font-mono font-semibold">/game2</span>, etc. to share a game from your profile history
                       </span>
                     </div>
@@ -1681,7 +1681,7 @@ export default function Messages() {
                     <button
                       onClick={() => void sendMessage()}
                       disabled={sending || (!draft.trim() && pendingImages.length === 0 && !pendingVideo)}
-                      className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-teal-600 text-white shadow-[0_10px_20px_rgba(13,148,136,0.35)] transition-all hover:bg-teal-500 disabled:cursor-not-allowed disabled:bg-[#1e2a40] disabled:text-slate-600 disabled:shadow-none"
+                      className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-brand-600 text-white shadow-[0_10px_20px_rgba(13,148,136,0.35)] transition-all hover:bg-brand-500 disabled:cursor-not-allowed disabled:bg-[#1e2a40] disabled:text-slate-600 disabled:shadow-none"
                     >
                       {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                     </button>
@@ -1802,7 +1802,7 @@ export default function Messages() {
               <button
                 type="button"
                 onClick={() => setDeleteConfirmOpen(false)}
-                className="inline-flex h-10 items-center justify-center rounded-lg border border-[#25344e] bg-[#0e1727] px-4 text-sm font-medium text-slate-200 transition-colors hover:bg-[#162237] focus:outline-none focus:ring-2 focus:ring-teal-500/30"
+                className="inline-flex h-10 items-center justify-center rounded-lg border border-[#25344e] bg-[#0e1727] px-4 text-sm font-medium text-slate-200 transition-colors hover:bg-[#162237] focus:outline-none focus:ring-2 focus:ring-brand-500/30"
               >
                 {t("common.cancel", "Cancel")}
               </button>
@@ -1821,3 +1821,4 @@ export default function Messages() {
     </div>
   );
 }
+

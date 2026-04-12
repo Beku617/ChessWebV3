@@ -475,8 +475,8 @@ export default function AdminPuzzles() {
     "inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus:outline-none disabled:pointer-events-none disabled:opacity-40";
   const pBtnPage = (active: boolean) =>
     active
-      ? `${pBtnBase} w-9 h-9 bg-teal-500 text-white shadow-md shadow-teal-500/25`
-      : `${pBtnBase} w-9 h-9 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 hover:border-teal-400 dark:hover:border-teal-600 hover:text-teal-600 dark:hover:text-teal-400`;
+      ? `${pBtnBase} w-9 h-9 bg-brand-500 text-white shadow-md shadow-brand-500/25`
+      : `${pBtnBase} w-9 h-9 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 hover:border-brand-400 dark:hover:border-brand-600 hover:text-brand-600 dark:hover:text-brand-400`;
 
   const toggleFeatured = async (puzzleId: string, currentFeatured: boolean) => {
     try {
@@ -530,7 +530,7 @@ export default function AdminPuzzles() {
             </div>
             <button
               onClick={handleCreate}
-              className="flex items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-lg font-medium transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg font-medium transition-colors"
             >
               <Plus size={20} />
               Add Puzzle
@@ -546,7 +546,7 @@ export default function AdminPuzzles() {
                 placeholder="Search puzzles..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </div>
           </div>
@@ -554,7 +554,7 @@ export default function AdminPuzzles() {
           {/* Puzzles Table */}
           {loading ? (
             <div className="flex justify-center py-12">
-              <Loader2 className="w-8 h-8 text-teal-500 animate-spin" />
+              <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
             </div>
           ) : (
             <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
@@ -645,7 +645,7 @@ export default function AdminPuzzles() {
                         <div className="flex items-center justify-end gap-2">
                           <button
                             onClick={() => handleEdit(puzzle)}
-                            className="p-2 text-gray-500 hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-teal-900/20 rounded-lg transition-colors"
+                            className="p-2 text-gray-500 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors"
                           >
                             <Pencil size={18} />
                           </button>
@@ -699,7 +699,7 @@ export default function AdminPuzzles() {
                         onClick={() =>
                           setCurrentPage((p) => Math.max(1, p - 1))
                         }
-                        className={`${pBtnBase} w-9 h-9 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:border-teal-400 dark:hover:border-teal-600 hover:text-teal-600 dark:hover:text-teal-400`}
+                        className={`${pBtnBase} w-9 h-9 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:border-brand-400 dark:hover:border-brand-600 hover:text-brand-600 dark:hover:text-brand-400`}
                       >
                         <ChevronLeft size={16} />
                       </button>
@@ -726,7 +726,7 @@ export default function AdminPuzzles() {
                         onClick={() =>
                           setCurrentPage((p) => Math.min(totalPages, p + 1))
                         }
-                        className={`${pBtnBase} w-9 h-9 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:border-teal-400 dark:hover:border-teal-600 hover:text-teal-600 dark:hover:text-teal-400`}
+                        className={`${pBtnBase} w-9 h-9 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:border-brand-400 dark:hover:border-brand-600 hover:text-brand-600 dark:hover:text-brand-400`}
                       >
                         <ChevronRight size={16} />
                       </button>
@@ -805,7 +805,7 @@ export default function AdminPuzzles() {
                               }
                               className={`w-9 h-9 flex items-center justify-center rounded transition-colors ${
                                 selectedPiece === piece
-                                  ? "bg-teal-500 ring-2 ring-teal-400"
+                                  ? "bg-brand-500 ring-2 ring-brand-400"
                                   : "bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
                               }`}
                             >
@@ -840,7 +840,7 @@ export default function AdminPuzzles() {
                               }
                               className={`w-9 h-9 flex items-center justify-center rounded transition-colors ${
                                 selectedPiece === piece
-                                  ? "bg-teal-500 ring-2 ring-teal-400"
+                                  ? "bg-brand-500 ring-2 ring-brand-400"
                                   : "bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
                               }`}
                             >
@@ -983,7 +983,7 @@ export default function AdminPuzzles() {
                           }}
                           className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                             formData.puzzleType === type
-                              ? "bg-teal-600 text-white"
+                              ? "bg-brand-600 text-white"
                               : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
                           }`}
                         >
@@ -1004,7 +1004,7 @@ export default function AdminPuzzles() {
                         onClick={() => handleWhiteToMoveChange(true)}
                         className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                           formData.isWhiteToMove
-                            ? "bg-gray-200 dark:bg-gray-600 border-2 border-teal-500"
+                            ? "bg-gray-200 dark:bg-gray-600 border-2 border-brand-500"
                             : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
                         }`}
                       >
@@ -1015,7 +1015,7 @@ export default function AdminPuzzles() {
                         onClick={() => handleWhiteToMoveChange(false)}
                         className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                           !formData.isWhiteToMove
-                            ? "bg-gray-700 dark:bg-gray-300 text-white dark:text-gray-900 border-2 border-teal-500"
+                            ? "bg-gray-700 dark:bg-gray-300 text-white dark:text-gray-900 border-2 border-brand-500"
                             : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
                         }`}
                       >
@@ -1035,7 +1035,7 @@ export default function AdminPuzzles() {
                         onChange={(e) =>
                           setFormData({ ...formData, title: e.target.value })
                         }
-                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
                         required
                       />
                     </div>
@@ -1049,7 +1049,7 @@ export default function AdminPuzzles() {
                         onChange={(e) =>
                           setFormData({ ...formData, icon: e.target.value })
                         }
-                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
                       />
                     </div>
                   </div>
@@ -1070,7 +1070,7 @@ export default function AdminPuzzles() {
                               | "Hard",
                           })
                         }
-                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
                       >
                         <option value="Easy">Easy</option>
                         <option value="Medium">Medium</option>
@@ -1090,7 +1090,7 @@ export default function AdminPuzzles() {
                             rating: parseInt(e.target.value) || 1200,
                           })
                         }
-                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
                       />
                     </div>
                   </div>
@@ -1113,7 +1113,7 @@ export default function AdminPuzzles() {
                           ),
                         })
                       }
-                      className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
                     />
                   </div>
 
@@ -1128,7 +1128,7 @@ export default function AdminPuzzles() {
                         setFormData({ ...formData, themes: e.target.value })
                       }
                       placeholder="Fork, Pin, Sacrifice"
-                      className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
                     />
                   </div>
 
@@ -1145,7 +1145,7 @@ export default function AdminPuzzles() {
                         })
                       }
                       rows={2}
-                      className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
                     />
                   </div>
 
@@ -1168,7 +1168,7 @@ export default function AdminPuzzles() {
                         }));
                       }}
                       placeholder="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-                      className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono text-xs"
+                      className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono text-xs"
                       required
                     />
                   </div>
@@ -1184,7 +1184,7 @@ export default function AdminPuzzles() {
                         setFormData({ ...formData, solution: e.target.value })
                       }
                       placeholder="Qh7+, Kf8, Qh8#"
-                      className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 font-mono text-sm"
+                      className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono text-sm"
                       required
                     />
                   </div>
@@ -1200,7 +1200,7 @@ export default function AdminPuzzles() {
                     <button
                       type="submit"
                       disabled={saving || isRecordingSolution}
-                      className="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white rounded-lg font-medium transition-colors flex items-center gap-2 disabled:opacity-50"
+                      className="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg font-medium transition-colors flex items-center gap-2 disabled:opacity-50"
                     >
                       {saving && <Loader2 className="w-4 h-4 animate-spin" />}
                       {editingPuzzle ? "Save Changes" : "Create Puzzle"}
@@ -1215,3 +1215,4 @@ export default function AdminPuzzles() {
     </div>
   );
 }
+

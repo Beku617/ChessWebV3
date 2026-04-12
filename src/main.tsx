@@ -14,7 +14,7 @@ createRoot(document.getElementById("root")!).render(
     <Suspense
       fallback={
         <div className="min-h-screen flex items-center justify-center bg-[#f5f5f7] dark:bg-gray-950 text-gray-700 dark:text-gray-200">
-          <div className="w-8 h-8 border-4 border-teal-500 border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
         </div>
       }
     >
@@ -24,3 +24,4 @@ createRoot(document.getElementById("root")!).render(
     </Suspense>
   </StrictMode>
 );
+

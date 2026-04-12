@@ -114,7 +114,7 @@ export function RecentMatchesCard() {
 
       {loading ? (
         <div className="flex items-center justify-center py-8">
-          <Loader2 className="w-6 h-6 text-teal-500 animate-spin" />
+          <Loader2 className="w-6 h-6 text-brand-500 animate-spin" />
         </div>
       ) : matches.length === 0 ? (
         <div className="text-center py-8 text-gray-500 dark:text-gray-400">
@@ -170,3 +170,4 @@ export function RecentMatchesCard() {
     </motion.div>
   );
 }
+

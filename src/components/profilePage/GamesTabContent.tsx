@@ -76,8 +76,8 @@ export function GamesTabContent({
     "inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus:outline-none disabled:pointer-events-none disabled:opacity-40";
   const btnPage = (active: boolean) =>
     active
-      ? `${btnBase} w-9 h-9 bg-teal-500 text-white shadow-md shadow-teal-500/25`
-      : `${btnBase} w-9 h-9 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 hover:border-teal-400 dark:hover:border-teal-600 hover:text-teal-600 dark:hover:text-teal-400`;
+      ? `${btnBase} w-9 h-9 bg-brand-500 text-white shadow-md shadow-brand-500/25`
+      : `${btnBase} w-9 h-9 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 hover:border-brand-400 dark:hover:border-brand-600 hover:text-brand-600 dark:hover:text-brand-400`;
 
   return (
     <motion.div
@@ -87,7 +87,7 @@ export function GamesTabContent({
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <h2 className="text-xl font-bold flex items-center gap-2">
-          <History size={24} className="text-teal-500" />
+          <History size={24} className="text-brand-500" />
           All Games ({filteredGames.length})
         </h2>
 
@@ -98,7 +98,7 @@ export function GamesTabContent({
               onClick={() => handleSetFilter(f)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 filter === f
-                  ? "bg-teal-500 text-white shadow-sm"
+                  ? "bg-brand-500 text-white shadow-sm"
                   : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
               }`}
             >
@@ -152,7 +152,7 @@ export function GamesTabContent({
           <button
             disabled={safePage <= 1}
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-            className={`${btnBase} w-9 h-9 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:border-teal-400 dark:hover:border-teal-600 hover:text-teal-600 dark:hover:text-teal-400`}
+            className={`${btnBase} w-9 h-9 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:border-brand-400 dark:hover:border-brand-600 hover:text-brand-600 dark:hover:text-brand-400`}
           >
             <ChevronLeft size={16} />
           </button>
@@ -177,7 +177,7 @@ export function GamesTabContent({
           <button
             disabled={safePage >= totalPages}
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-            className={`${btnBase} w-9 h-9 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:border-teal-400 dark:hover:border-teal-600 hover:text-teal-600 dark:hover:text-teal-400`}
+            className={`${btnBase} w-9 h-9 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:border-brand-400 dark:hover:border-brand-600 hover:text-brand-600 dark:hover:text-brand-400`}
           >
             <ChevronRight size={16} />
           </button>
@@ -193,3 +193,4 @@ export function GamesTabContent({
     </motion.div>
   );
 }
+

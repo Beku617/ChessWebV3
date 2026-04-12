@@ -207,7 +207,7 @@ export default function AdminGroups() {
           <section className="rounded-[28px] border border-gray-200/80 bg-white/95 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.08)] dark:border-white/[0.05] dark:bg-[#0c1728]/85 dark:shadow-[0_24px_75px_rgba(0,0,0,0.24)]">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-teal-200/70">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-brand-200/70">
                   Admin Workspace
                 </div>
                 <h1 className="mt-2 text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
@@ -222,7 +222,7 @@ export default function AdminGroups() {
               <button
                 type="button"
                 onClick={() => setIsCreateOpen((open) => !open)}
-                className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-teal-500"
+                className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-500"
               >
                 <Plus className="h-4 w-4" />
                 {isCreateOpen ? "Close form" : "Create group"}
@@ -236,7 +236,7 @@ export default function AdminGroups() {
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                   placeholder="Search groups by name, topic, or description..."
-                  className="w-full rounded-2xl border border-gray-200 bg-gray-50 py-3 pl-11 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-white/[0.05] dark:bg-white/[0.05] dark:text-white dark:placeholder:text-gray-500"
+                  className="w-full rounded-2xl border border-gray-200 bg-gray-50 py-3 pl-11 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-white/[0.05] dark:bg-white/[0.05] dark:text-white dark:placeholder:text-gray-500"
                 />
               </div>
             </div>
@@ -251,7 +251,7 @@ export default function AdminGroups() {
                         setCreateDraft((current) => ({ ...current, name: event.target.value }))
                       }
                       placeholder="Group name"
-                      className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-white/[0.05] dark:bg-white/[0.05] dark:text-white dark:placeholder:text-gray-500"
+                      className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-white/[0.05] dark:bg-white/[0.05] dark:text-white dark:placeholder:text-gray-500"
                     />
                     <textarea
                       value={createDraft.description}
@@ -262,7 +262,7 @@ export default function AdminGroups() {
                         }))
                       }
                       placeholder="Describe what this group is for..."
-                      className="min-h-[120px] w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm leading-6 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-white/[0.05] dark:bg-white/[0.05] dark:text-white dark:placeholder:text-gray-500"
+                      className="min-h-[120px] w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm leading-6 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-white/[0.05] dark:bg-white/[0.05] dark:text-white dark:placeholder:text-gray-500"
                     />
                   </div>
 
@@ -273,13 +273,13 @@ export default function AdminGroups() {
                         setCreateDraft((current) => ({ ...current, topic: event.target.value }))
                       }
                       placeholder="Topic"
-                      className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-white/[0.05] dark:bg-white/[0.05] dark:text-white dark:placeholder:text-gray-500"
+                      className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-white/[0.05] dark:bg-white/[0.05] dark:text-white dark:placeholder:text-gray-500"
                     />
                     <button
                       type="button"
                       onClick={handleCreate}
                       disabled={isCreating}
-                      className="w-full rounded-xl bg-teal-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-teal-500 disabled:opacity-50"
+                      className="w-full rounded-xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-500 disabled:opacity-50"
                     >
                       {isCreating ? "Creating..." : "Create group"}
                     </button>
@@ -297,7 +297,7 @@ export default function AdminGroups() {
 
           {loading ? (
             <div className="mt-6 flex items-center justify-center rounded-2xl border border-gray-200/80 bg-white/95 py-24 shadow-[0_18px_44px_rgba(15,23,42,0.08)] dark:border-white/[0.05] dark:bg-[#0c1728]/80 dark:shadow-[0_22px_65px_rgba(0,0,0,0.22)]">
-              <Loader2 className="h-8 w-8 animate-spin text-teal-400" />
+              <Loader2 className="h-8 w-8 animate-spin text-brand-400" />
             </div>
           ) : groups.length === 0 ? (
             <div className="mt-6 rounded-2xl border border-gray-200/80 bg-white/95 px-6 py-24 text-center shadow-[0_18px_44px_rgba(15,23,42,0.08)] dark:border-white/[0.05] dark:bg-[#0c1728]/80 dark:shadow-[0_22px_65px_rgba(0,0,0,0.22)]">
@@ -366,7 +366,7 @@ export default function AdminGroups() {
                           onChange={(event) =>
                             setEditDraft((current) => ({ ...current, name: event.target.value }))
                           }
-                          className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-white/[0.05] dark:bg-white/[0.05] dark:text-white dark:placeholder:text-gray-500"
+                          className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-white/[0.05] dark:bg-white/[0.05] dark:text-white dark:placeholder:text-gray-500"
                         />
                         <textarea
                           value={editDraft.description}
@@ -376,14 +376,14 @@ export default function AdminGroups() {
                               description: event.target.value,
                             }))
                           }
-                          className="min-h-[120px] w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm leading-6 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-white/[0.05] dark:bg-white/[0.05] dark:text-white dark:placeholder:text-gray-500"
+                          className="min-h-[120px] w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm leading-6 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-white/[0.05] dark:bg-white/[0.05] dark:text-white dark:placeholder:text-gray-500"
                         />
                         <input
                           value={editDraft.topic}
                           onChange={(event) =>
                             setEditDraft((current) => ({ ...current, topic: event.target.value }))
                           }
-                          className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-white/[0.05] dark:bg-white/[0.05] dark:text-white dark:placeholder:text-gray-500"
+                          className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-white/[0.05] dark:bg-white/[0.05] dark:text-white dark:placeholder:text-gray-500"
                         />
                         <div className="flex items-center justify-end gap-3">
                           <button
@@ -397,7 +397,7 @@ export default function AdminGroups() {
                             type="button"
                             disabled={isBusy}
                             onClick={() => void handleSaveEdit(group.id)}
-                            className="rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-teal-500 disabled:opacity-50"
+                            className="rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-500 disabled:opacity-50"
                           >
                             {isBusy ? "Saving..." : "Save changes"}
                           </button>
@@ -454,3 +454,4 @@ export default function AdminGroups() {
     </div>
   );
 }
+

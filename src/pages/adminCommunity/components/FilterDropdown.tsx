@@ -47,7 +47,7 @@ export function FilterDropdown({
         aria-label={ariaLabel}
         aria-expanded={isOpen}
         onClick={() => setIsOpen((open) => !open)}
-        className="w-full inline-flex items-center justify-between gap-2 rounded-lg bg-white/[0.06] px-4 py-3 text-sm text-white hover:bg-white/[0.1] focus:outline-none focus:ring-2 focus:ring-teal-500/30 transition-colors"
+        className="w-full inline-flex items-center justify-between gap-2 rounded-lg bg-white/[0.06] px-4 py-3 text-sm text-white hover:bg-white/[0.1] focus:outline-none focus:ring-2 focus:ring-brand-500/30 transition-colors"
       >
         <span className="truncate">{selected?.label || "Select"}</span>
         <ChevronDown
@@ -71,7 +71,7 @@ export function FilterDropdown({
                 }}
                 className={`w-full text-left rounded-lg px-3 py-2 text-sm transition-colors ${
                   active
-                    ? "bg-teal-500/20 text-teal-100"
+                    ? "bg-brand-500/20 text-brand-100"
                     : "text-gray-200 hover:bg-white/[0.08]"
                 }`}
               >
@@ -84,3 +84,4 @@ export function FilterDropdown({
     </div>
   );
 }
+

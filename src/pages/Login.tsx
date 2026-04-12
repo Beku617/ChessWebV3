@@ -72,7 +72,7 @@ export default function Login() {
         <button
           onClick={toggleTheme}
           aria-label={t("common.toggleTheme", "Toggle theme")}
-          className="shrink-0 p-3 rounded-2xl border border-gray-200/80 dark:border-slate-700/80 bg-white/88 dark:bg-slate-900/88 shadow-[0_14px_30px_rgba(15,23,42,0.08)] dark:shadow-[0_16px_30px_rgba(0,0,0,0.26)] backdrop-blur-md transition-all duration-200 hover:border-teal-300/70 dark:hover:border-teal-700/70 hover:bg-white dark:hover:bg-slate-900 hover:scale-105"
+          className="shrink-0 p-3 rounded-2xl border border-gray-200/80 dark:border-slate-700/80 bg-white/88 dark:bg-slate-900/88 shadow-[0_14px_30px_rgba(15,23,42,0.08)] dark:shadow-[0_16px_30px_rgba(0,0,0,0.26)] backdrop-blur-md transition-all duration-200 hover:border-brand-300/70 dark:hover:border-brand-700/70 hover:bg-white dark:hover:bg-slate-900 hover:scale-105"
         >
           {isDarkMode ? (
             <Sun className="w-5 h-5 text-yellow-500" />
@@ -130,7 +130,7 @@ export default function Login() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-colors"
+                className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors"
                 placeholder={t("auth.emailPlaceholder", "you@example.com")}
                 required
                 disabled={isLoading}
@@ -145,7 +145,7 @@ export default function Login() {
               </label>
               <a
                 href="#"
-                className="text-sm text-teal-600 dark:text-teal-500 hover:underline font-medium"
+                className="text-sm text-brand-600 dark:text-brand-500 hover:underline font-medium"
               >
                 {t("auth.forgotPassword", "Forgot password?")}
               </a>
@@ -156,7 +156,7 @@ export default function Login() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-colors"
+                className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors"
                 placeholder="••••••••"
                 required
                 disabled={isLoading}
@@ -170,7 +170,7 @@ export default function Login() {
               id="rememberMe"
               checked={rememberMe}
               onChange={(e) => setRememberMe(e.target.checked)}
-              className="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500"
+              className="w-4 h-4 text-brand-600 border-gray-300 rounded focus:ring-brand-500"
             />
             <label
               htmlFor="rememberMe"
@@ -183,7 +183,7 @@ export default function Login() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-teal-600 hover:bg-teal-500 disabled:bg-teal-800 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-teal-900/20 flex items-center justify-center space-x-2 hover:scale-[1.02] active:scale-[0.98]"
+            className="w-full bg-brand-600 hover:bg-brand-500 disabled:bg-brand-800 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-brand-900/20 flex items-center justify-center space-x-2 hover:scale-[1.02] active:scale-[0.98]"
           >
             {isLoading ? (
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -224,7 +224,7 @@ export default function Login() {
           {t("auth.noAccount", "Don't have an account?")}{" "}
           <Link
             to="/register"
-            className="font-bold text-teal-600 dark:text-teal-500 hover:underline"
+            className="font-bold text-brand-600 dark:text-brand-500 hover:underline"
           >
             {t("auth.signUp", "Sign up")}
           </Link>
@@ -233,3 +233,4 @@ export default function Login() {
     </div>
   );
 }
+

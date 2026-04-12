@@ -35,7 +35,7 @@ export default function AdminUsers() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-950 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-teal-500 animate-spin" />
+        <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
       </div>
     );
   }
@@ -49,7 +49,7 @@ export default function AdminUsers() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-3">
-              <Users className="w-7 h-7 text-teal-500" />
+              <Users className="w-7 h-7 text-brand-500" />
               User Management
             </h1>
             <p className="text-gray-500 dark:text-gray-400 mt-1">
@@ -104,3 +104,4 @@ export default function AdminUsers() {
     </div>
   );
 }
+

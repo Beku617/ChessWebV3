@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
@@ -127,6 +127,7 @@ function rangeLabel(minRating: number | null, maxRating: number | null) {
 
 export default function Tournaments() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const user = useAuthStore((state) => state.user);
   const [list, setList] = useState<Summary[]>([]);
   const [selectedId, setSelectedId] = useState("");
@@ -150,6 +151,7 @@ export default function Tournaments() {
   const [showRepairEditor, setShowRepairEditor] = useState(false);
   const [repairText, setRepairText] = useState("");
   const [allowRepairRematch, setAllowRepairRematch] = useState(false);
+  const selectedQueryId = searchParams.get("selected") || "";
 
   const loadList = async (opts?: { silent?: boolean }) => {
     try {
@@ -159,10 +161,17 @@ export default function Tournaments() {
       const data = await res.json();
       const tournaments: Summary[] = data.tournaments || [];
       setList(tournaments);
-      if (!selectedId && tournaments.length > 0) {
+      if (
+        selectedQueryId &&
+        tournaments.some((tournament) => tournament.id === selectedQueryId)
+      ) {
+        setSelectedId(selectedQueryId);
+      } else if (!selectedId && tournaments.length > 0) {
         setSelectedId(tournaments[0].id);
-      }
-      if (selectedId && !tournaments.some((t) => t.id === selectedId)) {
+      } else if (
+        selectedId &&
+        !tournaments.some((tournament) => tournament.id === selectedId)
+      ) {
         setSelectedId(tournaments[0]?.id || "");
       }
       setError(null);
@@ -205,6 +214,15 @@ export default function Tournaments() {
   useEffect(() => {
     void loadDetail(selectedId);
   }, [selectedId]);
+
+  useEffect(() => {
+    if (!selectedQueryId || !list.some((item) => item.id === selectedQueryId)) {
+      return;
+    }
+    if (selectedId !== selectedQueryId) {
+      setSelectedId(selectedQueryId);
+    }
+  }, [list, selectedId, selectedQueryId]);
 
   // Auto-refresh list and detail so players see newly started rounds without manual reload.
   useEffect(() => {
@@ -600,7 +618,7 @@ export default function Tournaments() {
           <span>No Rating Filter</span>
         </label>
         <input type="number" min={1} disabled={type !== "swiss"} value={rounds} onChange={(e) => setRounds(e.target.value)} placeholder="Swiss Rounds" className="md:col-span-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm disabled:opacity-50" />
-        <button type="submit" disabled={busy === "create"} className="md:col-span-1 rounded-lg bg-teal-600 hover:bg-teal-500 disabled:opacity-50 text-white text-sm font-semibold px-3 py-2">
+        <button type="submit" disabled={busy === "create"} className="md:col-span-1 rounded-lg bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white text-sm font-semibold px-3 py-2">
           {busy === "create" ? "Creating..." : "Create"}
         </button>
       </form>
@@ -612,7 +630,7 @@ export default function Tournaments() {
           </h2>
           {loadingList ? (
             <div className="h-40 flex items-center justify-center">
-              <div className="w-6 h-6 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
+              <div className="w-6 h-6 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : list.length === 0 ? (
             <div className="text-sm text-gray-500 dark:text-gray-400 px-2 py-6">
@@ -626,8 +644,8 @@ export default function Tournaments() {
                   onClick={() => setSelectedId(item.id)}
                   className={`w-full text-left rounded-xl border px-3 py-3 transition-colors ${
                     selectedId === item.id
-                      ? "border-teal-500/50 bg-teal-500/10"
-                      : "border-gray-200 dark:border-gray-800 hover:border-teal-500/30 hover:bg-gray-50 dark:hover:bg-gray-800/60"
+                      ? "border-brand-500/50 bg-brand-500/10"
+                      : "border-gray-200 dark:border-gray-800 hover:border-brand-500/30 hover:bg-gray-50 dark:hover:bg-gray-800/60"
                   }`}
                 >
                   <div className="font-semibold text-sm truncate">{item.name}</div>
@@ -646,7 +664,7 @@ export default function Tournaments() {
         <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 h-[68vh] overflow-hidden flex flex-col">
           {loadingDetail ? (
             <div className="flex-1 flex items-center justify-center">
-              <div className="w-7 h-7 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
+              <div className="w-7 h-7 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
             </div>
           ) : !detail || !selectedSummary ? (
             <div className="flex-1 flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">
@@ -694,7 +712,7 @@ export default function Tournaments() {
                         <button
                           onClick={register}
                           disabled={!!busy}
-                          className="rounded-lg px-3 py-2 text-sm font-semibold bg-teal-600 hover:bg-teal-500 text-white disabled:opacity-50"
+                          className="rounded-lg px-3 py-2 text-sm font-semibold bg-brand-600 hover:bg-brand-500 text-white disabled:opacity-50"
                         >
                           Register
                         </button>
@@ -703,7 +721,7 @@ export default function Tournaments() {
                       <button
                         onClick={start}
                         disabled={!!busy}
-                        className="rounded-lg px-3 py-2 text-sm font-semibold bg-emerald-600 hover:bg-emerald-500 text-white disabled:opacity-50"
+                        className="rounded-lg px-3 py-2 text-sm font-semibold bg-brand-600 hover:bg-brand-500 text-white disabled:opacity-50"
                       >
                         Start
                       </button>
@@ -771,7 +789,7 @@ export default function Tournaments() {
                       <button
                         onClick={repairCurrentRound}
                         disabled={!!busy}
-                        className="rounded-lg px-2.5 py-1.5 text-xs font-semibold bg-teal-600 hover:bg-teal-500 text-white disabled:opacity-50"
+                        className="rounded-lg px-2.5 py-1.5 text-xs font-semibold bg-brand-600 hover:bg-brand-500 text-white disabled:opacity-50"
                       >
                         Apply Repair
                       </button>
@@ -823,7 +841,7 @@ export default function Tournaments() {
                         >
                           <span className="font-semibold">{manager.name}</span>
                           {manager.isOwner && (
-                            <span className="rounded-md bg-teal-500/20 text-teal-700 dark:text-teal-300 px-1.5 py-0.5">
+                            <span className="rounded-md bg-brand-500/20 text-brand-700 dark:text-brand-300 px-1.5 py-0.5">
                               Owner
                             </span>
                           )}
@@ -865,7 +883,7 @@ export default function Tournaments() {
                             !selectedManagerId ||
                             availableManagerCandidates.length === 0
                           }
-                          className="rounded-lg px-2.5 py-1.5 text-xs font-semibold bg-teal-600 hover:bg-teal-500 text-white disabled:opacity-50"
+                          className="rounded-lg px-2.5 py-1.5 text-xs font-semibold bg-brand-600 hover:bg-brand-500 text-white disabled:opacity-50"
                         >
                           Add Manager
                         </button>
@@ -887,7 +905,7 @@ export default function Tournaments() {
                     onClick={() => setTab(key)}
                     className={`rounded-lg px-3 py-1.5 text-sm font-semibold ${
                       tab === key
-                        ? "bg-teal-500/15 text-teal-700 dark:text-teal-300"
+                        ? "bg-brand-500/15 text-brand-700 dark:text-brand-300"
                         : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
                     }`}
                   >
@@ -1009,7 +1027,7 @@ export default function Tournaments() {
                                       <button
                                         onClick={() => reportResult(game)}
                                         disabled={!!busy}
-                                        className="rounded-lg px-2.5 py-1 text-xs font-semibold bg-teal-600 hover:bg-teal-500 text-white disabled:opacity-50"
+                                        className="rounded-lg px-2.5 py-1 text-xs font-semibold bg-brand-600 hover:bg-brand-500 text-white disabled:opacity-50"
                                       >
                                         Report Result
                                       </button>
@@ -1067,7 +1085,7 @@ export default function Tournaments() {
                                   <div className="text-[11px] text-gray-500 dark:text-gray-400 truncate">
                                     {game.blackName}
                                   </div>
-                                  <div className="text-[11px] text-teal-600 dark:text-teal-300 mt-1">
+                                  <div className="text-[11px] text-brand-600 dark:text-brand-300 mt-1">
                                     {game.result === "*" ? "Pending" : game.result}
                                   </div>
                                 </div>
@@ -1087,3 +1105,4 @@ export default function Tournaments() {
     </div>
   );
 }
+

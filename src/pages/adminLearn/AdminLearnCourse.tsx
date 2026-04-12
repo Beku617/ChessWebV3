@@ -216,7 +216,7 @@ export default function AdminLearnCourse() {
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#f5f5f7] dark:bg-gray-950">
-        <Loader2 className="w-8 h-8 text-teal-500 animate-spin" />
+        <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
       </div>
     );
   }
@@ -231,29 +231,29 @@ export default function AdminLearnCourse() {
     ? "border-slate-800 bg-slate-900/70"
     : "border-gray-200 bg-gray-50/90";
   const sectionLabelClass = isDarkMode
-    ? "text-teal-300/80"
-    : "text-teal-600";
+    ? "text-brand-300/80"
+    : "text-brand-600";
   const alertClass = isDarkMode
     ? "border-red-500/25 bg-red-500/10 text-red-200"
     : "border-red-200 bg-red-50 text-red-700";
   const inputClass =
-    "h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100";
+    "h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100";
   const textInputClass =
-    "h-11 w-full rounded-xl border border-gray-200 bg-gray-50 py-2 pl-10 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100";
+    "h-11 w-full rounded-xl border border-gray-200 bg-gray-50 py-2 pl-10 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100";
   const neutralButtonClass =
     "inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-800 hover:bg-gray-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800";
   const openActionClass = isDarkMode
     ? "border-cyan-400/25 bg-cyan-500/10 text-cyan-200 hover:bg-cyan-500/20"
     : "border-cyan-300 bg-cyan-100 text-cyan-800 hover:bg-cyan-200";
   const publishActionClass = isDarkMode
-    ? "border-teal-400/25 bg-teal-500/10 text-teal-200 hover:bg-teal-500/20"
-    : "border-teal-300 bg-teal-100 text-teal-800 hover:bg-teal-200";
+    ? "border-brand-400/25 bg-brand-500/10 text-brand-200 hover:bg-brand-500/20"
+    : "border-brand-300 bg-brand-100 text-brand-800 hover:bg-brand-200";
   const deleteActionClass = isDarkMode
     ? "border-red-400/25 bg-red-500/10 text-red-200 hover:bg-red-500/20"
     : "border-red-300 bg-red-100 text-red-800 hover:bg-red-200";
   const publishedBadgeClass = isDarkMode
-    ? "bg-emerald-500/15 text-emerald-300"
-    : "bg-emerald-100 text-emerald-800";
+    ? "bg-brand-500/15 text-brand-300"
+    : "bg-brand-100 text-brand-800";
   const draftBadgeClass = isDarkMode
     ? "bg-gray-500/15 text-gray-400"
     : "bg-gray-200 text-gray-700";
@@ -288,7 +288,7 @@ export default function AdminLearnCourse() {
                 </div>
                 <button
                   onClick={openCreate}
-                  className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-teal-500"
+                  className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-500"
                 >
                   <Plus className="h-4 w-4" />
                   Add Lesson
@@ -357,7 +357,7 @@ export default function AdminLearnCourse() {
             <section className={`rounded-[24px] border p-4 ${surfaceClass}`}>
               {loading ? (
                 <div className="py-24 text-center">
-                  <Loader2 className="mx-auto h-8 w-8 animate-spin text-teal-400" />
+                  <Loader2 className="mx-auto h-8 w-8 animate-spin text-brand-400" />
                 </div>
               ) : lessons.length === 0 ? (
                 <div className="py-16 text-center text-gray-500 dark:text-gray-400">
@@ -541,7 +541,7 @@ export default function AdminLearnCourse() {
                         isPublished: event.target.checked,
                       }))
                     }
-                    className="h-4 w-4 rounded border-gray-300 text-teal-500 focus:ring-teal-400/40"
+                    className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-400/40"
                   />
                   Publish lesson
                 </label>
@@ -572,7 +572,7 @@ export default function AdminLearnCourse() {
                       description: event.target.value,
                     }))
                   }
-                  className="min-h-[110px] w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                  className="min-h-[110px] w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                 />
               </label>
 
@@ -586,7 +586,7 @@ export default function AdminLearnCourse() {
                 <button
                   disabled={saving}
                   onClick={() => void handleSaveLesson()}
-                  className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-2 text-sm font-semibold text-white hover:bg-teal-500 disabled:opacity-60"
+                  className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-500 disabled:opacity-60"
                 >
                   {saving && <Loader2 className="h-4 w-4 animate-spin" />}
                   {editingLesson ? "Save Changes" : "Create Lesson"}
@@ -599,3 +599,4 @@ export default function AdminLearnCourse() {
     </div>
   );
 }
+

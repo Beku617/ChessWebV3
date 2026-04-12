@@ -35,7 +35,7 @@ export function GameCardActions({
       </button>
       <button
         onClick={onDownloadPgn}
-        className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-teal-600 text-white rounded-lg hover:bg-teal-500 transition-colors shadow-lg shadow-teal-500/20"
+        className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-brand-600 text-white rounded-lg hover:bg-brand-500 transition-colors shadow-lg shadow-brand-500/20"
       >
         <Download size={16} />
         Download File
@@ -43,3 +43,4 @@ export function GameCardActions({
     </div>
   );
 }
+

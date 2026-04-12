@@ -39,12 +39,12 @@ export function RecentGames({
     >
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-bold flex items-center gap-2">
-          <History size={20} className="text-teal-500" />
+          <History size={20} className="text-brand-500" />
           Recent Games
         </h3>
         <button
           onClick={() => setActiveTab("games")}
-          className="text-sm text-teal-600 dark:text-teal-400 hover:underline font-medium"
+          className="text-sm text-brand-600 dark:text-brand-400 hover:underline font-medium"
         >
           View All →
         </button>
@@ -71,3 +71,4 @@ export function RecentGames({
     </motion.div>
   );
 }
+

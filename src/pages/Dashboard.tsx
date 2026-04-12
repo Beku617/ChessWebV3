@@ -76,7 +76,7 @@ export default function Dashboard() {
                         }
                       : undefined
                   }
-                  className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/35 min-h-[124px] p-4 sm:p-5 flex flex-col items-center justify-center text-center hover:border-teal-300 dark:hover:border-teal-700/50 hover:bg-white dark:hover:bg-gray-800/60 transition-colors cursor-pointer"
+                  className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/35 min-h-[124px] p-4 sm:p-5 flex flex-col items-center justify-center text-center hover:border-brand-300 dark:hover:border-brand-700/50 hover:bg-white dark:hover:bg-gray-800/60 transition-colors cursor-pointer"
                 >
                   <p className="text-4xl sm:text-[2.65rem] leading-none font-light text-gray-900 dark:text-white tracking-tight">
                     {option.label}
@@ -98,9 +98,9 @@ export default function Dashboard() {
                 <Link
                   key={item.id}
                   to={item.route}
-                  className="group w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/35 px-4 py-4 hover:border-teal-300 dark:hover:border-teal-700/50 hover:bg-white dark:hover:bg-gray-800/60 transition-colors flex items-center gap-3"
+                  className="group w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/35 px-4 py-4 hover:border-brand-300 dark:hover:border-brand-700/50 hover:bg-white dark:hover:bg-gray-800/60 transition-colors flex items-center gap-3"
                 >
-                  <span className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center border border-gray-200 dark:border-gray-700 group-hover:border-teal-300 dark:group-hover:border-teal-700/50 transition-colors">
+                  <span className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center border border-gray-200 dark:border-gray-700 group-hover:border-brand-300 dark:group-hover:border-brand-700/50 transition-colors">
                     <Icon className="w-5 h-5 text-gray-500 dark:text-gray-300" />
                   </span>
                   <span className="min-w-0">
@@ -140,9 +140,12 @@ export default function Dashboard() {
                   {t("Tournaments")}
                 </h2>
               </div>
-              <button className="text-sm text-teal-600 dark:text-teal-400 hover:text-teal-500 dark:hover:text-teal-300 transition-colors">
+              <Link
+                to="/tournaments"
+                className="text-sm text-brand-600 dark:text-brand-400 hover:text-brand-500 dark:hover:text-brand-300 transition-colors"
+              >
                 {t("Browse All")}
-              </button>
+              </Link>
             </div>
             <TournamentsSection />
           </div>
@@ -165,3 +168,4 @@ export default function Dashboard() {
     </div>
   );
 }
+

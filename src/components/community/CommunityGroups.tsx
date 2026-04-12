@@ -38,7 +38,7 @@ export function CommunityGroupActionButton({
       className={`inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold transition-colors disabled:opacity-55 ${
         group.joined
           ? "bg-white/[0.06] text-gray-200 hover:bg-white/[0.12]"
-          : "bg-teal-600 text-white hover:bg-teal-500"
+          : "bg-brand-600 text-white hover:bg-brand-500"
       }`}
     >
       {busy ? "Saving..." : group.joined ? "Leave" : "Join"}
@@ -97,13 +97,13 @@ export function CommunityGroupCard({
         <div className="min-w-0 flex-1">
           <Link
             to={`/community/groups/${group.slug}`}
-            className="block truncate text-base font-semibold text-white hover:text-teal-200 transition-colors"
+            className="block truncate text-base font-semibold text-white hover:text-brand-200 transition-colors"
           >
             {group.name}
           </Link>
           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-500">
             <span className="inline-flex items-center gap-1">
-              <Users className="h-3.5 w-3.5 text-teal-300/80" />
+              <Users className="h-3.5 w-3.5 text-brand-300/80" />
               {formatCount(group.memberCount)} members
             </span>
             {group.topic && (
@@ -146,12 +146,12 @@ export const CommunityGroupsSidebarSection = memo(function CommunityGroupsSideba
   return (
     <SidebarCard
       title="Groups"
-      icon={<Users className="h-4 w-4 text-teal-300" />}
+      icon={<Users className="h-4 w-4 text-brand-300" />}
       action={
         <div className="flex items-center gap-2">
           <Link
             to="/community/groups"
-            className="text-[11px] font-semibold text-teal-200/80 hover:text-teal-100"
+            className="text-[11px] font-semibold text-brand-200/80 hover:text-brand-100"
           >
             All groups
           </Link>
@@ -272,7 +272,7 @@ export function CommunityGroupCreateModal({
       >
         <div className="flex items-center justify-between border-b border-white/[0.08] px-6 py-5">
           <div>
-            <div className="text-[10px] uppercase tracking-[0.22em] text-teal-100/80">
+            <div className="text-[10px] uppercase tracking-[0.22em] text-brand-100/80">
               Community Group
             </div>
             <div
@@ -301,7 +301,7 @@ export function CommunityGroupCreateModal({
               value={name}
               onChange={(event) => setName(event.target.value)}
               placeholder="Opening Lab"
-              className="w-full rounded-2xl border border-white/[0.08] bg-black/30 px-4 py-3 text-sm text-white placeholder:text-gray-400 focus:border-teal-400/35 focus:outline-none focus:ring-2 focus:ring-teal-400/25"
+              className="w-full rounded-2xl border border-white/[0.08] bg-black/30 px-4 py-3 text-sm text-white placeholder:text-gray-400 focus:border-brand-400/35 focus:outline-none focus:ring-2 focus:ring-brand-400/25"
             />
           </label>
 
@@ -311,7 +311,7 @@ export function CommunityGroupCreateModal({
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               placeholder="A place for sharp opening prep, traps, and post-game notes."
-              className="min-h-[120px] w-full rounded-2xl border border-white/[0.08] bg-black/30 px-4 py-3 text-sm leading-6 text-white placeholder:text-gray-400 focus:border-teal-400/35 focus:outline-none focus:ring-2 focus:ring-teal-400/25 premium-scrollbar"
+              className="min-h-[120px] w-full rounded-2xl border border-white/[0.08] bg-black/30 px-4 py-3 text-sm leading-6 text-white placeholder:text-gray-400 focus:border-brand-400/35 focus:outline-none focus:ring-2 focus:ring-brand-400/25 premium-scrollbar"
             />
           </label>
 
@@ -321,7 +321,7 @@ export function CommunityGroupCreateModal({
               value={topic}
               onChange={(event) => setTopic(event.target.value)}
               placeholder="Openings, Tactics, Clubs..."
-              className="w-full rounded-2xl border border-white/[0.08] bg-black/30 px-4 py-3 text-sm text-white placeholder:text-gray-400 focus:border-teal-400/35 focus:outline-none focus:ring-2 focus:ring-teal-400/25"
+              className="w-full rounded-2xl border border-white/[0.08] bg-black/30 px-4 py-3 text-sm text-white placeholder:text-gray-400 focus:border-brand-400/35 focus:outline-none focus:ring-2 focus:ring-brand-400/25"
             />
           </label>
 
@@ -345,7 +345,7 @@ export function CommunityGroupCreateModal({
             type="button"
             disabled={busy}
             onClick={() => onSubmit({ name, description, topic })}
-            className="rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-teal-500 disabled:opacity-50"
+            className="rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-500 disabled:opacity-50"
           >
             {busy ? "Creating..." : "Create group"}
           </button>
@@ -355,3 +355,4 @@ export function CommunityGroupCreateModal({
     document.body,
   );
 }
+

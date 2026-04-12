@@ -7,7 +7,7 @@ import { AdminCommunityPost, CommunityStats, RestrictionDuration } from "./types
 
 function statusClass(status: string) {
   if (status === "approved") {
-    return "bg-teal-500/12 text-teal-200";
+    return "bg-brand-500/12 text-brand-200";
   }
   if (status === "rejected") {
     return "bg-red-500/12 text-red-200";
@@ -133,3 +133,4 @@ export {
   matchesAdminPostFilters,
   statusClass,
 };
+

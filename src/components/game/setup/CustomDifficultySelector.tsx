@@ -26,7 +26,7 @@ export function CustomDifficultySelector({
           max="10"
           value={difficulty}
           onChange={(e) => setDifficulty(Number(e.target.value))}
-          className="w-full accent-teal-600"
+          className="w-full accent-brand-600"
         />
         <div className="flex justify-between text-xs text-gray-500 mt-1">
           <span>Easy</span>
@@ -36,3 +36,4 @@ export function CustomDifficultySelector({
     </motion.div>
   );
 }
+

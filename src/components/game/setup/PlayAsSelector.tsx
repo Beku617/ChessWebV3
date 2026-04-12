@@ -16,7 +16,7 @@ export function PlayAsSelector({ playAs, setPlayAs }: PlayAsSelectorProps) {
             onClick={() => setPlayAs(color)}
             className={`flex-1 px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 ${
               playAs === color
-                ? "bg-teal-600 text-white"
+                ? "bg-brand-600 text-white"
                 : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
             }`}
           >
@@ -34,3 +34,4 @@ export function PlayAsSelector({ playAs, setPlayAs }: PlayAsSelectorProps) {
     </div>
   );
 }
+

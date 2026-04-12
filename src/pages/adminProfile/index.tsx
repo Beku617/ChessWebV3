@@ -80,7 +80,7 @@ function StatCard({
             {typeof value === "number" ? value.toLocaleString() : value}
           </div>
           {sub ? (
-            <div className="mt-2 text-sm font-medium text-teal-600 dark:text-teal-400">
+            <div className="mt-2 text-sm font-medium text-brand-600 dark:text-brand-400">
               {sub}
             </div>
           ) : null}
@@ -134,7 +134,7 @@ function Toast({
   return (
     <div
       className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-xl px-5 py-3.5 text-sm font-semibold text-white shadow-xl ${
-        type === "success" ? "bg-emerald-500" : "bg-red-500"
+        type === "success" ? "bg-brand-500" : "bg-red-500"
       }`}
     >
       {type === "success" ? (
@@ -258,7 +258,7 @@ export default function AdminProfile() {
           { month: "long", day: "numeric", year: "numeric" },
           "Unknown",
         ),
-        icon: <Calendar className="h-3.5 w-3.5 text-teal-500" />,
+        icon: <Calendar className="h-3.5 w-3.5 text-brand-500" />,
       },
       {
         label: "Last Updated",
@@ -279,7 +279,7 @@ export default function AdminProfile() {
       {
         label: "Session Status",
         value: isAuthenticated ? "Active" : "Signed out",
-        icon: <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />,
+        icon: <ShieldCheck className="h-3.5 w-3.5 text-brand-500" />,
       },
       {
         label: "Session Started",
@@ -303,7 +303,7 @@ export default function AdminProfile() {
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#f5f5f7] dark:bg-gray-950">
-        <Loader2 className="h-8 w-8 animate-spin text-teal-500" />
+        <Loader2 className="h-8 w-8 animate-spin text-brand-500" />
       </div>
     );
   }
@@ -318,12 +318,12 @@ export default function AdminProfile() {
             <div className="pointer-events-none absolute right-0 top-0 h-48 w-48 rounded-full bg-cyan-400/10 blur-3xl dark:bg-cyan-400/12" />
             <div className="relative z-10 grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
               <div>
-                <div className="inline-flex items-center gap-2 rounded-full border border-teal-500/20 bg-teal-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-teal-700 dark:text-teal-300">
+                <div className="inline-flex items-center gap-2 rounded-full border border-brand-500/20 bg-brand-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-brand-700 dark:text-brand-300">
                   <Shield className="h-3.5 w-3.5" />
                   Control Center Identity
                 </div>
                 <div className="mt-5 flex items-center gap-4">
-                  <div className="flex h-20 w-20 items-center justify-center rounded-[24px] bg-gradient-to-br from-teal-500 via-emerald-500 to-cyan-500 text-white shadow-[0_18px_45px_rgba(13,148,136,0.28)]">
+                  <div className="flex h-20 w-20 items-center justify-center rounded-[24px] bg-gradient-to-br from-brand-500 via-brand-500 to-cyan-500 text-white shadow-[0_18px_45px_rgba(13,148,136,0.28)]">
                     <Shield className="h-10 w-10" />
                   </div>
                   <div>
@@ -334,7 +334,7 @@ export default function AdminProfile() {
                       {admin?.email || "No email available"}
                     </p>
                     <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-gray-900/5 px-3 py-1 text-xs font-medium text-gray-700 dark:bg-white/10 dark:text-gray-300">
-                      <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
+                      <ShieldCheck className="h-3.5 w-3.5 text-brand-500" />
                       Authenticated administrator session
                     </div>
                   </div>
@@ -416,7 +416,7 @@ export default function AdminProfile() {
                       label="Total Users"
                       value={stats?.totalUsers ?? 0}
                       sub={`+${stats?.newUsersThisWeek ?? 0} this week`}
-                      color="bg-teal-500"
+                      color="bg-brand-500"
                     />
                     <StatCard
                       icon={<Gamepad2 className="h-6 w-6" />}
@@ -429,7 +429,7 @@ export default function AdminProfile() {
                       icon={<TrendingUp className="h-6 w-6" />}
                       label="New Users (7d)"
                       value={stats?.newUsersThisWeek ?? 0}
-                      color="bg-emerald-500"
+                      color="bg-brand-500"
                     />
                     <StatCard
                       icon={<Sparkles className="h-6 w-6" />}
@@ -489,7 +489,7 @@ export default function AdminProfile() {
                                   [field]: event.target.value,
                                 }))
                               }
-                              className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 pr-11 text-sm text-gray-900 outline-none transition-all focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 dark:border-gray-700 dark:bg-gray-800/80 dark:text-white"
+                              className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 pr-11 text-sm text-gray-900 outline-none transition-all focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-800/80 dark:text-white"
                               placeholder={`Enter ${labels[field].toLowerCase()}`}
                             />
                             <button
@@ -517,7 +517,7 @@ export default function AdminProfile() {
                       <button
                         onClick={handlePasswordChange}
                         disabled={pwSaving}
-                        className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-5 py-2.5 text-sm font-bold text-white shadow-[0_14px_34px_rgba(13,148,136,0.24)] transition-colors hover:bg-teal-500 disabled:opacity-60"
+                        className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-bold text-white shadow-[0_14px_34px_rgba(13,148,136,0.24)] transition-colors hover:bg-brand-500 disabled:opacity-60"
                       >
                         {pwSaving ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -539,8 +539,8 @@ export default function AdminProfile() {
                   </div>
                 ) : (
                   <div className="flex flex-wrap items-center gap-3 px-6 py-5 text-sm text-gray-500 dark:text-gray-400">
-                    <span className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-3 py-1 text-emerald-700 dark:text-emerald-300">
-                      <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                    <span className="inline-flex items-center gap-2 rounded-full bg-brand-500/10 px-3 py-1 text-brand-700 dark:text-brand-300">
+                      <span className="h-2 w-2 rounded-full bg-brand-400" />
                       Password protection active
                     </span>
                     <span className="rounded-full bg-gray-100 px-3 py-1 dark:bg-gray-800">
@@ -554,8 +554,8 @@ export default function AdminProfile() {
             <aside className="space-y-6">
               <section className="rounded-[28px] border border-gray-200/80 bg-white/95 p-6 shadow-[0_14px_38px_rgba(15,23,42,0.08)] dark:border-gray-800 dark:bg-gray-900">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-teal-500/10">
-                    <User className="h-5 w-5 text-teal-500" />
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-500/10">
+                    <User className="h-5 w-5 text-brand-500" />
                   </div>
                   <div>
                     <div className="text-sm font-semibold text-gray-900 dark:text-white">
@@ -571,7 +571,7 @@ export default function AdminProfile() {
                   <InfoTile
                     label="Username"
                     value={admin?.username || "Unavailable"}
-                    icon={<User className="h-3.5 w-3.5 text-teal-500" />}
+                    icon={<User className="h-3.5 w-3.5 text-brand-500" />}
                   />
                   <InfoTile
                     label="Email"
@@ -627,3 +627,4 @@ export default function AdminProfile() {
     </div>
   );
 }
+

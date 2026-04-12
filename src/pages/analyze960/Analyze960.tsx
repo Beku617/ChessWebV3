@@ -39,7 +39,7 @@ export default function Analyze960() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[#f5f5f7] dark:bg-gray-950">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-500"></div>
       </div>
     );
   }
@@ -51,7 +51,7 @@ export default function Analyze960() {
         <p className="text-gray-500 mb-6">{error || "Unable to load game"}</p>
         <button
           onClick={() => navigate("/profile")}
-          className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-500"
+          className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-500"
         >
           <ArrowLeft size={18} />
           Back to Profile
@@ -62,3 +62,4 @@ export default function Analyze960() {
 
   return <ReplayContent960 game={game} />;
 }
+

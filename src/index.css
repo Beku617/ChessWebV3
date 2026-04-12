@@ -17,6 +17,17 @@ h3 {
 :root {
   --bg-primary: #f5f5f7;
   --bg-secondary: #eeeef0;
+  --color-brand-50-rgb: 236 253 245;
+  --color-brand-100-rgb: 209 250 229;
+  --color-brand-200-rgb: 167 243 208;
+  --color-brand-300-rgb: 110 231 183;
+  --color-brand-400-rgb: 52 211 153;
+  --color-brand-500-rgb: 16 185 129;
+  --color-brand-600-rgb: 5 150 105;
+  --color-brand-700-rgb: 4 120 87;
+  --color-brand-800-rgb: 6 95 70;
+  --color-brand-900-rgb: 6 78 59;
+  --color-brand-950-rgb: 2 44 34;
   --neon-scrollbar-track: rgba(4, 9, 17, 0.35);
   --neon-scrollbar-track-hover: rgba(7, 12, 21, 0.48);
   --neon-scrollbar-thumb-start: rgba(28, 122, 138, 0.22);

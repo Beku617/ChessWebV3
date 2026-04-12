@@ -70,7 +70,7 @@ export function SelectedMediaPreview({
       <div className="mt-2 overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.025] p-3">
         <div className="mb-3 flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.24em] text-teal-200/70">
+            <div className="text-[10px] font-semibold uppercase tracking-[0.24em] text-brand-200/70">
               Image Set
             </div>
             <div className="mt-1 text-sm font-semibold text-white">
@@ -128,3 +128,4 @@ export function SelectedMediaPreview({
 
   return null;
 }
+

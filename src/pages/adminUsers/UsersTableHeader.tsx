@@ -26,7 +26,7 @@ export function UsersTableHeader({
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Search by name or email..."
-            className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg pl-9 pr-4 py-2 text-sm focus:outline-none focus:border-teal-500 w-full sm:w-80"
+            className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg pl-9 pr-4 py-2 text-sm focus:outline-none focus:border-brand-500 w-full sm:w-80"
           />
         </div>
       </div>
@@ -35,19 +35,19 @@ export function UsersTableHeader({
         <span>Sort by:</span>
         <button
           onClick={() => onSort("createdAt")}
-          className={`px-2 py-1 rounded ${sortBy === "createdAt" ? "bg-teal-500/20 text-teal-600" : "hover:bg-gray-100 dark:hover:bg-gray-800"}`}
+          className={`px-2 py-1 rounded ${sortBy === "createdAt" ? "bg-brand-500/20 text-brand-600" : "hover:bg-gray-100 dark:hover:bg-gray-800"}`}
         >
           Date {sortBy === "createdAt" && (sortOrder === "desc" ? "↓" : "↑")}
         </button>
         <button
           onClick={() => onSort("rating")}
-          className={`px-2 py-1 rounded ${sortBy === "rating" ? "bg-teal-500/20 text-teal-600" : "hover:bg-gray-100 dark:hover:bg-gray-800"}`}
+          className={`px-2 py-1 rounded ${sortBy === "rating" ? "bg-brand-500/20 text-brand-600" : "hover:bg-gray-100 dark:hover:bg-gray-800"}`}
         >
           Rating {sortBy === "rating" && (sortOrder === "desc" ? "↓" : "↑")}
         </button>
         <button
           onClick={() => onSort("gamesPlayed")}
-          className={`px-2 py-1 rounded ${sortBy === "gamesPlayed" ? "bg-teal-500/20 text-teal-600" : "hover:bg-gray-100 dark:hover:bg-gray-800"}`}
+          className={`px-2 py-1 rounded ${sortBy === "gamesPlayed" ? "bg-brand-500/20 text-brand-600" : "hover:bg-gray-100 dark:hover:bg-gray-800"}`}
         >
           Games {sortBy === "gamesPlayed" && (sortOrder === "desc" ? "↓" : "↑")}
         </button>
@@ -70,7 +70,7 @@ export function UsersTableEmpty({
   if (isLoading) {
     return (
       <div className="p-12 flex justify-center">
-        <Loader2 className="w-8 h-8 text-teal-500 animate-spin" />
+        <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
       </div>
     );
   }
@@ -82,7 +82,7 @@ export function UsersTableEmpty({
       {searchQuery && (
         <button
           onClick={onClearSearch}
-          className="mt-2 text-teal-500 hover:underline text-sm"
+          className="mt-2 text-brand-500 hover:underline text-sm"
         >
           Clear search
         </button>
@@ -90,3 +90,4 @@ export function UsersTableEmpty({
     </div>
   );
 }
+

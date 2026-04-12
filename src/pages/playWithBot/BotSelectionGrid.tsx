@@ -55,7 +55,7 @@ export function BotSelectionGrid({
             onClick={() => onCategoryChange(cat.key)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               categoryFilter === cat.key
-                ? "bg-teal-500 text-white"
+                ? "bg-brand-500 text-white"
                 : "bg-white/80 dark:bg-slate-800/80 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700"
             }`}
           >
@@ -72,7 +72,7 @@ export function BotSelectionGrid({
             onClick={() => onSelectBot(bot)}
             className={`p-4 rounded-xl border text-left transition-all ${
               selectedBot?.id === bot.id
-                ? "border-teal-500 bg-teal-500/10 dark:bg-teal-500/20 ring-2 ring-teal-500/50"
+                ? "border-brand-500 bg-brand-500/10 dark:bg-brand-500/20 ring-2 ring-brand-500/50"
                 : "border-gray-200/60 dark:border-white/10 bg-white/80 dark:bg-slate-800/80 hover:border-gray-300 dark:hover:border-white/20"
             }`}
           >
@@ -111,3 +111,4 @@ export function BotSelectionGrid({
     </div>
   );
 }
+

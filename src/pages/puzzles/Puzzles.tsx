@@ -118,8 +118,8 @@ export default function Puzzles() {
       <section className="rounded-2xl border border-gray-800 bg-gray-900/70 px-5 py-6 shadow-[0_20px_60px_-48px_rgba(20,184,166,0.4)] sm:px-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
-            <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl border border-teal-500/30 bg-teal-500/10">
-              <Puzzle className="h-5 w-5 text-teal-300" />
+            <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl border border-brand-500/30 bg-brand-500/10">
+              <Puzzle className="h-5 w-5 text-brand-300" />
             </div>
             <div>
               <h1 className="text-3xl font-bold leading-tight text-white">{t("Puzzles")}</h1>
@@ -159,3 +159,4 @@ export default function Puzzles() {
     </div>
   );
 }
+

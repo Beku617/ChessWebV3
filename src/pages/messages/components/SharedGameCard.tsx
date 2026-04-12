@@ -18,7 +18,7 @@ export function SharedGameCard({ game, mine }: SharedGameCardProps) {
           : game.result || "—";
   const resultAccent =
     game.result === "1-0" || game.result === "0-1"
-      ? "text-emerald-300"
+      ? "text-brand-300"
       : "text-amber-300";
   const variant = game.variant === "chess960" ? "960" : "";
   const analyzeUrl =
@@ -41,7 +41,7 @@ export function SharedGameCard({ game, mine }: SharedGameCardProps) {
       <div className="flex items-start gap-3">
         <div
           className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
-            mine ? "bg-white/15 text-white" : "bg-teal-500/10 text-teal-400"
+            mine ? "bg-white/15 text-white" : "bg-brand-500/10 text-brand-400"
           }`}
         >
           <Crown className="h-4.5 w-4.5" />
@@ -124,7 +124,7 @@ export function SharedGameCard({ game, mine }: SharedGameCardProps) {
             className={`mt-1.5 inline-flex items-center gap-1 text-[11px] font-medium ${
               mine
                 ? "text-white/80 group-hover:text-white"
-                : "text-teal-400/80 group-hover:text-teal-300"
+                : "text-brand-400/80 group-hover:text-brand-300"
             } transition-colors`}
           >
             <ExternalLink className="h-3 w-3" />
@@ -135,3 +135,4 @@ export function SharedGameCard({ game, mine }: SharedGameCardProps) {
     </a>
   );
 }
+

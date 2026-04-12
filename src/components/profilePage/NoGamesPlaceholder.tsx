@@ -15,7 +15,7 @@ export function NoGamesPlaceholder() {
       </p>
       <a
         href="/play"
-        className="inline-flex items-center gap-2 bg-teal-600 hover:bg-teal-500 text-white px-6 py-3 rounded-xl font-bold transition-colors shadow-lg shadow-teal-500/25"
+        className="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-500 text-white px-6 py-3 rounded-xl font-bold transition-colors shadow-lg shadow-brand-500/25"
       >
         <Swords size={18} />
         Play Now
@@ -23,3 +23,4 @@ export function NoGamesPlaceholder() {
     </div>
   );
 }
+

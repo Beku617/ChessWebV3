@@ -115,13 +115,13 @@ export function FormatRatingsCard() {
       initial={{ opacity: 0, x: 10 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.5 }}
-      className="bg-gradient-to-br from-teal-50 dark:from-teal-900/20 to-cyan-50 dark:to-cyan-900/20 rounded-xl border border-teal-200 dark:border-teal-800/30 p-6 shadow-sm"
+      className="bg-gradient-to-br from-brand-50 dark:from-brand-900/20 to-cyan-50 dark:to-cyan-900/20 rounded-xl border border-brand-200 dark:border-brand-800/30 p-6 shadow-sm"
     >
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-xl md:text-2xl font-semibold text-gray-900 dark:text-white">
           {t("Format Ratings")}
         </h3>
-        <Shield className="w-5 h-5 text-teal-500 dark:text-teal-400" />
+        <Shield className="w-5 h-5 text-brand-500 dark:text-brand-400" />
       </div>
       <div className="space-y-3">
         {timeFormats.map((format) => (
@@ -158,7 +158,7 @@ export function FormatRatingsCard() {
       <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
         {loading ? (
           <div className="flex items-center justify-center py-2">
-            <Loader2 className="w-5 h-5 text-teal-500 animate-spin" />
+            <Loader2 className="w-5 h-5 text-brand-500 animate-spin" />
           </div>
         ) : (
           <div className="grid grid-cols-3 gap-2 text-center">
@@ -192,3 +192,4 @@ export function FormatRatingsCard() {
     </motion.div>
   );
 }
+

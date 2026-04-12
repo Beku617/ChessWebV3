@@ -22,7 +22,7 @@ export function PuzzleCard({ puzzle, index }: PuzzleCardProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
       onClick={() => navigate(`/puzzles/train/${puzzle._id}`)}
-      className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5 hover:border-teal-300 dark:hover:border-teal-700 transition-all group hover:shadow-lg shadow-sm cursor-pointer"
+      className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5 hover:border-brand-300 dark:hover:border-brand-700 transition-all group hover:shadow-lg shadow-sm cursor-pointer"
     >
       <div className="flex justify-between items-start mb-4">
         <div className="w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
@@ -40,7 +40,7 @@ export function PuzzleCard({ puzzle, index }: PuzzleCardProps) {
         </div>
       </div>
 
-      <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-4 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
+      <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-4 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
         {puzzle.title}
       </h4>
 
@@ -69,7 +69,7 @@ export function PuzzleCard({ puzzle, index }: PuzzleCardProps) {
             </>
           )}
         </span>
-        <button className="px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-lg transition-all text-sm font-medium flex items-center gap-1 group-hover:shadow-lg group-hover:shadow-teal-500/20">
+        <button className="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-lg transition-all text-sm font-medium flex items-center gap-1 group-hover:shadow-lg group-hover:shadow-brand-500/20">
           <Play size={14} /> {t("Solve")}
         </button>
       </div>
@@ -129,8 +129,8 @@ export function PuzzlesGrid({
     "inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus:outline-none disabled:pointer-events-none disabled:opacity-40";
   const btnPage = (active: boolean) =>
     active
-      ? `${btnBase} w-9 h-9 bg-teal-500 text-white shadow-md shadow-teal-500/25`
-      : `${btnBase} w-9 h-9 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 hover:border-teal-400 dark:hover:border-teal-600 hover:text-teal-600 dark:hover:text-teal-400`;
+      ? `${btnBase} w-9 h-9 bg-brand-500 text-white shadow-md shadow-brand-500/25`
+      : `${btnBase} w-9 h-9 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 hover:border-brand-400 dark:hover:border-brand-600 hover:text-brand-600 dark:hover:text-brand-400`;
 
   return (
     <div className="space-y-6">
@@ -149,7 +149,7 @@ export function PuzzlesGrid({
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {loading ? (
           <div className="col-span-full flex justify-center py-12">
-            <Loader2 className="w-8 h-8 text-teal-500 animate-spin" />
+            <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
           </div>
         ) : puzzles.length === 0 ? (
           <div className="col-span-full text-center py-12 text-gray-500 dark:text-gray-400">
@@ -169,7 +169,7 @@ export function PuzzlesGrid({
           <button
             disabled={safePage <= 1}
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-            className={`${btnBase} w-9 h-9 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:border-teal-400 dark:hover:border-teal-600 hover:text-teal-600 dark:hover:text-teal-400`}
+            className={`${btnBase} w-9 h-9 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:border-brand-400 dark:hover:border-brand-600 hover:text-brand-600 dark:hover:text-brand-400`}
           >
             <ChevronLeft size={16} />
           </button>
@@ -198,7 +198,7 @@ export function PuzzlesGrid({
           <button
             disabled={safePage >= totalPages}
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-            className={`${btnBase} w-9 h-9 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:border-teal-400 dark:hover:border-teal-600 hover:text-teal-600 dark:hover:text-teal-400`}
+            className={`${btnBase} w-9 h-9 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:border-brand-400 dark:hover:border-brand-600 hover:text-brand-600 dark:hover:text-brand-400`}
           >
             <ChevronRight size={16} />
           </button>
@@ -207,3 +207,4 @@ export function PuzzlesGrid({
     </div>
   );
 }
+

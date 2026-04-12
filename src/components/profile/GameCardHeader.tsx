@@ -46,7 +46,7 @@ export function GameCardHeader({
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
               <div
-                className={`w-2 h-2 rounded-full ${game.white === "Stockfish" ? "bg-gray-400" : "bg-teal-500"}`}
+                className={`w-2 h-2 rounded-full ${game.white === "Stockfish" ? "bg-gray-400" : "bg-brand-500"}`}
               ></div>
               <span
                 className={`font-medium ${playerIsWhite ? "text-gray-900 dark:text-white" : "text-gray-500 dark:text-gray-400"}`}
@@ -57,7 +57,7 @@ export function GameCardHeader({
             </div>
             <div className="flex items-center gap-2">
               <div
-                className={`w-2 h-2 rounded-full ${game.black === "Stockfish" ? "bg-gray-400" : "bg-teal-500"}`}
+                className={`w-2 h-2 rounded-full ${game.black === "Stockfish" ? "bg-gray-400" : "bg-brand-500"}`}
               ></div>
               <span
                 className={`font-medium ${!playerIsWhite ? "text-gray-900 dark:text-white" : "text-gray-500 dark:text-gray-400"}`}
@@ -90,7 +90,7 @@ export function GameCardHeader({
                 onShare();
               }}
               title="Share game"
-              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500 transition-colors hover:border-teal-400 dark:hover:border-teal-600 hover:text-teal-500 dark:hover:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-500/10"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500 transition-colors hover:border-brand-400 dark:hover:border-brand-600 hover:text-brand-500 dark:hover:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-500/10"
             >
               <Share2 size={14} />
             </button>
@@ -101,3 +101,4 @@ export function GameCardHeader({
     </div>
   );
 }
+

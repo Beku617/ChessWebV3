@@ -39,7 +39,7 @@ export function PlayerInfo({
           className={`w-12 h-12 rounded-xl flex items-center justify-center text-lg font-semibold text-white shadow-sm overflow-hidden flex-shrink-0 ${
             avatarStyle === "opponent"
               ? "bg-gradient-to-br from-gray-600 to-gray-700 ring-1 ring-white/10"
-              : "bg-gradient-to-br from-teal-500 to-emerald-500 ring-2 ring-teal-200/60 dark:ring-emerald-500/50 shadow-teal-500/30"
+              : "bg-gradient-to-br from-brand-500 to-brand-500 ring-2 ring-brand-200/60 dark:ring-brand-500/50 shadow-brand-500/30"
           }`}
         >
           {avatarImage && !hasImageError ? (
@@ -65,7 +65,7 @@ export function PlayerInfo({
 
       <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto justify-between sm:justify-end">
         {increment > 0 && (
-          <span className="px-3 py-1 rounded-full text-[11px] font-semibold tracking-wide text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-900/40 border border-teal-100 dark:border-teal-800">
+          <span className="px-3 py-1 rounded-full text-[11px] font-semibold tracking-wide text-brand-700 dark:text-brand-300 bg-brand-50 dark:bg-brand-900/40 border border-brand-100 dark:border-brand-800">
             +{increment}s
           </span>
         )}
@@ -82,3 +82,4 @@ export function PlayerInfo({
     </div>
   );
 }
+

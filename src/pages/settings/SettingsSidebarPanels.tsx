@@ -25,9 +25,9 @@ export function SettingsSidebarPanels({
     <div className="w-full shrink-0 space-y-6 lg:w-80">
       <div className="overflow-hidden rounded-2xl border border-gray-200/60 bg-white/70 shadow-sm backdrop-blur-xl dark:border-gray-800/80 dark:bg-gray-900/60">
         <div className="relative p-6 text-center">
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-teal-500/5 to-transparent" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-brand-500/5 to-transparent" />
           <div className="relative">
-            <div className="mx-auto flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-teal-500 to-emerald-600 shadow-lg shadow-teal-900/20 ring-4 ring-white dark:ring-gray-900">
+            <div className="mx-auto flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-brand-500 to-brand-600 shadow-lg shadow-brand-900/20 ring-4 ring-white dark:ring-gray-900">
               {user?.avatar ? (
                 <img
                   src={user.avatar}
@@ -129,3 +129,4 @@ export function SettingsSidebarPanels({
     </div>
   );
 }
+

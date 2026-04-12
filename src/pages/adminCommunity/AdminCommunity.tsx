@@ -81,7 +81,7 @@ function FilterDropdown({
         aria-label={ariaLabel}
         aria-expanded={isOpen}
         onClick={() => setIsOpen((open) => !open)}
-        className="w-full inline-flex items-center justify-between gap-2 rounded-lg bg-gray-100 px-4 py-3 text-sm text-gray-900 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500/30 transition-colors dark:bg-white/[0.06] dark:text-white dark:hover:bg-white/[0.1]"
+        className="w-full inline-flex items-center justify-between gap-2 rounded-lg bg-gray-100 px-4 py-3 text-sm text-gray-900 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500/30 transition-colors dark:bg-white/[0.06] dark:text-white dark:hover:bg-white/[0.1]"
       >
         <span className="truncate">{selected?.label || "Select"}</span>
         <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
@@ -101,7 +101,7 @@ function FilterDropdown({
                 }}
                 className={`w-full text-left rounded-lg px-3 py-2 text-sm transition-colors ${
                   active
-                    ? "bg-teal-100 text-teal-700 dark:bg-teal-500/20 dark:text-teal-100"
+                    ? "bg-brand-100 text-brand-700 dark:bg-brand-500/20 dark:text-brand-100"
                     : "text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-white/[0.08]"
                 }`}
               >
@@ -148,7 +148,7 @@ const DEFAULT_STATS: CommunityStats = {
 
 function statusClass(status: string) {
   if (status === "approved") {
-    return "bg-teal-500/10 text-teal-200";
+    return "bg-brand-500/10 text-brand-200";
   }
   if (status === "rejected") {
     return "bg-red-500/10 text-red-200";
@@ -858,7 +858,7 @@ export default function AdminCommunity() {
         label: "Approved",
         value: stats.approved,
         filterValue: "approved",
-        tone: "bg-teal-100 text-teal-700 dark:bg-teal-500/10 dark:text-teal-300",
+        tone: "bg-brand-100 text-brand-700 dark:bg-brand-500/10 dark:text-brand-300",
       },
       {
         label: "Rejected",
@@ -923,7 +923,7 @@ export default function AdminCommunity() {
   if (authLoading) {
     return (
       <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-950 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-teal-500 animate-spin" />
+        <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
       </div>
     );
   }
@@ -936,7 +936,7 @@ export default function AdminCommunity() {
       {toast && (
         <div
           className={`fixed top-5 right-5 z-[90] px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 ${
-            toast.type === "success" ? "bg-emerald-500 text-white" : "bg-red-500 text-white"
+            toast.type === "success" ? "bg-brand-500 text-white" : "bg-red-500 text-white"
           }`}
         >
                       {toast.type === "success" ? (
@@ -996,7 +996,7 @@ export default function AdminCommunity() {
                     }
                     className={`h-14 w-14 shrink-0 overflow-hidden rounded-xl transition-all ${
                       index === previewGallery.index
-                        ? "ring-2 ring-teal-400/60"
+                        ? "ring-2 ring-brand-400/60"
                         : "opacity-70 hover:opacity-100"
                     }`}
                   >
@@ -1061,7 +1061,7 @@ export default function AdminCommunity() {
                       setPage(1);
                     }}
                     placeholder="Search by author, caption, file name, or game info..."
-                    className="w-full rounded-lg border border-gray-200 bg-gray-50 py-3 pl-11 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-white/[0.05] dark:bg-white/[0.06] dark:text-white dark:placeholder:text-gray-500"
+                    className="w-full rounded-lg border border-gray-200 bg-gray-50 py-3 pl-11 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-white/[0.05] dark:bg-white/[0.06] dark:text-white dark:placeholder:text-gray-500"
                   />
                 </div>
               </div>
@@ -1093,7 +1093,7 @@ export default function AdminCommunity() {
                   value={createText}
                   onChange={(e) => setCreateText(e.target.value)}
                   placeholder="Post text..."
-                  className="min-h-[120px] w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-white/[0.05] dark:bg-white/[0.05] dark:text-white dark:placeholder:text-gray-500"
+                  className="min-h-[120px] w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-white/[0.05] dark:bg-white/[0.05] dark:text-white dark:placeholder:text-gray-500"
                 />
                 <div className="max-w-[220px]">
                   <FilterDropdown
@@ -1108,7 +1108,7 @@ export default function AdminCommunity() {
                     value={createRejectionReason}
                     onChange={(e) => setCreateRejectionReason(e.target.value)}
                     placeholder="Rejection reason"
-                    className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500/30 dark:border-white/[0.05] dark:bg-white/[0.06] dark:text-white dark:placeholder:text-gray-500"
+                    className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-white/[0.05] dark:bg-white/[0.06] dark:text-white dark:placeholder:text-gray-500"
                   />
                 )}
                 <input
@@ -1122,7 +1122,7 @@ export default function AdminCommunity() {
                     type="button"
                     onClick={handleCreatePost}
                     disabled={isCreating}
-                    className="inline-flex items-center gap-2 rounded-lg bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-500 disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-500 disabled:opacity-50"
                   >
                     <Plus className="w-4 h-4" />
                     {isCreating ? "Creating..." : "Create Post"}
@@ -1145,7 +1145,7 @@ export default function AdminCommunity() {
 
           {loading ? (
             <div className="py-24 flex items-center justify-center">
-              <Loader2 className="w-8 h-8 text-teal-400 animate-spin" />
+              <Loader2 className="w-8 h-8 text-brand-400 animate-spin" />
             </div>
           ) : posts.length === 0 ? (
             <div className="rounded-2xl border border-gray-200/80 bg-white/95 py-24 text-center shadow-[0_18px_42px_rgba(15,23,42,0.08)] dark:border-white/[0.05] dark:bg-[#0c1728]/80 dark:shadow-[0_24px_75px_rgba(0,0,0,0.24)]">
@@ -1260,7 +1260,7 @@ export default function AdminCommunity() {
                                 Group
                               </div>
                               <div className="mt-2 flex flex-wrap items-center gap-2">
-                                <span className="rounded-full bg-teal-500/10 px-2.5 py-1 text-[11px] font-semibold text-teal-100">
+                                <span className="rounded-full bg-brand-500/10 px-2.5 py-1 text-[11px] font-semibold text-brand-100">
                                   {post.group.name}
                                 </span>
                                 {post.group.topic && (
@@ -1281,7 +1281,7 @@ export default function AdminCommunity() {
                                 value={editText}
                                 onChange={(e) => setEditText(e.target.value)}
                                 placeholder="Edit post text..."
-                                className="w-full min-h-[120px] rounded-xl bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
+                                className="w-full min-h-[120px] rounded-xl bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                               />
                               <div className="max-w-[220px]">
                                 <FilterDropdown
@@ -1296,7 +1296,7 @@ export default function AdminCommunity() {
                                   value={editRejectionReason}
                                   onChange={(e) => setEditRejectionReason(e.target.value)}
                                   placeholder="Rejection reason"
-                                  className="w-full rounded-xl bg-white/[0.05] px-4 py-2.5 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
+                                  className="w-full rounded-xl bg-white/[0.05] px-4 py-2.5 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                                 />
                               )}
                               {isGamePost ? (
@@ -1317,7 +1317,7 @@ export default function AdminCommunity() {
                                         type="checkbox"
                                         checked={editRemoveMedia}
                                         onChange={(e) => setEditRemoveMedia(e.target.checked)}
-                                        className="rounded border-white/20 bg-transparent text-teal-500 focus:ring-teal-500/30"
+                                        className="rounded border-white/20 bg-transparent text-brand-500 focus:ring-brand-500/30"
                                       />
                                       Remove existing media
                                     </label>
@@ -1337,7 +1337,7 @@ export default function AdminCommunity() {
                                   type="button"
                                   disabled={isBusy}
                                   onClick={() => handleSaveEdit(post.id)}
-                                  className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-teal-500 disabled:opacity-50"
+                                  className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-500 disabled:opacity-50"
                                 >
                                   <Check className="w-4 h-4" />
                                   Save changes
@@ -1419,12 +1419,12 @@ export default function AdminCommunity() {
                                 <div className="inline-flex items-center gap-2">
                                   {post.mediaType === "video" ? (
                                     <>
-                                      <PlayCircle className="w-3.5 h-3.5 text-teal-300" />
+                                      <PlayCircle className="w-3.5 h-3.5 text-brand-300" />
                                       <span>Video preview</span>
                                     </>
                                   ) : post.mediaType === "image" ? (
                                     <>
-                                      <ImageIcon className="w-3.5 h-3.5 text-teal-300" />
+                                      <ImageIcon className="w-3.5 h-3.5 text-brand-300" />
                                       <span>
                                         {imageItems.length > 1
                                           ? "Image set"
@@ -1536,7 +1536,7 @@ export default function AdminCommunity() {
                                 <span
                                   className={`font-semibold ${
                                     restrictionDraft.unlimitedPosts
-                                      ? "text-emerald-200"
+                                      ? "text-brand-200"
                                       : "text-gray-300"
                                   }`}
                                 >
@@ -1555,7 +1555,7 @@ export default function AdminCommunity() {
                                 }
                                 className={`w-full inline-flex items-center justify-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-colors disabled:opacity-50 ${
                                   restrictionDraft.unlimitedPosts
-                                    ? "bg-emerald-500/15 text-emerald-200 hover:bg-emerald-500/20"
+                                    ? "bg-brand-500/15 text-brand-200 hover:bg-brand-500/20"
                                     : "bg-white/[0.06] text-gray-100 hover:bg-white/[0.12]"
                                 }`}
                               >
@@ -1585,7 +1585,7 @@ export default function AdminCommunity() {
                                   })
                                 }
                                 placeholder="Optional restriction reason..."
-                                className="w-full rounded-xl bg-white/[0.05] px-3.5 py-2.5 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
+                                className="w-full rounded-xl bg-white/[0.05] px-3.5 py-2.5 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                               />
 
                               <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2.5">
@@ -1615,7 +1615,7 @@ export default function AdminCommunity() {
                                       });
                                       void updatePostingRestriction(authorId, "none", "");
                                     }}
-                                    className="inline-flex items-center justify-center rounded-xl bg-emerald-500/15 px-3.5 py-2.5 text-sm font-semibold text-emerald-200 hover:bg-emerald-500/20 disabled:opacity-50"
+                                    className="inline-flex items-center justify-center rounded-xl bg-brand-500/15 px-3.5 py-2.5 text-sm font-semibold text-brand-200 hover:bg-brand-500/20 disabled:opacity-50"
                                   >
                                     Clear
                                   </button>
@@ -1649,7 +1649,7 @@ export default function AdminCommunity() {
                                   }))
                                 }
                                 placeholder="Optional rejection reason..."
-                                className="mt-3 w-full min-h-[110px] rounded-[18px] bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
+                                className="mt-3 w-full min-h-[110px] rounded-[18px] bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                               />
                             )}
 
@@ -1659,7 +1659,7 @@ export default function AdminCommunity() {
                                   type="button"
                                   disabled={isBusy}
                                   onClick={() => handleApprove(post.id)}
-                                  className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-teal-600 px-4 py-3 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(13,148,136,0.22)] hover:bg-teal-500 disabled:opacity-50"
+                                  className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(13,148,136,0.22)] hover:bg-brand-500 disabled:opacity-50"
                                 >
                                   <Check className="w-4 h-4" />
                                   Approve
@@ -1753,3 +1753,4 @@ export default function AdminCommunity() {
     </div>
   );
 }
+

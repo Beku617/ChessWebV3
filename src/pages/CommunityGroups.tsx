@@ -112,7 +112,7 @@ export default function CommunityGroups() {
           <section className="rounded-[28px] bg-[#0c1728]/84 p-6 shadow-[0_22px_65px_rgba(0,0,0,0.24)]">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-teal-200/70">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-brand-200/70">
                   Community Groups
                 </div>
                 <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white">
@@ -128,7 +128,7 @@ export default function CommunityGroups() {
               <button
                 type="button"
                 onClick={() => setIsCreateOpen(true)}
-                className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-teal-500"
+                className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-500"
               >
                 <Users className="h-4 w-4" />
                 Create group
@@ -142,7 +142,7 @@ export default function CommunityGroups() {
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                   placeholder="Search by group name, topic, or description..."
-                  className="w-full rounded-2xl bg-white/[0.05] py-3 pl-11 pr-4 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500/30"
+                  className="w-full rounded-2xl bg-white/[0.05] py-3 pl-11 pr-4 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                 />
               </div>
 
@@ -186,7 +186,7 @@ export default function CommunityGroups() {
 
             {loading ? (
               <div className="rounded-2xl bg-[#0c1728]/82 py-20 shadow-[0_22px_65px_rgba(0,0,0,0.22)] flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-teal-400" />
+                <Loader2 className="h-8 w-8 animate-spin text-brand-400" />
               </div>
             ) : groups.length === 0 ? (
               <div className="rounded-2xl bg-[#0c1728]/82 px-6 py-20 text-center shadow-[0_22px_65px_rgba(0,0,0,0.22)]">
@@ -226,3 +226,4 @@ export default function CommunityGroups() {
     </div>
   );
 }
+

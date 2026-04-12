@@ -142,7 +142,7 @@ function buildSubmissionBlockedMessage(postingAccess?: CommunityPostingAccess | 
 }
 
 function perspectiveTone(value: CommunityShareableGameSummary["perspectiveResult"]) {
-  if (value === "win") return "bg-emerald-500/12 text-emerald-200";
+  if (value === "win") return "bg-brand-500/12 text-brand-200";
   if (value === "loss") return "bg-red-500/12 text-red-200";
   if (value === "draw") return "bg-slate-500/14 text-slate-200";
   return "bg-white/[0.06] text-gray-300";
@@ -532,11 +532,11 @@ export function PostComposer({
     <section
       className={`relative overflow-hidden rounded-2xl backdrop-blur-xl transition-all duration-300 ${
         focused
-          ? "bg-[#0d192c]/90 shadow-[0_26px_70px_rgba(0,0,0,0.3)] ring-1 ring-teal-400/25"
+          ? "bg-[#0d192c]/90 shadow-[0_26px_70px_rgba(0,0,0,0.3)] ring-1 ring-brand-400/25"
           : "bg-[#0c1728]/82 shadow-[0_20px_58px_rgba(0,0,0,0.24)]"
       }`}
     >
-      <div className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-teal-400/35 to-transparent" />
+      <div className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-brand-400/35 to-transparent" />
 
       <div className="p-5">
         <div className="flex gap-4">
@@ -613,7 +613,7 @@ export function PostComposer({
               <div className="mt-2 overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.025] p-3">
                 <div className="mb-3 flex items-center justify-between gap-3">
                   <div className="min-w-0">
-                    <div className="text-[10px] font-semibold uppercase tracking-[0.24em] text-teal-200/70">
+                    <div className="text-[10px] font-semibold uppercase tracking-[0.24em] text-brand-200/70">
                       Image Set
                     </div>
                     <div className="mt-1 text-sm font-semibold text-white">
@@ -672,7 +672,7 @@ export function PostComposer({
               <div className="mt-2 overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.025]">
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] px-4 py-3">
                   <div className="min-w-0">
-                    <div className="text-[10px] font-semibold uppercase tracking-[0.24em] text-teal-200/70">
+                    <div className="text-[10px] font-semibold uppercase tracking-[0.24em] text-brand-200/70">
                       Share Game
                     </div>
                     <div className="mt-1 truncate text-sm font-semibold text-white">
@@ -758,7 +758,7 @@ export function PostComposer({
                       disabled={isSubmitting}
                       onChange={(e) => setGameSearch(e.target.value)}
                       placeholder="Search by opponent, opening, result, or time control..."
-                      className="w-full rounded-xl bg-white/[0.05] py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500/30 disabled:cursor-not-allowed disabled:opacity-45"
+                      className="w-full rounded-xl bg-white/[0.05] py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 disabled:cursor-not-allowed disabled:opacity-45"
                     />
                   </div>
                 </div>
@@ -801,7 +801,7 @@ export function PostComposer({
                             disabled={isLoadingSelectedGame || isSubmitting}
                             className={`w-full rounded-2xl border px-4 py-3 text-left transition-all ${
                               isSelected
-                                ? "border-teal-400/35 bg-teal-500/10"
+                                ? "border-brand-400/35 bg-brand-500/10"
                                 : "border-white/[0.06] bg-white/[0.03] hover:border-white/[0.12] hover:bg-white/[0.05]"
                             } disabled:opacity-60`}
                           >
@@ -861,7 +861,7 @@ export function PostComposer({
                     ? "bg-red-500/10 text-red-200"
                     : submissionBlockedMessage
                       ? "bg-amber-500/10 text-amber-100"
-                      : "bg-teal-500/10 text-teal-100"
+                      : "bg-brand-500/10 text-brand-100"
                 }`}
               >
                 {error || submissionBlockedMessage ? (
@@ -893,8 +893,8 @@ export function PostComposer({
               <div className="flex flex-wrap items-center gap-2">
                 {(availableGroups.length > 0 || selectedGroupId) && (
                   lockGroupSelection ? (
-                    <div className="inline-flex items-center gap-2 rounded-lg bg-teal-500/12 px-3.5 py-2 text-sm text-teal-100">
-                      <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-teal-200/70">
+                    <div className="inline-flex items-center gap-2 rounded-lg bg-brand-500/12 px-3.5 py-2 text-sm text-brand-100">
+                      <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-brand-200/70">
                         Group
                       </span>
                       <span className="font-medium">
@@ -931,7 +931,7 @@ export function PostComposer({
                   type="button"
                   disabled={mediaControlsDisabled}
                   onClick={() => openFilePicker("image")}
-                  className="inline-flex items-center gap-2 rounded-lg bg-white/[0.04] px-3.5 py-2 text-sm text-gray-300 transition-colors hover:bg-white/[0.08] hover:text-teal-200 disabled:cursor-not-allowed disabled:opacity-45"
+                  className="inline-flex items-center gap-2 rounded-lg bg-white/[0.04] px-3.5 py-2 text-sm text-gray-300 transition-colors hover:bg-white/[0.08] hover:text-brand-200 disabled:cursor-not-allowed disabled:opacity-45"
                 >
                   <ImageIcon className="w-4 h-4" />
                   Image
@@ -940,7 +940,7 @@ export function PostComposer({
                   type="button"
                   disabled={mediaControlsDisabled}
                   onClick={() => openFilePicker("video")}
-                  className="inline-flex items-center gap-2 rounded-lg bg-white/[0.04] px-3.5 py-2 text-sm text-gray-300 transition-colors hover:bg-white/[0.08] hover:text-teal-200 disabled:cursor-not-allowed disabled:opacity-45"
+                  className="inline-flex items-center gap-2 rounded-lg bg-white/[0.04] px-3.5 py-2 text-sm text-gray-300 transition-colors hover:bg-white/[0.08] hover:text-brand-200 disabled:cursor-not-allowed disabled:opacity-45"
                 >
                   <Video className="w-4 h-4" />
                   Video
@@ -959,8 +959,8 @@ export function PostComposer({
                   }}
                   className={`inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-45 ${
                     isGamePickerOpen || selectedGameSummary
-                      ? "bg-teal-500/16 text-teal-100 hover:bg-teal-500/22"
-                      : "bg-white/[0.04] text-gray-300 hover:bg-white/[0.08] hover:text-teal-200"
+                      ? "bg-brand-500/16 text-brand-100 hover:bg-brand-500/22"
+                      : "bg-white/[0.04] text-gray-300 hover:bg-white/[0.08] hover:text-brand-200"
                   }`}
                 >
                   <Gamepad2 className="w-4 h-4" />
@@ -978,7 +978,7 @@ export function PostComposer({
                   disabled={!canSubmitNow}
                   className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
                     canSubmitNow
-                      ? "bg-teal-600 text-white shadow-[0_12px_30px_rgba(13,148,136,0.28)] hover:bg-teal-500"
+                      ? "bg-brand-600 text-white shadow-[0_12px_30px_rgba(13,148,136,0.28)] hover:bg-brand-500"
                       : "cursor-not-allowed bg-white/[0.06] text-gray-500"
                   }`}
                 >
@@ -997,3 +997,4 @@ export function PostComposer({
     </section>
   );
 }
+

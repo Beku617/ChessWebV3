@@ -200,7 +200,7 @@ export default function UserProfile() {
       <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-950 flex">
         <Sidebar />
         <div className="flex-1 ml-72 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-500"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-500"></div>
         </div>
       </div>
     );
@@ -217,7 +217,7 @@ export default function UserProfile() {
             </p>
             <button
               onClick={() => navigate(-1)}
-              className="mt-4 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
+              className="mt-4 px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors"
             >
               Go Back
             </button>
@@ -279,3 +279,4 @@ export default function UserProfile() {
     </div>
   );
 }
+

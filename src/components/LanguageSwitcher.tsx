@@ -33,7 +33,7 @@ export function LanguageSwitcher({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className={`group relative inline-flex items-center gap-2.5 rounded-xl border border-gray-200/80 dark:border-slate-700/80 bg-white/95 dark:bg-slate-900/95 px-3.5 py-2 shadow-sm transition-all duration-200 hover:border-teal-300/70 dark:hover:border-teal-700/70 focus:outline-none focus:border-teal-400 dark:focus:border-teal-600 focus:ring-2 focus:ring-teal-500/15`}
+        className={`group relative inline-flex items-center gap-2.5 rounded-xl border border-gray-200/80 dark:border-slate-700/80 bg-white/95 dark:bg-slate-900/95 px-3.5 py-2 shadow-sm transition-all duration-200 hover:border-brand-300/70 dark:hover:border-brand-700/70 focus:outline-none focus:border-brand-400 dark:focus:border-brand-600 focus:ring-2 focus:ring-brand-500/15`}
         aria-label={t("language.label", "Language")}
         aria-expanded={open}
       >
@@ -80,3 +80,4 @@ export function LanguageSwitcher({
 }
 
 export default LanguageSwitcher;
+

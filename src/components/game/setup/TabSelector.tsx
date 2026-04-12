@@ -12,7 +12,7 @@ export function TabSelector({ activeTab, setActiveTab }: TabSelectorProps) {
         onClick={() => setActiveTab("bots")}
         className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
           activeTab === "bots"
-            ? "bg-teal-600 text-white"
+            ? "bg-brand-600 text-white"
             : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
         }`}
       >
@@ -22,7 +22,7 @@ export function TabSelector({ activeTab, setActiveTab }: TabSelectorProps) {
         onClick={() => setActiveTab("custom")}
         className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
           activeTab === "custom"
-            ? "bg-teal-600 text-white"
+            ? "bg-brand-600 text-white"
             : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
         }`}
       >
@@ -31,3 +31,4 @@ export function TabSelector({ activeTab, setActiveTab }: TabSelectorProps) {
     </div>
   );
 }
+

@@ -60,7 +60,7 @@ const CARD_THEME: Record<
   classical: {
     label: "Classical",
     icon: Landmark,
-    iconColor: "text-sky-400",
+    iconColor: "text-brand-400",
     lineColor: "#93c5fd",
   },
 };
@@ -226,7 +226,7 @@ export function FormatStatsCard({
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
           Format Ratings
         </h3>
-        <Shield className="w-5 h-5 text-teal-500" />
+        <Shield className="w-5 h-5 text-brand-500" />
       </div>
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         {cards.map((format) => (
@@ -249,7 +249,7 @@ export function FormatStatsCard({
                     </span>
                     <span
                       className={`inline-flex items-center gap-1 text-sm font-semibold pb-1 ${
-                        format.delta >= 0 ? "text-emerald-400" : "text-red-400"
+                        format.delta >= 0 ? "text-brand-400" : "text-red-400"
                       }`}
                     >
                       {format.delta >= 0 ? (
@@ -283,3 +283,5 @@ export function FormatStatsCard({
     </div>
   );
 }
+
+

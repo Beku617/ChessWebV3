@@ -69,7 +69,7 @@ export function BotSelector({
               onClick={() => setSelectedBot(bot)}
               className={`p-3 rounded-lg text-left transition-all ${
                 selectedBot?.id === bot.id
-                  ? "bg-teal-600 text-white ring-2 ring-teal-400"
+                  ? "bg-brand-600 text-white ring-2 ring-brand-400"
                   : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
               }`}
             >
@@ -87,7 +87,7 @@ export function BotSelector({
                   <div
                     className={`text-xs ${
                       selectedBot?.id === bot.id
-                        ? "text-teal-100"
+                        ? "text-brand-100"
                         : "text-gray-500 dark:text-gray-400"
                     }`}
                   >
@@ -114,7 +114,7 @@ function BotInfoCard({ bot }: { bot: BotPersonality }) {
         <div className="flex-1">
           <h3 className="font-bold text-gray-900 dark:text-white">
             {bot.title && (
-              <span className="text-teal-600 dark:text-teal-400 mr-1">
+              <span className="text-brand-600 dark:text-brand-400 mr-1">
                 {bot.title}
               </span>
             )}
@@ -141,3 +141,4 @@ function BotInfoCard({ bot }: { bot: BotPersonality }) {
     </div>
   );
 }
+

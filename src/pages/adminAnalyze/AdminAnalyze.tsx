@@ -58,7 +58,7 @@ export default function AdminAnalyze() {
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-950 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-teal-500 animate-spin" />
+        <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
       </div>
     );
   }
@@ -85,3 +85,4 @@ export default function AdminAnalyze() {
 
   return <AdminReplayContent game={game} />;
 }
+
