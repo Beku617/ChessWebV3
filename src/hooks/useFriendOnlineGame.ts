@@ -1401,6 +1401,7 @@ export function useFriendOnlineGame() {
     gameType,
     matchVariant,
     isRated,
+    lastGameOver,
     statusMessage,
     showGameOverModal,
     optionSquares,

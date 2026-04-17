@@ -44,19 +44,19 @@ export function LessonPanel({
       <div className="px-3.5 pt-3 pb-2.5 border-b border-slate-800 bg-[radial-gradient(circle_at_top_right,rgba(20,184,166,0.15),rgba(2,6,23,0.95)_50%)]">
         <button
           onClick={onBackToCatalog}
-          className="inline-flex items-center gap-1 text-[11px] text-brand-300 hover:text-brand-200 transition-colors"
+          className="inline-flex items-center gap-1 text-xs text-brand-300 hover:text-brand-200 transition-colors"
         >
           <ChevronLeft className="w-3 h-3" />
           Back to Learn
         </button>
-        <p className="mt-1.5 text-[10px] uppercase tracking-[0.14em] text-brand-300/80">
+        <p className="mt-1.5 text-xs uppercase tracking-[0.14em] text-brand-300/80">
           {courseTitle}
         </p>
       </div>
 
       <div className="px-3.5 py-2.5 border-b border-slate-800">
         <div>
-          <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
+          <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
             <span>Course progress</span>
             <span>{courseProgress.percentComplete}%</span>
           </div>
@@ -66,14 +66,14 @@ export function LessonPanel({
               style={{ width: `${courseProgress.percentComplete}%` }}
             />
           </div>
-          <p className="mt-1 text-[10px] text-slate-500">
+          <p className="mt-1 text-xs text-slate-500">
             {courseProgress.completedLessonsCount}/{courseProgress.totalLessons} lessons completed
           </p>
         </div>
       </div>
 
       <div className="px-3.5 py-2.5 border-b border-slate-800 min-h-0 flex flex-col">
-        <p className="text-xs font-medium text-slate-300 mb-2">Course Lessons</p>
+        <p className="text-sm font-medium text-slate-300 mb-2">Course Lessons</p>
         <div className="space-y-1 min-h-0 flex-1 overflow-y-auto pr-1">
           {lessons.map((lesson, index) => {
             const active = lesson.slug === currentLessonSlug;
@@ -89,7 +89,7 @@ export function LessonPanel({
               >
                 <div className="flex items-center gap-2">
                   <span
-                    className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${
+                    className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
                       lesson.isCompleted
                         ? "bg-brand-500/20 text-brand-300"
                         : active
@@ -100,7 +100,7 @@ export function LessonPanel({
                     {lesson.isCompleted ? <CheckCircle2 className="w-3.5 h-3.5" /> : index + 1}
                   </span>
                   <span
-                    className={`text-xs truncate ${active ? "text-slate-100" : "text-slate-300"}`}
+                    className={`text-sm truncate ${active ? "text-slate-100" : "text-slate-300"}`}
                   >
                     {lesson.title}
                   </span>

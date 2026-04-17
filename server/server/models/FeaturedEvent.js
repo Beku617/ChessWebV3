@@ -26,6 +26,72 @@ const featuredEventSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    // Hero banner controls
+    statusLabel: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    categoryLabel: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    viewerCountText: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    primaryButtonLabel: {
+      type: String,
+      trim: true,
+      default: "Watch Now",
+    },
+    primaryButtonUrl: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    secondaryButtonLabel: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    secondaryButtonUrl: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    backgroundType: {
+      type: String,
+      enum: ["default", "color", "image"],
+      default: "default",
+    },
+    backgroundColor: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    backgroundImageUrl: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    primaryButtonColor: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    titleColor: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    descriptionColor: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     // Players involved (for matches)
     players: [
       {

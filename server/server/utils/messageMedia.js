@@ -11,36 +11,46 @@ import {
   storeMediaAssetFromPath,
 } from "./mediaStorage.js";
 
+function normalizePotentialMessageUploadUrl(value = "") {
+  const raw = String(value || "").trim().replace(/\\/g, "/");
+  if (!raw) return "";
+  const marker = "/uploads/messages/";
+  const index = raw.toLowerCase().indexOf(marker);
+  if (index < 0) return raw;
+  return raw.slice(index);
+}
+
 function isLegacyMessageUploadUrl(value = "") {
-  return isLegacyUploadUrl(value, "messages");
+  return isLegacyUploadUrl(normalizePotentialMessageUploadUrl(value), "messages");
 }
 
 function normalizeMessageAttachmentRecord(attachment) {
   if (!attachment || typeof attachment !== "object") return null;
 
-  const rawUrl = String(attachment.url || "").trim();
+  const rawUrl = normalizePotentialMessageUploadUrl(attachment.url);
+  const mimeType = String(attachment.mimeType || "").trim();
+  const attachmentType =
+    attachment.type === "video" || mimeType.startsWith("video/")
+      ? "video"
+      : "image";
   const assetId = String(
     attachment.assetId || extractMediaAssetId(rawUrl),
   ).trim();
   const url =
     assetId && (rawUrl === "" || isLegacyMessageUploadUrl(rawUrl))
-      ? buildMediaAssetUrl(assetId)
-      : rawUrl || buildMediaAssetUrl(assetId);
+      ? buildMediaAssetUrl(assetId, { resourceType: attachmentType })
+      : rawUrl || buildMediaAssetUrl(assetId, { resourceType: attachmentType });
   if (!url) return null;
 
   const originalName = String(
     attachment.originalName || attachment.filename || "",
   ).trim();
-  const mimeType = String(attachment.mimeType || "").trim();
 
   return {
     assetId,
-    type:
-      attachment.type === "video" || mimeType.startsWith("video/")
-        ? "video"
-        : "image",
+    type: attachmentType,
     url,
-    filename: String(attachment.filename || originalName || "attachment").trim(),
+    filename: String(originalName || attachment.filename || "attachment").trim(),
     originalName:
       originalName || String(attachment.filename || "attachment").trim(),
     mimeType,
@@ -97,15 +107,16 @@ export async function cleanupMessageMedia(input) {
   const seenAssetIds = new Set();
   await Promise.all(
     files.map(async (file) => {
+      const normalizedUrl = normalizePotentialMessageUploadUrl(file?.url);
       const assetId = String(
-        file?.assetId || extractMediaAssetId(file?.url),
+        file?.assetId || extractMediaAssetId(normalizedUrl),
       ).trim();
       if (assetId && !seenAssetIds.has(assetId)) {
         seenAssetIds.add(assetId);
         await deleteMediaAsset(assetId).catch(() => null);
       }
 
-      await deleteLegacyUploadFiles(file?.url).catch(() => null);
+      await deleteLegacyUploadFiles(normalizedUrl).catch(() => null);
     }),
   );
 }

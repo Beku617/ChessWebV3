@@ -8,8 +8,8 @@ import {
   storeMediaAsset,
 } from "./mediaStorage.js";
 
-export function buildCommunityMediaAssetUrl(assetId) {
-  return buildMediaAssetUrl(assetId);
+export function buildCommunityMediaAssetUrl(assetId, options = {}) {
+  return buildMediaAssetUrl(assetId, options);
 }
 
 export function extractCommunityMediaAssetId(value = "") {

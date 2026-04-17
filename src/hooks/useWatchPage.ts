@@ -12,6 +12,19 @@ export interface FeaturedEvent {
   type: "tournament" | "match" | "broadcast" | "event";
   lichessUrl?: string;
   imageUrl?: string;
+  statusLabel?: string;
+  categoryLabel?: string;
+  viewerCountText?: string;
+  primaryButtonLabel?: string;
+  primaryButtonUrl?: string;
+  secondaryButtonLabel?: string;
+  secondaryButtonUrl?: string;
+  backgroundType?: "default" | "color" | "image";
+  backgroundColor?: string;
+  backgroundImageUrl?: string;
+  primaryButtonColor?: string;
+  titleColor?: string;
+  descriptionColor?: string;
   players?: {
     name: string;
     rating: number;

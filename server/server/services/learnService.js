@@ -123,6 +123,13 @@ function buildLessonLookup(lessons = []) {
   }, {});
 }
 
+function filterLessonsWithPublishedSteps(lessons = [], stepCountsByLessonId = {}) {
+  return (lessons || []).filter((lesson) => {
+    const stepCount = Number(stepCountsByLessonId[toId(lesson._id)] || 0);
+    return Number.isFinite(stepCount) && stepCount > 0;
+  });
+}
+
 function getLessonCompletedStepIndexes(progress, lessonId) {
   if (!progress?.completedSteps?.length) return [];
   return progress.completedSteps
@@ -471,7 +478,16 @@ async function getCourseCatalog({
     .sort({ orderIndex: 1, createdAt: 1 })
     .lean();
 
-  const lessonsByCourseId = bundleLessonsByCourse(lessons);
+  const stepCountsByLessonId = await fetchStepCounts(lessons.map((lesson) => lesson._id));
+  const visibleLessons = filterLessonsWithPublishedSteps(lessons, stepCountsByLessonId);
+  if (!visibleLessons.length) return [];
+
+  const lessonsByCourseId = bundleLessonsByCourse(visibleLessons);
+  courses = courses.filter(
+    (course) => (lessonsByCourseId[toId(course._id)] || []).length > 0,
+  );
+  if (!courses.length) return [];
+
   const safeQuery = String(query || "").trim().toLowerCase();
   if (safeQuery) {
     courses = courses.filter((course) => {
@@ -496,13 +512,10 @@ async function getCourseCatalog({
   if (!courses.length) return [];
 
   const filteredCourseIds = courses.map((course) => asObjectId(course._id));
-  const filteredLessons = lessons.filter((lesson) =>
+  const filteredLessons = visibleLessons.filter((lesson) =>
     filteredCourseIds.some((entry) => idEquals(entry, lesson.courseId)),
   );
   const filteredLessonsByCourseId = bundleLessonsByCourse(filteredLessons);
-
-  const lessonIds = filteredLessons.map((lesson) => lesson._id);
-  const stepCountsByLessonId = await fetchStepCounts(lessonIds);
 
   const progressDocs = await UserLearnProgress.find({
     userId: asObjectId(userId),
@@ -538,8 +551,11 @@ async function getCourseBySlug({ userId, courseSlug }) {
   const course = await fetchPublishedCourseBySlug(courseSlug);
   if (!course) return null;
 
-  const lessons = await fetchLessonsForCourse(course._id);
-  const stepCountsByLessonId = await fetchStepCounts(lessons.map((lesson) => lesson._id));
+  const allLessons = await fetchLessonsForCourse(course._id);
+  const stepCountsByLessonId = await fetchStepCounts(allLessons.map((lesson) => lesson._id));
+  const lessons = filterLessonsWithPublishedSteps(allLessons, stepCountsByLessonId);
+  if (!lessons.length) return null;
+
   const progress = await UserLearnProgress.findOne({
     userId: asObjectId(userId),
     courseId: asObjectId(course._id),
@@ -584,7 +600,15 @@ async function resolveCourseLessonContext({ courseSlug, lessonSlug }) {
   const course = await fetchPublishedCourseBySlug(courseSlug);
   if (!course) return null;
 
-  const lessons = await fetchLessonsForCourse(course._id);
+  const allLessons = await fetchLessonsForCourse(course._id);
+  if (!allLessons.length) return null;
+
+  const stepCountsByLessonId = await fetchStepCounts(
+    allLessons.map((lesson) => lesson._id),
+  );
+  const lessons = filterLessonsWithPublishedSteps(allLessons, stepCountsByLessonId);
+  if (!lessons.length) return null;
+
   const targetLesson = lessons.find(
     (lesson) =>
       String(lesson.slug || "").toLowerCase() ===
@@ -593,16 +617,12 @@ async function resolveCourseLessonContext({ courseSlug, lessonSlug }) {
 
   if (!targetLesson) return null;
 
-  const lessonIds = lessons.map((lesson) => lesson._id);
-  const [steps, stepCountsByLessonId] = await Promise.all([
-    LearnLessonStep.find({
-      lessonId: asObjectId(targetLesson._id),
-      ...PUBLISHED_STEP_FILTER,
-    })
-      .sort({ orderIndex: 1, createdAt: 1 })
-      .lean(),
-    fetchStepCounts(lessonIds),
-  ]);
+  const steps = await LearnLessonStep.find({
+    lessonId: asObjectId(targetLesson._id),
+    ...PUBLISHED_STEP_FILTER,
+  })
+    .sort({ orderIndex: 1, createdAt: 1 })
+    .lean();
 
   return {
     course,

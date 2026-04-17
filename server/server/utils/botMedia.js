@@ -19,19 +19,21 @@ export function normalizeBotAvatarMedia(botDoc) {
   if (!botDoc) return botDoc;
 
   const rawUrl = String(botDoc.avatarUrl || "").trim();
+  const mimeType = String(botDoc.avatarMimeType || "").trim();
+  const resourceType = mimeType.startsWith("video/") ? "video" : "image";
   const assetId = String(
     botDoc.avatarAssetId || extractMediaAssetId(rawUrl),
   ).trim();
   const avatarUrl =
     assetId && (rawUrl === "" || isLegacyBotAvatarUrl(rawUrl))
-      ? buildMediaAssetUrl(assetId)
-      : rawUrl || buildMediaAssetUrl(assetId);
+      ? buildMediaAssetUrl(assetId, { resourceType })
+      : rawUrl || buildMediaAssetUrl(assetId, { resourceType });
 
   return {
     ...botDoc,
     avatarAssetId: assetId,
     avatarUrl,
-    avatarMimeType: String(botDoc.avatarMimeType || "").trim(),
+    avatarMimeType: mimeType,
     avatarOriginalName: String(botDoc.avatarOriginalName || "").trim(),
     avatarSize: Number(botDoc.avatarSize || 0),
   };

@@ -157,7 +157,7 @@ export default function AdminPuzzles() {
 
   const fetchPuzzles = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/puzzles`, {
+      const res = await fetch(`${API_URL}/api/admin/puzzles`, {
         credentials: "include",
       });
       if (res.ok) {
@@ -480,7 +480,7 @@ export default function AdminPuzzles() {
 
   const toggleFeatured = async (puzzleId: string, currentFeatured: boolean) => {
     try {
-      const res = await fetch(`${API_URL}/api/puzzles/${puzzleId}/featured`, {
+      const res = await fetch(`${API_URL}/api/admin/puzzles/${puzzleId}/featured`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

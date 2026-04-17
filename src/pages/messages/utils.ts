@@ -37,17 +37,27 @@ function isArchivedConversation(conversation: Conversation) {
   );
 }
 
+function normalizePotentialUploadPath(value = "") {
+  const raw = String(value || "").trim().replace(/\\/g, "/");
+  if (!raw) return "";
+  const marker = "/uploads/";
+  const index = raw.toLowerCase().indexOf(marker);
+  if (index < 0) return raw;
+  return raw.slice(index);
+}
+
 function resolveMediaUrl(url?: string) {
-  if (!url) return "";
+  const normalized = normalizePotentialUploadPath(url || "");
+  if (!normalized) return "";
   if (
-    url.startsWith("http://") ||
-    url.startsWith("https://") ||
-    url.startsWith("blob:") ||
-    url.startsWith("data:")
+    normalized.startsWith("http://") ||
+    normalized.startsWith("https://") ||
+    normalized.startsWith("blob:") ||
+    normalized.startsWith("data:")
   ) {
-    return url;
+    return normalized;
   }
-  return `${API_URL}${url.startsWith("/") ? "" : "/"}${url}`;
+  return `${API_URL}${normalized.startsWith("/") ? "" : "/"}${normalized}`;
 }
 
 function formatBytes(bytes: number) {

@@ -35,6 +35,7 @@ interface FriendGameViewProps {
   gameStarted: boolean;
   gameOver: boolean;
   gameResult: string | null;
+  playerColor: "w" | "b";
   isPlayerTurn: boolean;
   savedGameId: string | null;
   historyPersistenceStatus: HistoryPersistenceStatus;
@@ -43,6 +44,12 @@ interface FriendGameViewProps {
   preMoveSquares: Record<string, CSSProperties>;
   playerRating?: number | null;
   opponentRating?: number | null;
+  gameOverElo?: {
+    rated?: boolean;
+    applied?: boolean;
+    white?: { oldRating?: number; newRating?: number; delta?: number } | null;
+    black?: { oldRating?: number; newRating?: number; delta?: number } | null;
+  } | null;
   onSquareClick: (square: Square) => void;
   onPieceDrop: (
     sourceSquare: Square,
@@ -76,6 +83,7 @@ export function FriendGameView({
   gameStarted,
   gameOver,
   gameResult,
+  playerColor,
   isPlayerTurn,
   savedGameId,
   historyPersistenceStatus,
@@ -84,6 +92,7 @@ export function FriendGameView({
   preMoveSquares,
   playerRating,
   opponentRating,
+  gameOverElo,
   onSquareClick,
   onPieceDrop,
   onCancelSelection,
@@ -145,6 +154,8 @@ export function FriendGameView({
           savedGameId={savedGameId}
           historyStatus={historyPersistenceStatus}
           opponentName={friendName}
+          playerColor={playerColor}
+          elo={gameOverElo}
           analyzeBasePath={variant === "chess960" ? "/analyze960" : "/analyze"}
         />
 

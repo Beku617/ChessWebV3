@@ -7,9 +7,7 @@ import {
   StarOff,
   Eye,
   EyeOff,
-  Calendar,
   Trophy,
-  Users,
   Search,
   X,
   ChevronLeft,
@@ -47,6 +45,19 @@ interface FeaturedEvent {
   type: "tournament" | "match" | "broadcast" | "event";
   lichessUrl?: string;
   imageUrl?: string;
+  statusLabel?: string;
+  categoryLabel?: string;
+  viewerCountText?: string;
+  primaryButtonLabel?: string;
+  primaryButtonUrl?: string;
+  secondaryButtonLabel?: string;
+  secondaryButtonUrl?: string;
+  backgroundType?: "default" | "color" | "image";
+  backgroundColor?: string;
+  backgroundImageUrl?: string;
+  primaryButtonColor?: string;
+  titleColor?: string;
+  descriptionColor?: string;
   players?: Player[];
   startDate?: string;
   endDate?: string;
@@ -61,39 +72,38 @@ interface FeaturedEvent {
 
 type EventType = "tournament" | "match" | "broadcast" | "event";
 type EventStatus = "upcoming" | "live" | "completed";
+type BackgroundType = "default" | "color" | "image";
 
 interface FormState {
   title: string;
   description: string;
   type: EventType;
-  lichessUrl: string;
-  imageUrl: string;
-  players: Player[];
+  primaryButtonLabel: string;
+  primaryButtonUrl: string;
+  secondaryButtonUrl: string;
+  backgroundType: BackgroundType;
+  backgroundColor: string;
+  backgroundImageUrl: string;
   startDate: string;
-  endDate: string;
   status: EventStatus;
   featured: boolean;
-  priority: number;
   isActive: boolean;
-  viewers: number;
-  tags: string[];
 }
 
 const initialFormState: FormState = {
   title: "",
   description: "",
   type: "event",
-  lichessUrl: "",
-  imageUrl: "",
-  players: [],
+  primaryButtonLabel: "Watch Now",
+  primaryButtonUrl: "",
+  secondaryButtonUrl: "",
+  backgroundType: "default",
+  backgroundColor: "#1a0e04",
+  backgroundImageUrl: "",
   startDate: "",
-  endDate: "",
   status: "upcoming",
   featured: false,
-  priority: 0,
   isActive: true,
-  viewers: 0,
-  tags: [],
 };
 
 export default function AdminFeaturedEvents() {
@@ -102,9 +112,31 @@ export default function AdminFeaturedEvents() {
   const [showModal, setShowModal] = useState(false);
   const [editingEvent, setEditingEvent] = useState<FeaturedEvent | null>(null);
   const [formData, setFormData] = useState<FormState>(initialFormState);
+  const [backgroundImageFile, setBackgroundImageFile] = useState<File | null>(
+    null,
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
+
+  const uploadBackgroundImage = async (eventId: string, file: File) => {
+    const form = new FormData();
+    form.append("backgroundImageFile", file);
+
+    const response = await fetch(
+      `${API_URL}/api/admin/featured-events/${eventId}/background-image`,
+      {
+        method: "POST",
+        credentials: "include",
+        body: form,
+      },
+    );
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.error || "Failed to upload background image.");
+    }
+  };
 
   // Fetch events
   const fetchEvents = async () => {
@@ -134,19 +166,56 @@ export default function AdminFeaturedEvents() {
       : `${API_URL}/api/admin/featured-events`;
 
     const method = editingEvent ? "PUT" : "POST";
+    const payload = {
+      title: formData.title,
+      description: formData.description,
+      type: formData.type,
+      status: formData.status,
+      startDate: formData.startDate,
+      featured: formData.featured,
+      isActive: formData.isActive,
+      primaryButtonLabel: formData.primaryButtonLabel || "Watch Now",
+      primaryButtonUrl: formData.primaryButtonUrl,
+      secondaryButtonUrl: formData.secondaryButtonUrl,
+      backgroundType: formData.backgroundType,
+      backgroundColor:
+        formData.backgroundType === "color" ? formData.backgroundColor : "",
+      backgroundImageUrl:
+        formData.backgroundType === "image" ? formData.backgroundImageUrl : "",
+      imageUrl:
+        formData.backgroundType === "image" ? formData.backgroundImageUrl : "",
+      // Keep removed advanced fields blanked for a cleaner admin/user flow.
+      statusLabel: "",
+      categoryLabel: "",
+      viewerCountText: "",
+      secondaryButtonLabel: "",
+      primaryButtonColor: "",
+      titleColor: "",
+      descriptionColor: "",
+    };
 
     try {
       const response = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
-      if (response.ok) {
-        fetchEvents();
-        closeModal();
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to save event.");
       }
+
+      const savedEventId = String(
+        data?._id || editingEvent?._id || "",
+      ).trim();
+      if (backgroundImageFile && savedEventId) {
+        await uploadBackgroundImage(savedEventId, backgroundImageFile);
+      }
+
+      await fetchEvents();
+      closeModal();
     } catch (error) {
       console.error("Error saving event:", error);
     }
@@ -215,6 +284,7 @@ export default function AdminFeaturedEvents() {
   const openNewModal = () => {
     setEditingEvent(null);
     setFormData(initialFormState);
+    setBackgroundImageFile(null);
     setShowModal(true);
   };
 
@@ -225,18 +295,25 @@ export default function AdminFeaturedEvents() {
       title: event.title,
       description: event.description || "",
       type: event.type,
-      lichessUrl: event.lichessUrl || "",
-      imageUrl: event.imageUrl || "",
-      players: event.players || [],
+      primaryButtonLabel: event.primaryButtonLabel || "Watch Now",
+      primaryButtonUrl:
+        event.primaryButtonUrl || event.lichessUrl || event.secondaryButtonUrl || "",
+      secondaryButtonUrl: event.secondaryButtonUrl || "",
+      backgroundType:
+        event.backgroundType ||
+        (event.backgroundImageUrl || event.imageUrl
+          ? "image"
+          : event.backgroundColor
+            ? "color"
+            : "default"),
+      backgroundColor: event.backgroundColor || "#1a0e04",
+      backgroundImageUrl: event.backgroundImageUrl || event.imageUrl || "",
       startDate: event.startDate ? event.startDate.split("T")[0] : "",
-      endDate: event.endDate ? event.endDate.split("T")[0] : "",
       status: event.status,
       featured: event.featured,
-      priority: event.priority,
       isActive: event.isActive,
-      viewers: event.viewers,
-      tags: event.tags || [],
     });
+    setBackgroundImageFile(null);
     setShowModal(true);
   };
 
@@ -245,36 +322,7 @@ export default function AdminFeaturedEvents() {
     setShowModal(false);
     setEditingEvent(null);
     setFormData(initialFormState);
-  };
-
-  // Add player to form
-  const addPlayer = () => {
-    setFormData({
-      ...formData,
-      players: [
-        ...formData.players,
-        { name: "", rating: 1500, title: "", country: "" },
-      ],
-    });
-  };
-
-  // Update player
-  const updatePlayer = (
-    index: number,
-    field: keyof Player,
-    value: string | number,
-  ) => {
-    const newPlayers = [...formData.players];
-    newPlayers[index] = { ...newPlayers[index], [field]: value };
-    setFormData({ ...formData, players: newPlayers });
-  };
-
-  // Remove player
-  const removePlayer = (index: number) => {
-    setFormData({
-      ...formData,
-      players: formData.players.filter((_, i) => i !== index),
-    });
+    setBackgroundImageFile(null);
   };
 
   // Filter events
@@ -653,70 +701,77 @@ export default function AdminFeaturedEvents() {
                 </div>
 
                 {/* Dates */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
-                      Start Date
-                    </label>
-                    <input
-                      type="date"
-                      value={formData.startDate}
-                      onChange={(e) =>
-                        setFormData({ ...formData, startDate: e.target.value })
-                      }
-                      className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
-                      End Date
-                    </label>
-                    <input
-                      type="date"
-                      value={formData.endDate}
-                      onChange={(e) =>
-                        setFormData({ ...formData, endDate: e.target.value })
-                      }
-                      className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
-                    />
-                  </div>
-                </div>
-
-                {/* Lichess URL */}
                 <div>
                   <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
-                    Lichess URL (optional)
+                    Date
                   </label>
                   <input
-                    type="url"
-                    value={formData.lichessUrl}
+                    type="date"
+                    value={formData.startDate}
                     onChange={(e) =>
-                      setFormData({ ...formData, lichessUrl: e.target.value })
+                      setFormData({ ...formData, startDate: e.target.value })
                     }
-                    placeholder="https://lichess.org/broadcast/..."
-                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
+                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
                   />
                 </div>
 
-                {/* Priority & Featured */}
+                {/* Buttons */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
-                      Priority (higher = shown first)
+                      Main Button Label
                     </label>
                     <input
-                      type="number"
-                      value={formData.priority}
+                      type="text"
+                      value={formData.primaryButtonLabel}
                       onChange={(e) =>
                         setFormData({
                           ...formData,
-                          priority: parseInt(e.target.value) || 0,
+                          primaryButtonLabel: e.target.value,
                         })
                       }
+                      placeholder="Watch Now"
                       className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
                     />
                   </div>
-                  <div className="flex items-end gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
+                      Main Button URL
+                    </label>
+                    <input
+                      type="url"
+                      value={formData.primaryButtonUrl}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          primaryButtonUrl: e.target.value,
+                        })
+                      }
+                      placeholder="https://..."
+                      className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
+                      Secondary Button URL
+                    </label>
+                    <input
+                      type="url"
+                      value={formData.secondaryButtonUrl}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          secondaryButtonUrl: e.target.value,
+                        })
+                      }
+                      placeholder="https://..."
+                      className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
+                    />
+                  </div>
+                  <div className="flex items-end gap-6">
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="checkbox"
@@ -752,64 +807,81 @@ export default function AdminFeaturedEvents() {
                   </div>
                 </div>
 
-                {/* Players (for matches) */}
+                {/* Background */}
                 <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <label className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                      Players (for matches)
-                    </label>
-                    <button
-                      type="button"
-                      onClick={addPlayer}
-                      className="text-brand-500 hover:text-brand-400 text-sm flex items-center gap-1"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Add Player
-                    </button>
-                  </div>
-                  {formData.players.map((player, index) => (
-                    <div key={index} className="flex gap-2 mb-2 items-center">
-                      <input
-                        type="text"
-                        placeholder="Name"
-                        value={player.name}
-                        onChange={(e) =>
-                          updatePlayer(index, "name", e.target.value)
-                        }
-                        className="flex-1 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500"
-                      />
-                      <input
-                        type="text"
-                        placeholder="Title"
-                        value={player.title || ""}
-                        onChange={(e) =>
-                          updatePlayer(index, "title", e.target.value)
-                        }
-                        className="w-20 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500"
-                      />
-                      <input
-                        type="number"
-                        placeholder="Rating"
-                        value={player.rating}
-                        onChange={(e) =>
-                          updatePlayer(
-                            index,
-                            "rating",
-                            parseInt(e.target.value) || 0,
-                          )
-                        }
-                        className="w-24 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-500"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removePlayer(index)}
-                        className="p-2 text-gray-400 hover:text-red-500"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
+                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
+                    Background Type
+                  </label>
+                  <select
+                    value={formData.backgroundType}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        backgroundType: e.target.value as BackgroundType,
+                      })
+                    }
+                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
+                  >
+                    <option value="default">Default Gradient</option>
+                    <option value="color">Custom Color</option>
+                    <option value="image">Custom Image</option>
+                  </select>
                 </div>
+
+                {formData.backgroundType === "color" && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
+                      Background Color
+                    </label>
+                    <input
+                      type="color"
+                      value={formData.backgroundColor || "#1a0e04"}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          backgroundColor: e.target.value,
+                        })
+                      }
+                      className="h-10 w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-1.5 py-1 focus:outline-none focus:border-brand-500"
+                    />
+                  </div>
+                )}
+
+                {formData.backgroundType === "image" && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
+                        Background Image URL
+                      </label>
+                      <input
+                        type="url"
+                        value={formData.backgroundImageUrl}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            backgroundImageUrl: e.target.value,
+                          })
+                        }
+                        placeholder="https://..."
+                        className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
+                        Upload Background Image
+                      </label>
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp,image/gif"
+                        onChange={(e) =>
+                          setBackgroundImageFile(e.target.files?.[0] || null)
+                        }
+                        className="h-11 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-brand-500 file:mr-3 file:rounded-md file:border-0 file:bg-brand-600/20 file:px-2.5 file:py-1.5 file:text-xs file:font-semibold file:text-brand-200 hover:file:bg-brand-600/30 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+                      />
+                    </div>
+                  </>
+                )}
 
                 {/* Actions */}
                 <div className="flex justify-end gap-4 pt-4 border-t border-gray-200 dark:border-gray-800">

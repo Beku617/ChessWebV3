@@ -11,19 +11,6 @@ type MatchVariant = "standard" | "chess960" | "threeCheck";
 const LAST_QUICK_TIME_CONTROL_KEY = "quickMatch:lastTimeControl";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 const DEFAULT_TIME_CONTROL = { initial: 300, increment: 0 };
-const QUICK_MATCH_PRESETS = [
-  { initial: 60, increment: 0 },
-  { initial: 120, increment: 1 },
-  { initial: 180, increment: 0 },
-  { initial: 180, increment: 2 },
-  { initial: 300, increment: 0 },
-  { initial: 300, increment: 3 },
-  { initial: 600, increment: 0 },
-  { initial: 600, increment: 5 },
-  { initial: 900, increment: 10 },
-  { initial: 1800, increment: 0 },
-  { initial: 1800, increment: 20 },
-] as const;
 
 function normalizeVariant(value: unknown): MatchVariant {
   if (typeof value !== "string") return "standard";
@@ -61,42 +48,13 @@ function normalizeTimeControlValue(value: {
   };
 }
 
-function findClosestPresetTimeControl(value: {
-  initial: number;
-  increment: number;
-}): { initial: number; increment: number } {
-  const exactMatch = QUICK_MATCH_PRESETS.find(
-    (preset) =>
-      preset.initial === value.initial && preset.increment === value.increment,
-  );
-  if (exactMatch) {
-    return { initial: exactMatch.initial, increment: exactMatch.increment };
-  }
-
-  const closestMatch = QUICK_MATCH_PRESETS.reduce((best, preset) => {
-    const bestScore =
-      Math.abs(best.initial - value.initial) +
-      Math.abs(best.increment - value.increment) * 60;
-    const presetScore =
-      Math.abs(preset.initial - value.initial) +
-      Math.abs(preset.increment - value.increment) * 60;
-
-    return presetScore < bestScore ? preset : best;
-  }, QUICK_MATCH_PRESETS[0]);
-
-  return {
-    initial: closestMatch.initial,
-    increment: closestMatch.increment,
-  };
-}
-
 function getValidQuickMatchTimeControl(
   value: { initial: unknown; increment: unknown } | null,
 ): { initial: number; increment: number } | null {
   if (!value) return null;
   const normalized = normalizeTimeControlValue(value);
   if (!normalized) return null;
-  return findClosestPresetTimeControl(normalized);
+  return normalized;
 }
 
 function getTimeControlFromState(
@@ -239,6 +197,7 @@ export default function QuickMatch() {
     threeCheckState,
     promotionState,
     onPromotionPieceSelect,
+    lastGameOver,
   } = useOnlineQuickMatch();
 
   const [timeControl, setTimeControl] = useState(() => {
@@ -520,6 +479,7 @@ export default function QuickMatch() {
         preMoveSquares={preMoveSquares}
         playerRating={isRatedMatch ? playerRating : null}
         opponentRating={isRatedMatch ? opponentRating : null}
+        gameOverElo={isRatedMatch ? lastGameOver?.elo ?? null : null}
         onSquareClick={onSquareClick}
         onPieceDrop={onPieceDrop}
         onCancelSelection={onCancelSelection}

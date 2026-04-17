@@ -162,11 +162,58 @@ router.get("/leaderboard", async (req, res) => {
       isProvisional: Number(user?.[gamesField] ?? 0) < 10,
     }));
 
+    let currentUser = null;
+    const currentUserId = String(req.user?.userId || "").trim();
+    if (currentUserId) {
+      const me = await User.findById(currentUserId)
+        .select(`fullName avatar ${ratingField} ${gamesField}`)
+        .lean();
+
+      if (me) {
+        const meRating = Number(me?.[ratingField] ?? me.rating ?? 1200);
+        const meGames = Number(me?.[gamesField] ?? 0);
+        const meName = String(me.fullName || "");
+        const qualifies = meGames >= minGames;
+        let rank = null;
+
+        if (qualifies) {
+          const ahead = await User.countDocuments({
+            [gamesField]: { $gte: minGames },
+            $or: [
+              { [ratingField]: { $gt: meRating } },
+              {
+                [ratingField]: meRating,
+                [gamesField]: { $gt: meGames },
+              },
+              {
+                [ratingField]: meRating,
+                [gamesField]: meGames,
+                fullName: { $lt: meName },
+              },
+            ],
+          });
+          rank = ahead + 1;
+        }
+
+        currentUser = {
+          id: String(me._id),
+          name: meName,
+          avatar: me.avatar || "",
+          rating: meRating,
+          games: meGames,
+          isProvisional: meGames < 10,
+          qualifies,
+          rank,
+        };
+      }
+    }
+
     res.json({
       pool,
       limit,
       minGames,
       leaderboard,
+      currentUser,
     });
   } catch (error) {
     console.error("Leaderboard error:", error);

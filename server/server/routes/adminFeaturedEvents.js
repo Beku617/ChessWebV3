@@ -1,13 +1,20 @@
 import express from "express";
 import mongoose from "mongoose";
+import multer from "multer";
 import { body, param, query, validationResult } from "express-validator";
 import FeaturedEvent from "../models/FeaturedEvent.js";
 import { adminAuthMiddleware } from "../middleware/index.js";
+import {
+  createMediaUploadStorage,
+  deleteMediaAsset,
+  extractMediaAssetId,
+} from "../utils/mediaStorage.js";
 
 const router = express.Router();
 
 const VALID_TYPES = new Set(["tournament", "match", "broadcast", "event"]);
 const VALID_STATUS = new Set(["upcoming", "live", "completed"]);
+const VALID_BACKGROUND_TYPES = new Set(["default", "color", "image"]);
 
 function toTrimmedString(value, { max = 5000 } = {}) {
   return String(value || "")
@@ -62,6 +69,28 @@ function sanitizeTags(tags) {
     .slice(0, 20);
 }
 
+function toArrayOrParsedJson(value) {
+  if (Array.isArray(value)) return value;
+  if (typeof value !== "string") return undefined;
+  const raw = value.trim();
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function sanitizeOptionalTextColor(value) {
+  const raw = toTrimmedString(value, { max: 40 });
+  if (!raw) return "";
+  if (!/^[#(),.%\s\-a-zA-Z0-9]+$/.test(raw)) {
+    return "";
+  }
+  return raw;
+}
+
 function sanitizeFeaturedEventPayload(rawBody = {}, { partial = false } = {}) {
   const data = {};
 
@@ -90,23 +119,41 @@ function sanitizeFeaturedEventPayload(rawBody = {}, { partial = false } = {}) {
   }
 
   if (rawBody.imageUrl !== undefined) {
-    data.imageUrl = toTrimmedString(rawBody.imageUrl, { max: 500 });
+    const imageUrl = toTrimmedString(rawBody.imageUrl, { max: 500 });
+    data.imageUrl = imageUrl;
+    if (rawBody.backgroundImageUrl === undefined) {
+      data.backgroundImageUrl = imageUrl;
+    }
   }
 
   if (rawBody.players !== undefined) {
-    data.players = sanitizePlayers(rawBody.players) || [];
+    const players = toArrayOrParsedJson(rawBody.players);
+    if (players === undefined) {
+      return { error: "Invalid players value" };
+    }
+    data.players = sanitizePlayers(players) || [];
   }
 
   if (rawBody.startDate !== undefined) {
-    const startDate = toDateOrUndefined(rawBody.startDate);
-    if (!startDate) return { error: "Invalid startDate" };
-    data.startDate = startDate;
+    const rawStartDate = toTrimmedString(rawBody.startDate, { max: 120 });
+    if (!rawStartDate) {
+      data.startDate = null;
+    } else {
+      const startDate = toDateOrUndefined(rawStartDate);
+      if (!startDate) return { error: "Invalid startDate" };
+      data.startDate = startDate;
+    }
   }
 
   if (rawBody.endDate !== undefined) {
-    const endDate = toDateOrUndefined(rawBody.endDate);
-    if (!endDate) return { error: "Invalid endDate" };
-    data.endDate = endDate;
+    const rawEndDate = toTrimmedString(rawBody.endDate, { max: 120 });
+    if (!rawEndDate) {
+      data.endDate = null;
+    } else {
+      const endDate = toDateOrUndefined(rawEndDate);
+      if (!endDate) return { error: "Invalid endDate" };
+      data.endDate = endDate;
+    }
   }
 
   if (rawBody.status !== undefined) {
@@ -115,6 +162,77 @@ function sanitizeFeaturedEventPayload(rawBody = {}, { partial = false } = {}) {
       return { error: "Invalid status" };
     }
     data.status = status;
+  }
+
+  if (rawBody.statusLabel !== undefined) {
+    data.statusLabel = toTrimmedString(rawBody.statusLabel, { max: 40 });
+  }
+
+  if (rawBody.categoryLabel !== undefined) {
+    data.categoryLabel = toTrimmedString(rawBody.categoryLabel, { max: 80 });
+  }
+
+  if (rawBody.viewerCountText !== undefined) {
+    data.viewerCountText = toTrimmedString(rawBody.viewerCountText, { max: 80 });
+  }
+
+  if (rawBody.primaryButtonLabel !== undefined) {
+    data.primaryButtonLabel = toTrimmedString(rawBody.primaryButtonLabel, {
+      max: 80,
+    });
+  }
+
+  if (rawBody.primaryButtonUrl !== undefined) {
+    data.primaryButtonUrl = toTrimmedString(rawBody.primaryButtonUrl, {
+      max: 500,
+    });
+  }
+
+  if (rawBody.secondaryButtonLabel !== undefined) {
+    data.secondaryButtonLabel = toTrimmedString(rawBody.secondaryButtonLabel, {
+      max: 80,
+    });
+  }
+
+  if (rawBody.secondaryButtonUrl !== undefined) {
+    data.secondaryButtonUrl = toTrimmedString(rawBody.secondaryButtonUrl, {
+      max: 500,
+    });
+  }
+
+  if (rawBody.backgroundType !== undefined) {
+    const backgroundType = toTrimmedString(rawBody.backgroundType, { max: 20 })
+      .toLowerCase();
+    if (!VALID_BACKGROUND_TYPES.has(backgroundType)) {
+      return { error: "Invalid background type" };
+    }
+    data.backgroundType = backgroundType;
+  }
+
+  if (rawBody.backgroundColor !== undefined) {
+    data.backgroundColor = sanitizeOptionalTextColor(rawBody.backgroundColor);
+  }
+
+  if (rawBody.backgroundImageUrl !== undefined) {
+    const backgroundImageUrl = toTrimmedString(rawBody.backgroundImageUrl, {
+      max: 500,
+    });
+    data.backgroundImageUrl = backgroundImageUrl;
+    if (backgroundImageUrl) {
+      data.imageUrl = backgroundImageUrl;
+    }
+  }
+
+  if (rawBody.primaryButtonColor !== undefined) {
+    data.primaryButtonColor = sanitizeOptionalTextColor(rawBody.primaryButtonColor);
+  }
+
+  if (rawBody.titleColor !== undefined) {
+    data.titleColor = sanitizeOptionalTextColor(rawBody.titleColor);
+  }
+
+  if (rawBody.descriptionColor !== undefined) {
+    data.descriptionColor = sanitizeOptionalTextColor(rawBody.descriptionColor);
   }
 
   if (rawBody.featured !== undefined) {
@@ -142,7 +260,11 @@ function sanitizeFeaturedEventPayload(rawBody = {}, { partial = false } = {}) {
   }
 
   if (rawBody.tags !== undefined) {
-    data.tags = sanitizeTags(rawBody.tags) || [];
+    const tags = toArrayOrParsedJson(rawBody.tags);
+    if (tags === undefined) {
+      return { error: "Invalid tags value" };
+    }
+    data.tags = sanitizeTags(tags) || [];
   }
 
   return { data };
@@ -165,6 +287,49 @@ const idParamValidation = [
     return true;
   }),
 ];
+
+const backgroundImageFileFilter = (_req, file, cb) => {
+  const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+  if (allowedTypes.includes(String(file?.mimetype || "").trim().toLowerCase())) {
+    cb(null, true);
+    return;
+  }
+  cb(
+    new Error("Invalid file type. Only JPG, PNG, GIF, and WebP are allowed."),
+    false,
+  );
+};
+
+const backgroundImageUpload = multer({
+  storage: createMediaUploadStorage({
+    category: "featured-event-background",
+  }),
+  fileFilter: backgroundImageFileFilter,
+  limits: { fileSize: 8 * 1024 * 1024 },
+});
+
+const uploadBackgroundImageFile = (req, res, next) =>
+  backgroundImageUpload.single("backgroundImageFile")(req, res, async (error) => {
+    if (!error) {
+      return next();
+    }
+
+    if (req.file?.assetId) {
+      await deleteMediaAsset(req.file.assetId).catch(() => null);
+    }
+
+    let message = "Failed to upload background image.";
+    if (error instanceof multer.MulterError) {
+      message =
+        error.code === "LIMIT_FILE_SIZE"
+          ? "Background image is too large. Maximum size is 8MB."
+          : error.message || message;
+    } else if (error instanceof Error && error.message) {
+      message = error.message;
+    }
+
+    return res.status(400).json({ error: message });
+  });
 
 router.use(adminAuthMiddleware);
 
@@ -272,6 +437,51 @@ router.put("/:id", [...idParamValidation, validateRequest], async (req, res) => 
   }
 });
 
+// Upload/replace event background image
+router.post(
+  "/:id/background-image",
+  [...idParamValidation, validateRequest],
+  uploadBackgroundImageFile,
+  async (req, res) => {
+    try {
+      const uploadUrl = toTrimmedString(req.file?.url, { max: 500 });
+      if (!uploadUrl) {
+        return res.status(400).json({ error: "Background image upload failed." });
+      }
+
+      const event = await FeaturedEvent.findById(req.params.id);
+      if (!event) {
+        if (req.file?.assetId) {
+          await deleteMediaAsset(req.file.assetId).catch(() => null);
+        }
+        return res.status(404).json({ error: "Event not found" });
+      }
+
+      const previousAssetId = extractMediaAssetId(
+        event.backgroundImageUrl || event.imageUrl || "",
+      );
+      const nextAssetId = extractMediaAssetId(uploadUrl);
+
+      event.backgroundImageUrl = uploadUrl;
+      event.imageUrl = uploadUrl;
+      event.backgroundType = "image";
+      await event.save();
+
+      if (previousAssetId && previousAssetId !== nextAssetId) {
+        await deleteMediaAsset(previousAssetId).catch(() => null);
+      }
+
+      res.json(event);
+    } catch (error) {
+      console.error("Error uploading event background image:", error);
+      if (req.file?.assetId) {
+        await deleteMediaAsset(req.file.assetId).catch(() => null);
+      }
+      res.status(500).json({ error: "Failed to upload event background image" });
+    }
+  },
+);
+
 // DELETE event
 router.delete("/:id", [...idParamValidation, validateRequest], async (req, res) => {
   try {
@@ -279,6 +489,13 @@ router.delete("/:id", [...idParamValidation, validateRequest], async (req, res) 
 
     if (!event) {
       return res.status(404).json({ error: "Event not found" });
+    }
+
+    const previousAssetId = extractMediaAssetId(
+      event.backgroundImageUrl || event.imageUrl || "",
+    );
+    if (previousAssetId) {
+      await deleteMediaAsset(previousAssetId).catch(() => null);
     }
 
     res.json({ message: "Event deleted successfully" });

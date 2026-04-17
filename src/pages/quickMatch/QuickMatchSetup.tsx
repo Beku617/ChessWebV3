@@ -146,6 +146,12 @@ export function QuickMatchSetup({
   const [searchElapsedSeconds, setSearchElapsedSeconds] = useState(0);
   const [isGameTypeOpen, setIsGameTypeOpen] = useState(false);
   const [isTimeControlOpen, setIsTimeControlOpen] = useState(false);
+  const [customBaseMinutes, setCustomBaseMinutes] = useState(() =>
+    String(Math.max(1, Math.round(timeControl.initial / 60))),
+  );
+  const [customIncrementSeconds, setCustomIncrementSeconds] = useState(() =>
+    String(Math.max(0, Math.round(timeControl.increment))),
+  );
 
   useEffect(() => {
     if (!isSearching) {
@@ -161,6 +167,11 @@ export function QuickMatchSetup({
 
     return () => window.clearInterval(intervalId);
   }, [isSearching]);
+
+  useEffect(() => {
+    setCustomBaseMinutes(String(Math.max(1, Math.round(timeControl.initial / 60))));
+    setCustomIncrementSeconds(String(Math.max(0, Math.round(timeControl.increment))));
+  }, [timeControl.initial, timeControl.increment]);
 
   // Responsive board width
   const [boardWidth, setBoardWidth] = useState(640);
@@ -228,6 +239,18 @@ export function QuickMatchSetup({
     500,
     50 + Math.floor(searchElapsedSeconds / 5) * 25,
   );
+  const applyCustomTimeControl = () => {
+    const baseMinutes = Math.max(1, Math.round(Number(customBaseMinutes) || 0));
+    const incrementSeconds = Math.max(
+      0,
+      Math.round(Number(customIncrementSeconds) || 0),
+    );
+    onTimeControlChange({
+      initial: baseMinutes * 60,
+      increment: incrementSeconds,
+    });
+    setIsTimeControlOpen(false);
+  };
 
   return (
     <div
@@ -496,6 +519,46 @@ export function QuickMatchSetup({
                               </div>
                             );
                           })}
+                          <div className="rounded-xl border border-gray-200/70 dark:border-white/10 bg-white dark:bg-slate-900 p-2.5">
+                            <div className="text-[12px] font-semibold text-gray-800 dark:text-gray-200">
+                              Custom
+                            </div>
+                            <div className="mt-2 grid grid-cols-2 gap-2">
+                              <label className="text-[11px] text-gray-600 dark:text-gray-300">
+                                Base (min)
+                                <input
+                                  type="number"
+                                  min={1}
+                                  step={1}
+                                  value={customBaseMinutes}
+                                  onChange={(event) =>
+                                    setCustomBaseMinutes(event.target.value)
+                                  }
+                                  className="mt-1 w-full rounded-lg border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 px-2 py-1.5 text-[12px] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500/40"
+                                />
+                              </label>
+                              <label className="text-[11px] text-gray-600 dark:text-gray-300">
+                                Increment (sec)
+                                <input
+                                  type="number"
+                                  min={0}
+                                  step={1}
+                                  value={customIncrementSeconds}
+                                  onChange={(event) =>
+                                    setCustomIncrementSeconds(event.target.value)
+                                  }
+                                  className="mt-1 w-full rounded-lg border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 px-2 py-1.5 text-[12px] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500/40"
+                                />
+                              </label>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={applyCustomTimeControl}
+                              className="mt-2 w-full rounded-lg bg-brand-500/20 text-brand-700 dark:text-brand-300 py-1.5 text-[12px] font-semibold ring-1 ring-brand-500/40 hover:bg-brand-500/25 transition-colors"
+                            >
+                              Apply Custom
+                            </button>
+                          </div>
                         </div>
                       )}
                     </div>

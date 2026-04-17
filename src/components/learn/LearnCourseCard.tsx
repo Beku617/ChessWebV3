@@ -2,7 +2,6 @@ import {
   ArrowRight,
   BookOpen,
   ChevronRight,
-  Crown,
   GraduationCap,
   Play,
   RotateCcw,
@@ -88,13 +87,10 @@ export function LearnCourseCard({
         </div>
 
         <div className="flex flex-col gap-6 bg-gray-900/65 p-5 sm:p-6">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center">
             <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-gray-400/90">
               Course Progress
             </p>
-            <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-gray-800 bg-gray-950/70 text-brand-200">
-              <Crown className="h-5 w-5" />
-            </div>
           </div>
 
           <div className="rounded-2xl border border-gray-800 bg-gray-950/70 p-4">

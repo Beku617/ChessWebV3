@@ -10,7 +10,6 @@ import {
   Bot,
   Trophy,
   MessageSquare,
-  UserCircle,
   BookOpen,
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -39,7 +38,6 @@ export default function AdminSidebar() {
     { icon: Gamepad2, label: "Games", path: "/admin/games" },
     { icon: MessageSquare, label: "Community", path: "/admin/community" },
     { icon: Users, label: "Groups", path: "/admin/groups" },
-    { icon: UserCircle, label: "Profile", path: "/admin/profile" },
     { icon: Settings, label: "Settings", path: "/admin/settings" },
   ];
 

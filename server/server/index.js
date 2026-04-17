@@ -5,8 +5,10 @@ import cookieParser from "cookie-parser";
 import mongoose from "mongoose";
 import http from "http";
 import crypto from "crypto";
+import path from "path";
 import { Server } from "socket.io";
 import { Chess } from "chess.js";
+import { fileURLToPath } from "url";
 import {
   FOUR_PLAYER_COLORS,
   createInitialFourPlayerState,
@@ -77,6 +79,9 @@ import {
 import { authMiddleware, requestSecurityMiddleware } from "./middleware/index.js";
 import { migrateLegacyRuntimeMedia } from "./utils/runtimeMediaMigration.js";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const allowedOrigins = [
   "http://localhost:5173",
   "https://neongambit-chesswebv3.vercel.app",
@@ -108,6 +113,10 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: corsOptions,
 });
+const LEGACY_UPLOAD_DIRS = [
+  path.resolve(__dirname, "./uploads"),
+  path.resolve(__dirname, "../uploads"),
+];
 const PUBLIC_API_ROUTES = new Set([
   "POST:/login",
   "POST:/register",
@@ -162,11 +171,27 @@ if (
 }
 
 // Middleware
-app.use(helmet());
+app.use(
+  helmet({
+    // Local media is served from :3001 and embedded by the Vite app on :5173.
+    // Keep CORP permissive for these development cross-origin media loads.
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  }),
+);
 app.use(express.json({ limit: BODY_LIMIT }));
 app.use(express.urlencoded({ extended: true, limit: BODY_LIMIT }));
 app.use(cookieParser(COOKIE_SECRET));
 app.use(cors(corsOptions));
+LEGACY_UPLOAD_DIRS.forEach((uploadDir) => {
+  app.use(
+    "/uploads",
+    (_req, res, next) => {
+      res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+      next();
+    },
+    express.static(uploadDir),
+  );
+});
 app.use("/api", requestSecurityMiddleware);
 app.use("/api", (req, res, next) => {
   if (req.method === "OPTIONS") return next();

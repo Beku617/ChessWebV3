@@ -13,6 +13,16 @@ function resolveIsWhiteToMove(fen, fallback = true) {
   return fallback;
 }
 
+// Get all puzzles (admin)
+router.get("/", adminAuthMiddleware, async (_req, res) => {
+  try {
+    const puzzles = await Puzzle.find().sort({ createdAt: -1 });
+    res.json(puzzles);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch puzzles" });
+  }
+});
+
 // Create puzzle
 router.post("/", adminAuthMiddleware, async (req, res) => {
   try {
@@ -47,6 +57,24 @@ router.post("/", adminAuthMiddleware, async (req, res) => {
     res.status(201).json(puzzle);
   } catch (error) {
     res.status(500).json({ error: "Failed to create puzzle" });
+  }
+});
+
+// Toggle puzzle featured status (admin)
+router.patch("/:id/featured", adminAuthMiddleware, async (req, res) => {
+  try {
+    const { featured } = req.body;
+    const puzzle = await Puzzle.findByIdAndUpdate(
+      req.params.id,
+      { featured: !!featured },
+      { new: true },
+    );
+    if (!puzzle) {
+      return res.status(404).json({ error: "Puzzle not found" });
+    }
+    res.json(puzzle);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to update puzzle" });
   }
 });
 

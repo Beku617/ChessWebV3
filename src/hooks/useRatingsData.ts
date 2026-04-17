@@ -25,6 +25,17 @@ export interface LeaderboardEntry {
   isProvisional: boolean;
 }
 
+export interface CurrentUserLeaderboardPosition {
+  id: string;
+  name: string;
+  avatar?: string;
+  rating: number;
+  games: number;
+  isProvisional: boolean;
+  qualifies: boolean;
+  rank: number | null;
+}
+
 interface RatingTimelineOptions {
   enabled?: boolean;
 }
@@ -87,6 +98,8 @@ export function useRatingTimeline(
 
 export function useLeaderboard(pool: RatingPool, limit = 10) {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
+  const [currentUser, setCurrentUser] =
+    useState<CurrentUserLeaderboardPosition | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -106,10 +119,16 @@ export function useLeaderboard(pool: RatingPool, limit = 10) {
       }
       const data = await res.json();
       setEntries(Array.isArray(data.leaderboard) ? data.leaderboard : []);
+      setCurrentUser(
+        data?.currentUser && typeof data.currentUser === "object"
+          ? data.currentUser
+          : null,
+      );
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to load leaderboard",
       );
+      setCurrentUser(null);
     } finally {
       setLoading(false);
     }
@@ -119,5 +138,5 @@ export function useLeaderboard(pool: RatingPool, limit = 10) {
     refetch();
   }, [refetch]);
 
-  return { entries, loading, error, refetch };
+  return { entries, currentUser, loading, error, refetch };
 }

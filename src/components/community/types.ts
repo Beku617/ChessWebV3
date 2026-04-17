@@ -202,8 +202,17 @@ export interface CommunityTrendingResponse {
   mode: "likes" | "latest";
 }
 
+function normalizePotentialUploadPath(value = ""): string {
+  const raw = String(value || "").trim().replace(/\\/g, "/");
+  if (!raw) return "";
+  const marker = "/uploads/";
+  const index = raw.toLowerCase().indexOf(marker);
+  if (index < 0) return raw;
+  return raw.slice(index);
+}
+
 export function resolveAssetUrl(url?: string | null): string {
-  const value = String(url || "").trim();
+  const value = normalizePotentialUploadPath(url || "");
   if (!value) return "";
   if (
     value.startsWith("http://") ||

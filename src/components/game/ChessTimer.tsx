@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { playGameplaySound } from "../../utils/moveSounds";
 
 interface ChessTimerProps {
@@ -7,6 +7,7 @@ interface ChessTimerProps {
   isActive: boolean;
   onTimeOut: () => void;
   onTimeChange: (time: number) => void;
+  resetToken?: string | number;
   className?: string;
 }
 
@@ -16,6 +17,7 @@ export function ChessTimer({
   isActive,
   onTimeOut,
   onTimeChange,
+  resetToken,
   className = "",
 }: ChessTimerProps) {
   if (initialTime <= 0) return null;
@@ -23,12 +25,15 @@ export function ChessTimer({
   const [timeLeft, setTimeLeft] = useState(initialTime);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const tenSecondWarningPlayedRef = useRef(false);
+  const wasActiveRef = useRef(isActive);
 
-  // Reset when initialTime changes
+  // Only reinitialize from base time when a new game/time control is started.
+  // Do not reset on turn switches.
   useEffect(() => {
     setTimeLeft(initialTime);
     tenSecondWarningPlayedRef.current = false;
-  }, [initialTime]);
+    wasActiveRef.current = false;
+  }, [initialTime, resetToken]);
 
   useEffect(() => {
     onTimeChange(timeLeft);
@@ -53,7 +58,7 @@ export function ChessTimer({
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [isActive, initialTime, onTimeOut]);
+  }, [isActive, onTimeOut]);
 
   useEffect(() => {
     if (!isActive) {
@@ -73,17 +78,14 @@ export function ChessTimer({
     playGameplaySound("tenSeconds");
   }, [isActive, timeLeft]);
 
-  // Add increment
-  const addIncrement = useCallback(() => {
-    if (increment > 0) {
-      setTimeLeft((prev) => prev + increment);
-    }
-  }, [increment]);
-
-  // Expose addIncrement
+  // Apply increment when this timer stops because the player just moved.
   useEffect(() => {
-    (window as any).__addIncrement = addIncrement;
-  }, [addIncrement]);
+    const wasActive = wasActiveRef.current;
+    if (wasActive && !isActive && increment > 0) {
+      setTimeLeft((prev) => (prev > 0 ? prev + increment : prev));
+    }
+    wasActiveRef.current = isActive;
+  }, [isActive, increment]);
 
   const formatTime = (seconds: number): string => {
     if (seconds <= 0) return "0:00";

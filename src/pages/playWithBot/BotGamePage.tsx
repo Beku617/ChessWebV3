@@ -63,6 +63,7 @@ export default function BotGamePage() {
     savedGameId,
     historyPersistenceStatus,
     showGameOverModal,
+    clockSessionId,
     optionSquares,
     preMoveSquares,
     setPlayerTime,
@@ -263,6 +264,7 @@ export default function BotGamePage() {
                       initialTime={gameSettings.timeControl.initial}
                       increment={gameSettings.timeControl.increment}
                       isActive={gameStarted && !isPlayerTurn && !gameOver}
+                      resetToken={clockSessionId}
                       onTimeOut={() => handleTimeOut(false)}
                       onTimeChange={setOpponentTime}
                     />
@@ -316,6 +318,7 @@ export default function BotGamePage() {
                       initialTime={gameSettings.timeControl.initial}
                       increment={gameSettings.timeControl.increment}
                       isActive={gameStarted && isPlayerTurn && !gameOver}
+                      resetToken={clockSessionId}
                       onTimeOut={() => handleTimeOut(true)}
                       onTimeChange={setPlayerTime}
                     />

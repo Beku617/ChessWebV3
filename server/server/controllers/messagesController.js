@@ -13,7 +13,10 @@ import {
 } from "../models/index.js";
 import { notifyUser } from "../services/notify.js";
 import { areFriends } from "../utils/friendship.js";
-import { createMediaUploadStorage } from "../utils/mediaStorage.js";
+import {
+  createMediaUploadStorage,
+  isCloudinaryConfigurationError,
+} from "../utils/mediaStorage.js";
 import {
   buildMessageAttachments,
   cleanupMessageMedia,
@@ -70,6 +73,12 @@ const uploadAttachments = (req, res, next) =>
     res,
     (err) => {
       if (err) {
+        if (isCloudinaryConfigurationError(err)) {
+          return res.status(503).json({
+            error:
+              "Media upload is temporarily unavailable. Please verify Cloudinary credentials on the server.",
+          });
+        }
         const message =
           err instanceof multer.MulterError
             ? err.message ||

@@ -20,6 +20,7 @@ export default function Game() {
     savedGameId,
     historyPersistenceStatus,
     showGameOverModal,
+    clockSessionId,
     optionSquares,
     preMoveSquares,
     setPlayerTime,
@@ -135,6 +136,7 @@ export default function Game() {
                 !gameOver &&
                 gameSettings.timeControl.initial > 0
               }
+              timerResetToken={clockSessionId}
               onTimeOut={() => handleTimeOut(false)}
               onTimeChange={setOpponentTime}
             />
@@ -183,6 +185,7 @@ export default function Game() {
                 !gameOver &&
                 gameSettings.timeControl.initial > 0
               }
+              timerResetToken={clockSessionId}
               onTimeOut={() => handleTimeOut(true)}
               onTimeChange={setPlayerTime}
             />

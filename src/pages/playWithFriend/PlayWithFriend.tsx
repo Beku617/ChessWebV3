@@ -1,5 +1,5 @@
-import { useCallback, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useFriendOnlineGame } from "../../hooks/useFriendOnlineGame";
 import { navigateToNewGameRoute } from "../../components/game/newGameRouting";
 import { useAuthStore } from "../../store/authStore";
@@ -9,10 +9,30 @@ import { FriendGameView } from "./FriendGameView";
 
 export default function PlayWithFriend() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuthStore();
   const sendChallenge = useFriendChallengeStore((state) => state.sendChallenge);
   const lastInfo = useFriendChallengeStore((state) => state.lastInfo);
   const clearInfo = useFriendChallengeStore((state) => state.clearInfo);
+  const routeState = (location.state || {}) as {
+    preselectedFriendId?: unknown;
+    preselectedFriendName?: unknown;
+    opponentId?: unknown;
+    opponentName?: unknown;
+  };
+  const routeParams = new URLSearchParams(location.search);
+  const preselectedFriendId = String(
+    routeState.preselectedFriendId ??
+      routeState.opponentId ??
+      routeParams.get("friendId") ??
+      "",
+  ).trim();
+  const preselectedFriendName = String(
+    routeState.preselectedFriendName ??
+      routeState.opponentName ??
+      routeParams.get("friendName") ??
+      "",
+  ).trim();
 
   const {
     game,
@@ -22,6 +42,7 @@ export default function PlayWithFriend() {
     gameStarted,
     gameOver,
     gameResult,
+    playerColor,
     isPlayerTurn,
     savedGameId,
     historyPersistenceStatus,
@@ -47,6 +68,7 @@ export default function PlayWithFriend() {
     gameType,
     matchVariant,
     isRated,
+    lastGameOver,
     isConnected,
   } = useFriendOnlineGame();
 
@@ -55,9 +77,16 @@ export default function PlayWithFriend() {
     initial: 600,
     increment: 0,
   });
-  const [friendName, setFriendName] = useState("Friend");
+  const [friendName, setFriendName] = useState(
+    preselectedFriendName || "Friend",
+  );
   const [isSendingChallenge, setIsSendingChallenge] = useState(false);
   const [challengeError, setChallengeError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!preselectedFriendName) return;
+    setFriendName(preselectedFriendName);
+  }, [preselectedFriendName]);
 
   const handleSendChallenge = async (payload: {
     toUserId: string;
@@ -131,6 +160,7 @@ export default function PlayWithFriend() {
         gameStarted={gameStarted}
         gameOver={gameOver}
         gameResult={gameResult}
+        playerColor={playerColor}
         isPlayerTurn={isPlayerTurn}
         savedGameId={savedGameId}
         historyPersistenceStatus={historyPersistenceStatus}
@@ -153,6 +183,7 @@ export default function PlayWithFriend() {
         onNewGame={handleNewGame}
         onLeave={leaveGame}
         variant={matchVariant}
+        gameOverElo={isRated ? lastGameOver?.elo ?? null : null}
       />
     );
   }
@@ -171,6 +202,8 @@ export default function PlayWithFriend() {
       challengeError={challengeError}
       challengeInfo={lastInfo}
       isRealtimeConnected={isConnected}
+      preselectedFriendId={preselectedFriendId || null}
+      preselectedFriendName={preselectedFriendName || null}
     />
   );
 }

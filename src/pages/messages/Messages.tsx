@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   Check,
   Clock3,
@@ -159,17 +159,27 @@ function isArchivedConversation(conversation: Conversation) {
   );
 }
 
+function normalizePotentialUploadPath(value = "") {
+  const raw = String(value || "").trim().replace(/\\/g, "/");
+  if (!raw) return "";
+  const marker = "/uploads/";
+  const index = raw.toLowerCase().indexOf(marker);
+  if (index < 0) return raw;
+  return raw.slice(index);
+}
+
 function resolveMediaUrl(url?: string) {
-  if (!url) return "";
+  const normalized = normalizePotentialUploadPath(url || "");
+  if (!normalized) return "";
   if (
-    url.startsWith("http://") ||
-    url.startsWith("https://") ||
-    url.startsWith("blob:") ||
-    url.startsWith("data:")
+    normalized.startsWith("http://") ||
+    normalized.startsWith("https://") ||
+    normalized.startsWith("blob:") ||
+    normalized.startsWith("data:")
   ) {
-    return url;
+    return normalized;
   }
-  return `${API_URL}${url.startsWith("/") ? "" : "/"}${url}`;
+  return `${API_URL}${normalized.startsWith("/") ? "" : "/"}${normalized}`;
 }
 
 function formatBytes(bytes: number) {
@@ -212,6 +222,7 @@ export default function Messages() {
   const friends = useFriendStore((state) => state.friends);
   const loadFriends = useFriendStore((state) => state.loadAll);
   const socket = useFriendChallengeStore((state) => state.socket);
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const activeChatId = searchParams.get("chat") || searchParams.get("to") || "";
   const presetName = searchParams.get("name") || "";
@@ -227,6 +238,7 @@ export default function Messages() {
   const messageListRef = useRef<HTMLDivElement | null>(null);
   const actionMenuRef = useRef<HTMLDivElement | null>(null);
   const actionButtonRef = useRef<HTMLButtonElement | null>(null);
+  const infoTimeoutRef = useRef<number | null>(null);
   const [pendingScroll, setPendingScroll] = useState<
     | { type: "message"; id: string }
     | { type: "bottom" }
@@ -246,6 +258,18 @@ export default function Messages() {
     [pendingImages],
   );
 
+  const showArchiveToast = useCallback((message: string) => {
+    setInfo(message);
+    if (infoTimeoutRef.current) {
+      window.clearTimeout(infoTimeoutRef.current);
+      infoTimeoutRef.current = null;
+    }
+    infoTimeoutRef.current = window.setTimeout(() => {
+      setInfo((previous) => (previous === message ? null : previous));
+      infoTimeoutRef.current = null;
+    }, 5000);
+  }, []);
+
   const fetchConversations = useCallback(async () => {
     const res = await fetch(`${API_URL}/api/messages/conversations`, {
       credentials: "include",
@@ -260,42 +284,7 @@ export default function Messages() {
 
     const totalUnread = list.reduce((sum, c) => sum + (Number(c.unreadCount) || 0), 0);
     setUnreadCount(totalUnread);
-
-    if (user?.id) {
-      const autoUnarchive = list.filter((c) => {
-        if (!isArchivedConversation(c)) return false;
-
-        const unread = Number(c.unreadCount) || 0;
-        const archivedAtTs = c.archivedAt ? new Date(c.archivedAt).getTime() : 0;
-        const lastMessageAtTs = c.lastMessageAt ? new Date(c.lastMessageAt).getTime() : 0;
-        const fromOther = String(c.lastSender || "") !== String(user.id);
-        const newerThanArchive = archivedAtTs > 0 && lastMessageAtTs > archivedAtTs;
-
-        return fromOther && (unread > 0 || newerThanArchive);
-      });
-
-      autoUnarchive.forEach((c) => {
-        const partnerId = String(c.partnerId);
-        void archiveConversationApi(partnerId, false).then((ok) => {
-          if (ok) {
-            setConversations((prev) =>
-              prev.map((conv) =>
-                conv.partnerId === partnerId
-                  ? {
-                      ...conv,
-                      archived: false,
-                      isArchived: false,
-                      archivedAt: null,
-                      folder: undefined,
-                    }
-                  : conv,
-              ),
-            );
-          }
-        });
-      });
-    }
-  }, [archiveConversationApi, setUnreadCount, user?.id]);
+  }, [setUnreadCount]);
 
   const fetchMessages = useCallback(
     async (partnerId: string, options: FetchMessagesOptions = {}) => {
@@ -566,12 +555,8 @@ export default function Messages() {
   const activeConversationArchived = activeConversation ? isArchivedConversation(activeConversation) : false;
   const visibleConversations = chatTab === "archived" ? tabbedConversations.archived : tabbedConversations.active;
   const hasConversations = sortedConversations.length > 0;
-
-  useEffect(() => {
-    if (!activeConversation) return;
-    const nextTab = isArchivedConversation(activeConversation) ? "archived" : "conversations";
-    setChatTab((prev) => (prev === nextTab ? prev : nextTab));
-  }, [activeConversation]);
+  const challengeFriendId = String(activeConversation?.partnerId || activeChatId || "").trim();
+  const challengeFriendName = String(activeConversation?.partnerName || presetName || "").trim();
 
   useEffect(() => {
     if (loading) return;
@@ -588,10 +573,8 @@ export default function Messages() {
     const fallback = pickFallbackConversation(conversations, activeChatId);
     if (fallback?.partnerId) {
       setSearchParams({ chat: fallback.partnerId });
-      setChatTab(isArchivedConversation(fallback) ? "archived" : "conversations");
     } else {
       setSearchParams({});
-      setChatTab("conversations");
     }
   }, [activeChatId, activeConversation, conversations, friends, loading, pickFallbackConversation, presetName, setSearchParams]);
 
@@ -600,15 +583,30 @@ export default function Messages() {
     if (loading) return;
     if (activeChatId) return;
 
+    const unreadInCurrentTab = unreadConversations.find((conversation) =>
+      chatTab === "archived"
+        ? isArchivedConversation(conversation)
+        : !isArchivedConversation(conversation),
+    );
     const next =
-      unreadConversations[0] ||
-      tabbedConversations.active[0] ||
-      tabbedConversations.archived[0] ||
+      unreadInCurrentTab ||
+      visibleConversations[0] ||
+      (chatTab === "archived"
+        ? tabbedConversations.active[0]
+        : tabbedConversations.archived[0]) ||
       null;
     if (next?.partnerId) {
       setSearchParams({ chat: next.partnerId });
     }
-  }, [loading, activeChatId, tabbedConversations, unreadConversations, setSearchParams]);
+  }, [
+    loading,
+    activeChatId,
+    chatTab,
+    visibleConversations,
+    tabbedConversations,
+    unreadConversations,
+    setSearchParams,
+  ]);
 
   useEffect(
     () => () => {
@@ -616,6 +614,16 @@ export default function Messages() {
       if (pendingVideo) URL.revokeObjectURL(pendingVideo.previewUrl);
     },
     [pendingImages, pendingVideo],
+  );
+
+  useEffect(
+    () => () => {
+      if (infoTimeoutRef.current) {
+        window.clearTimeout(infoTimeoutRef.current);
+        infoTimeoutRef.current = null;
+      }
+    },
+    [],
   );
 
   const handleImageSelection = useCallback(
@@ -1029,11 +1037,9 @@ export default function Messages() {
     );
 
     if (shouldArchive) {
-      setChatTab("archived");
-      setInfo(t("messages.archived", "Conversation moved to Archived."));
+      showArchiveToast(t("messages.archived", "Conversation moved to Archived."));
     } else {
-      setChatTab("conversations");
-      setInfo(t("messages.unarchived", "Conversation restored to Conversations."));
+      showArchiveToast(t("messages.unarchived", "Conversation restored to Conversations."));
     }
   };
 
@@ -1068,10 +1074,8 @@ export default function Messages() {
     const fallback = pickFallbackConversation(nextList, activeChatId);
     if (fallback?.partnerId) {
       setSearchParams({ chat: fallback.partnerId });
-      setChatTab(isArchivedConversation(fallback) ? "archived" : "conversations");
     } else {
       setSearchParams({});
-      setChatTab("conversations");
     }
   };
 
@@ -1079,6 +1083,27 @@ export default function Messages() {
   const activePresence = activeChatId ? friendPresenceMap.get(activeChatId) : null;
   const activePresenceStatus: PresenceStatus = activePresence?.status || "offline";
   const activeStatus = presenceText(activePresenceStatus, activePresence?.lastActiveAt || null);
+  const handleChallengeOpponent = useCallback(() => {
+    if (!challengeFriendId) return;
+    const params = new URLSearchParams();
+    params.set("friendId", challengeFriendId);
+    if (challengeFriendName) {
+      params.set("friendName", challengeFriendName);
+    }
+    navigate(
+      {
+        pathname: "/play/friend",
+        search: `?${params.toString()}`,
+      },
+      {
+        state: {
+          preselectedFriendId: challengeFriendId,
+          preselectedFriendName: challengeFriendName || undefined,
+          source: "messages",
+        },
+      },
+    );
+  }, [challengeFriendId, challengeFriendName, navigate]);
 
   return (
     <div className="min-h-screen h-screen bg-[#060b16] text-slate-100 flex transition-colors duration-300">
@@ -1291,6 +1316,8 @@ export default function Messages() {
                 <div className="relative flex items-center gap-1.5">
                   <button
                     type="button"
+                    onClick={handleChallengeOpponent}
+                    disabled={!challengeFriendId}
                     className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#2a3a57] bg-[#152238] text-slate-400 transition-colors hover:text-brand-300 hover:bg-brand-500/10"
                   >
                     <Swords className="h-4 w-4" />

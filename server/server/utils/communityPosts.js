@@ -14,6 +14,7 @@ import {
   createMediaUploadStorage,
   deleteLegacyUploadFiles,
   guessMediaMimeType,
+  isCloudinaryConfigurationError,
   resolveLegacyUploadFilePath,
 } from "./mediaStorage.js";
 
@@ -82,6 +83,12 @@ export const uploadCommunityMedia = (req, res, next) =>
     if (!err) {
       return next();
     }
+    if (isCloudinaryConfigurationError(err)) {
+      return res.status(503).json({
+        error:
+          "Media upload is temporarily unavailable. Please verify Cloudinary credentials on the server.",
+      });
+    }
     let message =
       err instanceof multer.MulterError
         ? err.message || "Failed to upload media."
@@ -110,13 +117,25 @@ function normalizeCommunityFiles(input) {
   return [input].filter(Boolean);
 }
 
+function normalizePotentialCommunityUploadUrl(value = "") {
+  const raw = String(value || "").trim().replace(/\\/g, "/");
+  if (!raw) return "";
+  const marker = "/uploads/community/";
+  const index = raw.toLowerCase().indexOf(marker);
+  if (index < 0) return raw;
+  return raw.slice(index);
+}
+
 function isLegacyCommunityUploadUrl(value = "") {
-  return /^\/uploads\/community\/[^/?#]+$/i.test(String(value || "").trim());
+  return /^\/uploads\/community\/[^/?#]+$/i.test(
+    normalizePotentialCommunityUploadUrl(value),
+  );
 }
 
 function getLegacyCommunityFilePath(value = "") {
-  return isLegacyCommunityUploadUrl(value)
-    ? resolveLegacyUploadFilePath(value)
+  const normalized = normalizePotentialCommunityUploadUrl(value);
+  return isLegacyCommunityUploadUrl(normalized)
+    ? resolveLegacyUploadFilePath(normalized)
     : "";
 }
 
@@ -132,15 +151,16 @@ export async function cleanupCommunityMedia(input) {
   const seenAssetIds = new Set();
   await Promise.all(
     files.map(async (file) => {
+      const normalizedUrl = normalizePotentialCommunityUploadUrl(file?.url);
       const assetId = String(
-        file?.assetId || extractCommunityMediaAssetId(file?.url),
+        file?.assetId || extractCommunityMediaAssetId(normalizedUrl),
       ).trim();
       if (assetId && !seenAssetIds.has(assetId)) {
         seenAssetIds.add(assetId);
         await deleteCommunityMediaAsset(assetId).catch(() => null);
       }
 
-      await deleteLegacyUploadFiles(file?.url).catch(() => null);
+      await deleteLegacyUploadFiles(normalizedUrl).catch(() => null);
     }),
   );
 }
@@ -220,11 +240,13 @@ export async function buildCommunityMediaItems(input) {
 
   try {
     for (const file of files) {
+      const existingUrl = String(file?.url || "").trim();
+      const existingAssetId = String(file?.assetId || "").trim();
       const stored =
-        String(file?.assetId || "").trim() && String(file?.url || "").trim()
+        existingUrl
           ? {
-              assetId: String(file.assetId || "").trim(),
-              url: String(file.url || "").trim(),
+              assetId: existingAssetId,
+              url: existingUrl,
               filename: String(file.filename || file.originalName || file.originalname || ""),
             }
           : await storeCommunityMediaAsset(file);
@@ -255,14 +277,14 @@ function normalizeCommunityMediaItem(item) {
       : String(item.type || "").trim().toLowerCase() === "image"
         ? "image"
         : detectCommunityMediaItemType(item);
-  const rawUrl = String(item.url || "").trim();
+  const rawUrl = normalizePotentialCommunityUploadUrl(item.url);
   const assetId = String(
     item.assetId || extractCommunityMediaAssetId(rawUrl),
   ).trim();
   const url =
     assetId && (rawUrl === "" || isLegacyCommunityUploadUrl(rawUrl))
-      ? buildCommunityMediaAssetUrl(assetId)
-      : rawUrl || buildCommunityMediaAssetUrl(assetId);
+      ? buildCommunityMediaAssetUrl(assetId, { resourceType: type })
+      : rawUrl || buildCommunityMediaAssetUrl(assetId, { resourceType: type });
   if (!url) return null;
   return {
     assetId,
@@ -288,7 +310,7 @@ export function normalizeCommunityMediaItems(postDoc) {
       : postDoc?.mediaType === "image"
         ? "image"
         : "";
-  const legacyUrl = String(postDoc?.mediaUrl || "").trim();
+  const legacyUrl = normalizePotentialCommunityUploadUrl(postDoc?.mediaUrl);
   if (!legacyType || !legacyUrl) {
     return [];
   }

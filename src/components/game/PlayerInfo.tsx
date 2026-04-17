@@ -14,6 +14,7 @@ interface PlayerInfoProps {
   isTimerActive: boolean;
   onTimeOut: () => void;
   onTimeChange: (time: number) => void;
+  timerResetToken?: string | number;
   showTimer?: boolean;
 }
 
@@ -30,6 +31,7 @@ export function PlayerInfo({
   isTimerActive,
   onTimeOut,
   onTimeChange,
+  timerResetToken,
   showTimer = true,
 }: PlayerInfoProps) {
   const [hasImageError, setHasImageError] = useState(false);
@@ -96,6 +98,7 @@ export function PlayerInfo({
             isActive={isTimerActive}
             onTimeOut={onTimeOut}
             onTimeChange={onTimeChange}
+            resetToken={timerResetToken}
             className="h-12"
           />
         </div>

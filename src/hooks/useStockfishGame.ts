@@ -48,6 +48,7 @@ export function useStockfishGame() {
   const [savedGameId, setSavedGameId] = useState<string | null>(null);
   const [historyPersistenceStatus, setHistoryPersistenceStatus] =
     useState<HistoryPersistenceStatus>("idle");
+  const [clockSessionId, setClockSessionId] = useState(0);
 
   const historySavedRef = useRef(false);
   const startTimeRef = useRef<number | null>(null);
@@ -250,9 +251,15 @@ export function useStockfishGame() {
     (settings: GameSettings) => {
       clearPreMove();
       setHistoryPersistenceStatus("idle");
+      setClockSessionId((prev) => prev + 1);
       baseHandleStartGame(settings);
     },
-    [baseHandleStartGame, clearPreMove, setHistoryPersistenceStatus],
+    [
+      baseHandleStartGame,
+      clearPreMove,
+      setClockSessionId,
+      setHistoryPersistenceStatus,
+    ],
   );
 
   const handleNewGame = useCallback(() => {
@@ -299,6 +306,7 @@ export function useStockfishGame() {
     // UI state
     showSetupModal,
     showGameOverModal,
+    clockSessionId,
     optionSquares,
     preMoveSquares,
     playerTime,

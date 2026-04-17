@@ -29,7 +29,14 @@ interface GameOverModalProps {
   tournamentMode?: boolean;
   onBackToTournament?: () => void;
   opponentName?: string;
+  playerColor?: "w" | "b";
   historyStatus?: HistoryPersistenceStatus;
+  elo?: {
+    rated?: boolean;
+    applied?: boolean;
+    white?: { oldRating?: number; newRating?: number; delta?: number } | null;
+    black?: { oldRating?: number; newRating?: number; delta?: number } | null;
+  } | null;
 }
 
 function extractReasonLabel(raw: string): string | null {
@@ -153,6 +160,47 @@ function toneClasses(tone: ModalTone): {
   };
 }
 
+interface EloChange {
+  oldRating: number;
+  newRating: number;
+  delta: number;
+}
+
+function toRoundedRating(value: unknown): number | null {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? Math.round(parsed) : null;
+}
+
+function formatDelta(delta: number): string {
+  if (delta > 0) return `+${delta}`;
+  return `${delta}`;
+}
+
+function buildPlayerEloChange(
+  elo?: {
+    rated?: boolean;
+    applied?: boolean;
+    white?: { oldRating?: number; newRating?: number; delta?: number } | null;
+    black?: { oldRating?: number; newRating?: number; delta?: number } | null;
+  } | null,
+  playerColor?: "w" | "b",
+): EloChange | null {
+  if (!elo || elo.rated !== true) return null;
+  const side =
+    playerColor === "b"
+      ? elo.black || elo.white
+      : playerColor === "w"
+        ? elo.white || elo.black
+        : elo.white || elo.black;
+
+  const oldRating = toRoundedRating(side?.oldRating);
+  const newRating = toRoundedRating(side?.newRating);
+  const delta = toRoundedRating(side?.delta);
+  if (oldRating === null || newRating === null || delta === null) return null;
+
+  return { oldRating, newRating, delta };
+}
+
 export function GameOverModal({
   isOpen,
   result,
@@ -163,7 +211,9 @@ export function GameOverModal({
   tournamentMode = false,
   onBackToTournament,
   opponentName,
+  playerColor,
   historyStatus = "idle",
+  elo = null,
 }: GameOverModalProps) {
   const navigate = useNavigate();
 
@@ -176,6 +226,8 @@ export function GameOverModal({
   const showAnalyzeButton = canAnalyze || historyStatus === "saving";
   const showResultSubtitle =
     !!parsed.subtitle && parsed.tone !== "win" && parsed.tone !== "loss";
+  const playerElo = buildPlayerEloChange(elo, playerColor);
+  const showEloBlock = !!playerElo;
 
   const handleAnalyze = () => {
     if (!savedGameId) return;
@@ -205,6 +257,14 @@ export function GameOverModal({
               <p className="text-sm text-slate-300/95">{parsed.subtitle}</p>
             )}
           </div>
+
+          {showEloBlock && (
+            <div className="mb-4 rounded-xl border border-brand-500/25 bg-brand-500/10 px-3 py-2.5">
+              <p className="text-sm font-semibold text-slate-100">
+                {`Elo ${playerElo?.oldRating}->${playerElo?.newRating}(${formatDelta(playerElo?.delta || 0)})`}
+              </p>
+            </div>
+          )}
 
           <div className="space-y-2.5">
             {showAnalyzeButton && (

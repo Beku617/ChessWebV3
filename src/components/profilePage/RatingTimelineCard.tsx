@@ -132,7 +132,7 @@ export function RatingTimelineCard({
   const deltaLabel = delta > 0 ? `+${delta}` : `${delta}`;
 
   return (
-    <div className="min-w-0 bg-white/85 dark:bg-slate-900/70 rounded-2xl p-6 border border-gray-200/70 dark:border-white/10 shadow-[0_10px_30px_rgba(15,23,42,0.08)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.4)] backdrop-blur">
+    <div className="h-full min-w-0 bg-white/85 dark:bg-slate-900/70 rounded-2xl p-6 border border-gray-200/70 dark:border-white/10 shadow-[0_10px_30px_rgba(15,23,42,0.08)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.4)] backdrop-blur flex flex-col">
       <div className="flex items-center justify-between gap-2">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
           Rating Timeline
@@ -176,21 +176,21 @@ export function RatingTimelineCard({
         ))}
       </div>
 
-      <div className="mt-4 rounded-xl border border-gray-200/70 dark:border-white/10 bg-gray-50/90 dark:bg-black/20 p-3">
+      <div className="mt-4 rounded-xl border border-gray-200/70 dark:border-white/10 bg-gray-50/90 dark:bg-black/20 p-3 flex-1 flex flex-col">
         {!enabled ? (
-          <div className="flex h-[190px] items-center justify-center text-center text-sm text-gray-500 dark:text-gray-400">
+          <div className="flex min-h-[190px] flex-1 items-center justify-center text-center text-sm text-gray-500 dark:text-gray-400">
             {unavailableMessage}
           </div>
         ) : loading ? (
-          <div className="h-[190px] flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">
+          <div className="min-h-[190px] flex-1 flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">
             Loading timeline...
           </div>
         ) : error ? (
-          <div className="h-[190px] flex items-center justify-center text-sm text-red-500">
+          <div className="min-h-[190px] flex-1 flex items-center justify-center text-sm text-red-500">
             {error}
           </div>
         ) : points.length === 0 ? (
-          <div className="h-[190px] flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">
+          <div className="min-h-[190px] flex-1 flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">
             No rated games in this range yet.
           </div>
         ) : (
@@ -199,7 +199,7 @@ export function RatingTimelineCard({
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.28, ease: "easeOut" }}
-            className="min-w-0 space-y-2"
+            className="min-w-0 space-y-2 flex-1 flex flex-col"
           >
             <div className="flex items-center justify-end">
               <span className="text-[12px] font-semibold text-gray-700 dark:text-gray-200">

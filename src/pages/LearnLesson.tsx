@@ -471,8 +471,8 @@ export default function LearnLesson() {
           <section className="min-w-0 min-h-0 xl:flex-1 rounded-2xl border border-slate-800/90 bg-slate-950/85 flex flex-col overflow-hidden">
             <div className="px-3.5 py-3 space-y-3 min-h-0 flex-1 overflow-y-auto">
               <div className="space-y-1.5">
-                <p className="text-sm text-slate-200 leading-snug">{currentStep.instructionText}</p>
-                <p className="text-xs text-slate-400 leading-relaxed">
+                <p className="text-base text-slate-200 leading-snug">{currentStep.instructionText}</p>
+                <p className="text-sm text-slate-400 leading-relaxed">
                   {currentStep.explanationBeforeMove}
                 </p>
               </div>
@@ -555,7 +555,7 @@ export default function LearnLesson() {
               <ChevronLeft className="w-3.5 h-3.5" />
               Previous
             </button>
-            {hasNextLesson ? (
+            {lessonCompleted && hasNextLesson ? (
               <button
                 onClick={openNextLesson}
                 className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs bg-brand-500/20 border border-brand-400/35 text-brand-200 hover:bg-brand-500/30"

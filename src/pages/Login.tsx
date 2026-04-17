@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, Lock, ArrowRight, Sun, Moon, ShieldAlert } from "lucide-react";
+import { Mail, Lock, ArrowRight, Sun, Moon, ShieldAlert, Check } from "lucide-react";
 import { useGoogleLogin, type TokenResponse } from "@react-oauth/google";
 import FacebookLogin, {
   type SuccessResponse as FacebookSuccessResponse,
@@ -304,18 +304,24 @@ export default function Login() {
             </div>
 
             <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="rememberMe"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-4 h-4 text-emerald-600 border-gray-300 dark:border-gray-600 rounded focus:ring-emerald-500 accent-emerald-500"
-              />
               <label
                 htmlFor="rememberMe"
-                className="ml-2 text-sm text-gray-600 dark:text-gray-400"
+                className="inline-flex items-center gap-3 cursor-pointer select-none"
               >
-                {t("auth.rememberMe", "Remember me for 30 days")}
+                <span className="relative inline-flex h-5 w-5 items-center justify-center">
+                  <input
+                    type="checkbox"
+                    id="rememberMe"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="peer sr-only"
+                  />
+                  <span className="absolute inset-0 rounded-[4px] border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 peer-checked:bg-emerald-500 peer-checked:border-emerald-500 transition-colors" />
+                  <Check className="relative z-10 w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
+                </span>
+                <span className="text-[15px] font-medium text-gray-600 dark:text-gray-400">
+                  {t("auth.rememberMe", "Remember me for 30 days")}
+                </span>
               </label>
             </div>
 

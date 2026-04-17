@@ -1568,6 +1568,7 @@ export function useOnlineQuickMatch() {
     playerRating,
     opponentRating,
     isRatedMatch,
+    lastGameOver,
 
     // UI state
     showGameOverModal,

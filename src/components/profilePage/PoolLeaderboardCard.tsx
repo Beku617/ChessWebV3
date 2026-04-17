@@ -40,11 +40,11 @@ function rankAccent(rank: number) {
 export function PoolLeaderboardCard() {
   const [pool, setPool] = useState<RatingPool>("blitz");
   const { user } = useAuthStore();
-  const { entries, loading, error } = useLeaderboard(pool, 50);
+  const { entries, currentUser, loading, error } = useLeaderboard(pool, 50);
   const navigate = useNavigate();
 
   return (
-    <div className="bg-white dark:bg-gray-800/80 rounded-2xl p-6 border border-gray-200/60 dark:border-gray-700/40 shadow-lg dark:shadow-[0_8px_30px_rgba(0,0,0,0.35)]">
+    <div className="h-full bg-white dark:bg-gray-800/80 rounded-2xl p-6 border border-gray-200/60 dark:border-gray-700/40 shadow-lg dark:shadow-[0_8px_30px_rgba(0,0,0,0.35)] flex flex-col min-h-0">
       {/* Header */}
       <div className="flex items-center justify-between gap-2">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white tracking-tight">
@@ -72,7 +72,7 @@ export function PoolLeaderboardCard() {
       </div>
 
       {/* List container — softer border, inner glow */}
-      <div className="mt-4 rounded-xl border border-gray-200/50 dark:border-gray-700/30 bg-gray-50 dark:bg-gray-900/40 overflow-hidden shadow-inner dark:shadow-[inset_0_1px_4px_rgba(0,0,0,0.2)]">
+      <div className="mt-4 rounded-xl border border-gray-200/50 dark:border-gray-700/30 bg-gray-50 dark:bg-gray-900/40 overflow-hidden shadow-inner dark:shadow-[inset_0_1px_4px_rgba(0,0,0,0.2)] flex-1 min-h-0">
         {loading ? (
           <div className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
             Loading leaderboard...
@@ -87,7 +87,9 @@ export function PoolLeaderboardCard() {
           <div className="leaderboard-mask">
             <div className="max-h-[420px] overflow-y-auto premium-scrollbar py-1">
               {entries.map((entry, idx) => {
-                const isYou = !!user?.fullName && entry.name === user.fullName;
+                const isYou =
+                  (!!user?.id && entry.id === user.id) ||
+                  (!!user?.fullName && entry.name === user.fullName);
                 const accent = rankAccent(entry.rank);
                 const isLast = idx === entries.length - 1;
 
@@ -170,9 +172,32 @@ export function PoolLeaderboardCard() {
           </div>
         )}
       </div>
-      <p className="mt-2 text-[11px] text-gray-400 dark:text-gray-500">
-        Showing top 50 players in this pool (minimum 10 rated games).
-      </p>
+      <div className="mt-2 space-y-1">
+        <p className="text-[11px] text-gray-400 dark:text-gray-500">
+          Showing top 50 players in this pool (minimum 10 rated games).
+        </p>
+        {currentUser && (
+          <p className="text-[12px] text-gray-600 dark:text-gray-300">
+            {currentUser.qualifies && currentUser.rank ? (
+              <>
+                Your position:{" "}
+                <span className="font-semibold text-brand-600 dark:text-brand-400">
+                  #{currentUser.rank}
+                </span>{" "}
+                ({currentUser.rating})
+              </>
+            ) : (
+              <>
+                Your position:{" "}
+                <span className="font-semibold text-gray-500 dark:text-gray-400">
+                  Unranked
+                </span>{" "}
+                ({currentUser.games}/10 games)
+              </>
+            )}
+          </p>
+        )}
+      </div>
     </div>
   );
 }

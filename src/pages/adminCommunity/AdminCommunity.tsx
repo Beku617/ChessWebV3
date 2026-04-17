@@ -304,6 +304,9 @@ export default function AdminCommunity() {
   } | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [deleteConfirmPostId, setDeleteConfirmPostId] = useState<string | null>(
+    null,
+  );
   const [createText, setCreateText] = useState("");
   const [createStatus, setCreateStatus] = useState("approved");
   const [createRejectionReason, setCreateRejectionReason] = useState("");
@@ -369,6 +372,25 @@ export default function AdminCommunity() {
       window.removeEventListener("keydown", onKeyDown);
     };
   }, [previewGallery]);
+
+  useEffect(() => {
+    if (!deleteConfirmPostId) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setDeleteConfirmPostId(null);
+      }
+    };
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [deleteConfirmPostId]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -578,11 +600,7 @@ export default function AdminCommunity() {
     );
   };
 
-  const handleDelete = async (postId: string) => {
-    const confirmed = window.confirm(
-      "Delete this post permanently? The uploaded media will be removed too.",
-    );
-    if (!confirmed) return;
+  const executeDelete = async (postId: string) => {
     const currentPost = posts.find((post) => post.id === postId) || null;
     setProcessingId(postId);
     setActionError("");
@@ -609,6 +627,18 @@ export default function AdminCommunity() {
     } finally {
       setProcessingId(null);
     }
+  };
+
+  const handleDelete = (postId: string) => {
+    if (processingId === postId) return;
+    setDeleteConfirmPostId(postId);
+  };
+
+  const handleConfirmDelete = async () => {
+    const targetPostId = deleteConfirmPostId;
+    if (!targetPostId) return;
+    setDeleteConfirmPostId(null);
+    await executeDelete(targetPostId);
   };
 
   const setRestrictionDraftValue = (
@@ -920,6 +950,11 @@ export default function AdminCommunity() {
     [],
   );
 
+  const deleteTargetPost =
+    deleteConfirmPostId != null
+      ? posts.find((post) => post.id === deleteConfirmPostId) || null
+      : null;
+
   if (authLoading) {
     return (
       <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-950 flex items-center justify-center">
@@ -1010,6 +1045,62 @@ export default function AdminCommunity() {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {deleteConfirmPostId && (
+        <div
+          className="fixed inset-0 z-[140] flex items-center justify-center bg-black/60 backdrop-blur-[2px] p-4"
+          onClick={() => setDeleteConfirmPostId(null)}
+        >
+          <div
+            className="w-full max-w-xl rounded-2xl border border-gray-200 bg-white p-6 shadow-[0_30px_80px_rgba(0,0,0,0.28)] dark:border-white/[0.08] dark:bg-[#0f1a2d]"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start gap-3">
+              <div className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-500/12 text-red-400">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Delete this post permanently?
+                </h3>
+                <p className="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300">
+                  The uploaded media will be removed too. This action cannot be
+                  undone.
+                </p>
+                {deleteTargetPost?.text && (
+                  <div className="mt-3 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-600 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-gray-400">
+                    {deleteTargetPost.text.slice(0, 140)}
+                    {deleteTargetPost.text.length > 140 ? "..." : ""}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="mt-6 flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmPostId(null)}
+                className="inline-flex items-center justify-center rounded-xl bg-gray-100 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-200 dark:bg-white/[0.08] dark:text-gray-200 dark:hover:bg-white/[0.14]"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleConfirmDelete()}
+                disabled={processingId === deleteConfirmPostId}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-red-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-400 disabled:opacity-60"
+              >
+                {processingId === deleteConfirmPostId ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Trash2 className="w-4 h-4" />
+                )}
+                Delete
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

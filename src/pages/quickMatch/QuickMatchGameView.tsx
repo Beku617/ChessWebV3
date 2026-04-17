@@ -27,6 +27,12 @@ interface QuickMatchGameViewProps {
   preMoveSquares: Record<string, CSSProperties>;
   playerRating?: number | null;
   opponentRating?: number | null;
+  gameOverElo?: {
+    rated?: boolean;
+    applied?: boolean;
+    white?: { oldRating?: number; newRating?: number; delta?: number } | null;
+    black?: { oldRating?: number; newRating?: number; delta?: number } | null;
+  } | null;
   onSquareClick: (square: Square) => void;
   onPieceDrop: (
     sourceSquare: Square,
@@ -70,6 +76,7 @@ export function QuickMatchGameView({
   preMoveSquares,
   playerRating,
   opponentRating,
+  gameOverElo,
   onSquareClick,
   onPieceDrop,
   onCancelSelection,
@@ -144,6 +151,8 @@ export function QuickMatchGameView({
           savedGameId={savedGameId}
           historyStatus={historyPersistenceStatus}
           opponentName={opponentName || "Opponent"}
+          playerColor={playerColor}
+          elo={gameOverElo}
           analyzeBasePath={variant === "chess960" ? "/analyze960" : "/analyze"}
           tournamentMode={tournamentMode}
           onBackToTournament={() => navigate("/tournaments")}
