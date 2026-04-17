@@ -1,0 +1,63 @@
+You are auditing the security of a chess web app called NeonGambit.
+Stack: React/Vite frontend, Node.js/Express backend, MongoDB Atlas, 
+cookies for auth (no JWT), Google + Facebook OAuth.
+
+Please audit and fix ALL of the following security issues:
+
+=== 1. AUTH COOKIES ===
+- Confirm authToken cookie has: httpOnly:true, secure:true (prod only),
+  sameSite:"none" (prod) / "lax" (dev), path:"/"
+- Confirm cookie maxAge never exceeds 30 days
+- Confirm authMiddleware rejects missing/tampered cookies with 401
+
+=== 2. OAUTH ===
+- Google: verify token server-side using OAuth2Client.verifyIdToken 
+  OR tokeninfo endpoint. Never trust client-side decoded data.
+- Facebook: verify accessToken by calling 
+  https://graph.facebook.com/me?access_token=TOKEN server-side.
+- GOOGLE_CLIENT_ID and FACEBOOK_APP_ID must only be in backend .env.
+  Never in VITE_ prefixed variables on the frontend.
+
+=== 3. INPUT VALIDATION ===
+- Add express-validator or zod validation to ALL POST/PUT routes
+- Validate: email format, password min 8 chars, fullName max 80 chars
+- Sanitize all string inputs — trim whitespace, escape special chars
+- MongoDB: never pass raw req.body directly into queries — 
+  always destructure specific fields first
+
+=== 4. CORS & HEADERS ===
+- Install helmet: npm install helmet, then app.use(helmet())
+- CORS must have explicit origin array — NO wildcard *
+  origins: ["http://localhost:5173", "https://neongambit-chesswebv3.vercel.app"]
+  credentials: true
+- Confirm these headers are set: X-Frame-Options, 
+  X-Content-Type-Options, Referrer-Policy
+
+=== 5. RATE LIMITING ===
+- Install express-rate-limit
+- Apply to /api/login: max 10 requests per 15 minutes per IP
+- Apply to /api/register: max 5 requests per hour per IP
+- Apply to /api/auth/google and /api/auth/facebook: max 10 per 15 min
+- Return 429 with message "Too many attempts, try again later"
+
+=== 6. PROTECTED ROUTES ===
+- Every route except /login, /register, /auth/google, /auth/facebook, 
+  /logout must use authMiddleware
+- Admin routes (/admin/*) must check user.isAdmin === true
+- Profile update routes must verify req.user.userId === req.params.userId
+  or req.body.userId before allowing changes
+- Frontend: all protected React routes must check isAuthenticated 
+  from store and redirect to /login if false
+
+=== 7. PASSWORD SECURITY ===
+- bcrypt cost factor must be >= 10 (currently using 10, keep it)
+- Add check: if user has no password field (OAuth user), 
+  reject password login attempts with "Use Google/Facebook to sign in"
+
+=== 8. BANNED USER CHECKS ===
+- Check user.banned on EVERY authenticated request in authMiddleware,
+  not just on login
+- If banned user has valid cookie, clear it and return 403
+
+Please show me exactly what files to change and what the fixed code 
+looks like for each issue found. Prioritize CRITICAL issues first.

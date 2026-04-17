@@ -1,6 +1,5 @@
 import { lazy, Suspense, useEffect, useLayoutEffect } from "react";
 import {
-  BrowserRouter as Router,
   Routes,
   Route,
   useLocation,
@@ -213,7 +212,7 @@ function Layout({ children }: { children: React.ReactNode }) {
     location.pathname === "/play/four-player" ||
     location.pathname.startsWith("/play/practice");
   const isWorkspacePage = isGamePage || isLearnLessonPage;
-  const sidebarOffsetClass = "ml-72";
+  const sidebarOffsetClass = "ml-[60px] md:ml-72";
 
   const isAdminRoute = location.pathname.startsWith("/admin");
 
@@ -285,12 +284,7 @@ function RouteFallback() {
 
 function App() {
   return (
-    <Router
-      future={{
-        v7_startTransition: true,
-        v7_relativeSplatPath: true,
-      }}
-    >
+    <>
       <ThemeController />
       <AuthChecker />
       <RealtimeBridge />
@@ -516,9 +510,30 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route path="/u/:userId" element={<UserProfile />} />
-            <Route path="/analyze/:gameId" element={<Analyze />} />
-            <Route path="/analyze960/:gameId" element={<Analyze960 />} />
+            <Route
+              path="/u/:userId"
+              element={
+                <ProtectedRoute>
+                  <UserProfile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/analyze/:gameId"
+              element={
+                <ProtectedRoute>
+                  <Analyze />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/analyze960/:gameId"
+              element={
+                <ProtectedRoute>
+                  <Analyze960 />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Admin dashboard - uses same login page, admin auth checked inside */}
             <Route path="/admin" element={<AdminDashboard />} />
@@ -546,7 +561,7 @@ function App() {
         </Suspense>
       </Layout>
       <FriendChallengeOverlay />
-    </Router>
+    </>
   );
 }
 

@@ -19,6 +19,10 @@ import { detectOpeningFromSan } from "../utils/openingExplorer";
 import { useAuthStore } from "../store/authStore";
 import { playChessMoveSound, playGameplaySound } from "../utils/moveSounds";
 import { formatPerspectiveResult } from "./onlineGameShared";
+import {
+  getRatingPoolForMatch,
+  getUserRatingForPool,
+} from "../utils/ratingPool";
 
 const socketBaseUrl =
   import.meta.env.VITE_SOCKET_URL ||
@@ -28,21 +32,28 @@ const SOCKET_URL = socketBaseUrl.replace(/\/api\/?$/, "");
 const BOARD_FILES = ["a", "b", "c", "d", "e", "f", "g", "h"] as const;
 
 type PlayerColor = "w" | "b";
-type MatchVariant = "standard" | "chess960";
+type MatchVariant = "standard" | "chess960" | "threeCheck";
 type GameOverReason =
   | "checkmate"
   | "draw"
   | "resign"
   | "timeout"
-  | "opponent_left";
+  | "opponent_left"
+  | "aborted"
+  | "three_check";
 
 interface MatchFoundPayload {
   gameId: string;
   color: PlayerColor;
   fen: string;
   opponentName?: string;
+  rated?: boolean;
+  playerRating?: number;
+  opponentRating?: number;
   timeControl?: { initial: number; increment: number };
   variant?: MatchVariant;
+  whiteCheckCount?: number;
+  blackCheckCount?: number;
 }
 
 interface MoveAppliedPayload {
@@ -54,6 +65,9 @@ interface MoveAppliedPayload {
   isCheckmate?: boolean;
   isDraw?: boolean;
   isStalemate?: boolean;
+  whiteCheckCount?: number;
+  blackCheckCount?: number;
+  checkAwarded?: PlayerColor | null;
 }
 
 interface GameOverPayload {
@@ -63,7 +77,15 @@ interface GameOverPayload {
   elo?: {
     rated: boolean;
     applied: boolean;
-    pool?: "bullet" | "blitz" | "rapid" | "classical";
+    pool?:
+      | "bullet"
+      | "blitz"
+      | "rapid"
+      | "classical"
+      | "chess960Bullet"
+      | "chess960Blitz"
+      | "chess960Rapid"
+      | "chess960Classical";
     skippedReason?: string;
     white?: {
       userId: string;
@@ -145,7 +167,45 @@ function isChess960CastlingDropForColor(
 
 function normalizeMatchVariant(value: unknown): MatchVariant {
   if (typeof value !== "string") return "standard";
-  return value.trim().toLowerCase() === "chess960" ? "chess960" : "standard";
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "chess960") return "chess960";
+  if (
+    normalized === "threecheck" ||
+    normalized === "three-check" ||
+    normalized === "three_check"
+  ) {
+    return "threeCheck";
+  }
+  return "standard";
+}
+
+function normalizeThreeCheckCounts(payload?: {
+  whiteCheckCount?: unknown;
+  blackCheckCount?: unknown;
+}) {
+  const whiteCheckCount = Number(payload?.whiteCheckCount);
+  const blackCheckCount = Number(payload?.blackCheckCount);
+  return {
+    whiteCheckCount:
+      Number.isFinite(whiteCheckCount) && whiteCheckCount >= 0
+        ? Math.floor(whiteCheckCount)
+        : 0,
+    blackCheckCount:
+      Number.isFinite(blackCheckCount) && blackCheckCount >= 0
+        ? Math.floor(blackCheckCount)
+        : 0,
+  };
+}
+
+interface GameSystemMessagePayload {
+  gameId: string;
+  message?: string;
+  targetColor?: PlayerColor | null;
+}
+
+function toFiniteRating(value: unknown): number | null {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? Math.round(parsed) : null;
 }
 
 export function useOnlineQuickMatch() {
@@ -170,6 +230,9 @@ export function useOnlineQuickMatch() {
   const [playerColor, setPlayerColor] = useState<PlayerColor>("w");
   const [gameId, setGameId] = useState<string | null>(null);
   const [opponentName, setOpponentName] = useState("Opponent");
+  const [playerRating, setPlayerRating] = useState<number | null>(null);
+  const [opponentRating, setOpponentRating] = useState<number | null>(null);
+  const [isRatedMatch, setIsRatedMatch] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [queueStatus, setQueueStatus] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -182,6 +245,9 @@ export function useOnlineQuickMatch() {
   );
   const [opponentTime, setOpponentTime] = useState(
     defaultGameSettings.timeControl.initial,
+  );
+  const [threeCheckState, setThreeCheckState] = useState(() =>
+    normalizeThreeCheckCounts(),
   );
 
   const socketRef = useRef<Socket | null>(null);
@@ -298,10 +364,14 @@ export function useOnlineQuickMatch() {
     setHistoryPersistenceStatus("idle");
     gameIdRef.current = null;
     setOpponentName("Opponent");
+    setPlayerRating(null);
+    setOpponentRating(null);
+    setIsRatedMatch(false);
     setPlayerColor("w");
     playerColorRef.current = "w";
     setMatchVariant("standard");
     matchVariantRef.current = "standard";
+    setThreeCheckState(normalizeThreeCheckCounts());
     startTimeRef.current = null;
     startingFenRef.current = "";
     historySavedRef.current = false;
@@ -380,6 +450,11 @@ export function useOnlineQuickMatch() {
       const normalizedVariant = normalizeMatchVariant(payload.variant);
       setMatchVariant(normalizedVariant);
       matchVariantRef.current = normalizedVariant;
+      setThreeCheckState(
+        normalizedVariant === "threeCheck"
+          ? normalizeThreeCheckCounts(payload)
+          : normalizeThreeCheckCounts(),
+      );
       startingFenRef.current = payload.fen || nextGame.fen();
       resetStoredMoves();
       setLastMove(null);
@@ -410,6 +485,21 @@ export function useOnlineQuickMatch() {
 
       const timeControl =
         payload.timeControl || defaultGameSettings.timeControl;
+      const ratingPool = getRatingPoolForMatch(timeControl, normalizedVariant);
+      const canShowRatedInfo = payload.rated === true && ratingPool !== null;
+      const fallbackPlayerRating = getUserRatingForPool(
+        userRef.current,
+        ratingPool,
+      );
+      setIsRatedMatch(canShowRatedInfo);
+      setPlayerRating(
+        canShowRatedInfo
+          ? toFiniteRating(payload.playerRating) ?? fallbackPlayerRating
+          : null,
+      );
+      setOpponentRating(
+        canShowRatedInfo ? toFiniteRating(payload.opponentRating) : null,
+      );
       setGameSettings({
         ...defaultGameSettings,
         playAs: payload.color === "w" ? "white" : "black",
@@ -423,12 +513,19 @@ export function useOnlineQuickMatch() {
     socket.on("moveApplied", (payload: MoveAppliedPayload) => {
       if (payload.gameId !== gameIdRef.current) return;
       const isOpponentMove = payload.turn === playerColorRef.current;
+      const shouldAnnotateThreeCheck =
+        matchVariantRef.current === "threeCheck" && !!payload.checkAwarded;
 
       if (payload.isChess960Castle) {
         const nextGame = new Chess(payload.fen);
         gameRef.current = nextGame;
         setGame(nextGame);
-        appendStoredMove(payload.move.san);
+        const castlingSan = payload.move.san || "";
+        appendStoredMove(
+          shouldAnnotateThreeCheck
+            ? `${castlingSan} (+1 check)`
+            : castlingSan,
+        );
         if (isOpponentMove) {
           playChessMoveSound(
             { ...payload.move, castlingSide: "k" },
@@ -446,7 +543,11 @@ export function useOnlineQuickMatch() {
         if (applied) {
           gameRef.current = currentGame;
           setGame(new Chess(currentGame.fen()));
-          appendStoredMove(payload.move.san || applied.san);
+          appendStoredMove(
+            shouldAnnotateThreeCheck
+              ? `${payload.move.san || applied.san} (+1 check)`
+              : payload.move.san || applied.san,
+          );
           if (isOpponentMove) {
             playChessMoveSound(applied, { isOpponentMove: true });
           }
@@ -454,11 +555,41 @@ export function useOnlineQuickMatch() {
           const nextGame = new Chess(payload.fen);
           gameRef.current = nextGame;
           setGame(nextGame);
-          appendStoredMove(payload.move.san);
+          const fallbackSan = payload.move.san || "";
+          appendStoredMove(
+            shouldAnnotateThreeCheck
+              ? `${fallbackSan} (+1 check)`
+              : fallbackSan,
+          );
           if (isOpponentMove) {
             playChessMoveSound(payload.move, { isOpponentMove: true });
           }
         }
+      }
+
+      if (matchVariantRef.current === "threeCheck") {
+        setThreeCheckState((previous) => {
+          const normalized = normalizeThreeCheckCounts(payload);
+          const hasPayloadCounts =
+            payload.whiteCheckCount !== undefined &&
+            payload.blackCheckCount !== undefined;
+          if (hasPayloadCounts) {
+            return normalized;
+          }
+          if (payload.checkAwarded === "w") {
+            return {
+              ...previous,
+              whiteCheckCount: previous.whiteCheckCount + 1,
+            };
+          }
+          if (payload.checkAwarded === "b") {
+            return {
+              ...previous,
+              blackCheckCount: previous.blackCheckCount + 1,
+            };
+          }
+          return previous;
+        });
       }
 
       setLastMove({ from: payload.move.from, to: payload.move.to });
@@ -475,6 +606,19 @@ export function useOnlineQuickMatch() {
     socket.on("moveRejected", (payload: { reason?: string }) => {
       setQueueStatus(payload?.reason || "Move rejected.");
       playGameplaySound("illegal");
+    });
+
+    socket.on("gameSystemMessage", (payload: GameSystemMessagePayload) => {
+      if (payload.gameId !== gameIdRef.current) return;
+      if (
+        payload.targetColor &&
+        payload.targetColor !== playerColorRef.current
+      ) {
+        return;
+      }
+      if (payload.message) {
+        setQueueStatus(payload.message);
+      }
     });
 
     socket.on("gameOver", (payload: GameOverPayload) => {
@@ -504,38 +648,70 @@ export function useOnlineQuickMatch() {
               : payload.elo.black;
 
       if (!sideUpdate) return;
+      const pool = payload.elo.pool;
+      const isStandardPool =
+        pool === "bullet" ||
+        pool === "blitz" ||
+        pool === "rapid" ||
+        pool === "classical";
       const nextUser = {
         ...currentUser,
-        rating: sideUpdate.newRating,
         gamesPlayed: sideUpdate.gamesPlayed,
         gamesWon: sideUpdate.gamesWon,
       };
-      if (payload.elo.pool === "bullet")
+      if (isStandardPool) {
+        nextUser.rating = sideUpdate.newRating;
+      }
+      if (pool === "bullet")
         nextUser.bulletRating = sideUpdate.newRating;
-      if (payload.elo.pool === "bullet") {
+      if (pool === "bullet") {
         nextUser.bulletGames = sideUpdate.poolGamesPlayed;
         nextUser.bulletRd = sideUpdate.newRd;
         nextUser.bulletVolatility = sideUpdate.newVolatility;
       }
-      if (payload.elo.pool === "blitz")
+      if (pool === "blitz")
         nextUser.blitzRating = sideUpdate.newRating;
-      if (payload.elo.pool === "blitz") {
+      if (pool === "blitz") {
         nextUser.blitzGames = sideUpdate.poolGamesPlayed;
         nextUser.blitzRd = sideUpdate.newRd;
         nextUser.blitzVolatility = sideUpdate.newVolatility;
       }
-      if (payload.elo.pool === "rapid")
+      if (pool === "rapid")
         nextUser.rapidRating = sideUpdate.newRating;
-      if (payload.elo.pool === "rapid") {
+      if (pool === "rapid") {
         nextUser.rapidGames = sideUpdate.poolGamesPlayed;
         nextUser.rapidRd = sideUpdate.newRd;
         nextUser.rapidVolatility = sideUpdate.newVolatility;
       }
-      if (payload.elo.pool === "classical") {
+      if (pool === "classical") {
         nextUser.classicalRating = sideUpdate.newRating;
         nextUser.classicalGames = sideUpdate.poolGamesPlayed;
         nextUser.classicalRd = sideUpdate.newRd;
         nextUser.classicalVolatility = sideUpdate.newVolatility;
+      }
+      if (pool === "chess960Bullet") {
+        nextUser.chess960BulletRating = sideUpdate.newRating;
+        nextUser.chess960BulletGames = sideUpdate.poolGamesPlayed;
+        nextUser.chess960BulletRd = sideUpdate.newRd;
+        nextUser.chess960BulletVolatility = sideUpdate.newVolatility;
+      }
+      if (pool === "chess960Blitz") {
+        nextUser.chess960BlitzRating = sideUpdate.newRating;
+        nextUser.chess960BlitzGames = sideUpdate.poolGamesPlayed;
+        nextUser.chess960BlitzRd = sideUpdate.newRd;
+        nextUser.chess960BlitzVolatility = sideUpdate.newVolatility;
+      }
+      if (pool === "chess960Rapid") {
+        nextUser.chess960RapidRating = sideUpdate.newRating;
+        nextUser.chess960RapidGames = sideUpdate.poolGamesPlayed;
+        nextUser.chess960RapidRd = sideUpdate.newRd;
+        nextUser.chess960RapidVolatility = sideUpdate.newVolatility;
+      }
+      if (pool === "chess960Classical") {
+        nextUser.chess960ClassicalRating = sideUpdate.newRating;
+        nextUser.chess960ClassicalGames = sideUpdate.poolGamesPlayed;
+        nextUser.chess960ClassicalRd = sideUpdate.newRd;
+        nextUser.chess960ClassicalVolatility = sideUpdate.newVolatility;
       }
       setUser(nextUser);
     });
@@ -616,10 +792,14 @@ export function useOnlineQuickMatch() {
       resign: "resignation",
       timeout: "time forfeit",
       opponent_left: "opponent left",
+      three_check: "three checks",
       draw: "draw",
+      aborted: "aborted",
     };
 
-    const isDraw = lastGameOver.reason === "draw" || !lastGameOver.winner;
+    const isDraw =
+      lastGameOver.reason === "draw" ||
+      (!lastGameOver.winner && lastGameOver.reason !== "aborted");
     const pgnResult = isDraw
       ? "1/2-1/2"
       : lastGameOver.winner === "w"
@@ -715,7 +895,12 @@ export function useOnlineQuickMatch() {
     });
 
     saveGameHistory({
-      event: matchVariant === "chess960" ? "Live Chess960" : "Live Chess",
+      event:
+        matchVariant === "chess960"
+          ? "Live Chess960"
+          : matchVariant === "threeCheck"
+            ? "Live Three-Check"
+            : "Live Chess",
       variant: matchVariant,
       site: "NeonGambit",
       date: formatDate(startDate),
@@ -805,6 +990,14 @@ export function useOnlineQuickMatch() {
       playAs: gameSettings.playAs,
       opponent,
       durationMs,
+      whiteCheckCount:
+        matchVariant === "threeCheck"
+          ? threeCheckState.whiteCheckCount
+          : undefined,
+      blackCheckCount:
+        matchVariant === "threeCheck"
+          ? threeCheckState.blackCheckCount
+          : undefined,
     }).then((id) => {
       if (id) {
         setSavedGameId(id);
@@ -823,6 +1016,8 @@ export function useOnlineQuickMatch() {
     setHistoryPersistenceStatus,
     user?.rating,
     matchVariant,
+    threeCheckState.whiteCheckCount,
+    threeCheckState.blackCheckCount,
   ]);
 
   const startMatch = useCallback(
@@ -831,6 +1026,10 @@ export function useOnlineQuickMatch() {
       name?: string,
       variant: MatchVariant = "standard",
     ) => {
+      playerNameRef.current = name || "Player";
+      // Always clear previous game/modal state before a rematch/start attempt.
+      resetGameState();
+
       if (!socketRef.current) return;
       if (!socketRef.current.connected) {
         setIsSearching(false);
@@ -838,8 +1037,6 @@ export function useOnlineQuickMatch() {
         return;
       }
       const normalizedVariant = normalizeMatchVariant(variant);
-      playerNameRef.current = name || "Player";
-      resetGameState();
       setMatchVariant(normalizedVariant);
       matchVariantRef.current = normalizedVariant;
       setIsSearching(true);
@@ -1368,6 +1565,9 @@ export function useOnlineQuickMatch() {
     historyPersistenceStatus,
     lastMove,
     opponentName,
+    playerRating,
+    opponentRating,
+    isRatedMatch,
 
     // UI state
     showGameOverModal,
@@ -1381,6 +1581,7 @@ export function useOnlineQuickMatch() {
     queueStatus,
     isConnected,
     matchVariant,
+    threeCheckState,
 
     // Handlers
     onSquareClick,

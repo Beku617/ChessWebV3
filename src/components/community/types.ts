@@ -48,7 +48,7 @@ export type CommunityPerspectiveResult = "win" | "loss" | "draw" | "unknown";
 
 export interface CommunitySharedGame {
   sourceGameId: string;
-  variant: "standard" | "chess960";
+  variant: "standard" | "chess960" | "threeCheck";
   startingFen: string;
   currentPosition: string;
   moves: string[];
@@ -83,7 +83,7 @@ export interface CommunityShareableGameSummary {
   playAs: "white" | "black";
   rated: boolean;
   totalMoves: number;
-  variant: "standard" | "chess960";
+  variant: "standard" | "chess960" | "threeCheck";
 }
 
 export interface CommunityPostingRestrictionState {
@@ -397,9 +397,15 @@ export function formatCommunityResult(result?: string | null): string {
 
 export function communityGameFromHistory(game: GameHistory): CommunitySharedGame {
   const playAs = game.playAs === "black" ? "black" : "white";
+  const variant =
+    game.variant === "chess960"
+      ? "chess960"
+      : game.variant === "threeCheck"
+        ? "threeCheck"
+        : "standard";
   return {
     sourceGameId: String(game._id || ""),
-    variant: game.variant === "chess960" ? "chess960" : "standard",
+    variant,
     startingFen: String(game.startingFen || ""),
     currentPosition: String(game.currentPosition || ""),
     moves: Array.isArray(game.moves)

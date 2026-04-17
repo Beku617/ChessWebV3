@@ -37,11 +37,13 @@
     "noAccount": "Дансгүй байна уу?",
     "signUp": "Бүртгүүлэх",
     "loginFailed": "Нэвтрэхэд алдаа гарлаа",
+    "googleLoginFailed": "Google-oor nevtrehed aldaa garlaa",
+    "googleNotConfigured": "Google nevtrelt odoohoor tohiruulagdagaagui baina.",
     "createAccount": "Данс үүсгэх",
     "registerSubtitle": "Шатрын мастеруудтай нэгдээрэй",
     "fullName": "Бүтэн нэр",
     "namePlaceholder": "Бат Эрдэнэ",
-    "minimumChars": "Дор хаяж 6 тэмдэгт",
+    "minimumChars": "Дор хаяж 8 тэмдэгт",
     "orSignup": "Эсвэл дараахаар бүртгүүл",
     "haveAccount": "Өмнө нь бүртгүүлсэн үү?",
     "signInCta": "Нэвтрэх",
@@ -73,8 +75,7 @@
       "changePasswordHelper": "Дансаа шинэ нууц үгээр хамгаалах",
       "linkedAccounts": "Холбосон дансууд",
       "linkedAccountsHelper": "Гуравдагч талын үйлчилгээ холбох",
-      "google": "Google",
-      "github": "GitHub"
+      "google": "Google"
     },
     "appearance": {
       "title": "Гадаад төрх",

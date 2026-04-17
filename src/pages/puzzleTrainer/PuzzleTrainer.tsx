@@ -57,7 +57,7 @@ export default function PuzzleTrainer() {
     return (
       <div className="h-screen bg-[#0b0f19] text-white flex overflow-hidden">
         <Sidebar />
-        <main className="flex-1 ml-72 flex items-center justify-center">
+      <main className="flex-1 ml-[60px] md:ml-72 flex items-center justify-center">
           <Loader2 className="w-12 h-12 text-brand-500 animate-spin" />
         </main>
       </div>
@@ -68,7 +68,7 @@ export default function PuzzleTrainer() {
     return (
       <div className="h-screen bg-[#0b0f19] text-white flex overflow-hidden">
         <Sidebar />
-        <main className="flex-1 ml-72 flex flex-col items-center justify-center gap-4">
+      <main className="flex-1 ml-[60px] md:ml-72 flex flex-col items-center justify-center gap-4">
           <Brain className="w-16 h-16 text-gray-400" />
           <h2 className="text-xl font-bold text-gray-300">Puzzle not found</h2>
           <button
@@ -86,7 +86,7 @@ export default function PuzzleTrainer() {
     <div className="h-screen bg-[#0b0f19] text-white flex overflow-hidden">
       <Sidebar />
 
-      <main className="flex-1 ml-72 min-h-0 overflow-hidden flex gap-3 pt-3 pb-3 pr-4">
+      <main className="flex-1 ml-[60px] md:ml-72 min-h-0 overflow-hidden flex gap-3 pt-3 pb-3 pr-4">
         {/* Board Area */}
         <div className="min-h-0 flex items-center justify-start bg-[#0b0f19] pl-6 pr-3 py-4">
           <div style={{ width: boardSize, height: boardSize }}>

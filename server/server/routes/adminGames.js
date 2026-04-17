@@ -2,10 +2,11 @@ import { Router } from "express";
 import { History, History960 } from "../models/index.js";
 import { adminAuthMiddleware } from "../middleware/index.js";
 import mongoose from "mongoose";
+import { MIN_REAL_GAME_PLIES } from "../utils/gameLifecyclePolicy.js";
 
 const router = Router();
 const { ObjectId } = mongoose.Types;
-const MIN_STORED_MOVES = 3;
+const MIN_STORED_MOVES = MIN_REAL_GAME_PLIES;
 
 const ALLOWED_SORT_FIELDS = new Set([
   "createdAt",
@@ -17,7 +18,7 @@ const ALLOWED_SORT_FIELDS = new Set([
   "rated",
 ]);
 
-const ENUM_VARIANT = new Set(["standard", "chess960"]);
+const ENUM_VARIANT = new Set(["standard", "chess960", "threeCheck"]);
 const ENUM_PLAY_AS = new Set(["white", "black"]);
 const ENUM_RATING_POOL = new Set(["bullet", "blitz", "rapid", "classical"]);
 
@@ -236,7 +237,7 @@ function sanitizeGamePayload(payload, { partial = false } = {}) {
   if (payload.variant !== undefined) {
     const variant = normalizeVariant(payload.variant);
     if (variant === null) {
-      return { error: "variant must be standard or chess960" };
+      return { error: "variant must be standard, chess960, or threeCheck" };
     }
     if (variant !== undefined) {
       data.variant = variant;
@@ -491,6 +492,8 @@ router.get("/stats", adminAuthMiddleware, async (req, res) => {
       chess960Standard,
       historyChess960,
       chess960Chess960,
+      historyThreeCheck,
+      chess960ThreeCheck,
       historyRecent,
       chess960Recent,
       historyResults,
@@ -504,6 +507,8 @@ router.get("/stats", adminAuthMiddleware, async (req, res) => {
       History960.countDocuments(standardQuery),
       History.countDocuments({ variant: "chess960" }),
       History960.countDocuments({ variant: "chess960" }),
+      History.countDocuments({ variant: "threeCheck" }),
+      History960.countDocuments({ variant: "threeCheck" }),
       History.countDocuments(recentQuery),
       History960.countDocuments(recentQuery),
       History.aggregate([{ $group: { _id: "$result", count: { $sum: 1 } } }]),
@@ -514,6 +519,7 @@ router.get("/stats", adminAuthMiddleware, async (req, res) => {
     const rated = historyRated + chess960Rated;
     const standard = historyStandard + chess960Standard;
     const chess960 = historyChess960 + chess960Chess960;
+    const threeCheck = historyThreeCheck + chess960ThreeCheck;
     const recent24h = historyRecent + chess960Recent;
     const results = [...historyResults, ...chess960Results];
 
@@ -531,7 +537,7 @@ router.get("/stats", adminAuthMiddleware, async (req, res) => {
       total,
       rated,
       unrated: total - rated,
-      byVariant: { standard, chess960 },
+      byVariant: { standard, chess960, threeCheck },
       byResult,
       recent24h,
     });

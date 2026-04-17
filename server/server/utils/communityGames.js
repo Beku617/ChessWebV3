@@ -27,9 +27,16 @@ function normalizeObjectId(value) {
 }
 
 function normalizeVariant(value) {
-  return String(value || "").trim().toLowerCase() === "chess960"
-    ? "chess960"
-    : "standard";
+  const normalized = String(value || "").trim().toLowerCase();
+  if (normalized === "chess960") return "chess960";
+  if (
+    normalized === "threecheck" ||
+    normalized === "three-check" ||
+    normalized === "three_check"
+  ) {
+    return "threeCheck";
+  }
+  return "standard";
 }
 
 function normalizeMoves(moves) {

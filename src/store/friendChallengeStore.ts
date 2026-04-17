@@ -31,9 +31,11 @@ export interface FriendGameStartedPayload {
   fen: string;
   opponentUserId?: string;
   opponentName: string;
+  playerRating?: number;
+  opponentRating?: number;
   timeControl: { initial: number; increment: number };
   gameType?: string;
-  variant?: "standard" | "chess960";
+  variant?: "standard" | "chess960" | "threeCheck";
   rated?: boolean;
 }
 
@@ -67,6 +69,7 @@ interface FriendChallengeAck {
   challenge?: FriendChallenge;
   status?: "accepted" | "declined";
   gameId?: string;
+  game?: FriendGameStartedPayload;
 }
 
 interface FriendChallengeState {
@@ -346,7 +349,14 @@ export const useFriendChallengeStore = create<FriendChallengeState>(
         get().dismissChallenge(challengeId);
         set({ lastInfo: "Challenge declined.", lastError: null });
       } else {
-        set({ lastError: null, lastInfo: null });
+        set((state) => ({
+          activeGame: response.game || state.activeGame,
+          incomingChallenges: state.incomingChallenges.filter(
+            (challenge) => challenge.id !== challengeId,
+          ),
+          lastError: null,
+          lastInfo: null,
+        }));
       }
 
       return response;

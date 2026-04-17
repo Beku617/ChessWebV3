@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Check, X, Users } from "lucide-react";
 import { useFriendChallengeStore } from "../store/friendChallengeStore";
@@ -17,12 +17,22 @@ export default function FriendChallengeOverlay() {
   );
   const dismissChallenge = useFriendChallengeStore((state) => state.dismissChallenge);
   const [isResponding, setIsResponding] = useState(false);
+  const lastAutoRoutedGameIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!activeGame) return;
-    if (location.pathname !== "/play/friend") {
-      navigate("/play/friend");
+    if (!activeGame) {
+      lastAutoRoutedGameIdRef.current = null;
+      return;
     }
+
+    if (lastAutoRoutedGameIdRef.current === activeGame.gameId) return;
+    if (location.pathname === "/play/friend") {
+      lastAutoRoutedGameIdRef.current = activeGame.gameId;
+      return;
+    }
+
+    lastAutoRoutedGameIdRef.current = activeGame.gameId;
+    navigate("/play/friend");
   }, [activeGame, location.pathname, navigate]);
 
   if (!challenge) return null;
@@ -63,11 +73,14 @@ export default function FriendChallengeOverlay() {
           type="button"
           disabled={isResponding}
           onClick={async () => {
-            setIsResponding(true);
-            clearError();
-            await respondToChallenge(challenge.id, false);
-            dismissChallenge(challenge.id);
-            setIsResponding(false);
+            try {
+              setIsResponding(true);
+              clearError();
+              await respondToChallenge(challenge.id, false);
+              dismissChallenge(challenge.id);
+            } finally {
+              setIsResponding(false);
+            }
           }}
           className="py-2 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-200 font-semibold hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors flex items-center justify-center gap-1"
         >
@@ -78,13 +91,16 @@ export default function FriendChallengeOverlay() {
           type="button"
           disabled={isResponding}
           onClick={async () => {
-            setIsResponding(true);
-            clearError();
-            const result = await respondToChallenge(challenge.id, true);
-            if (result.success) {
-              navigate("/play/friend");
+            try {
+              setIsResponding(true);
+              clearError();
+              const result = await respondToChallenge(challenge.id, true);
+              if (result.success) {
+                navigate("/play/friend");
+              }
+            } finally {
+              setIsResponding(false);
             }
-            setIsResponding(false);
           }}
           className="py-2 rounded-xl bg-brand-500 text-white font-semibold hover:bg-brand-600 transition-colors flex items-center justify-center gap-1"
         >

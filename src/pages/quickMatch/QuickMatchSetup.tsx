@@ -15,7 +15,7 @@ import { useAuthStore } from "../../store/authStore";
 import { BOARD_FRAME } from "./types";
 import { useBoardTheme } from "../../hooks/useBoardTheme";
 
-type MatchVariant = "standard" | "chess960";
+type MatchVariant = "standard" | "chess960" | "threeCheck";
 
 interface QuickMatchSetupProps {
   timeControl: { initial: number; increment: number };
@@ -205,7 +205,12 @@ export function QuickMatchSetup({
     }
     return null;
   })();
-  const variantLabel = variant === "chess960" ? t("Chess960") : "";
+  const variantLabel =
+    variant === "chess960"
+      ? t("Chess960")
+      : variant === "threeCheck"
+        ? t("Three-Check")
+        : "";
   const selectedGameType =
     GAME_TYPE_OPTIONS.find((option) => option.id === variant) ||
     GAME_TYPE_OPTIONS[0];
@@ -354,7 +359,7 @@ export function QuickMatchSetup({
                     <h2 className="font-bold text-base text-gray-900 dark:text-white">
                       {tournamentMode
                         ? t("Tournament Game")
-                        : `${t("Quick Match")}${variant === "chess960" ? ` — ${t("Chess960")}` : ""}`}
+                        : `${t("Quick Match")}${variantLabel ? ` - ${variantLabel}` : ""}`}
                     </h2>
                   </div>
                   {!tournamentMode && (
@@ -526,4 +531,3 @@ export function QuickMatchSetup({
     </div>
   );
 }
-

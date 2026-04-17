@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import {
   canAnalyzeSavedGame,
+  getHistoryStatusNote,
   type HistoryPersistenceStatus,
 } from "../../hooks/gameHistorySaver/historyPersistence";
 
@@ -165,13 +166,14 @@ export function GameOverModal({
   historyStatus = "idle",
 }: GameOverModalProps) {
   const navigate = useNavigate();
-  void historyStatus;
 
   if (!isOpen) return null;
 
   const parsed = parseGameResult(result, opponentName);
   const tone = toneClasses(parsed.tone);
   const canAnalyze = canAnalyzeSavedGame(savedGameId);
+  const historyNote = getHistoryStatusNote(historyStatus);
+  const showAnalyzeButton = canAnalyze || historyStatus === "saving";
   const showResultSubtitle =
     !!parsed.subtitle && parsed.tone !== "win" && parsed.tone !== "loss";
 
@@ -181,14 +183,14 @@ export function GameOverModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[80] bg-black/65 backdrop-blur-[2px] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[80] bg-black/65 backdrop-blur-[2px] flex items-center justify-center p-4 pointer-events-none">
       <motion.div
         initial={{ opacity: 0, scale: 0.97, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.18, ease: "easeOut" }}
         role="dialog"
         aria-modal="true"
-        className={`w-full max-w-[440px] rounded-2xl border ${tone.border} bg-slate-950/95 shadow-[0_24px_80px_rgba(2,6,23,0.8)] overflow-hidden`}
+        className={`w-full max-w-[440px] rounded-2xl border ${tone.border} bg-slate-950/95 shadow-[0_24px_80px_rgba(2,6,23,0.8)] overflow-hidden pointer-events-auto`}
       >
         <div
           className={`h-1.5 w-full bg-gradient-to-r ${tone.glow} via-transparent to-transparent`}
@@ -205,14 +207,15 @@ export function GameOverModal({
           </div>
 
           <div className="space-y-2.5">
-            {canAnalyze && (
+            {showAnalyzeButton && (
               <button
                 type="button"
                 onClick={handleAnalyze}
-                className="w-full h-12 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-medium transition-all duration-150 flex items-center justify-center gap-2 shadow-[0_12px_28px_rgba(124,58,237,0.35)]"
+                disabled={!canAnalyze}
+                className="w-full h-12 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-medium transition-all duration-150 flex items-center justify-center gap-2 shadow-[0_12px_28px_rgba(124,58,237,0.35)] disabled:opacity-75 disabled:cursor-wait"
               >
                 <BarChart3 size={18} />
-                Game Analyze
+                {canAnalyze ? "Game Analyze" : "Preparing Analyze..."}
               </button>
             )}
 
@@ -245,6 +248,11 @@ export function GameOverModal({
               </>
             )}
           </div>
+          {!canAnalyze && historyNote && (
+            <p className="mt-3 text-xs text-slate-400 text-center">
+              {historyNote}
+            </p>
+          )}
         </div>
       </motion.div>
     </div>

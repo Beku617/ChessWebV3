@@ -10,7 +10,9 @@ import {
   MoveExplanationPanel,
 } from "../../components/replay";
 import { useGameReplay960 } from "../../hooks/useGameReplay960";
+import { useAuthStore } from "../../store/authStore";
 import { AnalysisLoadingOverlay } from "../analyze/AnalysisLoadingOverlay";
+import { getAnalyzeActivePlayerSide } from "../analyze/activePlayer";
 
 interface ReplayContent960Props {
   game: GameHistory;
@@ -19,6 +21,12 @@ interface ReplayContent960Props {
 export function ReplayContent960({ game }: ReplayContent960Props) {
   const navigate = useNavigate();
   const replay = useGameReplay960(game);
+  const viewerUserId = useAuthStore((state) => state.user?.id ?? null);
+  const activePlayerSide = getAnalyzeActivePlayerSide({
+    viewerUserId,
+    gameUserId: game.userId,
+    playAs: game.playAs,
+  });
 
   if (replay.isAnalyzing) {
     return <AnalysisLoadingOverlay progress={replay.analysisProgress} />;
@@ -48,6 +56,7 @@ export function ReplayContent960({ game }: ReplayContent960Props) {
               qualityCounts={replay.qualityCounts}
               moveQualities={replay.moveQualities}
               cpSeries={replay.analysisSeries}
+              activePlayerSide={activePlayerSide}
             />
           </div>
 

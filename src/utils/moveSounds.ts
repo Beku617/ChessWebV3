@@ -180,6 +180,9 @@ function resolveChessMoveSoundName(
   }
 
   if (isPromotionMove(move)) {
+    if (isCheckMove(move)) {
+      return "check";
+    }
     return "promote";
   }
 

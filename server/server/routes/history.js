@@ -3,9 +3,13 @@ import mongoose from "mongoose";
 import { History, History960, User } from "../models/index.js";
 import { authMiddleware, optionalAuthMiddleware } from "../middleware/index.js";
 import { canViewerAccessUser } from "../utils/visibility.js";
+import {
+  MIN_REAL_GAME_PLIES,
+  shouldPersistHistoryByPlies,
+} from "../utils/gameLifecyclePolicy.js";
 
 const router = Router();
-const MIN_STORED_MOVES = 3;
+const MIN_STORED_MOVES = MIN_REAL_GAME_PLIES;
 const { ObjectId } = mongoose.Types;
 const CHESS960_STRIPPED_FIELDS = [
   "ratingBefore",
@@ -32,11 +36,21 @@ function normalizeVariant(value) {
   const normalized = String(value || "")
     .trim()
     .toLowerCase();
+  if (
+    normalized === "threecheck" ||
+    normalized === "three-check" ||
+    normalized === "three_check"
+  ) {
+    return "threeCheck";
+  }
   return normalized === "chess960" ? "chess960" : "standard";
 }
 
 function detectVariantFromEvent(event) {
   const text = String(event || "");
+  if (/three[\s_-]?check|3[\s_-]?check/i.test(text)) {
+    return "threeCheck";
+  }
   return /960|chess960/i.test(text) ? "chess960" : "standard";
 }
 
@@ -133,6 +147,8 @@ router.post("/", authMiddleware, async (req, res) => {
       opponent = "Stockfish",
       opponentLevel,
       durationMs,
+      whiteCheckCount = 0,
+      blackCheckCount = 0,
       analysis = [],
       moveTimes = [],
     } = req.body;
@@ -145,7 +161,7 @@ router.post("/", authMiddleware, async (req, res) => {
         .json({ error: "result, playAs, white, and black are required" });
     }
 
-    if (normalizedMoves.length < MIN_STORED_MOVES) {
+    if (!shouldPersistHistoryByPlies(normalizedMoves.length)) {
       return res.status(400).json({
         error: `Games with fewer than ${MIN_STORED_MOVES} moves are not stored`,
       });
@@ -217,6 +233,8 @@ router.post("/", authMiddleware, async (req, res) => {
       opponent,
       opponentLevel,
       durationMs,
+      whiteCheckCount,
+      blackCheckCount,
       analysis,
       moveTimes,
     };

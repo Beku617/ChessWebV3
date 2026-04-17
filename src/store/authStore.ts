@@ -11,18 +11,34 @@ export interface User {
   blitzRating?: number;
   rapidRating?: number;
   classicalRating?: number;
+  chess960BulletRating?: number;
+  chess960BlitzRating?: number;
+  chess960RapidRating?: number;
+  chess960ClassicalRating?: number;
   bulletRd?: number;
   blitzRd?: number;
   rapidRd?: number;
   classicalRd?: number;
+  chess960BulletRd?: number;
+  chess960BlitzRd?: number;
+  chess960RapidRd?: number;
+  chess960ClassicalRd?: number;
   bulletVolatility?: number;
   blitzVolatility?: number;
   rapidVolatility?: number;
   classicalVolatility?: number;
+  chess960BulletVolatility?: number;
+  chess960BlitzVolatility?: number;
+  chess960RapidVolatility?: number;
+  chess960ClassicalVolatility?: number;
   bulletGames?: number;
   blitzGames?: number;
   rapidGames?: number;
   classicalGames?: number;
+  chess960BulletGames?: number;
+  chess960BlitzGames?: number;
+  chess960RapidGames?: number;
+  chess960ClassicalGames?: number;
   gamesPlayed?: number;
   gamesWon?: number;
   presenceStatus?: "online" | "offline" | "searching_match" | "in_game" | "away";
@@ -100,6 +116,30 @@ export const authApi = {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Login failed");
+    return data;
+  },
+
+  async googleLogin(token: string, rememberMe = false) {
+    const res = await fetch(`${API_URL}/api/auth/google`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ token, rememberMe }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Google login failed");
+    return data;
+  },
+
+  async facebookLogin(token: string, rememberMe = false) {
+    const res = await fetch(`${API_URL}/api/auth/facebook`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ token, rememberMe }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Facebook login failed");
     return data;
   },
 

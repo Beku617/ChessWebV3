@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import mongoose from "mongoose";
 import http from "http";
@@ -25,6 +26,11 @@ import {
   getRatingPoolForTimeControl,
   ratingFieldForPool,
 } from "./utils/elo.js";
+import {
+  getAbortThresholdMs,
+  resolveTerminalReason,
+  shouldApplyRatedResult,
+} from "./utils/gameLifecyclePolicy.js";
 import {
   DEFAULT_GLICKO_RD,
   DEFAULT_GLICKO_VOLATILITY,
@@ -68,39 +74,22 @@ import {
   learnRoutes,
   adminLearnRoutes,
 } from "./routes/index.js";
+import { authMiddleware, requestSecurityMiddleware } from "./middleware/index.js";
 import { migrateLegacyRuntimeMedia } from "./utils/runtimeMediaMigration.js";
 
-const DEFAULT_ALLOWED_ORIGINS = [
+const allowedOrigins = [
   "http://localhost:5173",
-  "http://127.0.0.1:5173",
   "https://neongambit-chesswebv3.vercel.app",
 ];
-const VERCEL_PREVIEW_ORIGIN_PATTERN = /^https:\/\/[a-z0-9-]+\.vercel\.app$/i;
-
-function parseAllowedOrigins(rawOrigins) {
-  const values = String(rawOrigins || "")
-    .split(",")
-    .map((value) => value.trim())
-    .filter(Boolean);
-
-  return values.length > 0 ? values : DEFAULT_ALLOWED_ORIGINS;
-}
-
-const allowedOrigins = parseAllowedOrigins(
-  process.env.CLIENT_ORIGINS || process.env.CLIENT_ORIGIN,
-);
-const allowVercelPreviews =
-  String(process.env.ALLOW_VERCEL_PREVIEWS || "").toLowerCase() === "true";
 const PORT = Number.parseInt(process.env.PORT || "3001", 10);
 const BODY_LIMIT = process.env.BODY_LIMIT || "10mb";
+const COOKIE_SECRET =
+  process.env.COOKIE_SECRET ||
+  process.env.COOKIES_SECRET ||
+  "change-me-in-production-cookie-secret";
 
 function isAllowedOrigin(origin) {
-  if (!origin) return true;
-  if (allowedOrigins.includes(origin)) return true;
-  if (allowVercelPreviews && VERCEL_PREVIEW_ORIGIN_PATTERN.test(origin)) {
-    return true;
-  }
-  return false;
+  return !origin || allowedOrigins.includes(origin);
 }
 
 const corsOptions = {
@@ -119,6 +108,19 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: corsOptions,
 });
+const PUBLIC_API_ROUTES = new Set([
+  "POST:/login",
+  "POST:/register",
+  "POST:/auth/google",
+  "POST:/auth/facebook",
+  "POST:/logout",
+  "GET:/me",
+  "GET:/oauth/config",
+  "GET:/lichess/tv",
+  "GET:/lichess/streamers",
+  "POST:/admin/login",
+  "POST:/admin/logout",
+]);
 const DB_STATE_LABELS = Object.freeze({
   0: "disconnected",
   1: "connected",
@@ -136,7 +138,6 @@ const fourPlayerGames = new Map(); // gameId -> { room, state, playersByColor, s
 const userSockets = new Map(); // userId -> Set<socketId>
 const pendingChallenges = new Map(); // challengeId -> challenge metadata
 const userPresence = new Map(); // userId -> { status, lastSeenAt, lastActiveAt, lastPersistedAt }
-const MIN_RATED_PLIES = 5;
 const INITIAL_MATCH_RANGE = 50;
 const MATCH_RANGE_STEP = 25;
 const MATCH_RANGE_STEP_SECONDS = 5;
@@ -150,11 +151,37 @@ const PRESENCE_VALID_STATUSES = new Set([
   "away",
 ]);
 
+if (
+  process.env.NODE_ENV === "production" &&
+  !process.env.COOKIE_SECRET &&
+  !process.env.COOKIES_SECRET
+) {
+  console.warn(
+    "COOKIE_SECRET/COOKIES_SECRET is not set. Configure a strong secret in production.",
+  );
+}
+
 // Middleware
+app.use(helmet());
 app.use(express.json({ limit: BODY_LIMIT }));
 app.use(express.urlencoded({ extended: true, limit: BODY_LIMIT }));
-app.use(cookieParser());
+app.use(cookieParser(COOKIE_SECRET));
 app.use(cors(corsOptions));
+app.use("/api", requestSecurityMiddleware);
+app.use("/api", (req, res, next) => {
+  if (req.method === "OPTIONS") return next();
+
+  if (req.path.startsWith("/admin")) {
+    return next();
+  }
+
+  const routeKey = `${String(req.method || "").toUpperCase()}:${String(req.path || "")}`;
+  if (PUBLIC_API_ROUTES.has(routeKey)) {
+    return next();
+  }
+
+  return authMiddleware(req, res, next);
+});
 
 app.get("/healthz", (_req, res) => {
   res.status(200).json({
@@ -284,7 +311,17 @@ function getSocketAuth(socket) {
     const cookies = parseCookies(cookieHeader);
     const rawToken = cookies.authToken;
     if (!rawToken) return null;
-    return JSON.parse(decodeURIComponent(rawToken));
+
+    const decodedToken = decodeURIComponent(rawToken);
+    const unsignedToken = cookieParser.signedCookie(decodedToken, COOKIE_SECRET);
+
+    if (unsignedToken === false) {
+      return null;
+    }
+
+    const tokenPayload =
+      typeof unsignedToken === "string" ? unsignedToken : decodedToken;
+    return JSON.parse(tokenPayload);
   } catch {
     return null;
   }
@@ -556,14 +593,34 @@ function normalizeGameType(gameType) {
   return String(gameType).trim().toLowerCase() || "standard";
 }
 
+function normalizeLiveRating(value, fallback = null) {
+  const parsed = Number(value);
+  if (Number.isFinite(parsed)) return Math.round(parsed);
+  return fallback;
+}
+
+function getRatingFromUserDoc(userDoc, ratingField, fallback = 1200) {
+  if (!userDoc) return normalizeLiveRating(fallback, 1200);
+  const value = ratingField ? userDoc?.[ratingField] : undefined;
+  return normalizeLiveRating(value ?? userDoc?.rating ?? fallback, 1200);
+}
+
 function normalizeVariant(variant) {
   if (!variant) return "standard";
   const normalized = String(variant).trim().toLowerCase();
   if (normalized === "chess960") return "chess960";
+  if (
+    normalized === "threecheck" ||
+    normalized === "three-check" ||
+    normalized === "three_check"
+  ) {
+    return "threeCheck";
+  }
   if (normalized === "fourplayer" || normalized === "four_player") {
     return "fourPlayer";
   }
-  return "standard";
+  if (normalized === "standard") return "standard";
+  return normalized;
 }
 
 function getQuickGameSocketForUser(userId) {
@@ -577,6 +634,8 @@ function createRealtimeGameRoom({
   timeControl,
   variant = "standard",
   isRated = true,
+  whiteRating = null,
+  blackRating = null,
   tournamentId = null,
   tournamentGameId = null,
 }) {
@@ -593,6 +652,11 @@ function createRealtimeGameRoom({
   if (games.has(safeGameId)) return false;
 
   const normalizedTimeControl = normalizeTimeControl(timeControl);
+  const ratingPool = getRatingPoolForTimeControl(
+    normalizedTimeControl,
+    normalizedVariant,
+  );
+  const ratedForDisplay = isRated === true && !!ratingPool;
   const initialPosition = createInitialPosition(normalizedVariant);
   const chess =
     initialPosition.fen === "start"
@@ -615,11 +679,14 @@ function createRealtimeGameRoom({
     },
     timeControl: normalizedTimeControl,
     variant: normalizedVariant,
+    whiteCheckCount: 0,
+    blackCheckCount: 0,
     chess960: initialPosition.chess960,
     isRated,
     tournamentId: tournamentId ? normalizeId(tournamentId) : null,
     tournamentGameId: tournamentGameId ? normalizeId(tournamentGameId) : null,
   });
+  scheduleFirstMoveAbortTimer(safeGameId);
 
   whiteSocket.data.gameId = safeGameId;
   blackSocket.data.gameId = safeGameId;
@@ -633,8 +700,13 @@ function createRealtimeGameRoom({
     color: "w",
     fen: chess.fen(),
     opponentName: blackSocket.data.name || "Opponent",
+    rated: ratedForDisplay,
+    playerRating: normalizeLiveRating(whiteRating),
+    opponentRating: normalizeLiveRating(blackRating),
     timeControl: normalizedTimeControl,
     variant: normalizedVariant,
+    whiteCheckCount: 0,
+    blackCheckCount: 0,
   });
 
   io.to(blackSocket.id).emit("matchFound", {
@@ -642,8 +714,13 @@ function createRealtimeGameRoom({
     color: "b",
     fen: chess.fen(),
     opponentName: whiteSocket.data.name || "Opponent",
+    rated: ratedForDisplay,
+    playerRating: normalizeLiveRating(blackRating),
+    opponentRating: normalizeLiveRating(whiteRating),
     timeControl: normalizedTimeControl,
     variant: normalizedVariant,
+    whiteCheckCount: 0,
+    blackCheckCount: 0,
   });
 
   return true;
@@ -1351,6 +1428,8 @@ function queueFourPlayerStatus(socket, queueKey) {
 }
 
 function clearGameForPlayers(game) {
+  clearFirstMoveAbortTimer(game);
+
   const whiteSocket = io.sockets.sockets.get(game.players.white);
   const blackSocket = io.sockets.sockets.get(game.players.black);
   const whiteUserId = normalizeId(game?.playerUsers?.white);
@@ -1375,22 +1454,72 @@ function gamePlies(game) {
   return Array.isArray(history) ? history.length : 0;
 }
 
+function clearFirstMoveAbortTimer(game) {
+  if (!game?.firstMoveAbortTimer) return;
+  clearTimeout(game.firstMoveAbortTimer);
+  game.firstMoveAbortTimer = null;
+}
+
+function emitGameSystemMessage(gameId, message, targetColor = null) {
+  const game = games.get(gameId);
+  if (!game || !message) return;
+
+  io.to(game.room).emit("gameSystemMessage", {
+    gameId,
+    message,
+    targetColor,
+  });
+}
+
+function scheduleFirstMoveAbortTimer(gameId) {
+  const game = games.get(gameId);
+  if (!game) return;
+
+  clearFirstMoveAbortTimer(game);
+  const thresholdMs = getAbortThresholdMs(game.timeControl);
+  game.startedAt = Date.now();
+  game.firstMoveAbortTimer = setTimeout(() => {
+    const latestGame = games.get(gameId);
+    if (!latestGame || gamePlies(latestGame) > 0) return;
+
+    emitGameSystemMessage(
+      gameId,
+      "Game aborted: no first move was made in time.",
+      "w",
+    );
+    emitGameOver(gameId, "aborted", null);
+  }, thresholdMs);
+}
+
 function ratingResultForColor(winnerColor, color) {
   if (winnerColor !== "w" && winnerColor !== "b") return "D";
   return winnerColor === color ? "W" : "L";
 }
 
 async function applyGameRatingUpdates(gameId, game, reason, winner) {
-  const pool = getRatingPoolForTimeControl(game?.timeControl);
+  if (!game?.isRated) {
+    return {
+      rated: false,
+      applied: false,
+      pool: undefined,
+      skippedReason: "not_rated",
+    };
+  }
+
+  const pool = getRatingPoolForTimeControl(game?.timeControl, game?.variant);
+  if (!pool) {
+    return {
+      rated: true,
+      applied: false,
+      pool: undefined,
+      skippedReason: "unsupported_variant",
+    };
+  }
   const ratingField = ratingFieldForPool(pool);
   const gamesField = gamesFieldForPool(pool);
   const rdField = rdFieldForPool(pool);
   const volatilityField = volatilityFieldForPool(pool);
   const lastRatedAtField = lastRatedAtFieldForPool(pool);
-
-  if (!game?.isRated) {
-    return { rated: false, applied: false, pool, skippedReason: "not_rated" };
-  }
 
   const whiteUserId = normalizeId(game?.playerUsers?.white);
   const blackUserId = normalizeId(game?.playerUsers?.black);
@@ -1403,12 +1532,13 @@ async function applyGameRatingUpdates(gameId, game, reason, winner) {
     };
   }
 
-  if (reason !== "checkmate" && gamePlies(game) < MIN_RATED_PLIES) {
+  const plies = gamePlies(game);
+  if (!shouldApplyRatedResult(reason, plies)) {
     return {
       rated: true,
       applied: false,
       pool,
-      skippedReason: `minimum_${MIN_RATED_PLIES}_plies`,
+      skippedReason: reason === "aborted" ? "aborted" : "minimum_2_plies",
     };
   }
 
@@ -1470,8 +1600,15 @@ async function applyGameRatingUpdates(gameId, game, reason, winner) {
   blackUser[lastRatedAtField] = playedAt;
   whiteUser[gamesField] = whitePoolGames + 1;
   blackUser[gamesField] = blackPoolGames + 1;
-  whiteUser.rating = glicko.white.newRating;
-  blackUser.rating = glicko.black.newRating;
+  const isStandardPool =
+    pool === "bullet" ||
+    pool === "blitz" ||
+    pool === "rapid" ||
+    pool === "classical";
+  if (isStandardPool) {
+    whiteUser.rating = glicko.white.newRating;
+    blackUser.rating = glicko.black.newRating;
+  }
   whiteUser.gamesPlayed = (whiteUser.gamesPlayed ?? 0) + 1;
   blackUser.gamesPlayed = (blackUser.gamesPlayed ?? 0) + 1;
   if (winnerColor === "w") {
@@ -1573,17 +1710,41 @@ async function emitGameOver(gameId, reason, winner) {
   if (!game) return;
   if (game.isEnding) return;
   game.isEnding = true;
+  clearFirstMoveAbortTimer(game);
+
+  const plies = gamePlies(game);
+  const resolvedReason = resolveTerminalReason(reason, plies);
+  const resolvedWinner = resolvedReason === "aborted" ? null : winner;
+
+  if (resolvedReason === "aborted" && reason !== "aborted") {
+    const nonMoverColor =
+      winner === "w" ? "b" : winner === "b" ? "w" : game.chess.turn();
+    emitGameSystemMessage(
+      gameId,
+      "Game aborted before first move. No rating changes were applied.",
+      nonMoverColor === "w" || nonMoverColor === "b" ? nonMoverColor : "w",
+    );
+  }
 
   let elo = { rated: false, applied: false, skippedReason: "error" };
   try {
-    elo = await applyGameRatingUpdates(gameId, game, reason, winner);
+    elo = await applyGameRatingUpdates(
+      gameId,
+      game,
+      resolvedReason,
+      resolvedWinner,
+    );
   } catch (error) {
     console.error("Elo update error:", error);
   }
 
   if (game.tournamentId) {
     const tournamentResult =
-      winner === "w" ? "1-0" : winner === "b" ? "0-1" : "1/2-1/2";
+      resolvedWinner === "w"
+        ? "1-0"
+        : resolvedWinner === "b"
+          ? "0-1"
+          : "1/2-1/2";
     try {
       await syncTournamentGameResultByGameId(gameId, tournamentResult);
     } catch (error) {
@@ -1591,7 +1752,12 @@ async function emitGameOver(gameId, reason, winner) {
     }
   }
 
-  io.to(game.room).emit("gameOver", { gameId, reason, winner, elo });
+  io.to(game.room).emit("gameOver", {
+    gameId,
+    reason: resolvedReason,
+    winner: resolvedWinner,
+    elo,
+  });
   clearGameForPlayers(game);
   games.delete(gameId);
 }
@@ -1626,6 +1792,52 @@ function isThreefoldRepetition(chess) {
   return typeof chess.isThreefoldRepetition === "function"
     ? chess.isThreefoldRepetition()
     : chess.in_threefold_repetition();
+}
+
+function normalizeThreeCheckCount(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0) return 0;
+  return Math.floor(parsed);
+}
+
+function getThreeCheckCounts(game) {
+  return {
+    whiteCheckCount: normalizeThreeCheckCount(game?.whiteCheckCount),
+    blackCheckCount: normalizeThreeCheckCount(game?.blackCheckCount),
+  };
+}
+
+function getThreeCheckPayload(game) {
+  if (!game || game.variant !== "threeCheck") return {};
+  return getThreeCheckCounts(game);
+}
+
+function applyThreeCheckAfterMove(game, moverColor) {
+  if (!game || game.variant !== "threeCheck") {
+    return { isThreeCheckWin: false, checkAwarded: null };
+  }
+
+  if (!isCheck(game.chess)) {
+    return { isThreeCheckWin: false, checkAwarded: null };
+  }
+
+  const checkedColor = game.chess.turn();
+  const counts = getThreeCheckCounts(game);
+
+  if (checkedColor === "w") {
+    game.whiteCheckCount = counts.whiteCheckCount + 1;
+  } else {
+    game.blackCheckCount = counts.blackCheckCount + 1;
+  }
+
+  const updated = getThreeCheckCounts(game);
+  const checkedSideCount =
+    checkedColor === "w" ? updated.whiteCheckCount : updated.blackCheckCount;
+
+  return {
+    isThreeCheckWin: checkedSideCount >= 3,
+    checkAwarded: checkedColor,
+  };
 }
 
 io.on("connection", (socket) => {
@@ -1754,14 +1966,51 @@ io.on("connection", (socket) => {
           activeGame.players[opponentColorKey],
         );
         const opponentName = opponentSocket?.data?.name || "Opponent";
+        const activeVariant = normalizeVariant(activeGame.variant || "standard");
+        const activeTimeControl = normalizeTimeControl(activeGame.timeControl);
+        const activeRatingPool = getRatingPoolForTimeControl(
+          activeTimeControl,
+          activeVariant,
+        );
+        const ratedForDisplay =
+          activeGame.isRated === true && !!activeRatingPool;
+        let playerRating = null;
+        let opponentRating = null;
+        if (ratedForDisplay && activeRatingPool) {
+          try {
+            const ratingField = ratingFieldForPool(activeRatingPool);
+            const playerUserId = normalizeId(activeGame.playerUsers?.[ownColorKey]);
+            const opponentUserId = normalizeId(
+              activeGame.playerUsers?.[opponentColorKey],
+            );
+            const [playerUser, opponentUser] = await Promise.all([
+              playerUserId
+                ? User.findById(playerUserId).select(`${ratingField} rating`).lean()
+                : null,
+              opponentUserId
+                ? User.findById(opponentUserId)
+                    .select(`${ratingField} rating`)
+                    .lean()
+                : null,
+            ]);
+            playerRating = getRatingFromUserDoc(playerUser, ratingField);
+            opponentRating = getRatingFromUserDoc(opponentUser, ratingField);
+          } catch (error) {
+            console.error("joinTournamentGame rejoin rating lookup error:", error);
+          }
+        }
 
         io.to(socket.id).emit("matchFound", {
           gameId,
           color: userColor,
           fen: activeGame.chess.fen(),
           opponentName,
-          timeControl: activeGame.timeControl,
-          variant: activeGame.variant || "standard",
+          rated: ratedForDisplay,
+          playerRating,
+          opponentRating,
+          timeControl: activeTimeControl,
+          variant: activeVariant,
+          ...getThreeCheckPayload(activeGame),
         });
 
         safeAck(ack, {
@@ -1779,15 +2028,37 @@ io.on("connection", (socket) => {
       const blackSocket =
         userId === blackUserId ? socket : getQuickGameSocketForUser(blackUserId);
       if (whiteSocket && blackSocket) {
+        const socketTimeControl = tournamentTimeControlToSocketTimeControl(
+          tournament.timeControl,
+        );
+        const ratingPool = getRatingPoolForTimeControl(
+          socketTimeControl,
+          "standard",
+        );
+        let whiteRating = null;
+        let blackRating = null;
+        if (ratingPool) {
+          const ratingField = ratingFieldForPool(ratingPool);
+          const [whiteUser, blackUser] = await Promise.all([
+            User.findById(whiteUserId)
+              .select(`${ratingField} rating`)
+              .lean(),
+            User.findById(blackUserId)
+              .select(`${ratingField} rating`)
+              .lean(),
+          ]);
+          whiteRating = getRatingFromUserDoc(whiteUser, ratingField);
+          blackRating = getRatingFromUserDoc(blackUser, ratingField);
+        }
         const created = createRealtimeGameRoom({
           gameId,
           whiteSocket,
           blackSocket,
-          timeControl: tournamentTimeControlToSocketTimeControl(
-            tournament.timeControl,
-          ),
+          timeControl: socketTimeControl,
           variant: "standard",
           isRated: true,
+          whiteRating,
+          blackRating,
           tournamentId: normalizeId(tournamentGame.tournamentId),
           tournamentGameId: normalizeId(tournamentGame._id),
         });
@@ -1822,18 +2093,24 @@ io.on("connection", (socket) => {
     const normalizedVariant =
       requestedVariant === "fourPlayer" ? "standard" : requestedVariant;
     const queueKey = getQueueKey(normalizedTimeControl, normalizedVariant);
-    const pool = getRatingPoolForTimeControl(normalizedTimeControl);
-    const ratingField = ratingFieldForPool(pool);
+    const pool = getRatingPoolForTimeControl(
+      normalizedTimeControl,
+      normalizedVariant,
+    );
+    const ratingField = pool ? ratingFieldForPool(pool) : null;
 
     let seekerRating = 1200;
     const seekerUserId = normalizeId(socket.data.userId);
     if (seekerUserId) {
       try {
+        const selectFields = ratingField ? `${ratingField} rating` : "rating";
         const seekerUser = await User.findById(seekerUserId)
-          .select(`${ratingField} rating`)
+          .select(selectFields)
           .lean();
         const parsedRating = Number(
-          seekerUser?.[ratingField] ?? seekerUser?.rating ?? 1200,
+          (ratingField ? seekerUser?.[ratingField] : undefined) ??
+            seekerUser?.rating ??
+            1200,
         );
         if (Number.isFinite(parsedRating)) {
           seekerRating = parsedRating;
@@ -1846,7 +2123,7 @@ io.on("connection", (socket) => {
     removeFromQueues(socket.id);
     socket.data.inQueue = true;
     socket.data.queueKey = queueKey;
-    socket.data.queuePool = pool;
+    socket.data.queuePool = pool || null;
     socket.data.queueRating = seekerRating;
     syncUserPresenceFromSockets(seekerUserId);
 
@@ -1857,6 +2134,7 @@ io.on("connection", (socket) => {
 
     let bestIndex = -1;
     let bestRatingDiff = Infinity;
+    let selectedOpponentRating = null;
     for (let i = 0; i < queue.length; i += 1) {
       const candidateEntry = queue[i];
       if (!candidateEntry || candidateEntry.socketId === socket.id) continue;
@@ -1886,6 +2164,7 @@ io.on("connection", (socket) => {
       const [selected] = queue.splice(bestIndex, 1);
       waitingQueues.set(queueKey, queue);
       opponentSocket = io.sockets.sockets.get(selected.socketId);
+      selectedOpponentRating = normalizeLiveRating(selected?.rating);
     }
 
     if (opponentSocket) {
@@ -1920,9 +2199,12 @@ io.on("connection", (socket) => {
         },
         timeControl: normalizedTimeControl,
         variant: normalizedVariant,
+        whiteCheckCount: 0,
+        blackCheckCount: 0,
         chess960: initialPosition.chess960,
         isRated: true,
       });
+      scheduleFirstMoveAbortTimer(gameId);
 
       socket.data.gameId = gameId;
       opponentSocket.data.gameId = gameId;
@@ -1932,14 +2214,24 @@ io.on("connection", (socket) => {
 
       socket.join(room);
       opponentSocket.join(room);
+      const ratedForDisplay = !!pool;
+      const seekerLiveRating = normalizeLiveRating(seekerRating);
+      const opponentLiveRating = normalizeLiveRating(
+        selectedOpponentRating ?? opponentSocket?.data?.queueRating,
+      );
 
       io.to(socket.id).emit("matchFound", {
         gameId,
         color: socket.id === white ? "w" : "b",
         fen: chess.fen(),
         opponentName: opponentSocket.data.name || "Opponent",
+        rated: ratedForDisplay,
+        playerRating: seekerLiveRating,
+        opponentRating: opponentLiveRating,
         timeControl: normalizedTimeControl,
         variant: normalizedVariant,
+        whiteCheckCount: 0,
+        blackCheckCount: 0,
       });
 
       io.to(opponentSocket.id).emit("matchFound", {
@@ -1947,8 +2239,13 @@ io.on("connection", (socket) => {
         color: opponentSocket.id === white ? "w" : "b",
         fen: chess.fen(),
         opponentName: socket.data.name || "Opponent",
+        rated: ratedForDisplay,
+        playerRating: opponentLiveRating,
+        opponentRating: seekerLiveRating,
         timeControl: normalizedTimeControl,
         variant: normalizedVariant,
+        whiteCheckCount: 0,
+        blackCheckCount: 0,
       });
     } else {
       if (!queue.some((entry) => entry.socketId === socket.id)) {
@@ -2223,7 +2520,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("respondFriendChallenge", (payload = {}, ack) => {
+  socket.on("respondFriendChallenge", async (payload = {}, ack) => {
     try {
       const userId = normalizeId(socket.data.userId);
       const challengeId = String(payload.challengeId || "");
@@ -2314,6 +2611,30 @@ io.on("connection", (socket) => {
           ? new Chess()
           : new Chess(initialPosition.fen);
       const normalizedTimeControl = normalizeTimeControl(challenge.timeControl);
+      const ratingPool = getRatingPoolForTimeControl(
+        normalizedTimeControl,
+        normalizedVariant,
+      );
+      const ratedForDisplay = challenge.rated === true && !!ratingPool;
+      let challengerRating = null;
+      let receiverRating = null;
+      if (ratedForDisplay && ratingPool) {
+        try {
+          const ratingField = ratingFieldForPool(ratingPool);
+          const [challengerUser, receiverUser] = await Promise.all([
+            User.findById(challenge.fromUserId)
+              .select(`${ratingField} rating`)
+              .lean(),
+            User.findById(challenge.toUserId)
+              .select(`${ratingField} rating`)
+              .lean(),
+          ]);
+          challengerRating = getRatingFromUserDoc(challengerUser, ratingField);
+          receiverRating = getRatingFromUserDoc(receiverUser, ratingField);
+        } catch (error) {
+          console.error("respondFriendChallenge rating lookup error:", error);
+        }
+      }
 
       let whiteSocketId = challengerSocket.id;
       let blackSocketId = receiverSocket.id;
@@ -2341,9 +2662,12 @@ io.on("connection", (socket) => {
         },
         timeControl: normalizedTimeControl,
         variant: normalizedVariant,
+        whiteCheckCount: 0,
+        blackCheckCount: 0,
         chess960: initialPosition.chess960,
         isRated: challenge.rated === true,
       });
+      scheduleFirstMoveAbortTimer(gameId);
 
       challengerSocket.data.gameId = gameId;
       receiverSocket.data.gameId = gameId;
@@ -2365,7 +2689,11 @@ io.on("connection", (socket) => {
         timeControl: normalizedTimeControl,
         gameType: challenge.gameType,
         variant: normalizedVariant,
-        rated: challenge.rated,
+        whiteCheckCount: 0,
+        blackCheckCount: 0,
+        rated: ratedForDisplay,
+        playerRating: challengerRating,
+        opponentRating: receiverRating,
       };
 
       const receiverPayload = {
@@ -2379,13 +2707,22 @@ io.on("connection", (socket) => {
         timeControl: normalizedTimeControl,
         gameType: challenge.gameType,
         variant: normalizedVariant,
-        rated: challenge.rated,
+        whiteCheckCount: 0,
+        blackCheckCount: 0,
+        rated: ratedForDisplay,
+        playerRating: receiverRating,
+        opponentRating: challengerRating,
       };
 
       io.to(challengerSocket.id).emit("friendGameStarted", challengerPayload);
       io.to(receiverSocket.id).emit("friendGameStarted", receiverPayload);
 
-      safeAck(ack, { success: true, status: "accepted", gameId });
+      safeAck(ack, {
+        success: true,
+        status: "accepted",
+        gameId,
+        game: receiverPayload,
+      });
     } catch (error) {
       console.error("respondFriendChallenge error:", error);
       safeAck(ack, { success: false, error: "Failed to process challenge." });
@@ -2417,6 +2754,7 @@ io.on("connection", (socket) => {
     if (chess.turn() !== moverColor) {
       return socket.emit("moveRejected", { reason: "Not your turn" });
     }
+    const pliesBeforeMove = gamePlies(game);
 
     const castlingResult = tryHandleChess960Castling(game, moverColor, from, to);
     if (castlingResult.handled) {
@@ -2427,6 +2765,11 @@ io.on("connection", (socket) => {
       }
 
       const nextChess = castlingResult.game.chess;
+      if (pliesBeforeMove === 0) {
+        game.firstMoveAt = Date.now();
+        clearFirstMoveAbortTimer(game);
+      }
+      const threeCheckResult = applyThreeCheckAfterMove(game, moverColor);
       io.to(room).emit("moveApplied", {
         gameId,
         move: castlingResult.move,
@@ -2437,9 +2780,13 @@ io.on("connection", (socket) => {
         isCheckmate: isCheckmate(nextChess),
         isDraw: isDraw(nextChess),
         isStalemate: isStalemate(nextChess),
+        ...getThreeCheckPayload(game),
+        checkAwarded: threeCheckResult.checkAwarded,
       });
 
-      if (isCheckmate(nextChess)) {
+      if (threeCheckResult.isThreeCheckWin) {
+        emitGameOver(gameId, "three_check", moverColor);
+      } else if (isCheckmate(nextChess)) {
         const winner = nextChess.turn() === "w" ? "b" : "w";
         emitGameOver(gameId, "checkmate", winner);
       } else if (
@@ -2463,7 +2810,13 @@ io.on("connection", (socket) => {
       return socket.emit("moveRejected", { reason: "Illegal move" });
     }
 
+    if (pliesBeforeMove === 0) {
+      game.firstMoveAt = Date.now();
+      clearFirstMoveAbortTimer(game);
+    }
+
     updateChess960RightsForNormalMove(game, move, moverColor);
+    const threeCheckResult = applyThreeCheckAfterMove(game, moverColor);
 
     io.to(room).emit("moveApplied", {
       gameId,
@@ -2474,9 +2827,13 @@ io.on("connection", (socket) => {
       isCheckmate: isCheckmate(chess),
       isDraw: isDraw(chess),
       isStalemate: isStalemate(chess),
+      ...getThreeCheckPayload(game),
+      checkAwarded: threeCheckResult.checkAwarded,
     });
 
-    if (isCheckmate(chess)) {
+    if (threeCheckResult.isThreeCheckWin) {
+      emitGameOver(gameId, "three_check", moverColor);
+    } else if (isCheckmate(chess)) {
       const winner = chess.turn() === "w" ? "b" : "w";
       emitGameOver(gameId, "checkmate", winner);
     } else if (
@@ -2579,7 +2936,6 @@ async function bootstrapServer() {
   server.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`🌐 Allowed origins: ${allowedOrigins.join(", ")}`);
-    console.log(`🔓 Allow Vercel previews: ${allowVercelPreviews}`);
   });
 }
 

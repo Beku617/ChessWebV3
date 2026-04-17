@@ -115,6 +115,7 @@ export function useGameHistorySaver(
       endTime: formatTime(now),
       whiteElo: playerInfo.whiteElo,
       blackElo: playerInfo.blackElo,
+      rated: false,
       timezone: "UTC",
       eco: ecoCode,
       ecoUrl,

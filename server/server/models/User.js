@@ -5,28 +5,55 @@ const UserSchema = new mongoose.Schema(
     fullName: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
+    googleId: { type: String, default: "", index: true },
+    facebookId: { type: String, default: "", index: true },
+    authProvider: {
+      type: String,
+      enum: ["local", "google", "facebook"],
+      default: "local",
+    },
     avatar: { type: String, default: "" },
     rating: { type: Number, default: 1200 },
     bulletRating: { type: Number, default: 1200 },
     blitzRating: { type: Number, default: 1200 },
     rapidRating: { type: Number, default: 1200 },
     classicalRating: { type: Number, default: 1200 },
+    chess960BulletRating: { type: Number, default: 1200 },
+    chess960BlitzRating: { type: Number, default: 1200 },
+    chess960RapidRating: { type: Number, default: 1200 },
+    chess960ClassicalRating: { type: Number, default: 1200 },
     bulletRd: { type: Number, default: 350 },
     blitzRd: { type: Number, default: 350 },
     rapidRd: { type: Number, default: 350 },
     classicalRd: { type: Number, default: 350 },
+    chess960BulletRd: { type: Number, default: 350 },
+    chess960BlitzRd: { type: Number, default: 350 },
+    chess960RapidRd: { type: Number, default: 350 },
+    chess960ClassicalRd: { type: Number, default: 350 },
     bulletVolatility: { type: Number, default: 0.06 },
     blitzVolatility: { type: Number, default: 0.06 },
     rapidVolatility: { type: Number, default: 0.06 },
     classicalVolatility: { type: Number, default: 0.06 },
+    chess960BulletVolatility: { type: Number, default: 0.06 },
+    chess960BlitzVolatility: { type: Number, default: 0.06 },
+    chess960RapidVolatility: { type: Number, default: 0.06 },
+    chess960ClassicalVolatility: { type: Number, default: 0.06 },
     bulletLastRatedAt: { type: Date, default: null },
     blitzLastRatedAt: { type: Date, default: null },
     rapidLastRatedAt: { type: Date, default: null },
     classicalLastRatedAt: { type: Date, default: null },
+    chess960BulletLastRatedAt: { type: Date, default: null },
+    chess960BlitzLastRatedAt: { type: Date, default: null },
+    chess960RapidLastRatedAt: { type: Date, default: null },
+    chess960ClassicalLastRatedAt: { type: Date, default: null },
     bulletGames: { type: Number, default: 0 },
     blitzGames: { type: Number, default: 0 },
     rapidGames: { type: Number, default: 0 },
     classicalGames: { type: Number, default: 0 },
+    chess960BulletGames: { type: Number, default: 0 },
+    chess960BlitzGames: { type: Number, default: 0 },
+    chess960RapidGames: { type: Number, default: 0 },
+    chess960ClassicalGames: { type: Number, default: 0 },
     gamesPlayed: { type: Number, default: 0 },
     gamesWon: { type: Number, default: 0 },
     puzzleElo: { type: Number, default: 1200 },
@@ -87,6 +114,10 @@ UserSchema.index({ bulletRating: -1 });
 UserSchema.index({ blitzRating: -1 });
 UserSchema.index({ rapidRating: -1 });
 UserSchema.index({ classicalRating: -1 });
+UserSchema.index({ chess960BulletRating: -1 });
+UserSchema.index({ chess960BlitzRating: -1 });
+UserSchema.index({ chess960RapidRating: -1 });
+UserSchema.index({ chess960ClassicalRating: -1 });
 UserSchema.index({ communityPostingRestrictedForever: 1 });
 UserSchema.index({ communityPostingRestrictedUntil: 1 });
 

@@ -7,6 +7,7 @@ interface ChessTimerProps {
   isActive: boolean;
   onTimeOut: () => void;
   onTimeChange: (time: number) => void;
+  className?: string;
 }
 
 export function ChessTimer({
@@ -15,6 +16,7 @@ export function ChessTimer({
   isActive,
   onTimeOut,
   onTimeChange,
+  className = "",
 }: ChessTimerProps) {
   if (initialTime <= 0) return null;
 
@@ -97,11 +99,11 @@ export function ChessTimer({
 
   return (
     <div
-      className={`min-w-[108px] px-4 py-2.5 rounded-xl font-mono text-lg font-semibold text-white text-center shadow-inner shadow-black/20 flex items-center justify-center transition-colors ${
+      className={`h-12 min-w-[108px] px-3 rounded-xl font-mono text-base sm:text-lg font-semibold text-white text-center shadow-inner shadow-black/20 flex items-center justify-center transition-colors ${
         isLowTime && isActive
           ? "bg-gradient-to-r from-amber-500 to-rose-500 animate-pulse"
           : "bg-gradient-to-r from-brand-500 to-brand-500"
-      }`}
+      } ${className}`}
     >
       {formatTime(timeLeft)}
     </div>

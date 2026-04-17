@@ -32,7 +32,7 @@ export default function Sidebar() {
     location.pathname.startsWith("/play/friend") ||
     location.pathname.startsWith("/play/variants") ||
     location.pathname.startsWith("/play/practice");
-  const sidebarWidthClass = "w-72";
+  const sidebarWidthClass = "w-[60px] md:w-72";
 
   useEffect(() => {
     void loadAllFriends();
@@ -91,14 +91,16 @@ export default function Sidebar() {
     caption: "text-xs",
   } as const;
   const styleGroup = {
-    logoWrapper: isCompact ? "px-5 pt-4 pb-3" : "px-6 pt-5 pb-4",
-    logoHeight: isCompact ? "h-14" : "h-16",
-    navWrapper: isCompact ? "px-3 py-3" : "px-3 py-4",
+    logoWrapper: isCompact
+      ? "px-0 pt-3 pb-2 md:px-5 md:pt-4 md:pb-3"
+      : "px-0 pt-4 pb-3 md:px-6 md:pt-5 md:pb-4",
+    logoHeight: isCompact ? "h-9 md:h-14" : "h-10 md:h-16",
+    navWrapper: isCompact ? "px-1 py-3 md:px-3 md:py-3" : "px-1 py-4 md:px-3 md:py-4",
     navGap: isCompact ? "gap-1" : "gap-1.5",
-    rowPadding: isCompact ? "px-3 py-2" : "px-3.5 py-2.5",
+    rowPadding: isCompact ? "px-2 py-2 md:px-3 md:py-2" : "px-2 py-2 md:px-3.5 md:py-2.5",
     rowIcon: isCompact ? "w-4 h-4" : "w-5 h-5",
-    profileRowPadding: isCompact ? "px-3 py-2" : "px-3 py-2.5",
-    iconButtonPadding: isCompact ? "p-1.5" : "p-2",
+    profileRowPadding: isCompact ? "px-2 py-2 md:px-3 md:py-2" : "px-2 py-2 md:px-3 md:py-2.5",
+    iconButtonPadding: isCompact ? "p-1.5" : "p-1.5 md:p-2",
   } as const;
   const logoSrc = isDarkMode ? "/images/Logo.png" : "/images/LightModeLogo.png";
   const formatCount = (value: number) => (value > 99 ? "99+" : value.toString());
@@ -108,7 +110,7 @@ export default function Sidebar() {
       {/* Logo */}
       <Link
         to="/"
-        className={`flex items-center gap-3 border-b border-gray-200/70 dark:border-gray-800 ${styleGroup.logoWrapper}`}
+        className={`flex items-center justify-center md:justify-start gap-0 md:gap-3 focus:outline-none focus-visible:outline-none ${styleGroup.logoWrapper}`}
       >
         <img
           src={logoSrc}
@@ -116,7 +118,7 @@ export default function Sidebar() {
           className={`object-contain ${styleGroup.logoHeight}`}
         />
         <span
-          className={`text-gray-900 dark:text-white font-bold tracking-tight ${
+          className={`hidden md:inline text-gray-900 dark:text-white font-bold tracking-tight ${
             isCompact ? "text-xl" : "text-2xl"
           }`}
         >
@@ -131,7 +133,7 @@ export default function Sidebar() {
             <Link
               key={item.path}
               to={item.path}
-              className={`flex items-center gap-2.5 min-h-[44px] ${styleGroup.rowPadding} rounded-xl border border-transparent transition-all duration-200 group ${
+              className={`flex items-center justify-center md:justify-start gap-0 md:gap-2.5 min-h-[44px] ${styleGroup.rowPadding} rounded-xl border border-transparent transition-all duration-200 group ${
                 isActive(item.path)
                   ? "bg-brand-500/14 border-brand-400/35 text-brand-700 dark:text-brand-300 shadow-[0_8px_18px_rgba(20,184,166,0.16)]"
                   : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/80 hover:text-gray-900 dark:hover:text-white"
@@ -145,7 +147,7 @@ export default function Sidebar() {
                 }`}
               />
               <span
-                className={`font-medium leading-none ${fontSizeGroup.primary}`}
+                className={`hidden md:inline font-medium leading-none ${fontSizeGroup.primary}`}
               >
                 {item.label}
               </span>
@@ -156,15 +158,15 @@ export default function Sidebar() {
 
       {/* Bottom Section */}
       <div
-        className={`border-t border-gray-200/70 dark:border-gray-800/90 flex flex-col ${isCompact ? "px-3 py-3 gap-1" : "px-3 py-4 gap-1.5"}`}
+        className={`border-t border-gray-200/70 dark:border-gray-800/90 flex flex-col ${isCompact ? "px-1 py-3 gap-1 md:px-3" : "px-1 py-4 gap-1.5 md:px-3"}`}
       >
         {/* User Profile & Quick Actions */}
         <div className={`${isCompact ? "pt-1" : "pt-1.5"}`}>
-          <div className="flex items-center gap-1.5 w-full">
+          <div className="flex flex-col md:flex-row items-center gap-1.5 w-full">
             {/* Click avatar/name to go to Profile */}
             <Link
               to="/profile"
-              className={`flex-1 min-w-0 flex items-center gap-2.5 rounded-xl border border-transparent transition-colors cursor-pointer group ${styleGroup.profileRowPadding} ${
+              className={`w-full md:flex-1 min-w-0 flex items-center justify-center md:justify-start gap-2.5 rounded-xl border border-transparent transition-colors cursor-pointer group ${styleGroup.profileRowPadding} ${
                 isActive("/profile")
                   ? "bg-brand-500/10 border-brand-400/25"
                   : "hover:bg-gray-100 dark:hover:bg-gray-800"
@@ -190,78 +192,75 @@ export default function Sidebar() {
                   </span>
                 )}
               </div>
-              <div className="flex-1 min-w-0">
+              <div className="hidden md:block flex-1 min-w-0">
                 <div
                   className={`font-medium text-gray-900 dark:text-white truncate ${fontSizeGroup.secondary}`}
                 >
                   {user?.fullName || t("common.user", "User")}
                 </div>
-                <div
-                  className={`text-gray-500 truncate ${fontSizeGroup.caption}`}
-                >
-                  {t("nav.viewProfile", "View Profile")}
-                </div>
               </div>
             </Link>
 
-            {/* Messages Icon Button */}
-            <Link
-              to="/messages"
-              className={`relative inline-flex items-center justify-center flex-shrink-0 rounded-lg transition-colors ${
-                isActive("/messages")
-                  ? "bg-brand-500/10 text-brand-600 dark:text-brand-300"
-                  : "text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300"
-              } ${styleGroup.iconButtonPadding}`}
-              title={t("nav.messages", "Messages")}
-            >
-              <MessageSquare className={styleGroup.rowIcon} />
-              {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[18px] h-5 px-1.5 rounded-full bg-cyan-500 text-[10px] font-bold text-white leading-none flex items-center justify-center shadow-[0_0_0_1px_rgba(0,0,0,0.35)]">
-                  {formatCount(unreadCount)}
-                </span>
-              )}
-            </Link>
+            <div className="flex flex-col md:flex-row items-center gap-1.5">
+              {/* Messages Icon Button */}
+              <Link
+                to="/messages"
+                className={`relative inline-flex items-center justify-center flex-shrink-0 rounded-lg transition-colors ${
+                  isActive("/messages")
+                    ? "bg-brand-500/10 text-brand-600 dark:text-brand-300"
+                    : "text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300"
+                } ${styleGroup.iconButtonPadding}`}
+                title={t("nav.messages", "Messages")}
+              >
+                <MessageSquare className={styleGroup.rowIcon} />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-5 px-1.5 rounded-full bg-cyan-500 text-[10px] font-bold text-white leading-none flex items-center justify-center shadow-[0_0_0_1px_rgba(0,0,0,0.35)]">
+                    {formatCount(unreadCount)}
+                  </span>
+                )}
+              </Link>
 
-            {/* Friends Icon Button */}
-            <Link
-              to="/friends"
-              className={`relative inline-flex items-center justify-center flex-shrink-0 rounded-lg transition-colors ${
-                isActive("/friends")
-                  ? "bg-brand-500/10 text-brand-600 dark:text-brand-300"
-                  : "text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300"
-              } ${styleGroup.iconButtonPadding}`}
-              title={t("nav.friends", "Friends")}
-            >
-              <Users className={styleGroup.rowIcon} />
-              {pendingIncomingCount > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[18px] h-5 px-1.5 rounded-full bg-brand-500 text-[10px] font-bold text-white leading-none flex items-center justify-center shadow-[0_0_0_1px_rgba(0,0,0,0.35)]">
-                  {formatCount(pendingIncomingCount)}
-                </span>
-              )}
-            </Link>
+              {/* Friends Icon Button */}
+              <Link
+                to="/friends"
+                className={`relative inline-flex items-center justify-center flex-shrink-0 rounded-lg transition-colors ${
+                  isActive("/friends")
+                    ? "bg-brand-500/10 text-brand-600 dark:text-brand-300"
+                    : "text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300"
+                } ${styleGroup.iconButtonPadding}`}
+                title={t("nav.friends", "Friends")}
+              >
+                <Users className={styleGroup.rowIcon} />
+                {pendingIncomingCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-5 px-1.5 rounded-full bg-brand-500 text-[10px] font-bold text-white leading-none flex items-center justify-center shadow-[0_0_0_1px_rgba(0,0,0,0.35)]">
+                    {formatCount(pendingIncomingCount)}
+                  </span>
+                )}
+              </Link>
 
-            {/* Settings Icon Button */}
-            <Link
-              to="/settings"
-              className={`flex-shrink-0 rounded-lg transition-colors ${
-                isActive("/settings")
-                  ? "bg-brand-500/10 text-brand-600 dark:text-brand-300"
-                  : "text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300"
-              } ${styleGroup.iconButtonPadding}`}
-              title={t("nav.settings", "Settings")}
-            >
-              <Settings className={styleGroup.rowIcon} />
-            </Link>
+              {/* Settings Icon Button */}
+              <Link
+                to="/settings"
+                className={`flex-shrink-0 rounded-lg transition-colors ${
+                  isActive("/settings")
+                    ? "bg-brand-500/10 text-brand-600 dark:text-brand-300"
+                    : "text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300"
+                } ${styleGroup.iconButtonPadding}`}
+                title={t("nav.settings", "Settings")}
+              >
+                <Settings className={styleGroup.rowIcon} />
+              </Link>
+            </div>
           </div>
         </div>
 
         {/* Logout */}
         <button
           onClick={handleLogout}
-          className={`w-full flex items-center gap-3 min-h-[44px] ${styleGroup.rowPadding} rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors`}
+          className={`w-full flex items-center justify-center md:justify-start gap-0 md:gap-3 min-h-[44px] ${styleGroup.rowPadding} rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors`}
         >
           <LogOut className={styleGroup.rowIcon} />
-          <span className={`font-medium leading-none ${fontSizeGroup.primary}`}>
+          <span className={`hidden md:inline font-medium leading-none ${fontSizeGroup.primary}`}>
             {t("nav.logout", "Log Out")}
           </span>
         </button>

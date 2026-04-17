@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import { History } from "../models/index.js";
+import { MIN_REAL_GAME_PLIES } from "../utils/gameLifecyclePolicy.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -10,7 +11,7 @@ const __dirname = dirname(__filename);
 dotenv.config({ path: join(__dirname, "..", "..", ".env") });
 
 const MONGODB_URL = process.env.MONGODB_URL;
-const MIN_STORED_MOVES = 3;
+const MIN_STORED_MOVES = MIN_REAL_GAME_PLIES;
 
 if (!MONGODB_URL) {
   console.error("MONGODB_URL is not defined in .env");

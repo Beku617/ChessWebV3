@@ -244,6 +244,9 @@ export function useOnlineFourPlayerMatch() {
       const socket = socketRef.current;
       if (!socket) return;
 
+      // Clear stale board/modal state before any new search attempt.
+      resetLocalState();
+
       if (!socket.connected) {
         setQueueStatus("Matchmaking server is offline.");
         setIsSearching(false);
@@ -251,7 +254,6 @@ export function useOnlineFourPlayerMatch() {
       }
 
       playerNameRef.current = name || "Player";
-      resetLocalState();
       setTimeControl(nextTimeControl);
       setIsSearching(true);
       setQueueStatus("Searching players... 1/4");

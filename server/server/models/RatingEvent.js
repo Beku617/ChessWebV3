@@ -15,7 +15,16 @@ const RatingEventSchema = new mongoose.Schema(
     },
     pool: {
       type: String,
-      enum: ["bullet", "blitz", "rapid", "classical"],
+      enum: [
+        "bullet",
+        "blitz",
+        "rapid",
+        "classical",
+        "chess960Bullet",
+        "chess960Blitz",
+        "chess960Rapid",
+        "chess960Classical",
+      ],
       required: true,
       index: true,
     },
@@ -28,7 +37,14 @@ const RatingEventSchema = new mongoose.Schema(
     },
     reason: {
       type: String,
-      enum: ["checkmate", "draw", "resign", "timeout", "opponent_left"],
+      enum: [
+        "checkmate",
+        "draw",
+        "resign",
+        "timeout",
+        "opponent_left",
+        "three_check",
+      ],
       required: true,
     },
     ratingBefore: { type: Number, required: true },

@@ -1,6 +1,6 @@
 import type { NavigateFunction } from "react-router-dom";
 
-type SupportedVariant = "standard" | "chess960";
+type SupportedVariant = "standard" | "chess960" | "threeCheck";
 
 export type GameOverMode = "bot" | "quick" | "friend" | "local";
 
@@ -23,7 +23,16 @@ interface ResolvedNewGameRoute {
 
 function normalizeVariant(variant?: string | null): SupportedVariant {
   if (typeof variant !== "string") return "standard";
-  return variant.trim().toLowerCase() === "chess960" ? "chess960" : "standard";
+  const normalized = variant.trim().toLowerCase();
+  if (normalized === "chess960") return "chess960";
+  if (
+    normalized === "threecheck" ||
+    normalized === "three-check" ||
+    normalized === "three_check"
+  ) {
+    return "threeCheck";
+  }
+  return "standard";
 }
 
 function normalizeTimeControl(
@@ -80,7 +89,7 @@ export function resolveNewGameRoute(input: NewGameRouteInput): ResolvedNewGameRo
     return { pathname: "/play", search: "" };
   }
 
-  if (variant === "chess960") {
+  if (variant !== "standard") {
     const search = buildTimeControlSearch(timeControl, variant);
     return {
       pathname: "/play/variants",
@@ -130,4 +139,3 @@ export function navigateToNewGameRoute(
     search: destination.search,
   });
 }
-

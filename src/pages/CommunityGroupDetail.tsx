@@ -194,7 +194,7 @@ export default function CommunityGroupDetail() {
     <div className="min-h-screen bg-[#060f1d] text-white flex transition-colors duration-300">
       <Sidebar />
 
-      <main className="relative flex-1 ml-72 min-h-screen overflow-x-hidden">
+      <main className="relative flex-1 ml-[60px] md:ml-72 min-h-screen overflow-x-hidden">
         <div className="pointer-events-none absolute inset-x-0 top-0 z-0 h-24 bg-gradient-to-b from-[#060f1d] via-[#060f1d]/96 to-transparent" />
 
         <div className="relative z-10 mx-auto max-w-[1500px] px-6 py-7">

@@ -2,13 +2,15 @@ import { Chess, type Square } from "chess.js";
 import type { OptionSquares } from "./useStockfishGameTypes";
 
 export type PlayerColor = "w" | "b";
-export type MatchVariant = "standard" | "chess960";
+export type MatchVariant = "standard" | "chess960" | "threeCheck";
 export type GameOverReason =
   | "checkmate"
   | "draw"
   | "resign"
   | "timeout"
-  | "opponent_left";
+  | "opponent_left"
+  | "aborted"
+  | "three_check";
 
 export interface MoveAppliedPayload {
   gameId: string;
@@ -19,6 +21,9 @@ export interface MoveAppliedPayload {
   isCheckmate?: boolean;
   isDraw?: boolean;
   isStalemate?: boolean;
+  whiteCheckCount?: number;
+  blackCheckCount?: number;
+  checkAwarded?: PlayerColor | null;
 }
 
 export interface GameOverPayload {
@@ -28,7 +33,15 @@ export interface GameOverPayload {
   elo?: {
     rated: boolean;
     applied: boolean;
-    pool?: "bullet" | "blitz" | "rapid" | "classical";
+    pool?:
+      | "bullet"
+      | "blitz"
+      | "rapid"
+      | "classical"
+      | "chess960Bullet"
+      | "chess960Blitz"
+      | "chess960Rapid"
+      | "chess960Classical";
     skippedReason?: string;
     white?: {
       userId: string;
@@ -93,17 +106,26 @@ export function formatPerspectiveResult(
   playerColor: PlayerColor,
   currentGame: Chess,
 ): string {
+  if (payload.reason === "aborted") {
+    return "Game Aborted";
+  }
+
   if (payload.reason === "draw" || !payload.winner) {
     const drawReason = getDrawReason(currentGame);
     return drawReason ? `Draw (${drawReason})` : "Draw";
   }
 
   const win = payload.winner === playerColor;
+  if (payload.reason === "three_check") {
+    return win ? "Victory by Three Checks!" : "Defeat by Three Checks";
+  }
   const reasonMap: Record<GameOverReason, string> = {
     checkmate: "by checkmate",
     resign: "by resignation",
     timeout: "on time",
     opponent_left: "opponent left",
+    aborted: "game aborted",
+    three_check: "by three checks",
     draw: "",
   };
   const reason = reasonMap[payload.reason];
@@ -161,5 +183,14 @@ export function isChess960CastlingDropForColor(
 
 export function normalizeMatchVariant(value: unknown): MatchVariant {
   if (typeof value !== "string") return "standard";
-  return value.trim().toLowerCase() === "chess960" ? "chess960" : "standard";
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "chess960") return "chess960";
+  if (
+    normalized === "threecheck" ||
+    normalized === "three-check" ||
+    normalized === "three_check"
+  ) {
+    return "threeCheck";
+  }
+  return "standard";
 }

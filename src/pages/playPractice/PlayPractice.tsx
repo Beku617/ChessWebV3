@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ReactElement } from "react";
 import { Chessboard } from "react-chessboard";
 import { useLocation, useNavigate } from "react-router-dom";
+import { PromotionModal } from "../../components/game/PromotionModal";
+import type { PromotionPiece, PromotionState } from "../../components/game";
 import { useBoardTheme } from "../../hooks/useBoardTheme";
 import {
   playChessMoveSound,
@@ -13,16 +15,12 @@ import { BOARD_FRAME } from "../quickMatch/types";
 
 type PracticeModeId =
   | "free-move"
-  | "position-builder"
-  | "engine-sparring"
-  | "endgame-drills"
-  | "pattern-recognition";
+  | "position-builder";
 
 interface PracticeMode {
   id: PracticeModeId;
   title: string;
   desc: string;
-  badge: "Live" | "Soon";
   icon: (color: string) => ReactElement;
 }
 
@@ -55,6 +53,24 @@ type FreeMoveHistoryEntry = {
   promotion?: "q" | "r" | "b" | "n";
   san: string;
   to: Square;
+};
+
+type PracticePromotionMove = {
+  from: Square;
+  to: Square;
+  color: "w" | "b";
+};
+
+type PracticeLegalMove = {
+  to: Square;
+  promotion?: PromotionPiece;
+};
+
+const CLOSED_PROMOTION_STATE: PromotionState = {
+  isOpen: false,
+  from: null,
+  to: null,
+  color: null,
 };
 
 const POSITION_BUILDER_BOARD_PIECES: Record<
@@ -155,7 +171,6 @@ const PRACTICE_MODES: PracticeMode[] = [
     id: "free-move",
     title: "Free Move",
     desc: "Move pieces freely, alternating turns",
-    badge: "Live",
     icon: (color) => (
       <svg
         viewBox="0 0 24 24"
@@ -173,7 +188,6 @@ const PRACTICE_MODES: PracticeMode[] = [
     id: "position-builder",
     title: "Position Builder",
     desc: "Set up any custom position",
-    badge: "Live",
     icon: (color) => (
       <svg
         viewBox="0 0 24 24"
@@ -187,62 +201,6 @@ const PRACTICE_MODES: PracticeMode[] = [
         <rect x="14" y="3" width="7" height="7" rx="1.5" />
         <rect x="3" y="14" width="7" height="7" rx="1.5" />
         <rect x="14" y="14" width="7" height="7" rx="1.5" />
-      </svg>
-    ),
-  },
-  {
-    id: "engine-sparring",
-    title: "Engine Sparring",
-    desc: "Play against the built-in engine",
-    badge: "Soon",
-    icon: (color) => (
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={color}
-        strokeWidth={1.8}
-        width={18}
-        height={18}
-      >
-        <circle cx="12" cy="12" r="3" />
-        <path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12" />
-      </svg>
-    ),
-  },
-  {
-    id: "endgame-drills",
-    title: "Endgame Drills",
-    desc: "Practice common endgame patterns",
-    badge: "Soon",
-    icon: (color) => (
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={color}
-        strokeWidth={1.8}
-        width={18}
-        height={18}
-      >
-        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-      </svg>
-    ),
-  },
-  {
-    id: "pattern-recognition",
-    title: "Pattern Recognition",
-    desc: "Identify the key theme to solve",
-    badge: "Soon",
-    icon: (color) => (
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={color}
-        strokeWidth={1.8}
-        width={18}
-        height={18}
-      >
-        <circle cx="12" cy="12" r="10" />
-        <path d="M12 8v4l3 3" />
       </svg>
     ),
   },
@@ -446,6 +404,8 @@ export default function PlayPractice() {
   const [positionBuilderSelectedPiece, setPositionBuilderSelectedPiece] =
     useState<BuilderPieceId>("wK");
   const [redoStack, setRedoStack] = useState<FreeMoveHistoryEntry[]>([]);
+  const [pendingPromotionMove, setPendingPromotionMove] =
+    useState<PracticePromotionMove | null>(null);
   const [boardWidth, setBoardWidth] = useState(620);
 
   const leftRef = useRef<HTMLDivElement>(null);
@@ -487,11 +447,24 @@ export default function PlayPractice() {
     : "position-builder-board";
   const boardPosition = isFreeMoveActive ? fen : positionBuilderGame.fen();
   const freeMovePanelHeight = boardWidth + 24;
+  const promotionState = useMemo<PromotionState>(
+    () =>
+      pendingPromotionMove
+        ? {
+            isOpen: true,
+            from: pendingPromotionMove.from,
+            to: pendingPromotionMove.to,
+            color: pendingPromotionMove.color,
+          }
+        : CLOSED_PROMOTION_STATE,
+    [pendingPromotionMove],
+  );
 
   const initializeFreeMoveSession = (nextFen: string, notice: string | null) => {
     setFen(nextFen);
     setFreeMoveInitialFen(nextFen);
     setFreeMoveHistory([]);
+    setPendingPromotionMove(null);
     setMoveFrom(null);
     setOptionSquares({});
     setLastMove(null);
@@ -517,6 +490,7 @@ export default function PlayPractice() {
     if (!isFreeMoveActive) {
       wasFreeMoveRef.current = false;
       freeMovePathRef.current = null;
+      setPendingPromotionMove(null);
     }
   }, [isFreeMoveActive]);
 
@@ -623,9 +597,17 @@ export default function PlayPractice() {
     setOptionSquares({});
   };
 
+  const getLegalMovesFromSquare = (game: Chess, square: Square) =>
+    game.moves({ square, verbose: true }) as PracticeLegalMove[];
+
+  const queuePromotionMove = (from: Square, to: Square, color: "w" | "b") => {
+    setPendingPromotionMove({ from, to, color });
+    clearSelection();
+  };
+
   const getMoveOptionsForSquare = (square: Square) => {
     const currentGame = createGameFromFen(fen);
-    const legalMoves = currentGame.moves({ square, verbose: true });
+    const legalMoves = getLegalMovesFromSquare(currentGame, square);
     if (!legalMoves.length) {
       setOptionSquares({});
       return false;
@@ -646,14 +628,14 @@ export default function PlayPractice() {
   const applyFreeMove = (
     sourceSquare: Square,
     targetSquare: Square,
-    options?: { debug?: boolean },
+    options?: { debug?: boolean; promotion?: PromotionPiece },
   ) => {
     try {
       const game = createGameFromFen(fen);
       const move = game.move({
         from: sourceSquare,
         to: targetSquare,
-        promotion: "q",
+        promotion: options?.promotion ?? "q",
       });
       const isGameOver = hasGameOverMethod(game);
 
@@ -700,8 +682,16 @@ export default function PlayPractice() {
     }
   };
 
+  const handlePromotionPieceSelect = (piece: PromotionPiece) => {
+    const pendingMove = pendingPromotionMove;
+    if (!pendingMove) return;
+    setPendingPromotionMove(null);
+    applyFreeMove(pendingMove.from, pendingMove.to, { promotion: piece });
+  };
+
   const handleSquareClick = (squareName: string) => {
     if (!isFreeMoveActive) return;
+    if (pendingPromotionMove) return;
     if (suppressNextSquareClickRef.current) {
       suppressNextSquareClickRef.current = false;
       return;
@@ -731,13 +721,20 @@ export default function PlayPractice() {
       return;
     }
 
-    const isLegalTarget = currentGame
-      .moves({ square: moveFrom, verbose: true })
-      .some((move) => move.to === square);
+    const legalMovesFromSource = getLegalMovesFromSquare(currentGame, moveFrom);
+    const targetMoves = legalMovesFromSource.filter((move) => move.to === square);
+    const isLegalTarget = targetMoves.length > 0;
 
     if (!isLegalTarget) {
       playGameplaySound("illegal");
       setPanelNotice("Choose one of the highlighted legal moves.");
+      return;
+    }
+
+    if (targetMoves.some((move) => Boolean(move.promotion))) {
+      const sourcePiece = currentGame.get(moveFrom);
+      if (!sourcePiece) return;
+      queuePromotionMove(moveFrom, square, sourcePiece.color);
       return;
     }
 
@@ -746,6 +743,25 @@ export default function PlayPractice() {
 
   const handleFreeMovePieceDrop = (sourceSquare: string, targetSquare: string) => {
     if (!isFreeMoveActive || sourceSquare === targetSquare) return false;
+    if (pendingPromotionMove) return false;
+    const currentGame = createGameFromFen(fen);
+    const source = sourceSquare as Square;
+    const target = targetSquare as Square;
+    const sourcePiece = currentGame.get(source);
+    if (!sourcePiece) return false;
+
+    const legalMovesFromSource = getLegalMovesFromSquare(currentGame, source);
+    const targetMoves = legalMovesFromSource.filter((move) => move.to === target);
+    if (!targetMoves.length) {
+      playGameplaySound("illegal");
+      return false;
+    }
+
+    if (targetMoves.some((move) => Boolean(move.promotion))) {
+      queuePromotionMove(source, target, sourcePiece.color);
+      return false;
+    }
+
     const moved = applyFreeMove(sourceSquare as Square, targetSquare as Square, {
       debug: true,
     });
@@ -1081,6 +1097,7 @@ export default function PlayPractice() {
   };
 
   const handleReset = () => {
+    setPendingPromotionMove(null);
     setFen(freeMoveInitialFen);
     setFreeMoveHistory([]);
     setLastMove(null);
@@ -1150,20 +1167,31 @@ export default function PlayPractice() {
                 boardWidth={boardWidth}
                 position={boardPosition}
                 boardOrientation={boardOrientation}
-                arePiecesDraggable={isFreeMoveActive || isPositionBuilderActive}
+                arePiecesDraggable={
+                  isPositionBuilderActive ||
+                  (isFreeMoveActive && !promotionState.isOpen)
+                }
+                showPromotionDialog={false}
+                promotionToSquare={null}
+                onPromotionCheck={() => false}
                 onSquareClick={(squareName) => {
+                  if (promotionState.isOpen) return;
                   if (isPositionBuilderActive) {
                     handlePositionBuilderSquareClick(squareName);
                     return;
                   }
                   handleSquareClick(squareName);
                 }}
-                onSquareRightClick={() => clearSelection()}
-                onPieceDrop={(sourceSquare, targetSquare) =>
-                  isPositionBuilderActive
+                onSquareRightClick={() => {
+                  if (promotionState.isOpen) return;
+                  clearSelection();
+                }}
+                onPieceDrop={(sourceSquare, targetSquare) => {
+                  if (promotionState.isOpen) return false;
+                  return isPositionBuilderActive
                     ? handlePositionBuilderPieceDrop(sourceSquare, targetSquare)
-                    : handleFreeMovePieceDrop(sourceSquare, targetSquare)
-                }
+                    : handleFreeMovePieceDrop(sourceSquare, targetSquare);
+                }}
                 isDraggablePiece={({
                   sourceSquare,
                   piece,
@@ -1173,6 +1201,7 @@ export default function PlayPractice() {
                 }) => {
                   if (isPositionBuilderActive) return true;
                   if (!isFreeMoveActive) return false;
+                  if (promotionState.isOpen) return false;
                   const currentGame = createGameFromFen(fen);
                   const turn = currentGame.turn();
                   if (typeof piece === "string" && piece.length > 0) {
@@ -1196,6 +1225,10 @@ export default function PlayPractice() {
                   borderRadius: "8px",
                   boxShadow: "0 8px 24px rgba(2, 6, 23, 0.45)",
                 }}
+              />
+              <PromotionModal
+                state={promotionState}
+                onSelect={handlePromotionPieceSelect}
               />
             </div>
           </div>
@@ -2429,26 +2462,6 @@ export default function PlayPractice() {
                               {mode.desc}
                             </p>
                           </div>
-                          <span
-                            style={{
-                              fontSize: 10,
-                              fontWeight: 600,
-                              padding: "2px 7px",
-                              borderRadius: 20,
-                              flexShrink: 0,
-                              ...(mode.badge === "Live"
-                                ? {
-                                    background: "rgba(34,197,94,0.15)",
-                                    color: "#4ade80",
-                                  }
-                                : {
-                                    background: "rgba(255,255,255,0.06)",
-                                    color: "#94a3b8",
-                                  }),
-                            }}
-                          >
-                            {mode.badge}
-                          </span>
                         </button>
                       );
                     })}
@@ -2537,6 +2550,7 @@ export default function PlayPractice() {
             padding: 16,
             background: "rgba(2, 6, 23, 0.72)",
             backdropFilter: "blur(2px)",
+            pointerEvents: "none",
           }}
         >
           <div
@@ -2548,6 +2562,7 @@ export default function PlayPractice() {
               border: "1px solid #1e2d45",
               boxShadow: "0 20px 56px -20px rgba(2,6,23,0.9)",
               overflow: "hidden",
+              pointerEvents: "auto",
             }}
           >
             <div

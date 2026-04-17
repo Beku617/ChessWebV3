@@ -1,4 +1,5 @@
 import { Trophy, Swords } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export function NoGamesPlaceholder() {
   return (
@@ -13,13 +14,13 @@ export function NoGamesPlaceholder() {
       <p className="text-gray-500 dark:text-gray-400 mb-6">
         Play your first game to start tracking your progress!
       </p>
-      <a
-        href="/play"
+      <Link
+        to="/play"
         className="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-500 text-white px-6 py-3 rounded-xl font-bold transition-colors shadow-lg shadow-brand-500/25"
       >
         <Swords size={18} />
         Play Now
-      </a>
+      </Link>
     </div>
   );
 }

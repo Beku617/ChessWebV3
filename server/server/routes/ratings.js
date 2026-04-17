@@ -4,13 +4,31 @@ import { RatingEvent, User } from "../models/index.js";
 import { gamesFieldForPool, ratingFieldForPool } from "../utils/elo.js";
 
 const router = Router();
-const VALID_POOLS = new Set(["bullet", "blitz", "rapid", "classical"]);
+const VALID_POOLS = new Set([
+  "bullet",
+  "blitz",
+  "rapid",
+  "classical",
+  "chess960bullet",
+  "chess960blitz",
+  "chess960rapid",
+  "chess960classical",
+]);
+
+function canonicalPoolName(pool) {
+  if (pool === "chess960bullet") return "chess960Bullet";
+  if (pool === "chess960blitz") return "chess960Blitz";
+  if (pool === "chess960rapid") return "chess960Rapid";
+  if (pool === "chess960classical") return "chess960Classical";
+  return pool;
+}
 
 function normalizePool(value) {
   const pool = String(value || "blitz")
     .trim()
     .toLowerCase();
-  return VALID_POOLS.has(pool) ? pool : null;
+  if (!VALID_POOLS.has(pool)) return null;
+  return canonicalPoolName(pool);
 }
 
 function parseRangeStart(rangeRaw) {

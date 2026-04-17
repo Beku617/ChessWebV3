@@ -14,6 +14,7 @@ export function GameSummary({
   moveQualities,
   cpSeries,
   opening,
+  activePlayerSide,
   onBack,
 }: {
   game: GameHistory;
@@ -22,6 +23,7 @@ export function GameSummary({
   moveQualities: MoveQualityInfo[];
   cpSeries: Array<{ cp?: number; mate?: number } | undefined>;
   opening?: OpeningMatch | null;
+  activePlayerSide?: "white" | "black" | null;
   onBack?: () => void;
 }) {
   const openingLabel = opening
@@ -29,6 +31,18 @@ export function GameSummary({
       ? `${opening.name}: ${opening.variation}`
       : opening.name
     : null;
+  const whiteHighlight =
+    activePlayerSide === "white"
+      ? true
+      : activePlayerSide === "black"
+        ? false
+        : accuracy.white !== null && accuracy.white >= (accuracy.black || 0);
+  const blackHighlight =
+    activePlayerSide === "black"
+      ? true
+      : activePlayerSide === "white"
+        ? false
+        : accuracy.black !== null && accuracy.black > (accuracy.white || 0);
 
   return (
     <div className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl p-3 shadow-sm space-y-3 h-full min-h-0 overflow-y-auto no-scrollbar">
@@ -75,16 +89,12 @@ export function GameSummary({
         <AccuracyBadge
           name={game.white}
           accuracy={accuracy.white}
-          highlight={
-            accuracy.white !== null && accuracy.white >= (accuracy.black || 0)
-          }
+          highlight={whiteHighlight}
         />
         <AccuracyBadge
           name={game.black}
           accuracy={accuracy.black}
-          highlight={
-            accuracy.black !== null && accuracy.black > (accuracy.white || 0)
-          }
+          highlight={blackHighlight}
         />
       </div>
 

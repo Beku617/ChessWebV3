@@ -31,7 +31,7 @@ export default function Watch() {
     <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-950 text-gray-900 dark:text-white flex transition-colors duration-300">
       <Sidebar />
 
-      <main className="flex-1 ml-72 p-8">
+      <main className="flex-1 ml-[60px] md:ml-72 p-8">
         {/* Header */}
         <header className="flex justify-between items-center mb-8">
           <div>

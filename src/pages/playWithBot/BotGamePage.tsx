@@ -145,6 +145,7 @@ export default function BotGamePage() {
     if (bot && !gameStarted) {
       const settings: GameSettings = {
         ...defaultGameSettings,
+        timeControl: { initial: 0, increment: 0 },
         playAs: "white",
         difficulty: bot.skillLevel,
         selectedBot: bot,
@@ -202,7 +203,7 @@ export default function BotGamePage() {
       <Sidebar />
 
       {/* Main Content */}
-      <div className="flex flex-col ml-72 h-screen overflow-hidden">
+      <div className="flex flex-col ml-[60px] md:ml-72 h-screen overflow-hidden">
         <main className="flex-1 flex flex-col overflow-hidden">
           <div
             ref={containerRef}
@@ -215,6 +216,7 @@ export default function BotGamePage() {
                 onTryAgain={handleRematch}
                 onNewGame={handleNewGameFromModal}
                 savedGameId={savedGameId}
+                analyzeBasePath="/analyze"
                 historyStatus={historyPersistenceStatus}
                 opponentName={bot.name}
               />

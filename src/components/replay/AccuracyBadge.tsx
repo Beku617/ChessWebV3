@@ -13,7 +13,7 @@ export function AccuracyBadge({
     <div
       className={`w-full min-w-0 min-h-[84px] flex flex-col items-center justify-center gap-1 px-3 py-2.5 rounded-lg border text-sm ${
         highlight
-          ? "border-brand-400 bg-brand-50 dark:bg-brand-900/20"
+          ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20"
           : "border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900"
       }`}
     >

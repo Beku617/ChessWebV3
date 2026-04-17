@@ -310,6 +310,11 @@ export default function Friends() {
     setActionId(requestId);
     try {
       await acceptRequest(requestId);
+      setSearchError(null);
+    } catch (error) {
+      const msg =
+        error instanceof Error ? error.message : "Failed to accept request";
+      setSearchError(msg);
     } finally {
       setActionId(null);
     }
@@ -319,6 +324,11 @@ export default function Friends() {
     setActionId(requestId);
     try {
       await denyRequest(requestId);
+      setSearchError(null);
+    } catch (error) {
+      const msg =
+        error instanceof Error ? error.message : "Failed to deny request";
+      setSearchError(msg);
     } finally {
       setActionId(null);
     }
@@ -328,6 +338,11 @@ export default function Friends() {
     setActionId(requestId);
     try {
       await cancelRequest(requestId);
+      setSearchError(null);
+    } catch (error) {
+      const msg =
+        error instanceof Error ? error.message : "Failed to cancel request";
+      setSearchError(msg);
     } finally {
       setActionId(null);
     }
@@ -337,6 +352,11 @@ export default function Friends() {
     setActionId(friendId);
     try {
       await removeFriend(friendId);
+      setSearchError(null);
+    } catch (error) {
+      const msg =
+        error instanceof Error ? error.message : "Failed to remove friend";
+      setSearchError(msg);
     } finally {
       setActionId(null);
     }
@@ -568,7 +588,7 @@ export default function Friends() {
   return (
     <div className="min-h-screen bg-[#060b16] text-slate-100 flex">
       <Sidebar />
-      <main className="flex-1 ml-72 px-5 md:px-8 lg:px-10 py-7 space-y-6">
+      <main className="flex-1 ml-[60px] md:ml-72 px-5 md:px-8 lg:px-10 py-7 space-y-6">
         <header className="space-y-3">
           <div className="flex items-start justify-between flex-wrap gap-3">
             <div className="space-y-1">

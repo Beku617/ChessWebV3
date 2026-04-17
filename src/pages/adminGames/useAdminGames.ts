@@ -7,6 +7,7 @@ import {
   AdminUserOption,
   GameFormData,
 } from "./types";
+import { MIN_STORED_MOVES } from "../../hooks/gameHistorySaver/historyPersistence";
 
 interface UseAdminGamesOptions {
   enabled: boolean;
@@ -20,7 +21,6 @@ interface PaginationState {
 }
 
 const RESULT_TOKENS = new Set(["1-0", "0-1", "1/2-1/2", "*"]);
-const MIN_STORED_MOVES = 3;
 const MAX_ADMIN_GAMES_FETCH = 5000;
 
 function parseMovesText(text: string): string[] {

@@ -36,9 +36,7 @@ interface TournamentDetail {
   winners?: WinnerSummary[];
 }
 
-function timeControlLabel(
-  value?: TournamentSummary["timeControl"],
-): string {
+function timeControlLabel(value?: TournamentSummary["timeControl"]): string {
   if (!value) return "3+0";
   if (value.label?.trim()) return value.label.trim();
 
@@ -123,7 +121,9 @@ function getStatusLabel(item: TournamentSummary) {
     return "Open registration";
   }
 
-  return item.finishedAt ? `Finished ${formatAbsoluteDate(item.finishedAt)}` : "Completed";
+  return item.finishedAt
+    ? `Finished ${formatAbsoluteDate(item.finishedAt)}`
+    : "Completed";
 }
 
 function getActionLabel(item: TournamentSummary) {
@@ -142,7 +142,7 @@ function LoadingCards() {
       {[0, 1].map((index) => (
         <div
           key={index}
-          className="animate-pulse rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/35 p-4 sm:p-5"
+          className="animate-pulse rounded-xl border border-gray-200 dark:border-gray-700/50 bg-gray-50 dark:bg-gray-800/35 p-4 sm:p-5"
         >
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1 space-y-2">
@@ -165,7 +165,9 @@ export function TournamentsSection() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [tournaments, setTournaments] = useState<TournamentSummary[]>([]);
-  const [finishedDetail, setFinishedDetail] = useState<TournamentDetail | null>(null);
+  const [finishedDetail, setFinishedDetail] = useState<TournamentDetail | null>(
+    null,
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
@@ -297,7 +299,7 @@ export function TournamentsSection() {
           </div>
           <button
             onClick={() => setReloadKey((value) => value + 1)}
-            className="inline-flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-700 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="inline-flex items-center justify-center rounded-lg border border-gray-300 dark:border-gray-700 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           >
             {t("Retry")}
           </button>
@@ -312,7 +314,7 @@ export function TournamentsSection() {
         {prioritizedTournaments.map((tournament) => (
           <div
             key={tournament.id}
-            className={`min-w-0 rounded-xl border p-4 sm:p-5 shadow-sm ${getCardClasses(
+            className={`min-w-0 rounded-xl border dark:border-gray-700/50 p-4 sm:p-5 shadow-sm ${getCardClasses(
               tournament.status,
             )}`}
           >
@@ -359,8 +361,8 @@ export function TournamentsSection() {
                 onClick={() => navigate(buildTournamentUrl(tournament.id))}
                 className={`inline-flex items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium text-white transition-colors ${
                   tournament.status === "running"
-                    ? "bg-amber-600 hover:bg-amber-500"
-                    : "bg-blue-600 hover:bg-blue-500"
+                    ? "bg-amber-500 hover:bg-amber-400"
+                    : "bg-emerald-600 hover:bg-emerald-500"
                 }`}
               >
                 {t(getActionLabel(tournament))}
@@ -375,15 +377,16 @@ export function TournamentsSection() {
   if (finishedDetail?.tournament) {
     const winner = finishedDetail.winners?.[0];
     const finishedTournament = finishedDetail.tournament;
-    const resultSummary = winner
-      ? `Score ${winner.score}${
-          winner.buchholz > 0 ? ` • Buchholz ${winner.buchholz}` : ""
-        }`
-      : `${finishedTournament.registeredCount} players`;
+    const resultSummary =
+      winner && winner.buchholz > 0
+        ? `Score ${winner.score} | Buchholz ${winner.buchholz}`
+        : winner
+          ? `Score ${winner.score}`
+          : `${finishedTournament.registeredCount} players`;
 
     return (
       <div
-        className={`rounded-xl border p-4 sm:p-5 shadow-sm ${getCardClasses(
+        className={`rounded-xl border dark:border-gray-700/50 p-4 sm:p-5 shadow-sm ${getCardClasses(
           "finished",
         )}`}
       >
@@ -400,7 +403,7 @@ export function TournamentsSection() {
               {winner ? `${t("Winner")}: ${winner.name}` : t("Results pending")}
             </p>
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 break-words">
-              {timeControlLabel(finishedTournament.timeControl)} • {resultSummary}
+              {timeControlLabel(finishedTournament.timeControl)} | {resultSummary}
             </p>
           </div>
 
@@ -421,7 +424,7 @@ export function TournamentsSection() {
 
           <button
             onClick={() => navigate(buildTournamentUrl(finishedTournament.id))}
-            className="inline-flex items-center justify-center rounded-md bg-gray-900 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-white"
+            className="inline-flex items-center justify-center rounded-md bg-gray-900 dark:bg-gray-700 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-emerald-600 dark:hover:bg-emerald-600"
           >
             {t("View Results")}
           </button>

@@ -9,7 +9,7 @@ import type { HistoryPersistenceStatus } from "../../hooks/gameHistorySaver/hist
 import { BOARD_FRAME } from "./types";
 import type { CSSProperties } from "react";
 
-type MatchVariant = "standard" | "chess960";
+type MatchVariant = "standard" | "chess960" | "threeCheck";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
@@ -41,6 +41,8 @@ interface FriendGameViewProps {
   showGameOverModal: boolean;
   optionSquares: Record<string, CSSProperties>;
   preMoveSquares: Record<string, CSSProperties>;
+  playerRating?: number | null;
+  opponentRating?: number | null;
   onSquareClick: (square: Square) => void;
   onPieceDrop: (
     sourceSquare: Square,
@@ -80,6 +82,8 @@ export function FriendGameView({
   showGameOverModal,
   optionSquares,
   preMoveSquares,
+  playerRating,
+  opponentRating,
   onSquareClick,
   onPieceDrop,
   onCancelSelection,
@@ -157,7 +161,8 @@ export function FriendGameView({
           >
             <PlayerInfo
               name={friendName}
-              subtitle={gameSettings.playAs === "white" ? "Black" : "White"}
+              subtitle=""
+              rating={opponentRating}
               avatarLetter={friendName.substring(0, 2).toUpperCase()}
               avatarStyle="opponent"
               initialTime={gameSettings.timeControl.initial}
@@ -206,7 +211,8 @@ export function FriendGameView({
           >
             <PlayerInfo
               name={user?.fullName || "You"}
-              subtitle={gameSettings.playAs === "white" ? "White" : "Black"}
+              subtitle=""
+              rating={playerRating}
               avatarLetter={
                 user?.fullName?.substring(0, 2).toUpperCase() || "U"
               }

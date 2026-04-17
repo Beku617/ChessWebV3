@@ -80,6 +80,8 @@ export function BotGameView({
   const { user } = useAuthStore();
   const navigate = useNavigate();
   const movesEndRef = useRef<HTMLDivElement | null>(null);
+  const timerInitialTime = 0;
+  const timerIncrement = 0;
 
   // Auto-scroll moves list to the latest move
   useEffect(() => {
@@ -100,6 +102,7 @@ export function BotGameView({
           onTryAgain={onRematch}
           onNewGame={onNewGame}
           savedGameId={savedGameId}
+          analyzeBasePath="/analyze"
           historyStatus={historyPersistenceStatus}
           opponentName={gameSettings.selectedBot?.name || "Stockfish"}
         />
@@ -113,11 +116,12 @@ export function BotGameView({
           <div className="w-full max-w-[900px] flex items-center gap-3 px-2">
             <PlayerInfo
               name={gameSettings.selectedBot?.name || "Stockfish"}
-              subtitle={`${gameSettings.selectedBot?.title || ""} ${gameSettings.selectedBot?.rating || gameSettings.difficulty * 100}`}
+              subtitle={gameSettings.selectedBot?.title || "AI opponent"}
               avatarLetter={gameSettings.selectedBot?.avatar || "🤖"}
               avatarStyle="opponent"
-              initialTime={gameSettings.timeControl.initial}
-              increment={gameSettings.timeControl.increment}
+              initialTime={timerInitialTime}
+              increment={timerIncrement}
+              showTimer={false}
               isTimerActive={
                 gameStarted &&
                 !isPlayerTurn &&
@@ -153,14 +157,15 @@ export function BotGameView({
           <div className="w-full max-w-[900px] flex items-center gap-3 px-2 justify-start">
             <PlayerInfo
               name={user?.fullName || "You"}
-              subtitle={gameSettings.playAs === "white" ? "White" : "Black"}
+              subtitle=""
               avatarLetter={
                 user?.fullName?.substring(0, 2).toUpperCase() || "U"
               }
               avatarImage={user?.avatar}
               avatarStyle="player"
-              initialTime={gameSettings.timeControl.initial}
-              increment={gameSettings.timeControl.increment}
+              initialTime={timerInitialTime}
+              increment={timerIncrement}
+              showTimer={false}
               isTimerActive={
                 gameStarted &&
                 isPlayerTurn &&

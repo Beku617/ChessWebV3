@@ -6,6 +6,7 @@ export interface AnalysisEntry {
 
 export interface GameHistory {
   _id: string;
+  userId?: string;
   event: string;
   site: string;
   date: string; // "YYYY.MM.DD"
@@ -13,7 +14,7 @@ export interface GameHistory {
   white: string;
   black: string;
   result: string; // "1-0" | "0-1" | "1/2-1/2"
-  variant?: "standard" | "chess960";
+  variant?: "standard" | "chess960" | "threeCheck";
   currentPosition: string;
   startingFen?: string;
   timeControl: string;
@@ -45,7 +46,15 @@ export interface GameHistory {
   opponentVolatilityAfter?: number;
   opponentVolatilityDelta?: number;
   opponentIsProvisional?: boolean;
-  ratingPool?: "bullet" | "blitz" | "rapid" | "classical";
+  ratingPool?:
+    | "bullet"
+    | "blitz"
+    | "rapid"
+    | "classical"
+    | "chess960Bullet"
+    | "chess960Blitz"
+    | "chess960Rapid"
+    | "chess960Classical";
   eco: string;
   ecoUrl?: string;
   timezone?: string;
@@ -64,6 +73,8 @@ export interface GameHistory {
   opponent: string;
   opponentLevel?: number;
   durationMs?: number;
+  whiteCheckCount?: number;
+  blackCheckCount?: number;
   createdAt: string;
   analysis?: AnalysisEntry[];
   moveTimes?: number[]; // milliseconds per move or elapsed; interpretation handled in UI

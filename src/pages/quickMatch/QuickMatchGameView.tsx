@@ -8,7 +8,7 @@ import type { HistoryPersistenceStatus } from "../../hooks/gameHistorySaver/hist
 import { BOARD_FRAME } from "./types";
 import type { CSSProperties } from "react";
 
-type MatchVariant = "standard" | "chess960";
+type MatchVariant = "standard" | "chess960" | "threeCheck";
 
 interface QuickMatchGameViewProps {
   game: { fen: () => string };
@@ -19,11 +19,14 @@ interface QuickMatchGameViewProps {
   gameOver: boolean;
   gameResult: string | null;
   isPlayerTurn: boolean;
+  playerColor: "w" | "b";
   savedGameId: string | null;
   historyPersistenceStatus: HistoryPersistenceStatus;
   showGameOverModal: boolean;
   optionSquares: Record<string, CSSProperties>;
   preMoveSquares: Record<string, CSSProperties>;
+  playerRating?: number | null;
+  opponentRating?: number | null;
   onSquareClick: (square: Square) => void;
   onPieceDrop: (
     sourceSquare: Square,
@@ -42,6 +45,7 @@ interface QuickMatchGameViewProps {
   tournamentMode?: boolean;
   opponentName?: string;
   variant?: MatchVariant;
+  threeCheckState?: { whiteCheckCount: number; blackCheckCount: number };
   promotionState?: PromotionState;
   onPromotionPieceSelect?: (
     piece?: string,
@@ -49,7 +53,6 @@ interface QuickMatchGameViewProps {
     toSquare?: Square,
   ) => boolean;
 }
-
 export function QuickMatchGameView({
   game,
   lastMove,
@@ -59,11 +62,14 @@ export function QuickMatchGameView({
   gameOver,
   gameResult,
   isPlayerTurn,
+  playerColor,
   savedGameId,
   historyPersistenceStatus,
   showGameOverModal,
   optionSquares,
   preMoveSquares,
+  playerRating,
+  opponentRating,
   onSquareClick,
   onPieceDrop,
   onCancelSelection,
@@ -78,12 +84,25 @@ export function QuickMatchGameView({
   tournamentMode = false,
   opponentName,
   variant = "standard",
+  threeCheckState,
   promotionState,
   onPromotionPieceSelect,
 }: QuickMatchGameViewProps) {
   const { user } = useAuthStore();
   const navigate = useNavigate();
   const displayMoves = moves.slice(-8); // keep recent moves visible without scroll
+  const isThreeCheck = variant === "threeCheck";
+  const whiteCheckCount = Number(threeCheckState?.whiteCheckCount || 0);
+  const blackCheckCount = Number(threeCheckState?.blackCheckCount || 0);
+  const playerCheckedCount = playerColor === "w" ? whiteCheckCount : blackCheckCount;
+  const opponentCheckedCount =
+    playerColor === "w" ? blackCheckCount : whiteCheckCount;
+  const variantLabel =
+    variant === "chess960"
+      ? "Chess960"
+      : variant === "threeCheck"
+        ? "Three-Check"
+        : "";
   const [boardWidth, setBoardWidth] = useState(620);
   const leftRef = useRef<HTMLDivElement>(null);
   const topRef = useRef<HTMLDivElement>(null);
@@ -141,22 +160,30 @@ export function QuickMatchGameView({
             className="flex-shrink-0 z-10"
             style={{ width: boardWidth + BOARD_FRAME }}
           >
-            <PlayerInfo
-              name={opponentName || "Opponent"}
-              subtitle="Online"
-              avatarLetter={opponentName?.substring(0, 1).toUpperCase() || "O"}
-              avatarStyle="opponent"
-              initialTime={gameSettings.timeControl.initial}
-              increment={gameSettings.timeControl.increment}
-              isTimerActive={
-                gameStarted &&
-                !isPlayerTurn &&
-                !gameOver &&
-                gameSettings.timeControl.initial > 0
-              }
-              onTimeOut={() => onTimeOut(false)}
-              onTimeChange={setOpponentTime}
-            />
+            <div className="space-y-2">
+              <PlayerInfo
+                name={opponentName || "Opponent"}
+                subtitle=""
+                rating={opponentRating}
+                avatarLetter={opponentName?.substring(0, 1).toUpperCase() || "O"}
+                avatarStyle="opponent"
+                initialTime={gameSettings.timeControl.initial}
+                increment={gameSettings.timeControl.increment}
+                isTimerActive={
+                  gameStarted &&
+                  !isPlayerTurn &&
+                  !gameOver &&
+                  gameSettings.timeControl.initial > 0
+                }
+                onTimeOut={() => onTimeOut(false)}
+                onTimeChange={setOpponentTime}
+              />
+              {isThreeCheck && (
+                <div className="rounded-xl border border-brand-400/35 bg-brand-500/10 px-3 py-1.5 text-xs font-semibold text-brand-700 dark:text-brand-300">
+                  ♚ +{opponentCheckedCount} checks received
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Chessboard */}
@@ -190,25 +217,33 @@ export function QuickMatchGameView({
             className="flex-shrink-0 z-10"
             style={{ width: boardWidth + BOARD_FRAME }}
           >
-            <PlayerInfo
-              name={user?.fullName || "You"}
-              subtitle={gameSettings.playAs === "white" ? "White" : "Black"}
-              avatarLetter={
-                user?.fullName?.substring(0, 2).toUpperCase() || "U"
-              }
-              avatarImage={user?.avatar}
-              avatarStyle="player"
-              initialTime={gameSettings.timeControl.initial}
-              increment={gameSettings.timeControl.increment}
-              isTimerActive={
-                gameStarted &&
-                isPlayerTurn &&
-                !gameOver &&
-                gameSettings.timeControl.initial > 0
-              }
-              onTimeOut={() => onTimeOut(true)}
-              onTimeChange={setPlayerTime}
-            />
+            <div className="space-y-2">
+              <PlayerInfo
+                name={user?.fullName || "You"}
+                subtitle=""
+                rating={playerRating}
+                avatarLetter={
+                  user?.fullName?.substring(0, 2).toUpperCase() || "U"
+                }
+                avatarImage={user?.avatar}
+                avatarStyle="player"
+                initialTime={gameSettings.timeControl.initial}
+                increment={gameSettings.timeControl.increment}
+                isTimerActive={
+                  gameStarted &&
+                  isPlayerTurn &&
+                  !gameOver &&
+                  gameSettings.timeControl.initial > 0
+                }
+                onTimeOut={() => onTimeOut(true)}
+                onTimeChange={setPlayerTime}
+              />
+              {isThreeCheck && (
+                <div className="rounded-xl border border-brand-400/35 bg-brand-500/10 px-3 py-1.5 text-xs font-semibold text-brand-700 dark:text-brand-300">
+                  ♚ +{playerCheckedCount} checks received
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -218,7 +253,7 @@ export function QuickMatchGameView({
             {/* Header */}
             <div className="flex items-center justify-center mb-3 pb-3 border-b border-gray-200/60 dark:border-white/10">
               <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                Quick Match{variant === "chess960" ? " — Chess960" : ""}
+                Quick Match{variantLabel ? ` - ${variantLabel}` : ""}
               </h2>
             </div>
 

@@ -6,7 +6,7 @@ export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 export interface GameHistoryPayload {
   event?: string;
-  variant?: "standard" | "chess960";
+  variant?: "standard" | "chess960" | "threeCheck";
   site?: string;
   date?: string;
   round?: string;
@@ -44,7 +44,15 @@ export interface GameHistoryPayload {
   opponentVolatilityAfter?: number;
   opponentVolatilityDelta?: number;
   opponentIsProvisional?: boolean;
-  ratingPool?: "bullet" | "blitz" | "rapid" | "classical";
+  ratingPool?:
+    | "bullet"
+    | "blitz"
+    | "rapid"
+    | "classical"
+    | "chess960Bullet"
+    | "chess960Blitz"
+    | "chess960Rapid"
+    | "chess960Classical";
   eco?: string;
   ecoUrl?: string;
   timezone?: string;
@@ -63,6 +71,8 @@ export interface GameHistoryPayload {
   opponent?: string;
   opponentLevel?: number;
   durationMs?: number;
+  whiteCheckCount?: number;
+  blackCheckCount?: number;
 }
 
 export type OptionSquares = Record<string, CSSProperties>;

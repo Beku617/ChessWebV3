@@ -758,8 +758,8 @@ export default function FourPlayerChess() {
   return (
     <div className="relative h-screen w-full bg-slate-100 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 overflow-hidden">
       {gameState.winner && (
-        <div className="fixed inset-0 z-[60] bg-black/45 backdrop-blur-[2px] flex items-center justify-center p-4">
-          <div className="w-full max-w-md rounded-2xl border border-white/15 bg-slate-900/95 text-white p-6 shadow-2xl text-center">
+        <div className="fixed inset-0 z-[60] bg-black/45 backdrop-blur-[2px] flex items-center justify-center p-4 pointer-events-none">
+          <div className="w-full max-w-md rounded-2xl border border-white/15 bg-slate-900/95 text-white p-6 shadow-2xl text-center pointer-events-auto">
             <h3 className="text-xl font-bold">
               {youWin ? "You Win" : `${gameState.winner.toUpperCase()} Wins`}
             </h3>

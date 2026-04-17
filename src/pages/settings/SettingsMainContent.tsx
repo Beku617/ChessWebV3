@@ -114,9 +114,6 @@ export function SettingsMainContent({
             <button className="rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-bold text-gray-600 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700">
               {t("settings.profile.google", "Google")}
             </button>
-            <button className="rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-bold text-gray-600 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700">
-              {t("settings.profile.github", "GitHub")}
-            </button>
           </div>
         </SettingRow>
       </SettingsCard>

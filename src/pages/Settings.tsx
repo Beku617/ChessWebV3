@@ -108,7 +108,7 @@ export default function Settings() {
     <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-950 text-gray-900 dark:text-white flex transition-colors duration-300">
       <Sidebar />
 
-      <main className="flex-1 ml-72 min-h-screen">
+      <main className="flex-1 ml-[60px] md:ml-72 min-h-screen">
         {/* ── Sticky Header ────────────────────────────── */}
         <div className="sticky top-0 z-30 backdrop-blur-xl bg-[#f5f5f7]/80 dark:bg-gray-950/80 border-b border-gray-200/50 dark:border-gray-800/50">
           <div className="max-w-7xl mx-auto px-8 py-5 flex items-center justify-between">
@@ -224,9 +224,6 @@ export default function Settings() {
                   <div className="flex gap-2">
                     <button className="px-3 py-1.5 rounded-lg text-xs font-bold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 transition-colors">
                       {t("settings.profile.google", "Google")}
-                    </button>
-                    <button className="px-3 py-1.5 rounded-lg text-xs font-bold bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 transition-colors">
-                      {t("settings.profile.github", "GitHub")}
                     </button>
                   </div>
                 </SettingRow>

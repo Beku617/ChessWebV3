@@ -2,19 +2,13 @@ import { Router } from "express";
 import bcrypt from "bcryptjs";
 import { Admin, User, History, Puzzle } from "../models/index.js";
 import { adminAuthMiddleware } from "../middleware/index.js";
+import {
+  ADMIN_MAX_AGE_1_DAY_MS,
+  buildAdminCookieOptions,
+  clearAdminCookie,
+} from "../utils/cookies.js";
 
 const router = Router();
-const IS_PRODUCTION = process.env.NODE_ENV === "production";
-
-function buildAdminCookieOptions(overrides = {}) {
-  return {
-    httpOnly: true,
-    secure: IS_PRODUCTION,
-    sameSite: IS_PRODUCTION ? "none" : "lax",
-    path: "/",
-    ...overrides,
-  };
-}
 
 function serializeAdmin(admin) {
   if (!admin) return null;
@@ -58,7 +52,7 @@ router.post("/login", async (req, res) => {
       "adminToken",
       JSON.stringify(tokenData),
       buildAdminCookieOptions({
-        maxAge: 24 * 60 * 60 * 1000,
+        maxAge: ADMIN_MAX_AGE_1_DAY_MS,
       }),
     );
 
@@ -75,13 +69,7 @@ router.post("/login", async (req, res) => {
 
 // Admin Logout
 router.post("/logout", (req, res) => {
-  res.cookie(
-    "adminToken",
-    "",
-    buildAdminCookieOptions({
-      maxAge: 0,
-    }),
-  );
+  clearAdminCookie(res);
   res.json({ success: true, message: "Admin logged out successfully" });
 });
 

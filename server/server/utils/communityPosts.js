@@ -612,10 +612,18 @@ function normalizeCommunityGame(snapshot) {
 
   return {
     sourceGameId: String(snapshot.sourceGameId || ""),
-    variant:
-      String(snapshot.variant || "").trim().toLowerCase() === "chess960"
-        ? "chess960"
-        : "standard",
+    variant: (() => {
+      const normalized = String(snapshot.variant || "").trim().toLowerCase();
+      if (normalized === "chess960") return "chess960";
+      if (
+        normalized === "threecheck" ||
+        normalized === "three-check" ||
+        normalized === "three_check"
+      ) {
+        return "threeCheck";
+      }
+      return "standard";
+    })(),
     startingFen: String(snapshot.startingFen || ""),
     currentPosition: String(snapshot.currentPosition || ""),
     moves,

@@ -1,11 +1,35 @@
 const MIN_RATING = 100;
 const MAX_RATING = 4000;
 const DEFAULT_TIME_CONTROL = { initial: 300, increment: 0 };
+const SUPPORTED_RATED_VARIANTS = new Set(["standard", "chess960"]);
+const BASE_POOLS = new Set(["bullet", "blitz", "rapid", "classical"]);
 
 function normalizeSeconds(value, fallback = 0) {
   const parsed = Number(value);
   if (!Number.isFinite(parsed) || parsed < 0) return fallback;
   return parsed;
+}
+
+function normalizeVariantForRatings(variant) {
+  if (!variant) return "standard";
+  const normalized = String(variant).trim().toLowerCase();
+  if (normalized === "standard") return "standard";
+  if (normalized === "chess960") return "chess960";
+  return normalized;
+}
+
+function capitalize(value) {
+  const safe = String(value || "");
+  if (!safe) return "";
+  return safe[0].toUpperCase() + safe.slice(1);
+}
+
+function variantPoolFromBasePool(basePool, variant) {
+  if (!BASE_POOLS.has(basePool)) return null;
+  const normalizedVariant = normalizeVariantForRatings(variant);
+  if (!SUPPORTED_RATED_VARIANTS.has(normalizedVariant)) return null;
+  if (normalizedVariant === "standard") return basePool;
+  return `chess960${capitalize(basePool)}`;
 }
 
 function clampRating(value) {
@@ -35,7 +59,7 @@ export function normalizeResult(winnerColor) {
   return { white: 0.5, black: 0.5 };
 }
 
-export function getRatingPoolForTimeControl(timeControl) {
+export function getRatingPoolForTimeControl(timeControl, variant = "standard") {
   const initial = normalizeSeconds(
     timeControl?.initial,
     DEFAULT_TIME_CONTROL.initial,
@@ -47,13 +71,23 @@ export function getRatingPoolForTimeControl(timeControl) {
 
   // Approximate total think time for a 40-move game.
   const estimatedSeconds = initial + increment * 40;
-  if (estimatedSeconds < 180) return "bullet";
-  if (estimatedSeconds < 600) return "blitz";
-  if (estimatedSeconds < 1800) return "rapid";
-  return "classical";
+  if (estimatedSeconds < 180) {
+    return variantPoolFromBasePool("bullet", variant);
+  }
+  if (estimatedSeconds < 600) {
+    return variantPoolFromBasePool("blitz", variant);
+  }
+  if (estimatedSeconds < 1800) {
+    return variantPoolFromBasePool("rapid", variant);
+  }
+  return variantPoolFromBasePool("classical", variant);
 }
 
 export function ratingFieldForPool(pool) {
+  if (pool === "chess960Bullet") return "chess960BulletRating";
+  if (pool === "chess960Blitz") return "chess960BlitzRating";
+  if (pool === "chess960Rapid") return "chess960RapidRating";
+  if (pool === "chess960Classical") return "chess960ClassicalRating";
   if (pool === "bullet") return "bulletRating";
   if (pool === "blitz") return "blitzRating";
   if (pool === "rapid") return "rapidRating";
@@ -61,6 +95,10 @@ export function ratingFieldForPool(pool) {
 }
 
 export function gamesFieldForPool(pool) {
+  if (pool === "chess960Bullet") return "chess960BulletGames";
+  if (pool === "chess960Blitz") return "chess960BlitzGames";
+  if (pool === "chess960Rapid") return "chess960RapidGames";
+  if (pool === "chess960Classical") return "chess960ClassicalGames";
   if (pool === "bullet") return "bulletGames";
   if (pool === "blitz") return "blitzGames";
   if (pool === "rapid") return "rapidGames";

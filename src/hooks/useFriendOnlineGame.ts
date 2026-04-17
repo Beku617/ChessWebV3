@@ -22,20 +22,35 @@ import {
   useFriendChallengeStore,
 } from "../store/friendChallengeStore";
 import { formatPerspectiveResult } from "./onlineGameShared";
+import {
+  getRatingPoolForMatch,
+  getUserRatingForPool,
+} from "../utils/ratingPool";
 
 type PlayerColor = "w" | "b";
-type MatchVariant = "standard" | "chess960";
+type MatchVariant = "standard" | "chess960" | "threeCheck";
 type GameOverReason =
   | "checkmate"
   | "draw"
   | "resign"
   | "timeout"
-  | "opponent_left";
+  | "opponent_left"
+  | "aborted"
+  | "three_check";
 const BOARD_FILES = ["a", "b", "c", "d", "e", "f", "g", "h"] as const;
 
 function normalizeMatchVariant(value: unknown): MatchVariant {
   if (typeof value !== "string") return "standard";
-  return value.trim().toLowerCase() === "chess960" ? "chess960" : "standard";
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "chess960") return "chess960";
+  if (
+    normalized === "threecheck" ||
+    normalized === "three-check" ||
+    normalized === "three_check"
+  ) {
+    return "threeCheck";
+  }
+  return "standard";
 }
 
 interface MoveAppliedPayload {
@@ -56,7 +71,15 @@ interface GameOverPayload {
   elo?: {
     rated: boolean;
     applied: boolean;
-    pool?: "bullet" | "blitz" | "rapid" | "classical";
+    pool?:
+      | "bullet"
+      | "blitz"
+      | "rapid"
+      | "classical"
+      | "chess960Bullet"
+      | "chess960Blitz"
+      | "chess960Rapid"
+      | "chess960Classical";
     skippedReason?: string;
     white?: {
       userId: string;
@@ -89,6 +112,17 @@ interface GameOverPayload {
       wasProvisional?: boolean;
     };
   };
+}
+
+interface GameSystemMessagePayload {
+  gameId: string;
+  message?: string;
+  targetColor?: PlayerColor | null;
+}
+
+function toFiniteRating(value: unknown): number | null {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? Math.round(parsed) : null;
 }
 
 interface PreMove {
@@ -167,6 +201,8 @@ export function useFriendOnlineGame() {
   const [gameId, setGameId] = useState<string | null>(null);
   const [opponentName, setOpponentName] = useState("Friend");
   const [opponentUserId, setOpponentUserId] = useState<string | null>(null);
+  const [playerRating, setPlayerRating] = useState<number | null>(null);
+  const [opponentRating, setOpponentRating] = useState<number | null>(null);
   const [gameType, setGameType] = useState("standard");
   const [matchVariant, setMatchVariant] = useState<MatchVariant>("standard");
   const [isRated, setIsRated] = useState(false);
@@ -319,6 +355,8 @@ export function useFriendOnlineGame() {
     gameIdRef.current = null;
     setOpponentName("Friend");
     setOpponentUserId(null);
+    setPlayerRating(null);
+    setOpponentRating(null);
     setGameType("standard");
     setMatchVariant("standard");
     matchVariantRef.current = "standard";
@@ -363,6 +401,22 @@ export function useFriendOnlineGame() {
       const normalizedVariant = normalizeMatchVariant(
         payload.variant ?? payload.gameType,
       );
+      const timeControl =
+        payload.timeControl || defaultGameSettings.timeControl;
+      const ratingPool = getRatingPoolForMatch(timeControl, normalizedVariant);
+      const canShowRatedInfo = payload.rated === true && ratingPool !== null;
+      const fallbackPlayerRating = getUserRatingForPool(
+        userRef.current,
+        ratingPool,
+      );
+      setPlayerRating(
+        canShowRatedInfo
+          ? toFiniteRating(payload.playerRating) ?? fallbackPlayerRating
+          : null,
+      );
+      setOpponentRating(
+        canShowRatedInfo ? toFiniteRating(payload.opponentRating) : null,
+      );
       setMatchVariant(normalizedVariant);
       matchVariantRef.current = normalizedVariant;
       setGameType(normalizedVariant);
@@ -379,8 +433,6 @@ export function useFriendOnlineGame() {
       setLastGameOver(null);
       playGameplaySound("gameStart");
 
-      const timeControl =
-        payload.timeControl || defaultGameSettings.timeControl;
       setGameSettings({
         ...defaultGameSettings,
         playAs: payload.color === "w" ? "white" : "black",
@@ -496,52 +548,99 @@ export function useFriendOnlineGame() {
               : payload.elo.black;
 
       if (!sideUpdate) return;
+      const pool = payload.elo.pool;
+      const isStandardPool =
+        pool === "bullet" ||
+        pool === "blitz" ||
+        pool === "rapid" ||
+        pool === "classical";
       const nextUser = {
         ...currentUser,
-        rating: sideUpdate.newRating,
         gamesPlayed: sideUpdate.gamesPlayed,
         gamesWon: sideUpdate.gamesWon,
       };
-      if (payload.elo.pool === "bullet")
+      if (isStandardPool) {
+        nextUser.rating = sideUpdate.newRating;
+      }
+      if (pool === "bullet")
         nextUser.bulletRating = sideUpdate.newRating;
-      if (payload.elo.pool === "bullet") {
+      if (pool === "bullet") {
         nextUser.bulletGames = sideUpdate.poolGamesPlayed;
         nextUser.bulletRd = sideUpdate.newRd;
         nextUser.bulletVolatility = sideUpdate.newVolatility;
       }
-      if (payload.elo.pool === "blitz")
+      if (pool === "blitz")
         nextUser.blitzRating = sideUpdate.newRating;
-      if (payload.elo.pool === "blitz") {
+      if (pool === "blitz") {
         nextUser.blitzGames = sideUpdate.poolGamesPlayed;
         nextUser.blitzRd = sideUpdate.newRd;
         nextUser.blitzVolatility = sideUpdate.newVolatility;
       }
-      if (payload.elo.pool === "rapid")
+      if (pool === "rapid")
         nextUser.rapidRating = sideUpdate.newRating;
-      if (payload.elo.pool === "rapid") {
+      if (pool === "rapid") {
         nextUser.rapidGames = sideUpdate.poolGamesPlayed;
         nextUser.rapidRd = sideUpdate.newRd;
         nextUser.rapidVolatility = sideUpdate.newVolatility;
       }
-      if (payload.elo.pool === "classical") {
+      if (pool === "classical") {
         nextUser.classicalRating = sideUpdate.newRating;
         nextUser.classicalGames = sideUpdate.poolGamesPlayed;
         nextUser.classicalRd = sideUpdate.newRd;
         nextUser.classicalVolatility = sideUpdate.newVolatility;
       }
+      if (pool === "chess960Bullet") {
+        nextUser.chess960BulletRating = sideUpdate.newRating;
+        nextUser.chess960BulletGames = sideUpdate.poolGamesPlayed;
+        nextUser.chess960BulletRd = sideUpdate.newRd;
+        nextUser.chess960BulletVolatility = sideUpdate.newVolatility;
+      }
+      if (pool === "chess960Blitz") {
+        nextUser.chess960BlitzRating = sideUpdate.newRating;
+        nextUser.chess960BlitzGames = sideUpdate.poolGamesPlayed;
+        nextUser.chess960BlitzRd = sideUpdate.newRd;
+        nextUser.chess960BlitzVolatility = sideUpdate.newVolatility;
+      }
+      if (pool === "chess960Rapid") {
+        nextUser.chess960RapidRating = sideUpdate.newRating;
+        nextUser.chess960RapidGames = sideUpdate.poolGamesPlayed;
+        nextUser.chess960RapidRd = sideUpdate.newRd;
+        nextUser.chess960RapidVolatility = sideUpdate.newVolatility;
+      }
+      if (pool === "chess960Classical") {
+        nextUser.chess960ClassicalRating = sideUpdate.newRating;
+        nextUser.chess960ClassicalGames = sideUpdate.poolGamesPlayed;
+        nextUser.chess960ClassicalRd = sideUpdate.newRd;
+        nextUser.chess960ClassicalVolatility = sideUpdate.newVolatility;
+      }
       setUser(nextUser);
+    };
+
+    const handleGameSystemMessage = (payload: GameSystemMessagePayload) => {
+      if (payload.gameId !== gameIdRef.current) return;
+      if (
+        payload.targetColor &&
+        payload.targetColor !== playerColorRef.current
+      ) {
+        return;
+      }
+      if (payload.message) {
+        setStatusMessage(payload.message);
+      }
     };
 
     socket.on("friendGameStarted", handleFriendGameStarted);
     socket.on("moveApplied", handleMoveApplied);
     socket.on("moveRejected", handleMoveRejected);
     socket.on("gameOver", handleGameOver);
+    socket.on("gameSystemMessage", handleGameSystemMessage);
 
     return () => {
       socket.off("friendGameStarted", handleFriendGameStarted);
       socket.off("moveApplied", handleMoveApplied);
       socket.off("moveRejected", handleMoveRejected);
       socket.off("gameOver", handleGameOver);
+      socket.off("gameSystemMessage", handleGameSystemMessage);
     };
   }, [
     socket,
@@ -614,10 +713,14 @@ export function useFriendOnlineGame() {
       resign: "resignation",
       timeout: "time forfeit",
       opponent_left: "opponent left",
+      aborted: "aborted",
+      three_check: "three checks",
       draw: "draw",
     };
 
-    const isDraw = lastGameOver.reason === "draw" || !lastGameOver.winner;
+    const isDraw =
+      lastGameOver.reason === "draw" ||
+      (!lastGameOver.winner && lastGameOver.reason !== "aborted");
     const pgnResult = isDraw
       ? "1/2-1/2"
       : lastGameOver.winner === "w"
@@ -716,6 +819,8 @@ export function useFriendOnlineGame() {
       event:
         matchVariant === "chess960"
           ? "Friend Challenge Chess960"
+          : matchVariant === "threeCheck"
+            ? "Friend Challenge Three-Check"
           : "Friend Challenge",
       variant: matchVariant,
       site: "NeonGambit",
@@ -1291,6 +1396,8 @@ export function useFriendOnlineGame() {
     lastMove,
     opponentName,
     opponentUserId,
+    playerRating,
+    opponentRating,
     gameType,
     matchVariant,
     isRated,

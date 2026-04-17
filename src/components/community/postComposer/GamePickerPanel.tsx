@@ -142,7 +142,11 @@ export function GamePickerPanel({
                       {formatCommunityTimeControl(gameOption.timeControl)}
                     </span>
                     <span className="rounded-full bg-white/[0.05] px-2.5 py-1">
-                      {gameOption.variant === "chess960" ? "Chess960" : "Standard"}
+                      {gameOption.variant === "chess960"
+                        ? "Chess960"
+                        : gameOption.variant === "threeCheck"
+                          ? "Three-Check"
+                          : "Standard"}
                     </span>
                     {optionOpening && (
                       <span className="rounded-full bg-white/[0.05] px-2.5 py-1">

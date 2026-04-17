@@ -7,7 +7,7 @@ import { QuickMatchSetup } from "./QuickMatchSetup";
 import { QuickMatchGameView } from "./QuickMatchGameView";
 import type { GameHistory } from "../../historyTypes";
 
-type MatchVariant = "standard" | "chess960";
+type MatchVariant = "standard" | "chess960" | "threeCheck";
 const LAST_QUICK_TIME_CONTROL_KEY = "quickMatch:lastTimeControl";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 const DEFAULT_TIME_CONTROL = { initial: 300, increment: 0 };
@@ -27,7 +27,16 @@ const QUICK_MATCH_PRESETS = [
 
 function normalizeVariant(value: unknown): MatchVariant {
   if (typeof value !== "string") return "standard";
-  return value.trim().toLowerCase() === "chess960" ? "chess960" : "standard";
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "chess960") return "chess960";
+  if (
+    normalized === "threecheck" ||
+    normalized === "three-check" ||
+    normalized === "three_check"
+  ) {
+    return "threeCheck";
+  }
+  return "standard";
 }
 
 function normalizeTimeControlValue(value: {
@@ -199,11 +208,15 @@ export default function QuickMatch() {
     gameOver,
     gameResult,
     isPlayerTurn,
+    playerColor,
     savedGameId,
     historyPersistenceStatus,
     showGameOverModal,
     optionSquares,
     preMoveSquares,
+    playerRating,
+    opponentRating,
+    isRatedMatch,
     setPlayerTime,
     setOpponentTime,
     onSquareClick,
@@ -223,6 +236,7 @@ export default function QuickMatch() {
     rematch,
     leaveGame,
     matchVariant,
+    threeCheckState,
     promotionState,
     onPromotionPieceSelect,
   } = useOnlineQuickMatch();
@@ -498,11 +512,14 @@ export default function QuickMatch() {
         gameOver={gameOver}
         gameResult={gameResult}
         isPlayerTurn={isPlayerTurn}
+        playerColor={playerColor}
         savedGameId={savedGameId}
         historyPersistenceStatus={historyPersistenceStatus}
         showGameOverModal={showGameOverModal}
         optionSquares={optionSquares}
         preMoveSquares={preMoveSquares}
+        playerRating={isRatedMatch ? playerRating : null}
+        opponentRating={isRatedMatch ? opponentRating : null}
         onSquareClick={onSquareClick}
         onPieceDrop={onPieceDrop}
         onCancelSelection={onCancelSelection}
@@ -519,6 +536,7 @@ export default function QuickMatch() {
         onNewGame={handleNewGameFromModal}
         onLeave={leaveGame}
         variant={matchVariant}
+        threeCheckState={threeCheckState}
       />
     );
   }

@@ -15,5 +15,9 @@ services:
         sync: false
       - key: CLIENT_ORIGINS
         sync: false
+      - key: GOOGLE_CLIENT_ID
+        value: 588502511960-gkf4hgkja7pu0drehngcan9hk5d452ii.apps.googleusercontent.com
+      - key: FACEBOOK_APP_ID
+        value: "1481421286715852"
       - key: ALLOW_VERCEL_PREVIEWS
         value: "true"

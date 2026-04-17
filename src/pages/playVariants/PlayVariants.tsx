@@ -297,7 +297,11 @@ export default function PlayVariants() {
     }
 
     const queueVariant =
-      selectedVariant.key === "chess960" ? "chess960" : "standard";
+      selectedVariant.key === "chess960"
+        ? "chess960"
+        : selectedVariant.key === "threeCheck"
+          ? "threeCheck"
+          : "standard";
     const params = new URLSearchParams({
       initial: String(timeControl.initial),
       increment: String(timeControl.increment),

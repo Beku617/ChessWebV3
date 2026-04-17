@@ -1,4 +1,4 @@
-export const MIN_STORED_MOVES = 3;
+export const MIN_STORED_MOVES = 2;
 
 export type HistoryPersistenceStatus =
   | "idle"

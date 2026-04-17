@@ -44,11 +44,13 @@
     "noAccount": "Don't have an account?",
     "signUp": "Sign up",
     "loginFailed": "Login failed",
+    "googleLoginFailed": "Google login failed",
+    "googleNotConfigured": "Google sign-in is not configured yet.",
     "createAccount": "Create Account",
     "registerSubtitle": "Join the community of chess masters",
     "fullName": "Full Name",
     "namePlaceholder": "John Doe",
-    "minimumChars": "Minimum 6 characters",
+    "minimumChars": "Minimum 8 characters",
     "orSignup": "Or sign up with",
     "haveAccount": "Already have an account?",
     "signInCta": "Sign in",
@@ -80,8 +82,7 @@
       "changePasswordHelper": "Update your account password",
       "linkedAccounts": "Linked Accounts",
       "linkedAccountsHelper": "Connect third-party services",
-      "google": "Google",
-      "github": "GitHub"
+      "google": "Google"
     },
     "appearance": {
       "title": "Appearance",

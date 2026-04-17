@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import {
   Check,
   Clock3,
@@ -1084,7 +1084,7 @@ export default function Messages() {
     <div className="min-h-screen h-screen bg-[#060b16] text-slate-100 flex transition-colors duration-300">
       <Sidebar />
 
-      <div className="flex-1 ml-72 grid h-screen min-h-0 grid-cols-12 overflow-hidden">
+      <div className="flex-1 ml-[60px] md:ml-72 grid h-screen min-h-0 grid-cols-12 overflow-hidden">
         <aside className="col-span-4 min-w-0 min-h-0 overflow-y-auto premium-scrollbar border-r border-[#1b2740] bg-[#0d1525]/92 backdrop-blur-xl">
           <div className="sticky top-0 z-20 bg-[#101a2d]/92 p-5 backdrop-blur-xl">
             <div className="relative">
@@ -1420,12 +1420,8 @@ export default function Messages() {
                               : "border-[#25344e] bg-[#0b1424]/80 hover:bg-[#0f1a2e]/90";
 
                             return (
-                              <a
-                                href={analyzeUrl}
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  window.location.href = analyzeUrl;
-                                }}
+                              <Link
+                                to={analyzeUrl}
                                 className={`mt-1 block rounded-xl border ${cardBg} p-3 transition-colors cursor-pointer group`}
                               >
                                 <div className="flex items-start gap-3">
@@ -1473,7 +1469,7 @@ export default function Messages() {
                                     </div>
                                   </div>
                                 </div>
-                              </a>
+                              </Link>
                             );
                           })()}
                           {hasAttachments && renderAttachmentGrid(attachments, m._id, mine)}

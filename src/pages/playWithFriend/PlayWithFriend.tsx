@@ -28,6 +28,8 @@ export default function PlayWithFriend() {
     showGameOverModal,
     optionSquares,
     preMoveSquares,
+    playerRating,
+    opponentRating,
     setPlayerTime,
     setOpponentTime,
     onSquareClick,
@@ -135,6 +137,8 @@ export default function PlayWithFriend() {
         showGameOverModal={showGameOverModal}
         optionSquares={optionSquares}
         preMoveSquares={preMoveSquares}
+        playerRating={playerRating}
+        opponentRating={opponentRating}
         onSquareClick={onSquareClick}
         onPieceDrop={onPieceDrop}
         onCancelSelection={onCancelSelection}

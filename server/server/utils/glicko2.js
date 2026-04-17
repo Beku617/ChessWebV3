@@ -251,6 +251,10 @@ export function updateGlickoPair({
 }
 
 export function rdFieldForPool(pool) {
+  if (pool === "chess960Bullet") return "chess960BulletRd";
+  if (pool === "chess960Blitz") return "chess960BlitzRd";
+  if (pool === "chess960Rapid") return "chess960RapidRd";
+  if (pool === "chess960Classical") return "chess960ClassicalRd";
   if (pool === "bullet") return "bulletRd";
   if (pool === "blitz") return "blitzRd";
   if (pool === "rapid") return "rapidRd";
@@ -258,6 +262,10 @@ export function rdFieldForPool(pool) {
 }
 
 export function volatilityFieldForPool(pool) {
+  if (pool === "chess960Bullet") return "chess960BulletVolatility";
+  if (pool === "chess960Blitz") return "chess960BlitzVolatility";
+  if (pool === "chess960Rapid") return "chess960RapidVolatility";
+  if (pool === "chess960Classical") return "chess960ClassicalVolatility";
   if (pool === "bullet") return "bulletVolatility";
   if (pool === "blitz") return "blitzVolatility";
   if (pool === "rapid") return "rapidVolatility";
@@ -265,6 +273,10 @@ export function volatilityFieldForPool(pool) {
 }
 
 export function lastRatedAtFieldForPool(pool) {
+  if (pool === "chess960Bullet") return "chess960BulletLastRatedAt";
+  if (pool === "chess960Blitz") return "chess960BlitzLastRatedAt";
+  if (pool === "chess960Rapid") return "chess960RapidLastRatedAt";
+  if (pool === "chess960Classical") return "chess960ClassicalLastRatedAt";
   if (pool === "bullet") return "bulletLastRatedAt";
   if (pool === "blitz") return "blitzLastRatedAt";
   if (pool === "rapid") return "rapidLastRatedAt";

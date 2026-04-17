@@ -1,4 +1,5 @@
 import { Crown, ExternalLink } from "lucide-react";
+import { Link } from "react-router-dom";
 
 import { SharedGame } from "../types";
 
@@ -30,12 +31,8 @@ export function SharedGameCard({ game, mine }: SharedGameCardProps) {
     : "border-[#25344e] bg-[#0b1424]/80 hover:bg-[#0f1a2e]/90";
 
   return (
-    <a
-      href={analyzeUrl}
-      onClick={(event) => {
-        event.preventDefault();
-        window.location.href = analyzeUrl;
-      }}
+    <Link
+      to={analyzeUrl}
       className={`mt-1 block cursor-pointer rounded-xl border ${cardBg} p-3 transition-colors group`}
     >
       <div className="flex items-start gap-3">
@@ -132,7 +129,7 @@ export function SharedGameCard({ game, mine }: SharedGameCardProps) {
           </div>
         </div>
       </div>
-    </a>
+    </Link>
   );
 }
 
