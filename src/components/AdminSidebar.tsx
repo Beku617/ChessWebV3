@@ -1,7 +1,6 @@
 import {
   Users,
   Gamepad2,
-  Settings,
   Sun,
   Moon,
   LogOut,
@@ -38,8 +37,21 @@ export default function AdminSidebar() {
     { icon: Gamepad2, label: "Games", path: "/admin/games" },
     { icon: MessageSquare, label: "Community", path: "/admin/community" },
     { icon: Users, label: "Groups", path: "/admin/groups" },
-    { icon: Settings, label: "Settings", path: "/admin/settings" },
   ];
+
+  const resolveAvatarUrl = (avatar?: string) => {
+    if (!avatar) return "";
+    if (
+      avatar.startsWith("http://") ||
+      avatar.startsWith("https://") ||
+      avatar.startsWith("data:") ||
+      avatar.startsWith("blob:")
+    ) {
+      return avatar;
+    }
+    const base = import.meta.env.VITE_API_URL || "http://localhost:3001";
+    return `${base}${avatar.startsWith("/") ? "" : "/"}${avatar}`;
+  };
 
   return (
     <div className="w-72 h-screen overflow-hidden bg-[#ebebed] dark:bg-gray-900 border-r border-gray-200/60 dark:border-gray-800 flex flex-col fixed left-0 top-0 z-50 transition-colors duration-300">
@@ -103,10 +115,18 @@ export default function AdminSidebar() {
         <div className="flex items-center space-x-3 px-4 py-3 rounded-lg bg-gray-100 dark:bg-gray-800">
           <Link
             to="/admin/profile"
-            className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-lg hover:opacity-80 transition-opacity flex-shrink-0"
+            className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-lg hover:opacity-80 transition-opacity flex-shrink-0 overflow-hidden"
             title="View admin profile"
           >
-            <Shield className="w-5 h-5 text-white" />
+            {admin?.avatar ? (
+              <img
+                src={resolveAvatarUrl(admin.avatar)}
+                alt={admin?.username || "Admin"}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <Shield className="w-5 h-5 text-white" />
+            )}
           </Link>
           <Link
             to="/admin/profile"

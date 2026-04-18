@@ -7,6 +7,7 @@ interface ProfileAvatarUploadProps {
   currentAvatar?: string;
   userName?: string;
   onAvatarChange?: (newAvatar: string) => void;
+  onPersistAvatar?: (avatar: string) => Promise<string | void>;
   size?: "md" | "lg" | "xl";
   editable?: boolean;
 }
@@ -15,6 +16,7 @@ export function ProfileAvatarUpload({
   currentAvatar,
   userName,
   onAvatarChange,
+  onPersistAvatar,
   size = "md",
   editable = true,
 }: ProfileAvatarUploadProps) {
@@ -24,6 +26,20 @@ export function ProfileAvatarUpload({
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const resolveAvatar = (avatar?: string) => {
+    if (!avatar) return "";
+    if (
+      avatar.startsWith("http://") ||
+      avatar.startsWith("https://") ||
+      avatar.startsWith("data:") ||
+      avatar.startsWith("blob:")
+    ) {
+      return avatar;
+    }
+    const base = import.meta.env.VITE_API_URL || "http://localhost:3001";
+    return `${base}${avatar.startsWith("/") ? "" : "/"}${avatar}`;
+  };
 
   const getInitials = (name?: string) => {
     return (
@@ -69,15 +85,20 @@ export function ProfileAvatarUpload({
     setError(null);
 
     try {
-      // The previewUrl is already a base64 data URL
-      const updatedUser = await authApi.updateProfile({ avatar: previewUrl });
+      if (onPersistAvatar) {
+        const nextAvatar = await onPersistAvatar(previewUrl);
+        onAvatarChange?.(nextAvatar || previewUrl);
+      } else {
+        // The previewUrl is already a base64 data URL
+        const updatedUser = await authApi.updateProfile({ avatar: previewUrl });
 
-      // Update the auth store with new user data
-      if (user && updatedUser) {
-        setUser({ ...user, avatar: updatedUser.avatar });
+        // Update the auth store with new user data
+        if (user && updatedUser) {
+          setUser({ ...user, avatar: updatedUser.avatar });
+        }
+
+        onAvatarChange?.(previewUrl);
       }
-
-      onAvatarChange?.(previewUrl);
       setIsModalOpen(false);
       setPreviewUrl(null);
     } catch (err) {
@@ -92,13 +113,18 @@ export function ProfileAvatarUpload({
     setError(null);
 
     try {
-      const updatedUser = await authApi.updateProfile({ avatar: "" });
+      if (onPersistAvatar) {
+        const nextAvatar = await onPersistAvatar("");
+        onAvatarChange?.(nextAvatar || "");
+      } else {
+        const updatedUser = await authApi.updateProfile({ avatar: "" });
 
-      if (user && updatedUser) {
-        setUser({ ...user, avatar: "" });
+        if (user && updatedUser) {
+          setUser({ ...user, avatar: "" });
+        }
+
+        onAvatarChange?.("");
       }
-
-      onAvatarChange?.("");
       setIsModalOpen(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to remove avatar");
@@ -128,7 +154,7 @@ export function ProfileAvatarUpload({
         >
           {currentAvatar ? (
             <img
-              src={currentAvatar}
+              src={resolveAvatar(currentAvatar)}
               alt={userName || "Profile"}
               className="w-full h-full object-cover"
             />
@@ -192,7 +218,7 @@ export function ProfileAvatarUpload({
                     />
                   ) : currentAvatar ? (
                     <img
-                      src={currentAvatar}
+                      src={resolveAvatar(currentAvatar)}
                       alt="Current"
                       className="w-full h-full object-cover"
                     />

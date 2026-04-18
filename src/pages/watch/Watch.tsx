@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Filter } from "lucide-react";
+import { Search } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import Sidebar from "../../components/Sidebar";
 import { LiveGamesGrid } from "./LiveGamesGrid";
@@ -33,15 +33,12 @@ export default function Watch() {
       <main className="flex-1 ml-[60px] md:ml-72 p-8">
         <header className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
               {t("Watch Live")}
             </h1>
-            <p className="text-gray-500 dark:text-gray-400">
-              {t("Follow the best games happening right now")}
-            </p>
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
@@ -52,9 +49,6 @@ export default function Watch() {
                 className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-300 pl-10 pr-4 py-2 rounded-lg focus:outline-none focus:border-brand-500 w-64 transition-colors shadow-sm"
               />
             </div>
-            <button className="p-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg text-gray-400 hover:text-gray-900 dark:hover:text-white hover:border-gray-300 dark:hover:border-gray-700 transition-colors shadow-sm">
-              <Filter className="w-5 h-5" />
-            </button>
           </div>
         </header>
 

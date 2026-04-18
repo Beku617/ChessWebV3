@@ -1,6 +1,16 @@
-import mongoose from "mongoose";
+﻿import mongoose from "mongoose";
 
-const RESULT_VALUES = ["SOLVED", "FAILED", "SKIPPED"];
+const RESULT_VALUES = ["SOLVED", "FAILED", "SKIPPED", "ABANDONED"];
+const MODE_VALUES = ["rated", "review", "random", "daily", "library"];
+const STATUS_VALUES = [
+  "unseen",
+  "seen",
+  "solved",
+  "failed",
+  "review_due",
+  "mastered",
+  "archived",
+];
 
 const PuzzleAttemptSchema = new mongoose.Schema(
   {
@@ -21,6 +31,12 @@ const PuzzleAttemptSchema = new mongoose.Schema(
       enum: RESULT_VALUES,
       required: true,
     },
+    mode: {
+      type: String,
+      enum: MODE_VALUES,
+      default: "rated",
+      index: true,
+    },
     movesPlayed: {
       type: [String],
       default: [],
@@ -33,6 +49,46 @@ const PuzzleAttemptSchema = new mongoose.Schema(
     usedHint: {
       type: Boolean,
       default: false,
+    },
+    hintsUsed: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 2,
+    },
+    solutionShown: {
+      type: Boolean,
+      default: false,
+    },
+    xpAwarded: {
+      type: Number,
+      default: 0,
+    },
+    ratingChange: {
+      type: Number,
+      default: 0,
+    },
+    isRated: {
+      type: Boolean,
+      default: false,
+    },
+    isRepeat: {
+      type: Boolean,
+      default: false,
+    },
+    repeatDecayMultiplier: {
+      type: Number,
+      default: 1,
+    },
+    attemptIndex: {
+      type: Number,
+      default: 1,
+      min: 1,
+    },
+    statusAfter: {
+      type: String,
+      enum: STATUS_VALUES,
+      default: "seen",
     },
     score: {
       type: Number,
@@ -74,9 +130,11 @@ const PuzzleAttemptSchema = new mongoose.Schema(
 
 PuzzleAttemptSchema.index({ userId: 1, createdAt: -1 });
 PuzzleAttemptSchema.index({ userId: 1, puzzleId: 1, createdAt: -1 });
+PuzzleAttemptSchema.index({ userId: 1, mode: 1, createdAt: -1 });
 
 const PuzzleAttempt =
   mongoose.models.PuzzleAttempt ||
   mongoose.model("PuzzleAttempt", PuzzleAttemptSchema);
 
 export default PuzzleAttempt;
+

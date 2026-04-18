@@ -7,6 +7,7 @@ interface Admin {
   id: string;
   email: string;
   username: string;
+  avatar?: string;
   puzzleElo?: number;
   createdAt?: string;
   updatedAt?: string;
@@ -17,6 +18,7 @@ interface AdminState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  setAdmin: (admin: Admin | null) => void;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
@@ -30,6 +32,13 @@ export const useAdminStore = create<AdminState>()(
       isAuthenticated: false,
       isLoading: true,
       error: null,
+      setAdmin: (admin) =>
+        set({
+          admin,
+          isAuthenticated: !!admin,
+          isLoading: false,
+          error: null,
+        }),
 
       login: async (email: string, password: string) => {
         set({ isLoading: true, error: null });

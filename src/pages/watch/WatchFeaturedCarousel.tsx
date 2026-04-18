@@ -239,13 +239,7 @@ export function WatchFeaturedCarousel({ events, loading }: WatchFeaturedCarousel
   return (
     <section className="watch-featured mb-10">
       <div className="watch-featured-row">
-        <div className="watch-featured-label">
-          <span className="ico">K</span>
-          Featured Tournaments
-        </div>
-        <button type="button" className="watch-featured-viewall" disabled={loading}>
-          View all events
-        </button>
+        <div className="watch-featured-label">Featured Tournaments</div>
       </div>
 
       <div

@@ -5,7 +5,6 @@ import {
   Flame,
   Search,
   Sparkles,
-  Target,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { LearnCourseCard } from "../components/learn/LearnCourseCard";
@@ -152,13 +151,7 @@ export default function Learn() {
 
   return (
     <div className="space-y-6 lg:space-y-7">
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatTile
-          label="Watched"
-          value={summary.watchedLessons}
-          icon={<Target className="w-6 h-6" />}
-          iconToneClass="text-cyan-300"
-        />
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <StatTile
           label="Completed"
           value={summary.completedLessons}

@@ -21,19 +21,25 @@ const CATEGORY_INFO: {
   { key: "master", label: "Master" },
 ];
 
+function resolveBotAvatarUrl(input: unknown): string {
+  const avatarUrl = String(input || "").trim();
+  if (!avatarUrl) return "";
+  if (/^(https?:)?\/\//i.test(avatarUrl) || avatarUrl.startsWith("data:")) {
+    return avatarUrl;
+  }
+  if (avatarUrl.startsWith("/BotProPic/")) {
+    return avatarUrl;
+  }
+  return `${API_URL}${avatarUrl.startsWith("/") ? "" : "/"}${avatarUrl}`;
+}
+
 // Map database bot to BotPersonality interface
 function mapDbBotToPersonality(dbBot: any): BotPersonality {
-  // Construct full avatar URL - uploaded images are stored on server
-  let avatarUrl = dbBot.avatarUrl || "";
-  if (avatarUrl && !avatarUrl.startsWith("http")) {
-    avatarUrl = `${API_URL}${avatarUrl.startsWith("/") ? "" : "/"}${avatarUrl}`;
-  }
-  
   return {
     id: dbBot._id,
     name: dbBot.name,
     avatar: dbBot.avatar || "🤖",
-    avatarUrl,
+    avatarUrl: resolveBotAvatarUrl(dbBot.avatarUrl),
     rating: dbBot.eloRating,
     title: dbBot.title || undefined,
     description: dbBot.description || "",
@@ -425,4 +431,3 @@ export default function PlayWithBot() {
     </div>
   );
 }
-

@@ -9,6 +9,18 @@ import {
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
+function resolveAvatarPreviewUrl(input: unknown): string {
+  const avatarUrl = String(input || "").trim();
+  if (!avatarUrl) return "";
+  if (/^(https?:)?\/\//i.test(avatarUrl) || avatarUrl.startsWith("data:")) {
+    return avatarUrl;
+  }
+  if (avatarUrl.startsWith("/BotProPic/")) {
+    return avatarUrl;
+  }
+  return `${API_URL}${avatarUrl.startsWith("/") ? "" : "/"}${avatarUrl}`;
+}
+
 interface BotFormModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -81,7 +93,7 @@ export function BotFormModal({
         sortOrder: editingBot.sortOrder,
       });
       if (editingBot.avatarUrl) {
-        setPreviewUrl(`${API_URL}${editingBot.avatarUrl}`);
+        setPreviewUrl(resolveAvatarPreviewUrl(editingBot.avatarUrl));
       }
     } else {
       setFormData(DEFAULT_BOT_FORM);

@@ -1,7 +1,6 @@
 import path from "path";
 import { Bot } from "../models/index.js";
 import {
-  buildMediaAssetUrl,
   deleteLegacyUploadFiles,
   deleteMediaAsset,
   extractMediaAssetId,
@@ -11,6 +10,19 @@ import {
   storeMediaAssetFromPath,
 } from "./mediaStorage.js";
 
+const BOT_PROFILE_PICS = {
+  beginner: "/BotProPic/beginner-bot.svg",
+  casual: "/BotProPic/casual-bot.svg",
+  intermediate: "/BotProPic/intermediate-bot.svg",
+  advanced: "/BotProPic/advanced-bot.svg",
+  master: "/BotProPic/master-bot.svg",
+};
+
+function getDifficultyAvatarUrl(difficulty = "beginner") {
+  const key = String(difficulty || "beginner").toLowerCase();
+  return BOT_PROFILE_PICS[key] || BOT_PROFILE_PICS.beginner;
+}
+
 function isLegacyBotAvatarUrl(value = "") {
   return isLegacyUploadUrl(value, "bot-avatars");
 }
@@ -18,24 +30,15 @@ function isLegacyBotAvatarUrl(value = "") {
 export function normalizeBotAvatarMedia(botDoc) {
   if (!botDoc) return botDoc;
 
-  const rawUrl = String(botDoc.avatarUrl || "").trim();
-  const mimeType = String(botDoc.avatarMimeType || "").trim();
-  const resourceType = mimeType.startsWith("video/") ? "video" : "image";
-  const assetId = String(
-    botDoc.avatarAssetId || extractMediaAssetId(rawUrl),
-  ).trim();
-  const avatarUrl =
-    assetId && (rawUrl === "" || isLegacyBotAvatarUrl(rawUrl))
-      ? buildMediaAssetUrl(assetId, { resourceType })
-      : rawUrl || buildMediaAssetUrl(assetId, { resourceType });
+  const avatarUrl = getDifficultyAvatarUrl(botDoc.difficulty);
 
   return {
     ...botDoc,
-    avatarAssetId: assetId,
+    avatarAssetId: "",
     avatarUrl,
-    avatarMimeType: mimeType,
-    avatarOriginalName: String(botDoc.avatarOriginalName || "").trim(),
-    avatarSize: Number(botDoc.avatarSize || 0),
+    avatarMimeType: "image/svg+xml",
+    avatarOriginalName: "",
+    avatarSize: 0,
   };
 }
 
@@ -66,6 +69,33 @@ export async function ensureBotAvatarMedia(botDoc) {
 
   const rawUrl = String(botDoc.avatarUrl || "").trim();
   const normalized = normalizeBotAvatarMedia(botDoc);
+  if (normalized.avatarUrl.startsWith("/BotProPic/")) {
+    if (
+      String(normalized.avatarUrl || "") !== String(botDoc.avatarUrl || "") ||
+      String(normalized.avatarAssetId || "") !==
+        String(botDoc.avatarAssetId || "") ||
+      String(normalized.avatarMimeType || "") !==
+        String(botDoc.avatarMimeType || "") ||
+      String(normalized.avatarOriginalName || "") !==
+        String(botDoc.avatarOriginalName || "") ||
+      Number(normalized.avatarSize || 0) !== Number(botDoc.avatarSize || 0)
+    ) {
+      await Bot.updateOne(
+        { _id: botDoc._id },
+        {
+          $set: {
+            avatarUrl: normalized.avatarUrl,
+            avatarAssetId: normalized.avatarAssetId,
+            avatarMimeType: normalized.avatarMimeType,
+            avatarOriginalName: normalized.avatarOriginalName,
+            avatarSize: normalized.avatarSize,
+          },
+        },
+      );
+    }
+    return normalized;
+  }
+
   if (normalized.avatarAssetId && isLegacyBotAvatarUrl(rawUrl)) {
     await Bot.updateOne(
       { _id: botDoc._id },

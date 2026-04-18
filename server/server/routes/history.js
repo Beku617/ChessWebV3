@@ -43,11 +43,17 @@ function normalizeVariant(value) {
   ) {
     return "threeCheck";
   }
+  if (normalized === "fourplayer" || normalized === "four_player") {
+    return "fourPlayer";
+  }
   return normalized === "chess960" ? "chess960" : "standard";
 }
 
 function detectVariantFromEvent(event) {
   const text = String(event || "");
+  if (/four[\s_-]?player|4[\s_-]?player/i.test(text)) {
+    return "fourPlayer";
+  }
   if (/three[\s_-]?check|3[\s_-]?check/i.test(text)) {
     return "threeCheck";
   }
@@ -170,6 +176,11 @@ router.post("/", authMiddleware, async (req, res) => {
     const resolvedVariant = variant
       ? normalizeVariant(variant)
       : detectVariantFromEvent(event);
+    if (resolvedVariant === "fourPlayer") {
+      return res.status(400).json({
+        error: "4-player games are excluded from rating and history.",
+      });
+    }
     const preferredModel =
       resolvedVariant === "chess960" ? History960 : History;
 

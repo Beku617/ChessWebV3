@@ -14,6 +14,14 @@ export interface PuzzleItem {
   mateIn?: number;
   timesPlayed?: number;
   timesSolved?: number;
+  motifs?: string[];
+  source?: string;
+  category?: string;
+  isActive?: boolean;
+  isProvisional?: boolean;
+  imported?: boolean;
+  userState?: PuzzleUserState;
+  quality?: PuzzleQuality;
 }
 
 export interface PuzzleUserStats {
@@ -26,6 +34,168 @@ export interface PuzzleUserStats {
   solvedToday: number;
   streak: number;
   provisional: boolean;
+  dailyGoal?: number;
+  puzzleXP?: number;
+  reviewDueCount?: number;
+  graceTokens?: number;
+  weakMotifs?: PuzzleWeakMotif[];
+}
+
+export type PuzzleMode =
+  | "rated"
+  | "review"
+  | "random"
+  | "library";
+
+export type PuzzleStateBadge =
+  | "new"
+  | "solved"
+  | "failed_before"
+  | "review_due"
+  | "mastered"
+  | "bookmarked";
+
+export interface PuzzleUserState {
+  status:
+    | "unseen"
+    | "seen"
+    | "solved"
+    | "failed"
+    | "review_due"
+    | "mastered"
+    | "archived";
+  seenCount: number;
+  solveCount: number;
+  failCount: number;
+  hintCount: number;
+  nextReviewAt: string | null;
+  isBookmarked: boolean;
+  isHidden: boolean;
+  masteredAt: string | null;
+  badge: PuzzleStateBadge;
+  reviewDue: boolean;
+  mastered: boolean;
+}
+
+export interface PuzzleQuality {
+  attempts: number;
+  solved: number;
+  failed: number;
+  solveRate: number;
+  failRate: number;
+  avgSolveTimeMs: number;
+}
+
+export interface PuzzleWeakMotif {
+  motif: string;
+  accuracy: number;
+  attempts: number;
+}
+
+export interface PuzzleSelectionResponse {
+  mode: PuzzleMode;
+  reason: string;
+  puzzle: PuzzleItem | null;
+  weakMotifs?: PuzzleWeakMotif[];
+  daily?: {
+    solved: boolean;
+    solvedAt: string | null;
+  } | null;
+}
+
+export interface PuzzleAttemptResponse {
+  success: boolean;
+  attempt: {
+    id: string;
+    result: "SOLVED" | "FAILED" | "SKIPPED" | "ABANDONED";
+    mode: PuzzleMode;
+    createdAt: string;
+    timeMs: number;
+    movesPlayed: string[];
+    usedHint: boolean;
+    hintsUsed: number;
+    solutionShown: boolean;
+    xpAwarded: number;
+    ratingChange: number;
+    isRated: boolean;
+    isRepeat: boolean;
+    repeatDecayMultiplier: number;
+    statusAfter:
+      | "unseen"
+      | "seen"
+      | "solved"
+      | "failed"
+      | "review_due"
+      | "mastered"
+      | "archived";
+  };
+  user: {
+    puzzleElo: number;
+    puzzleBestElo: number;
+    puzzleAttempts: number;
+    puzzleSolved: number;
+    puzzleFailed: number;
+    puzzleSkipped: number;
+    delta: number;
+  };
+  state: PuzzleUserState;
+  stats: {
+    puzzleRating: number;
+    puzzleXP: number;
+    currentStreak: number;
+    longestStreak: number;
+    dailyGoal: number;
+    solvedToday: number;
+    reviewDueCount: number;
+    graceTokens: number;
+  };
+  puzzle: {
+    id: string;
+    title: string;
+    difficulty: "Easy" | "Medium" | "Hard";
+    rating: number;
+    delta: number;
+    motifs: string[];
+  };
+  meta: {
+    mode: PuzzleMode;
+    isFreshRatedAttempt: boolean;
+    isRepeat: boolean;
+    xpAwarded: number;
+    ratingChange: number;
+    messages: string[];
+  };
+}
+
+export interface PuzzleLibraryResponse {
+  items: PuzzleItem[];
+  total: number;
+}
+
+export interface PuzzleHistoryItem {
+  id: string;
+  puzzleId: string;
+  puzzleTitle: string;
+  motifs: string[];
+  puzzleRating: number;
+  puzzleDifficulty?: "Easy" | "Medium" | "Hard" | string;
+  puzzleFen?: string;
+  puzzleDescription?: string;
+  isWhiteToMove?: boolean;
+  date: string;
+  result: "SOLVED" | "FAILED" | "SKIPPED" | "ABANDONED";
+  mode: PuzzleMode;
+  ratingChange: number;
+  xpGained: number;
+  hintsUsed: number;
+  timeSpent: number;
+  statusAfter: PuzzleUserState["status"];
+  isRepeat: boolean;
+}
+
+export interface PuzzleHistoryResponse {
+  items: PuzzleHistoryItem[];
+  total: number;
 }
 
 export type PuzzleCollection = "all" | "mate" | "tactics" | "endgame" | "openings";
@@ -182,3 +352,4 @@ export function getDifficultyColor(diff: string): string {
       return "text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-700";
   }
 }
+

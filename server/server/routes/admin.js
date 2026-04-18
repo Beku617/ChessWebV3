@@ -16,6 +16,7 @@ function serializeAdmin(admin) {
     id: admin._id,
     email: admin.email,
     username: admin.username,
+    avatar: admin.avatar || "",
     puzzleElo: admin.puzzleElo,
     createdAt: admin.createdAt,
     updatedAt: admin.updatedAt,
@@ -84,6 +85,49 @@ router.get("/me", adminAuthMiddleware, async (req, res) => {
   } catch (err) {
     console.error("Get admin error:", err);
     res.status(500).json({ error: "Server error" });
+  }
+});
+
+// Update current admin profile
+router.put("/profile", adminAuthMiddleware, async (req, res) => {
+  try {
+    const { username, avatar } = req.body || {};
+    const update = {};
+
+    if (typeof username === "string") {
+      const cleanUsername = username.trim().slice(0, 80);
+      if (!cleanUsername) {
+        return res.status(400).json({ error: "Username cannot be empty" });
+      }
+
+      const existing = await Admin.findOne({
+        username: cleanUsername,
+        _id: { $ne: req.admin.adminId },
+      }).lean();
+      if (existing) {
+        return res.status(400).json({ error: "Username already in use" });
+      }
+      update.username = cleanUsername;
+    }
+
+    if (typeof avatar === "string") {
+      update.avatar = avatar.trim();
+    }
+
+    if (Object.keys(update).length === 0) {
+      return res.status(400).json({ error: "No valid profile fields provided" });
+    }
+
+    const admin = await Admin.findByIdAndUpdate(
+      req.admin.adminId,
+      { $set: update },
+      { new: true },
+    ).select("-password");
+
+    return res.json({ success: true, admin: serializeAdmin(admin) });
+  } catch (err) {
+    console.error("Admin update profile error:", err);
+    return res.status(500).json({ error: "Server error" });
   }
 });
 

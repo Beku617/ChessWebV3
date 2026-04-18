@@ -360,6 +360,18 @@ export const botPersonalities: BotPersonality[] = [
   },
 ];
 
+const CATEGORY_BOT_PROFILE_PICS: Record<BotPersonality["category"], string> = {
+  beginner: "/BotProPic/beginner-bot.svg",
+  casual: "/BotProPic/casual-bot.svg",
+  intermediate: "/BotProPic/intermediate-bot.svg",
+  advanced: "/BotProPic/advanced-bot.svg",
+  master: "/BotProPic/master-bot.svg",
+};
+
+for (const bot of botPersonalities) {
+  bot.avatarUrl = CATEGORY_BOT_PROFILE_PICS[bot.category];
+}
+
 // Get bots by category
 export function getBotsByCategory(category: BotPersonality["category"]) {
   return botPersonalities.filter((bot) => bot.category === category);

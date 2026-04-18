@@ -77,9 +77,6 @@ export function StreamersSection({
         <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
           <PlayCircle className="w-5 h-5 text-purple-500 mr-2" />
           {t("Live Streamers")}
-          <span className="ml-2 text-xs bg-gray-200 dark:bg-gray-800 px-2 py-1 rounded text-gray-500">
-            {streamers.length} {t("live")}
-          </span>
         </h2>
         {onRefresh && (
           <button
@@ -131,19 +128,6 @@ export function StreamersSection({
             <ExternalLink className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
           </a>
         ))}
-      </div>
-
-      {/* Lichess attribution */}
-      <div className="mt-4 text-center text-xs text-gray-400 dark:text-gray-500">
-        {t("Streamers powered by")}{" "}
-        <a
-          href="https://lichess.org/streamer"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-brand-600 dark:text-brand-500 hover:underline"
-        >
-          Lichess.org
-        </a>
       </div>
     </section>
   );

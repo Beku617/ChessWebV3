@@ -50,6 +50,59 @@ body {
   background-color: var(--bg-primary);
 }
 
+html.puzzle-trainer-lock,
+body.puzzle-trainer-lock {
+  height: 100%;
+  overflow: hidden;
+}
+
+html.puzzle-trainer-lock .app {
+  height: 100vh;
+  display: grid;
+  grid-template-rows: 52px 1fr;
+  overflow: hidden;
+}
+
+html.puzzle-trainer-lock .main {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  justify-content: center;
+  overflow: hidden;
+  min-height: 0;
+}
+
+html.puzzle-trainer-lock .puzzle-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+html.puzzle-trainer-lock .board-wrapper {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+html.puzzle-trainer-lock .board-outer {
+  aspect-ratio: 1 / 1;
+  height: 100% !important;
+  max-width: 100%;
+}
+
+html.puzzle-trainer-lock .puzzle-header,
+html.puzzle-trainer-lock .actions {
+  flex-shrink: 0;
+}
+
+html.puzzle-trainer-lock .sidebar {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
 /* Dark mode keeps original styling */
 html.dark {
   background-color: #0a0a0b;

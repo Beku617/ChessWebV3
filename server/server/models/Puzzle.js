@@ -8,12 +8,12 @@ const PuzzleSchema = new mongoose.Schema(
       enum: ["Easy", "Medium", "Hard"],
       required: true,
     },
-    themes: { type: [String], default: [] },
+    category: { type: String, default: "tactics" },
     description: { type: String, default: "" },
-    icon: { type: String, default: "🧩" },
     fen: { type: String, required: true },
     solution: { type: [String], required: true },
     rating: { type: Number, default: 1200 },
+    isActive: { type: Boolean, default: true },
     isWhiteToMove: { type: Boolean, required: true },
     mateIn: { type: Number, default: 2 },
     timesPlayed: { type: Number, default: 0 },
@@ -22,6 +22,8 @@ const PuzzleSchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
+
+PuzzleSchema.index({ isActive: 1, rating: 1 });
 
 const Puzzle = mongoose.models.Puzzle || mongoose.model("Puzzle", PuzzleSchema);
 

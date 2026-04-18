@@ -1,20 +1,44 @@
-export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+import type {
+  PuzzleItem,
+  PuzzleMode,
+  PuzzleUserStats,
+} from "../puzzles/types";
 
-export interface PuzzleItem {
-  _id: string;
-  title: string;
-  difficulty: "Easy" | "Medium" | "Hard";
-  themes: string[];
-  description: string;
-  icon: string;
-  fen: string;
-  solution: string[];
-  rating: number;
-  isWhiteToMove: boolean;
+export type { PuzzleItem, PuzzleMode, PuzzleUserStats };
+
+export type PuzzleStatus =
+  | "solving"
+  | "correct"
+  | "wrong"
+  | "showingSolution"
+  | "loading";
+
+export interface TrainerAttemptFeedback {
+  xpAwarded: number;
+  ratingChange: number;
+  messages: string[];
+  statusAfter:
+    | "unseen"
+    | "seen"
+    | "solved"
+    | "failed"
+    | "review_due"
+    | "mastered"
+    | "archived";
+  hintsUsed: number;
+  repeatDecayMultiplier: number;
+  isRepeat: boolean;
+  isRated: boolean;
 }
 
-export type PuzzleStatus = "solving" | "correct" | "wrong" | "showingSolution";
+export const TRAINER_MODES: Array<{
+  mode: PuzzleMode;
+  label: string;
+  route?: string;
+}> = [
+  { mode: "rated", label: "Rated", route: "/puzzles/train?mode=rated" },
+  { mode: "review", label: "Review", route: "/puzzles/train?mode=review" },
+  { mode: "random", label: "Random", route: "/puzzles/train?mode=random" },
+  { mode: "library", label: "Library", route: "/puzzles/library" },
+];
 
-export const SIDEBAR_WIDTH = 288;
-export const PANEL_MIN_WIDTH = 360;
-export const BOARD_GUTTER = 48;

@@ -49,14 +49,10 @@ export default function LearnLesson() {
   const [isSubmittingMove, setIsSubmittingMove] = useState(false);
   const [feedback, setFeedback] = useState<FeedbackState | null>(null);
   const [showHint, setShowHint] = useState(false);
-  const [canAdvanceStep, setCanAdvanceStep] = useState(false);
   const [moveFrom, setMoveFrom] = useState<string | null>(null);
   const [moveSquares, setMoveSquares] = useState<
     Record<string, React.CSSProperties>
   >({});
-  const [pendingNextStepIndex, setPendingNextStepIndex] = useState<number | null>(
-    null,
-  );
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(
     null,
   );
@@ -106,10 +102,8 @@ export default function LearnLesson() {
         setBoardFen(data.steps[startIndex]?.fen || "");
         setFeedback(null);
         setShowHint(false);
-        setCanAdvanceStep(false);
         setMoveFrom(null);
         setMoveSquares({});
-        setPendingNextStepIndex(null);
         setLastMove(null);
       } catch (err) {
         if (cancelled) return;
@@ -132,26 +126,29 @@ export default function LearnLesson() {
     return lessonData.steps[currentStepIndex] || null;
   }, [lessonData, currentStepIndex]);
 
+  const visibleLessons = useMemo(() => {
+    if (!lessonData) return [];
+    return lessonData.lessons.filter((entry) => Number(entry.stepCount || 0) > 0);
+  }, [lessonData]);
+
   useEffect(() => {
     if (!currentStep) return;
     setBoardFen(currentStep.fen);
     setShowHint(false);
-    setCanAdvanceStep(false);
     setMoveFrom(null);
     setMoveSquares({});
-    setPendingNextStepIndex(null);
     setLastMove(null);
   }, [currentStep?.id]);
 
   const currentLessonOrder = useMemo(() => {
     if (!lessonData) return -1;
-    return lessonData.lessons.findIndex((entry) => entry.slug === lessonData.lesson.slug);
-  }, [lessonData]);
+    return visibleLessons.findIndex((entry) => entry.slug === lessonData.lesson.slug);
+  }, [lessonData, visibleLessons]);
 
   const hasPrevLesson = currentLessonOrder > 0;
   const nextLesson =
     lessonData != null && currentLessonOrder >= 0
-      ? lessonData.lessons[currentLessonOrder + 1]
+      ? visibleLessons[currentLessonOrder + 1]
       : undefined;
   const hasNextLesson = !!nextLesson;
 
@@ -190,12 +187,17 @@ export default function LearnLesson() {
 
     const optionStyles = moves.reduce<Record<string, React.CSSProperties>>(
       (styles, move) => {
-        styles[move.to] = {
-          boxShadow:
-            "inset 0 0 0 3px rgba(20,184,166,0.8), inset 0 0 0 6px rgba(20,184,166,0.18)",
-          background:
-            "radial-gradient(circle, rgba(20,184,166,0.45) 38%, rgba(0,0,0,0) 60%)",
-        };
+        const hasPiece = !!chess.get(move.to as Square);
+        styles[move.to] = hasPiece
+          ? {
+              boxShadow:
+                "inset 0 0 0 2px rgba(31, 41, 55, 0.58), inset 0 0 0 5px rgba(31, 41, 55, 0.2)",
+            }
+          : {
+              background:
+                "radial-gradient(circle, rgba(31, 41, 55, 0.26) 34%, rgba(0, 0, 0, 0) 36%)",
+              borderRadius: "50%",
+            };
         return styles;
       },
       {},
@@ -203,7 +205,7 @@ export default function LearnLesson() {
 
     setMoveFrom(sourceSquare);
     setMoveSquares({
-      [sourceSquare]: { backgroundColor: "rgba(20,184,166,0.25)" },
+      [sourceSquare]: { backgroundColor: "rgba(250, 204, 21, 0.38)" },
       ...optionStyles,
     });
     return true;
@@ -276,8 +278,6 @@ export default function LearnLesson() {
 
       if (result.isCorrect) {
         setFeedback({ kind: "correct", message: result.feedback });
-        setCanAdvanceStep(!result.lessonCompleted);
-        setPendingNextStepIndex(result.nextStepIndex);
         setBoardFen(result.boardFenAfterMove || currentStep.fen);
 
         if (result.lessonCompleted && lessonData) {
@@ -292,7 +292,6 @@ export default function LearnLesson() {
         }
 
         if (
-          result.autoAdvance &&
           !result.lessonCompleted &&
           result.nextStepIndex > currentStepIndex
         ) {
@@ -306,8 +305,6 @@ export default function LearnLesson() {
       } else {
         playGameplaySound("illegal");
         setFeedback({ kind: "wrong", message: result.feedback });
-        setCanAdvanceStep(false);
-        setPendingNextStepIndex(null);
 
         if (result.keepPositionOnWrong) {
           setBoardFen(result.boardFenAfterMove || currentStep.fen);
@@ -347,15 +344,6 @@ export default function LearnLesson() {
     }
   };
 
-  const goToNextStep = () => {
-    if (!lessonData || pendingNextStepIndex == null) return;
-    const maxStepIndex = Math.max(0, lessonData.steps.length - 1);
-    setCurrentStepIndex(clampIndex(pendingNextStepIndex, maxStepIndex));
-    setFeedback(null);
-    setCanAdvanceStep(false);
-    setPendingNextStepIndex(null);
-  };
-
   const retryCurrentStep = () => {
     if (!currentStep) return;
     setBoardFen(currentStep.fen);
@@ -372,7 +360,7 @@ export default function LearnLesson() {
 
   const openPrevLesson = () => {
     if (!lessonData || !hasPrevLesson) return;
-    const target = lessonData.lessons[currentLessonOrder - 1];
+    const target = visibleLessons[currentLessonOrder - 1];
     if (target) openLessonBySlug(target.slug);
   };
 
@@ -387,10 +375,8 @@ export default function LearnLesson() {
     setBoardFen(lessonData.steps[0].fen);
     setFeedback(null);
     setShowHint(false);
-    setCanAdvanceStep(false);
     setMoveFrom(null);
     setMoveSquares({});
-    setPendingNextStepIndex(null);
     setLastMove(null);
   };
 
@@ -454,7 +440,7 @@ export default function LearnLesson() {
         <aside className="min-w-0 xl:min-h-0 xl:h-full flex flex-col gap-3 lg:gap-4">
           <LessonPanel
             courseTitle={lessonData.course.title}
-            lessons={lessonData.lessons}
+            lessons={visibleLessons}
             currentLessonSlug={lessonData.lesson.slug}
             courseProgress={courseProgress}
             onBackToCatalog={() => navigate("/learn")}
@@ -518,21 +504,13 @@ export default function LearnLesson() {
                   Retry Step
                 </button>
 
-                {canAdvanceStep && !lessonCompleted && (
+                {lessonCompleted && (
                   <button
-                    onClick={goToNextStep}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-brand-500/20 border border-brand-400/35 text-brand-200 text-xs hover:bg-brand-500/30"
+                    onClick={() => navigate("/learn")}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 text-xs hover:border-slate-600"
                   >
-                    Next Step
-                  </button>
-                )}
-
-                {lessonCompleted && hasNextLesson && (
-                  <button
-                    onClick={openNextLesson}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-brand-500/20 border border-brand-400/35 text-brand-200 text-xs hover:bg-brand-500/30"
-                  >
-                    Next Lesson
+                    <BookOpen className="w-3.5 h-3.5" />
+                    Back to Learn
                   </button>
                 )}
               </div>
@@ -562,6 +540,14 @@ export default function LearnLesson() {
               >
                 <ChevronRight className="w-3.5 h-3.5" />
                 Next Lesson
+              </button>
+            ) : lessonCompleted ? (
+              <button
+                onClick={() => navigate("/learn")}
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs bg-slate-900 border border-slate-700 text-slate-300 hover:border-slate-600"
+              >
+                <BookOpen className="w-3.5 h-3.5" />
+                Back to Learn
               </button>
             ) : (
               <button

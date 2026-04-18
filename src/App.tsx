@@ -29,6 +29,7 @@ const PlayVariants = lazy(() => import("./pages/playVariants"));
 const PlayFourPlayer = lazy(() => import("./pages/playFourPlayer"));
 const PlayPractice = lazy(() => import("./pages/playPractice"));
 const Puzzles = lazy(() => import("./pages/puzzles"));
+const PuzzleHistory = lazy(() => import("./pages/puzzles/PuzzleHistory"));
 const PuzzleTrainer = lazy(() => import("./pages/puzzleTrainer"));
 const Learn = lazy(() => import("./pages/Learn"));
 const LearnLesson = lazy(() => import("./pages/LearnLesson"));
@@ -68,7 +69,6 @@ const AdminLearn = lazy(() => import("./pages/adminLearn"));
 const AdminLearnCourse = lazy(() => import("./pages/adminLearn/AdminLearnCourse"));
 const AdminLearnLesson = lazy(() => import("./pages/adminLearn/AdminLearnLesson"));
 const AdminProfile = lazy(() => import("./pages/adminProfile"));
-const AdminSettings = lazy(() => import("./pages/adminSettings"));
 const Messages = lazy(async () => {
   const module = await import("./pages/messages");
   return { default: module.Messages };
@@ -410,7 +410,39 @@ function App() {
               path="/puzzles"
               element={
                 <ProtectedRoute>
+                  <Navigate to="/puzzles/train?mode=rated" replace />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/puzzles/library"
+              element={
+                <ProtectedRoute>
                   <Puzzles />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/puzzles/history"
+              element={
+                <ProtectedRoute>
+                  <PuzzleHistory />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/puzzles/random"
+              element={
+                <ProtectedRoute>
+                  <Navigate to="/puzzles/train?mode=random" replace />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/puzzles/review"
+              element={
+                <ProtectedRoute>
+                  <Navigate to="/puzzles/train?mode=review" replace />
                 </ProtectedRoute>
               }
             />
@@ -555,7 +587,6 @@ function App() {
               element={<AdminLearnLesson />}
             />
             <Route path="/admin/profile" element={<AdminProfile />} />
-            <Route path="/admin/settings" element={<AdminSettings />} />
             <Route path="/admin/analyze/:gameId" element={<AdminAnalyze />} />
           </Routes>
         </Suspense>
@@ -566,4 +597,5 @@ function App() {
 }
 
 export default App;
+
 
