@@ -7,9 +7,11 @@ import {
   OverviewTabContent,
   GamesTabContent,
   NoGamesPlaceholder,
+  TournamentProfileSection,
   API_URL,
   calculateStats,
   filterGames,
+  type TournamentProfileData,
   type FilterType,
   type TabType,
 } from "../components/profilePage";
@@ -22,6 +24,9 @@ export default function Profile() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [filter, setFilter] = useState<FilterType>("all");
   const [activeTab, setActiveTab] = useState<TabType>("overview");
+  const [tournamentProfile, setTournamentProfile] =
+    useState<TournamentProfileData | null>(null);
+  const [loadingTournamentProfile, setLoadingTournamentProfile] = useState(false);
 
   useEffect(() => {
     async function fetchGames() {
@@ -40,6 +45,32 @@ export default function Profile() {
     }
     fetchGames();
   }, []);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    let cancelled = false;
+    async function fetchTournamentProfile() {
+      try {
+        setLoadingTournamentProfile(true);
+        const res = await fetch(`${API_URL}/api/users/${user.id}/profile`, {
+          credentials: "include",
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "Failed to load tournament profile");
+        if (!cancelled) {
+          setTournamentProfile(data.profile || null);
+        }
+      } catch {
+        if (!cancelled) setTournamentProfile(null);
+      } finally {
+        if (!cancelled) setLoadingTournamentProfile(false);
+      }
+    }
+    void fetchTournamentProfile();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
 
   const stats = useMemo(() => calculateStats(games), [games]);
   const filteredGames = useMemo(
@@ -85,6 +116,14 @@ export default function Profile() {
               {error}
             </div>
           )}
+
+          <div className="mb-6">
+            <TournamentProfileSection
+              data={tournamentProfile}
+              isLoading={loadingTournamentProfile}
+              title="Tournament & ELO"
+            />
+          </div>
 
           {stats ? (
             activeTab === "overview" ? (

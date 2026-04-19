@@ -1,3 +1,3 @@
-import tournamentController from "../controllers/tournamentController.js";
+import tournamentController from "../controllers/tournamentControllerV2.js";
 
 export default tournamentController;

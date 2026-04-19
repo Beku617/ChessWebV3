@@ -10,6 +10,8 @@ export { RecentGames } from "./RecentGames";
 export { NoGamesPlaceholder } from "./NoGamesPlaceholder";
 export { GamesTabContent } from "./GamesTabContent";
 export { OverviewTabContent } from "./OverviewTabContent";
+export { default as TournamentProfileSection } from "./TournamentProfileSection";
+export type { TournamentProfileData } from "./TournamentProfileSection";
 export {
   type ProfileStats,
   type FilterType,

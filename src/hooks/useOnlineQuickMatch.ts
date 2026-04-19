@@ -29,6 +29,7 @@ const socketBaseUrl =
   import.meta.env.VITE_API_URL ||
   "http://localhost:3001";
 const SOCKET_URL = socketBaseUrl.replace(/\/api\/?$/, "");
+const ACTIVE_GAME_STORAGE_KEY = "neongambit:activeGameId";
 const BOARD_FILES = ["a", "b", "c", "d", "e", "f", "g", "h"] as const;
 
 type PlayerColor = "w" | "b";
@@ -54,6 +55,12 @@ interface MatchFoundPayload {
   variant?: MatchVariant;
   whiteCheckCount?: number;
   blackCheckCount?: number;
+  restored?: boolean;
+  moves?: string[];
+  whiteTimeLeft?: number;
+  blackTimeLeft?: number;
+  playerClock?: number;
+  opponentClock?: number;
 }
 
 interface MoveAppliedPayload {
@@ -68,6 +75,8 @@ interface MoveAppliedPayload {
   whiteCheckCount?: number;
   blackCheckCount?: number;
   checkAwarded?: PlayerColor | null;
+  whiteTimeLeft?: number;
+  blackTimeLeft?: number;
 }
 
 interface GameOverPayload {
@@ -203,6 +212,30 @@ interface GameSystemMessagePayload {
   targetColor?: PlayerColor | null;
 }
 
+interface GameStateRestoredPayload {
+  gameId: string;
+  color?: PlayerColor;
+  fen?: string;
+  moves?: string[];
+  whiteTimeLeft?: number;
+  blackTimeLeft?: number;
+  playerClock?: number;
+  opponentClock?: number;
+}
+
+function storeActiveGameId(gameId: string | null) {
+  if (typeof window === "undefined") return;
+  try {
+    if (!gameId) {
+      window.localStorage.removeItem(ACTIVE_GAME_STORAGE_KEY);
+      return;
+    }
+    window.localStorage.setItem(ACTIVE_GAME_STORAGE_KEY, String(gameId));
+  } catch {
+    // no-op
+  }
+}
+
 function toFiniteRating(value: unknown): number | null {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? Math.round(parsed) : null;
@@ -246,11 +279,21 @@ export function useOnlineQuickMatch() {
   const [opponentTime, setOpponentTime] = useState(
     defaultGameSettings.timeControl.initial,
   );
+  const [playerClockSeed, setPlayerClockSeed] = useState(
+    defaultGameSettings.timeControl.initial,
+  );
+  const [opponentClockSeed, setOpponentClockSeed] = useState(
+    defaultGameSettings.timeControl.initial,
+  );
+  const [clockResetToken, setClockResetToken] = useState(0);
   const [threeCheckState, setThreeCheckState] = useState(() =>
     normalizeThreeCheckCounts(),
   );
 
   const socketRef = useRef<Socket | null>(null);
+  const tournamentJoinRetryTimerRef = useRef<number | null>(null);
+  const tournamentJoinAttemptsRef = useRef(0);
+  const activeTournamentJoinGameIdRef = useRef<string>("");
   const playerNameRef = useRef<string>("Player");
   const gameIdRef = useRef<string | null>(null);
   const playerColorRef = useRef<PlayerColor>("w");
@@ -268,9 +311,28 @@ export function useOnlineQuickMatch() {
   const isPlayerTurn = game.turn() === playerColor;
   const preMoveSquares = buildPreMoveSquares(pendingPreMove);
 
+  const clearTournamentJoinRetry = useCallback(() => {
+    if (tournamentJoinRetryTimerRef.current !== null) {
+      window.clearTimeout(tournamentJoinRetryTimerRef.current);
+      tournamentJoinRetryTimerRef.current = null;
+    }
+    tournamentJoinAttemptsRef.current = 0;
+    activeTournamentJoinGameIdRef.current = "";
+  }, []);
+
   const resetStoredMoves = useCallback(() => {
     movesRef.current = [];
     setMoves([]);
+  }, []);
+
+  const setStoredMoves = useCallback((nextMoves: string[]) => {
+    const normalized = Array.isArray(nextMoves)
+      ? nextMoves
+          .map((move) => String(move || "").trim())
+          .filter((move) => move.length > 0)
+      : [];
+    movesRef.current = normalized;
+    setMoves(normalized);
   }, []);
 
   const appendStoredMove = useCallback((san?: string) => {
@@ -310,7 +372,15 @@ export function useOnlineQuickMatch() {
 
     const socket = socketRef.current;
     const activeGameId = gameIdRef.current;
-    if (!socket || !activeGameId) return false;
+    const engineState = socket?.io?.engine?.readyState;
+    if (
+      !socket ||
+      !activeGameId ||
+      !socket.connected ||
+      (engineState && engineState !== "open")
+    ) {
+      return false;
+    }
 
     const validationGame = new Chess(currentGame.fen());
     const isChess960Castle = isChess960CastlingDropForColor(
@@ -360,6 +430,7 @@ export function useOnlineQuickMatch() {
     setPendingPreMove(null);
     pendingPreMoveRef.current = null;
     setGameId(null);
+    storeActiveGameId(null);
     setSavedGameId(null);
     setHistoryPersistenceStatus("idle");
     gameIdRef.current = null;
@@ -372,11 +443,39 @@ export function useOnlineQuickMatch() {
     setMatchVariant("standard");
     matchVariantRef.current = "standard";
     setThreeCheckState(normalizeThreeCheckCounts());
+    setPlayerTime(defaultGameSettings.timeControl.initial);
+    setOpponentTime(defaultGameSettings.timeControl.initial);
+    setPlayerClockSeed(defaultGameSettings.timeControl.initial);
+    setOpponentClockSeed(defaultGameSettings.timeControl.initial);
+    setClockResetToken((value) => value + 1);
     startTimeRef.current = null;
     startingFenRef.current = "";
     historySavedRef.current = false;
     setLastGameOver(null);
-  }, [resetStoredMoves]);
+    clearTournamentJoinRetry();
+  }, [clearTournamentJoinRetry, resetStoredMoves]);
+
+  const emitIfConnected = useCallback(
+    (
+      eventName: string,
+      payload?: Record<string, unknown>,
+      ack?: (...args: unknown[]) => void,
+    ) => {
+      const socket = socketRef.current;
+      const engineState = socket?.io?.engine?.readyState;
+      if (!socket || !socket.connected || (engineState && engineState !== "open")) {
+        setQueueStatus("Reconnecting to server...");
+        return false;
+      }
+      if (ack) {
+        socket.emit(eventName, payload, ack);
+      } else {
+        socket.emit(eventName, payload);
+      }
+      return true;
+    },
+    [],
+  );
 
   const formatResult = (payload: GameOverPayload) => {
     return formatPerspectiveResult(
@@ -401,24 +500,116 @@ export function useOnlineQuickMatch() {
   useEffect(() => {
     const socket = io(SOCKET_URL, {
       withCredentials: true,
+      reconnection: true,
+      reconnectionAttempts: 10,
+      reconnectionDelay: 2000,
+      autoConnect: false,
     });
+    let connectProbeTimer: number | null = null;
+    const clearConnectProbeTimer = () => {
+      if (connectProbeTimer !== null) {
+        window.clearTimeout(connectProbeTimer);
+        connectProbeTimer = null;
+      }
+    };
+    const scheduleConnectProbe = () => {
+      clearConnectProbeTimer();
+      connectProbeTimer = window.setTimeout(async () => {
+        connectProbeTimer = null;
+        if (socket.connected) return;
+        try {
+          const response = await fetch(`${SOCKET_URL}/healthz`, {
+            credentials: "include",
+          });
+          if (!response.ok) throw new Error("Server unavailable");
+          if (!socket.connected) {
+            socket.connect();
+          }
+        } catch {
+          setIsConnected(false);
+          if (activeTournamentJoinGameIdRef.current) {
+            setIsSearching(true);
+            setQueueStatus("Reconnecting to matchmaking server...");
+          } else {
+            setIsSearching(false);
+            setQueueStatus("Unable to connect to matchmaking server. Reconnecting...");
+          }
+          scheduleConnectProbe();
+        }
+      }, 1500);
+    };
+    const attemptRestore = (targetGameId?: string | null) => {
+      const explicitGameId = String(targetGameId || gameIdRef.current || "").trim();
+      const payload = explicitGameId ? { gameId: explicitGameId } : {};
+      socket.emit(
+        "rejoinGame",
+        payload,
+        (response?: { success?: boolean; status?: string; gameId?: string; error?: string }) => {
+          if (response?.success === true) {
+            if (response.gameId) {
+              storeActiveGameId(String(response.gameId));
+            } else if (explicitGameId) {
+              storeActiveGameId(explicitGameId);
+            }
+            setQueueStatus("Game state restored.");
+            setIsSearching(false);
+            return;
+          }
+          if (response?.error) {
+            const normalizedError = String(response.error).toLowerCase();
+            if (
+              normalizedError.includes("not found") ||
+              normalizedError.includes("no active game") ||
+              normalizedError.includes("not a participant")
+            ) {
+              storeActiveGameId(null);
+            }
+          }
+        },
+      );
+    };
     socketRef.current = socket;
 
     socket.on("connect", () => {
+      clearConnectProbeTimer();
       setIsConnected(true);
       setQueueStatus(null);
+      attemptRestore();
     });
 
     socket.on("disconnect", () => {
       setIsConnected(false);
-      setIsSearching(false);
-      setQueueStatus("Disconnected from server.");
+      if (activeTournamentJoinGameIdRef.current) {
+        setIsSearching(true);
+        setQueueStatus("Connection lost. Reconnecting...");
+      } else {
+        setIsSearching(false);
+        setQueueStatus("Disconnected from server.");
+      }
+      scheduleConnectProbe();
     });
 
     socket.on("connect_error", () => {
       setIsConnected(false);
-      setIsSearching(false);
-      setQueueStatus("Unable to connect to matchmaking server.");
+      if (activeTournamentJoinGameIdRef.current) {
+        setIsSearching(true);
+        setQueueStatus("Reconnecting to matchmaking server...");
+      } else {
+        setIsSearching(false);
+        setQueueStatus("Unable to connect to matchmaking server. Reconnecting...");
+      }
+      scheduleConnectProbe();
+    });
+
+    socket.io.on("reconnect_attempt", () => {
+      setQueueStatus("Reconnecting to matchmaking server...");
+    });
+
+    socket.io.on("reconnect_failed", () => {
+      if (!activeTournamentJoinGameIdRef.current) {
+        setIsSearching(false);
+      }
+      setQueueStatus("Unable to reconnect to matchmaking server.");
     });
 
     socket.on(
@@ -456,7 +647,11 @@ export function useOnlineQuickMatch() {
           : normalizeThreeCheckCounts(),
       );
       startingFenRef.current = payload.fen || nextGame.fen();
-      resetStoredMoves();
+      if (Array.isArray(payload.moves)) {
+        setStoredMoves(payload.moves);
+      } else {
+        resetStoredMoves();
+      }
       setLastMove(null);
       setMoveFrom(null);
       setOptionSquares({});
@@ -464,6 +659,7 @@ export function useOnlineQuickMatch() {
       setPromotionToSquare(null);
       setPendingPromoFrom(null);
       setGameId(payload.gameId);
+      storeActiveGameId(payload.gameId);
       gameIdRef.current = payload.gameId;
       setPendingPreMove(null);
       pendingPreMoveRef.current = null;
@@ -476,6 +672,7 @@ export function useOnlineQuickMatch() {
       setShowGameOverModal(false);
       setIsSearching(false);
       setQueueStatus(null);
+      clearTournamentJoinRetry();
       setSavedGameId(null);
       setHistoryPersistenceStatus("idle");
       historySavedRef.current = false;
@@ -506,8 +703,29 @@ export function useOnlineQuickMatch() {
         difficulty: 0,
         timeControl,
       });
-      setPlayerTime(timeControl.initial);
-      setOpponentTime(timeControl.initial);
+      const playerClock =
+        Number.isFinite(Number(payload.playerClock))
+          ? Number(payload.playerClock)
+          : payload.color === "w"
+            ? Number(payload.whiteTimeLeft)
+            : Number(payload.blackTimeLeft);
+      const opponentClock =
+        Number.isFinite(Number(payload.opponentClock))
+          ? Number(payload.opponentClock)
+          : payload.color === "w"
+            ? Number(payload.blackTimeLeft)
+            : Number(payload.whiteTimeLeft);
+      const normalizedPlayerClock = Number.isFinite(playerClock)
+        ? Math.max(0, playerClock)
+        : timeControl.initial;
+      const normalizedOpponentClock = Number.isFinite(opponentClock)
+        ? Math.max(0, opponentClock)
+        : timeControl.initial;
+      setPlayerTime(normalizedPlayerClock);
+      setOpponentTime(normalizedOpponentClock);
+      setPlayerClockSeed(normalizedPlayerClock);
+      setOpponentClockSeed(normalizedOpponentClock);
+      setClockResetToken((value) => value + 1);
     });
 
     socket.on("moveApplied", (payload: MoveAppliedPayload) => {
@@ -598,10 +816,103 @@ export function useOnlineQuickMatch() {
       setShowPromotionDialog(false);
       setPromotionToSquare(null);
       setPendingPromoFrom(null);
+      const whiteClock = Number(payload.whiteTimeLeft);
+      const blackClock = Number(payload.blackTimeLeft);
+      if (Number.isFinite(whiteClock) && Number.isFinite(blackClock)) {
+        const ownClock =
+          playerColorRef.current === "w" ? whiteClock : blackClock;
+        const oppClock =
+          playerColorRef.current === "w" ? blackClock : whiteClock;
+        setPlayerTime(Math.max(0, ownClock));
+        setOpponentTime(Math.max(0, oppClock));
+      }
 
       // Opponent just moved and it may now be our turn.
       trySubmitQueuedPreMove();
     });
+
+    socket.on("game_state_restored", (payload: GameStateRestoredPayload) => {
+      if (!payload?.gameId) return;
+      const normalizedGameId = String(payload.gameId).trim();
+      if (!normalizedGameId) return;
+      setGameId(normalizedGameId);
+      gameIdRef.current = normalizedGameId;
+      storeActiveGameId(normalizedGameId);
+      setGameStarted(true);
+      setGameOver(false);
+      setShowGameOverModal(false);
+      setGameResult(null);
+      const playerSide = (payload.color || playerColorRef.current || "w") === "b" ? "b" : "w";
+      setPlayerColor(playerSide);
+      playerColorRef.current = playerSide;
+      const restoredFen = String(payload.fen || "").trim();
+      if (restoredFen) {
+        try {
+          const restored = new Chess(restoredFen);
+          gameRef.current = restored;
+          setGame(restored);
+          startingFenRef.current = restored.fen();
+        } catch {
+          // keep existing state if payload fen is invalid
+        }
+      }
+      if (Array.isArray(payload.moves)) {
+        setStoredMoves(payload.moves);
+      }
+      const whiteClock = Number(payload.whiteTimeLeft);
+      const blackClock = Number(payload.blackTimeLeft);
+      const playerClockRaw =
+        Number.isFinite(Number(payload.playerClock))
+          ? Number(payload.playerClock)
+          : playerSide === "w"
+            ? whiteClock
+            : blackClock;
+      const opponentClockRaw =
+        Number.isFinite(Number(payload.opponentClock))
+          ? Number(payload.opponentClock)
+          : playerSide === "w"
+            ? blackClock
+            : whiteClock;
+      const playerClock = Number.isFinite(playerClockRaw)
+        ? Math.max(0, playerClockRaw)
+        : gameSettings.timeControl.initial;
+      const opponentClock = Number.isFinite(opponentClockRaw)
+        ? Math.max(0, opponentClockRaw)
+        : gameSettings.timeControl.initial;
+      setPlayerTime(playerClock);
+      setOpponentTime(opponentClock);
+      setPlayerClockSeed(playerClock);
+      setOpponentClockSeed(opponentClock);
+      setClockResetToken((value) => value + 1);
+      setQueueStatus("Game restored after reconnect.");
+      setIsSearching(false);
+      clearTournamentJoinRetry();
+    });
+
+    socket.on(
+      "opponent_disconnected",
+      (payload?: { gameId?: string; graceMs?: number }) => {
+        if (payload?.gameId && payload.gameId !== gameIdRef.current) return;
+        const graceSeconds = Math.max(1, Math.round(Number(payload?.graceMs || 30000) / 1000));
+        setQueueStatus(`Opponent disconnected. Waiting ${graceSeconds}s for reconnect...`);
+      },
+    );
+
+    socket.on(
+      "opponent_reconnected",
+      (payload?: { gameId?: string }) => {
+        if (payload?.gameId && payload.gameId !== gameIdRef.current) return;
+        setQueueStatus("Opponent reconnected.");
+      },
+    );
+
+    socket.on(
+      "opponent_abandoned",
+      (payload?: { gameId?: string }) => {
+        if (payload?.gameId && payload.gameId !== gameIdRef.current) return;
+        setQueueStatus("Opponent abandoned the game.");
+      },
+    );
 
     socket.on("moveRejected", (payload: { reason?: string }) => {
       setQueueStatus(payload?.reason || "Move rejected.");
@@ -623,6 +934,7 @@ export function useOnlineQuickMatch() {
 
     socket.on("gameOver", (payload: GameOverPayload) => {
       if (payload.gameId !== gameIdRef.current) return;
+      storeActiveGameId(null);
       setGameOver(true);
       setShowGameOverModal(true);
       setGameResult(formatResult(payload));
@@ -717,6 +1029,7 @@ export function useOnlineQuickMatch() {
     });
 
     socket.on("opponentLeft", () => {
+      storeActiveGameId(null);
       setGameOver(true);
       setShowGameOverModal(true);
       setGameResult("Opponent left. You win.");
@@ -724,11 +1037,21 @@ export function useOnlineQuickMatch() {
       playGameplaySound("gameEnd");
     });
 
+    scheduleConnectProbe();
+
     return () => {
+      clearTournamentJoinRetry();
+      clearConnectProbeTimer();
       socket.removeAllListeners();
       socket.disconnect();
     };
-  }, [appendStoredMove, resetStoredMoves, setUser, trySubmitQueuedPreMove]);
+  }, [
+    appendStoredMove,
+    clearTournamentJoinRetry,
+    resetStoredMoves,
+    setUser,
+    trySubmitQueuedPreMove,
+  ]);
 
   // Fallback for tight timing races: submit queued premove as soon as our turn starts.
   useEffect(() => {
@@ -1033,7 +1356,7 @@ export function useOnlineQuickMatch() {
       if (!socketRef.current) return;
       if (!socketRef.current.connected) {
         setIsSearching(false);
-        setQueueStatus("Matchmaking server is offline.");
+        setQueueStatus("Matchmaking server is offline. Reconnecting...");
         return;
       }
       const normalizedVariant = normalizeMatchVariant(variant);
@@ -1049,23 +1372,19 @@ export function useOnlineQuickMatch() {
       });
       setPlayerTime(timeControl.initial);
       setOpponentTime(timeControl.initial);
-      socketRef.current.emit("findMatch", {
+      emitIfConnected("findMatch", {
         name: playerNameRef.current,
         timeControl,
         variant: normalizedVariant,
       });
     },
-    [resetGameState],
+    [emitIfConnected, resetGameState],
   );
 
   const joinTournamentGame = useCallback(
     (targetGameId: string, name?: string) => {
-      if (!socketRef.current) return;
-      if (!socketRef.current.connected) {
-        setIsSearching(false);
-        setQueueStatus("Matchmaking server is offline.");
-        return;
-      }
+      const socket = socketRef.current;
+      if (!socket) return;
 
       const normalizedGameId = String(targetGameId || "").trim();
       if (!normalizedGameId) {
@@ -1074,14 +1393,45 @@ export function useOnlineQuickMatch() {
         return;
       }
 
+      if (activeTournamentJoinGameIdRef.current !== normalizedGameId) {
+        if (tournamentJoinRetryTimerRef.current !== null) {
+          window.clearTimeout(tournamentJoinRetryTimerRef.current);
+          tournamentJoinRetryTimerRef.current = null;
+        }
+        tournamentJoinAttemptsRef.current = 0;
+        activeTournamentJoinGameIdRef.current = normalizedGameId;
+      }
+
       playerNameRef.current = name || playerNameRef.current || "Player";
       if (gameIdRef.current !== normalizedGameId) {
         resetGameState();
       }
       setIsSearching(true);
-      setQueueStatus("Joining tournament game...");
+      tournamentJoinAttemptsRef.current += 1;
+      const attempt = tournamentJoinAttemptsRef.current;
+      setQueueStatus(
+        attempt > 1
+          ? `Reconnecting to your tournament board... (attempt ${attempt}/5)`
+          : "Joining tournament game...",
+      );
 
-      socketRef.current.emit(
+      if (!socket.connected) {
+        if (attempt >= 5) {
+          setIsSearching(false);
+          setQueueStatus("Unable to reconnect to your tournament board.");
+          return;
+        }
+        if (tournamentJoinRetryTimerRef.current !== null) {
+          window.clearTimeout(tournamentJoinRetryTimerRef.current);
+        }
+        tournamentJoinRetryTimerRef.current = window.setTimeout(() => {
+          tournamentJoinRetryTimerRef.current = null;
+          joinTournamentGame(normalizedGameId, playerNameRef.current);
+        }, 5000);
+        return;
+      }
+
+      const emitted = emitIfConnected(
         "joinTournamentGame",
         {
           gameId: normalizedGameId,
@@ -1089,54 +1439,103 @@ export function useOnlineQuickMatch() {
         },
         (response?: { success?: boolean; status?: string; error?: string }) => {
           if (response?.success !== true) {
+            const errorText = String(response?.error || "").toLowerCase();
+            const retryable =
+              errorText.includes("offline") ||
+              errorText.includes("failed") ||
+              errorText.includes("unable") ||
+              errorText.includes("not running") ||
+              errorText.includes("waiting");
+            if (retryable && tournamentJoinAttemptsRef.current < 5) {
+              setIsSearching(true);
+              setQueueStatus("Waiting for your tournament opponent...");
+              if (tournamentJoinRetryTimerRef.current !== null) {
+                window.clearTimeout(tournamentJoinRetryTimerRef.current);
+              }
+              tournamentJoinRetryTimerRef.current = window.setTimeout(() => {
+                tournamentJoinRetryTimerRef.current = null;
+                joinTournamentGame(normalizedGameId, playerNameRef.current);
+              }, 5000);
+              return;
+            }
             setIsSearching(false);
-            setQueueStatus(response?.error || "Failed to join tournament game.");
+            setQueueStatus(
+              response?.error || "Failed to join tournament game after retries.",
+            );
             return;
           }
           if (response.status === "waiting") {
             setIsSearching(true);
             setQueueStatus("Waiting for your tournament opponent...");
+            if (tournamentJoinAttemptsRef.current < 5) {
+              if (tournamentJoinRetryTimerRef.current !== null) {
+                window.clearTimeout(tournamentJoinRetryTimerRef.current);
+              }
+              tournamentJoinRetryTimerRef.current = window.setTimeout(() => {
+                tournamentJoinRetryTimerRef.current = null;
+                joinTournamentGame(normalizedGameId, playerNameRef.current);
+              }, 5000);
+            } else {
+              setIsSearching(false);
+              setQueueStatus("Unable to connect to opponent. Please retry.");
+            }
             return;
           }
           if (response.status === "started" && !gameIdRef.current) {
             setQueueStatus("Starting game...");
           }
+          clearTournamentJoinRetry();
         },
       );
+      if (!emitted) {
+        if (attempt >= 5) {
+          setIsSearching(false);
+          setQueueStatus("Unable to reconnect to your tournament board.");
+          return;
+        }
+        if (tournamentJoinRetryTimerRef.current !== null) {
+          window.clearTimeout(tournamentJoinRetryTimerRef.current);
+        }
+        tournamentJoinRetryTimerRef.current = window.setTimeout(() => {
+          tournamentJoinRetryTimerRef.current = null;
+          joinTournamentGame(normalizedGameId, playerNameRef.current);
+        }, 5000);
+      }
     },
-    [resetGameState],
+    [clearTournamentJoinRetry, emitIfConnected, resetGameState],
   );
 
   const leaveTournamentJoin = useCallback(() => {
+    clearTournamentJoinRetry();
     setIsSearching(false);
     setQueueStatus(null);
-  }, []);
+  }, [clearTournamentJoinRetry]);
 
   const cancelMatch = useCallback(() => {
-    if (!socketRef.current) return;
-    socketRef.current.emit("cancelFind");
+    clearTournamentJoinRetry();
+    emitIfConnected("cancelFind");
     setIsSearching(false);
-  }, []);
+  }, [clearTournamentJoinRetry, emitIfConnected]);
 
   const resign = useCallback(() => {
-    if (!socketRef.current || !gameId) return;
-    socketRef.current.emit("resign", { gameId });
-  }, [gameId]);
+    if (!gameId) return;
+    emitIfConnected("resign", { gameId });
+  }, [emitIfConnected, gameId]);
 
   const timeOut = useCallback(
     (isPlayer: boolean) => {
-      if (!socketRef.current || !gameId) return;
+      if (!gameId) return;
       if (!isPlayer) return;
-      socketRef.current.emit("timeout", { gameId });
+      emitIfConnected("timeout", { gameId });
     },
-    [gameId],
+    [emitIfConnected, gameId],
   );
 
   const leaveGame = useCallback(() => {
-    if (!socketRef.current || !gameId) return;
-    socketRef.current.emit("leaveGame", { gameId });
+    if (!gameId) return;
+    emitIfConnected("leaveGame", { gameId });
     resetGameState();
-  }, [gameId, resetGameState]);
+  }, [emitIfConnected, gameId, resetGameState]);
 
   const addChess960CastlingTargets = useCallback(
     (currentGame: Chess, kingSquare: Square) => {
@@ -1269,7 +1668,7 @@ export function useOnlineQuickMatch() {
 
       playLocalMoveSound(from, to, promotion);
 
-      socketRef.current?.emit("makeMove", {
+      emitIfConnected("makeMove", {
         gameId: gameIdRef.current,
         from,
         to,
@@ -1285,6 +1684,7 @@ export function useOnlineQuickMatch() {
       playLocalMoveSound,
       promotionToSquare,
       queuePreMove,
+      emitIfConnected,
     ],
   );
 
@@ -1374,7 +1774,7 @@ export function useOnlineQuickMatch() {
         }
 
         playLocalMoveSound(moveFrom, square, "q");
-        socketRef.current?.emit("makeMove", {
+        emitIfConnected("makeMove", {
           gameId,
           from: moveFrom,
           to: square,
@@ -1410,6 +1810,7 @@ export function useOnlineQuickMatch() {
       playerColor,
       queuePreMove,
       selectPreMoveSource,
+      emitIfConnected,
     ],
   );
 
@@ -1494,7 +1895,7 @@ export function useOnlineQuickMatch() {
       }
 
       const promotion = extractPromo(piece);
-      socketRef.current?.emit("makeMove", {
+      emitIfConnected("makeMove", {
         gameId: gameIdRef.current,
         from: sourceSquare,
         to: targetSquare,
@@ -1516,6 +1917,7 @@ export function useOnlineQuickMatch() {
       playerColor,
       queuePreMove,
       selectPreMoveSource,
+      emitIfConnected,
     ],
   );
 
@@ -1576,6 +1978,9 @@ export function useOnlineQuickMatch() {
     preMoveSquares,
     playerTime,
     opponentTime,
+    playerClockSeed,
+    opponentClockSeed,
+    clockResetToken,
     setPlayerTime,
     setOpponentTime,
     isSearching,

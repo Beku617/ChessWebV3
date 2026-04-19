@@ -1,9 +1,10 @@
-import { lazy, Suspense, useEffect, useLayoutEffect } from "react";
+import { lazy, Suspense, useEffect, useLayoutEffect, useRef } from "react";
 import {
   Routes,
   Route,
   useLocation,
   Navigate,
+  useNavigate,
 } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
 import { useThemeStore } from "./store/themeStore";
@@ -156,6 +157,7 @@ function ThemeController() {
 
 function RealtimeBridge() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { isAuthenticated, user } = useAuthStore();
   const initialize = useFriendChallengeStore((state) => state.initialize);
   const disconnect = useFriendChallengeStore((state) => state.disconnect);
@@ -163,6 +165,7 @@ function RealtimeBridge() {
   const bindFriendSocket = useFriendStore((state) => state.bindSocket);
   const loadFriends = useFriendStore((state) => state.loadAll);
   const resetFriends = useFriendStore((state) => state.reset);
+  const lastTournamentRedirectRef = useRef<string>("");
 
   useEffect(() => {
     if (location.pathname.startsWith("/admin")) {
@@ -194,6 +197,40 @@ function RealtimeBridge() {
   useEffect(() => {
     bindFriendSocket(socket);
   }, [socket, bindFriendSocket]);
+
+  useEffect(() => {
+    if (!socket || !isAuthenticated || !user) return;
+
+    const handleTournamentBoardAssigned = (payload?: {
+      gameId?: string;
+      tournamentId?: string;
+      round?: number;
+      autoStart?: boolean;
+    }) => {
+      const gameId = String(payload?.gameId || "").trim();
+      if (!gameId) return;
+
+      const signature = `${payload?.tournamentId || ""}:${payload?.round || 0}:${gameId}`;
+      if (lastTournamentRedirectRef.current === signature) return;
+      lastTournamentRedirectRef.current = signature;
+
+      if (
+        location.pathname === "/play/quick" &&
+        location.search.includes(`tournamentGameId=${encodeURIComponent(gameId)}`)
+      ) {
+        return;
+      }
+
+      navigate(`/play/quick?tournamentGameId=${encodeURIComponent(gameId)}`, {
+        state: { tournamentGameId: gameId, autoStart: true },
+      });
+    };
+
+    socket.on("tournament:boardAssigned", handleTournamentBoardAssigned);
+    return () => {
+      socket.off("tournament:boardAssigned", handleTournamentBoardAssigned);
+    };
+  }, [isAuthenticated, location.pathname, location.search, navigate, socket, user]);
 
   return null;
 }

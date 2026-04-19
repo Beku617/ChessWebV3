@@ -6,6 +6,9 @@ export interface User {
   email: string;
   fullName: string;
   avatar?: string;
+  authProvider?: "local" | "google" | "facebook";
+  hasGoogleAuth?: boolean;
+  hasFacebookAuth?: boolean;
   rating?: number;
   bulletRating?: number;
   blitzRating?: number;

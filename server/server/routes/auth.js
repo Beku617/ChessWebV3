@@ -5,7 +5,14 @@ import { randomBytes } from "crypto";
 import { OAuth2Client } from "google-auth-library";
 import rateLimit from "express-rate-limit";
 import { body, param, validationResult } from "express-validator";
-import { User, Friend, FriendRequest } from "../models/index.js";
+import {
+  User,
+  Friend,
+  FriendRequest,
+  Tournament,
+  TournamentPlayer,
+  TournamentEloEvent,
+} from "../models/index.js";
 import { authMiddleware, optionalAuthMiddleware } from "../middleware/index.js";
 import {
   buildAuthCookieOptions,
@@ -122,6 +129,9 @@ function toPublicUser(user) {
     email: user.email,
     fullName: user.fullName,
     avatar: user.avatar || "",
+    authProvider: user.authProvider || "local",
+    hasGoogleAuth: !!String(user.googleId || "").trim(),
+    hasFacebookAuth: !!String(user.facebookId || "").trim(),
     rating: baseRating,
     bulletRating: user.bulletRating ?? baseRating,
     blitzRating: user.blitzRating ?? baseRating,
@@ -168,6 +178,15 @@ function toPublicUser(user) {
     puzzleSkipped: user.puzzleSkipped ?? 0,
     puzzleLastAttemptAt: user.puzzleLastAttemptAt ?? null,
   };
+}
+
+function eloTierLabel(elo) {
+  const rating = Number(elo || 1200);
+  if (rating < 1200) return "Beginner";
+  if (rating < 1600) return "Intermediate";
+  if (rating < 1900) return "Advanced";
+  if (rating < 2200) return "Expert";
+  return "Master";
 }
 
 const AUTH_RATE_LIMIT_MESSAGE = "Too many attempts, try again later";
@@ -873,6 +892,111 @@ router.put(
     res.json({ success: true, user: toPublicUser(user) });
   } catch (err) {
     console.error("Update avatar error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+router.get("/users/:userId/profile", optionalAuthMiddleware, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(String(userId || ""))) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const user = await User.findById(userId)
+      .select("fullName avatar rating createdAt")
+      .lean();
+    if (!user || user.banned) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const [eloEvents, tournamentPlayers, createdTournaments] = await Promise.all([
+      TournamentEloEvent.find({ userId: user._id })
+        .sort({ at: 1 })
+        .select("at eloAfter delta tournamentId gameId")
+        .lean(),
+      TournamentPlayer.find({ userId: user._id })
+        .select(
+          "tournamentId score tournamentEloDelta wins draws losses placement status updatedAt",
+        )
+        .lean(),
+      Tournament.find({ createdBy: user._id })
+        .sort({ createdAt: -1 })
+        .select("name type status createdAt finishedAt")
+        .lean(),
+    ]);
+
+    const tournamentIds = [
+      ...new Set(tournamentPlayers.map((item) => String(item.tournamentId || "")).filter(Boolean)),
+    ];
+    const tournaments = tournamentIds.length
+      ? await Tournament.find({ _id: { $in: tournamentIds } })
+          .select("name type status createdAt finishedAt")
+          .lean()
+      : [];
+    const tournamentMap = new Map(
+      tournaments.map((tournament) => [String(tournament._id), tournament]),
+    );
+
+    const tournamentHistory = tournamentPlayers
+      .map((entry) => {
+        const tournament = tournamentMap.get(String(entry.tournamentId || ""));
+        if (!tournament) return null;
+        return {
+          tournamentId: String(tournament._id),
+          tournamentName: tournament.name,
+          format: tournament.type,
+          placement:
+            Number.isFinite(Number(entry.placement)) && Number(entry.placement) > 0
+              ? Number(entry.placement)
+              : null,
+          score: Number(entry.score || 0),
+          eloChange: Number(entry.tournamentEloDelta || 0),
+          date: tournament.finishedAt || tournament.createdAt || entry.updatedAt || null,
+          status: tournament.status,
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
+
+    const totalRecord = tournamentPlayers.reduce(
+      (acc, item) => {
+        acc.wins += Number(item.wins || 0);
+        acc.draws += Number(item.draws || 0);
+        acc.losses += Number(item.losses || 0);
+        return acc;
+      },
+      { wins: 0, draws: 0, losses: 0 },
+    );
+
+    res.json({
+      profile: {
+        id: String(user._id),
+        username: user.fullName,
+        avatar: user.avatar || "",
+        currentElo: Number(user.rating || 1200),
+        eloTier: eloTierLabel(user.rating),
+        eloHistory: eloEvents.map((event) => ({
+          date: event.at || null,
+          elo: Number(event.eloAfter || 1200),
+          delta: Number(event.delta || 0),
+          tournamentId: event.tournamentId ? String(event.tournamentId) : null,
+          gameId: event.gameId || null,
+        })),
+        tournamentHistory,
+        record: totalRecord,
+        tournamentsCreated: createdTournaments.map((tournament) => ({
+          id: String(tournament._id),
+          name: tournament.name,
+          format: tournament.type,
+          status: tournament.status,
+          createdAt: tournament.createdAt || null,
+          finishedAt: tournament.finishedAt || null,
+        })),
+      },
+    });
+  } catch (err) {
+    console.error("User tournament profile error:", err);
     res.status(500).json({ error: "Server error" });
   }
 });

@@ -8,9 +8,11 @@ import {
   OverviewTabContent,
   GamesTabContent,
   NoGamesPlaceholder,
+  TournamentProfileSection,
   API_URL,
   calculateStats,
   filterGames,
+  type TournamentProfileData,
   type FilterType,
   type TabType,
 } from "../components/profilePage";
@@ -61,6 +63,9 @@ export default function UserProfile() {
   const [filter, setFilter] = useState<FilterType>("all");
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [friendLoading, setFriendLoading] = useState(false);
+  const [tournamentProfile, setTournamentProfile] =
+    useState<TournamentProfileData | null>(null);
+  const [loadingTournamentProfile, setLoadingTournamentProfile] = useState(false);
 
   // If viewing own profile, redirect to /profile
   useEffect(() => {
@@ -112,6 +117,32 @@ export default function UserProfile() {
     }
 
     fetchData();
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+    async function fetchTournamentProfile() {
+      try {
+        setLoadingTournamentProfile(true);
+        const res = await fetch(`${API_URL}/api/users/${userId}/profile`, {
+          credentials: "include",
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || "Failed to load tournament profile");
+        if (!cancelled) {
+          setTournamentProfile(data.profile || null);
+        }
+      } catch {
+        if (!cancelled) setTournamentProfile(null);
+      } finally {
+        if (!cancelled) setLoadingTournamentProfile(false);
+      }
+    }
+    void fetchTournamentProfile();
     return () => {
       cancelled = true;
     };
@@ -250,6 +281,14 @@ export default function UserProfile() {
         />
 
         <div className="px-4 lg:px-6 py-6">
+          <div className="mb-6">
+            <TournamentProfileSection
+              data={tournamentProfile}
+              isLoading={loadingTournamentProfile}
+              title="Tournament & ELO"
+            />
+          </div>
+
           {stats ? (
             activeTab === "overview" ? (
               <OverviewTabContent

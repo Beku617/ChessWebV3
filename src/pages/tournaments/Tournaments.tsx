@@ -1,318 +1,317 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { io, Socket } from "socket.io-client";
+import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const SOCKET_URL = (
+  import.meta.env.VITE_SOCKET_URL ||
+  import.meta.env.VITE_API_URL ||
+  "http://localhost:3001"
+).replace(/\/api\/?$/, "");
 
 type TournamentType = "swiss" | "roundRobin" | "knockout";
-type TournamentStatus = "draft" | "registering" | "running" | "finished";
-type TabKey = "players" | "rounds" | "standings" | "bracket";
+type TournamentStatus =
+  | "DRAFT"
+  | "REGISTRATION_OPEN"
+  | "PAIRING_PREVIEW"
+  | "LIVE_ROUND"
+  | "ROUND_CLOSED"
+  | "FINISHED";
 
-interface Summary {
+type TabKey = "standings" | "rounds" | "bracket";
+type SortMode = "newest" | "most_players" | "my_tournaments";
+type StatusFilter = "all" | "DRAFT" | "REGISTRATION_OPEN" | "LIVE_ROUND" | "FINISHED";
+type RatingFilterMode = "none" | "min" | "max" | "range";
+
+interface TimeControl {
+  baseMs: number;
+  incMs: number;
+  label?: string;
+}
+
+interface TournamentSummary {
   id: string;
   name: string;
   type: TournamentType;
+  formatLabel: string;
+  timeControl: TimeControl;
+  timeControlLabel: string;
+  ratingRequirement: string;
   status: TournamentStatus;
   roundsPlanned: number;
   currentRound: number;
-  timeControl: { baseMs: number; incMs: number; label?: string };
-  ratingMin: number | null;
-  ratingMax: number | null;
+  minPlayers: number;
+  maxPlayers: number | null;
   registeredCount: number;
-  canManage: boolean;
   isRegistered: boolean;
-  createdBy: string;
-  managerIds: string[];
+  canManage: boolean;
+  myTournament: boolean;
+  organizer?: { id: string; username: string; avatar?: string };
+  championUserId?: string;
 }
 
 interface PlayerRow {
+  id: string;
   userId: string;
-  name: string;
-  rating: number;
-  seed: number | null;
+  rank: number;
+  username: string;
+  avatar: string;
+  elo: number;
   score: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  seed: number | null;
+  status: "active" | "withdrawn";
+  tournamentEloDelta: number;
   buchholz: number;
-  gamesPlayed: number;
+  buchholzCut1: number;
+  directEncounter: number;
+  sonnebornBerger: number;
+  koya: number;
+  colorBalance: number;
 }
 
-interface GameRow {
+interface RoundGame {
   id: string;
   gameId: string;
+  roundNumber: number;
+  board: number;
   whiteId: string;
   blackId: string;
-  whiteName: string;
-  blackName: string;
-  result: "1-0" | "0-1" | "1/2-1/2" | "*";
+  white: string;
+  black: string;
+  result: string;
   isBye: boolean;
-  status: "pending" | "complete";
-}
-
-interface ManagerRow {
-  userId: string;
-  name: string;
-  avatar: string;
-  isOwner: boolean;
+  isPublished: boolean;
+  status: "in_progress" | "completed";
+  whiteRatingAtPairing: number;
+  blackRatingAtPairing: number | null;
+  whiteEloDelta: number;
+  blackEloDelta: number;
+  explanation: {
+    scoreGroup?: string;
+    colorAssignment?: string;
+    byeReason?: string;
+    rematchesAvoided?: string[];
+  };
 }
 
 interface RoundRow {
   roundNumber: number;
-  games: GameRow[];
+  games: RoundGame[];
 }
 
 interface StandingRow {
   rank: number;
   userId: string;
-  name: string;
-  score: number;
+  username: string;
+  avatar: string;
+  elo: number;
+  points: number;
   buchholz: number;
-  seed: number | null;
-  gamesPlayed: number;
+  buchholzCut1: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  directEncounter: number;
+  sonnebornBerger: number;
+  koya: number;
+  colorBalance: number;
+  status: "active" | "withdrawn";
 }
 
 interface WinnerRow {
-  rank: number;
   userId: string;
-  name: string;
+  username: string;
   avatar: string;
+  placement: number;
   score: number;
-  buchholz: number;
-  medal: "gold" | "silver" | "bronze";
+  eloBefore: number;
+  eloAfter: number;
+  eloDelta: number;
 }
 
-interface Detail {
-  tournament: Summary;
+interface DetailResponse {
+  tournament: TournamentSummary & {
+    organizer?: { id: string; username: string; avatar?: string };
+    totalPlayers: number;
+  };
   players: PlayerRow[];
   rounds: RoundRow[];
   standings: StandingRow[];
-  managers: ManagerRow[];
-  winners?: WinnerRow[];
+  standingsMeta: {
+    isOfficial: boolean;
+    label: string;
+  };
+  previewPairings: Array<{
+    id: string;
+    gameId: string;
+    board: number;
+    whiteId: string;
+    blackId: string;
+    white: string;
+    black: string;
+    isBye: boolean;
+    explanation: {
+      scoreGroup?: string;
+      colorAssignment?: string;
+      byeReason?: string;
+      rematchesAvoided?: string[];
+    };
+  }>;
+  winners: WinnerRow[];
 }
 
-const typeLabel: Record<TournamentType, string> = {
-  swiss: "Swiss",
-  roundRobin: "Round-robin",
-  knockout: "Knockout",
-};
-
-const medalLabel: Record<WinnerRow["medal"], string> = {
-  gold: "Gold",
-  silver: "Silver",
-  bronze: "Bronze",
-};
-
-const medalEmoji: Record<WinnerRow["medal"], string> = {
-  gold: "🥇",
-  silver: "🥈",
-  bronze: "🥉",
-};
-
-const medalBg: Record<WinnerRow["medal"], string> = {
-  gold: "from-amber-50 to-white dark:from-amber-900/30 dark:to-gray-950",
-  silver: "from-slate-50 to-white dark:from-slate-900/30 dark:to-gray-950",
-  bronze: "from-orange-50 to-white dark:from-amber-900/25 dark:to-gray-950",
-};
-
-function timeControlLabel(value?: { baseMs: number; incMs: number; label?: string }) {
-  if (!value) return "3+0";
-  if (value.label) return value.label;
-  return `${Math.round(value.baseMs / 60000)}+${Math.round(value.incMs / 1000)}`;
+interface ConfirmDialogState {
+  message: string;
+  confirmLabel?: string;
+  tone?: "warning" | "danger";
+  onConfirm: () => Promise<void> | void;
 }
 
-function rangeLabel(minRating: number | null, maxRating: number | null) {
-  if (minRating === null && maxRating === null) return "Any";
-  if (minRating !== null && maxRating !== null) return `${minRating}-${maxRating}`;
-  if (minRating !== null) return `${minRating}+`;
-  return `<= ${maxRating}`;
+const TIME_PRESETS = [
+  { key: "bullet_1_0", label: "Bullet 1+0", baseMinutes: 1, incrementSeconds: 0 },
+  { key: "blitz_3_2", label: "Blitz 3+2", baseMinutes: 3, incrementSeconds: 2 },
+  { key: "blitz_5_0", label: "Blitz 5+0", baseMinutes: 5, incrementSeconds: 0 },
+  { key: "rapid_10_0", label: "Rapid 10+0", baseMinutes: 10, incrementSeconds: 0 },
+  { key: "rapid_10_1", label: "Rapid 10+1", baseMinutes: 10, incrementSeconds: 1 },
+  { key: "rapid_15_10", label: "Rapid 15+10", baseMinutes: 15, incrementSeconds: 10 },
+  { key: "classical_30_0", label: "Classical 30+0", baseMinutes: 30, incrementSeconds: 0 },
+  { key: "custom", label: "Custom", baseMinutes: 10, incrementSeconds: 0 },
+] as const;
+
+const STANDINGS_PAGE_SIZE = 50;
+
+const STATUS_BADGE: Record<
+  TournamentStatus,
+  { label: string; className: string; pulse?: boolean }
+> = {
+  DRAFT: {
+    label: "DRAFT",
+    className: "bg-gray-500/20 text-gray-300 border-gray-500/40",
+  },
+  REGISTRATION_OPEN: {
+    label: "OPEN",
+    className: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40",
+  },
+  PAIRING_PREVIEW: {
+    label: "PREVIEW",
+    className: "bg-cyan-500/20 text-cyan-300 border-cyan-500/40",
+  },
+  LIVE_ROUND: {
+    label: "LIVE",
+    className: "bg-amber-500/20 text-amber-300 border-amber-500/40",
+    pulse: true,
+  },
+  ROUND_CLOSED: {
+    label: "ROUND CLOSED",
+    className: "bg-indigo-500/20 text-indigo-300 border-indigo-500/40",
+  },
+  FINISHED: {
+    label: "FINISHED",
+    className: "bg-zinc-500/20 text-zinc-300 border-zinc-500/40",
+  },
+};
+
+function classNames(...parts: Array<string | false | null | undefined>) {
+  return parts.filter(Boolean).join(" ");
+}
+
+function statusForFilter(status: StatusFilter) {
+  if (status === "all") return "";
+  return status;
+}
+
+function formatType(type: TournamentType) {
+  if (type === "roundRobin") return "Round-Robin";
+  if (type === "knockout") return "Knockout";
+  return "Swiss";
+}
+
+function buildTimeLabel(timeControl?: TimeControl) {
+  if (!timeControl) return "3+2";
+  if (timeControl.label) return timeControl.label;
+  return `${Math.max(1, Math.round(Number(timeControl.baseMs || 300000) / 60000))}+${Math.max(
+    0,
+    Math.round(Number(timeControl.incMs || 0) / 1000),
+  )}`;
+}
+
+function toLocalDateTimeValue(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+function parseOptionalNonNegativeNumber(value: string): number | null {
+  const normalized = String(value || "").trim();
+  if (!normalized) return null;
+  const parsed = Number(normalized);
+  if (!Number.isFinite(parsed) || parsed < 0) return null;
+  return Math.floor(parsed);
 }
 
 export default function Tournaments() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const user = useAuthStore((state) => state.user);
-  const [list, setList] = useState<Summary[]>([]);
+
+  const [search, setSearch] = useState("");
+  const [formatFilter, setFormatFilter] = useState<"all" | TournamentType>("all");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [sort, setSort] = useState<SortMode>("newest");
+
+  const [list, setList] = useState<TournamentSummary[]>([]);
   const [selectedId, setSelectedId] = useState("");
-  const [detail, setDetail] = useState<Detail | null>(null);
-  const [tab, setTab] = useState<TabKey>("players");
-  const [loadingList, setLoadingList] = useState(true);
+  const [detail, setDetail] = useState<DetailResponse | null>(null);
+  const [tab, setTab] = useState<TabKey>("standings");
+  const [loadingList, setLoadingList] = useState(false);
   const [loadingDetail, setLoadingDetail] = useState(false);
-  const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [results, setResults] = useState<Record<string, string>>({});
+  const [busyAction, setBusyAction] = useState<string>("");
+  const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState | null>(null);
+  const [standingsPage, setStandingsPage] = useState(1);
 
-  const [name, setName] = useState("");
-  const [type, setType] = useState<TournamentType>("swiss");
-  const [minutes, setMinutes] = useState("3");
-  const [increment, setIncrement] = useState("2");
-  const [ratingMin, setRatingMin] = useState("");
-  const [ratingMax, setRatingMax] = useState("");
-  const [noRatingFilter, setNoRatingFilter] = useState(true);
-  const [rounds, setRounds] = useState("");
-  const [selectedManagerId, setSelectedManagerId] = useState("");
-  const [showRepairEditor, setShowRepairEditor] = useState(false);
-  const [repairText, setRepairText] = useState("");
-  const [allowRepairRematch, setAllowRepairRematch] = useState(false);
-  const selectedQueryId = searchParams.get("selected") || "";
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
-  const loadList = async (opts?: { silent?: boolean }) => {
-    try {
-      if (!opts?.silent) setLoadingList(true);
-      const res = await fetch(`${API_URL}/api/tournaments`, { credentials: "include" });
-      if (!res.ok) throw new Error("Failed to load tournaments");
-      const data = await res.json();
-      const tournaments: Summary[] = data.tournaments || [];
-      setList(tournaments);
-      if (
-        selectedQueryId &&
-        tournaments.some((tournament) => tournament.id === selectedQueryId)
-      ) {
-        setSelectedId(selectedQueryId);
-      } else if (!selectedId && tournaments.length > 0) {
-        setSelectedId(tournaments[0].id);
-      } else if (
-        selectedId &&
-        !tournaments.some((tournament) => tournament.id === selectedId)
-      ) {
-        setSelectedId(tournaments[0]?.id || "");
-      }
-      setError(null);
-    } catch (err) {
-      setError("Failed to load tournaments");
-      setList([]);
-    } finally {
-      if (!opts?.silent) setLoadingList(false);
-    }
-  };
+  const [createName, setCreateName] = useState("");
+  const [createType, setCreateType] = useState<TournamentType>("swiss");
+  const [createRounds, setCreateRounds] = useState<string>("7");
+  const [timePreset, setTimePreset] = useState<string>("blitz_3_2");
+  const [customBaseMinutes, setCustomBaseMinutes] = useState<string>("10");
+  const [customIncrementSeconds, setCustomIncrementSeconds] = useState<string>("0");
+  const [minPlayers, setMinPlayers] = useState<string>("4");
+  const [maxPlayers, setMaxPlayers] = useState<string>("");
+  const [ratingFilterMode, setRatingFilterMode] = useState<RatingFilterMode>("none");
+  const [ratingMin, setRatingMin] = useState<string>("");
+  const [ratingMax, setRatingMax] = useState<string>("");
+  const [registrationDeadline, setRegistrationDeadline] = useState<string>("");
+  const [startType, setStartType] = useState<"manual" | "scheduled">("manual");
+  const [scheduledStartAt, setScheduledStartAt] = useState<string>("");
+  const [description, setDescription] = useState("");
 
-  const loadDetail = async (id: string, opts?: { silent?: boolean }) => {
-    if (!id) {
-      setDetail(null);
-      return;
-    }
-    try {
-      if (!opts?.silent) setLoadingDetail(true);
-      const res = await fetch(`${API_URL}/api/tournaments/${id}`, {
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error("Failed to load tournament detail");
-      const data = await res.json();
-      if (data?.tournament && data?.players && data?.rounds && data?.standings) {
-        setDetail(data);
-      }
-      setError(null);
-    } catch (err) {
-      setError("Failed to load tournament detail");
-      setDetail(null);
-    } finally {
-      if (!opts?.silent) setLoadingDetail(false);
-    }
-  };
-
-  useEffect(() => {
-    void loadList();
-  }, []);
-
-  useEffect(() => {
-    void loadDetail(selectedId);
-  }, [selectedId]);
-
-  useEffect(() => {
-    if (!selectedQueryId || !list.some((item) => item.id === selectedQueryId)) {
-      return;
-    }
-    if (selectedId !== selectedQueryId) {
-      setSelectedId(selectedQueryId);
-    }
-  }, [list, selectedId, selectedQueryId]);
-
-  // Auto-refresh list and detail so players see newly started rounds without manual reload.
-  useEffect(() => {
-    const listInterval = setInterval(() => {
-      void loadList({ silent: true });
-    }, 15000);
-    return () => clearInterval(listInterval);
-  }, []);
-
-  useEffect(() => {
-    if (!selectedId) return;
-    const detailInterval = setInterval(() => {
-      void loadDetail(selectedId, { silent: true });
-    }, 5000);
-    return () => clearInterval(detailInterval);
-  }, [selectedId]);
-
-  const runAction = async (
-    key: string,
-    request: () => Promise<Response>,
-    fallbackError = "Failed to update tournament",
-  ) => {
-    try {
-      setBusy(key);
-      const res = await request();
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.error || fallbackError);
-      if (data?.tournament && data?.players && data?.rounds && data?.standings) {
-        setDetail(data);
-        setSelectedId(String(data.tournament.id));
-      }
-      await loadList();
-      if (selectedId) await loadDetail(selectedId);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : fallbackError);
-    } finally {
-      setBusy(null);
-    }
-  };
-
-  const createTournament = async (event: FormEvent) => {
-    event.preventDefault();
-    if (!name.trim()) return;
-    try {
-      setBusy("create");
-      const res = await fetch(`${API_URL}/api/tournaments`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: name.trim(),
-          type,
-          timeControl: {
-            baseMs: Math.max(1, Number(minutes) || 3) * 60_000,
-            incMs: Math.max(0, Number(increment) || 0) * 1_000,
-          },
-          ratingMin: noRatingFilter ? null : ratingMin ? Number(ratingMin) : null,
-          ratingMax: noRatingFilter ? null : ratingMax ? Number(ratingMax) : null,
-          noRatingFilter,
-          roundsPlanned: type === "swiss" && rounds ? Number(rounds) : null,
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.error || "Failed to create tournament");
-      setName("");
-      setRatingMin("");
-      setRatingMax("");
-      const createdId = String(data?.tournament?.id || "");
-      await loadList();
-      if (createdId) setSelectedId(createdId);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create tournament");
-    } finally {
-      setBusy(null);
-    }
-  };
-
-  const selectedSummary = list.find((item) => item.id === selectedId) || null;
   const currentUserId = String(user?.id || "");
-  const isOwner =
-    !!detail?.tournament?.createdBy &&
-    detail.tournament.createdBy === currentUserId;
   const autoJoinGameIdRef = useRef<string>("");
+
+  const selectedTournament = useMemo(
+    () => list.find((item) => item.id === selectedId) || null,
+    [list, selectedId],
+  );
+
+  const currentRoundGames = useMemo(() => {
+    if (!detail) return [];
+    const currentRound = Number(detail.tournament.currentRound || 0);
+    return detail.rounds.find((round) => round.roundNumber === currentRound)?.games || [];
+  }, [detail]);
+
   const myPendingGame = useMemo(() => {
     if (!detail || !currentUserId) return null;
-    const round = detail.rounds.find(
-      (r) => Number(r.roundNumber) === Number(detail.tournament.currentRound || 0),
-    );
+    const currentRound = Number(detail.tournament.currentRound || 0);
+    const round = detail.rounds.find((item) => Number(item.roundNumber) === currentRound);
     if (!round) return null;
     return (
       round.games.find(
@@ -323,39 +322,380 @@ export default function Tournaments() {
       ) || null
     );
   }, [currentUserId, detail]);
-  const currentRoundGames = useMemo(() => {
-    if (!detail) return [];
-    const round = detail.rounds.find(
-      (item) =>
-        Number(item.roundNumber) === Number(detail.tournament.currentRound || 0),
-    );
-    return round?.games || [];
-  }, [detail]);
-  const canRepairCurrentRound = useMemo(() => {
-    if (!detail?.tournament?.canManage) return false;
-    if (detail.tournament.status !== "running") return false;
-    if (currentRoundGames.length === 0) return false;
-    return currentRoundGames.every((game) => game.status === "pending");
-  }, [currentRoundGames, detail?.tournament?.canManage, detail?.tournament?.status]);
+
+  const standingsRows = useMemo(() => detail?.standings || [], [detail]);
+  const standingsPageCount = useMemo(
+    () => Math.max(1, Math.ceil(standingsRows.length / STANDINGS_PAGE_SIZE)),
+    [standingsRows.length],
+  );
+  const currentStandingsPage = Math.min(standingsPage, standingsPageCount);
+  const standingsStartIndex = (currentStandingsPage - 1) * STANDINGS_PAGE_SIZE;
+  const standingsEndIndex = standingsStartIndex + STANDINGS_PAGE_SIZE;
+  const paginatedStandings = useMemo(
+    () => standingsRows.slice(standingsStartIndex, standingsEndIndex),
+    [standingsEndIndex, standingsRows, standingsStartIndex],
+  );
 
   useEffect(() => {
-    if (canRepairCurrentRound) return;
-    setShowRepairEditor(false);
-  }, [canRepairCurrentRound, selectedId]);
-  const managerIdsSet = useMemo(
-    () => new Set((detail?.managers || []).map((manager) => manager.userId)),
-    [detail?.managers],
-  );
-  const availableManagerCandidates = useMemo(() => {
-    if (!detail) return [];
-    return detail.players.filter((player) => {
-      if (!player.userId) return false;
-      if (player.userId === detail.tournament.createdBy) return false;
-      return !managerIdsSet.has(player.userId);
-    });
-  }, [detail, managerIdsSet]);
+    setStandingsPage(1);
+  }, [selectedId, tab]);
 
-  const register = async () => {
+  useEffect(() => {
+    setStandingsPage((prev) => Math.min(prev, standingsPageCount));
+  }, [standingsPageCount]);
+
+  async function isServerReachable() {
+    try {
+      const response = await fetch(`${API_URL}/healthz`, { credentials: "include" });
+      return response.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  async function loadList(options?: { silent?: boolean }) {
+    try {
+      if (!options?.silent) setLoadingList(true);
+      const reachable = await isServerReachable();
+      if (!reachable) {
+        setError("Unable to reach server. Reconnecting...");
+        return;
+      }
+      const params = new URLSearchParams();
+      if (search.trim()) params.set("search", search.trim());
+      if (formatFilter !== "all") params.set("format", formatFilter);
+      if (statusForFilter(statusFilter)) params.set("status", statusForFilter(statusFilter));
+      params.set("sort", sort);
+      params.set("limit", "100");
+      const response = await fetch(`${API_URL}/api/tournaments?${params.toString()}`, {
+        credentials: "include",
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload?.error || "Failed to fetch tournaments");
+      const tournaments: TournamentSummary[] = payload.tournaments || [];
+      setList(tournaments);
+      if (!selectedId && tournaments.length > 0) {
+        setSelectedId(tournaments[0].id);
+      } else if (
+        selectedId &&
+        !tournaments.some((tournament) => tournament.id === selectedId)
+      ) {
+        setSelectedId(tournaments[0]?.id || "");
+      }
+      setError(null);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to fetch tournaments";
+      if (/failed to fetch|networkerror|fetch/i.test(message)) {
+        setError("Unable to reach server. Reconnecting...");
+      } else {
+        setError(message);
+      }
+    } finally {
+      if (!options?.silent) setLoadingList(false);
+    }
+  }
+
+  async function loadDetail(tournamentId: string, options?: { silent?: boolean }) {
+    if (!tournamentId) {
+      setDetail(null);
+      return;
+    }
+    try {
+      if (!options?.silent) setLoadingDetail(true);
+      const reachable = await isServerReachable();
+      if (!reachable) {
+        setError("Unable to reach server. Reconnecting...");
+        return;
+      }
+      const response = await fetch(`${API_URL}/api/tournaments/${tournamentId}`, {
+        credentials: "include",
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload?.error || "Failed to fetch tournament");
+      setDetail(payload as DetailResponse);
+      setError(null);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to fetch tournament";
+      if (/failed to fetch|networkerror|fetch/i.test(message)) {
+        setError("Unable to reach server. Reconnecting...");
+      } else {
+        setError(message);
+      }
+      setDetail(null);
+    } finally {
+      if (!options?.silent) setLoadingDetail(false);
+    }
+  }
+
+  useEffect(() => {
+    void loadList();
+  }, []);
+
+  useEffect(() => {
+    if (!selectedId) return;
+    void loadDetail(selectedId);
+  }, [selectedId]);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      void loadList({ silent: false });
+    }, 250);
+    return () => window.clearTimeout(timeout);
+  }, [search, formatFilter, statusFilter, sort]);
+
+  useEffect(() => {
+    const listTimer = window.setInterval(() => {
+      void loadList({ silent: true });
+    }, 20000);
+    return () => window.clearInterval(listTimer);
+  }, [search, formatFilter, statusFilter, sort]);
+
+  useEffect(() => {
+    if (!selectedId) return;
+    const detailTimer = window.setInterval(() => {
+      void loadDetail(selectedId, { silent: true });
+    }, 8000);
+    return () => window.clearInterval(detailTimer);
+  }, [selectedId]);
+
+  useEffect(() => {
+    const socket: Socket = io(SOCKET_URL, {
+      withCredentials: true,
+      reconnection: true,
+      reconnectionAttempts: 10,
+      reconnectionDelay: 2000,
+      autoConnect: false,
+    });
+    let activeTournamentId = selectedId;
+    let disposed = false;
+    let reconnectProbeTimer: number | null = null;
+
+    const joinRoom = (id: string) => {
+      if (!id) return;
+      if (!socket.connected) return;
+      socket.emit("tournament:join", { tournamentId: id });
+      activeTournamentId = id;
+    };
+    const leaveRoom = (id: string) => {
+      if (!id) return;
+      if (!socket.connected) return;
+      socket.emit("tournament:leave", { tournamentId: id });
+    };
+
+    if (selectedId) {
+      joinRoom(selectedId);
+    }
+
+    const refreshIfCurrent = (payload?: { tournamentId?: string }) => {
+      if (!payload?.tournamentId) return;
+      if (payload.tournamentId !== activeTournamentId) return;
+      void loadDetail(payload.tournamentId, { silent: true });
+      void loadList({ silent: true });
+    };
+
+    const scheduleConnectProbe = () => {
+      if (disposed) return;
+      if (reconnectProbeTimer !== null) {
+        window.clearTimeout(reconnectProbeTimer);
+      }
+      reconnectProbeTimer = window.setTimeout(async () => {
+        reconnectProbeTimer = null;
+        if (disposed || socket.connected) return;
+        try {
+          const response = await fetch(`${API_URL}/healthz`, { credentials: "include" });
+          if (!response.ok) throw new Error("Server unavailable");
+          if (!disposed && !socket.connected) {
+            socket.connect();
+          }
+        } catch {
+          setError("Unable to reach server. Reconnecting...");
+          scheduleConnectProbe();
+        }
+      }, 1500);
+    };
+
+    const handleConnect = () => {
+      setError(null);
+      if (selectedId) {
+        joinRoom(selectedId);
+      }
+    };
+    const handleConnectError = () => {
+      setError("Realtime connection failed. Reconnecting...");
+      scheduleConnectProbe();
+    };
+    const handleReconnectAttempt = () => {
+      setError("Realtime disconnected. Reconnecting...");
+    };
+    const handleDisconnect = () => {
+      scheduleConnectProbe();
+    };
+
+    socket.on("connect", handleConnect);
+    socket.on("disconnect", handleDisconnect);
+    socket.on("pairings:published", refreshIfCurrent);
+    socket.on("result:updated", refreshIfCurrent);
+    socket.on("standings:updated", refreshIfCurrent);
+    socket.on("round:closed", refreshIfCurrent);
+    socket.on("tournament:stateChanged", refreshIfCurrent);
+    socket.on("tournament:finished", refreshIfCurrent);
+    socket.on("connect_error", handleConnectError);
+    socket.io.on("reconnect_attempt", handleReconnectAttempt);
+
+    scheduleConnectProbe();
+
+    return () => {
+      disposed = true;
+      if (reconnectProbeTimer !== null) {
+        window.clearTimeout(reconnectProbeTimer);
+      }
+      if (activeTournamentId) leaveRoom(activeTournamentId);
+      socket.off("connect", handleConnect);
+      socket.off("disconnect", handleDisconnect);
+      socket.off("pairings:published", refreshIfCurrent);
+      socket.off("result:updated", refreshIfCurrent);
+      socket.off("standings:updated", refreshIfCurrent);
+      socket.off("round:closed", refreshIfCurrent);
+      socket.off("tournament:stateChanged", refreshIfCurrent);
+      socket.off("tournament:finished", refreshIfCurrent);
+      socket.off("connect_error", handleConnectError);
+      socket.io.off("reconnect_attempt", handleReconnectAttempt);
+      socket.disconnect();
+    };
+  }, [selectedId]);
+
+  useEffect(() => {
+    if (!detail || !currentUserId) return;
+    if (detail.tournament.status !== "LIVE_ROUND") return;
+    if (!myPendingGame?.gameId) return;
+    if (autoJoinGameIdRef.current === myPendingGame.gameId) return;
+
+    autoJoinGameIdRef.current = myPendingGame.gameId;
+    const encodedGameId = encodeURIComponent(myPendingGame.gameId);
+    navigate(`/play/quick?tournamentGameId=${encodedGameId}`, {
+      state: { tournamentGameId: myPendingGame.gameId, autoStart: true },
+    });
+  }, [currentUserId, detail, myPendingGame, navigate]);
+
+  const canManage = !!detail?.tournament?.canManage;
+  const tournamentStatus = detail?.tournament?.status;
+
+  const createTimeControl = useMemo(() => {
+    const preset = TIME_PRESETS.find((item) => item.key === timePreset);
+    if (!preset || preset.key === "custom") {
+      const minutes = Math.max(1, Number(customBaseMinutes) || 10);
+      const increment = Math.max(0, Number(customIncrementSeconds) || 0);
+      return {
+        baseMs: Math.round(minutes * 60000),
+        incMs: Math.round(increment * 1000),
+        label: `${minutes}+${increment}`,
+      };
+    }
+    return {
+      baseMs: preset.baseMinutes * 60000,
+      incMs: preset.incrementSeconds * 1000,
+      label: `${preset.baseMinutes}+${preset.incrementSeconds}`,
+    };
+  }, [customBaseMinutes, customIncrementSeconds, timePreset]);
+
+  async function runAction(
+    key: string,
+    call: () => Promise<Response>,
+    options?: { refreshList?: boolean; refreshDetail?: boolean },
+  ) {
+    try {
+      setBusyAction(key);
+      const reachable = await isServerReachable();
+      if (!reachable) {
+        setError("Unable to reach server. Reconnecting...");
+        return null;
+      }
+      const response = await call();
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload?.error || "Request failed");
+      if (payload?.tournament && payload?.players && payload?.standings) {
+        setDetail(payload as DetailResponse);
+        if ((payload as DetailResponse).tournament.id !== selectedId) {
+          setSelectedId((payload as DetailResponse).tournament.id);
+        }
+      }
+      if (options?.refreshList !== false) {
+        await loadList({ silent: true });
+      }
+      if (options?.refreshDetail !== false && selectedId) {
+        await loadDetail(selectedId, { silent: true });
+      }
+      setError(null);
+      return payload;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Request failed";
+      if (/failed to fetch|networkerror|fetch|connection refused/i.test(message)) {
+        setError("Unable to reach server. Reconnecting...");
+      } else {
+        setError(message);
+      }
+      return null;
+    } finally {
+      setBusyAction("");
+    }
+  }
+
+  async function onCreateTournament(event: FormEvent) {
+    event.preventDefault();
+    if (!createName.trim()) return;
+
+    const ratingMinValue =
+      ratingFilterMode === "min" || ratingFilterMode === "range"
+        ? parseOptionalNonNegativeNumber(ratingMin)
+        : null;
+    const ratingMaxValue =
+      ratingFilterMode === "max" || ratingFilterMode === "range"
+        ? parseOptionalNonNegativeNumber(ratingMax)
+        : null;
+
+    const payload = await runAction(
+      "create",
+      () =>
+        fetch(`${API_URL}/api/tournaments`, {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: createName.trim(),
+            type: createType,
+            roundsPlanned:
+              createType === "swiss" && Number(createRounds) > 0
+                ? Number(createRounds)
+                : null,
+            timeControl: createTimeControl,
+            minPlayers: Math.max(2, Number(minPlayers) || 4),
+            maxPlayers: Number(maxPlayers) > 1 ? Number(maxPlayers) : null,
+            ratingFilterMode,
+            ratingMin: ratingMinValue,
+            ratingMax: ratingMaxValue,
+            registrationDeadline: registrationDeadline || null,
+            startType,
+            scheduledStartAt:
+              startType === "scheduled" && scheduledStartAt
+                ? new Date(scheduledStartAt).toISOString()
+                : null,
+            description: description.trim(),
+          }),
+        }),
+      { refreshDetail: false },
+    );
+
+    if (!payload) return;
+    const createdId = (payload as DetailResponse)?.tournament?.id;
+    if (createdId) {
+      setSelectedId(createdId);
+      await loadDetail(createdId);
+    }
+    setShowCreateModal(false);
+    setCreateName("");
+  }
+
+  async function doRegister() {
     if (!selectedId) return;
     await runAction("register", () =>
       fetch(`${API_URL}/api/tournaments/${selectedId}/register`, {
@@ -363,746 +703,933 @@ export default function Tournaments() {
         credentials: "include",
       }),
     );
-  };
+  }
 
-  const unregister = async () => {
+  async function doUnregister() {
     if (!selectedId) return;
     await runAction("unregister", () =>
-      fetch(`${API_URL}/api/tournaments/${selectedId}/unregister`, {
-        method: "POST",
-        credentials: "include",
-      }),
-    );
-  };
-
-  const start = async () => {
-    if (!selectedId) return;
-    await runAction("start", () =>
-      fetch(`${API_URL}/api/tournaments/${selectedId}/start`, {
-        method: "POST",
-        credentials: "include",
-      }),
-    );
-  };
-
-  const pairNextRound = async () => {
-    if (!detail?.tournament) return;
-    const nextRound = Number(detail.tournament.currentRound || 0) + 1;
-    await runAction("pair", () =>
-      fetch(
-        `${API_URL}/api/tournaments/${detail.tournament.id}/rounds/${nextRound}/pair`,
-        {
-          method: "POST",
-          credentials: "include",
-        },
-      ),
-    );
-  };
-
-  const finish = async () => {
-    if (!selectedId) return;
-    await runAction("finish", () =>
-      fetch(`${API_URL}/api/tournaments/${selectedId}/stop`, {
-        method: "POST",
-        credentials: "include",
-      }),
-    );
-  };
-
-  const deleteTournament = async () => {
-    if (!selectedId || !detail?.tournament) return;
-    const confirmed = window.confirm(
-      "This will permanently delete the tournament and all pairings. Continue?",
-    );
-    if (!confirmed) return;
-
-    try {
-      setBusy("delete");
-      const res = await fetch(`${API_URL}/api/tournaments/${selectedId}`, {
+      fetch(`${API_URL}/api/tournaments/${selectedId}/register`, {
         method: "DELETE",
         credentials: "include",
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw new Error(data?.error || "Failed to delete tournament");
-      }
-      await loadList();
-      if (selectedId === detail.tournament.id) {
-        setDetail(null);
-      }
-      setError(null);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to delete tournament",
-      );
-    } finally {
-      setBusy(null);
-    }
-  };
+      }),
+    );
+  }
 
-  const addManager = async () => {
-    if (!detail?.tournament?.id || !selectedManagerId) return;
-    await runAction(
-      "add-manager",
-      () =>
-        fetch(`${API_URL}/api/tournaments/${detail.tournament.id}/managers`, {
-          method: "POST",
+  async function organizerStateAction(action: string, confirmMessage?: string) {
+    if (!selectedId) return;
+    const execute = async () =>
+      runAction(action, () =>
+        fetch(`${API_URL}/api/tournaments/${selectedId}/state`, {
+          method: "PATCH",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ managerId: selectedManagerId }),
+          body: JSON.stringify({ action }),
         }),
-      "Failed to add manager",
-    );
-    setSelectedManagerId("");
-  };
-
-  const removeManager = async (managerId: string) => {
-    if (!detail?.tournament?.id || !managerId) return;
-    await runAction(
-      `remove-manager:${managerId}`,
-      () =>
-        fetch(
-          `${API_URL}/api/tournaments/${detail.tournament.id}/managers/${managerId}`,
-          {
-            method: "DELETE",
-            credentials: "include",
-          },
-        ),
-      "Failed to remove manager",
-    );
-  };
-
-  const reportResult = async (game: GameRow) => {
-    if (!detail?.tournament) return;
-    await runAction(`result:${game.gameId}`, () =>
-      fetch(
-        `${API_URL}/api/tournaments/${detail.tournament.id}/games/${game.gameId}/result`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ result: results[game.gameId] || "1-0" }),
-        },
-      ),
-    );
-  };
-
-  const openGame = (gameId: string) => {
-    if (!gameId) return;
-    const encodedGameId = encodeURIComponent(gameId);
-    navigate(`/play/quick?tournamentGameId=${encodedGameId}`, {
-      state: { tournamentGameId: gameId },
-    });
-  };
-
-  const prepareRepairPayload = () => {
-    if (!currentRoundGames.length) return;
-    const pairings = currentRoundGames.map((game) =>
-      game.isBye || !game.blackId
-        ? { whiteId: game.whiteId }
-        : { whiteId: game.whiteId, blackId: game.blackId },
-    );
-    setRepairText(
-      JSON.stringify(
-        { pairings, allowRematch: allowRepairRematch },
-        null,
-        2,
-      ),
-    );
-    setShowRepairEditor(true);
-  };
-
-  const repairCurrentRound = async () => {
-    if (!detail?.tournament) return;
-
-    let parsedPayload: unknown;
-    try {
-      parsedPayload = JSON.parse(repairText);
-    } catch (err) {
-      setError("Repair payload must be valid JSON");
+      );
+    if (confirmMessage) {
+      setConfirmDialog({
+        message: confirmMessage,
+        confirmLabel: action === "finish_tournament" ? "End Tournament" : "Confirm",
+        tone: action === "finish_tournament" ? "danger" : "warning",
+        onConfirm: execute,
+      });
       return;
     }
+    await execute();
+  }
 
-    const payload =
-      parsedPayload && typeof parsedPayload === "object"
-        ? (parsedPayload as Record<string, unknown>)
-        : {};
-    const pairings = Array.isArray(payload.pairings)
-      ? payload.pairings
-      : Array.isArray(parsedPayload)
-        ? parsedPayload
-        : null;
-
-    if (!pairings) {
-      setError("Repair payload must include a pairings array");
-      return;
-    }
-
-    const allowRematch =
-      payload.allowRematch === true || allowRepairRematch === true;
-
-    await runAction(
-      "repair-round",
-      () =>
-        fetch(
-          `${API_URL}/api/tournaments/${detail.tournament.id}/rounds/${detail.tournament.currentRound}/repair`,
-          {
-            method: "POST",
-            credentials: "include",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ pairings, allowRematch }),
-          },
-        ),
-      "Failed to repair round",
+  async function startRound() {
+    if (!selectedId) return;
+    await runAction("start_round", () =>
+      fetch(`${API_URL}/api/tournaments/${selectedId}/state`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "start_round" }),
+      }),
     );
-    setShowRepairEditor(false);
-  };
+  }
 
-  // Auto-join your current-round pairing as soon as it exists
-  useEffect(() => {
-    if (!detail || !currentUserId) return;
-    if (detail.tournament.status !== "running") return;
-    if (!myPendingGame) return;
-    if (autoJoinGameIdRef.current === myPendingGame.gameId) return;
-
-    autoJoinGameIdRef.current = myPendingGame.gameId;
-    const encodedGameId = encodeURIComponent(myPendingGame.gameId);
+  function openGame(gameId: string) {
+    const trimmed = String(gameId || "").trim();
+    if (!trimmed) return;
+    const encodedGameId = encodeURIComponent(trimmed);
     navigate(`/play/quick?tournamentGameId=${encodedGameId}`, {
-      replace: false,
-      state: { tournamentGameId: myPendingGame.gameId, autoStart: true },
+      state: { tournamentGameId: trimmed, autoStart: true },
     });
-  }, [detail, currentUserId, myPendingGame, navigate]);
+  }
+
+  async function deleteTournament() {
+    if (!selectedId) return;
+    setConfirmDialog({
+      message: "Delete this draft tournament permanently?",
+      confirmLabel: "Delete",
+      tone: "danger",
+      onConfirm: async () => {
+        await runAction(
+          "delete_tournament",
+          () =>
+            fetch(`${API_URL}/api/tournaments/${selectedId}`, {
+              method: "DELETE",
+              credentials: "include",
+            }),
+          { refreshDetail: false },
+        );
+        setDetail(null);
+        setSelectedId("");
+      },
+    });
+  }
+
+  function renderStatusBadge(status: TournamentStatus) {
+    const cfg = STATUS_BADGE[status];
+    return (
+      <span
+        className={classNames(
+          "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-semibold",
+          cfg.className,
+        )}
+      >
+        {cfg.pulse && <span className="h-1.5 w-1.5 rounded-full bg-amber-300 animate-pulse" />}
+        {cfg.label}
+      </span>
+    );
+  }
 
   return (
     <div className="w-full space-y-5">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold">Tournaments</h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Create and manage Swiss, Round-robin, and Knockout events.
-        </p>
-      </div>
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-100">Tournaments</h1>
+          <p className="mt-1 text-sm text-gray-400">
+            Create and join Swiss, Round-Robin, and Knockout events
+          </p>
+        </div>
+        <button
+          onClick={() => {
+            setShowCreateModal(true);
+          }}
+          className="rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-emerald-950 hover:bg-emerald-400"
+        >
+          Create Tournament
+        </button>
+      </header>
 
       {error && (
-        <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-600 dark:text-red-300">
+        <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
           {error}
         </div>
       )}
 
-      <form
-        onSubmit={createTournament}
-        className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 grid grid-cols-1 md:grid-cols-12 gap-3"
-      >
-        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Tournament Name" className="md:col-span-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm" />
-        <select value={type} onChange={(e) => setType(e.target.value as TournamentType)} className="md:col-span-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm">
-          <option value="swiss">Swiss</option>
-          <option value="roundRobin">Round-robin</option>
-          <option value="knockout">Knockout</option>
-        </select>
-        <input type="number" min={1} value={minutes} onChange={(e) => setMinutes(e.target.value)} placeholder="Minutes" className="md:col-span-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm" />
-        <input type="number" min={0} value={increment} onChange={(e) => setIncrement(e.target.value)} placeholder="Inc" className="md:col-span-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm" />
-        <input type="number" min={0} disabled={noRatingFilter} value={ratingMin} onChange={(e) => setRatingMin(e.target.value)} placeholder="Min Rating" className="md:col-span-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm disabled:opacity-50" />
-        <input type="number" min={0} disabled={noRatingFilter} value={ratingMax} onChange={(e) => setRatingMax(e.target.value)} placeholder="Max Rating" className="md:col-span-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm disabled:opacity-50" />
-        <label className="md:col-span-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm flex items-center gap-2 cursor-pointer">
+      <section className="rounded-2xl border border-gray-800 bg-[#0f141c] px-4 py-3">
+        <div className="grid grid-cols-1 gap-2 md:grid-cols-4 xl:grid-cols-6">
           <input
-            type="checkbox"
-            checked={noRatingFilter}
-            onChange={(e) => {
-              const checked = e.target.checked;
-              setNoRatingFilter(checked);
-              if (checked) {
-                setRatingMin("");
-                setRatingMax("");
-              }
-            }}
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search by name"
+            className="rounded-lg border border-gray-700 bg-[#0d1117] px-3 py-2 text-sm text-gray-100 outline-none focus:border-emerald-500"
           />
-          <span>No Rating Filter</span>
-        </label>
-        <input type="number" min={1} disabled={type !== "swiss"} value={rounds} onChange={(e) => setRounds(e.target.value)} placeholder="Swiss Rounds" className="md:col-span-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-950 px-3 py-2 text-sm disabled:opacity-50" />
-        <button type="submit" disabled={busy === "create"} className="md:col-span-1 rounded-lg bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white text-sm font-semibold px-3 py-2">
-          {busy === "create" ? "Creating..." : "Create"}
-        </button>
-      </form>
+          <select
+            value={formatFilter}
+            onChange={(event) => setFormatFilter(event.target.value as "all" | TournamentType)}
+            className="rounded-lg border border-gray-700 bg-[#0d1117] px-3 py-2 text-sm text-gray-100"
+          >
+            <option value="all">All Formats</option>
+            <option value="swiss">Swiss</option>
+            <option value="roundRobin">Round-Robin</option>
+            <option value="knockout">Knockout</option>
+          </select>
+          <select
+            value={statusFilter}
+            onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}
+            className="rounded-lg border border-gray-700 bg-[#0d1117] px-3 py-2 text-sm text-gray-100"
+          >
+            <option value="all">All Statuses</option>
+            <option value="REGISTRATION_OPEN">Registration Open</option>
+            <option value="LIVE_ROUND">Live</option>
+            <option value="FINISHED">Finished</option>
+            <option value="DRAFT">Draft</option>
+          </select>
+          <select
+            value={sort}
+            onChange={(event) => setSort(event.target.value as SortMode)}
+            className="rounded-lg border border-gray-700 bg-[#0d1117] px-3 py-2 text-sm text-gray-100"
+          >
+            <option value="newest">Newest</option>
+            <option value="most_players">Most Players</option>
+            <option value="my_tournaments">My Tournaments</option>
+          </select>
+        </div>
+      </section>
 
-      <section className="grid grid-cols-1 xl:grid-cols-[320px_minmax(0,1fr)] gap-4">
-        <aside className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-3 h-[68vh] overflow-y-auto">
-          <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 px-2 py-1">
-            All Tournaments
-          </h2>
-          {loadingList ? (
-            <div className="h-40 flex items-center justify-center">
-              <div className="w-6 h-6 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
-            </div>
-          ) : list.length === 0 ? (
-            <div className="text-sm text-gray-500 dark:text-gray-400 px-2 py-6">
-              No tournaments yet.
-            </div>
-          ) : (
-            <div className="space-y-2 mt-2">
-              {list.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => setSelectedId(item.id)}
-                  className={`w-full text-left rounded-xl border px-3 py-3 transition-colors ${
-                    selectedId === item.id
-                      ? "border-brand-500/50 bg-brand-500/10"
-                      : "border-gray-200 dark:border-gray-800 hover:border-brand-500/30 hover:bg-gray-50 dark:hover:bg-gray-800/60"
-                  }`}
-                >
-                  <div className="font-semibold text-sm truncate">{item.name}</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    {typeLabel[item.type]} • {timeControlLabel(item.timeControl)}
-                  </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    {item.registeredCount} Registered
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
+        <aside className="rounded-2xl border border-gray-800 bg-[#0f141c]">
+          <div className="p-3">
+            {loadingList ? (
+              <div className="space-y-2">
+                {Array.from({ length: 8 }).map((_, index) => (
+                  <div
+                    key={index}
+                    className="h-20 animate-pulse rounded-xl border border-gray-800 bg-[#121922]"
+                  />
+                ))}
+              </div>
+            ) : list.length === 0 ? (
+              <div className="rounded-xl border border-gray-800 bg-[#0d1117] px-4 py-6 text-center text-sm text-gray-400">
+                No tournaments yet. Create one to get started.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {list.map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => setSelectedId(item.id)}
+                    className={classNames(
+                      "w-full rounded-xl border px-3 py-3 text-left transition",
+                      selectedId === item.id
+                        ? "border-emerald-500/50 bg-emerald-500/10"
+                        : "border-gray-800 bg-[#0d1117] hover:border-gray-700",
+                    )}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="truncate text-sm font-semibold text-gray-100">
+                          {item.name}
+                        </div>
+                        <div className="mt-1 text-xs text-gray-400">
+                          {formatType(item.type)} · {buildTimeLabel(item.timeControl)}
+                        </div>
+                      </div>
+                      {renderStatusBadge(item.status)}
+                    </div>
+                    <div className="mt-2 text-xs text-gray-400">
+                      {item.registeredCount} players
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </aside>
 
-        <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 h-[68vh] overflow-hidden flex flex-col">
-          {loadingDetail ? (
-            <div className="flex-1 flex items-center justify-center">
-              <div className="w-7 h-7 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
+        <main className="rounded-2xl border border-gray-800 bg-[#0f141c]">
+          {!selectedId ? (
+            <div className="px-6 py-16 text-center text-sm text-gray-400">
+              Select a tournament to view details.
             </div>
-          ) : !detail || !selectedSummary ? (
-            <div className="flex-1 flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">
-              Select a tournament from the list.
+          ) : loadingDetail || !detail ? (
+            <div className="space-y-4 p-4">
+              <div className="h-24 animate-pulse rounded-xl bg-[#121922]" />
+              <div className="h-10 animate-pulse rounded-xl bg-[#121922]" />
+              <div className="h-[360px] animate-pulse rounded-xl bg-[#121922]" />
             </div>
           ) : (
-            <>
-              <header className="border-b border-gray-200 dark:border-gray-800 px-4 py-4">
-                  <div className="flex flex-wrap justify-between items-start gap-3">
-                    <div>
-                      <h3 className="text-xl font-bold">{detail.tournament.name}</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        {typeLabel[detail.tournament.type]} •{" "}
-                      {timeControlLabel(detail.tournament.timeControl)} • Rating{" "}
-                      {rangeLabel(detail.tournament.ratingMin, detail.tournament.ratingMax)}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      Round {detail.tournament.currentRound} / {detail.tournament.roundsPlanned}
-                    </p>
+            <div className="flex flex-col">
+              <section className="border-b border-gray-800 px-4 py-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="space-y-1">
+                    <h2 className="text-xl font-bold text-gray-100">{detail.tournament.name}</h2>
+                    <div className="text-sm text-gray-400">
+                      {formatType(detail.tournament.type)} · {buildTimeLabel(detail.tournament.timeControl)} ·{" "}
+                      {detail.tournament.ratingRequirement}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-3 text-xs text-gray-400">
+                      {renderStatusBadge(detail.tournament.status)}
+                      <span>
+                        Round {Math.max(0, detail.tournament.currentRound)} of{" "}
+                        {Math.max(1, detail.tournament.roundsPlanned)}
+                      </span>
+                      <span>{detail.tournament.registeredCount} players</span>
+                      <span>Organizer: {detail.tournament.organizer?.username || "User"}</span>
+                    </div>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {detail.tournament.status === "running" && myPendingGame && (
+                    {detail.tournament.status === "LIVE_ROUND" && myPendingGame?.gameId && (
                       <button
-                        onClick={() => {
-                          const encodedGameId = encodeURIComponent(myPendingGame.gameId);
-                          navigate(`/play/quick?tournamentGameId=${encodedGameId}`, {
-                            state: { tournamentGameId: myPendingGame.gameId, autoStart: true },
-                          });
-                        }}
-                        className="rounded-lg px-3 py-2 text-sm font-semibold bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-50"
+                        onClick={() => openGame(myPendingGame.gameId)}
+                        className="rounded-lg bg-indigo-500 px-3 py-2 text-sm font-semibold text-indigo-50"
                       >
                         Go to My Board
                       </button>
                     )}
-                    {detail.tournament.status === "registering" &&
-                      (detail.tournament.isRegistered ? (
+                    {!detail.tournament.isRegistered &&
+                      detail.tournament.status === "REGISTRATION_OPEN" && (
                         <button
-                          onClick={unregister}
-                          disabled={!!busy}
-                          className="rounded-lg px-3 py-2 text-sm font-semibold border border-gray-300 dark:border-gray-700"
-                        >
-                          Unregister
-                        </button>
-                      ) : (
-                        <button
-                          onClick={register}
-                          disabled={!!busy}
-                          className="rounded-lg px-3 py-2 text-sm font-semibold bg-brand-600 hover:bg-brand-500 text-white disabled:opacity-50"
+                          onClick={doRegister}
+                          disabled={!!busyAction}
+                          className="rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-emerald-950 disabled:opacity-60"
                         >
                           Register
                         </button>
-                      ))}
-                    {detail.tournament.canManage && detail.tournament.status === "registering" && (
-                      <button
-                        onClick={start}
-                        disabled={!!busy}
-                        className="rounded-lg px-3 py-2 text-sm font-semibold bg-brand-600 hover:bg-brand-500 text-white disabled:opacity-50"
-                      >
-                        Start
-                      </button>
-                    )}
-                    {detail.tournament.canManage && detail.tournament.status === "running" && (
-                      <>
+                      )}
+                    {detail.tournament.isRegistered &&
+                      (detail.tournament.status === "REGISTRATION_OPEN" ||
+                        detail.tournament.status === "DRAFT") && (
                         <button
-                          onClick={prepareRepairPayload}
-                          disabled={!!busy || !canRepairCurrentRound}
-                          className="rounded-lg px-3 py-2 text-sm font-semibold border border-gray-300 dark:border-gray-700 disabled:opacity-50"
+                          onClick={doUnregister}
+                          disabled={!!busyAction}
+                          className="rounded-lg border border-gray-700 px-3 py-2 text-sm font-semibold text-gray-200 disabled:opacity-60"
                         >
-                          Repair Current Round
+                          Unregister
                         </button>
-                        <button
-                          onClick={pairNextRound}
-                          disabled={!!busy}
-                          className="rounded-lg px-3 py-2 text-sm font-semibold border border-gray-300 dark:border-gray-700"
-                        >
-                          Pair Next Round
-                        </button>
-                        <button
-                          onClick={finish}
-                          disabled={!!busy}
-                          className="rounded-lg px-3 py-2 text-sm font-semibold bg-amber-600 hover:bg-amber-500 text-white disabled:opacity-50"
-                        >
-                          Stop Tournament
-                        </button>
-                      </>
-                    )}
-                    {isOwner && (
-                      <button
-                        onClick={deleteTournament}
-                        disabled={!!busy || detail.tournament.status === "running"}
-                        className="rounded-lg px-3 py-2 text-sm font-semibold bg-red-600 hover:bg-red-500 text-white disabled:opacity-50"
-                      >
-                        {busy === "delete" ? "Deleting..." : "Delete Tournament"}
-                      </button>
-                    )}
+                      )}
                   </div>
                 </div>
 
-                {detail.tournament.canManage && showRepairEditor && (
-                  <div className="mt-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950/30 px-3 py-3 space-y-2.5">
-                    <div className="text-xs font-semibold text-gray-600 dark:text-gray-300">
-                      Repair Current Round Pairings (JSON)
-                    </div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Edit pairings manually. Each player must appear exactly once.
-                    </p>
-                    <textarea
-                      value={repairText}
-                      onChange={(e) => setRepairText(e.target.value)}
-                      rows={8}
-                      className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-950 px-2.5 py-2 text-xs font-mono"
-                    />
-                    <label className="inline-flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
-                      <input
-                        type="checkbox"
-                        checked={allowRepairRematch}
-                        onChange={(e) => setAllowRepairRematch(e.target.checked)}
-                      />
-                      Allow rematch pairings
-                    </label>
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        onClick={repairCurrentRound}
-                        disabled={!!busy}
-                        className="rounded-lg px-2.5 py-1.5 text-xs font-semibold bg-brand-600 hover:bg-brand-500 text-white disabled:opacity-50"
-                      >
-                        Apply Repair
-                      </button>
-                      <button
-                        onClick={() => setShowRepairEditor(false)}
-                        className="rounded-lg px-2.5 py-1.5 text-xs font-semibold border border-gray-300 dark:border-gray-700"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {detail.winners && detail.winners.length > 0 && detail.tournament.currentRound > 0 && (
-                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {detail.winners.map((winner) => (
-                      <div
-                        key={winner.userId}
-                        className={`rounded-xl border border-gray-200 dark:border-gray-800 bg-gradient-to-br ${medalBg[winner.medal]} px-3 py-3 shadow-sm`}
-                      >
-                        <div className="flex items-center justify-between text-xs font-semibold text-gray-600 dark:text-gray-300">
-                          <span>
-                            {medalEmoji[winner.medal]} {medalLabel[winner.medal]}
-                          </span>
-                          <span className="text-[11px] text-gray-500 dark:text-gray-400">
-                            Rank {winner.rank}
-                          </span>
-                        </div>
-                        <div className="mt-1 text-sm font-bold">{winner.name}</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">
-                          Score {winner.score}
-                          {detail.tournament.type === "swiss" ? ` • Buchholz ${winner.buchholz}` : ""}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {detail.tournament.canManage && (
-                  <div className="mt-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950/30 px-3 py-3 space-y-2">
-                    <div className="text-xs font-semibold text-gray-600 dark:text-gray-300">
-                      Managers
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {detail.managers.map((manager) => (
-                        <div
-                          key={manager.userId}
-                          className="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-700 px-2.5 py-1.5 text-xs"
-                        >
-                          <span className="font-semibold">{manager.name}</span>
-                          {manager.isOwner && (
-                            <span className="rounded-md bg-brand-500/20 text-brand-700 dark:text-brand-300 px-1.5 py-0.5">
-                              Owner
-                            </span>
-                          )}
-                          {isOwner && !manager.isOwner && (
+                {(canManage || tournamentStatus === "FINISHED") && (
+                <div className="mt-4 rounded-xl border border-gray-800 bg-[#0d1117]">
+                  <div className="space-y-3 px-3 py-3 text-sm">
+                        {canManage && tournamentStatus === "DRAFT" && (
+                          <div className="flex flex-wrap gap-2">
                             <button
-                              onClick={() => removeManager(manager.userId)}
-                              disabled={!!busy}
-                              className="text-red-600 dark:text-red-400 hover:underline disabled:opacity-50"
+                              onClick={() => organizerStateAction("open_registration")}
+                              disabled={!!busyAction}
+                              className="rounded-lg bg-emerald-500 px-3 py-2 font-semibold text-emerald-950 disabled:opacity-60"
                             >
-                              Remove
+                              Open Registration
                             </button>
-                          )}
-                        </div>
-                      ))}
-                      {detail.managers.length === 0 && (
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
-                          No managers assigned yet.
-                        </span>
-                      )}
-                    </div>
-                    {isOwner && (
-                      <div className="flex flex-wrap items-center gap-2">
-                        <select
-                          value={selectedManagerId}
-                          onChange={(e) => setSelectedManagerId(e.target.value)}
-                          className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-950 px-2.5 py-1.5 text-xs min-w-[220px]"
-                        >
-                          <option value="">Select player to add as manager</option>
-                          {availableManagerCandidates.map((candidate) => (
-                            <option key={candidate.userId} value={candidate.userId}>
-                              {candidate.name} ({candidate.rating})
-                            </option>
-                          ))}
-                        </select>
-                        <button
-                          onClick={addManager}
-                          disabled={
-                            !!busy ||
-                            !selectedManagerId ||
-                            availableManagerCandidates.length === 0
-                          }
-                          className="rounded-lg px-2.5 py-1.5 text-xs font-semibold bg-brand-600 hover:bg-brand-500 text-white disabled:opacity-50"
-                        >
-                          Add Manager
-                        </button>
-                        {availableManagerCandidates.length === 0 && (
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
-                            No available players to add as manager.
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </header>
-
-              <div className="border-b border-gray-200 dark:border-gray-800 px-4 py-2.5 flex gap-2">
-                {(["players", "rounds", "standings", "bracket"] as TabKey[]).map((key) => (
-                  <button
-                    key={key}
-                    onClick={() => setTab(key)}
-                    className={`rounded-lg px-3 py-1.5 text-sm font-semibold ${
-                      tab === key
-                        ? "bg-brand-500/15 text-brand-700 dark:text-brand-300"
-                        : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-                    }`}
-                  >
-                    {key === "players"
-                      ? "Players"
-                      : key === "rounds"
-                        ? "Rounds"
-                        : key === "standings"
-                          ? "Standings"
-                          : "Bracket"}
-                  </button>
-                ))}
-              </div>
-
-              <div className="flex-1 overflow-y-auto p-4">
-                {tab === "players" && (
-                  <div className="space-y-2">
-                    {detail.players.map((player) => (
-                      <div
-                        key={player.userId}
-                        className="rounded-xl border border-gray-200 dark:border-gray-800 px-3 py-2.5 flex justify-between"
-                      >
-                        <div>
-                          <div className="text-sm font-semibold">{player.name}</div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400">
-                            Rating {player.rating}
+                            <button
+                              onClick={deleteTournament}
+                              disabled={!!busyAction}
+                              className="rounded-lg bg-red-500/90 px-3 py-2 font-semibold text-red-50 disabled:opacity-60"
+                            >
+                              Delete Tournament
+                            </button>
                           </div>
-                        </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">
-                          Seed {player.seed ?? "-"}
-                        </div>
+                        )}
+
+                        {canManage && tournamentStatus === "REGISTRATION_OPEN" && (
+                          <div className="space-y-3">
+                            <div className="text-xs text-gray-400">
+                              Registered players: {detail.players.filter((player) => player.status !== "withdrawn").length}
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              <button
+                                onClick={() => organizerStateAction("close_registration")}
+                                disabled={!!busyAction}
+                                className="rounded-lg bg-cyan-500 px-3 py-2 font-semibold text-cyan-950 disabled:opacity-60"
+                              >
+                                Close Registration
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {canManage && tournamentStatus === "PAIRING_PREVIEW" && (
+                          <div className="space-y-3">
+                            <div className="overflow-x-auto rounded-lg border border-gray-800">
+                              <table className="w-full text-left text-xs text-gray-300">
+                                <thead className="bg-[#121922] text-gray-400">
+                                  <tr>
+                                    <th className="px-3 py-2">Board</th>
+                                    <th className="px-3 py-2">White</th>
+                                    <th className="px-3 py-2">Black</th>
+                                    <th className="px-3 py-2">Explain Pairing</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {detail.previewPairings.map((pairing) => (
+                                    <tr key={pairing.id} className="border-t border-gray-800">
+                                      <td className="px-3 py-2">{pairing.board}</td>
+                                      <td className="px-3 py-2">{pairing.white}</td>
+                                      <td className="px-3 py-2">{pairing.black}</td>
+                                      <td className="px-3 py-2 text-[11px] text-gray-400">
+                                        <div>
+                                          Score group: {pairing.explanation.scoreGroup || "n/a"}
+                                        </div>
+                                        <div>{pairing.explanation.colorAssignment || ""}</div>
+                                        {pairing.explanation.byeReason && (
+                                          <div>Bye: {pairing.explanation.byeReason}</div>
+                                        )}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              <button
+                                onClick={startRound}
+                                disabled={!!busyAction}
+                                className="rounded-lg bg-amber-400 px-3 py-2 font-semibold text-amber-950 disabled:opacity-60"
+                              >
+                                Start Round
+                              </button>
+                              <button
+                                onClick={() =>
+                                  organizerStateAction(
+                                    "finish_tournament",
+                                    "End this tournament now?",
+                                  )
+                                }
+                                disabled={!!busyAction}
+                                className="rounded-lg bg-amber-500/90 px-3 py-2 font-semibold text-amber-950 disabled:opacity-60"
+                              >
+                                End Tournament
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {canManage && tournamentStatus === "LIVE_ROUND" && (
+                          <div className="space-y-3">
+                            <div className="text-xs text-gray-400">
+                              Results are recorded automatically from finished board games. Round
+                              progression to the next round is fully automatic.
+                            </div>
+                            <div className="overflow-x-auto rounded-lg border border-gray-800">
+                              <table className="w-full text-left text-xs text-gray-300">
+                                <thead className="bg-[#121922] text-gray-400">
+                                  <tr>
+                                    <th className="px-3 py-2">Board</th>
+                                    <th className="px-3 py-2">White</th>
+                                    <th className="px-3 py-2">Black</th>
+                                    <th className="px-3 py-2">Result</th>
+                                    <th className="px-3 py-2">ELO</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {currentRoundGames.map((game) => (
+                                    <tr key={game.id} className="border-t border-gray-800">
+                                      <td className="px-3 py-2">{game.board}</td>
+                                      <td className="px-3 py-2">{game.white}</td>
+                                      <td className="px-3 py-2">{game.black}</td>
+                                      <td className="px-3 py-2">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                          <span
+                                            className={classNames(
+                                              "rounded border px-2 py-0.5 text-xs",
+                                              game.result === "*"
+                                                ? "border-amber-500/40 bg-amber-500/10 text-amber-300"
+                                                : "border-gray-700 text-gray-100",
+                                            )}
+                                          >
+                                            {game.result === "*" ? "In Progress" : game.result}
+                                          </span>
+                                          {game.result === "*" &&
+                                            (game.whiteId === currentUserId ||
+                                              game.blackId === currentUserId) && (
+                                              <button
+                                                onClick={() => openGame(game.gameId)}
+                                                className="rounded border border-indigo-500/60 px-2 py-1 font-semibold text-indigo-300"
+                                              >
+                                                Play Board
+                                              </button>
+                                            )}
+                                        </div>
+                                      </td>
+                                      <td className="px-3 py-2">
+                                        {game.result !== "*" ? (
+                                          <span className="text-[11px] text-gray-400">
+                                            White {game.whiteEloDelta >= 0 ? "+" : ""}
+                                            {game.whiteEloDelta} | Black {game.blackEloDelta >= 0 ? "+" : ""}
+                                            {game.blackEloDelta}
+                                          </span>
+                                        ) : (
+                                          <span className="text-[11px] text-gray-500">Pending</span>
+                                        )}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <button
+                                onClick={() =>
+                                  organizerStateAction(
+                                    "finish_tournament",
+                                    "End this tournament now?",
+                                  )
+                                }
+                                disabled={!!busyAction}
+                                className="rounded-lg bg-amber-500 px-3 py-2 font-semibold text-amber-950 disabled:opacity-60"
+                              >
+                                End Tournament
+                              </button>
+                              <p className="text-[11px] text-gray-500">
+                                Round progression is automatic after all board games complete.
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                        {canManage && tournamentStatus === "ROUND_CLOSED" && (
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              onClick={() =>
+                                organizerStateAction(
+                                  "finish_tournament",
+                                  "End this tournament now?",
+                                )
+                              }
+                              disabled={!!busyAction}
+                              className="rounded-lg bg-amber-500 px-3 py-2 font-semibold text-amber-950 disabled:opacity-60"
+                            >
+                              End Tournament
+                            </button>
+                            <p className="text-[11px] text-gray-500">
+                              Next round generation is automatic when a live round completes.
+                            </p>
+                          </div>
+                        )}
+
+                        {tournamentStatus === "FINISHED" && (
+                          <div className="rounded-lg border border-gray-800 bg-[#121922] p-3">
+                            <div className="text-xs uppercase tracking-wide text-gray-400">
+                              Final Standings
+                            </div>
+                            <div className="mt-2 space-y-1 text-sm">
+                              <div className="flex items-center gap-2 text-amber-300">
+                                <span>{"\uD83E\uDD47"}</span>
+                                <span className="font-semibold">
+                                  {detail.winners[0]?.username || "TBD"}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 text-gray-200">
+                                <span>{"\uD83E\uDD48"}</span>
+                                <span>{detail.winners[1]?.username || "TBD"}</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-orange-300">
+                                <span>{"\uD83E\uDD49"}</span>
+                                <span>{detail.winners[2]?.username || "TBD"}</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                  </div>
+                </div>
+                )}
+              </section>
+
+              <nav className="flex items-center gap-2 border-b border-gray-800 px-4 py-2">
+                {(["standings", "rounds", "bracket"] as TabKey[])
+                  .filter((item) => !(detail.tournament.type === "swiss" && item === "bracket"))
+                  .map((item) => (
+                    <button
+                      key={item}
+                      onClick={() => setTab(item)}
+                      className={classNames(
+                        "rounded-lg px-3 py-1.5 text-sm font-semibold",
+                        tab === item
+                          ? "bg-emerald-500/20 text-emerald-300"
+                          : "text-gray-400 hover:bg-gray-800/60 hover:text-gray-200",
+                      )}
+                    >
+                      {item === "rounds"
+                        ? "Rounds"
+                        : item === "standings"
+                          ? "Standings"
+                          : detail.tournament.type === "roundRobin"
+                            ? "Cross-table"
+                            : "Bracket"}
+                    </button>
+                  ))}
+              </nav>
+
+              <section className="p-4">
+
+                {tab === "rounds" && (
+                  <div className="space-y-3">
+                    {detail.rounds.length === 0 && (
+                      <div className="rounded-xl border border-gray-800 bg-[#0d1117] px-4 py-6 text-center text-sm text-gray-400">
+                        No rounds yet.
                       </div>
-                    ))}
-                    {detail.players.length === 0 && (
-                      <div className="text-sm text-gray-500 dark:text-gray-400">No players yet.</div>
                     )}
+                    {detail.rounds.map((round) => {
+                      const isCurrent =
+                        round.roundNumber === Number(detail.tournament.currentRound || 0);
+                      return (
+                        <details
+                          key={round.roundNumber}
+                          open={isCurrent}
+                          className="rounded-xl border border-gray-800 bg-[#0d1117]"
+                        >
+                          <summary className="cursor-pointer list-none px-3 py-2 text-sm font-semibold text-gray-100">
+                            Round {round.roundNumber}
+                          </summary>
+                          <div className="border-t border-gray-800">
+                            {round.games.map((game) => (
+                              <div
+                                key={game.id}
+                                className="flex flex-wrap items-center justify-between gap-2 border-t border-gray-800 px-3 py-2 text-sm text-gray-200 first:border-t-0"
+                              >
+                                <div className="min-w-[220px]">
+                                  <span className="font-semibold">#{game.board}</span>{" "}
+                                  {game.white} ({game.whiteRatingAtPairing}) vs {game.black} (
+                                  {game.blackRatingAtPairing ?? "-"})
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className="rounded border border-gray-700 px-2 py-0.5 text-xs text-gray-300">
+                                    {game.result === "*" ? "In Progress" : game.result}
+                                  </span>
+                                  {game.result === "*" &&
+                                    (game.whiteId === currentUserId ||
+                                      game.blackId === currentUserId) && (
+                                      <button
+                                        onClick={() => openGame(game.gameId)}
+                                        className="rounded border border-indigo-500/60 px-2 py-0.5 text-xs font-semibold text-indigo-300"
+                                      >
+                                        Play
+                                      </button>
+                                    )}
+                                  {game.result !== "*" && (
+                                    <span className="text-xs text-gray-400">
+                                      W {game.whiteEloDelta >= 0 ? "+" : ""}
+                                      {game.whiteEloDelta} / B {game.blackEloDelta >= 0 ? "+" : ""}
+                                      {game.blackEloDelta}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </details>
+                      );
+                    })}
                   </div>
                 )}
 
                 {tab === "standings" && (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="text-left text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-800">
-                          <th className="py-2 pr-3">Rank</th>
-                          <th className="py-2 pr-3">Player</th>
-                          <th className="py-2 pr-3">Score</th>
-                          {detail.tournament.type === "swiss" && (
-                            <th className="py-2 pr-3">Buchholz</th>
-                          )}
-                          <th className="py-2 pr-3">Seed</th>
-                          <th className="py-2 pr-3">Games</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {detail.standings.map((row) => (
-                          <tr
-                            key={row.userId}
-                            className="border-b border-gray-100 dark:border-gray-800/60"
-                          >
-                            <td className="py-2 pr-3 font-semibold">{row.rank}</td>
-                            <td className="py-2 pr-3">{row.name}</td>
-                            <td className="py-2 pr-3">{row.score}</td>
-                            {detail.tournament.type === "swiss" && (
-                              <td className="py-2 pr-3">{row.buchholz}</td>
-                            )}
-                            <td className="py-2 pr-3">{row.seed ?? "-"}</td>
-                            <td className="py-2 pr-3">{row.gamesPlayed}</td>
+                  <div className="space-y-2">
+                    <div className="text-sm font-semibold text-gray-200">Standings</div>
+                    <div className="overflow-x-auto rounded-xl border border-gray-800">
+                      <table className="w-full text-left text-sm text-gray-200">
+                        <thead className="bg-[#121922] text-xs uppercase tracking-wide text-gray-400">
+                          <tr>
+                            <th className="px-3 py-2">Rank</th>
+                            <th className="px-3 py-2">Player</th>
+                            <th className="px-3 py-2">ELO</th>
+                            <th className="px-3 py-2">Points</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {paginatedStandings.map((row) => (
+                            <tr key={row.userId} className="border-t border-gray-800">
+                              <td className="px-3 py-2">{row.rank}</td>
+                              <td className="px-3 py-2">{row.username}</td>
+                              <td className="px-3 py-2">{row.elo}</td>
+                              <td className="px-3 py-2">{row.points}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-400">
+                      <span>
+                        Showing{" "}
+                        {standingsRows.length === 0 ? 0 : standingsStartIndex + 1}-
+                        {Math.min(standingsEndIndex, standingsRows.length)} of {standingsRows.length}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setStandingsPage((prev) => Math.max(1, prev - 1))}
+                          disabled={currentStandingsPage <= 1}
+                          className="rounded border border-gray-700 px-2 py-1 disabled:opacity-50"
+                        >
+                          Previous
+                        </button>
+                        <span>
+                          Page {currentStandingsPage} / {standingsPageCount}
+                        </span>
+                        <button
+                          onClick={() =>
+                            setStandingsPage((prev) => Math.min(standingsPageCount, prev + 1))
+                          }
+                          disabled={currentStandingsPage >= standingsPageCount}
+                          className="rounded border border-gray-700 px-2 py-1 disabled:opacity-50"
+                        >
+                          Next
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 )}
 
-                {tab === "rounds" && (
-                  <div className="space-y-4">
-                    {detail.rounds.map((round) => (
-                      <section
-                        key={round.roundNumber}
-                        className="rounded-xl border border-gray-200 dark:border-gray-800"
-                      >
-                        <header className="px-3 py-2 border-b border-gray-200 dark:border-gray-800 text-sm font-semibold">
-                          Round {round.roundNumber}
-                        </header>
-                        <div className="divide-y divide-gray-200 dark:divide-gray-800">
-                          {round.games.map((game) => (
-                            <div
-                              key={game.id}
-                              className="px-3 py-2.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
-                            >
-                              <div className="text-sm">
-                                <span className="font-semibold">{game.whiteName}</span>{" "}
-                                <span className="text-gray-500 dark:text-gray-400">vs</span>{" "}
-                                <span className="font-semibold">{game.blackName}</span>
-                              </div>
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span className="text-xs font-semibold px-2 py-1 rounded-lg border border-gray-300 dark:border-gray-700">
+                {tab === "bracket" && detail.tournament.type === "knockout" && (
+                  <div className="overflow-x-auto">
+                    <div className="flex min-w-max gap-3">
+                      {detail.rounds.map((round) => (
+                        <div
+                          key={round.roundNumber}
+                          className="w-64 rounded-xl border border-gray-800 bg-[#0d1117] p-3"
+                        >
+                          <div className="mb-2 text-sm font-semibold text-gray-200">
+                            Round {round.roundNumber}
+                          </div>
+                          <div className="space-y-2">
+                            {round.games.map((game) => (
+                              <div
+                                key={game.id}
+                                className="rounded-lg border border-gray-800 bg-[#121922] px-2 py-2 text-xs"
+                              >
+                                <div className="truncate text-gray-200">{game.white}</div>
+                                <div className="truncate text-gray-400">{game.black}</div>
+                                <div className="mt-1 text-emerald-300">
                                   {game.result === "*" ? "Pending" : game.result}
-                                </span>
-                                {detail.tournament.canManage &&
-                                  game.status === "pending" &&
-                                  !game.isBye && (
-                                    <>
-                                      <select
-                                        value={results[game.gameId] || "1-0"}
-                                        onChange={(e) =>
-                                          setResults((prev) => ({
-                                            ...prev,
-                                            [game.gameId]: e.target.value,
-                                          }))
-                                        }
-                                        className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-950 px-2 py-1 text-xs"
-                                      >
-                                        <option value="1-0">1-0</option>
-                                        <option value="0-1">0-1</option>
-                                        <option value="1/2-1/2">1/2-1/2</option>
-                                      </select>
-                                      <button
-                                        onClick={() => reportResult(game)}
-                                        disabled={!!busy}
-                                        className="rounded-lg px-2.5 py-1 text-xs font-semibold bg-brand-600 hover:bg-brand-500 text-white disabled:opacity-50"
-                                      >
-                                        Report Result
-                                      </button>
-                                    </>
-                                  )}
-                                {game.status === "pending" &&
-                                  !game.isBye &&
-                                  currentUserId &&
-                                  (currentUserId === game.whiteId ||
-                                    currentUserId === game.blackId) && (
-                                    <button
-                                      onClick={() => openGame(game.gameId)}
-                                      className="rounded-lg px-2.5 py-1 text-xs font-semibold border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800"
-                                    >
-                                      Open Game
-                                    </button>
-                                  )}
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
-                      </section>
-                    ))}
-                    {detail.rounds.length === 0 && (
-                      <div className="text-sm text-gray-500 dark:text-gray-400">
-                        No rounds yet.
-                      </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {tab === "bracket" && detail.tournament.type === "roundRobin" && (
+                  <div className="rounded-xl border border-gray-800 bg-[#0d1117] px-4 py-6 text-center text-sm text-gray-400">
+                    Cross-table view is available through the standings metrics (Direct Encounter and
+                    Sonneborn-Berger) for Round-Robin tournaments.
+                  </div>
+                )}
+              </section>
+            </div>
+          )}
+        </main>
+      </section>
+
+      {showCreateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-gray-700 bg-[#0f141c] p-5">
+            <div className="mb-4 flex items-start justify-between gap-2">
+              <div>
+                <h3 className="text-lg font-bold text-gray-100">Create Tournament</h3>
+              </div>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="rounded-lg border border-gray-700 px-2 py-1 text-sm text-gray-300"
+              >
+                Close
+              </button>
+            </div>
+
+            <form onSubmit={onCreateTournament} className="space-y-4">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-gray-400">Tournament Name</label>
+                  <input
+                    required
+                    value={createName}
+                    onChange={(event) => setCreateName(event.target.value)}
+                    className="w-full rounded-lg border border-gray-700 bg-[#0d1117] px-3 py-2 text-sm text-gray-100"
+                    placeholder="Club Championship"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-gray-400">Format</label>
+                  <select
+                    value={createType}
+                    onChange={(event) => setCreateType(event.target.value as TournamentType)}
+                    className="w-full rounded-lg border border-gray-700 bg-[#0d1117] px-3 py-2 text-sm text-gray-100"
+                  >
+                    <option value="swiss">Swiss</option>
+                    <option value="roundRobin">Round-Robin</option>
+                    <option value="knockout">Knockout</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-gray-400">Number of Rounds</label>
+                  <input
+                    type="number"
+                    min={1}
+                    disabled={createType !== "swiss"}
+                    value={createRounds}
+                    onChange={(event) => setCreateRounds(event.target.value)}
+                    className="w-full rounded-lg border border-gray-700 bg-[#0d1117] px-3 py-2 text-sm text-gray-100 disabled:opacity-50"
+                    placeholder={createType === "swiss" ? "Required for Swiss" : "Auto"}
+                  />
+                </div>
+                <div className="space-y-1 md:col-span-2">
+                  <label className="text-xs font-semibold text-gray-400">Time Control</label>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                    <select
+                      value={timePreset}
+                      onChange={(event) => setTimePreset(event.target.value)}
+                      className="rounded-lg border border-gray-700 bg-[#0d1117] px-3 py-2 text-sm text-gray-100"
+                    >
+                      {TIME_PRESETS.map((preset) => (
+                        <option key={preset.key} value={preset.key}>
+                          {preset.label}
+                        </option>
+                      ))}
+                    </select>
+                    {timePreset === "custom" && (
+                      <>
+                        <input
+                          type="number"
+                          min={1}
+                          value={customBaseMinutes}
+                          onChange={(event) => setCustomBaseMinutes(event.target.value)}
+                          className="rounded-lg border border-gray-700 bg-[#0d1117] px-3 py-2 text-sm text-gray-100"
+                          placeholder="Base minutes"
+                        />
+                        <input
+                          type="number"
+                          min={0}
+                          value={customIncrementSeconds}
+                          onChange={(event) => setCustomIncrementSeconds(event.target.value)}
+                          className="rounded-lg border border-gray-700 bg-[#0d1117] px-3 py-2 text-sm text-gray-100"
+                          placeholder="Increment seconds"
+                        />
+                      </>
                     )}
                   </div>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-gray-400">Min Players</label>
+                  <input
+                    type="number"
+                    min={2}
+                    value={minPlayers}
+                    onChange={(event) => setMinPlayers(event.target.value)}
+                    className="w-full rounded-lg border border-gray-700 bg-[#0d1117] px-3 py-2 text-sm text-gray-100"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-gray-400">Max Players</label>
+                  <input
+                    type="number"
+                    min={2}
+                    value={maxPlayers}
+                    onChange={(event) => setMaxPlayers(event.target.value)}
+                    className="w-full rounded-lg border border-gray-700 bg-[#0d1117] px-3 py-2 text-sm text-gray-100"
+                    placeholder="Optional"
+                  />
+                </div>
+                <div className="space-y-1 md:col-span-2">
+                  <label className="text-xs font-semibold text-gray-400">Rating Filter</label>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                    <select
+                      value={ratingFilterMode}
+                      onChange={(event) => setRatingFilterMode(event.target.value as RatingFilterMode)}
+                      className="rounded-lg border border-gray-700 bg-[#0d1117] px-3 py-2 text-sm text-gray-100"
+                    >
+                      <option value="none">None</option>
+                      <option value="min">Min Only</option>
+                      <option value="max">Max Only</option>
+                      <option value="range">Range</option>
+                    </select>
+                    {(ratingFilterMode === "min" || ratingFilterMode === "range") && (
+                      <input
+                        type="number"
+                        min={0}
+                        value={ratingMin}
+                        onChange={(event) => setRatingMin(event.target.value)}
+                        className="rounded-lg border border-gray-700 bg-[#0d1117] px-3 py-2 text-sm text-gray-100"
+                        placeholder="Min rating"
+                      />
+                    )}
+                    {(ratingFilterMode === "max" || ratingFilterMode === "range") && (
+                      <input
+                        type="number"
+                        min={0}
+                        value={ratingMax}
+                        onChange={(event) => setRatingMax(event.target.value)}
+                        className="rounded-lg border border-gray-700 bg-[#0d1117] px-3 py-2 text-sm text-gray-100"
+                        placeholder="Max rating"
+                      />
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-gray-400">Registration Deadline</label>
+                  <input
+                    type="datetime-local"
+                    value={registrationDeadline}
+                    onChange={(event) => setRegistrationDeadline(event.target.value)}
+                    className="w-full rounded-lg border border-gray-700 bg-[#0d1117] px-3 py-2 text-sm text-gray-100"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-gray-400">Start Type</label>
+                  <select
+                    value={startType}
+                    onChange={(event) => setStartType(event.target.value as "manual" | "scheduled")}
+                    className="w-full rounded-lg border border-gray-700 bg-[#0d1117] px-3 py-2 text-sm text-gray-100"
+                  >
+                    <option value="manual">Manual</option>
+                    <option value="scheduled">Scheduled</option>
+                  </select>
+                </div>
+                {startType === "scheduled" && (
+                  <div className="space-y-1 md:col-span-2">
+                    <label className="text-xs font-semibold text-gray-400">Scheduled Start Time</label>
+                    <input
+                      type="datetime-local"
+                      value={scheduledStartAt}
+                      min={toLocalDateTimeValue(new Date())}
+                      onChange={(event) => setScheduledStartAt(event.target.value)}
+                      className="w-full rounded-lg border border-gray-700 bg-[#0d1117] px-3 py-2 text-sm text-gray-100"
+                    />
+                  </div>
                 )}
-
-                {tab === "bracket" && (
-                  detail.tournament.type !== "knockout" ? (
-                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                      No bracket for this format.
-                    </div>
-                  ) : (
-                    <div className="overflow-x-auto">
-                      <div className="flex gap-3 min-w-max">
-                        {detail.rounds.map((round) => (
-                          <div
-                            key={round.roundNumber}
-                            className="w-64 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950/40 p-3"
-                          >
-                            <h4 className="text-sm font-semibold mb-2">
-                              Round {round.roundNumber}
-                            </h4>
-                            <div className="space-y-2">
-                              {round.games.map((game) => (
-                                <div
-                                  key={game.id}
-                                  className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-2.5 py-2"
-                                >
-                                  <div className="text-xs font-semibold truncate">{game.whiteName}</div>
-                                  <div className="text-[11px] text-gray-500 dark:text-gray-400 truncate">
-                                    {game.blackName}
-                                  </div>
-                                  <div className="text-[11px] text-brand-600 dark:text-brand-300 mt-1">
-                                    {game.result === "*" ? "Pending" : game.result}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )
-                )}
+                <div className="space-y-1 md:col-span-2">
+                  <label className="text-xs font-semibold text-gray-400">Description</label>
+                  <textarea
+                    rows={3}
+                    value={description}
+                    onChange={(event) => setDescription(event.target.value)}
+                    className="w-full rounded-lg border border-gray-700 bg-[#0d1117] px-3 py-2 text-sm text-gray-100"
+                    placeholder="Optional tournament notes"
+                  />
+                </div>
               </div>
-            </>
-          )}
+
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  className="rounded-lg border border-gray-700 px-4 py-2 text-sm font-semibold text-gray-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={busyAction === "create"}
+                  className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-emerald-950 disabled:opacity-60"
+                >
+                  {busyAction === "create" ? "Creating..." : "Create Draft"}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-      </section>
+      )}
+
+      {confirmDialog && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4">
+          <div className="w-full max-w-md rounded-2xl border border-gray-700 bg-[#0f141c] p-5 shadow-2xl">
+            <h4 className="text-sm font-semibold text-gray-100">Confirm Action</h4>
+            <p className="mt-2 text-sm text-gray-300">{confirmDialog.message}</p>
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setConfirmDialog(null)}
+                className="rounded-lg border border-gray-700 px-4 py-2 text-sm font-semibold text-gray-200"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  const action = confirmDialog.onConfirm;
+                  setConfirmDialog(null);
+                  await action();
+                }}
+                className={classNames(
+                  "rounded-lg px-4 py-2 text-sm font-semibold",
+                  confirmDialog.tone === "danger"
+                    ? "bg-red-500 text-red-50"
+                    : "bg-emerald-500 text-emerald-950",
+                )}
+              >
+                {confirmDialog.confirmLabel || "Confirm"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-

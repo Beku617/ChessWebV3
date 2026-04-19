@@ -10,6 +10,45 @@ import type { CSSProperties } from "react";
 
 type MatchVariant = "standard" | "chess960" | "threeCheck";
 
+export interface TournamentPanelStandingRow {
+  rank: number;
+  userId: string;
+  username: string;
+  elo: number;
+  points: number;
+  status?: string;
+}
+
+export interface TournamentPanelHistoryRow {
+  id: string;
+  gameId: string;
+  roundNumber: number;
+  board: number;
+  white: string;
+  black: string;
+  whiteId: string;
+  blackId: string;
+  result: string;
+  rawResult: string;
+  isBye: boolean;
+  status: "in_progress" | "completed";
+  whiteEloDelta?: number;
+  blackEloDelta?: number;
+}
+
+export interface TournamentGamePanelData {
+  tournament: {
+    id: string;
+    name: string;
+    status: string;
+    type: string;
+    currentRound: number;
+    roundsPlanned: number;
+  };
+  standings: TournamentPanelStandingRow[];
+  history: TournamentPanelHistoryRow[];
+}
+
 interface QuickMatchGameViewProps {
   game: { fen: () => string };
   lastMove?: { from: string; to: string } | null;
@@ -43,6 +82,9 @@ interface QuickMatchGameViewProps {
   isDraggablePiece: (sourceSquare: Square) => boolean;
   setOpponentTime: (time: number) => void;
   setPlayerTime: (time: number) => void;
+  playerClockSeed?: number;
+  opponentClockSeed?: number;
+  clockResetToken?: number;
   onTimeOut: (isPlayer: boolean) => void;
   onResign: () => void;
   onRematch: () => void;
@@ -58,7 +100,18 @@ interface QuickMatchGameViewProps {
     fromSquare?: Square,
     toSquare?: Square,
   ) => boolean;
+  tournamentPanelData?: TournamentGamePanelData | null;
+  activeTournamentGameId?: string | null;
 }
+
+function getInitials(name: string): string {
+  const letters = String(name || "")
+    .replace(/[^a-zA-Z]/g, "")
+    .slice(0, 2)
+    .toUpperCase();
+  return letters || "??";
+}
+
 export function QuickMatchGameView({
   game,
   lastMove,
@@ -83,6 +136,9 @@ export function QuickMatchGameView({
   isDraggablePiece,
   setOpponentTime,
   setPlayerTime,
+  playerClockSeed,
+  opponentClockSeed,
+  clockResetToken,
   onTimeOut,
   onResign,
   onRematch,
@@ -94,10 +150,15 @@ export function QuickMatchGameView({
   threeCheckState,
   promotionState,
   onPromotionPieceSelect,
+  tournamentPanelData = null,
+  activeTournamentGameId = null,
 }: QuickMatchGameViewProps) {
   const { user } = useAuthStore();
   const navigate = useNavigate();
-  const displayMoves = moves.slice(-8); // keep recent moves visible without scroll
+  const [tournamentTab, setTournamentTab] = useState<
+    "standings" | "history" | "moves"
+  >(tournamentMode ? "standings" : "moves");
+  const displayMoves = moves;
   const isThreeCheck = variant === "threeCheck";
   const whiteCheckCount = Number(threeCheckState?.whiteCheckCount || 0);
   const blackCheckCount = Number(threeCheckState?.blackCheckCount || 0);
@@ -114,6 +175,19 @@ export function QuickMatchGameView({
   const leftRef = useRef<HTMLDivElement>(null);
   const topRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const opponentColor = playerColor === "w" ? "b" : "w";
+  const whiteHasMoved = moves.length >= 1;
+  const blackHasMoved = moves.length >= 2;
+  const colorHasMoved = (color: "w" | "b") =>
+    color === "w" ? whiteHasMoved : blackHasMoved;
+  const playerTimerAllowed = !tournamentMode || colorHasMoved(playerColor);
+  const opponentTimerAllowed = !tournamentMode || colorHasMoved(opponentColor);
+  const tournamentStandings = tournamentPanelData?.standings || [];
+  const tournamentHistory = tournamentPanelData?.history || [];
+
+  useEffect(() => {
+    setTournamentTab(tournamentMode ? "standings" : "moves");
+  }, [tournamentMode, tournamentPanelData?.tournament?.id]);
 
   useEffect(() => {
     const container = leftRef.current;
@@ -176,20 +250,22 @@ export function QuickMatchGameView({
                 rating={opponentRating}
                 avatarLetter={opponentName?.substring(0, 1).toUpperCase() || "O"}
                 avatarStyle="opponent"
-                initialTime={gameSettings.timeControl.initial}
+                initialTime={Number.isFinite(opponentClockSeed) ? Number(opponentClockSeed) : gameSettings.timeControl.initial}
                 increment={gameSettings.timeControl.increment}
                 isTimerActive={
                   gameStarted &&
                   !isPlayerTurn &&
                   !gameOver &&
-                  gameSettings.timeControl.initial > 0
+                  gameSettings.timeControl.initial > 0 &&
+                  opponentTimerAllowed
                 }
                 onTimeOut={() => onTimeOut(false)}
                 onTimeChange={setOpponentTime}
+                timerResetToken={`opp:${clockResetToken ?? 0}`}
               />
               {isThreeCheck && (
                 <div className="rounded-xl border border-brand-400/35 bg-brand-500/10 px-3 py-1.5 text-xs font-semibold text-brand-700 dark:text-brand-300">
-                  ♚ +{opponentCheckedCount} checks received
+                  Checks +{opponentCheckedCount}
                 </div>
               )}
             </div>
@@ -236,20 +312,22 @@ export function QuickMatchGameView({
                 }
                 avatarImage={user?.avatar}
                 avatarStyle="player"
-                initialTime={gameSettings.timeControl.initial}
+                initialTime={Number.isFinite(playerClockSeed) ? Number(playerClockSeed) : gameSettings.timeControl.initial}
                 increment={gameSettings.timeControl.increment}
                 isTimerActive={
                   gameStarted &&
                   isPlayerTurn &&
                   !gameOver &&
-                  gameSettings.timeControl.initial > 0
+                  gameSettings.timeControl.initial > 0 &&
+                  playerTimerAllowed
                 }
                 onTimeOut={() => onTimeOut(true)}
                 onTimeChange={setPlayerTime}
+                timerResetToken={`self:${clockResetToken ?? 0}`}
               />
               {isThreeCheck && (
                 <div className="rounded-xl border border-brand-400/35 bg-brand-500/10 px-3 py-1.5 text-xs font-semibold text-brand-700 dark:text-brand-300">
-                  ♚ +{playerCheckedCount} checks received
+                  Checks +{playerCheckedCount}
                 </div>
               )}
             </div>
@@ -262,48 +340,188 @@ export function QuickMatchGameView({
             {/* Header */}
             <div className="flex items-center justify-center mb-3 pb-3 border-b border-gray-200/60 dark:border-white/10">
               <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                Quick Match{variantLabel ? ` - ${variantLabel}` : ""}
+                {tournamentMode
+                  ? tournamentPanelData?.tournament?.name || "Tournament Match"
+                  : `Quick Match${variantLabel ? ` - ${variantLabel}` : ""}`}
               </h2>
             </div>
 
-            {/* Move List */}
-            <div className="flex-1 mb-3 rounded-xl bg-gray-50/50 dark:bg-slate-800/50 border border-gray-200/60 dark:border-white/5 overflow-hidden">
-              <div className="p-2.5">
-                {moves.length === 0 ? (
-                  <div className="text-center text-gray-400 dark:text-gray-500 text-xs py-6">
-                    Game in progress...
-                  </div>
-                ) : (
-                  <div className="space-y-1">
-                    {Array.from(
-                      { length: Math.ceil(displayMoves.length / 2) },
-                      (_, i) => (
-                        <div
-                          key={i}
-                          className="flex items-center text-xs font-mono"
-                        >
-                          <span className="w-8 text-gray-400 dark:text-gray-500">
-                            {Math.floor(
-                              (moves.length - displayMoves.length) / 2,
-                            ) +
-                              i +
-                              1}
-                            .
-                          </span>
-                          <span className="flex-1 px-2 text-gray-800 dark:text-gray-200">
-                            {displayMoves[i * 2]}
-                          </span>
-                          {displayMoves[i * 2 + 1] && (
-                            <span className="flex-1 px-2 text-gray-800 dark:text-gray-200">
-                              {displayMoves[i * 2 + 1]}
-                            </span>
-                          )}
-                        </div>
-                      ),
-                    )}
-                  </div>
-                )}
+            {tournamentMode && (
+              <div className="mb-3 flex items-center gap-2 rounded-xl border border-gray-200/60 bg-gray-100/70 p-1 dark:border-white/10 dark:bg-slate-800/60">
+                <button
+                  onClick={() => setTournamentTab("standings")}
+                  className={`flex-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors ${
+                    tournamentTab === "standings"
+                      ? "bg-emerald-500/20 text-emerald-300"
+                      : "text-gray-600 hover:bg-gray-200/70 dark:text-gray-300 dark:hover:bg-slate-700/60"
+                  }`}
+                >
+                  Standings
+                </button>
+                <button
+                  onClick={() => setTournamentTab("history")}
+                  className={`flex-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors ${
+                    tournamentTab === "history"
+                      ? "bg-emerald-500/20 text-emerald-300"
+                      : "text-gray-600 hover:bg-gray-200/70 dark:text-gray-300 dark:hover:bg-slate-700/60"
+                  }`}
+                >
+                  History
+                </button>
+                <button
+                  onClick={() => setTournamentTab("moves")}
+                  className={`flex-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors ${
+                    tournamentTab === "moves"
+                      ? "bg-emerald-500/20 text-emerald-300"
+                      : "text-gray-600 hover:bg-gray-200/70 dark:text-gray-300 dark:hover:bg-slate-700/60"
+                  }`}
+                >
+                  Moves
+                </button>
               </div>
+            )}
+
+            {/* Content */}
+            <div className="flex-1 mb-3 rounded-xl bg-gray-50/50 dark:bg-slate-800/50 border border-gray-200/60 dark:border-white/5 overflow-hidden">
+              {(!tournamentMode || tournamentTab === "moves") && (
+                <div className="h-full overflow-auto p-2.5">
+                  {moves.length === 0 ? (
+                    <div className="text-center text-gray-400 dark:text-gray-500 text-xs py-6">
+                      Game in progress...
+                    </div>
+                  ) : (
+                    <div className="space-y-1">
+                      {Array.from(
+                        { length: Math.ceil(displayMoves.length / 2) },
+                        (_, i) => (
+                          <div
+                            key={i}
+                            className="flex items-center text-xs font-mono"
+                          >
+                            <span className="w-8 text-gray-400 dark:text-gray-500">
+                              {Math.floor(
+                                (moves.length - displayMoves.length) / 2,
+                              ) +
+                                i +
+                                1}
+                              .
+                            </span>
+                            <span className="flex-1 px-2 text-gray-800 dark:text-gray-200">
+                              {displayMoves[i * 2]}
+                            </span>
+                            {displayMoves[i * 2 + 1] && (
+                              <span className="flex-1 px-2 text-gray-800 dark:text-gray-200">
+                                {displayMoves[i * 2 + 1]}
+                              </span>
+                            )}
+                          </div>
+                        ),
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {tournamentMode && tournamentTab === "standings" && (
+                <div className="h-full overflow-auto p-2">
+                  {tournamentStandings.length === 0 ? (
+                    <div className="text-center text-gray-400 dark:text-gray-500 text-xs py-6">
+                      Standings are loading...
+                    </div>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {tournamentStandings.map((row) => (
+                        <div
+                          key={row.userId || `${row.rank}-${row.username}`}
+                          className={`flex items-center gap-2 rounded-lg border px-2.5 py-2 ${
+                            Number(row.rank) === 1
+                              ? "border-amber-500/30 bg-amber-500/5"
+                              : "border-gray-200/70 bg-white/50 dark:border-white/10 dark:bg-slate-900/60"
+                          }`}
+                        >
+                          <div
+                            className={`w-8 text-right text-xs font-semibold ${
+                              Number(row.rank) === 1
+                                ? "text-amber-400"
+                                : Number(row.rank) === 2
+                                  ? "text-slate-300"
+                                  : Number(row.rank) === 3
+                                    ? "text-orange-400"
+                                    : "text-gray-500 dark:text-gray-400"
+                            }`}
+                          >
+                            #{row.rank}
+                          </div>
+                          <div className="flex h-7 w-7 items-center justify-center rounded-full border border-emerald-400/25 bg-emerald-500/10 text-[11px] font-semibold text-emerald-300">
+                            {getInitials(row.username)}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="truncate text-xs font-medium text-gray-900 dark:text-gray-100">
+                              {row.username}
+                            </div>
+                            <div className="text-[11px] text-gray-500 dark:text-gray-400">
+                              ELO {row.elo}
+                            </div>
+                          </div>
+                          <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                            {row.points}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {tournamentMode && tournamentTab === "history" && (
+                <div className="h-full overflow-auto p-2">
+                  {tournamentHistory.length === 0 ? (
+                    <div className="text-center text-gray-400 dark:text-gray-500 text-xs py-6">
+                      No round history yet.
+                    </div>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {tournamentHistory.map((row) => (
+                        <div
+                          key={row.id}
+                          className={`rounded-lg border px-2.5 py-2 ${
+                            activeTournamentGameId &&
+                            row.gameId === activeTournamentGameId
+                              ? "border-emerald-500/40 bg-emerald-500/10"
+                              : "border-gray-200/70 bg-white/50 dark:border-white/10 dark:bg-slate-900/60"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between text-[11px] text-gray-500 dark:text-gray-400">
+                            <span>
+                              Round {row.roundNumber} · Board {row.board}
+                            </span>
+                            <span
+                              className={`rounded-full px-2 py-0.5 font-semibold ${
+                                row.status === "completed"
+                                  ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+                                  : "bg-amber-500/15 text-amber-700 dark:text-amber-300"
+                              }`}
+                            >
+                              {row.status === "completed" ? "Done" : "Live"}
+                            </span>
+                          </div>
+                          <div className="mt-1.5 flex items-center justify-between gap-2 text-xs">
+                            <div className="min-w-0 flex-1 truncate text-gray-900 dark:text-gray-100">
+                              {row.white}
+                            </div>
+                            <div className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">
+                              {row.result}
+                            </div>
+                            <div className="min-w-0 flex-1 truncate text-right text-gray-900 dark:text-gray-100">
+                              {row.black}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Actions */}

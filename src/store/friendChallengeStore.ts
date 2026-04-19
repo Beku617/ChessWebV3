@@ -173,13 +173,57 @@ export const useFriendChallengeStore = create<FriendChallengeState>(
       }
 
       if (currentSocket) {
+        const previousSocket = currentSocket as Socket & { __probeTimer?: number };
+        if (previousSocket.__probeTimer !== undefined) {
+          window.clearTimeout(previousSocket.__probeTimer);
+          previousSocket.__probeTimer = undefined;
+        }
+        currentSocket.io.off("reconnect_attempt");
         currentSocket.removeAllListeners();
         currentSocket.disconnect();
       }
 
-      const socket = io(SOCKET_URL, { withCredentials: true });
+      const socket = io(SOCKET_URL, {
+        withCredentials: true,
+        reconnection: true,
+        reconnectionAttempts: 10,
+        reconnectionDelay: 2000,
+        autoConnect: false,
+      });
+      const socketWithProbe = socket as Socket & { __probeTimer?: number };
+      const clearProbeTimer = () => {
+        if (socketWithProbe.__probeTimer !== undefined) {
+          window.clearTimeout(socketWithProbe.__probeTimer);
+          socketWithProbe.__probeTimer = undefined;
+        }
+      };
+      const scheduleConnectProbe = () => {
+        clearProbeTimer();
+        socketWithProbe.__probeTimer = window.setTimeout(async () => {
+          socketWithProbe.__probeTimer = undefined;
+          if (get().socket !== socket || socket.connected) return;
+          try {
+            const response = await fetch(`${SOCKET_URL}/healthz`, {
+              credentials: "include",
+            });
+            if (!response.ok) throw new Error("Server unavailable");
+            if (get().socket === socket && !socket.connected) {
+              socket.connect();
+            }
+          } catch {
+            if (get().socket !== socket) return;
+            set({
+              isConnected: false,
+              presenceStatus: "offline",
+              lastError: "Unable to connect to realtime server. Reconnecting...",
+            });
+            scheduleConnectProbe();
+          }
+        }, 1500);
+      };
 
       socket.on("connect", () => {
+        clearProbeTimer();
         startHeartbeat(socket);
         set({ isConnected: true, lastError: null });
       });
@@ -187,6 +231,7 @@ export const useFriendChallengeStore = create<FriendChallengeState>(
       socket.on("disconnect", () => {
         stopHeartbeat();
         set({ isConnected: false, presenceStatus: "offline" });
+        scheduleConnectProbe();
       });
 
       socket.on("connect_error", () => {
@@ -194,7 +239,16 @@ export const useFriendChallengeStore = create<FriendChallengeState>(
         set({
           isConnected: false,
           presenceStatus: "offline",
-          lastError: "Unable to connect to realtime server.",
+          lastError: "Unable to connect to realtime server. Reconnecting...",
+        });
+        scheduleConnectProbe();
+      });
+
+      socket.io.on("reconnect_attempt", () => {
+        set({
+          isConnected: false,
+          presenceStatus: "offline",
+          lastError: "Realtime disconnected. Reconnecting...",
         });
       });
 
@@ -270,12 +324,19 @@ export const useFriendChallengeStore = create<FriendChallengeState>(
         lastError: null,
         lastInfo: null,
       });
+      scheduleConnectProbe();
     },
 
     disconnect: () => {
       const socket = get().socket;
       stopHeartbeat();
       if (socket) {
+        const activeSocket = socket as Socket & { __probeTimer?: number };
+        if (activeSocket.__probeTimer !== undefined) {
+          window.clearTimeout(activeSocket.__probeTimer);
+          activeSocket.__probeTimer = undefined;
+        }
+        socket.io.off("reconnect_attempt");
         socket.removeAllListeners();
         socket.disconnect();
       }

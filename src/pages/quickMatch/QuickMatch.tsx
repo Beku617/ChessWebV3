@@ -4,7 +4,10 @@ import { useAuthStore } from "../../store/authStore";
 import { useOnlineQuickMatch } from "../../hooks/useOnlineQuickMatch";
 import { navigateToNewGameRoute } from "../../components/game/newGameRouting";
 import { QuickMatchSetup } from "./QuickMatchSetup";
-import { QuickMatchGameView } from "./QuickMatchGameView";
+import {
+  QuickMatchGameView,
+  type TournamentGamePanelData,
+} from "./QuickMatchGameView";
 import type { GameHistory } from "../../historyTypes";
 
 type MatchVariant = "standard" | "chess960" | "threeCheck";
@@ -175,6 +178,9 @@ export default function QuickMatch() {
     playerRating,
     opponentRating,
     isRatedMatch,
+    playerClockSeed,
+    opponentClockSeed,
+    clockResetToken,
     setPlayerTime,
     setOpponentTime,
     onSquareClick,
@@ -220,6 +226,8 @@ export default function QuickMatch() {
       getTournamentGameIdFromSearch(location.search)
     );
   });
+  const [tournamentPanelData, setTournamentPanelData] =
+    useState<TournamentGamePanelData | null>(null);
 
   useEffect(() => {
     const selectedTimeControl =
@@ -282,6 +290,52 @@ export default function QuickMatch() {
         getTournamentGameIdFromSearch(location.search),
     );
   }, [location.state, location.search]);
+
+  useEffect(() => {
+    if (!tournamentGameId) {
+      setTournamentPanelData(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadTournamentPanelData = async () => {
+      try {
+        const res = await fetch(
+          `${API_URL}/api/tournaments/by-game/${encodeURIComponent(tournamentGameId)}/context`,
+          {
+            credentials: "include",
+          },
+        );
+        if (!res.ok) {
+          if (!cancelled && res.status >= 500) {
+            setTournamentPanelData(null);
+          }
+          return;
+        }
+
+        const payload = (await res.json()) as TournamentGamePanelData;
+        if (!cancelled) {
+          setTournamentPanelData(payload);
+        }
+      } catch {
+        if (!cancelled) {
+          setTournamentPanelData(null);
+        }
+      }
+    };
+
+    void loadTournamentPanelData();
+    const pollId = window.setInterval(
+      () => void loadTournamentPanelData(),
+      gameStarted ? 6000 : 12000,
+    );
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(pollId);
+    };
+  }, [gameStarted, tournamentGameId]);
 
   const autoStartRequested =
     !tournamentGameId &&
@@ -490,6 +544,9 @@ export default function QuickMatch() {
         tournamentMode={!!tournamentGameId}
         setOpponentTime={setOpponentTime}
         setPlayerTime={setPlayerTime}
+        playerClockSeed={playerClockSeed}
+        opponentClockSeed={opponentClockSeed}
+        clockResetToken={clockResetToken}
         onTimeOut={timeOut}
         onResign={resign}
         onRematch={rematch}
@@ -497,6 +554,8 @@ export default function QuickMatch() {
         onLeave={leaveGame}
         variant={matchVariant}
         threeCheckState={threeCheckState}
+        tournamentPanelData={tournamentPanelData}
+        activeTournamentGameId={tournamentGameId}
       />
     );
   }

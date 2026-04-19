@@ -4,18 +4,22 @@ const RESULT_POINTS = {
   "1-0": { white: 1, black: 0 },
   "0-1": { white: 0, black: 1 },
   "1/2-1/2": { white: 0.5, black: 0.5 },
+  "1-0F": { white: 1, black: 0 },
+  "0-1F": { white: 0, black: 1 },
 };
 
-const SUPPORTED_RESULTS = new Set(["1-0", "0-1", "1/2-1/2", "*"]);
+const SUPPORTED_RESULTS = new Set([
+  "1-0",
+  "0-1",
+  "1/2-1/2",
+  "1-0F",
+  "0-1F",
+  "*",
+]);
 const MAX_SWISS_ROUNDS = 20;
 
 function shuffleArray(list) {
-  const arr = [...list];
-  for (let i = arr.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
+  return stableSortBySeed(list);
 }
 
 function toId(value) {
@@ -218,9 +222,11 @@ function pickNearestScoreOpponent(player, candidates, playedSet) {
   }));
 
   const minDiff = Math.min(...scored.map((item) => item.diff));
-  const nearest = scored.filter((item) => item.diff === minDiff).map((item) => item.candidate);
+  const nearest = scored
+    .filter((item) => item.diff === minDiff)
+    .map((item) => item.candidate);
   if (!nearest.length) return null;
-  return nearest[Math.floor(Math.random() * nearest.length)] || null;
+  return stableSortBySeed(nearest)[0] || null;
 }
 
 function assignBalancedColors(playerA, playerB, history) {
@@ -245,9 +251,17 @@ function assignBalancedColors(playerA, playerB, history) {
     } else if (bInfo.lastColor === "W" && aInfo.lastColor !== "W") {
       whiteId = aId;
       blackId = bId;
-    } else if (Math.random() < 0.5) {
-      whiteId = bId;
-      blackId = aId;
+    } else {
+      const aSeed = Number.isFinite(Number(playerA.seed))
+        ? Number(playerA.seed)
+        : Number.MAX_SAFE_INTEGER;
+      const bSeed = Number.isFinite(Number(playerB.seed))
+        ? Number(playerB.seed)
+        : Number.MAX_SAFE_INTEGER;
+      if (aSeed > bSeed) {
+        whiteId = bId;
+        blackId = aId;
+      }
     }
   }
 
@@ -271,7 +285,18 @@ function findBestOpponentIndex(player, candidates, playedSet) {
   const nearest = pool.filter((item) => item.diff === minDiff);
   if (!nearest.length) return -1;
 
-  const chosen = nearest[Math.floor(Math.random() * nearest.length)];
+  const chosen = nearest.sort((a, b) => {
+    const aSeed = Number.isFinite(Number(a.candidate.seed))
+      ? Number(a.candidate.seed)
+      : Number.MAX_SAFE_INTEGER;
+    const bSeed = Number.isFinite(Number(b.candidate.seed))
+      ? Number(b.candidate.seed)
+      : Number.MAX_SAFE_INTEGER;
+    if (aSeed !== bSeed) return aSeed - bSeed;
+    const aJoined = new Date(a.candidate.joinedAt || 0).getTime();
+    const bJoined = new Date(b.candidate.joinedAt || 0).getTime();
+    return aJoined - bJoined;
+  })[0];
   return chosen?.index ?? -1;
 }
 
@@ -369,7 +394,7 @@ function generateSwissPairings({ players, games, roundNumber }) {
       const a = working.shift();
       const b = working.shift();
       if (!a || !b) break;
-      const swap = Math.random() < 0.5;
+      const swap = matchIndex % 2 === 1;
       pairings.push(
         createBasePairing({
           roundNumber,
@@ -552,6 +577,8 @@ export function resolveWinnerId(game) {
 
   if (game.result === "1-0") return toId(game.whiteId);
   if (game.result === "0-1") return toId(game.blackId);
+  if (game.result === "1-0F") return toId(game.whiteId);
+  if (game.result === "0-1F") return toId(game.blackId);
   return "";
 }
 
@@ -713,6 +740,8 @@ export function computeRoundsPlanned(tournamentType, playerCount, requestedRound
 export function getWinnerFromResult(result, whiteId, blackId) {
   if (result === "1-0") return toId(whiteId);
   if (result === "0-1") return toId(blackId);
+  if (result === "1-0F") return toId(whiteId);
+  if (result === "0-1F") return toId(blackId);
   return "";
 }
 

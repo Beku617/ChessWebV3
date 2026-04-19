@@ -24,9 +24,14 @@ const TournamentGameSchema = new mongoose.Schema(
     },
     result: {
       type: String,
-      enum: ["1-0", "0-1", "1/2-1/2", "*"],
+      enum: ["1-0", "0-1", "1/2-1/2", "1-0F", "0-1F", "*"],
       default: "*",
       index: true,
+    },
+    resultSource: {
+      type: String,
+      enum: ["organizer", "runtime", "system"],
+      default: null,
     },
     gameId: { type: String, required: true, index: true },
     winnerId: {
@@ -44,6 +49,24 @@ const TournamentGameSchema = new mongoose.Schema(
     startedAt: { type: Date, default: null },
     isBye: { type: Boolean, default: false },
     finishedAt: { type: Date, default: null },
+    publishedAt: { type: Date, default: null },
+    isPublished: { type: Boolean, default: false, index: true },
+    boardNumber: { type: Number, default: 1, min: 1 },
+    whiteRatingAtPairing: { type: Number, default: 1200 },
+    blackRatingAtPairing: { type: Number, default: null },
+    whiteEloDelta: { type: Number, default: 0 },
+    blackEloDelta: { type: Number, default: 0 },
+    timeControlSnapshot: {
+      baseMs: { type: Number, required: true, min: 1000 },
+      incMs: { type: Number, required: true, min: 0, default: 0 },
+      label: { type: String, default: "" },
+    },
+    pairingExplanation: {
+      scoreGroup: { type: String, default: "" },
+      colorAssignment: { type: String, default: "" },
+      byeReason: { type: String, default: "" },
+      rematchesAvoided: { type: [String], default: [] },
+    },
   },
   { timestamps: true },
 );
