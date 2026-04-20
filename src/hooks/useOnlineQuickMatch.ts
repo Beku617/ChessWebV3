@@ -33,7 +33,7 @@ const ACTIVE_GAME_STORAGE_KEY = "neongambit:activeGameId";
 const BOARD_FILES = ["a", "b", "c", "d", "e", "f", "g", "h"] as const;
 
 type PlayerColor = "w" | "b";
-type MatchVariant = "standard" | "chess960" | "threeCheck";
+type MatchVariant = "standard" | "chess960" | "threeCheck" | "kingOfHill";
 type GameOverReason =
   | "checkmate"
   | "draw"
@@ -41,7 +41,8 @@ type GameOverReason =
   | "timeout"
   | "opponent_left"
   | "aborted"
-  | "three_check";
+  | "three_check"
+  | "king_of_the_hill";
 
 interface MatchFoundPayload {
   gameId: string;
@@ -83,6 +84,8 @@ interface GameOverPayload {
   gameId: string;
   reason: GameOverReason;
   winner: PlayerColor | null;
+  whiteCheckCount?: number;
+  blackCheckCount?: number;
   elo?: {
     rated: boolean;
     applied: boolean;
@@ -179,6 +182,13 @@ function normalizeMatchVariant(value: unknown): MatchVariant {
   const normalized = value.trim().toLowerCase();
   if (normalized === "chess960") return "chess960";
   if (
+    normalized === "kingofhill" ||
+    normalized === "king-of-hill" ||
+    normalized === "king_of_hill"
+  ) {
+    return "kingOfHill";
+  }
+  if (
     normalized === "threecheck" ||
     normalized === "three-check" ||
     normalized === "three_check"
@@ -186,6 +196,10 @@ function normalizeMatchVariant(value: unknown): MatchVariant {
     return "threeCheck";
   }
   return "standard";
+}
+
+function isUnratedMatchVariant(variant: MatchVariant): boolean {
+  return variant === "threeCheck" || variant === "kingOfHill";
 }
 
 function normalizeThreeCheckCounts(payload?: {
@@ -1115,7 +1129,8 @@ export function useOnlineQuickMatch() {
       resign: "resignation",
       timeout: "time forfeit",
       opponent_left: "opponent left",
-      three_check: "three checks",
+      three_check: "3-check",
+      king_of_the_hill: "reaching the center",
       draw: "draw",
       aborted: "aborted",
     };
@@ -1128,11 +1143,37 @@ export function useOnlineQuickMatch() {
       : lastGameOver.winner === "w"
         ? "1-0"
         : "0-1";
+    const whiteThreeChecks = Math.max(
+      0,
+      Math.floor(
+        Number(
+          lastGameOver.whiteCheckCount ??
+            (matchVariant === "threeCheck"
+              ? threeCheckState.whiteCheckCount
+              : 0),
+        ) || 0,
+      ),
+    );
+    const blackThreeChecks = Math.max(
+      0,
+      Math.floor(
+        Number(
+          lastGameOver.blackCheckCount ??
+            (matchVariant === "threeCheck"
+              ? threeCheckState.blackCheckCount
+              : 0),
+        ) || 0,
+      ),
+    );
     const terminationText = isDraw
       ? `Game drawn by ${reasonMap[lastGameOver.reason] || "draw"}`
-      : `${lastGameOver.winner === "w" ? "White" : "Black"} won by ${
-          reasonMap[lastGameOver.reason] || "checkmate"
-        }`;
+      : lastGameOver.reason === "three_check"
+        ? `${lastGameOver.winner === "w" ? "White" : "Black"} wins by 3-check (White ${whiteThreeChecks}/3, Black ${blackThreeChecks}/3)`
+        : lastGameOver.reason === "king_of_the_hill"
+          ? `${lastGameOver.winner === "w" ? "White" : "Black"} wins by reaching the center`
+        : `${lastGameOver.winner === "w" ? "White" : "Black"} won by ${
+            reasonMap[lastGameOver.reason] || "checkmate"
+          }`;
 
     const playerName = playerNameRef.current || "Player";
     const opponent = opponentName || "Opponent";
@@ -1216,6 +1257,8 @@ export function useOnlineQuickMatch() {
       currentFen: currentGame.fen(),
       moves: persistedMoves,
     });
+    const includeRatingMetadata =
+      !isUnratedMatchVariant(matchVariant) && lastGameOver.elo?.rated === true;
 
     saveGameHistory({
       event:
@@ -1223,7 +1266,9 @@ export function useOnlineQuickMatch() {
           ? "Live Chess960"
           : matchVariant === "threeCheck"
             ? "Live Three-Check"
-            : "Live Chess",
+            : matchVariant === "kingOfHill"
+              ? "Live King of the Hill"
+              : "Live Chess",
       variant: matchVariant,
       site: "NeonGambit",
       date: formatDate(startDate),
@@ -1241,68 +1286,88 @@ export function useOnlineQuickMatch() {
       endTime: formatTime(now),
       whiteElo,
       blackElo,
-      rated: true,
-      ratingBefore: Number.isFinite(playerPreRating)
+      rated: includeRatingMetadata,
+      ratingBefore: includeRatingMetadata && Number.isFinite(playerPreRating)
         ? playerPreRating
         : undefined,
-      ratingAfter: Number.isFinite(playerPostRating)
+      ratingAfter: includeRatingMetadata && Number.isFinite(playerPostRating)
         ? playerPostRating
         : undefined,
-      ratingDelta: Number.isFinite(playerDelta) ? playerDelta : undefined,
-      ratingDeviationBefore: Number.isFinite(playerPreRd)
+      ratingDelta:
+        includeRatingMetadata && Number.isFinite(playerDelta)
+          ? playerDelta
+          : undefined,
+      ratingDeviationBefore: includeRatingMetadata && Number.isFinite(playerPreRd)
         ? playerPreRd
         : undefined,
-      ratingDeviationAfter: Number.isFinite(playerPostRd)
+      ratingDeviationAfter: includeRatingMetadata && Number.isFinite(playerPostRd)
         ? playerPostRd
         : undefined,
       ratingDeviationDelta:
-        Number.isFinite(playerPreRd) && Number.isFinite(playerPostRd)
+        includeRatingMetadata &&
+        Number.isFinite(playerPreRd) &&
+        Number.isFinite(playerPostRd)
           ? playerPostRd - playerPreRd
           : undefined,
-      volatilityBefore: Number.isFinite(playerPreVolatility)
+      volatilityBefore:
+        includeRatingMetadata && Number.isFinite(playerPreVolatility)
         ? playerPreVolatility
         : undefined,
-      volatilityAfter: Number.isFinite(playerPostVolatility)
+      volatilityAfter:
+        includeRatingMetadata && Number.isFinite(playerPostVolatility)
         ? playerPostVolatility
         : undefined,
       volatilityDelta:
+        includeRatingMetadata &&
         Number.isFinite(playerPreVolatility) &&
         Number.isFinite(playerPostVolatility)
           ? playerPostVolatility - playerPreVolatility
           : undefined,
-      isProvisional: playerIsProvisional,
-      opponentRatingBefore: Number.isFinite(opponentPreRating)
+      isProvisional: includeRatingMetadata ? playerIsProvisional : undefined,
+      opponentRatingBefore:
+        includeRatingMetadata && Number.isFinite(opponentPreRating)
         ? opponentPreRating
         : undefined,
-      opponentRatingAfter: Number.isFinite(opponentPostRating)
+      opponentRatingAfter:
+        includeRatingMetadata && Number.isFinite(opponentPostRating)
         ? opponentPostRating
         : undefined,
-      opponentRatingDelta: Number.isFinite(opponentDelta)
-        ? opponentDelta
-        : undefined,
-      opponentRatingDeviationBefore: Number.isFinite(opponentPreRd)
+      opponentRatingDelta:
+        includeRatingMetadata && Number.isFinite(opponentDelta)
+          ? opponentDelta
+          : undefined,
+      opponentRatingDeviationBefore:
+        includeRatingMetadata && Number.isFinite(opponentPreRd)
         ? opponentPreRd
         : undefined,
-      opponentRatingDeviationAfter: Number.isFinite(opponentPostRd)
+      opponentRatingDeviationAfter:
+        includeRatingMetadata && Number.isFinite(opponentPostRd)
         ? opponentPostRd
         : undefined,
       opponentRatingDeviationDelta:
-        Number.isFinite(opponentPreRd) && Number.isFinite(opponentPostRd)
+        includeRatingMetadata &&
+        Number.isFinite(opponentPreRd) &&
+        Number.isFinite(opponentPostRd)
           ? opponentPostRd - opponentPreRd
           : undefined,
-      opponentVolatilityBefore: Number.isFinite(opponentPreVolatility)
+      opponentVolatilityBefore:
+        includeRatingMetadata && Number.isFinite(opponentPreVolatility)
         ? opponentPreVolatility
         : undefined,
-      opponentVolatilityAfter: Number.isFinite(opponentPostVolatility)
+      opponentVolatilityAfter:
+        includeRatingMetadata && Number.isFinite(opponentPostVolatility)
         ? opponentPostVolatility
         : undefined,
       opponentVolatilityDelta:
+        includeRatingMetadata &&
         Number.isFinite(opponentPreVolatility) &&
         Number.isFinite(opponentPostVolatility)
           ? opponentPostVolatility - opponentPreVolatility
           : undefined,
-      opponentIsProvisional,
-      ratingPool: lastGameOver.elo?.pool,
+      opponentIsProvisional: includeRatingMetadata
+        ? opponentIsProvisional
+        : undefined,
+      ratingPool: includeRatingMetadata ? lastGameOver.elo?.pool : undefined,
       timezone: "UTC",
       eco: ecoCode,
       ecoUrl,
@@ -1313,14 +1378,8 @@ export function useOnlineQuickMatch() {
       playAs: gameSettings.playAs,
       opponent,
       durationMs,
-      whiteCheckCount:
-        matchVariant === "threeCheck"
-          ? threeCheckState.whiteCheckCount
-          : undefined,
-      blackCheckCount:
-        matchVariant === "threeCheck"
-          ? threeCheckState.blackCheckCount
-          : undefined,
+      whiteCheckCount: matchVariant === "threeCheck" ? whiteThreeChecks : undefined,
+      blackCheckCount: matchVariant === "threeCheck" ? blackThreeChecks : undefined,
     }).then((id) => {
       if (id) {
         setSavedGameId(id);

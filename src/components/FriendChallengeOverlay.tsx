@@ -3,6 +3,29 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Check, X, Users } from "lucide-react";
 import { useFriendChallengeStore } from "../store/friendChallengeStore";
 
+function formatGameTypeLabel(value: string): string {
+  const normalized = String(value || "")
+    .trim()
+    .toLowerCase();
+  if (normalized === "chess960") return "Chess960";
+  if (
+    normalized === "threecheck" ||
+    normalized === "three-check" ||
+    normalized === "three_check"
+  ) {
+    return "Three-Check";
+  }
+  if (
+    normalized === "kingofhill" ||
+    normalized === "king-of-hill" ||
+    normalized === "king_of_hill"
+  ) {
+    return "King of the Hill";
+  }
+  if (normalized === "standard") return "Standard";
+  return value || "Standard";
+}
+
 export default function FriendChallengeOverlay() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -57,7 +80,7 @@ export default function FriendChallengeOverlay() {
 
       <div className="mt-2 grid grid-cols-2 gap-2 text-[11px]">
         <div className="rounded-lg bg-gray-100 dark:bg-slate-800 px-2 py-1 text-gray-700 dark:text-gray-300">
-          {challenge.gameType}
+          {formatGameTypeLabel(challenge.gameType)}
         </div>
         <div className="rounded-lg bg-gray-100 dark:bg-slate-800 px-2 py-1 text-gray-700 dark:text-gray-300">
           {timeLabel}

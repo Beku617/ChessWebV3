@@ -67,6 +67,7 @@ export default function PlayWithFriend() {
     opponentUserId,
     gameType,
     matchVariant,
+    threeCheckState,
     isRated,
     lastGameOver,
     isConnected,
@@ -82,6 +83,15 @@ export default function PlayWithFriend() {
   );
   const [isSendingChallenge, setIsSendingChallenge] = useState(false);
   const [challengeError, setChallengeError] = useState<string | null>(null);
+
+  const isUnratedFriendVariant = (value: string) =>
+    value === "threeCheck" ||
+    value === "three-check" ||
+    value === "three_check" ||
+    value === "kingOfHill" ||
+    value === "king-of-hill" ||
+    value === "king_of_hill" ||
+    value === "kingofhill";
 
   useEffect(() => {
     if (!preselectedFriendName) return;
@@ -130,7 +140,7 @@ export default function PlayWithFriend() {
       toUserId: rematchTargetUserId,
       toName: rematchTargetName,
       gameType: gameType || "standard",
-      rated: isRated,
+      rated: isUnratedFriendVariant(gameType || "standard") ? false : isRated,
       playAs: rematchPlayAs,
       timeControl: gameSettings.timeControl,
       fromRating: user?.rating,
@@ -183,6 +193,7 @@ export default function PlayWithFriend() {
         onNewGame={handleNewGame}
         onLeave={leaveGame}
         variant={matchVariant}
+        threeCheckState={threeCheckState}
         gameOverElo={isRated ? lastGameOver?.elo ?? null : null}
       />
     );

@@ -9,7 +9,13 @@ import type { HistoryPersistenceStatus } from "../../hooks/gameHistorySaver/hist
 import { BOARD_FRAME } from "./types";
 import type { CSSProperties } from "react";
 
-type MatchVariant = "standard" | "chess960" | "threeCheck";
+type MatchVariant = "standard" | "chess960" | "threeCheck" | "kingOfHill";
+const KING_OF_HILL_SQUARE_STYLES: Record<string, CSSProperties> = {
+  d4: { boxShadow: "inset 0 0 0 9999px rgba(250, 204, 21, 0.16)" },
+  e4: { boxShadow: "inset 0 0 0 9999px rgba(250, 204, 21, 0.16)" },
+  d5: { boxShadow: "inset 0 0 0 9999px rgba(250, 204, 21, 0.16)" },
+  e5: { boxShadow: "inset 0 0 0 9999px rgba(250, 204, 21, 0.16)" },
+};
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
@@ -66,6 +72,7 @@ interface FriendGameViewProps {
   onNewGame: () => void;
   onLeave?: () => void;
   variant?: MatchVariant;
+  threeCheckState?: { whiteCheckCount: number; blackCheckCount: number };
   promotionState?: PromotionState;
   onPromotionPieceSelect?: (
     piece?: string,
@@ -105,13 +112,28 @@ export function FriendGameView({
   onNewGame,
   onLeave,
   variant = "standard",
+  threeCheckState,
   promotionState,
   onPromotionPieceSelect,
 }: FriendGameViewProps) {
   const { user } = useAuthStore();
   const playerAvatarUrl = resolveAvatarUrl(user?.avatar);
   const navigate = useNavigate();
+  const isThreeCheck = variant === "threeCheck";
+  const whiteCheckCount = Number(threeCheckState?.whiteCheckCount || 0);
+  const blackCheckCount = Number(threeCheckState?.blackCheckCount || 0);
+  const playerCheckedCount = playerColor === "w" ? whiteCheckCount : blackCheckCount;
+  const opponentCheckedCount =
+    playerColor === "w" ? blackCheckCount : whiteCheckCount;
+  const opponentDisplayName = isThreeCheck
+    ? `${friendName} (Checks ${opponentCheckedCount}/3)`
+    : friendName;
+  const playerDisplayName = isThreeCheck
+    ? `${user?.fullName || "You"} (Checks ${playerCheckedCount}/3)`
+    : user?.fullName || "You";
   const displayMoves = moves.slice(-8);
+  const persistentSquareStyles =
+    variant === "kingOfHill" ? KING_OF_HILL_SQUARE_STYLES : {};
   const [boardWidth, setBoardWidth] = useState(620);
   const leftRef = useRef<HTMLDivElement>(null);
   const topRef = useRef<HTMLDivElement>(null);
@@ -171,7 +193,7 @@ export function FriendGameView({
             style={{ width: boardWidth + BOARD_FRAME }}
           >
             <PlayerInfo
-              name={friendName}
+              name={opponentDisplayName}
               subtitle=""
               rating={opponentRating}
               avatarLetter={friendName.substring(0, 2).toUpperCase()}
@@ -202,6 +224,7 @@ export function FriendGameView({
               onPieceDrop={onPieceDrop}
               onCancelSelection={onCancelSelection}
               isDraggablePiece={isDraggablePiece}
+              persistentSquareStyles={persistentSquareStyles}
               customSquareStyles={
                 { ...optionSquares, ...preMoveSquares } as unknown as Record<
                   string,
@@ -221,7 +244,7 @@ export function FriendGameView({
             style={{ width: boardWidth + BOARD_FRAME }}
           >
             <PlayerInfo
-              name={user?.fullName || "You"}
+              name={playerDisplayName}
               subtitle=""
               rating={playerRating}
               avatarLetter={

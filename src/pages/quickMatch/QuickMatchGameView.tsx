@@ -8,7 +8,13 @@ import type { HistoryPersistenceStatus } from "../../hooks/gameHistorySaver/hist
 import { BOARD_FRAME } from "./types";
 import type { CSSProperties } from "react";
 
-type MatchVariant = "standard" | "chess960" | "threeCheck";
+type MatchVariant = "standard" | "chess960" | "threeCheck" | "kingOfHill";
+const KING_OF_HILL_SQUARE_STYLES: Record<string, CSSProperties> = {
+  d4: { boxShadow: "inset 0 0 0 9999px rgba(250, 204, 21, 0.16)" },
+  e4: { boxShadow: "inset 0 0 0 9999px rgba(250, 204, 21, 0.16)" },
+  d5: { boxShadow: "inset 0 0 0 9999px rgba(250, 204, 21, 0.16)" },
+  e5: { boxShadow: "inset 0 0 0 9999px rgba(250, 204, 21, 0.16)" },
+};
 
 export interface TournamentPanelStandingRow {
   rank: number;
@@ -165,12 +171,22 @@ export function QuickMatchGameView({
   const playerCheckedCount = playerColor === "w" ? whiteCheckCount : blackCheckCount;
   const opponentCheckedCount =
     playerColor === "w" ? blackCheckCount : whiteCheckCount;
+  const opponentDisplayName = isThreeCheck
+    ? `${opponentName || "Opponent"} (Checks ${opponentCheckedCount}/3)`
+    : opponentName || "Opponent";
+  const playerDisplayName = isThreeCheck
+    ? `${user?.fullName || "You"} (Checks ${playerCheckedCount}/3)`
+    : user?.fullName || "You";
   const variantLabel =
     variant === "chess960"
       ? "Chess960"
+      : variant === "kingOfHill"
+        ? "King of the Hill"
       : variant === "threeCheck"
         ? "Three-Check"
         : "";
+  const persistentSquareStyles =
+    variant === "kingOfHill" ? KING_OF_HILL_SQUARE_STYLES : {};
   const [boardWidth, setBoardWidth] = useState(620);
   const leftRef = useRef<HTMLDivElement>(null);
   const topRef = useRef<HTMLDivElement>(null);
@@ -243,32 +259,25 @@ export function QuickMatchGameView({
             className="flex-shrink-0 z-10"
             style={{ width: boardWidth + BOARD_FRAME }}
           >
-            <div className="space-y-2">
-              <PlayerInfo
-                name={opponentName || "Opponent"}
-                subtitle=""
-                rating={opponentRating}
-                avatarLetter={opponentName?.substring(0, 1).toUpperCase() || "O"}
-                avatarStyle="opponent"
-                initialTime={Number.isFinite(opponentClockSeed) ? Number(opponentClockSeed) : gameSettings.timeControl.initial}
-                increment={gameSettings.timeControl.increment}
-                isTimerActive={
-                  gameStarted &&
-                  !isPlayerTurn &&
-                  !gameOver &&
-                  gameSettings.timeControl.initial > 0 &&
-                  opponentTimerAllowed
-                }
-                onTimeOut={() => onTimeOut(false)}
-                onTimeChange={setOpponentTime}
-                timerResetToken={`opp:${clockResetToken ?? 0}`}
-              />
-              {isThreeCheck && (
-                <div className="rounded-xl border border-brand-400/35 bg-brand-500/10 px-3 py-1.5 text-xs font-semibold text-brand-700 dark:text-brand-300">
-                  Checks +{opponentCheckedCount}
-                </div>
-              )}
-            </div>
+            <PlayerInfo
+              name={opponentDisplayName}
+              subtitle=""
+              rating={opponentRating}
+              avatarLetter={opponentName?.substring(0, 1).toUpperCase() || "O"}
+              avatarStyle="opponent"
+              initialTime={Number.isFinite(opponentClockSeed) ? Number(opponentClockSeed) : gameSettings.timeControl.initial}
+              increment={gameSettings.timeControl.increment}
+              isTimerActive={
+                gameStarted &&
+                !isPlayerTurn &&
+                !gameOver &&
+                gameSettings.timeControl.initial > 0 &&
+                opponentTimerAllowed
+              }
+              onTimeOut={() => onTimeOut(false)}
+              onTimeChange={setOpponentTime}
+              timerResetToken={`opp:${clockResetToken ?? 0}`}
+            />
           </div>
 
           {/* Chessboard */}
@@ -284,6 +293,7 @@ export function QuickMatchGameView({
               onPieceDrop={onPieceDrop}
               onCancelSelection={onCancelSelection}
               isDraggablePiece={isDraggablePiece}
+              persistentSquareStyles={persistentSquareStyles}
               customSquareStyles={
                 { ...optionSquares, ...preMoveSquares } as Record<
                   string,
@@ -302,35 +312,28 @@ export function QuickMatchGameView({
             className="flex-shrink-0 z-10"
             style={{ width: boardWidth + BOARD_FRAME }}
           >
-            <div className="space-y-2">
-              <PlayerInfo
-                name={user?.fullName || "You"}
-                subtitle=""
-                rating={playerRating}
-                avatarLetter={
-                  user?.fullName?.substring(0, 2).toUpperCase() || "U"
-                }
-                avatarImage={user?.avatar}
-                avatarStyle="player"
-                initialTime={Number.isFinite(playerClockSeed) ? Number(playerClockSeed) : gameSettings.timeControl.initial}
-                increment={gameSettings.timeControl.increment}
-                isTimerActive={
-                  gameStarted &&
-                  isPlayerTurn &&
-                  !gameOver &&
-                  gameSettings.timeControl.initial > 0 &&
-                  playerTimerAllowed
-                }
-                onTimeOut={() => onTimeOut(true)}
-                onTimeChange={setPlayerTime}
-                timerResetToken={`self:${clockResetToken ?? 0}`}
-              />
-              {isThreeCheck && (
-                <div className="rounded-xl border border-brand-400/35 bg-brand-500/10 px-3 py-1.5 text-xs font-semibold text-brand-700 dark:text-brand-300">
-                  Checks +{playerCheckedCount}
-                </div>
-              )}
-            </div>
+            <PlayerInfo
+              name={playerDisplayName}
+              subtitle=""
+              rating={playerRating}
+              avatarLetter={
+                user?.fullName?.substring(0, 2).toUpperCase() || "U"
+              }
+              avatarImage={user?.avatar}
+              avatarStyle="player"
+              initialTime={Number.isFinite(playerClockSeed) ? Number(playerClockSeed) : gameSettings.timeControl.initial}
+              increment={gameSettings.timeControl.increment}
+              isTimerActive={
+                gameStarted &&
+                isPlayerTurn &&
+                !gameOver &&
+                gameSettings.timeControl.initial > 0 &&
+                playerTimerAllowed
+              }
+              onTimeOut={() => onTimeOut(true)}
+              onTimeChange={setPlayerTime}
+              timerResetToken={`self:${clockResetToken ?? 0}`}
+            />
           </div>
         </div>
 

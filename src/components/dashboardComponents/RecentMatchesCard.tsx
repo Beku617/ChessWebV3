@@ -50,8 +50,19 @@ function transformGameHistory(
           : "win"
         : "draw";
 
-  // Calculate rating change based on result (simplified estimation)
-  const ratingChange = result === "win" ? 12 : result === "loss" ? -8 : 0;
+  const isUnratedVariant =
+    game.variant === "threeCheck" ||
+    game.variant === "kingOfHill" ||
+    /three[\s_-]?check|3[\s_-]?check|king[\s_-]?of[\s_-]?hill/i.test(
+      String(game.event || ""),
+    );
+  const ratingChange = isUnratedVariant
+    ? 0
+    : result === "win"
+      ? 12
+      : result === "loss"
+        ? -8
+        : 0;
 
   return {
     id: game._id,

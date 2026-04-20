@@ -5,6 +5,12 @@ interface GameCardDetailsProps {
 }
 
 export function GameCardDetails({ game }: GameCardDetailsProps) {
+  const isThreeCheckGame =
+    game.variant === "threeCheck" ||
+    /three[\s_-]?check|3[\s_-]?check/i.test(String(game.event || ""));
+  const whiteChecks = Math.max(0, Math.floor(Number(game.whiteCheckCount || 0)));
+  const blackChecks = Math.max(0, Math.floor(Number(game.blackCheckCount || 0)));
+
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
       <div className="space-y-1">
@@ -42,6 +48,16 @@ export function GameCardDetails({ game }: GameCardDetailsProps) {
           {game.opponentLevel || "N/A"}
         </p>
       </div>
+      {isThreeCheckGame && (
+        <div className="space-y-1">
+          <span className="text-xs uppercase tracking-wider text-gray-500 font-semibold">
+            3-Check
+          </span>
+          <p className="text-sm font-medium text-gray-900 dark:text-white">
+            White {whiteChecks}/3 • Black {blackChecks}/3
+          </p>
+        </div>
+      )}
     </div>
   );
 }

@@ -144,6 +144,8 @@ export function GamePickerPanel({
                     <span className="rounded-full bg-white/[0.05] px-2.5 py-1">
                       {gameOption.variant === "chess960"
                         ? "Chess960"
+                        : gameOption.variant === "kingOfHill"
+                          ? "King of the Hill"
                         : gameOption.variant === "threeCheck"
                           ? "Three-Check"
                           : "Standard"}

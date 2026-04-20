@@ -18,7 +18,7 @@ const ALLOWED_SORT_FIELDS = new Set([
   "rated",
 ]);
 
-const ENUM_VARIANT = new Set(["standard", "chess960", "threeCheck"]);
+const ENUM_VARIANT = new Set(["standard", "chess960", "threeCheck", "kingOfHill"]);
 const ENUM_PLAY_AS = new Set(["white", "black"]);
 const ENUM_RATING_POOL = new Set(["bullet", "blitz", "rapid", "classical"]);
 
@@ -189,7 +189,23 @@ function normalizeVariant(value) {
     .trim()
     .toLowerCase();
   if (!normalized) return undefined;
-  return ENUM_VARIANT.has(normalized) ? normalized : null;
+  if (normalized === "standard") return "standard";
+  if (normalized === "chess960") return "chess960";
+  if (
+    normalized === "threecheck" ||
+    normalized === "three-check" ||
+    normalized === "three_check"
+  ) {
+    return "threeCheck";
+  }
+  if (
+    normalized === "kingofhill" ||
+    normalized === "king-of-hill" ||
+    normalized === "king_of_hill"
+  ) {
+    return "kingOfHill";
+  }
+  return null;
 }
 
 function sanitizeGamePayload(payload, { partial = false } = {}) {
@@ -237,7 +253,9 @@ function sanitizeGamePayload(payload, { partial = false } = {}) {
   if (payload.variant !== undefined) {
     const variant = normalizeVariant(payload.variant);
     if (variant === null) {
-      return { error: "variant must be standard, chess960, or threeCheck" };
+      return {
+        error: "variant must be standard, chess960, threeCheck, or kingOfHill",
+      };
     }
     if (variant !== undefined) {
       data.variant = variant;
@@ -494,6 +512,8 @@ router.get("/stats", adminAuthMiddleware, async (req, res) => {
       chess960Chess960,
       historyThreeCheck,
       chess960ThreeCheck,
+      historyKingOfHill,
+      chess960KingOfHill,
       historyRecent,
       chess960Recent,
       historyResults,
@@ -509,6 +529,8 @@ router.get("/stats", adminAuthMiddleware, async (req, res) => {
       History960.countDocuments({ variant: "chess960" }),
       History.countDocuments({ variant: "threeCheck" }),
       History960.countDocuments({ variant: "threeCheck" }),
+      History.countDocuments({ variant: "kingOfHill" }),
+      History960.countDocuments({ variant: "kingOfHill" }),
       History.countDocuments(recentQuery),
       History960.countDocuments(recentQuery),
       History.aggregate([{ $group: { _id: "$result", count: { $sum: 1 } } }]),
@@ -520,6 +542,7 @@ router.get("/stats", adminAuthMiddleware, async (req, res) => {
     const standard = historyStandard + chess960Standard;
     const chess960 = historyChess960 + chess960Chess960;
     const threeCheck = historyThreeCheck + chess960ThreeCheck;
+    const kingOfHill = historyKingOfHill + chess960KingOfHill;
     const recent24h = historyRecent + chess960Recent;
     const results = [...historyResults, ...chess960Results];
 
@@ -537,7 +560,7 @@ router.get("/stats", adminAuthMiddleware, async (req, res) => {
       total,
       rated,
       unrated: total - rated,
-      byVariant: { standard, chess960, threeCheck },
+      byVariant: { standard, chess960, threeCheck, kingOfHill },
       byResult,
       recent24h,
     });

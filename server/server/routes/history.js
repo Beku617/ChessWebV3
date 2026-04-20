@@ -31,11 +31,19 @@ const CHESS960_STRIPPED_FIELDS = [
   "opponentVolatilityAfter",
   "opponentVolatilityDelta",
 ];
+const UNRATED_VARIANTS = new Set(["chess960", "threeCheck", "kingOfHill"]);
 
 function normalizeVariant(value) {
   const normalized = String(value || "")
     .trim()
     .toLowerCase();
+  if (
+    normalized === "kingofhill" ||
+    normalized === "king-of-hill" ||
+    normalized === "king_of_hill"
+  ) {
+    return "kingOfHill";
+  }
   if (
     normalized === "threecheck" ||
     normalized === "three-check" ||
@@ -54,6 +62,9 @@ function detectVariantFromEvent(event) {
   if (/four[\s_-]?player|4[\s_-]?player/i.test(text)) {
     return "fourPlayer";
   }
+  if (/king[\s_-]?of[\s_-]?hill/i.test(text)) {
+    return "kingOfHill";
+  }
   if (/three[\s_-]?check|3[\s_-]?check/i.test(text)) {
     return "threeCheck";
   }
@@ -71,17 +82,20 @@ function normalizeObjectId(value) {
 }
 
 function normalizeHistoryDocForVariant(historyDoc) {
-  if (historyDoc?.variant !== "chess960") return historyDoc;
+  if (!UNRATED_VARIANTS.has(historyDoc?.variant)) return historyDoc;
 
-  // Chess960 is stored as unrated history without opening metadata.
+  // Unrated variants are stored without rating metadata.
   historyDoc.rated = false;
   historyDoc.isProvisional = false;
   historyDoc.opponentIsProvisional = false;
   historyDoc.ratingPool = undefined;
-  historyDoc.eco = "";
-  historyDoc.ecoUrl = "";
   for (const field of CHESS960_STRIPPED_FIELDS) {
     historyDoc[field] = undefined;
+  }
+
+  if (historyDoc.variant === "chess960") {
+    historyDoc.eco = "";
+    historyDoc.ecoUrl = "";
   }
   return historyDoc;
 }

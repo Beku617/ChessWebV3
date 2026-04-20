@@ -1,6 +1,10 @@
 import type { User } from "../store/authStore";
 
-export type MatchVariant = "standard" | "chess960" | "threeCheck";
+export type MatchVariant =
+  | "standard"
+  | "chess960"
+  | "threeCheck"
+  | "kingOfHill";
 export type RatingPool =
   | "bullet"
   | "blitz"
@@ -75,4 +79,3 @@ export function getUserRatingForPool(
   const parsed = Number(value ?? user.rating ?? 1200);
   return Number.isFinite(parsed) ? Math.round(parsed) : null;
 }
-

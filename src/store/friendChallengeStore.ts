@@ -35,7 +35,9 @@ export interface FriendGameStartedPayload {
   opponentRating?: number;
   timeControl: { initial: number; increment: number };
   gameType?: string;
-  variant?: "standard" | "chess960" | "threeCheck";
+  variant?: "standard" | "chess960" | "threeCheck" | "kingOfHill";
+  whiteCheckCount?: number;
+  blackCheckCount?: number;
   rated?: boolean;
 }
 

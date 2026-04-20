@@ -18,7 +18,7 @@ const HistorySchema = new mongoose.Schema(
     result: { type: String, required: true },
     variant: {
       type: String,
-      enum: ["standard", "chess960", "threeCheck"],
+      enum: ["standard", "chess960", "threeCheck", "kingOfHill"],
       default: "standard",
     },
     whiteCheckCount: { type: Number, default: 0, min: 0 },

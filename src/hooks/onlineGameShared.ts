@@ -2,7 +2,11 @@ import { Chess, type Square } from "chess.js";
 import type { OptionSquares } from "./useStockfishGameTypes";
 
 export type PlayerColor = "w" | "b";
-export type MatchVariant = "standard" | "chess960" | "threeCheck";
+export type MatchVariant =
+  | "standard"
+  | "chess960"
+  | "threeCheck"
+  | "kingOfHill";
 export type GameOverReason =
   | "checkmate"
   | "draw"
@@ -10,7 +14,8 @@ export type GameOverReason =
   | "timeout"
   | "opponent_left"
   | "aborted"
-  | "three_check";
+  | "three_check"
+  | "king_of_the_hill";
 
 export interface MoveAppliedPayload {
   gameId: string;
@@ -30,6 +35,8 @@ export interface GameOverPayload {
   gameId: string;
   reason: GameOverReason;
   winner: PlayerColor | null;
+  whiteCheckCount?: number;
+  blackCheckCount?: number;
   elo?: {
     rated: boolean;
     applied: boolean;
@@ -76,6 +83,12 @@ export interface GameOverPayload {
   };
 }
 
+function normalizeCheckCount(value: unknown): number {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0) return 0;
+  return Math.floor(parsed);
+}
+
 function isStalemate(chess: Chess): boolean {
   return typeof (chess as any).isStalemate === "function"
     ? (chess as any).isStalemate()
@@ -102,7 +115,10 @@ function getDrawReason(chess: Chess): string | null {
 }
 
 export function formatPerspectiveResult(
-  payload: Pick<GameOverPayload, "reason" | "winner">,
+  payload: Pick<
+    GameOverPayload,
+    "reason" | "winner" | "whiteCheckCount" | "blackCheckCount"
+  >,
   playerColor: PlayerColor,
   currentGame: Chess,
 ): string {
@@ -117,7 +133,18 @@ export function formatPerspectiveResult(
 
   const win = payload.winner === playerColor;
   if (payload.reason === "three_check") {
-    return win ? "Victory by Three Checks!" : "Defeat by Three Checks";
+    const whiteChecks = normalizeCheckCount(payload.whiteCheckCount);
+    const blackChecks = normalizeCheckCount(payload.blackCheckCount);
+    const winnerLabel =
+      payload.winner === "w" ? "White" : payload.winner === "b" ? "Black" : null;
+    const winnerText = winnerLabel
+      ? `${winnerLabel} wins by 3-check`
+      : "Win by 3-check";
+    const countsText = `W ${whiteChecks}/3, B ${blackChecks}/3`;
+    return `${win ? "You Win" : "You Lose"} (${winnerText}; ${countsText})`;
+  }
+  if (payload.reason === "king_of_the_hill") {
+    return `${win ? "You Win" : "You Lose"} (by reaching the center)`;
   }
   const reasonMap: Record<GameOverReason, string> = {
     checkmate: "by checkmate",
@@ -126,6 +153,7 @@ export function formatPerspectiveResult(
     opponent_left: "opponent left",
     aborted: "game aborted",
     three_check: "by three checks",
+    king_of_the_hill: "by reaching the center",
     draw: "",
   };
   const reason = reasonMap[payload.reason];
@@ -186,6 +214,13 @@ export function normalizeMatchVariant(value: unknown): MatchVariant {
   const normalized = value.trim().toLowerCase();
   if (normalized === "chess960") return "chess960";
   if (
+    normalized === "kingofhill" ||
+    normalized === "king-of-hill" ||
+    normalized === "king_of_hill"
+  ) {
+    return "kingOfHill";
+  }
+  if (
     normalized === "threecheck" ||
     normalized === "three-check" ||
     normalized === "three_check"
@@ -193,4 +228,8 @@ export function normalizeMatchVariant(value: unknown): MatchVariant {
     return "threeCheck";
   }
   return "standard";
+}
+
+export function isUnratedVariant(variant: MatchVariant): boolean {
+  return variant === "threeCheck" || variant === "kingOfHill";
 }

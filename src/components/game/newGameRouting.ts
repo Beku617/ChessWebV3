@@ -1,6 +1,10 @@
 import type { NavigateFunction } from "react-router-dom";
 
-type SupportedVariant = "standard" | "chess960" | "threeCheck";
+type SupportedVariant =
+  | "standard"
+  | "chess960"
+  | "threeCheck"
+  | "kingOfHill";
 
 export type GameOverMode = "bot" | "quick" | "friend" | "local";
 
@@ -25,6 +29,13 @@ function normalizeVariant(variant?: string | null): SupportedVariant {
   if (typeof variant !== "string") return "standard";
   const normalized = variant.trim().toLowerCase();
   if (normalized === "chess960") return "chess960";
+  if (
+    normalized === "kingofhill" ||
+    normalized === "king-of-hill" ||
+    normalized === "king_of_hill"
+  ) {
+    return "kingOfHill";
+  }
   if (
     normalized === "threecheck" ||
     normalized === "three-check" ||

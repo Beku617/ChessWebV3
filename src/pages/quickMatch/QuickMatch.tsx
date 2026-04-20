@@ -10,7 +10,7 @@ import {
 } from "./QuickMatchGameView";
 import type { GameHistory } from "../../historyTypes";
 
-type MatchVariant = "standard" | "chess960" | "threeCheck";
+type MatchVariant = "standard" | "chess960" | "threeCheck" | "kingOfHill";
 const LAST_QUICK_TIME_CONTROL_KEY = "quickMatch:lastTimeControl";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 const DEFAULT_TIME_CONTROL = { initial: 300, increment: 0 };
@@ -19,6 +19,13 @@ function normalizeVariant(value: unknown): MatchVariant {
   if (typeof value !== "string") return "standard";
   const normalized = value.trim().toLowerCase();
   if (normalized === "chess960") return "chess960";
+  if (
+    normalized === "kingofhill" ||
+    normalized === "king-of-hill" ||
+    normalized === "king_of_hill"
+  ) {
+    return "kingOfHill";
+  }
   if (
     normalized === "threecheck" ||
     normalized === "three-check" ||

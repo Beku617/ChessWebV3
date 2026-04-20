@@ -638,6 +638,13 @@ function normalizeCommunityGame(snapshot) {
       const normalized = String(snapshot.variant || "").trim().toLowerCase();
       if (normalized === "chess960") return "chess960";
       if (
+        normalized === "kingofhill" ||
+        normalized === "king-of-hill" ||
+        normalized === "king_of_hill"
+      ) {
+        return "kingOfHill";
+      }
+      if (
         normalized === "threecheck" ||
         normalized === "three-check" ||
         normalized === "three_check"

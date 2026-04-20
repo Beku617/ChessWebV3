@@ -9,7 +9,7 @@ const CommunityGameSnapshotSchema = new mongoose.Schema(
     },
     variant: {
       type: String,
-      enum: ["standard", "chess960", "threeCheck"],
+      enum: ["standard", "chess960", "threeCheck", "kingOfHill"],
       default: "standard",
     },
     startingFen: {

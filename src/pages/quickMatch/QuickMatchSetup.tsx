@@ -15,7 +15,7 @@ import { useAuthStore } from "../../store/authStore";
 import { BOARD_FRAME } from "./types";
 import { useBoardTheme } from "../../hooks/useBoardTheme";
 
-type MatchVariant = "standard" | "chess960" | "threeCheck";
+type MatchVariant = "standard" | "chess960" | "threeCheck" | "kingOfHill";
 
 interface QuickMatchSetupProps {
   timeControl: { initial: number; increment: number };
@@ -97,7 +97,6 @@ const GAME_TYPE_OPTIONS: GameTypeOption[] = [
   { id: "chess960", label: "Chess960", source: "quick" },
   { id: "kingOfHill", label: "King of the Hill", source: "variants" },
   { id: "threeCheck", label: "Three-Check", source: "variants" },
-  { id: "atomic", label: "Atomic", source: "variants" },
   { id: "fourPlayer", label: "4-Player Chess", source: "variants" },
 ];
 
@@ -219,6 +218,8 @@ export function QuickMatchSetup({
   const variantLabel =
     variant === "chess960"
       ? t("Chess960")
+      : variant === "kingOfHill"
+        ? t("King of the Hill")
       : variant === "threeCheck"
         ? t("Three-Check")
         : "";
@@ -231,6 +232,8 @@ export function QuickMatchSetup({
   const selectedTimeLabel = selectedTimeOption
     ? `${selectedTimeOption.label} (${t(selectedTimeOption.groupLabel)})`
     : `${timeOptionLabel} (${timeGroupLabel})`;
+  const isUnratedVariant =
+    variant === "threeCheck" || variant === "kingOfHill";
   const searchingGameText = tournamentMode
     ? queueStatus ||
       t("Waiting for your tournament opponent to open the game link...")
@@ -301,6 +304,28 @@ export function QuickMatchSetup({
               boardWidth={boardWidth}
               position="start"
               arePiecesDraggable={false}
+              customSquareStyles={
+                variant === "kingOfHill"
+                  ? {
+                      d4: {
+                        boxShadow:
+                          "inset 0 0 0 9999px rgba(250, 204, 21, 0.16)",
+                      },
+                      e4: {
+                        boxShadow:
+                          "inset 0 0 0 9999px rgba(250, 204, 21, 0.16)",
+                      },
+                      d5: {
+                        boxShadow:
+                          "inset 0 0 0 9999px rgba(250, 204, 21, 0.16)",
+                      },
+                      e5: {
+                        boxShadow:
+                          "inset 0 0 0 9999px rgba(250, 204, 21, 0.16)",
+                      },
+                    }
+                  : undefined
+              }
               customDarkSquareStyle={{
                 backgroundColor: colors.dark,
                 transition: "background-color 160ms ease",
@@ -359,7 +384,10 @@ export function QuickMatchSetup({
                     <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                       {tournamentMode
                         ? queueStatus || t("Waiting for opponent...")
-                        : queueStatus || `${t("Rating range:")} ±${expandedRange}`}
+                        : queueStatus ||
+                          (isUnratedVariant
+                            ? t("Searching for opponent...")
+                            : `${t("Rating range:")} ±${expandedRange}`)}
                     </p>
                     <button
                       type="button"

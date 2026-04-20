@@ -48,7 +48,7 @@ export type CommunityPerspectiveResult = "win" | "loss" | "draw" | "unknown";
 
 export interface CommunitySharedGame {
   sourceGameId: string;
-  variant: "standard" | "chess960" | "threeCheck";
+  variant: "standard" | "chess960" | "threeCheck" | "kingOfHill";
   startingFen: string;
   currentPosition: string;
   moves: string[];
@@ -83,7 +83,7 @@ export interface CommunityShareableGameSummary {
   playAs: "white" | "black";
   rated: boolean;
   totalMoves: number;
-  variant: "standard" | "chess960" | "threeCheck";
+  variant: "standard" | "chess960" | "threeCheck" | "kingOfHill";
 }
 
 export interface CommunityPostingRestrictionState {
@@ -409,6 +409,8 @@ export function communityGameFromHistory(game: GameHistory): CommunitySharedGame
   const variant =
     game.variant === "chess960"
       ? "chess960"
+      : game.variant === "kingOfHill"
+        ? "kingOfHill"
       : game.variant === "threeCheck"
         ? "threeCheck"
         : "standard";

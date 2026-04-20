@@ -11,7 +11,6 @@ interface VariantOption {
   key: string;
   label: string;
   description: string;
-  icon: string;
 }
 
 const VARIANTS: VariantOption[] = [
@@ -19,31 +18,21 @@ const VARIANTS: VariantOption[] = [
     key: "chess960",
     label: "Chess960",
     description: "Randomized back-rank pieces.",
-    icon: "🎲",
   },
   {
     key: "kingOfHill",
     label: "King of the Hill",
     description: "Get your king to the center.",
-    icon: "👑",
   },
   {
     key: "threeCheck",
     label: "Three-Check",
     description: "Win by giving three checks.",
-    icon: "⚡",
-  },
-  {
-    key: "atomic",
-    label: "Atomic",
-    description: "Explosions on capture.",
-    icon: "💥",
   },
   {
     key: "fourPlayer",
     label: "4-Player Chess",
     description: "Online matchmaking on a 14x14 cross board.",
-    icon: "🧩",
   },
 ];
 
@@ -299,6 +288,8 @@ export default function PlayVariants() {
     const queueVariant =
       selectedVariant.key === "chess960"
         ? "chess960"
+        : selectedVariant.key === "kingOfHill"
+          ? "kingOfHill"
         : selectedVariant.key === "threeCheck"
           ? "threeCheck"
           : "standard";
@@ -366,6 +357,28 @@ export default function PlayVariants() {
                 boardWidth={boardWidth}
                 position={previewFen}
                 arePiecesDraggable={false}
+                customSquareStyles={
+                  selectedVariant.key === "kingOfHill"
+                    ? {
+                        d4: {
+                          boxShadow:
+                            "inset 0 0 0 9999px rgba(250, 204, 21, 0.16)",
+                        },
+                        e4: {
+                          boxShadow:
+                            "inset 0 0 0 9999px rgba(250, 204, 21, 0.16)",
+                        },
+                        d5: {
+                          boxShadow:
+                            "inset 0 0 0 9999px rgba(250, 204, 21, 0.16)",
+                        },
+                        e5: {
+                          boxShadow:
+                            "inset 0 0 0 9999px rgba(250, 204, 21, 0.16)",
+                        },
+                      }
+                    : undefined
+                }
                 customDarkSquareStyle={{
                   backgroundColor: colors.dark,
                   transition: "background-color 160ms ease",
@@ -441,7 +454,6 @@ export default function PlayVariants() {
                       }`}
                     >
                       <div className="flex items-center gap-2">
-                        <span className="text-sm">{variant.icon}</span>
                         <span className="text-[12px] font-semibold">
                           {t(variant.label)}
                         </span>

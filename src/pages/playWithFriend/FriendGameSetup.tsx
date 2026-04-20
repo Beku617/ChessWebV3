@@ -6,16 +6,11 @@ import {
   ChevronUp,
   Clock,
   Crown,
-  ExternalLink,
   Hash,
-  Info,
   LayoutGrid,
   Play,
-  Plus,
   Search,
-  Shield,
   Shuffle,
-  SlidersHorizontal,
   Timer,
   Users,
   Zap,
@@ -71,10 +66,9 @@ interface FriendPreview {
 }
 
 interface GameTypeOption {
-  id: string;
+  id: "standard" | "chess960" | "threeCheck" | "kingOfHill";
   label: string;
   icon: LucideIcon;
-  external?: boolean;
 }
 
 interface ChallengeTimeOption {
@@ -93,12 +87,8 @@ interface TimeGroup {
 const GAME_TYPE_OPTIONS: GameTypeOption[] = [
   { id: "standard", label: "Standard", icon: LayoutGrid },
   { id: "chess960", label: "Chess960", icon: Hash },
-  { id: "bughouse", label: "Bughouse", icon: Shield },
-  { id: "custom", label: "Custom Position / Odds", icon: SlidersHorizontal },
-  { id: "three-check", label: "3 Check", icon: Plus, external: true },
-  { id: "crazyhouse", label: "Crazyhouse", icon: Shield, external: true },
-  { id: "king-of-hill", label: "King of the Hill", icon: Crown, external: true },
-  { id: "four-player", label: "4 Player Chess", icon: Users, external: true },
+  { id: "threeCheck", label: "Three-Check", icon: Zap },
+  { id: "kingOfHill", label: "King of the Hill", icon: Crown },
 ];
 
 const TIME_GROUPS: TimeGroup[] = [
@@ -173,7 +163,9 @@ export function FriendGameSetup({
   const [friendsError, setFriendsError] = useState<string | null>(null);
   const [hasChosenFriend, setHasChosenFriend] = useState(false);
   const [isRated, setIsRated] = useState(false);
-  const [selectedGameTypeId, setSelectedGameTypeId] = useState("standard");
+  const [selectedGameTypeId, setSelectedGameTypeId] = useState<
+    "standard" | "chess960" | "threeCheck" | "kingOfHill"
+  >("standard");
   const [isGameTypeOpen, setIsGameTypeOpen] = useState(false);
   const [isTimeControlOpen, setIsTimeControlOpen] = useState(false);
   const [customBaseMinutes, setCustomBaseMinutes] = useState(() =>
@@ -312,6 +304,8 @@ export function FriendGameSetup({
       GAME_TYPE_OPTIONS[0],
     [selectedGameTypeId],
   );
+  const isUnratedGameType =
+    selectedGameType.id === "threeCheck" || selectedGameType.id === "kingOfHill";
 
   const selectedTimeOption = useMemo(() => {
     for (const group of TIME_GROUPS) {
@@ -340,7 +334,7 @@ export function FriendGameSetup({
       toUserId: selectedFriend.id,
       toName: selectedFriend.name,
       gameType: selectedGameType.id,
-      rated: isRated,
+      rated: !isUnratedGameType && isRated,
       playAs,
       timeControl,
     });
@@ -413,6 +407,28 @@ export function FriendGameSetup({
               boardWidth={boardWidth}
               position="start"
               arePiecesDraggable={false}
+              customSquareStyles={
+                selectedGameType.id === "kingOfHill"
+                  ? {
+                      d4: {
+                        boxShadow:
+                          "inset 0 0 0 9999px rgba(250, 204, 21, 0.16)",
+                      },
+                      e4: {
+                        boxShadow:
+                          "inset 0 0 0 9999px rgba(250, 204, 21, 0.16)",
+                      },
+                      d5: {
+                        boxShadow:
+                          "inset 0 0 0 9999px rgba(250, 204, 21, 0.16)",
+                      },
+                      e5: {
+                        boxShadow:
+                          "inset 0 0 0 9999px rgba(250, 204, 21, 0.16)",
+                      },
+                    }
+                  : undefined
+              }
               customDarkSquareStyle={{
                 backgroundColor: colors.dark,
                 transition: "background-color 160ms ease",
@@ -617,6 +633,12 @@ export function FriendGameSetup({
                             type="button"
                             onClick={() => {
                               setSelectedGameTypeId(option.id);
+                              if (
+                                option.id === "threeCheck" ||
+                                option.id === "kingOfHill"
+                              ) {
+                                setIsRated(false);
+                              }
                               setIsGameTypeOpen(false);
                             }}
                             className={`w-full px-3 py-2.5 flex items-center justify-between text-left transition-colors ${
@@ -628,9 +650,7 @@ export function FriendGameSetup({
                             <span className="flex items-center gap-2 text-[13px] font-medium">
                               <Icon className="w-4 h-4" />
                               <span>{option.label}</span>
-                              {option.external && <ExternalLink className="w-3.5 h-3.5 opacity-70" />}
                             </span>
-                            <Info className="w-4 h-4 opacity-65" />
                           </button>
                         );
                       })}
@@ -746,9 +766,10 @@ export function FriendGameSetup({
                   <button
                     type="button"
                     onClick={() => setIsRated((value) => !value)}
+                    disabled={isUnratedGameType}
                     className={`relative w-14 h-8 rounded-full transition-colors ${
                       isRated ? "bg-brand-500" : "bg-gray-300 dark:bg-slate-700"
-                    }`}
+                    }${isUnratedGameType ? " opacity-60 cursor-not-allowed" : ""}`}
                     aria-pressed={isRated}
                   >
                     <span
@@ -758,6 +779,11 @@ export function FriendGameSetup({
                     />
                   </button>
                 </div>
+                {isUnratedGameType && (
+                  <p className="px-1 text-[11px] text-gray-500 dark:text-gray-400">
+                    This variant is unrated.
+                  </p>
+                )}
 
                 <div className="rounded-2xl border border-gray-200/70 dark:border-white/10 bg-white/70 dark:bg-slate-900/60 p-3">
                   <div className="text-[12px] font-semibold text-gray-900 dark:text-white mb-2">

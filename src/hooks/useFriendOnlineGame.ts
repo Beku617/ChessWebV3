@@ -28,7 +28,7 @@ import {
 } from "../utils/ratingPool";
 
 type PlayerColor = "w" | "b";
-type MatchVariant = "standard" | "chess960" | "threeCheck";
+type MatchVariant = "standard" | "chess960" | "threeCheck" | "kingOfHill";
 type GameOverReason =
   | "checkmate"
   | "draw"
@@ -36,13 +36,21 @@ type GameOverReason =
   | "timeout"
   | "opponent_left"
   | "aborted"
-  | "three_check";
+  | "three_check"
+  | "king_of_the_hill";
 const BOARD_FILES = ["a", "b", "c", "d", "e", "f", "g", "h"] as const;
 
 function normalizeMatchVariant(value: unknown): MatchVariant {
   if (typeof value !== "string") return "standard";
   const normalized = value.trim().toLowerCase();
   if (normalized === "chess960") return "chess960";
+  if (
+    normalized === "kingofhill" ||
+    normalized === "king-of-hill" ||
+    normalized === "king_of_hill"
+  ) {
+    return "kingOfHill";
+  }
   if (
     normalized === "threecheck" ||
     normalized === "three-check" ||
@@ -62,12 +70,17 @@ interface MoveAppliedPayload {
   isCheckmate?: boolean;
   isDraw?: boolean;
   isStalemate?: boolean;
+  whiteCheckCount?: number;
+  blackCheckCount?: number;
+  checkAwarded?: PlayerColor | null;
 }
 
 interface GameOverPayload {
   gameId: string;
   reason: GameOverReason;
   winner: PlayerColor | null;
+  whiteCheckCount?: number;
+  blackCheckCount?: number;
   elo?: {
     rated: boolean;
     applied: boolean;
@@ -123,6 +136,24 @@ interface GameSystemMessagePayload {
 function toFiniteRating(value: unknown): number | null {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? Math.round(parsed) : null;
+}
+
+function normalizeThreeCheckCounts(payload?: {
+  whiteCheckCount?: unknown;
+  blackCheckCount?: unknown;
+}) {
+  const whiteCheckCount = Number(payload?.whiteCheckCount);
+  const blackCheckCount = Number(payload?.blackCheckCount);
+  return {
+    whiteCheckCount:
+      Number.isFinite(whiteCheckCount) && whiteCheckCount >= 0
+        ? Math.floor(whiteCheckCount)
+        : 0,
+    blackCheckCount:
+      Number.isFinite(blackCheckCount) && blackCheckCount >= 0
+        ? Math.floor(blackCheckCount)
+        : 0,
+  };
 }
 
 interface PreMove {
@@ -215,6 +246,9 @@ export function useFriendOnlineGame() {
   );
   const [opponentTime, setOpponentTime] = useState(
     defaultGameSettings.timeControl.initial,
+  );
+  const [threeCheckState, setThreeCheckState] = useState(() =>
+    normalizeThreeCheckCounts(),
   );
 
   const gameIdRef = useRef<string | null>(null);
@@ -368,6 +402,7 @@ export function useFriendOnlineGame() {
     startingFenRef.current = "";
     historySavedRef.current = false;
     setLastGameOver(null);
+    setThreeCheckState(normalizeThreeCheckCounts());
   }, [resetStoredMoves]);
 
   const applyFriendGameStart = useCallback(
@@ -431,6 +466,7 @@ export function useFriendOnlineGame() {
       historySavedRef.current = false;
       startTimeRef.current = Date.now();
       setLastGameOver(null);
+      setThreeCheckState(normalizeThreeCheckCounts(payload));
       playGameplaySound("gameStart");
 
       setGameSettings({
@@ -500,6 +536,31 @@ export function useFriendOnlineGame() {
         }
       }
 
+      if (matchVariantRef.current === "threeCheck") {
+        setThreeCheckState((previous) => {
+          const hasExplicitCounts =
+            payload.whiteCheckCount !== undefined &&
+            payload.blackCheckCount !== undefined;
+
+          if (hasExplicitCounts) {
+            return normalizeThreeCheckCounts(payload);
+          }
+          if (payload.checkAwarded === "w") {
+            return {
+              ...previous,
+              whiteCheckCount: previous.whiteCheckCount + 1,
+            };
+          }
+          if (payload.checkAwarded === "b") {
+            return {
+              ...previous,
+              blackCheckCount: previous.blackCheckCount + 1,
+            };
+          }
+          return previous;
+        });
+      }
+
       setLastMove({ from: payload.move.from, to: payload.move.to });
       currentTurnRef.current = payload.turn;
       setCurrentTurn(payload.turn);
@@ -532,6 +593,13 @@ export function useFriendOnlineGame() {
       setPendingPromoFrom(null);
       setPendingPreMove(null);
       pendingPreMoveRef.current = null;
+      if (
+        matchVariantRef.current === "threeCheck" &&
+        (payload.whiteCheckCount !== undefined ||
+          payload.blackCheckCount !== undefined)
+      ) {
+        setThreeCheckState(normalizeThreeCheckCounts(payload));
+      }
       playGameplaySound("gameEnd");
 
       const currentUser = userRef.current;
@@ -715,6 +783,7 @@ export function useFriendOnlineGame() {
       opponent_left: "opponent left",
       aborted: "aborted",
       three_check: "three checks",
+      king_of_the_hill: "reaching the center",
       draw: "draw",
     };
 
@@ -726,11 +795,23 @@ export function useFriendOnlineGame() {
       : lastGameOver.winner === "w"
         ? "1-0"
         : "0-1";
+    const whiteThreeChecks = Math.max(
+      0,
+      Math.floor(Number(lastGameOver.whiteCheckCount || 0)),
+    );
+    const blackThreeChecks = Math.max(
+      0,
+      Math.floor(Number(lastGameOver.blackCheckCount || 0)),
+    );
     const terminationText = isDraw
       ? `Game drawn by ${reasonMap[lastGameOver.reason] || "draw"}`
-      : `${lastGameOver.winner === "w" ? "White" : "Black"} won by ${
-          reasonMap[lastGameOver.reason] || "checkmate"
-        }`;
+      : lastGameOver.reason === "three_check"
+        ? `${lastGameOver.winner === "w" ? "White" : "Black"} wins by 3-check (White ${whiteThreeChecks}/3, Black ${blackThreeChecks}/3)`
+        : lastGameOver.reason === "king_of_the_hill"
+          ? `${lastGameOver.winner === "w" ? "White" : "Black"} wins by reaching the center`
+        : `${lastGameOver.winner === "w" ? "White" : "Black"} won by ${
+            reasonMap[lastGameOver.reason] || "checkmate"
+          }`;
 
     const playerName = playerNameRef.current || user?.fullName || "Player";
     const opponent = opponentName || "Friend";
@@ -821,7 +902,9 @@ export function useFriendOnlineGame() {
           ? "Friend Challenge Chess960"
           : matchVariant === "threeCheck"
             ? "Friend Challenge Three-Check"
-          : "Friend Challenge",
+            : matchVariant === "kingOfHill"
+              ? "Friend Challenge King of the Hill"
+              : "Friend Challenge",
       variant: matchVariant,
       site: "NeonGambit",
       date: formatDate(startDate),
@@ -911,6 +994,10 @@ export function useFriendOnlineGame() {
       playAs: gameSettings.playAs,
       opponent,
       durationMs,
+      whiteCheckCount:
+        matchVariant === "threeCheck" ? whiteThreeChecks : undefined,
+      blackCheckCount:
+        matchVariant === "threeCheck" ? blackThreeChecks : undefined,
     }).then((id) => {
       if (id) {
         setSavedGameId(id);
@@ -1406,6 +1493,7 @@ export function useFriendOnlineGame() {
     showGameOverModal,
     optionSquares,
     preMoveSquares,
+    threeCheckState,
     playerTime,
     opponentTime,
     setPlayerTime,

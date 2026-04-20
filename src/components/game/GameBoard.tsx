@@ -26,6 +26,7 @@ interface GameBoardProps {
   onCancelSelection?: () => void;
   isDraggablePiece?: (sourceSquare: Square) => boolean;
   customSquareStyles: Record<string, CSSProperties>;
+  persistentSquareStyles?: Record<string, CSSProperties>;
   lastMove?: { from: string; to: string } | null;
   promotionState?: PromotionState;
   onPromotionPieceSelect?: (
@@ -44,6 +45,7 @@ export function GameBoard({
   onCancelSelection,
   isDraggablePiece,
   customSquareStyles,
+  persistentSquareStyles = {},
   lastMove,
   promotionState = CLOSED_PROMOTION_STATE,
   onPromotionPieceSelect,
@@ -88,6 +90,20 @@ export function GameBoard({
       }
     : {};
 
+  const mergedSquareStyles = (() => {
+    const merged: Record<string, CSSProperties> = {};
+    const sources = [persistentSquareStyles, customSquareStyles, lastMoveStyles];
+    for (const source of sources) {
+      for (const [square, style] of Object.entries(source || {})) {
+        merged[square] = {
+          ...(merged[square] || {}),
+          ...(style || {}),
+        };
+      }
+    }
+    return merged;
+  })();
+
   return (
     <div className="relative">
       <Chessboard
@@ -122,7 +138,7 @@ export function GameBoard({
           borderRadius: "8px",
           boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3)",
         }}
-        customSquareStyles={{ ...customSquareStyles, ...lastMoveStyles }}
+        customSquareStyles={mergedSquareStyles}
         customDarkSquareStyle={{
           backgroundColor: colors.dark,
           transition: "background-color 160ms ease",

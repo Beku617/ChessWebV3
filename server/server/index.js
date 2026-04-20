@@ -52,7 +52,10 @@ import {
   markTournamentGameStarted,
   syncTournamentGameResultByGameId,
 } from "./services/tournamentRuntime.js";
-import { normalizeTournamentState, TOURNAMENT_STATES } from "./modules/tournaments/stateMachine.js";
+import {
+  normalizeTournamentState,
+  TOURNAMENT_STATES,
+} from "./modules/tournaments/stateMachine.js";
 import {
   authRoutes,
   historyRoutes,
@@ -78,7 +81,10 @@ import {
   learnRoutes,
   adminLearnRoutes,
 } from "./routes/index.js";
-import { authMiddleware, requestSecurityMiddleware } from "./middleware/index.js";
+import {
+  authMiddleware,
+  requestSecurityMiddleware,
+} from "./middleware/index.js";
 import { migrateLegacyRuntimeMedia } from "./utils/runtimeMediaMigration.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -342,7 +348,10 @@ function getSocketAuth(socket) {
     if (!rawToken) return null;
 
     const decodedToken = decodeURIComponent(rawToken);
-    const unsignedToken = cookieParser.signedCookie(decodedToken, COOKIE_SECRET);
+    const unsignedToken = cookieParser.signedCookie(
+      decodedToken,
+      COOKIE_SECRET,
+    );
 
     if (unsignedToken === false) {
       return null;
@@ -393,7 +402,11 @@ function getUserRoom(userId) {
   return `user:${userId}`;
 }
 
-function emitTournamentBoardAssignments(tournamentId, roundNumber, pairings = []) {
+function emitTournamentBoardAssignments(
+  tournamentId,
+  roundNumber,
+  pairings = [],
+) {
   const normalizedTournamentId = normalizeId(tournamentId);
   if (!normalizedTournamentId) return;
   const round = Number(roundNumber || 0);
@@ -429,7 +442,9 @@ function emitTournamentBoardAssignments(tournamentId, roundNumber, pairings = []
 }
 
 function normalizePresenceStatus(value) {
-  const status = String(value || "offline").trim().toLowerCase();
+  const status = String(value || "offline")
+    .trim()
+    .toLowerCase();
   return PRESENCE_VALID_STATUSES.has(status) ? status : "offline";
 }
 
@@ -692,6 +707,13 @@ function normalizeVariant(variant) {
   const normalized = String(variant).trim().toLowerCase();
   if (normalized === "chess960") return "chess960";
   if (
+    normalized === "kingofhill" ||
+    normalized === "king-of-hill" ||
+    normalized === "king_of_hill"
+  ) {
+    return "kingOfHill";
+  }
+  if (
     normalized === "threecheck" ||
     normalized === "three-check" ||
     normalized === "three_check"
@@ -725,7 +747,10 @@ function createRealtimeGameRoom({
   if (normalizedVariant === "fourPlayer") return false;
   if (!whiteSocket || !blackSocket) return false;
   if (whiteSocket.id === blackSocket.id) return false;
-  if (!isSocketReadyForGame(whiteSocket) || !isSocketReadyForGame(blackSocket)) {
+  if (
+    !isSocketReadyForGame(whiteSocket) ||
+    !isSocketReadyForGame(blackSocket)
+  ) {
     return false;
   }
 
@@ -824,7 +849,10 @@ function createRealtimeGameRoom({
     gameId: safeGameId,
     color: "w",
     fen: createdGame.chess.fen(),
-    moves: typeof createdGame.chess?.history === "function" ? createdGame.chess.history() : [],
+    moves:
+      typeof createdGame.chess?.history === "function"
+        ? createdGame.chess.history()
+        : [],
     whiteTimeLeft: createdGame.clockState.white,
     blackTimeLeft: createdGame.clockState.black,
     playerClock: createdGame.clockState.white,
@@ -834,7 +862,10 @@ function createRealtimeGameRoom({
     gameId: safeGameId,
     color: "b",
     fen: createdGame.chess.fen(),
-    moves: typeof createdGame.chess?.history === "function" ? createdGame.chess.history() : [],
+    moves:
+      typeof createdGame.chess?.history === "function"
+        ? createdGame.chess.history()
+        : [],
     whiteTimeLeft: createdGame.clockState.white,
     blackTimeLeft: createdGame.clockState.black,
     playerClock: createdGame.clockState.black,
@@ -906,7 +937,12 @@ function squareToCoords(square) {
   if (typeof square !== "string" || square.length !== 2) return null;
   const file = FILES.indexOf(square[0]);
   const rankNumber = Number(square[1]);
-  if (file < 0 || !Number.isFinite(rankNumber) || rankNumber < 1 || rankNumber > 8) {
+  if (
+    file < 0 ||
+    !Number.isFinite(rankNumber) ||
+    rankNumber < 1 ||
+    rankNumber > 8
+  ) {
     return null;
   }
   const rankIndex = 8 - rankNumber;
@@ -914,12 +950,7 @@ function squareToCoords(square) {
 }
 
 function coordsToSquare(file, rank) {
-  if (
-    file < 0 ||
-    file >= BOARD_SIZE ||
-    rank < 0 ||
-    rank >= BOARD_SIZE
-  ) {
+  if (file < 0 || file >= BOARD_SIZE || rank < 0 || rank >= BOARD_SIZE) {
     return null;
   }
   const rankNumber = 8 - rank;
@@ -988,8 +1019,16 @@ function createInitialPosition(variant) {
 }
 
 function parseFenPosition(fen) {
-  const [placement, activeColor = "w", castling = "-", enPassant = "-", halfmove = "0", fullmove = "1"] =
-    String(fen || "").trim().split(/\s+/);
+  const [
+    placement,
+    activeColor = "w",
+    castling = "-",
+    enPassant = "-",
+    halfmove = "0",
+    fullmove = "1",
+  ] = String(fen || "")
+    .trim()
+    .split(/\s+/);
 
   const rows = placement.split("/");
   if (rows.length !== 8) return null;
@@ -1256,7 +1295,11 @@ function tryHandleChess960Castling(game, moverColor, from, to) {
   }
 
   if (!game.chess960.rights[moverColor][side]) {
-    return { handled: true, success: false, reason: "Castling is no longer available." };
+    return {
+      handled: true,
+      success: false,
+      reason: "Castling is no longer available.",
+    };
   }
 
   const kingCoords = squareToCoords(from);
@@ -1269,7 +1312,11 @@ function tryHandleChess960Castling(game, moverColor, from, to) {
   const kingToCoords = squareToCoords(kingTo);
   const rookToCoords = squareToCoords(rookTo);
   if (!kingToCoords || !rookToCoords) {
-    return { handled: true, success: false, reason: "Invalid castling targets." };
+    return {
+      handled: true,
+      success: false,
+      reason: "Invalid castling targets.",
+    };
   }
 
   const rank = kingCoords.rank;
@@ -1280,28 +1327,48 @@ function tryHandleChess960Castling(game, moverColor, from, to) {
 
   const betweenKingAndRookStart = Math.min(kingFile, rookFile) + 1;
   const betweenKingAndRookEnd = Math.max(kingFile, rookFile) - 1;
-  for (let file = betweenKingAndRookStart; file <= betweenKingAndRookEnd; file += 1) {
+  for (
+    let file = betweenKingAndRookStart;
+    file <= betweenKingAndRookEnd;
+    file += 1
+  ) {
     const square = coordsToSquare(file, rank);
     if (!square) continue;
     if (square === from || square === to) continue;
     if (getPiece(board, square)) {
-      return { handled: true, success: false, reason: "Pieces block castling." };
+      return {
+        handled: true,
+        success: false,
+        reason: "Pieces block castling.",
+      };
     }
   }
 
   const kingStep = kingToFile > kingFile ? 1 : kingToFile < kingFile ? -1 : 0;
   if (kingStep !== 0) {
-    for (let file = kingFile + kingStep; file !== kingToFile + kingStep; file += kingStep) {
+    for (
+      let file = kingFile + kingStep;
+      file !== kingToFile + kingStep;
+      file += kingStep
+    ) {
       const square = coordsToSquare(file, rank);
       if (!square) continue;
       if (square === to) continue;
       if (file !== kingToFile && getPiece(board, square)) {
-        return { handled: true, success: false, reason: "King path is blocked." };
+        return {
+          handled: true,
+          success: false,
+          reason: "King path is blocked.",
+        };
       }
       if (file === kingToFile) {
         const occupant = getPiece(board, square);
         if (occupant && square !== to) {
-          return { handled: true, success: false, reason: "King destination is blocked." };
+          return {
+            handled: true,
+            success: false,
+            reason: "King destination is blocked.",
+          };
         }
       }
     }
@@ -1309,30 +1376,50 @@ function tryHandleChess960Castling(game, moverColor, from, to) {
     const occupant = getPiece(board, kingTo);
     // In Chess960 the king can already be on its castling destination square.
     if (occupant && kingTo !== to && kingTo !== from) {
-      return { handled: true, success: false, reason: "King destination is blocked." };
+      return {
+        handled: true,
+        success: false,
+        reason: "King destination is blocked.",
+      };
     }
   }
 
   const rookStep = rookToFile > rookFile ? 1 : rookToFile < rookFile ? -1 : 0;
   if (rookStep !== 0) {
-    for (let file = rookFile + rookStep; file !== rookToFile + rookStep; file += rookStep) {
+    for (
+      let file = rookFile + rookStep;
+      file !== rookToFile + rookStep;
+      file += rookStep
+    ) {
       const square = coordsToSquare(file, rank);
       if (!square) continue;
       if (square === from) continue;
       if (file !== rookToFile && getPiece(board, square)) {
-        return { handled: true, success: false, reason: "Rook path is blocked." };
+        return {
+          handled: true,
+          success: false,
+          reason: "Rook path is blocked.",
+        };
       }
       if (file === rookToFile) {
         const occupant = getPiece(board, square);
         if (occupant && square !== from) {
-          return { handled: true, success: false, reason: "Rook destination is blocked." };
+          return {
+            handled: true,
+            success: false,
+            reason: "Rook destination is blocked.",
+          };
         }
       }
     }
   } else {
     const occupant = getPiece(board, rookTo);
     if (occupant && rookTo !== from) {
-      return { handled: true, success: false, reason: "Rook destination is blocked." };
+      return {
+        handled: true,
+        success: false,
+        reason: "Rook destination is blocked.",
+      };
     }
   }
 
@@ -1346,7 +1433,11 @@ function tryHandleChess960Castling(game, moverColor, from, to) {
   setPiece(travelBoard, to, null);
   if (kingStep !== 0) {
     // Validate only transit squares here; final king safety is checked on the final board.
-    for (let file = kingFile + kingStep; file !== kingToFile; file += kingStep) {
+    for (
+      let file = kingFile + kingStep;
+      file !== kingToFile;
+      file += kingStep
+    ) {
       const travelSquare = coordsToSquare(file, rank);
       if (!travelSquare) continue;
       setPiece(travelBoard, travelSquare, kingPiece);
@@ -1598,7 +1689,10 @@ function ensureGameClockState(game) {
   if (!Number.isFinite(Number(game.clockState.black))) {
     game.clockState.black = initial;
   }
-  if (game.clockState.activeColor !== "w" && game.clockState.activeColor !== "b") {
+  if (
+    game.clockState.activeColor !== "w" &&
+    game.clockState.activeColor !== "b"
+  ) {
     game.clockState.activeColor = "w";
   }
   if (!Number.isFinite(Number(game.clockState.lastTickAt))) {
@@ -1636,7 +1730,12 @@ function commitClockSnapshot(game, snapshot, nextActiveColor) {
   };
 }
 
-function applyMoveClockTransition(game, moverColor, nextTurnColor, clockBeforeMove = null) {
+function applyMoveClockTransition(
+  game,
+  moverColor,
+  nextTurnColor,
+  clockBeforeMove = null,
+) {
   const before = clockBeforeMove || getClockSnapshot(game);
   let white = Math.max(0, Number(before.white || 0));
   let black = Math.max(0, Number(before.black || 0));
@@ -1666,7 +1765,8 @@ function buildRealtimeStatePayload(game, color, options = {}) {
     gameId: options.gameId || game.id,
     color: normalizedColor,
     fen: game.chess.fen(),
-    opponentName: options.opponentName || opponentSocket?.data?.name || "Opponent",
+    opponentName:
+      options.opponentName || opponentSocket?.data?.name || "Opponent",
     rated: options.rated ?? false,
     playerRating: options.playerRating ?? null,
     opponentRating: options.opponentRating ?? null,
@@ -1676,9 +1776,7 @@ function buildRealtimeStatePayload(game, color, options = {}) {
     blackCheckCount: Number(game.blackCheckCount || 0),
     restored: options.restored === true,
     moves:
-      typeof game.chess?.history === "function"
-        ? game.chess.history()
-        : [],
+      typeof game.chess?.history === "function" ? game.chess.history() : [],
     whiteTimeLeft: clock.white,
     blackTimeLeft: clock.black,
     playerClock: ownClock,
@@ -1694,7 +1792,10 @@ function clearReconnectGraceTimer(game, color) {
     clearTimeout(timerId);
     game.disconnectGraceTimers[key] = null;
   }
-  if (game.disconnectedAt && Object.prototype.hasOwnProperty.call(game.disconnectedAt, key)) {
+  if (
+    game.disconnectedAt &&
+    Object.prototype.hasOwnProperty.call(game.disconnectedAt, key)
+  ) {
     game.disconnectedAt[key] = null;
   }
 }
@@ -1708,7 +1809,10 @@ function scheduleReconnectGraceTimer(gameId, disconnectedColor) {
   const game = games.get(gameId);
   if (!game) return;
   const color = disconnectedColor === "b" ? "b" : "w";
-  if (!game.disconnectGraceTimers || typeof game.disconnectGraceTimers !== "object") {
+  if (
+    !game.disconnectGraceTimers ||
+    typeof game.disconnectGraceTimers !== "object"
+  ) {
     game.disconnectGraceTimers = { w: null, b: null };
   }
   if (!game.disconnectedAt || typeof game.disconnectedAt !== "object") {
@@ -2068,8 +2172,13 @@ async function emitGameOver(gameId, reason, winner, options = {}) {
           ? "0-1"
           : "1/2-1/2";
     try {
-      const syncResult = await syncTournamentGameResultByGameId(gameId, tournamentResult);
-      const tournamentId = normalizeId(syncResult?.tournamentId || game.tournamentId);
+      const syncResult = await syncTournamentGameResultByGameId(
+        gameId,
+        tournamentResult,
+      );
+      const tournamentId = normalizeId(
+        syncResult?.tournamentId || game.tournamentId,
+      );
       if (tournamentId) {
         io.to(`tournament:${tournamentId}`).emit("result:updated", {
           tournamentId,
@@ -2092,7 +2201,9 @@ async function emitGameOver(gameId, reason, winner, options = {}) {
         const startedRounds = syncResult?.progression?.roundsStarted || [];
         for (const roundMeta of startedRounds) {
           const roundNumber = Number(roundMeta?.roundNumber || 0);
-          const pairings = Array.isArray(roundMeta?.pairings) ? roundMeta.pairings : [];
+          const pairings = Array.isArray(roundMeta?.pairings)
+            ? roundMeta.pairings
+            : [];
           io.to(`tournament:${tournamentId}`).emit("tournament:stateChanged", {
             tournamentId,
             newState: TOURNAMENT_STATES.LIVE_ROUND,
@@ -2125,6 +2236,7 @@ async function emitGameOver(gameId, reason, winner, options = {}) {
     gameId,
     reason: resolvedReason,
     winner: resolvedWinner,
+    ...getThreeCheckPayload(game),
     elo,
   });
   clearGameForPlayers(game);
@@ -2132,7 +2244,9 @@ async function emitGameOver(gameId, reason, winner, options = {}) {
 }
 
 function isCheck(chess) {
-  return typeof chess.inCheck === "function" ? chess.inCheck() : chess.in_check();
+  return typeof chess.inCheck === "function"
+    ? chess.inCheck()
+    : chess.in_check();
 }
 
 function isCheckmate(chess) {
@@ -2206,6 +2320,36 @@ function applyThreeCheckAfterMove(game, moverColor) {
   return {
     isThreeCheckWin: checkedSideCount >= 3,
     checkAwarded: checkedColor,
+  };
+}
+
+const KING_OF_HILL_CENTER_SQUARES = new Set(["d4", "e4", "d5", "e5"]);
+
+function findKingSquare(chess, color) {
+  if (!chess || typeof chess.board !== "function") return null;
+  const board = chess.board();
+  if (!Array.isArray(board)) return null;
+
+  for (let rankIndex = 0; rankIndex < board.length; rankIndex += 1) {
+    const rank = board[rankIndex];
+    if (!Array.isArray(rank)) continue;
+    for (let fileIndex = 0; fileIndex < rank.length; fileIndex += 1) {
+      const piece = rank[fileIndex];
+      if (!piece || piece.type !== "k" || piece.color !== color) continue;
+      return `${FILES[fileIndex]}${8 - rankIndex}`;
+    }
+  }
+  return null;
+}
+
+function applyKingOfHillAfterMove(game, moverColor) {
+  if (!game || game.variant !== "kingOfHill") {
+    return { isKingOfHillWin: false };
+  }
+
+  const kingSquare = findKingSquare(game.chess, moverColor);
+  return {
+    isKingOfHillWin: KING_OF_HILL_CENTER_SQUARES.has(kingSquare || ""),
   };
 }
 
@@ -2320,7 +2464,8 @@ io.on("connection", (socket) => {
         .lean();
       if (
         !tournament ||
-        normalizeTournamentState(tournament.status) !== TOURNAMENT_STATES.LIVE_ROUND
+        normalizeTournamentState(tournament.status) !==
+          TOURNAMENT_STATES.LIVE_ROUND
       ) {
         safeAck(ack, { success: false, error: "Tournament is not running." });
         return;
@@ -2396,13 +2541,9 @@ io.on("connection", (socket) => {
               : [],
           ...clockSnapshot,
           playerClock:
-            userColor === "w"
-              ? clockSnapshot.white
-              : clockSnapshot.black,
+            userColor === "w" ? clockSnapshot.white : clockSnapshot.black,
           opponentClock:
-            userColor === "w"
-              ? clockSnapshot.black
-              : clockSnapshot.white,
+            userColor === "w" ? clockSnapshot.black : clockSnapshot.white,
         });
         io.to(activeGame.room).emit("opponent_reconnected", {
           gameId,
@@ -2420,14 +2561,22 @@ io.on("connection", (socket) => {
 
       // Prefer the calling socket for the current player to avoid picking a different tab/socket.
       const whiteSocket =
-        userId === whiteUserId ? socket : getQuickGameSocketForUser(whiteUserId);
+        userId === whiteUserId
+          ? socket
+          : getQuickGameSocketForUser(whiteUserId);
       const blackSocket =
-        userId === blackUserId ? socket : getQuickGameSocketForUser(blackUserId);
+        userId === blackUserId
+          ? socket
+          : getQuickGameSocketForUser(blackUserId);
       const whiteActiveGameId = userActiveGames.get(whiteUserId);
       const blackActiveGameId = userActiveGames.get(blackUserId);
       if (
-        (whiteActiveGameId && whiteActiveGameId !== gameId && games.has(whiteActiveGameId)) ||
-        (blackActiveGameId && blackActiveGameId !== gameId && games.has(blackActiveGameId))
+        (whiteActiveGameId &&
+          whiteActiveGameId !== gameId &&
+          games.has(whiteActiveGameId)) ||
+        (blackActiveGameId &&
+          blackActiveGameId !== gameId &&
+          games.has(blackActiveGameId))
       ) {
         safeAck(ack, {
           success: false,
@@ -2448,12 +2597,8 @@ io.on("connection", (socket) => {
         if (ratingPool) {
           const ratingField = ratingFieldForPool(ratingPool);
           const [whiteUser, blackUser] = await Promise.all([
-            User.findById(whiteUserId)
-              .select(`${ratingField} rating`)
-              .lean(),
-            User.findById(blackUserId)
-              .select(`${ratingField} rating`)
-              .lean(),
+            User.findById(whiteUserId).select(`${ratingField} rating`).lean(),
+            User.findById(blackUserId).select(`${ratingField} rating`).lean(),
           ]);
           whiteRating = getRatingFromUserDoc(whiteUser, ratingField);
           blackRating = getRatingFromUserDoc(blackUser, ratingField);
@@ -2549,7 +2694,9 @@ io.on("connection", (socket) => {
       setUserActiveGame(userId, gameId);
       syncUserPresenceFromSockets(userId);
 
-      const opponentSocket = io.sockets.sockets.get(game.players[opponentSideKey]);
+      const opponentSocket = io.sockets.sockets.get(
+        game.players[opponentSideKey],
+      );
       const opponentName = opponentSocket?.data?.name || "Opponent";
       const ratedForDisplay = game.isRated === true;
       const playerRating =
@@ -2590,7 +2737,12 @@ io.on("connection", (socket) => {
         color: userColor,
       });
 
-      safeAck(ack, { success: true, status: "started", gameId, rejoined: true });
+      safeAck(ack, {
+        success: true,
+        status: "started",
+        gameId,
+        rejoined: true,
+      });
     } catch (error) {
       console.error("rejoinGame error:", error);
       safeAck(ack, { success: false, error: "Failed to rejoin active game." });
@@ -2614,11 +2766,12 @@ io.on("connection", (socket) => {
       normalizedTimeControl,
       normalizedVariant,
     );
+    const isRandomQueue = !pool;
     const ratingField = pool ? ratingFieldForPool(pool) : null;
 
     let seekerRating = 1200;
     const seekerUserId = normalizeId(socket.data.userId);
-    if (seekerUserId) {
+    if (seekerUserId && !isRandomQueue) {
       try {
         const selectFields = ratingField ? `${ratingField} rating` : "rating";
         const seekerUser = await User.findById(seekerUserId)
@@ -2647,38 +2800,49 @@ io.on("connection", (socket) => {
     const queue = pruneMatchQueue(queueKey);
     let opponentSocket = null;
     const now = Date.now();
-    const seekerRange = getExpandedMatchRange(0);
+    const seekerRange = isRandomQueue ? null : getExpandedMatchRange(0);
 
-    let bestIndex = -1;
-    let bestRatingDiff = Infinity;
+    let selectedIndex = -1;
     let selectedOpponentRating = null;
-    for (let i = 0; i < queue.length; i += 1) {
-      const candidateEntry = queue[i];
-      if (!candidateEntry || candidateEntry.socketId === socket.id) continue;
+    if (isRandomQueue) {
+      for (let i = 0; i < queue.length; i += 1) {
+        const candidateEntry = queue[i];
+        if (!candidateEntry || candidateEntry.socketId === socket.id) continue;
+        const candidateSocket = io.sockets.sockets.get(candidateEntry.socketId);
+        if (!candidateSocket) continue;
+        selectedIndex = i;
+        break;
+      }
+    } else {
+      let bestRatingDiff = Infinity;
+      for (let i = 0; i < queue.length; i += 1) {
+        const candidateEntry = queue[i];
+        if (!candidateEntry || candidateEntry.socketId === socket.id) continue;
 
-      const candidateSocket = io.sockets.sockets.get(candidateEntry.socketId);
-      if (!candidateSocket) continue;
+        const candidateSocket = io.sockets.sockets.get(candidateEntry.socketId);
+        if (!candidateSocket) continue;
 
-      const candidateRating = Number(candidateEntry.rating);
-      if (!Number.isFinite(candidateRating)) continue;
+        const candidateRating = Number(candidateEntry.rating);
+        if (!Number.isFinite(candidateRating)) continue;
 
-      const candidateWaitMs = Math.max(
-        0,
-        now - Number(candidateEntry.joinedAt || now),
-      );
-      const candidateRange = getExpandedMatchRange(candidateWaitMs);
-      const ratingDiff = Math.abs(candidateRating - seekerRating);
+        const candidateWaitMs = Math.max(
+          0,
+          now - Number(candidateEntry.joinedAt || now),
+        );
+        const candidateRange = getExpandedMatchRange(candidateWaitMs);
+        const ratingDiff = Math.abs(candidateRating - seekerRating);
 
-      if (ratingDiff <= seekerRange && ratingDiff <= candidateRange) {
-        if (ratingDiff < bestRatingDiff) {
-          bestRatingDiff = ratingDiff;
-          bestIndex = i;
+        if (ratingDiff <= seekerRange && ratingDiff <= candidateRange) {
+          if (ratingDiff < bestRatingDiff) {
+            bestRatingDiff = ratingDiff;
+            selectedIndex = i;
+          }
         }
       }
     }
 
-    if (bestIndex !== -1) {
-      const [selected] = queue.splice(bestIndex, 1);
+    if (selectedIndex !== -1) {
+      const [selected] = queue.splice(selectedIndex, 1);
       waitingQueues.set(queueKey, queue);
       opponentSocket = io.sockets.sockets.get(selected.socketId);
       selectedOpponentRating = normalizeLiveRating(selected?.rating);
@@ -2719,7 +2883,7 @@ io.on("connection", (socket) => {
         whiteCheckCount: 0,
         blackCheckCount: 0,
         chess960: initialPosition.chess960,
-        isRated: true,
+        isRated: !!pool,
       });
       scheduleFirstMoveAbortTimer(gameId);
 
@@ -2843,7 +3007,9 @@ io.on("connection", (socket) => {
 
     const gameId = crypto.randomBytes(8).toString("hex");
     const room = `four-player:${gameId}`;
-    const shuffledColors = [...FOUR_PLAYER_COLORS].sort(() => Math.random() - 0.5);
+    const shuffledColors = [...FOUR_PLAYER_COLORS].sort(
+      () => Math.random() - 0.5,
+    );
     const playersByColor = {};
     const socketToColor = {};
 
@@ -2904,14 +3070,18 @@ io.on("connection", (socket) => {
 
     const moverColor = game.socketToColor[socket.id];
     if (!moverColor) {
-      socket.emit("fourPlayerMoveRejected", { reason: "Not part of this game." });
+      socket.emit("fourPlayerMoveRejected", {
+        reason: "Not part of this game.",
+      });
       return;
     }
 
     const normalizedFrom = normalizeFourPlayerSquare(from);
     const normalizedTo = normalizeFourPlayerSquare(to);
     if (!normalizedFrom || !normalizedTo) {
-      socket.emit("fourPlayerMoveRejected", { reason: "Invalid move payload." });
+      socket.emit("fourPlayerMoveRejected", {
+        reason: "Invalid move payload.",
+      });
       return;
     }
 
@@ -2952,7 +3122,9 @@ io.on("connection", (socket) => {
 
     const moverColor = game.socketToColor[socket.id];
     if (!moverColor) {
-      socket.emit("fourPlayerMoveRejected", { reason: "Not part of this game." });
+      socket.emit("fourPlayerMoveRejected", {
+        reason: "Not part of this game.",
+      });
       return;
     }
 
@@ -2977,7 +3149,10 @@ io.on("connection", (socket) => {
       }
 
       if (fromUserId === toUserId) {
-        safeAck(ack, { success: false, error: "You cannot challenge yourself." });
+        safeAck(ack, {
+          success: false,
+          error: "You cannot challenge yourself.",
+        });
         return;
       }
 
@@ -3049,24 +3224,33 @@ io.on("connection", (socket) => {
       }
 
       if (!challengeId || !pendingChallenges.has(challengeId)) {
-        safeAck(ack, { success: false, error: "Challenge no longer available." });
+        safeAck(ack, {
+          success: false,
+          error: "Challenge no longer available.",
+        });
         return;
       }
 
       const challenge = pendingChallenges.get(challengeId);
       if (challenge.toUserId !== userId) {
-        safeAck(ack, { success: false, error: "Not authorized for challenge." });
+        safeAck(ack, {
+          success: false,
+          error: "Not authorized for challenge.",
+        });
         return;
       }
 
       pendingChallenges.delete(challengeId);
 
       if (!accept) {
-        io.to(getUserRoom(challenge.fromUserId)).emit("friendChallengeDeclined", {
-          challengeId,
-          byUserId: userId,
-          byName: socket.data.name || "Friend",
-        });
+        io.to(getUserRoom(challenge.fromUserId)).emit(
+          "friendChallengeDeclined",
+          {
+            challengeId,
+            byUserId: userId,
+            byName: socket.data.name || "Friend",
+          },
+        );
         safeAck(ack, { success: true, status: "declined" });
         return;
       }
@@ -3093,12 +3277,15 @@ io.on("connection", (socket) => {
         receiverSocket.data.gameId ||
         receiverSocket.data.fourPlayerGameId
       ) {
-        io.to(getUserRoom(challenge.fromUserId)).emit("friendChallengeDeclined", {
-          challengeId,
-          byUserId: userId,
-          byName: "System",
-          reason: "One of the players is already in a game.",
-        });
+        io.to(getUserRoom(challenge.fromUserId)).emit(
+          "friendChallengeDeclined",
+          {
+            challengeId,
+            byUserId: userId,
+            byName: "System",
+            reason: "One of the players is already in a game.",
+          },
+        );
         safeAck(ack, {
           success: false,
           error: "One of the players is already in a game.",
@@ -3281,7 +3468,12 @@ io.on("connection", (socket) => {
       return;
     }
 
-    const castlingResult = tryHandleChess960Castling(game, moverColor, from, to);
+    const castlingResult = tryHandleChess960Castling(
+      game,
+      moverColor,
+      from,
+      to,
+    );
     if (castlingResult.handled) {
       if (!castlingResult.success) {
         return socket.emit("moveRejected", {
@@ -3311,6 +3503,7 @@ io.on("connection", (socket) => {
         preMoveClock,
       );
       const threeCheckResult = applyThreeCheckAfterMove(game, moverColor);
+      const kingOfHillResult = applyKingOfHillAfterMove(game, moverColor);
       io.to(room).emit("moveApplied", {
         gameId,
         move: castlingResult.move,
@@ -3327,7 +3520,9 @@ io.on("connection", (socket) => {
         blackTimeLeft: postMoveClock.black,
       });
 
-      if (threeCheckResult.isThreeCheckWin) {
+      if (kingOfHillResult.isKingOfHillWin) {
+        emitGameOver(gameId, "king_of_the_hill", moverColor);
+      } else if (threeCheckResult.isThreeCheckWin) {
         emitGameOver(gameId, "three_check", moverColor);
       } else if (isCheckmate(nextChess)) {
         const winner = nextChess.turn() === "w" ? "b" : "w";
@@ -3376,6 +3571,7 @@ io.on("connection", (socket) => {
 
     updateChess960RightsForNormalMove(game, move, moverColor);
     const threeCheckResult = applyThreeCheckAfterMove(game, moverColor);
+    const kingOfHillResult = applyKingOfHillAfterMove(game, moverColor);
 
     io.to(room).emit("moveApplied", {
       gameId,
@@ -3392,7 +3588,9 @@ io.on("connection", (socket) => {
       blackTimeLeft: postMoveClock.black,
     });
 
-    if (threeCheckResult.isThreeCheckWin) {
+    if (kingOfHillResult.isKingOfHillWin) {
+      emitGameOver(gameId, "king_of_the_hill", moverColor);
+    } else if (threeCheckResult.isThreeCheckWin) {
       emitGameOver(gameId, "three_check", moverColor);
     } else if (isCheckmate(chess)) {
       const winner = chess.turn() === "w" ? "b" : "w";
@@ -3466,10 +3664,13 @@ io.on("connection", (socket) => {
       for (const [challengeId, challenge] of pendingChallenges.entries()) {
         if (challenge.fromUserId === userId) {
           pendingChallenges.delete(challengeId);
-          io.to(getUserRoom(challenge.toUserId)).emit("friendChallengeCancelled", {
-            challengeId,
-            reason: "Challenger disconnected.",
-          });
+          io.to(getUserRoom(challenge.toUserId)).emit(
+            "friendChallengeCancelled",
+            {
+              challengeId,
+              reason: "Challenger disconnected.",
+            },
+          );
         }
       }
     }
@@ -3529,7 +3730,9 @@ bootstrapServer().catch((error) => {
 
 server.on("error", (error) => {
   if (error?.code === "EADDRINUSE") {
-    console.error(`[server] port ${PORT} is already in use. Stop the other process and restart.`);
+    console.error(
+      `[server] port ${PORT} is already in use. Stop the other process and restart.`,
+    );
     return;
   }
   console.error("[server] HTTP server error:", error);
