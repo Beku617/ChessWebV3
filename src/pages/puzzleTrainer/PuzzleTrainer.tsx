@@ -13,6 +13,7 @@ import Sidebar from "../../components/Sidebar";
 import { usePuzzleTrainer } from "./usePuzzleTrainer";
 import { TRAINER_MODES } from "./types";
 import { formatTime } from "./utils";
+import { useGameplayPreferences } from "../../hooks/useGameplayPreferences";
 
 const RIGHT_PANEL_MIN_WIDTH = 460;
 const LEFT_SECTION_X_PADDING = 12;
@@ -38,6 +39,7 @@ function ratingDeltaClass(delta: number) {
 }
 
 export default function PuzzleTrainer() {
+  const { allowClickInput, allowDragInput } = useGameplayPreferences();
   const {
     loading,
     status,
@@ -213,9 +215,14 @@ export default function PuzzleTrainer() {
                           <Chessboard
                             position={game.fen()}
                             onPieceDrop={(sourceSquare, targetSquare) =>
-                              onDrop(sourceSquare, targetSquare)
+                              allowDragInput
+                                ? onDrop(sourceSquare, targetSquare)
+                                : false
                             }
-                            onSquareClick={handleSquareClick}
+                            onSquareClick={(square) => {
+                              if (!allowClickInput) return;
+                              handleSquareClick(square);
+                            }}
                             onSquareRightClick={handleSquareRightClick}
                             boardOrientation={
                               puzzleStartsWithWhite ? "white" : "black"
@@ -230,7 +237,9 @@ export default function PuzzleTrainer() {
                             animationDuration={isSolutionAnimating ? 850 : 200}
                             boardWidth={boardSize}
                             arePiecesDraggable={
-                              status === "solving" && !isSolutionAnimating
+                              allowDragInput &&
+                              status === "solving" &&
+                              !isSolutionAnimating
                             }
                           />
                         </div>

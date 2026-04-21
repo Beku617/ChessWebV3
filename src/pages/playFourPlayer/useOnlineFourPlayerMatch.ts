@@ -21,6 +21,8 @@ const socketBaseUrl =
   import.meta.env.VITE_API_URL ||
   "http://localhost:3001";
 const SOCKET_URL = socketBaseUrl.replace(/\/api\/?$/, "");
+const ACTIVE_FOUR_PLAYER_GAME_STORAGE_KEY =
+  "neongambit:activeFourPlayerGameId";
 
 const DEFAULT_PLAYERS: FourPlayerPlayers = {
   red: { name: "Red" },
@@ -40,6 +42,7 @@ interface MatchFoundPayload {
   state: FourPlayerState;
   players: FourPlayerPlayers;
   timeControl: TimeControl;
+  restored?: boolean;
 }
 
 interface StatePayload {
@@ -51,11 +54,41 @@ interface StatePayload {
   systemMessage?: string;
 }
 
+function storeActiveFourPlayerGameId(gameId: string | null) {
+  if (typeof window === "undefined") return;
+  try {
+    if (!gameId) {
+      window.localStorage.removeItem(ACTIVE_FOUR_PLAYER_GAME_STORAGE_KEY);
+      return;
+    }
+    window.localStorage.setItem(
+      ACTIVE_FOUR_PLAYER_GAME_STORAGE_KEY,
+      String(gameId),
+    );
+  } catch {
+    // ignore storage failures
+  }
+}
+
+function readActiveFourPlayerGameId() {
+  if (typeof window === "undefined") return "";
+  try {
+    return String(
+      window.localStorage.getItem(ACTIVE_FOUR_PLAYER_GAME_STORAGE_KEY) || "",
+    ).trim();
+  } catch {
+    return "";
+  }
+}
+
 export function useOnlineFourPlayerMatch() {
   const [gameState, setGameState] = useState<FourPlayerState>(() =>
     createInitialFourPlayerState(),
   );
-  const [gameId, setGameId] = useState<string | null>(null);
+  const [gameId, setGameId] = useState<string | null>(() => {
+    const stored = readActiveFourPlayerGameId();
+    return stored || null;
+  });
   const [playerColor, setPlayerColor] = useState<FourPlayerColor>("red");
   const [players, setPlayers] = useState<FourPlayerPlayers>(DEFAULT_PLAYERS);
   const [timeControl, setTimeControl] = useState<TimeControl>({
@@ -75,7 +108,7 @@ export function useOnlineFourPlayerMatch() {
   );
 
   const socketRef = useRef<Socket | null>(null);
-  const gameIdRef = useRef<string | null>(null);
+  const gameIdRef = useRef<string | null>(readActiveFourPlayerGameId() || null);
   const playerNameRef = useRef("Player");
   const lastSoundMoveKeyRef = useRef<string>("");
   const lastResyncAtRef = useRef(0);
@@ -105,6 +138,7 @@ export function useOnlineFourPlayerMatch() {
     setGameState(createInitialFourPlayerState());
     setGameId(null);
     gameIdRef.current = null;
+    storeActiveFourPlayerGameId(null);
     setPlayerColor("red");
     setPlayers(DEFAULT_PLAYERS);
     setGameStarted(false);
@@ -120,27 +154,80 @@ export function useOnlineFourPlayerMatch() {
   useEffect(() => {
     const socket = io(SOCKET_URL, {
       withCredentials: true,
+      reconnection: true,
+      reconnectionAttempts: 10,
+      reconnectionDelay: 2000,
     });
     socketRef.current = socket;
+
+    const attemptRestore = (targetGameId?: string | null) => {
+      if (!socket.connected) return;
+      const explicitGameId = String(
+        targetGameId || gameIdRef.current || readActiveFourPlayerGameId() || "",
+      ).trim();
+      const payload = explicitGameId ? { gameId: explicitGameId } : {};
+      socket.emit(
+        "rejoinFourPlayerGame",
+        payload,
+        (response?: { success?: boolean; error?: string; gameId?: string }) => {
+          if (response?.success === true) {
+            const restoredGameId = String(
+              response.gameId || explicitGameId || "",
+            ).trim();
+            if (restoredGameId) {
+              gameIdRef.current = restoredGameId;
+              setGameId(restoredGameId);
+              storeActiveFourPlayerGameId(restoredGameId);
+              setQueueStatus("Game restored after reconnect.");
+              setIsSearching(false);
+            }
+            return;
+          }
+          if (response?.error) {
+            const normalizedError = String(response.error).toLowerCase();
+            if (
+              normalizedError.includes("not found") ||
+              normalizedError.includes("no active game") ||
+              normalizedError.includes("not a participant") ||
+              normalizedError.includes("eliminated")
+            ) {
+              resetLocalState();
+            }
+          }
+        },
+      );
+    };
 
     socket.on("connect", () => {
       setIsConnected(true);
       setQueueStatus(null);
-      if (gameIdRef.current) {
-        requestResync();
-      }
+      attemptRestore();
     });
 
     socket.on("disconnect", () => {
       setIsConnected(false);
+      if (gameIdRef.current || readActiveFourPlayerGameId()) {
+        setQueueStatus("Connection lost. Reconnecting...");
+        return;
+      }
       setIsSearching(false);
       setQueueStatus("Disconnected from server.");
     });
 
     socket.on("connect_error", () => {
       setIsConnected(false);
+      if (gameIdRef.current || readActiveFourPlayerGameId()) {
+        setQueueStatus("Reconnecting to matchmaking server...");
+        return;
+      }
       setIsSearching(false);
       setQueueStatus("Unable to connect to matchmaking server.");
+    });
+
+    socket.io.on("reconnect_attempt", () => {
+      if (gameIdRef.current || readActiveFourPlayerGameId()) {
+        setQueueStatus("Reconnecting to matchmaking server...");
+      }
     });
 
     socket.on("fourPlayerQueued", (payload: { waitingCount?: number }) => {
@@ -159,6 +246,7 @@ export function useOnlineFourPlayerMatch() {
       setQueueStatus(null);
       setGameId(payload.gameId);
       gameIdRef.current = payload.gameId;
+      storeActiveFourPlayerGameId(payload.gameId);
       setPlayerColor(payload.color);
       setGameState(payload.state);
       setPlayers(payload.players || DEFAULT_PLAYERS);
@@ -229,15 +317,24 @@ export function useOnlineFourPlayerMatch() {
         if (payload.forfeitedColor) {
           setForfeitedColor(payload.forfeitedColor);
         }
+        storeActiveFourPlayerGameId(null);
         playGameplaySound("gameEnd");
       },
     );
 
+    const initialStoredGameId = readActiveFourPlayerGameId();
+    if (socket.connected) {
+      attemptRestore(initialStoredGameId || gameIdRef.current);
+    } else if (initialStoredGameId) {
+      setQueueStatus("Reconnecting to matchmaking server...");
+    }
+
     return () => {
+      socket.io.off("reconnect_attempt");
       socket.removeAllListeners();
       socket.disconnect();
     };
-  }, []);
+  }, [requestResync, resetLocalState]);
 
   const startMatch = useCallback(
     (nextTimeControl: TimeControl, name?: string) => {

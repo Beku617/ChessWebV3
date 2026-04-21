@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { Chess, Square } from "chess.js";
 import { OptionSquares } from "./useStockfishGameTypes";
+import { useGameplayPreferences } from "./useGameplayPreferences";
 
 const SELECTED_SOURCE_STYLE = {
   backgroundColor: "rgba(250, 204, 21, 0.38)",
@@ -21,6 +22,8 @@ export function useMoveOptions(
   gameRef: React.MutableRefObject<Chess>,
   setOptionSquares: React.Dispatch<React.SetStateAction<OptionSquares>>,
 ) {
+  const { showLegalMoves } = useGameplayPreferences();
+
   const getMoveOptions = useCallback(
     (square: Square) => {
       const currentGame = gameRef.current;
@@ -33,16 +36,18 @@ export function useMoveOptions(
       const newSquares: OptionSquares = {
         [square]: SELECTED_SOURCE_STYLE,
       };
-      movesForSquare.forEach((move) => {
-        const targetPiece = currentGame.get(move.to);
-        newSquares[move.to] = targetPiece
-          ? LEGAL_CAPTURE_STYLE
-          : LEGAL_MOVE_STYLE;
-      });
+      if (showLegalMoves) {
+        movesForSquare.forEach((move) => {
+          const targetPiece = currentGame.get(move.to);
+          newSquares[move.to] = targetPiece
+            ? LEGAL_CAPTURE_STYLE
+            : LEGAL_MOVE_STYLE;
+        });
+      }
       setOptionSquares(newSquares);
       return true;
     },
-    [gameRef, setOptionSquares],
+    [gameRef, setOptionSquares, showLegalMoves],
   );
 
   return getMoveOptions;

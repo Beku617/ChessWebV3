@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { LessonPanel } from "../components/learn/LessonPanel";
 import { fetchLearnLesson, submitLearnLessonStep } from "../features/learn/api";
+import { useGameplayPreferences } from "../hooks/useGameplayPreferences";
 import { playChessMoveSound, playGameplaySound } from "../utils/moveSounds";
 import type {
   LearnLessonDetail,
@@ -38,6 +39,8 @@ export default function LearnLesson() {
     lessonSlug: string;
   }>();
   const navigate = useNavigate();
+  const { allowClickInput, allowDragInput, showLegalMoves } =
+    useGameplayPreferences();
 
   const [lessonData, setLessonData] = useState<LearnLessonDetail | null>(null);
   const [progress, setProgress] = useState<LearnLessonProgress | null>(null);
@@ -187,6 +190,7 @@ export default function LearnLesson() {
 
     const optionStyles = moves.reduce<Record<string, React.CSSProperties>>(
       (styles, move) => {
+        if (!showLegalMoves) return styles;
         const hasPiece = !!chess.get(move.to as Square);
         styles[move.to] = hasPiece
           ? {
@@ -319,6 +323,7 @@ export default function LearnLesson() {
   };
 
   const onSquareClick = (square: string) => {
+    if (!allowClickInput) return;
     if (isSubmittingMove || !currentStep || lessonCompleted) return;
 
     if (!moveFrom) {
@@ -424,12 +429,19 @@ export default function LearnLesson() {
               <Chessboard
                 id="learn-lesson-board"
                 position={boardFen}
-                onPieceDrop={onDrop}
-                onSquareClick={onSquareClick}
+                onPieceDrop={(sourceSquare, targetSquare) =>
+                  allowDragInput ? onDrop(sourceSquare, targetSquare) : false
+                }
+                onSquareClick={(square) => {
+                  if (!allowClickInput) return;
+                  onSquareClick(square);
+                }}
                 onSquareRightClick={clearMoveSelection}
                 boardOrientation={currentStep.boardOrientation || "white"}
                 boardWidth={boardSize}
-                arePiecesDraggable={!isSubmittingMove && !lessonCompleted}
+                arePiecesDraggable={
+                  allowDragInput && !isSubmittingMove && !lessonCompleted
+                }
                 customBoardStyle={{ borderRadius: "10px" }}
                 customSquareStyles={boardSquareStyles}
               />

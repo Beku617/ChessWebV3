@@ -3,6 +3,7 @@ import { Chess, Square } from "chess.js";
 import { OptionSquares } from "./useStockfishGameTypes";
 import { playChessMoveSound, playGameplaySound } from "../utils/moveSounds";
 import type { PromotionState } from "../components/game";
+import { useGameplayPreferences } from "./useGameplayPreferences";
 
 /**
  * Extract a single-char promotion key ("q", "r", "b", "n") from the piece
@@ -58,6 +59,7 @@ export function useSquareClickHandler(
     React.SetStateAction<{ from: Square; to: Square } | null>
   >,
 ) {
+  const { autoQueen, premoves } = useGameplayPreferences();
   // ---------- promotion dialog state (click-to-move) ----------
   const [promotionToSquare, setPromotionToSquare] = useState<Square | null>(
     null,
@@ -119,6 +121,7 @@ export function useSquareClickHandler(
 
       const promo = extractPromotion(piece);
       if (gameRef.current.turn() !== playerColor) {
+        if (!premoves) return false;
         setPreMove(from, to, promo);
         clearSelection();
         return true;
@@ -145,6 +148,11 @@ export function useSquareClickHandler(
 
       // If engine's turn: allow setting a premove with player's piece
       if (turn !== playerColor) {
+        if (!premoves) {
+          clearSelection();
+          return;
+        }
+
         if (!moveFrom) {
           const piece = currentGame.get(square);
           if (piece && piece.color === playerColor) {
@@ -180,6 +188,11 @@ export function useSquareClickHandler(
           sourcePiece.type === "p" &&
           isPromotionTargetSquare(sourcePiece.color, square);
         if (isPromo) {
+          if (autoQueen) {
+            setPreMove(moveFrom, square, "q");
+            clearSelection();
+            return;
+          }
           setPendingPromoFrom(moveFrom);
           setPromotionToSquare(square);
           setShowPromotionDialog(true);
@@ -213,6 +226,10 @@ export function useSquareClickHandler(
         .some((m) => m.to === square);
 
       if (isLegal && isPromotionMove(currentGame, moveFrom, square)) {
+        if (autoQueen) {
+          commitMove(moveFrom, square, "q");
+          return;
+        }
         setPendingPromoFrom(moveFrom);
         setPromotionToSquare(square);
         setShowPromotionDialog(true);
@@ -262,10 +279,20 @@ export function useSquareClickHandler(
 
       const turn = currentGame.turn();
       if (turn !== playerColor) {
+        if (!premoves) {
+          clearSelection();
+          return false;
+        }
+
         const isPromo =
           srcPiece.type === "p" &&
           isPromotionTargetSquare(srcPiece.color, targetSquare);
         if (isPromo) {
+          if (autoQueen) {
+            setPreMove(sourceSquare, targetSquare, "q");
+            clearSelection();
+            return false;
+          }
           setPendingPromoFrom(sourceSquare);
           setPromotionToSquare(targetSquare);
           setShowPromotionDialog(true);
@@ -282,6 +309,9 @@ export function useSquareClickHandler(
         srcPiece.type === "p" &&
         isPromotionTargetSquare(srcPiece.color, targetSquare);
       if (isPromo) {
+        if (autoQueen) {
+          return commitMove(sourceSquare, targetSquare, "q");
+        }
         setPendingPromoFrom(sourceSquare);
         setPromotionToSquare(targetSquare);
         setShowPromotionDialog(true);
@@ -313,10 +343,11 @@ export function useSquareClickHandler(
   const isDraggablePiece = useCallback(
     (sourceSquare: Square) => {
       if (!gameStarted || gameOver) return false;
+      if (gameRef.current.turn() !== playerColor && !premoves) return false;
       const piece = gameRef.current.get(sourceSquare);
       return !!piece && piece.color === playerColor;
     },
-    [gameOver, gameRef, gameStarted, playerColor],
+    [gameOver, gameRef, gameStarted, playerColor, premoves],
   );
 
   const promotionState: PromotionState = {

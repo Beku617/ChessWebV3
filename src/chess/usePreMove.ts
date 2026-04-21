@@ -1,8 +1,10 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { PreMove, PreMoveSquares } from "./types";
 import { playGameplaySound } from "../utils/moveSounds";
+import { useGameplayPreferences } from "../hooks/useGameplayPreferences";
 
 export const usePreMove = () => {
+  const { premoves } = useGameplayPreferences();
   const [preMove, setPreMove] = useState<PreMove | null>(null);
   const preMoveRef = useRef<PreMove | null>(null);
   const [preMoveSquares, setPreMoveSquares] = useState<PreMoveSquares>({});
@@ -10,6 +12,8 @@ export const usePreMove = () => {
   // Set a pre-move with red target highlight similar to chess premove UX.
   const setPreMoveWithHighlight = useCallback(
     (from: string, to: string, promotion?: "b" | "n" | "r" | "q") => {
+      if (!premoves) return;
+
       const nextPreMove = { from, to, promotion };
       preMoveRef.current = nextPreMove;
       setPreMove(nextPreMove);
@@ -27,7 +31,7 @@ export const usePreMove = () => {
         },
       });
     },
-    [],
+    [premoves],
   );
 
   // Clear the pre-move
@@ -46,6 +50,11 @@ export const usePreMove = () => {
   const getPreMove = useCallback(() => {
     return preMoveRef.current;
   }, []);
+
+  useEffect(() => {
+    if (premoves) return;
+    clearPreMove();
+  }, [clearPreMove, premoves]);
 
   return {
     preMove,

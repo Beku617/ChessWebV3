@@ -23,6 +23,7 @@ import {
   getRatingPoolForMatch,
   getUserRatingForPool,
 } from "../utils/ratingPool";
+import { useGameplayPreferences } from "./useGameplayPreferences";
 
 const socketBaseUrl =
   import.meta.env.VITE_SOCKET_URL ||
@@ -250,6 +251,15 @@ function storeActiveGameId(gameId: string | null) {
   }
 }
 
+function readActiveGameId() {
+  if (typeof window === "undefined") return "";
+  try {
+    return String(window.localStorage.getItem(ACTIVE_GAME_STORAGE_KEY) || "").trim();
+  } catch {
+    return "";
+  }
+}
+
 function toFiniteRating(value: unknown): number | null {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? Math.round(parsed) : null;
@@ -257,6 +267,7 @@ function toFiniteRating(value: unknown): number | null {
 
 export function useOnlineQuickMatch() {
   const { user, setUser } = useAuthStore();
+  const { autoQueen, premoves, showLegalMoves } = useGameplayPreferences();
   const userRef = useRef(user);
   const [game, setGame] = useState(() => new Chess());
   const gameRef = useRef(game);
@@ -275,7 +286,10 @@ export function useOnlineQuickMatch() {
   const [historyPersistenceStatus, setHistoryPersistenceStatus] =
     useState<HistoryPersistenceStatus>("idle");
   const [playerColor, setPlayerColor] = useState<PlayerColor>("w");
-  const [gameId, setGameId] = useState<string | null>(null);
+  const [gameId, setGameId] = useState<string | null>(() => {
+    const stored = readActiveGameId();
+    return stored || null;
+  });
   const [opponentName, setOpponentName] = useState("Opponent");
   const [playerRating, setPlayerRating] = useState<number | null>(null);
   const [opponentRating, setOpponentRating] = useState<number | null>(null);
@@ -309,7 +323,7 @@ export function useOnlineQuickMatch() {
   const tournamentJoinAttemptsRef = useRef(0);
   const activeTournamentJoinGameIdRef = useRef<string>("");
   const playerNameRef = useRef<string>("Player");
-  const gameIdRef = useRef<string | null>(null);
+  const gameIdRef = useRef<string | null>(readActiveGameId() || null);
   const playerColorRef = useRef<PlayerColor>("w");
   const matchVariantRef = useRef<MatchVariant>("standard");
   const pendingPreMoveRef = useRef<PreMove | null>(null);
@@ -363,12 +377,13 @@ export function useOnlineQuickMatch() {
   }, []);
 
   const queuePreMove = useCallback((preMove: PreMove) => {
+    if (!premoves) return;
     pendingPreMoveRef.current = preMove;
     setPendingPreMove(preMove);
     setMoveFrom(null);
     setOptionSquares({});
     playGameplaySound("premove");
-  }, []);
+  }, [premoves]);
 
   const selectPreMoveSource = useCallback((sourceSquare: Square) => {
     setMoveFrom(sourceSquare);
@@ -544,6 +559,9 @@ export function useOnlineQuickMatch() {
           if (activeTournamentJoinGameIdRef.current) {
             setIsSearching(true);
             setQueueStatus("Reconnecting to matchmaking server...");
+          } else if (gameIdRef.current || readActiveGameId()) {
+            setIsSearching(false);
+            setQueueStatus("Connection lost. Reconnecting to your game...");
           } else {
             setIsSearching(false);
             setQueueStatus("Unable to connect to matchmaking server. Reconnecting...");
@@ -553,7 +571,9 @@ export function useOnlineQuickMatch() {
       }, 1500);
     };
     const attemptRestore = (targetGameId?: string | null) => {
-      const explicitGameId = String(targetGameId || gameIdRef.current || "").trim();
+      const explicitGameId = String(
+        targetGameId || gameIdRef.current || readActiveGameId() || "",
+      ).trim();
       const payload = explicitGameId ? { gameId: explicitGameId } : {};
       socket.emit(
         "rejoinGame",
@@ -596,6 +616,9 @@ export function useOnlineQuickMatch() {
       if (activeTournamentJoinGameIdRef.current) {
         setIsSearching(true);
         setQueueStatus("Connection lost. Reconnecting...");
+      } else if (gameIdRef.current || readActiveGameId()) {
+        setIsSearching(false);
+        setQueueStatus("Connection lost. Reconnecting to your game...");
       } else {
         setIsSearching(false);
         setQueueStatus("Disconnected from server.");
@@ -608,6 +631,9 @@ export function useOnlineQuickMatch() {
       if (activeTournamentJoinGameIdRef.current) {
         setIsSearching(true);
         setQueueStatus("Reconnecting to matchmaking server...");
+      } else if (gameIdRef.current || readActiveGameId()) {
+        setIsSearching(false);
+        setQueueStatus("Reconnecting to your game...");
       } else {
         setIsSearching(false);
         setQueueStatus("Unable to connect to matchmaking server. Reconnecting...");
@@ -1598,7 +1624,7 @@ export function useOnlineQuickMatch() {
 
   const addChess960CastlingTargets = useCallback(
     (currentGame: Chess, kingSquare: Square) => {
-      if (matchVariant !== "chess960") return;
+      if (matchVariant !== "chess960" || !showLegalMoves) return;
 
       const kingPiece = currentGame.get(kingSquare);
       if (
@@ -1628,7 +1654,7 @@ export function useOnlineQuickMatch() {
       if (Object.keys(extraSquares).length === 0) return;
       setOptionSquares((prev) => ({ ...prev, ...extraSquares }));
     },
-    [matchVariant, playerColor],
+    [matchVariant, playerColor, showLegalMoves],
   );
 
   const isChess960CastlingDrop = useCallback(
@@ -1719,6 +1745,7 @@ export function useOnlineQuickMatch() {
       if (!piece || !from || !to) return false;
       const promotion = extractPromo(piece);
       if (!isPlayerTurn) {
+        if (!premoves) return false;
         queuePreMove({ from, to, promotion });
         clearSelection();
         return true;
@@ -1739,6 +1766,7 @@ export function useOnlineQuickMatch() {
     [
       clearSelection,
       isPlayerTurn,
+      premoves,
       pendingPromoFrom,
       playLocalMoveSound,
       promotionToSquare,
@@ -1753,6 +1781,11 @@ export function useOnlineQuickMatch() {
       const currentGame = gameRef.current;
 
       if (!isPlayerTurn) {
+        if (!premoves) {
+          clearSelection();
+          return;
+        }
+
         if (!moveFrom) {
           const piece = currentGame.get(square);
           if (!piece || piece.color !== playerColor) return;
@@ -1791,6 +1824,11 @@ export function useOnlineQuickMatch() {
           isPromotionTargetSquare(sourcePiece.color as PlayerColor, square);
 
         if (isPromo) {
+          if (autoQueen) {
+            queuePreMove({ from: moveFrom, to: square, promotion: "q" });
+            clearSelection();
+            return;
+          }
           setPendingPromoFrom(moveFrom);
           setPromotionToSquare(square);
           setShowPromotionDialog(true);
@@ -1816,7 +1854,16 @@ export function useOnlineQuickMatch() {
         return;
       }
 
-      if (optionSquares[square]) {
+      const isLegalStandardMove = currentGame
+        .moves({ square: moveFrom, verbose: true })
+        .some((move) => move.to === square);
+      const isLegalChess960Castle = isChess960CastlingDrop(
+        currentGame,
+        moveFrom,
+        square,
+      );
+
+      if (isLegalStandardMove || isLegalChess960Castle) {
         // Check for promotion
         const srcPiece = currentGame.get(moveFrom);
         const isPromo =
@@ -1825,6 +1872,17 @@ export function useOnlineQuickMatch() {
             (srcPiece.color === "b" && square[1] === "1"));
 
         if (isPromo) {
+          if (autoQueen) {
+            playLocalMoveSound(moveFrom, square, "q");
+            emitIfConnected("makeMove", {
+              gameId,
+              from: moveFrom,
+              to: square,
+              promotion: "q",
+            });
+            clearSelection();
+            return;
+          }
           setPendingPromoFrom(moveFrom);
           setPromotionToSquare(square);
           setShowPromotionDialog(true);
@@ -1855,6 +1913,7 @@ export function useOnlineQuickMatch() {
       clearSelection();
     },
     [
+      autoQueen,
       isChess960CastlingDrop,
       clearSelection,
       gameId,
@@ -1864,9 +1923,9 @@ export function useOnlineQuickMatch() {
       getMoveOptions,
       isPlayerTurn,
       moveFrom,
-      optionSquares,
       playLocalMoveSound,
       playerColor,
+      premoves,
       queuePreMove,
       selectPreMoveSource,
       emitIfConnected,
@@ -1886,6 +1945,11 @@ export function useOnlineQuickMatch() {
       }
 
       if (!isPlayerTurn) {
+        if (!premoves) {
+          clearSelection();
+          return false;
+        }
+
         const isChess960Castle = isChess960CastlingDrop(
           currentGame,
           sourceSquare,
@@ -1908,6 +1972,15 @@ export function useOnlineQuickMatch() {
             targetSquare,
           );
         if (isPromo) {
+          if (autoQueen) {
+            queuePreMove({
+              from: sourceSquare,
+              to: targetSquare,
+              promotion: "q",
+            });
+            clearSelection();
+            return false;
+          }
           setPendingPromoFrom(sourceSquare);
           setPromotionToSquare(targetSquare);
           setShowPromotionDialog(true);
@@ -1946,6 +2019,17 @@ export function useOnlineQuickMatch() {
         sourcePiece.type === "p" &&
         isPromotionTargetSquare(sourcePiece.color as PlayerColor, targetSquare);
       if (isPromo) {
+        if (autoQueen) {
+          emitIfConnected("makeMove", {
+            gameId: gameIdRef.current,
+            from: sourceSquare,
+            to: targetSquare,
+            promotion: "q",
+          });
+          playLocalMoveSound(sourceSquare, targetSquare, "q");
+          clearSelection();
+          return true;
+        }
         setPendingPromoFrom(sourceSquare);
         setPromotionToSquare(targetSquare);
         setShowPromotionDialog(true);
@@ -1965,6 +2049,7 @@ export function useOnlineQuickMatch() {
       return true;
     },
     [
+      autoQueen,
       addChess960CastlingTargets,
       clearSelection,
       gameOver,
@@ -1974,6 +2059,7 @@ export function useOnlineQuickMatch() {
       isPlayerTurn,
       playLocalMoveSound,
       playerColor,
+      premoves,
       queuePreMove,
       selectPreMoveSource,
       emitIfConnected,
@@ -1983,10 +2069,11 @@ export function useOnlineQuickMatch() {
   const isDraggablePiece = useCallback(
     (sourceSquare: Square) => {
       if (!gameStarted || gameOver) return false;
+      if (!isPlayerTurn && !premoves) return false;
       const piece = gameRef.current.get(sourceSquare);
       return !!piece && piece.color === playerColor;
     },
-    [gameOver, gameStarted, playerColor],
+    [gameOver, gameStarted, isPlayerTurn, playerColor, premoves],
   );
 
   const promotionState: PromotionState = {
@@ -2007,6 +2094,14 @@ export function useOnlineQuickMatch() {
     }
     clearPreMove();
   }, [clearPreMove, clearSelection, moveFrom]);
+
+  useEffect(() => {
+    if (premoves) return;
+    clearPreMove();
+    if (!isPlayerTurn) {
+      clearSelection();
+    }
+  }, [clearPreMove, clearSelection, isPlayerTurn, premoves]);
 
   const rematch = useCallback(() => {
     startMatch(gameSettings.timeControl, playerNameRef.current, matchVariant);

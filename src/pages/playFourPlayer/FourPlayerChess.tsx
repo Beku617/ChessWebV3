@@ -18,6 +18,7 @@ import {
   FourPlayerPlayers,
   FourPlayerState,
 } from "./types";
+import { useGameplayPreferences } from "../../hooks/useGameplayPreferences";
 
 interface TimeControl {
   initial: number;
@@ -87,6 +88,7 @@ function FourPlayerBoard({
   canDragFrom,
   boardWidth,
   interactive,
+  allowClick = true,
   allowDrag = false,
 }: {
   state: FourPlayerState;
@@ -105,6 +107,7 @@ function FourPlayerBoard({
   canDragFrom: (row: number, col: number) => boolean;
   boardWidth: number;
   interactive: boolean;
+  allowClick?: boolean;
   allowDrag?: boolean;
 }) {
   const gridRef = useRef<HTMLDivElement>(null);
@@ -336,6 +339,7 @@ function FourPlayerBoard({
                 type="button"
                 key={key}
                 onClick={() => {
+                  if (!interactive || !allowClick) return;
                   if (suppressClickRef.current) {
                     suppressClickRef.current = false;
                     return;
@@ -476,6 +480,8 @@ export default function FourPlayerChess() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuthStore();
+  const { allowClickInput, allowDragInput, showLegalMoves } =
+    useGameplayPreferences();
   const {
     gameState,
     gameStarted,
@@ -593,6 +599,10 @@ export default function FourPlayerChess() {
     ? `${lastMove.from.row},${lastMove.from.col}`
     : null;
   const lastMoveTo = lastMove ? `${lastMove.to.row},${lastMove.to.col}` : null;
+  const visibleLegalMoveSet = useMemo(
+    () => (showLegalMoves ? legalMoveSet : new Set<string>()),
+    [legalMoveSet, showLegalMoves],
+  );
 
   const selectedTimeOption = TIME_OPTIONS.find(
     (opt) =>
@@ -828,7 +838,7 @@ export default function FourPlayerChess() {
             <FourPlayerBoard
               state={gameState}
               selected={selectedKey}
-              legalMoveSet={legalMoveSet}
+              legalMoveSet={visibleLegalMoveSet}
               lastMoveFrom={lastMoveFrom}
               lastMoveTo={lastMoveTo}
               onSquareClick={onSquareClick}
@@ -837,7 +847,8 @@ export default function FourPlayerChess() {
               canDragFrom={canDragFrom}
               boardWidth={boardWidth}
               interactive
-              allowDrag={false}
+              allowClick={allowClickInput}
+              allowDrag={allowDragInput}
             />
           </div>
         </div>

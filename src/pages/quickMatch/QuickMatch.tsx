@@ -9,11 +9,13 @@ import {
   type TournamentGamePanelData,
 } from "./QuickMatchGameView";
 import type { GameHistory } from "../../historyTypes";
+import { useGameplayPreferences } from "../../hooks/useGameplayPreferences";
+import { resolveQuickMatchDefaultTimeControl } from "../../utils/gameplaySettings";
 
 type MatchVariant = "standard" | "chess960" | "threeCheck" | "kingOfHill";
 const LAST_QUICK_TIME_CONTROL_KEY = "quickMatch:lastTimeControl";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
-const DEFAULT_TIME_CONTROL = { initial: 300, increment: 0 };
+const DEFAULT_TIME_CONTROL = resolveQuickMatchDefaultTimeControl("rapid");
 
 function normalizeVariant(value: unknown): MatchVariant {
   if (typeof value !== "string") return "standard";
@@ -125,6 +127,21 @@ function storeTimeControl(value: { initial: number; increment: number }) {
   }
 }
 
+function readStoredTimeControl(): { initial: number; increment: number } | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(LAST_QUICK_TIME_CONTROL_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as {
+      initial?: unknown;
+      increment?: unknown;
+    };
+    return getValidQuickMatchTimeControl(parsed);
+  } catch {
+    return null;
+  }
+}
+
 function getAutoStartFromState(state: unknown): boolean {
   if (!state || typeof state !== "object") return false;
   return (state as { autoStart?: unknown }).autoStart === true;
@@ -165,6 +182,7 @@ function getTournamentGameIdFromSearch(search: string): string | null {
 
 export default function QuickMatch() {
   const { user } = useAuthStore();
+  const { defaultTimeControl } = useGameplayPreferences();
   const location = useLocation();
   const navigate = useNavigate();
   const {
@@ -217,7 +235,10 @@ export default function QuickMatch() {
     return (
       getTimeControlFromState(location.state) ||
       getTimeControlFromSearch(location.search) ||
-      DEFAULT_TIME_CONTROL
+      resolveQuickMatchDefaultTimeControl(
+        defaultTimeControl,
+        readStoredTimeControl(),
+      )
     );
   });
   const [variant, setVariant] = useState<MatchVariant>(() => {
@@ -244,14 +265,16 @@ export default function QuickMatch() {
       setTimeControl(selectedTimeControl);
       return;
     }
-    setTimeControl(DEFAULT_TIME_CONTROL);
-  }, [location.state, location.search]);
+    const storedTimeControl = readStoredTimeControl();
+    const fallbackTimeControl = resolveQuickMatchDefaultTimeControl(
+      defaultTimeControl,
+      storedTimeControl,
+    );
 
-  useEffect(() => {
-    const selectedTimeControl =
-      getTimeControlFromState(location.state) ||
-      getTimeControlFromSearch(location.search);
-    if (selectedTimeControl) return;
+    if (defaultTimeControl !== "custom" || storedTimeControl) {
+      setTimeControl(fallbackTimeControl);
+      return;
+    }
 
     let cancelled = false;
 
@@ -268,11 +291,11 @@ export default function QuickMatch() {
         if (cancelled) return;
 
         setTimeControl(
-          getTimeControlFromHistory(data.games?.[0]) || DEFAULT_TIME_CONTROL,
+          getTimeControlFromHistory(data.games?.[0]) || fallbackTimeControl,
         );
       } catch {
         if (!cancelled) {
-          setTimeControl(DEFAULT_TIME_CONTROL);
+          setTimeControl(fallbackTimeControl);
         }
       }
     };
@@ -282,7 +305,7 @@ export default function QuickMatch() {
     return () => {
       cancelled = true;
     };
-  }, [location.state, location.search]);
+  }, [defaultTimeControl, location.state, location.search]);
 
   useEffect(() => {
     const selectedVariant =

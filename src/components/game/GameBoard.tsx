@@ -5,6 +5,7 @@ import type { CSSProperties } from "react";
 import { PromotionModal } from "./PromotionModal";
 import type { PromotionState } from "./types";
 import { useBoardTheme } from "../../hooks/useBoardTheme";
+import { useGameplayPreferences } from "../../hooks/useGameplayPreferences";
 
 const CLOSED_PROMOTION_STATE: PromotionState = {
   isOpen: false,
@@ -51,6 +52,7 @@ export function GameBoard({
   onPromotionPieceSelect,
 }: GameBoardProps) {
   const { colors } = useBoardTheme();
+  const { allowClickInput, allowDragInput } = useGameplayPreferences();
   const isPromotionOpen = Boolean(
     promotionState.isOpen &&
       promotionState.from &&
@@ -109,11 +111,13 @@ export function GameBoard({
       <Chessboard
         id="PlayVsStockfish"
         animationDuration={200}
-        arePiecesDraggable={!!onPieceDrop && !isPromotionOpen}
+        arePiecesDraggable={
+          allowDragInput && !!onPieceDrop && !isPromotionOpen
+        }
         boardWidth={boardWidth}
         position={fen}
         onSquareClick={(square) => {
-          if (isPromotionOpen) return;
+          if (isPromotionOpen || !allowClickInput) return;
           onSquareClick(square as Square);
         }}
         onSquareRightClick={() => {
@@ -121,7 +125,7 @@ export function GameBoard({
           onCancelSelection?.();
         }}
         onPieceDrop={(sourceSquare, targetSquare, piece) => {
-          if (!onPieceDrop || isPromotionOpen) return false;
+          if (!onPieceDrop || isPromotionOpen || !allowDragInput) return false;
           return onPieceDrop(
             sourceSquare as Square,
             targetSquare as Square,
@@ -129,7 +133,7 @@ export function GameBoard({
           );
         }}
         isDraggablePiece={({ sourceSquare }) => {
-          if (!onPieceDrop || isPromotionOpen) return false;
+          if (!onPieceDrop || isPromotionOpen || !allowDragInput) return false;
           if (!isDraggablePiece) return true;
           return isDraggablePiece(sourceSquare as Square);
         }}

@@ -7,6 +7,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { PromotionModal } from "../../components/game/PromotionModal";
 import type { PromotionPiece, PromotionState } from "../../components/game";
 import { useBoardTheme } from "../../hooks/useBoardTheme";
+import { useGameplayPreferences } from "../../hooks/useGameplayPreferences";
 import {
   playChessMoveSound,
   playGameplaySound,
@@ -332,6 +333,8 @@ export default function PlayPractice() {
   const navigate = useNavigate();
   const location = useLocation();
   const { colors } = useBoardTheme();
+  const { autoQueen, allowClickInput, allowDragInput, showLegalMoves } =
+    useGameplayPreferences();
 
   const normalizedPath = location.pathname.replace(/\/+$/, "").toLowerCase();
   const freeMoveRouteSignature = `${normalizedPath}:${location.key}`;
@@ -616,10 +619,14 @@ export default function PlayPractice() {
     const squares: Record<string, CSSProperties> = {
       [square]: SELECTED_SQUARE_STYLE,
     };
-    legalMoves.forEach((move) => {
-      const isCapture = Boolean(currentGame.get(move.to as Square));
-      squares[move.to] = isCapture ? LEGAL_CAPTURE_STYLE : LEGAL_TARGET_STYLE;
-    });
+    if (showLegalMoves) {
+      legalMoves.forEach((move) => {
+        const isCapture = Boolean(currentGame.get(move.to as Square));
+        squares[move.to] = isCapture
+          ? LEGAL_CAPTURE_STYLE
+          : LEGAL_TARGET_STYLE;
+      });
+    }
 
     setOptionSquares(squares);
     return true;
@@ -692,6 +699,7 @@ export default function PlayPractice() {
   const handleSquareClick = (squareName: string) => {
     if (!isFreeMoveActive) return;
     if (pendingPromotionMove) return;
+    if (!allowClickInput) return;
     if (suppressNextSquareClickRef.current) {
       suppressNextSquareClickRef.current = false;
       return;
@@ -734,6 +742,10 @@ export default function PlayPractice() {
     if (targetMoves.some((move) => Boolean(move.promotion))) {
       const sourcePiece = currentGame.get(moveFrom);
       if (!sourcePiece) return;
+      if (autoQueen) {
+        applyFreeMove(moveFrom, square, { promotion: "q" });
+        return;
+      }
       queuePromotionMove(moveFrom, square, sourcePiece.color);
       return;
     }
@@ -758,6 +770,14 @@ export default function PlayPractice() {
     }
 
     if (targetMoves.some((move) => Boolean(move.promotion))) {
+      if (autoQueen) {
+        const moved = applyFreeMove(source, target, {
+          promotion: "q",
+          debug: true,
+        });
+        if (moved) suppressNextSquareClickRef.current = true;
+        return moved;
+      }
       queuePromotionMove(source, target, sourcePiece.color);
       return false;
     }
@@ -1169,7 +1189,9 @@ export default function PlayPractice() {
                 boardOrientation={boardOrientation}
                 arePiecesDraggable={
                   isPositionBuilderActive ||
-                  (isFreeMoveActive && !promotionState.isOpen)
+                  (allowDragInput &&
+                    isFreeMoveActive &&
+                    !promotionState.isOpen)
                 }
                 showPromotionDialog={false}
                 promotionToSquare={null}
@@ -1180,6 +1202,7 @@ export default function PlayPractice() {
                     handlePositionBuilderSquareClick(squareName);
                     return;
                   }
+                  if (!allowClickInput) return;
                   handleSquareClick(squareName);
                 }}
                 onSquareRightClick={() => {
@@ -1188,6 +1211,7 @@ export default function PlayPractice() {
                 }}
                 onPieceDrop={(sourceSquare, targetSquare) => {
                   if (promotionState.isOpen) return false;
+                  if (!allowDragInput && !isPositionBuilderActive) return false;
                   return isPositionBuilderActive
                     ? handlePositionBuilderPieceDrop(sourceSquare, targetSquare)
                     : handleFreeMovePieceDrop(sourceSquare, targetSquare);
@@ -1201,6 +1225,7 @@ export default function PlayPractice() {
                 }) => {
                   if (isPositionBuilderActive) return true;
                   if (!isFreeMoveActive) return false;
+                  if (!allowDragInput) return false;
                   if (promotionState.isOpen) return false;
                   const currentGame = createGameFromFen(fen);
                   const turn = currentGame.turn();

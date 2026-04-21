@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Chess } from "chess.js";
 import { useAuthStore } from "../../store/authStore";
+import { useGameplayPreferences } from "../../hooks/useGameplayPreferences";
 import {
   playChessMoveSound,
   playGameplaySound,
@@ -88,6 +89,7 @@ export function usePuzzleTrainer() {
   const location = useLocation();
   const { puzzleId } = useParams<{ puzzleId?: string }>();
   const { user, setUser } = useAuthStore();
+  const { allowClickInput, showLegalMoves } = useGameplayPreferences();
 
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState<PuzzleStatus>("loading");
@@ -590,6 +592,7 @@ export function usePuzzleTrainer() {
       .moves({ square: from, verbose: true })
       .map((move) => move.to)
       .reduce<Record<string, React.CSSProperties>>((acc, square) => {
+        if (!showLegalMoves) return acc;
         const hasPiece = !!game.get(square as any);
         acc[square] = hasPiece
           ? {
@@ -611,6 +614,7 @@ export function usePuzzleTrainer() {
 
   const handleSquareClick = useCallback(
     (square: string) => {
+      if (!allowClickInput) return;
       if (status !== "solving" || isSolutionAnimating) return;
 
       if (!moveFrom) {
@@ -649,7 +653,7 @@ export function usePuzzleTrainer() {
       setMoveFrom(null);
       setMoveSquares({});
     },
-    [game, isSolutionAnimating, moveFrom, onDrop, status],
+    [allowClickInput, game, isSolutionAnimating, moveFrom, onDrop, status],
   );
 
   const handleSquareRightClick = useCallback(() => {
