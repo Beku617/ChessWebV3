@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import { Target } from "lucide-react";
 import { ProfileStats, formatDuration } from "./types";
 
 interface QuickStatsCardProps {
@@ -14,8 +13,7 @@ export function QuickStatsCard({ stats }: QuickStatsCardProps) {
       transition={{ delay: 0.3 }}
       className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-200 dark:border-gray-800 shadow-sm"
     >
-      <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
-        <Target size={20} className="text-blue-500" />
+      <h3 className="text-lg font-bold mb-6">
         Quick Stats
       </h3>
       <div className="space-y-3">
@@ -40,7 +38,7 @@ export function QuickStatsCard({ stats }: QuickStatsCardProps) {
             Best Win Streak
           </span>
           <span className="text-sm font-bold text-gray-900 dark:text-white">
-            {stats.maxStreak} games 🏆
+            {stats.maxStreak} games
           </span>
         </div>
       </div>

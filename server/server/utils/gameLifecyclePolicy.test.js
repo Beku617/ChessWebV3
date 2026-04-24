@@ -16,10 +16,11 @@ test("uses 10s abort threshold for 1+0 bullet", () => {
   assert.equal(getAbortThresholdMs({ initial: 60, increment: 0 }), 10_000);
 });
 
-test("converts early exit before first move to aborted", () => {
-  assert.equal(resolveTerminalReason("opponent_left", 0), "aborted");
-  assert.equal(resolveTerminalReason("resign", 0), "aborted");
-  assert.equal(resolveTerminalReason("timeout", 0), "aborted");
+test("keeps early disconnect results unless the game is explicitly aborted", () => {
+  assert.equal(resolveTerminalReason("opponent_left", 0), "opponent_left");
+  assert.equal(resolveTerminalReason("resign", 0), "resign");
+  assert.equal(resolveTerminalReason("timeout", 0), "timeout");
+  assert.equal(resolveTerminalReason("aborted", 0), "aborted");
 });
 
 test("does not apply rating changes for aborted games", () => {
@@ -37,4 +38,3 @@ test("includes valid games (>1 ply) for history and normal rating flow", () => {
   assert.equal(shouldApplyRatedResult("resign", 2), true);
   assert.equal(shouldApplyRatedResult("checkmate", 7), true);
 });
-

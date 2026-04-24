@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Trophy } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { QUICK_ACTIONS, iconMap } from "./game/types";
 import { useLichessLiveGames } from "../hooks/useWatchPage";
@@ -56,7 +55,7 @@ export default function Dashboard() {
         transition={{ duration: 0.45 }}
         className="grid grid-cols-1 2xl:grid-cols-[minmax(0,_1fr)_380px] gap-6"
       >
-        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm">
+        <div className="theme-glass-panel rounded-xl">
           <div className="p-4 sm:p-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {pairingOptions.map((option) => (
@@ -76,7 +75,7 @@ export default function Dashboard() {
                         }
                       : undefined
                   }
-                  className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/35 min-h-[124px] p-4 sm:p-5 flex flex-col items-center justify-center text-center hover:border-teal-300 dark:hover:border-teal-700/50 hover:bg-white dark:hover:bg-gray-800/60 transition-colors cursor-pointer"
+                  className="theme-glass-panel-soft rounded-xl min-h-[124px] p-4 sm:p-5 flex flex-col items-center justify-center text-center hover:border-teal-300/60 hover:bg-white/70 dark:hover:bg-white/10 transition-colors cursor-pointer"
                 >
                   <p className="text-4xl sm:text-[2.65rem] leading-none font-light text-gray-900 dark:text-white tracking-tight">
                     {option.label}
@@ -90,18 +89,19 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <aside className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4 sm:p-5 shadow-sm flex flex-col">
+        <aside className="theme-glass-panel rounded-xl p-4 sm:p-5 flex flex-col">
           <div className="space-y-3">
             {QUICK_ACTIONS.map((item) => {
               const Icon = iconMap[item.icon];
+
               return (
                 <Link
                   key={item.id}
                   to={item.route}
-                  className="group w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/35 px-4 py-4 hover:border-teal-300 dark:hover:border-teal-700/50 hover:bg-white dark:hover:bg-gray-800/60 transition-colors flex items-center gap-3"
+                  className="theme-glass-panel-soft group w-full rounded-xl px-4 py-4 hover:border-teal-300/60 hover:bg-white/70 dark:hover:bg-white/10 transition-colors flex items-center gap-3"
                 >
-                  <span className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center border border-gray-200 dark:border-gray-700 group-hover:border-teal-300 dark:group-hover:border-teal-700/50 transition-colors">
-                    <Icon className="w-5 h-5 text-gray-500 dark:text-gray-300" />
+                  <span className="w-10 h-10 shrink-0 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center border border-gray-200 dark:border-gray-700 group-hover:border-teal-300 dark:group-hover:border-teal-700/50 transition-colors">
+                    <Icon className="w-5 h-5 text-gray-500 dark:text-gray-300" aria-hidden="true" />
                   </span>
                   <span className="min-w-0">
                     <span
@@ -127,14 +127,13 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.08 }}
-          className="xl:col-span-12 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm"
+          className="theme-glass-panel xl:col-span-12 rounded-xl p-6"
         >
           <PuzzlesSection showTopDivider={false} />
 
-          <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-800">
+          <div className="mt-6 pt-4 border-t border-theme-glass">
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-2">
-                <Trophy className="w-5 h-5 text-amber-500 dark:text-amber-400" />
+              <div>
                 <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
                   {t("Tournaments")}
                 </h2>

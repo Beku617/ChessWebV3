@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { Gamepad2, Key, Languages, Palette, RotateCcw, Save, Shield, User } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 import { useSettingsStore } from "../store/settingsStore";
 import { useAuthStore } from "../store/authStore";
@@ -12,12 +11,18 @@ import {
   Select,
   SettingRow,
   SettingsCard,
+  ThemeOptionsGrid,
   Toast,
   Toggle,
   useToast,
 } from "../components/settings";
 import { useTranslation } from "react-i18next";
 import { supportedLanguages } from "../i18n";
+import {
+  refreshBlockingCaches,
+  unblockUser,
+  useBlockedUsers,
+} from "../features/blocking/api";
 
 function getLinkedProviders(user: ReturnType<typeof useAuthStore.getState>["user"], t: (key: string, fallback: string) => string) {
   const providers: string[] = [];
@@ -36,23 +41,57 @@ function getLinkedProviders(user: ReturnType<typeof useAuthStore.getState>["user
   return providers;
 }
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+
+function resolveAvatarUrl(avatar?: string) {
+  if (!avatar) return "";
+  if (
+    avatar.startsWith("http://") ||
+    avatar.startsWith("https://") ||
+    avatar.startsWith("data:") ||
+    avatar.startsWith("blob:")
+  ) {
+    return avatar;
+  }
+  return `${API_URL}${avatar.startsWith("/") ? "" : "/"}${avatar}`;
+}
+
 export default function Settings() {
-  const { settings, update, save, reset, isDirty, selectedTheme, setTheme } = useSettingsStore();
+  const { settings, update, save, reset, isDirty, selectedTheme, setTheme: setBoardTheme } = useSettingsStore();
   const { user } = useAuthStore();
   const { t, i18n } = useTranslation();
   const dirty = useMemo(() => isDirty(), [isDirty, settings]);
 
   const [passwordModal, setPasswordModal] = useState(false);
+  const [blockedUsersModal, setBlockedUsersModal] = useState(false);
+  const [unblockingId, setUnblockingId] = useState<string | null>(null);
+  const [pwSaving, setPwSaving] = useState(false);
   const [pwFields, setPwFields] = useState({
     current: "",
     newPw: "",
     confirm: "",
   });
+  const {
+    data: blockedUsersData,
+    isLoading: blockedUsersLoading,
+    mutate: mutateBlockedUsers,
+  } = useBlockedUsers();
 
   const { toast, show: showToast, hide: hideToast } = useToast();
   const linkedProviders = getLinkedProviders(
     user,
     (key: string, fallback: string) => t(key, fallback),
+  );
+  const localizedBoardThemeOptions = useMemo(
+    () =>
+      BOARD_THEME_OPTIONS.map((option) => ({
+        ...option,
+        label: t(
+          `settings.appearance.boardThemeNames.${option.value}`,
+          option.label,
+        ),
+      })),
+    [t],
   );
 
   const handleSave = () => {
@@ -68,13 +107,114 @@ export default function Settings() {
     );
   };
 
+  const blockedUsers = blockedUsersData?.blocks || [];
+
+  const handleUnblock = async (targetUserId: string) => {
+    if (!targetUserId || unblockingId) return;
+    const previous = blockedUsersData || { blocks: [] };
+
+    setUnblockingId(targetUserId);
+    await mutateBlockedUsers(
+      {
+        blocks: previous.blocks.filter((entry) => entry.id !== targetUserId),
+      },
+      false,
+    );
+
+    try {
+      await unblockUser(targetUserId);
+      await mutateBlockedUsers();
+      await refreshBlockingCaches(targetUserId);
+      showToast(t("settings.toasts.unblocked", "User unblocked."));
+    } catch (error) {
+      await mutateBlockedUsers(previous, false);
+      showToast(
+        error instanceof Error
+          ? error.message
+          : t("settings.errors.unblockFailed", "Unable to unblock user."),
+        "error",
+      );
+    } finally {
+      setUnblockingId(null);
+    }
+  };
+
+  const handlePasswordChange = async () => {
+    if (!pwFields.current || !pwFields.newPw || !pwFields.confirm) {
+      showToast(
+        t("settings.errors.fillPasswordFields", "Fill in all password fields."),
+        "error",
+      );
+      return;
+    }
+
+    if (pwFields.newPw.length < 8) {
+      showToast(
+        t(
+          "settings.errors.passwordTooShort",
+          "New password must be at least 8 characters.",
+        ),
+        "error",
+      );
+      return;
+    }
+
+    if (pwFields.newPw !== pwFields.confirm) {
+      showToast(
+        t("settings.errors.passwordMismatch", "New passwords do not match."),
+        "error",
+      );
+      return;
+    }
+
+    setPwSaving(true);
+    try {
+      const response = await fetch(`${API_URL}/api/change-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          currentPassword: pwFields.current,
+          newPassword: pwFields.newPw,
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(
+          String(
+            data?.error ||
+              t("settings.errors.changePasswordFailed", "Failed to change password"),
+          ),
+        );
+      }
+
+      showToast(
+        t("settings.toasts.passwordChanged", "Password changed successfully!"),
+      );
+      setPasswordModal(false);
+      setPwFields({ current: "", newPw: "", confirm: "" });
+    } catch (error) {
+      showToast(
+        error instanceof Error
+          ? error.message
+          : t("settings.errors.changePasswordFailed", "Failed to change password"),
+        "error",
+      );
+    } finally {
+      setPwSaving(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-[#f5f5f7] text-gray-900 transition-colors duration-300 dark:bg-gray-950 dark:text-white">
+    <div
+      className="min-h-screen bg-transparent text-gray-900 transition-colors duration-300 dark:text-white"
+    >
       <div className="flex min-h-screen">
         <Sidebar />
 
         <main className="ml-[60px] min-h-screen flex-1 md:ml-72">
-          <div className="sticky top-0 z-30 border-b border-gray-200/50 bg-[#f5f5f7]/80 backdrop-blur-xl dark:border-gray-800/50 dark:bg-gray-950/80">
+          <div className="theme-glass-panel-soft sticky top-0 z-30 rounded-none border-x-0 border-t-0">
             <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-5">
               <h1 className="text-3xl font-bold tracking-tight">
                 {t("settings.header.title", "Settings")}
@@ -85,7 +225,6 @@ export default function Settings() {
                   disabled={!dirty}
                   className="flex items-center gap-2 rounded-xl border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-600 transition-all hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-30 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
                 >
-                  <RotateCcw className="h-3.5 w-3.5" />
                   {t("settings.actions.reset", "Reset")}
                 </button>
                 <button
@@ -97,7 +236,6 @@ export default function Settings() {
                       : "cursor-not-allowed bg-gray-300 text-gray-500 shadow-none dark:bg-gray-800"
                   }`}
                 >
-                  <Save className="h-4 w-4" />
                   {t("settings.actions.saveChanges", "Save Changes")}
                 </button>
               </div>
@@ -107,7 +245,6 @@ export default function Settings() {
           <div className="mx-auto max-w-4xl px-6 py-8">
             <div className="space-y-8">
               <SettingsCard
-                icon={<User className="h-5 w-5 text-brand-500" />}
                 title={t("settings.profile.title", "Profile & Account")}
                 subtitle={t(
                   "settings.profile.subtitle",
@@ -148,7 +285,6 @@ export default function Settings() {
                     onClick={() => setPasswordModal(true)}
                     className="flex items-center gap-1.5 rounded-lg bg-gray-100 px-4 py-2 text-sm font-bold text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
                   >
-                    <Key className="h-4 w-4" />
                     {t("settings.actions.change", "Change")}
                   </button>
                 </SettingRow>
@@ -174,7 +310,6 @@ export default function Settings() {
               </SettingsCard>
 
               <SettingsCard
-                icon={<Languages className="h-5 w-5 text-indigo-500" />}
                 title={t("settingsLang.title", "Language")}
                 subtitle={t("settingsLang.helper", "Choose your preferred language")}
                 accent="bg-indigo-500"
@@ -198,7 +333,6 @@ export default function Settings() {
               </SettingsCard>
 
               <SettingsCard
-                icon={<Palette className="h-5 w-5 text-purple-500" />}
                 title={t("settings.appearance.title", "Appearance")}
                 subtitle={t(
                   "settings.appearance.subtitle",
@@ -212,16 +346,11 @@ export default function Settings() {
                     "settings.appearance.themeHelper",
                     "Choose your preferred color scheme",
                   )}
+                  stacked
                 >
-                  <SegmentedControl
-                    options={[
-                      { label: t("settings.appearance.themes.dark", "Dark"), value: "dark" },
-                      { label: t("settings.appearance.themes.dim", "Dim"), value: "dim" },
-                      { label: t("settings.appearance.themes.amoled", "AMOLED"), value: "amoled" },
-                    ]}
-                    value={settings.theme}
-                    onChange={(value) => update("theme", value as "dark" | "dim" | "amoled")}
-                  />
+                  <div className="theme-glass-panel-soft w-full rounded-2xl p-3 sm:p-4">
+                    <ThemeOptionsGrid />
+                  </div>
                 </SettingRow>
 
                 <SettingRow
@@ -233,15 +362,14 @@ export default function Settings() {
                   last
                 >
                   <BoardThemePicker
-                    options={BOARD_THEME_OPTIONS}
+                    options={localizedBoardThemeOptions}
                     value={selectedTheme}
-                    onChange={setTheme}
+                    onChange={setBoardTheme}
                   />
                 </SettingRow>
               </SettingsCard>
 
               <SettingsCard
-                icon={<Gamepad2 className="h-5 w-5 text-brand-500" />}
                 title={t("settings.gameplay.title", "Gameplay")}
                 subtitle={t("settings.gameplay.subtitle", "Tweak your playing experience")}
                 accent="bg-brand-500"
@@ -320,7 +448,6 @@ export default function Settings() {
               </SettingsCard>
 
               <SettingsCard
-                icon={<Shield className="h-5 w-5 text-blue-500" />}
                 title={t("settings.privacy.title", "Privacy & Safety")}
                 accent="bg-blue-500"
               >
@@ -329,8 +456,12 @@ export default function Settings() {
                   helper={t("settings.privacy.blockedUsersHelper", "Manage your block list")}
                   last
                 >
-                  <button className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-bold text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
-                    {t("settings.actions.manage", "Manage")}
+                  <button
+                    type="button"
+                    onClick={() => setBlockedUsersModal(true)}
+                    className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-bold text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                  >
+                    {t("settings.actions.manage", "Manage")} ({blockedUsers.length})
                   </button>
                 </SettingRow>
               </SettingsCard>
@@ -338,6 +469,70 @@ export default function Settings() {
           </div>
         </main>
       </div>
+
+      <Modal
+        open={blockedUsersModal}
+        onClose={() => setBlockedUsersModal(false)}
+        title={t("settings.privacy.blockedUsers", "Blocked Users")}
+      >
+        <div className="space-y-3">
+          {blockedUsersLoading ? (
+            <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+              {t("settings.errors.blockedUsersLoad", "Loading blocked users...")}
+            </div>
+          ) : blockedUsers.length === 0 ? (
+            <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+              {t("settings.errors.noBlockedUsers", "No blocked users.")}
+            </div>
+          ) : (
+            blockedUsers.map((blockedUser) => (
+              <div
+                key={blockedUser.id}
+                className="flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 dark:border-gray-700 dark:bg-gray-800"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 shrink-0">
+                    {blockedUser.avatar ? (
+                      <img
+                        src={resolveAvatarUrl(blockedUser.avatar)}
+                        alt={blockedUser.fullName}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-xs font-semibold text-gray-600 dark:text-gray-200">
+                        {blockedUser.fullName?.slice(0, 2).toUpperCase() || "U"}
+                      </div>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                      {blockedUser.fullName}
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      {blockedUser.blockedAt
+                        ? t("settings.errors.blockedSince", {
+                            defaultValue: "Blocked since {{date}}",
+                            date: new Date(blockedUser.blockedAt).toLocaleString(),
+                          })
+                        : t("settings.errors.blocked", "Blocked")}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void handleUnblock(blockedUser.id)}
+                  disabled={unblockingId === blockedUser.id}
+                  className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-500 disabled:opacity-60"
+                >
+                  {unblockingId === blockedUser.id
+                    ? t("settings.errors.unblocking", "Unblocking...")
+                    : t("settings.errors.unblock", "Unblock")}
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      </Modal>
 
       <Modal
         open={passwordModal}
@@ -385,15 +580,20 @@ export default function Settings() {
             />
           </div>
           <button
-            disabled={!pwFields.current || !pwFields.newPw || pwFields.newPw !== pwFields.confirm}
+            disabled={
+              pwSaving ||
+              !pwFields.current ||
+              !pwFields.newPw ||
+              pwFields.newPw !== pwFields.confirm
+            }
             onClick={() => {
-              showToast(t("settings.toasts.passwordChanged", "Password changed successfully!"));
-              setPasswordModal(false);
-              setPwFields({ current: "", newPw: "", confirm: "" });
+              void handlePasswordChange();
             }}
             className="w-full rounded-xl bg-brand-600 py-2.5 text-sm font-bold text-white transition-all hover:bg-brand-500 disabled:bg-gray-300 disabled:text-gray-500 dark:disabled:bg-gray-800"
           >
-            {t("settings.modals.changePassword.cta", "Update Password")}
+            {pwSaving
+              ? t("settings.errors.passwordUpdating", "Updating...")
+              : t("settings.modals.changePassword.cta", "Update Password")}
           </button>
         </div>
       </Modal>

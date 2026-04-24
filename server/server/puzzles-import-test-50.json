@@ -1,802 +1,752 @@
 [
   {
     "title": "Henry Buckle vs NN, London, 1840",
-    "fen": "r2qkb1r/pp2nppp/3p4/2pNN1B1/2BnP3/3P4/PPP2PPP/R2bK2R w KQkq - 1 0",
-    "solution": "1. Nf6+ gxf6 2. Bxf7#",
     "difficulty": "Medium",
-    "rating": 1456.2058433273198,
-    "description": "Henry Buckle vs NN, London, 1840",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "r2qkb1r/pp2nppp/3p4/2pNN1B1/2BnP3/3P4/PPP2PPP/R2bK2R w KQkq - 1 1",
+    "solution": [
+      "Nf6+",
+      "gxf6",
+      "Bxf7#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1350,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "Louis Paulsen vs Blachy, New York, 1857",
-    "fen": "1rb4r/pkPp3p/1b1P3n/1Q6/N3Pp2/8/P1P3PP/7K w - - 1 0",
-    "solution": "1. Qd5+ Ka6 2. cxb8=N#",
     "difficulty": "Medium",
-    "rating": 1795.5418476367968,
-    "description": "Louis Paulsen vs Blachy, New York, 1857",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "1rb4r/pkPp3p/1b1P3n/1Q6/N3Pp2/8/P1P3PP/7K w - - 1 1",
+    "solution": [
+      "Qd5+",
+      "Ka6",
+      "cxb8=N#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1500,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "Paul Morphy vs Duke Isouard, Paris, 1858",
-    "fen": "4kb1r/p2n1ppp/4q3/4p1B1/4P3/1Q6/PPP2PPP/2KR4 w k - 1 0",
-    "solution": "1. Qb8+ Nxb8 2. Rd8#",
     "difficulty": "Medium",
-    "rating": 1629.6670340242451,
-    "description": "Paul Morphy vs Duke Isouard, Paris, 1858",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "4kb1r/p2n1ppp/4q3/4p1B1/4P3/1Q6/PPP2PPP/2KR4 w k - 1 1",
+    "solution": [
+      "Qb8+",
+      "Nxb8",
+      "Rd8#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1325,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "Johannes Zukertort vs Adolf Anderssen, Breslau, 1865",
-    "fen": "r1b2k1r/ppp1bppp/8/1B1Q4/5q2/2P5/PPP2PPP/R3R1K1 w - - 1 0",
-    "solution": "1. Qd8+ Bxd8 2. Re8#",
     "difficulty": "Medium",
-    "rating": 1626.0113476751576,
-    "description": "Johannes Zukertort vs Adolf Anderssen, Breslau, 1865",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "r1b2k1r/ppp1bppp/8/1B1Q4/5q2/2P5/PPP2PPP/R3R1K1 w - - 1 1",
+    "solution": [
+      "Qd8+",
+      "Bxd8",
+      "Re8#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1325,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "Gustav Neumann vs Carl Mayet, Berlin, 1866",
-    "fen": "5rkr/pp2Rp2/1b1p1Pb1/3P2Q1/2n3P1/2p5/P4P2/4R1K1 w - - 1 0",
-    "solution": "1. Qxg6+ fxg6 2. Rg7#",
     "difficulty": "Medium",
-    "rating": 1671.2771027866333,
-    "description": "Gustav Neumann vs Carl Mayet, Berlin, 1866",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "5rkr/pp2Rp2/1b1p1Pb1/3P2Q1/2n3P1/2p5/P4P2/4R1K1 w - - 1 1",
+    "solution": [
+      "Qxg6+",
+      "fxg6",
+      "Rg7#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1375,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "Joseph Blackburne vs Martin, England, 1876",
-    "fen": "1r1kr3/Nbppn1pp/1b6/8/6Q1/3B1P2/Pq3P1P/3RR1K1 w - - 1 0",
-    "solution": "1. Qxd7+ Kxd7 2. Bb5#",
     "difficulty": "Medium",
-    "rating": 1525.6368125468375,
-    "description": "Joseph Blackburne vs Martin, England, 1876",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "1r1kr3/Nbppn1pp/1b6/8/6Q1/3B1P2/Pq3P1P/3RR1K1 w - - 1 1",
+    "solution": [
+      "Qxd7+",
+      "Kxd7",
+      "Bb5#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1375,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "Wilfried Paulsen vs Adolf Anderssen, Frankfurt, 1878",
-    "fen": "5rk1/1p1q2bp/p2pN1p1/2pP2Bn/2P3P1/1P6/P4QKP/5R2 w - - 1 0",
-    "solution": "1. Qxf8+ Bxf8 2. Rxf8#",
     "difficulty": "Medium",
-    "rating": 1486.6765637996418,
-    "description": "Wilfried Paulsen vs Adolf Anderssen, Frankfurt, 1878",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "5rk1/1p1q2bp/p2pN1p1/2pP2Bn/2P3P1/1P6/P4QKP/5R2 w - - 1 1",
+    "solution": [
+      "Qxf8+",
+      "Bxf8",
+      "Rxf8#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1425,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "Joseph Blackburne vs Smith, Simul, 1882",
-    "fen": "r1nk3r/2b2ppp/p3b3/3NN3/Q2P3q/B2B4/P4PPP/4R1K1 w - - 1 0",
-    "solution": "1. Qd7+ Bxd7 2. Nxf7#",
     "difficulty": "Medium",
-    "rating": 1240.5558822486344,
-    "description": "Joseph Blackburne vs Smith, Simul, 1882",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "r1nk3r/2b2ppp/p3b3/3NN3/Q2P3q/B2B4/P4PPP/4R1K1 w - - 1 1",
+    "solution": [
+      "Qd7+",
+      "Bxd7",
+      "Nxf7#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1350,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "Wilhelm Steinitz vs David Sands, New York, 1887",
-    "fen": "r4br1/3b1kpp/1q1P4/1pp1RP1N/p7/6Q1/PPB3PP/2KR4 w - - 1 0",
-    "solution": "1. Qg6+ hxg6 2. fxg6#",
     "difficulty": "Medium",
-    "rating": 1241.646418751555,
-    "description": "Wilhelm Steinitz vs David Sands, New York, 1887",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "r4br1/3b1kpp/1q1P4/1pp1RP1N/p7/6Q1/PPB3PP/2KR4 w - - 1 1",
+    "solution": [
+      "Qg6+",
+      "hxg6",
+      "fxg6#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1350,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "Wilhelm Steinitz vs Albert Hodges, New York, 1891",
-    "fen": "r1b2k1r/ppppq3/5N1p/4P2Q/4PP2/1B6/PP5P/n2K2R1 w - - 1 0",
-    "solution": "1. Qxh6+ Rxh6 2. Rg8#",
     "difficulty": "Medium",
-    "rating": 1591.5831077487774,
-    "description": "Wilhelm Steinitz vs Albert Hodges, New York, 1891",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "r1b2k1r/ppppq3/5N1p/4P2Q/4PP2/1B6/PP5P/n2K2R1 w - - 1 1",
+    "solution": [
+      "Qxh6+",
+      "Rxh6",
+      "Rg8#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1375,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "Siegbert Tarrasch vs Fiedler, Nuremberg, 1892",
-    "fen": "r2q1b1r/1pN1n1pp/p1n3k1/4Pb2/2BP4/8/PPP3PP/R1BQ1RK1 w - - 1 0",
-    "solution": "1. Qg4+ Bxg4 2. Bf7#",
     "difficulty": "Medium",
-    "rating": 1586.6140409060124,
-    "description": "Siegbert Tarrasch vs Fiedler, Nuremberg, 1892",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "r2q1b1r/1pN1n1pp/p1n3k1/4Pb2/2BP4/8/PPP3PP/R1BQ1RK1 w - - 1 1",
+    "solution": [
+      "Qg4+",
+      "Bxg4",
+      "Bf7#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1325,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "Harry Pillsbury vs Lyons Rodgers, New York 1893",
-    "fen": "3q2r1/4n2k/p1p1rBpp/PpPpPp2/1P3P1Q/2P3R1/7P/1R5K w - - 1 0",
-    "solution": "1. Qxh6+ Kxh6 2. Rh3#",
     "difficulty": "Medium",
-    "rating": 1831.0439881258167,
-    "description": "Harry Pillsbury vs Lyons Rodgers, New York 1893",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "3q2r1/4n2k/p1p1rBpp/PpPpPp2/1P3P1Q/2P3R1/7P/1R5K w - - 1 1",
+    "solution": [
+      "Qxh6+",
+      "Kxh6",
+      "Rh3#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1375,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "Siegbert Tarrasch vs Max Kurschner, Nuremberg, 1893",
-    "fen": "r2qk2r/pb4pp/1n2Pb2/2B2Q2/p1p5/2P5/2B2PPP/RN2R1K1 w - - 1 0",
-    "solution": "1. Qg6+ hxg6 2. Bxg6#",
     "difficulty": "Medium",
-    "rating": 1844.142387982074,
-    "description": "Siegbert Tarrasch vs Max Kurschner, Nuremberg, 1893",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "r2qk2r/pb4pp/1n2Pb2/2B2Q2/p1p5/2P5/2B2PPP/RN2R1K1 w - - 1 1",
+    "solution": [
+      "Qg6+",
+      "hxg6",
+      "Bxg6#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1350,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "James Mason vs Georg Marco, Leipzig, 1894",
-    "fen": "6k1/pp4p1/2p5/2bp4/8/P5Pb/1P3rrP/2BRRN1K b - - 0 1",
-    "solution": "1... Rg1+ 2. Kxg1 Rxf1#",
     "difficulty": "Medium",
-    "rating": 1570.9512179650706,
-    "description": "James Mason vs Georg Marco, Leipzig, 1894",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "Black to move and mate in 2.",
+    "fen": "6k1/pp4p1/2p5/2bp4/8/P5Pb/1P3rrP/2BRRN1K b - - 0 1",
+    "solution": [
+      "Rg1+",
+      "Kxg1",
+      "Rxf1#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1425,
+    "isWhiteToMove": false,
+    "mateIn": 2
   },
   {
     "title": "Frank Teed vs Eugene Delmar, New York, 1896",
-    "fen": "rnbqkbn1/ppppp3/7r/6pp/3P1p2/3BP1B1/PPP2PPP/RN1QK1NR w - - 1 0",
-    "solution": "1. Qxh5+ Rxh5 2. Bg6#",
     "difficulty": "Medium",
-    "rating": 1276.072275923781,
-    "description": "Frank Teed vs Eugene Delmar, New York, 1896",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "rnbqkbn1/ppppp3/7r/6pp/3P1p2/3BP1B1/PPP2PPP/RN1QK1NR w - - 1 1",
+    "solution": [
+      "Qxh5+",
+      "Rxh5",
+      "Bg6#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1375,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "Wilhelm Steinitz vs Herbert Trenchard, Vienna, 1898",
-    "fen": "r2qrb2/p1pn1Qp1/1p4Nk/4PR2/3n4/7N/P5PP/R6K w - - 1 0",
-    "solution": "1. Ne7 Nxf5 2. Qg6#",
     "difficulty": "Medium",
-    "rating": 1428.3314853722493,
-    "description": "Wilhelm Steinitz vs Herbert Trenchard, Vienna, 1898",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "r2qrb2/p1pn1Qp1/1p4Nk/4PR2/3n4/7N/P5PP/R6K w - - 1 1",
+    "solution": [
+      "Ne7",
+      "Nxf5",
+      "Qg6#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1300,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "James Mason vs Emanuel Lasker, London, 1899",
-    "fen": "8/2r5/1k5p/1pp4P/8/K2P4/PR2QB2/2q5 b - - 0 1",
-    "solution": "1... Qc3+ 2. Rb3 Ra7#",
     "difficulty": "Medium",
-    "rating": 1263.0158683013588,
-    "description": "James Mason vs Emanuel Lasker, London, 1899",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "Black to move and mate in 2.",
+    "fen": "8/2r5/1k5p/1pp4P/8/K2P4/PR2QB2/2q5 b - - 0 1",
+    "solution": [
+      "Qc3+",
+      "Rb3",
+      "Ra7#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1350,
+    "isWhiteToMove": false,
+    "mateIn": 2
   },
   {
     "title": "Aaron Nimzowitsch vs Gustav Neumann, Riga, 1899",
-    "fen": "r1b3nr/ppqk1Bbp/2pp4/4P1B1/3n4/3P4/PPP2QPP/R4RK1 w - - 1 0",
-    "solution": "1. Qf5+ Nxf5 2. e6#",
     "difficulty": "Medium",
-    "rating": 1307.9936503262652,
-    "description": "Aaron Nimzowitsch vs Gustav Neumann, Riga, 1899",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "r1b3nr/ppqk1Bbp/2pp4/4P1B1/3n4/3P4/PPP2QPP/R4RK1 w - - 1 1",
+    "solution": [
+      "Qf5+",
+      "Nxf5",
+      "e6#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1325,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "Harry Pillsbury vs Samuel Tinsley, London, 1899",
-    "fen": "3k1r1r/pb3p2/1p4p1/1B2B3/3qn3/6QP/P4RP1/2R3K1 w - - 1 0",
-    "solution": "1. Bf6+ Qxf6 2. Qc7#",
     "difficulty": "Medium",
-    "rating": 1948.542485077761,
-    "description": "Harry Pillsbury vs Samuel Tinsley, London, 1899",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "3k1r1r/pb3p2/1p4p1/1B2B3/3qn3/6QP/P4RP1/2R3K1 w - - 1 1",
+    "solution": [
+      "Bf6+",
+      "Qxf6",
+      "Qc7#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1325,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "Ryder vs NN, Leipzig, 1899",
-    "fen": "rn2kb1r/1pQbpppp/1p6/qp1N4/6n1/8/PPP3PP/2KR2NR w - - 1 0",
-    "solution": "1. Qc8+ Bxc8 2. Nc7#",
     "difficulty": "Medium",
-    "rating": 1235.9741950482685,
-    "description": "Ryder vs NN, Leipzig, 1899",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "rn2kb1r/1pQbpppp/1p6/qp1N4/6n1/8/PPP3PP/2KR2NR w - - 1 1",
+    "solution": [
+      "Qc8+",
+      "Bxc8",
+      "Nc7#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1325,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "Pulitzer vs George Marco, Vienna, 1900",
-    "fen": "r2k2nr/pp1b1Q1p/2n4b/3N4/3q4/3P4/PPP3PP/4RR1K w - - 1 0",
-    "solution": "1. Re8+ Bxe8 2. Qc7#",
     "difficulty": "Medium",
-    "rating": 1684.1519828512035,
-    "description": "Pulitzer vs George Marco, Vienna, 1900",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "r2k2nr/pp1b1Q1p/2n4b/3N4/3q4/3P4/PPP3PP/4RR1K w - - 1 1",
+    "solution": [
+      "Re8+",
+      "Bxe8",
+      "Qc7#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1325,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "Arturo Reggio vs Georg Marco, Monte Carlo, 1902",
-    "fen": "7k/1p4p1/p4b1p/3N3P/2p5/2rb4/PP2r3/K2R2R1 b - - 0 1",
-    "solution": "1... Rc1+ 2. Rxc1 Bxb2#",
     "difficulty": "Medium",
-    "rating": 1750.3694658876589,
-    "description": "Arturo Reggio vs Georg Marco, Monte Carlo, 1902",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "Black to move and mate in 2.",
+    "fen": "7k/1p4p1/p4b1p/3N3P/2p5/2rb4/PP2r3/K2R2R1 b - - 0 1",
+    "solution": [
+      "Rc1+",
+      "Rxc1",
+      "Bxb2#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1425,
+    "isWhiteToMove": false,
+    "mateIn": 2
   },
   {
     "title": "Emanuel Lasker vs NN, Manchester, 1903",
-    "fen": "r2q2nr/5p1p/p1Bp3b/1p1NkP2/3pP1p1/2PP2P1/PP5P/R1Bb1RK1 w - - 1 0",
-    "solution": "1. Bf4+ Bxf4 2. gxf4#",
     "difficulty": "Medium",
-    "rating": 1560.7482289947561,
-    "description": "Emanuel Lasker vs NN, Manchester, 1903",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "r2q2nr/5p1p/p1Bp3b/1p1NkP2/3pP1p1/2PP2P1/PP5P/R1Bb1RK1 w - - 1 1",
+    "solution": [
+      "Bf4+",
+      "Bxf4",
+      "gxf4#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1350,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "Schwartz vs Samsonov, Heidelberg, 1908",
-    "fen": "r2q1k1r/ppp1bB1p/2np4/6N1/3PP1bP/8/PPP5/RNB2RK1 w - - 1 0",
-    "solution": "1. Ne6+ Bxe6 2. Bh6#",
     "difficulty": "Medium",
-    "rating": 1783.4701992043601,
-    "description": "Schwartz vs Samsonov, Heidelberg, 1908",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "r2q1k1r/ppp1bB1p/2np4/6N1/3PP1bP/8/PPP5/RNB2RK1 w - - 1 1",
+    "solution": [
+      "Ne6+",
+      "Bxe6",
+      "Bh6#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1325,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "George Rotlevi vs Hugo Suchting, Carlsbad, 1911",
-    "fen": "6k1/1p1r1pp1/p1r3b1/3pPqB1/2pP4/Q1P4R/P3P2K/6R1 w - - 1 0",
-    "solution": "1. Qf8+ Kxf8 2. Rh8#",
     "difficulty": "Medium",
-    "rating": 1514.8290326748897,
-    "description": "George Rotlevi vs Hugo Suchting, Carlsbad, 1911",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "6k1/1p1r1pp1/p1r3b1/3pPqB1/2pP4/Q1P4R/P3P2K/6R1 w - - 1 1",
+    "solution": [
+      "Qf8+",
+      "Kxf8",
+      "Rh8#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1325,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "Alexander Flamberg vs Oldrich Duras, Opatija, 1912",
-    "fen": "r1b3k1/ppp3pp/8/3pB3/1P1P4/3K1P2/PP1n1q1P/R2Q3R b - - 0 1",
-    "solution": "1... Bf5+ 2. Kc3 Qe3#",
     "difficulty": "Medium",
-    "rating": 1771.9571504945543,
-    "description": "Alexander Flamberg vs Oldrich Duras, Opatija, 1912",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "Black to move and mate in 2.",
+    "fen": "r1b3k1/ppp3pp/8/3pB3/1P1P4/3K1P2/PP1n1q1P/R2Q3R b - - 0 1",
+    "solution": [
+      "Bf5+",
+      "Kc3",
+      "Qe3#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1350,
+    "isWhiteToMove": false,
+    "mateIn": 2
   },
   {
     "title": "Emanuel Lasker vs Fritz Englund, Scheveningen, 1913",
-    "fen": "2kr1b1r/pp3ppp/2p1b2q/4B3/4Q3/2PB2R1/PPP2PPP/3R2K1 w - - 1 0",
-    "solution": "1. Qxc6+ bxc6 2. Ba6#",
     "difficulty": "Medium",
-    "rating": 1796.5896059999445,
-    "description": "Emanuel Lasker vs Fritz Englund, Scheveningen, 1913",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "2kr1b1r/pp3ppp/2p1b2q/4B3/4Q3/2PB2R1/PPP2PPP/3R2K1 w - - 1 1",
+    "solution": [
+      "Qxc6+",
+      "bxc6",
+      "Ba6#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1375,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "Richard Teichmann vs NN, Berlin, 1914",
-    "fen": "rn2kb1r/pp3ppp/4p1qn/1p4B1/2B5/3P2QP/PPP2PP1/R3K2R w - - 1 0",
-    "solution": "1. Qxb8+ Rxb8 2. Bxb5#",
     "difficulty": "Medium",
-    "rating": 1938.8763329459784,
-    "description": "Richard Teichmann vs NN, Berlin, 1914",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "rn2kb1r/pp3ppp/4p1qn/1p4B1/2B5/3P2QP/PPP2PP1/R3K2R w - - 1 1",
+    "solution": [
+      "Qxb8+",
+      "Rxb8",
+      "Bxb5#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1425,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "Charles Watson vs NN, Melbourne, 1916",
-    "fen": "rnb2b1r/p3kBp1/3pNn1p/2pQN3/1p2PP2/4B3/Pq5P/4K3 w - - 1 0",
-    "solution": "1. Qxd6+ Kxd6 2. Bxc5#",
     "difficulty": "Medium",
-    "rating": 1655.400062774924,
-    "description": "Charles Watson vs NN, Melbourne, 1916",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "rnb2b1r/p3kBp1/3pNn1p/2pQN3/1p2PP2/4B3/Pq5P/4K3 w - - 1 1",
+    "solution": [
+      "Qxd6+",
+      "Kxd6",
+      "Bxc5#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1425,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "Brunnemer vs Patton, corr. USA, 1920",
-    "fen": "r1b1k2r/ppQ1q2n/2p2p2/P3p2p/N3P1pP/1B4P1/1PP2P2/3R1NK1 w - - 1 0",
-    "solution": "1. Rd8+ Qxd8 2. Qf7#",
     "difficulty": "Medium",
-    "rating": 1354.4463443204227,
-    "description": "Brunnemer vs Patton, corr. USA, 1920",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "r1b1k2r/ppQ1q2n/2p2p2/P3p2p/N3P1pP/1B4P1/1PP2P2/3R1NK1 w - - 1 1",
+    "solution": [
+      "Rd8+",
+      "Qxd8",
+      "Qf7#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1325,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "Gerard Oskam vs Max Euwe, Amsterdam, 1920",
-    "fen": "r6k/pp4pp/1b1P4/8/1n4Q1/2N1RP2/PPq3p1/1RB1K3 b - - 0 1",
-    "solution": "1... Nd3+ 2. Rxd3 Bf2#",
     "difficulty": "Medium",
-    "rating": 1221.1745880786918,
-    "description": "Gerard Oskam vs Max Euwe, Amsterdam, 1920",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "Black to move and mate in 2.",
+    "fen": "r6k/pp4pp/1b1P4/8/1n4Q1/2N1RP2/PPq3p1/1RB1K3 b - - 0 1",
+    "solution": [
+      "Nd3+",
+      "Rxd3",
+      "Bf2#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1400,
+    "isWhiteToMove": false,
+    "mateIn": 2
   },
   {
     "title": "Saviely Tartakower vs Richard Reti, Vienna, 1920",
-    "fen": "8/1r5p/kpQ3p1/p3rp2/P6P/8/4bPPK/1R6 w - - 1 0",
-    "solution": "1. Rxb6+ Rxb6 2. Qa8#",
     "difficulty": "Medium",
-    "rating": 1909.386046478708,
-    "description": "Saviely Tartakower vs Richard Reti, Vienna, 1920",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "8/1r5p/kpQ3p1/p3rp2/P6P/8/4bPPK/1R6 w - - 1 1",
+    "solution": [
+      "Rxb6+",
+      "Rxb6",
+      "Qa8#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1375,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "Sery vs Z Vecsey, Brunn, 1921",
-    "fen": "r1b2rk1/2p2ppp/p7/1p6/3P3q/1BP3bP/PP3QP1/RNB1R1K1 w - - 1 0",
-    "solution": "1. Qxf7+ Rxf7 2. Re8#",
     "difficulty": "Medium",
-    "rating": 1675.9358873745484,
-    "description": "Sery vs Z Vecsey, Brunn, 1921",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "r1b2rk1/2p2ppp/p7/1p6/3P3q/1BP3bP/PP3QP1/RNB1R1K1 w - - 1 1",
+    "solution": [
+      "Qxf7+",
+      "Rxf7",
+      "Re8#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1375,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "Johann Berger vs P Froehlich, Graz, 1922",
-    "fen": "r2qkb1r/2p1nppp/p2p4/np1NN3/4P3/1BP5/PP1P1PPP/R1B1K2R w - - 1 0",
-    "solution": "1. Nf6+ gxf6 2. Bxf7#",
     "difficulty": "Medium",
-    "rating": 1419.2373504565503,
-    "description": "Johann Berger vs P Froehlich, Graz, 1922",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "r2qkb1r/2p1nppp/p2p4/np1NN3/4P3/1BP5/PP1P1PPP/R1B1K2R w - - 1 1",
+    "solution": [
+      "Nf6+",
+      "gxf6",
+      "Bxf7#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1350,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "Probst vs Lowig, Bad Oeynhausen, 1922",
-    "fen": "rnbkn2r/pppp1Qpp/5b2/3NN3/3Pp3/8/PPP1KP1P/R1B4q w - - 1 0",
-    "solution": "1. Qe7+ Bxe7 2. Nf7#",
     "difficulty": "Medium",
-    "rating": 1419.7235674203089,
-    "description": "Probst vs Lowig, Bad Oeynhausen, 1922",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "rnbkn2r/pppp1Qpp/5b2/3NN3/3Pp3/8/PPP1KP1P/R1B4q w - - 1 1",
+    "solution": [
+      "Qe7+",
+      "Bxe7",
+      "Nf7#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1325,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "Lajos Steiner vs Albert Becker, Vienna, 1923",
-    "fen": "4rk2/2pQn2p/p4p2/1p2pN1P/4q3/2P3R1/5PPK/8 w - - 1 0",
-    "solution": "1. Rg8+ Kf7 2. Nh6#",
     "difficulty": "Medium",
-    "rating": 1478.1400059947819,
-    "description": "Lajos Steiner vs Albert Becker, Vienna, 1923",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "4rk2/2pQn2p/p4p2/1p2pN1P/4q3/2P3R1/5PPK/8 w - - 1 1",
+    "solution": [
+      "Rg8+",
+      "Kf7",
+      "Nh6#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1275,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "Max Euwe vs A Van Mindeno, Netherlands, 1927",
-    "fen": "r1b2rk1/pp3ppp/3p4/3Q1nq1/2B1R3/8/PP3PPP/R5K1 w - - 1 0",
-    "solution": "1. Qxf7+ Rxf7 2. Re8#",
     "difficulty": "Medium",
-    "rating": 1592.6956545202584,
-    "description": "Max Euwe vs A Van Mindeno, Netherlands, 1927",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "r1b2rk1/pp3ppp/3p4/3Q1nq1/2B1R3/8/PP3PPP/R5K1 w - - 1 1",
+    "solution": [
+      "Qxf7+",
+      "Rxf7",
+      "Re8#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1375,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "Monterinas vs Max Euwe, Amsterdam, 1927",
-    "fen": "7r/p3ppk1/3p4/2p1P1Kp/2Pb4/3P1QPq/PP5P/R6R b - - 0 1",
-    "solution": "1... Be3+ 2. Qxe3 Qg4#",
     "difficulty": "Medium",
-    "rating": 1316.8022162411503,
-    "description": "Monterinas vs Max Euwe, Amsterdam, 1927",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "Black to move and mate in 2.",
+    "fen": "7r/p3ppk1/3p4/2p1P1Kp/2Pb4/3P1QPq/PP5P/R6R b - - 0 1",
+    "solution": [
+      "Be3+",
+      "Qxe3",
+      "Qg4#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1400,
+    "isWhiteToMove": false,
+    "mateIn": 2
   },
   {
     "title": "Ilya Rabinovich vs Grigori Levenfish, Moscow, 1927",
-    "fen": "rn2kb1r/ppp1pppp/8/8/4q3/3P1N1b/PPP1BPnP/RNBQ1K1R b kq - 0 1",
-    "solution": "1... Nh4+ 2. Ke1 Nxf3#",
     "difficulty": "Medium",
-    "rating": 1271.1969666205289,
-    "description": "Ilya Rabinovich vs Grigori Levenfish, Moscow, 1927",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "Black to move and mate in 2.",
+    "fen": "rn2kb1r/ppp1pppp/8/8/4q3/3P1N1b/PPP1BPnP/RNBQ1K1R b kq - 0 1",
+    "solution": [
+      "Nh4+",
+      "Ke1",
+      "Nxf3#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1400,
+    "isWhiteToMove": false,
+    "mateIn": 2
   },
   {
     "title": "Springe vs Dietmar Gebhard, Munich, 1927",
-    "fen": "r1b1kb1r/pp1n1pp1/1qp1p2p/6B1/2PPQ3/3B1N2/P4PPP/R4RK1 w - - 1 0",
-    "solution": "1. Qxe6+ fxe6 2. Bg6#",
     "difficulty": "Medium",
-    "rating": 1289.3669304218581,
-    "description": "Springe vs Dietmar Gebhard, Munich, 1927",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "r1b1kb1r/pp1n1pp1/1qp1p2p/6B1/2PPQ3/3B1N2/P4PPP/R4RK1 w - - 1 1",
+    "solution": [
+      "Qxe6+",
+      "fxe6",
+      "Bg6#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1375,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "Milan Vidmar, Sr vs Max Euwe, Carlsbad, 1929",
-    "fen": "6k1/5p2/1p5p/p4Np1/5q2/Q6P/PPr5/3R3K w - - 1 0",
-    "solution": "1. Qf8+ Kxf8 2. Rd8#",
     "difficulty": "Medium",
-    "rating": 1832.5958968122018,
-    "description": "Milan Vidmar, Sr vs Max Euwe, Carlsbad, 1929",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "6k1/5p2/1p5p/p4Np1/5q2/Q6P/PPr5/3R3K w - - 1 1",
+    "solution": [
+      "Qf8+",
+      "Kxf8",
+      "Rd8#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1325,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "William Winter vs Jacob Gemzoe, Folkestone, 1933",
-    "fen": "r3q3/ppp3k1/3p3R/5b2/2PR3Q/2P1PrP1/P7/4K3 w - - 1 0",
-    "solution": "1. Qf6+ Kg8 2. Rh8#",
     "difficulty": "Medium",
-    "rating": 1821.281153047316,
-    "description": "William Winter vs Jacob Gemzoe, Folkestone, 1933",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "r3q3/ppp3k1/3p3R/5b2/2PR3Q/2P1PrP1/P7/4K3 w - - 1 1",
+    "solution": [
+      "Qf6+",
+      "Kg8",
+      "Rh8#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1275,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "Nicolas Ticoulat vs Andor Lilienthal, Sitges, 1934",
-    "fen": "r3k2r/1Bp2ppp/8/4q1b1/pP1n4/P1KP3P/1BP5/R2Q3R b - - 0 1",
-    "solution": "1... Nb5+ 2. Kc4 Nd6#",
     "difficulty": "Medium",
-    "rating": 1216.3210904576533,
-    "description": "Nicolas Ticoulat vs Andor Lilienthal, Sitges, 1934",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "Black to move and mate in 2.",
+    "fen": "r3k2r/1Bp2ppp/8/4q1b1/pP1n4/P1KP3P/1BP5/R2Q3R b - - 0 1",
+    "solution": [
+      "Nb5+",
+      "Kc4",
+      "Nd6#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1350,
+    "isWhiteToMove": false,
+    "mateIn": 2
   },
   {
     "title": "Arthur Dake vs Timothy Cranston, Warsaw, 1935",
-    "fen": "r1bq2rk/pp3pbp/2p1p1pQ/7P/3P4/2PB1N2/PP3PPR/2KR4 w - - 1 0",
-    "solution": "1. Qxh7+ Kxh7 2. hxg6#",
     "difficulty": "Medium",
-    "rating": 1871.724899493767,
-    "description": "Arthur Dake vs Timothy Cranston, Warsaw, 1935",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "r1bq2rk/pp3pbp/2p1p1pQ/7P/3P4/2PB1N2/PP3PPR/2KR4 w - - 1 1",
+    "solution": [
+      "Qxh7+",
+      "Kxh7",
+      "hxg6#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1425,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "Marcos Luckis vs Moshe Czerniak, Warsaw, 1935",
-    "fen": "k1n3rr/Pp3p2/3q4/3N4/3Pp2p/1Q2P1p1/3B1PP1/R4RK1 w - - 1 0",
-    "solution": "1. Qxb7+ Kxb7 2. a8=Q#",
     "difficulty": "Medium",
-    "rating": 1401.0408951429713,
-    "description": "Marcos Luckis vs Moshe Czerniak, Warsaw, 1935",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "k1n3rr/Pp3p2/3q4/3N4/3Pp2p/1Q2P1p1/3B1PP1/R4RK1 w - - 1 1",
+    "solution": [
+      "Qxb7+",
+      "Kxb7",
+      "a8=Q#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1500,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "Cherubino Staldi vs Uulberg, Munich, 1936",
-    "fen": "8/1p3k2/4p1rp/p3Pp1Q/3qnP2/1P6/P6P/2R2R1K b - - 0 1",
-    "solution": "1... Qg1+ 2. Rxg1 Nf2#",
     "difficulty": "Medium",
-    "rating": 1782.892911182967,
-    "description": "Cherubino Staldi vs Uulberg, Munich, 1936",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "Black to move and mate in 2.",
+    "fen": "8/1p3k2/4p1rp/p3Pp1Q/3qnP2/1P6/P6P/2R2R1K b - - 0 1",
+    "solution": [
+      "Qg1+",
+      "Rxg1",
+      "Nf2#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1400,
+    "isWhiteToMove": false,
+    "mateIn": 2
   },
   {
     "title": "Boris Kostic vs Paul Keres, Stockholm, 1937",
-    "fen": "r1bq3r/ppp1b1kp/2n3p1/3B3Q/3p4/8/PPP2PPP/RNB2RK1 w - - 1 0",
-    "solution": "1. Bh6+ Kf6 2. Qg5#",
     "difficulty": "Medium",
-    "rating": 1944.094856385971,
-    "description": "Boris Kostic vs Paul Keres, Stockholm, 1937",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "r1bq3r/ppp1b1kp/2n3p1/3B3Q/3p4/8/PPP2PPP/RNB2RK1 w - - 1 1",
+    "solution": [
+      "Bh6+",
+      "Kf6",
+      "Qg5#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1275,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "Alexander Alekhine vs Fahardo, Montevideo, 1939",
-    "fen": "4r3/pbpn2n1/1p1prp1k/8/2PP2PB/P5N1/2B2R1P/R5K1 w - - 1 0",
-    "solution": "1. Rxf6+ Nxf6 2. g5#",
     "difficulty": "Medium",
-    "rating": 1758.1020258560543,
-    "description": "Alexander Alekhine vs Fahardo, Montevideo, 1939",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "4r3/pbpn2n1/1p1prp1k/8/2PP2PB/P5N1/2B2R1P/R5K1 w - - 1 1",
+    "solution": [
+      "Rxf6+",
+      "Nxf6",
+      "g5#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1375,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "Vladimir Petrov vs H Cordova, Buenos Aires, 1939",
-    "fen": "1q5r/1b1r1p1k/2p1pPpb/p1Pp4/3B1P1Q/1P4P1/P4KB1/2RR4 w - - 1 0",
-    "solution": "1. Qxh6+ Kxh6 2. Rh1#",
     "difficulty": "Medium",
-    "rating": 1659.2457586880305,
-    "description": "Vladimir Petrov vs H Cordova, Buenos Aires, 1939",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "1q5r/1b1r1p1k/2p1pPpb/p1Pp4/3B1P1Q/1P4P1/P4KB1/2RR4 w - - 1 1",
+    "solution": [
+      "Qxh6+",
+      "Kxh6",
+      "Rh1#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1375,
+    "isWhiteToMove": true,
+    "mateIn": 2
   },
   {
     "title": "Isaias Pleci vs Lucius Endzelins, Buenos Aires, 1939",
-    "fen": "r4R2/1b2n1pp/p2Np1k1/1pn5/4pP1P/8/PPP1B1P1/2K4R w - - 1 0",
-    "solution": "1. h5+ Kh6 2. Nf7#",
-    "difficulty": "Medium",
-    "rating": 1853.1804030386845,
-    "description": "Isaias Pleci vs Lucius Endzelins, Buenos Aires, 1939",
-    "themes": [
-      "mate-in-2",
-      "tactical"
+    "difficulty": "Easy",
+    "category": "mate",
+    "description": "White to move and mate in 2.",
+    "fen": "r4R2/1b2n1pp/p2Np1k1/1pn5/4pP1P/8/PPP1B1P1/2K4R w - - 1 1",
+    "solution": [
+      "h5+",
+      "Kh6",
+      "Nf7#"
     ],
-    "quality": {
-      "attempts": 0,
-      "avgRating": 0
-    }
+    "rating": 1250,
+    "isWhiteToMove": true,
+    "mateIn": 2
   }
 ]

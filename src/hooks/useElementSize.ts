@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useState } from "react";
 
 interface ElementSize {
   width: number;
@@ -6,11 +6,22 @@ interface ElementSize {
 }
 
 export function useElementSize<T extends HTMLElement>() {
-  const ref = useRef<T | null>(null);
+  const [element, setElement] = useState<T | null>(null);
   const [size, setSize] = useState<ElementSize>({ width: 0, height: 0 });
 
+  const ref = useCallback((node: T | null) => {
+    setElement(node);
+    if (!node) {
+      setSize((current) => {
+        if (current.width === 0 && current.height === 0) {
+          return current;
+        }
+        return { width: 0, height: 0 };
+      });
+    }
+  }, []);
+
   useLayoutEffect(() => {
-    const element = ref.current;
     if (!element) return;
 
     let frame = 0;
@@ -56,7 +67,7 @@ export function useElementSize<T extends HTMLElement>() {
       observer?.disconnect();
       window.removeEventListener("resize", scheduleMeasure);
     };
-  }, []);
+  }, [element]);
 
   return {
     ref,

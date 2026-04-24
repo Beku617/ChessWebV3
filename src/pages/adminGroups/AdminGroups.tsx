@@ -1,6 +1,7 @@
 import { useCallback, useDeferredValue, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Edit3, Loader2, Plus, Search, Trash2, Users } from "lucide-react";
+import { AdminPagination } from "../../components/AdminPagination";
 import AdminSidebar from "../../components/AdminSidebar";
 import {
   API_URL,
@@ -18,31 +19,13 @@ type GroupDraft = {
   topic: string;
 };
 
+const GROUPS_PAGE_SIZE = 8;
+
 const emptyDraft: GroupDraft = {
   name: "",
   description: "",
   topic: "",
 };
-
-function compareGroups(a: CommunityGroup, b: CommunityGroup) {
-  const memberDiff = Number(b.memberCount || 0) - Number(a.memberCount || 0);
-  if (memberDiff !== 0) return memberDiff;
-  const createdA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-  const createdB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-  return createdB - createdA;
-}
-
-function matchesGroupSearch(group: CommunityGroup, search: string) {
-  const query = search.trim().toLowerCase();
-  if (!query) return true;
-
-  return [
-    group.name,
-    group.description,
-    group.topic,
-    group.slug,
-  ].some((value) => String(value || "").toLowerCase().includes(query));
-}
 
 export default function AdminGroups() {
   const navigate = useNavigate();
@@ -53,6 +36,9 @@ export default function AdminGroups() {
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const deferredSearch = useDeferredValue(search);
+  const [page, setPage] = useState(1);
+  const [totalGroups, setTotalGroups] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [createDraft, setCreateDraft] = useState<GroupDraft>(emptyDraft);
   const [isCreating, setIsCreating] = useState(false);
@@ -74,7 +60,10 @@ export default function AdminGroups() {
     setLoading(true);
     setError("");
     try {
-      const params = new URLSearchParams({ limit: "60" });
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: String(GROUPS_PAGE_SIZE),
+      });
       if (deferredSearch.trim()) params.set("search", deferredSearch.trim());
       const res = await fetch(`${API_URL}/api/admin/groups?${params}`, {
         credentials: "include",
@@ -85,22 +74,15 @@ export default function AdminGroups() {
         throw new Error(data.error || "Failed to load groups.");
       }
       setGroups(data.groups || []);
+      setTotalGroups(Number(data.pagination?.total || data.total || 0));
+      setTotalPages(Math.max(1, Number(data.pagination?.pages || 1)));
+      setPage(Math.max(1, Number(data.pagination?.page || 1)));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load groups.");
     } finally {
       setLoading(false);
     }
-  }, [deferredSearch]);
-
-  const upsertGroupLocally = useCallback((nextGroup: CommunityGroup) => {
-    setGroups((prev) => {
-      const filtered = prev.filter((group) => group.id !== nextGroup.id);
-      if (!matchesGroupSearch(nextGroup, deferredSearch)) {
-        return filtered.sort(compareGroups);
-      }
-      return [nextGroup, ...filtered].sort(compareGroups);
-    });
-  }, [deferredSearch]);
+  }, [deferredSearch, page]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -123,11 +105,7 @@ export default function AdminGroups() {
       }
       setCreateDraft(emptyDraft);
       setIsCreateOpen(false);
-      if (data.group) {
-        upsertGroupLocally(data.group);
-      } else {
-        await loadGroups();
-      }
+      await loadGroups();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create group.");
     } finally {
@@ -160,11 +138,7 @@ export default function AdminGroups() {
       }
       setEditingId(null);
       setEditDraft(emptyDraft);
-      if (data.group) {
-        upsertGroupLocally(data.group);
-      } else {
-        await loadGroups();
-      }
+      await loadGroups();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update group.");
     } finally {
@@ -189,7 +163,7 @@ export default function AdminGroups() {
       if (!res.ok) {
         throw new Error(data.error || "Failed to delete group.");
       }
-      setGroups((prev) => prev.filter((item) => item.id !== group.id));
+      await loadGroups();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to delete group.");
     } finally {
@@ -207,16 +181,9 @@ export default function AdminGroups() {
           <section className="rounded-[28px] border border-gray-200/80 bg-white/95 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.08)] dark:border-white/[0.05] dark:bg-[#0c1728]/85 dark:shadow-[0_24px_75px_rgba(0,0,0,0.24)]">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-brand-200/70">
-                  Admin Workspace
-                </div>
-                <h1 className="mt-2 text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
+                <h1 className="text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
                   Community Groups
                 </h1>
-                <p className="mt-3 max-w-2xl text-sm leading-7 text-gray-500 dark:text-gray-400">
-                  Create, inspect, edit, and remove public groups without leaving the
-                  moderation workspace.
-                </p>
               </div>
 
               <button
@@ -234,7 +201,10 @@ export default function AdminGroups() {
                 <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
                 <input
                   value={search}
-                  onChange={(event) => setSearch(event.target.value)}
+                  onChange={(event) => {
+                    setSearch(event.target.value);
+                    setPage(1);
+                  }}
                   placeholder="Search groups by name, topic, or description..."
                   className="w-full rounded-2xl border border-gray-200 bg-gray-50 py-3 pl-11 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-white/[0.05] dark:bg-white/[0.05] dark:text-white dark:placeholder:text-gray-500"
                 />
@@ -447,6 +417,16 @@ export default function AdminGroups() {
                 );
               })}
             </div>
+          )}
+          {!loading && groups.length > 0 && (
+            <AdminPagination
+              page={page}
+              totalPages={totalPages}
+              totalItems={totalGroups}
+              pageSize={GROUPS_PAGE_SIZE}
+              itemLabel="groups"
+              onPageChange={setPage}
+            />
           )}
           </div>
         </main>

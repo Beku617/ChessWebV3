@@ -114,7 +114,7 @@ export function DashboardUsersTable({
                   <td className="px-4 py-3 text-gray-900 dark:text-white">
                     {user.gamesPlayed > 0
                       ? `${Math.round((user.gamesWon / user.gamesPlayed) * 100)}%`
-                      : "—"}
+                      : "-"}
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
                     {new Date(user.createdAt).toLocaleDateString()}
@@ -162,7 +162,6 @@ export function DashboardUsersTable({
         </div>
       )}
 
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="p-4 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between">
           <span className="text-sm text-gray-500 dark:text-gray-400">
@@ -193,4 +192,3 @@ export function DashboardUsersTable({
     </div>
   );
 }
-

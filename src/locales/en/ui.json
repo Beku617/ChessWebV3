@@ -44,7 +44,7 @@
   "Deflection": "Deflection",
   "Discovery": "Discovery",
   "Easy": "Easy",
-  "Emoji": "Emoji",
+  "Emoji": "Text",
   "Endgame": "Endgame",
   "Endgames": "Endgames",
   "Event": "Event",
@@ -273,5 +273,373 @@
   "10+5 Rapid • Prize Pool $200": "10+5 Rapid • Prize Pool $200",
   "days ago": "days ago",
   "day ago": "day ago",
-  "Drill key lines.": "Drill key lines."
+  "Drill key lines.": "Drill key lines.",
+  "common": {
+    "cancel": "Cancel",
+    "close": "Close",
+    "confirm": "Confirm",
+    "previous": "Previous",
+    "next": "Next"
+  },
+  "pagination": {
+    "showingRange": "Showing {{start}} - {{end}} of {{total}} {{itemLabel}}",
+    "first": "First",
+    "last": "Last",
+    "pageOf": "Page {{page}} of {{totalPages}}",
+    "previousPage": "Previous page",
+    "nextPage": "Next page",
+    "goToPage": "Go to page {{page}}"
+  },
+  "tournamentCommon": {
+    "formats": {
+      "swiss": "Swiss"
+    },
+    "status": {
+      "draft": "Draft",
+      "registrationOpen": "Registration Open",
+      "pairingPreview": "Pairing Preview",
+      "live": "Live",
+      "liveRound": "Live Round",
+      "roundClosed": "Round Closed",
+      "finished": "Finished"
+    },
+    "badges": {
+      "draft": "DRAFT",
+      "open": "OPEN",
+      "preview": "PREVIEW",
+      "live": "LIVE",
+      "roundClosed": "ROUND CLOSED",
+      "finished": "FINISHED"
+    },
+    "generic": {
+      "auto": "Auto",
+      "bye": "BYE",
+      "noMax": "No max",
+      "optional": "Optional",
+      "tbd": "TBD",
+      "unknown": "Unknown",
+      "user": "User",
+      "notAvailable": "N/A"
+    },
+    "playerStatus": {
+      "active": "Active",
+      "withdrawn": "Withdrawn"
+    },
+    "rating": {
+      "none": "None"
+    },
+    "ratingFilter": {
+      "none": "None",
+      "min": "Min Only",
+      "max": "Max Only",
+      "range": "Range"
+    },
+    "result": {
+      "inProgress": "In Progress",
+      "pending": "Pending"
+    },
+    "roundStatus": {
+      "completed": "Completed",
+      "inProgress": "In Progress"
+    },
+    "standingsMeta": {
+      "official": "Official",
+      "livePreview": "Live preview",
+      "roundComplete": "Official - Round {{round}} complete"
+    },
+    "startType": {
+      "manual": "Manual",
+      "scheduled": "Scheduled"
+    },
+    "timePresets": {
+      "bullet_1_0": "Bullet 1+0",
+      "blitz_3_2": "Blitz 3+2",
+      "blitz_5_0": "Blitz 5+0",
+      "rapid_10_0": "Rapid 10+0",
+      "rapid_10_1": "Rapid 10+1",
+      "rapid_15_10": "Rapid 15+10",
+      "classical_30_0": "Classical 30+0",
+      "custom": "Custom"
+    }
+  },
+  "adminTournaments": {
+    "title": "Tournament Management",
+    "filters": {
+      "searchPlaceholder": "Search by event, organizer, status...",
+      "allFormats": "All Formats",
+      "allStatus": "All Status"
+    },
+    "sort": {
+      "newest": "Newest",
+      "oldest": "Oldest",
+      "mostPlayers": "Most Players",
+      "liveFirst": "Live First",
+      "nameAZ": "Name A-Z"
+    },
+    "stats": {
+      "totalEvents": "Total Events",
+      "active": "Active",
+      "liveRounds": "Live Rounds"
+    },
+    "queue": {
+      "title": "Tournament Queue",
+      "subtitle": "Select an event to inspect rounds, standings, and available actions.",
+      "totalCount": "{{count}} total",
+      "empty": "No tournaments found with the current filters."
+    },
+    "table": {
+      "event": "Event",
+      "status": "Status",
+      "organizer": "Organizer",
+      "players": "Players",
+      "round": "Round",
+      "actions": "Actions",
+      "inspect": "Inspect",
+      "edit": "Edit",
+      "delete": "Delete",
+      "onlyDraftsEditable": "Only drafts can be edited",
+      "onlyPreLiveDeletable": "Only pre-live tournaments can be deleted"
+    },
+    "paginationItemLabel": "tournaments",
+    "detail": {
+      "selectPrompt": "Select a tournament to inspect the live admin controls.",
+      "organizer": "Organizer",
+      "created": "Created"
+    },
+    "detailCards": {
+      "players": "Players",
+      "schedule": "Schedule",
+      "rounds": "Rounds",
+      "ratingGate": "Rating Gate"
+    },
+    "values": {
+      "totalCount": "{{count}} total",
+      "activeCount": "{{count}} active",
+      "startsAt": "Starts {{value}}",
+      "registrationAt": "Registration {{value}}",
+      "roundRecords": "{{count}} round records",
+      "minMaxPlayers": "{{min}} min / {{max}} max",
+      "registeredCount": "{{count}} registered",
+      "boardsCount": "{{count}} boards",
+      "elo": "{{value}} Elo",
+      "points": "{{count}} pts"
+    },
+    "notifications": {
+      "tournamentUpdated": "Tournament updated successfully",
+      "tournamentCreated": "Tournament created successfully",
+      "saveFailed": "Failed to save tournament",
+      "tournamentDeleted": "Tournament deleted successfully",
+      "registrationOpened": "Registration opened",
+      "pairingPreviewGenerated": "Pairing preview generated",
+      "pairingsPublished": "Pairings published",
+      "roundClosed": "Round closed",
+      "tournamentFinished": "Tournament finished",
+      "actionFailed": "Tournament action failed"
+    },
+    "confirm": {
+      "deleteMessage": "Delete \"{{name}}\"? Only tournaments that have not gone live can be removed.",
+      "deleteTournament": "Delete Tournament",
+      "finishMessage": "Finish this tournament now? This will lock in the final standings.",
+      "finishTournament": "Finish Tournament",
+      "title": "Confirm Action"
+    },
+    "actions": {
+      "openRegistration": "Open Registration",
+      "publishPairings": "Publish Pairings",
+      "generateNextPreview": "Generate Next Preview",
+      "closeCurrentRound": "Close Current Round",
+      "finishTournament": "Finish Tournament",
+      "editDraft": "Edit Draft",
+      "deleteTournament": "Delete Tournament"
+    },
+    "preview": {
+      "title": "Pairing Preview",
+      "boardMatch": "Board {{board}}: {{white}} vs {{black}}",
+      "autoPaired": "Auto paired"
+    },
+    "standings": {
+      "title": "Standings",
+      "rank": "Rank",
+      "player": "Player",
+      "pointsShort": "Pts",
+      "record": "W-D-L",
+      "buchholzShort": "BH"
+    },
+    "participants": {
+      "title": "Participants",
+      "entries": "{{count}} entries",
+      "seedElo": "Seed {{seed}} / {{elo}} Elo"
+    },
+    "podium": {
+      "title": "Podium",
+      "finalPlacements": "Final placements",
+      "place": "Place {{place}}",
+      "scoreAndElo": "{{score}} pts / {{delta}} Elo"
+    },
+    "roundLedger": {
+      "title": "Round Ledger",
+      "recordedRounds": "{{count}} recorded rounds",
+      "empty": "No rounds have been generated yet.",
+      "roundLabel": "Round {{round}}",
+      "published": "Published",
+      "preview": "Preview"
+    },
+    "modal": {
+      "titleEdit": "Edit Tournament",
+      "titleCreate": "Create Tournament",
+      "subtitle": "Configure organizer, time control, player limits, and lifecycle settings.",
+      "fields": {
+        "organizerUserId": "Organizer User ID",
+        "name": "Tournament Name",
+        "format": "Format",
+        "roundsPlanned": "Planned Rounds",
+        "timeControl": "Time Control",
+        "minPlayers": "Min Players",
+        "maxPlayers": "Max Players",
+        "ratingFilter": "Rating Filter",
+        "registrationDeadline": "Registration Deadline",
+        "startType": "Start Type",
+        "scheduledStart": "Scheduled Start",
+        "description": "Description"
+      },
+      "placeholders": {
+        "organizerUserId": "Paste user id or pick from list",
+        "name": "Club Championship",
+        "roundsRequired": "7",
+        "baseMinutes": "Base minutes",
+        "incrementSeconds": "Increment seconds",
+        "minRating": "Min rating",
+        "maxRating": "Max rating",
+        "description": "Optional tournament notes"
+      },
+      "saveChanges": "Save Changes",
+      "submitCreate": "Create Tournament"
+    },
+    "errors": {
+      "fetchTournaments": "Failed to fetch tournaments",
+      "fetchTournamentDetail": "Failed to fetch tournament detail",
+      "createTournament": "Failed to create tournament",
+      "updateTournament": "Failed to update tournament",
+      "deleteTournament": "Failed to delete tournament",
+      "updateTournamentState": "Failed to update tournament state",
+      "closeRound": "Failed to close round"
+    }
+  },
+  "tournamentsPage": {
+    "title": "Tournaments",
+    "createTournament": "Create Tournament",
+    "filters": {
+      "searchPlaceholder": "Search by name",
+      "allFormats": "All Formats",
+      "allStatuses": "All Statuses"
+    },
+    "sort": {
+      "newest": "Newest",
+      "mostPlayers": "Most Players",
+      "myTournaments": "My Tournaments"
+    },
+    "list": {
+      "empty": "No tournaments yet. Create one to get started."
+    },
+    "pagination": {
+      "showingRange": "Showing {{start}} - {{end}} of {{total}} tournaments"
+    },
+    "detail": {
+      "selectPrompt": "Select a tournament to view details.",
+      "roundOf": "Round {{current}} of {{total}}",
+      "playersCount": "{{count}} players",
+      "organizer": "Organizer",
+      "roundLabel": "Round {{round}}"
+    },
+    "actions": {
+      "delete": "Delete",
+      "deleteTournament": "Delete Tournament",
+      "endTournament": "End Tournament",
+      "goToMyBoard": "Go to My Board",
+      "openRegistration": "Open Registration",
+      "play": "Play",
+      "playBoard": "Play Board",
+      "register": "Register",
+      "startRound": "Start Round",
+      "unregister": "Unregister",
+      "closeRegistration": "Close Registration"
+    },
+    "confirm": {
+      "deleteDraftMessage": "Delete this draft tournament?",
+      "endTournamentMessage": "End this tournament now?",
+      "title": "Confirm Action"
+    },
+    "errors": {
+      "fetchTournament": "Failed to fetch tournament",
+      "fetchTournaments": "Failed to fetch tournaments",
+      "realtimeFailed": "Realtime connection failed. Reconnecting...",
+      "realtimeReconnect": "Realtime disconnected. Reconnecting...",
+      "requestFailed": "Request failed",
+      "serverReconnect": "Unable to reach server. Reconnecting...",
+      "serverUnavailable": "Server unavailable"
+    },
+    "manage": {
+      "registeredPlayers": "Registered players: {{count}}",
+      "liveRoundInfo": "Results are recorded automatically from finished board games. Round progression to the next round is fully automatic.",
+      "roundProgressionAutomatic": "Round progression is automatic after all board games complete.",
+      "nextRoundAutomatic": "Next round generation is automatic when a live round completes."
+    },
+    "preview": {
+      "board": "Board",
+      "white": "White",
+      "black": "Black",
+      "explainPairing": "Explain Pairing",
+      "scoreGroup": "Score group",
+      "result": "Result",
+      "elo": "ELO",
+      "playerPairing": "{{white}} ({{whiteElo}}) vs {{black}} ({{blackElo}})",
+      "eloDelta": "White {{whiteDelta}} / Black {{blackDelta}}"
+    },
+    "finalStandings": {
+      "title": "Final Standings"
+    },
+    "tabs": {
+      "rounds": "Rounds",
+      "standings": "Standings"
+    },
+    "rounds": {
+      "empty": "No rounds yet."
+    },
+    "standings": {
+      "title": "Standings",
+      "rank": "Rank",
+      "player": "Player",
+      "elo": "ELO",
+      "points": "Points",
+      "showingRange": "Showing {{start}}-{{end}} of {{total}}",
+      "pageOf": "Page {{page}} / {{totalPages}}"
+    },
+    "modal": {
+      "title": "Create Tournament",
+      "fields": {
+        "name": "Tournament Name",
+        "format": "Format",
+        "rounds": "Number of Rounds",
+        "timeControl": "Time Control",
+        "minPlayers": "Min Players",
+        "maxPlayers": "Max Players",
+        "ratingFilter": "Rating Filter",
+        "registrationDeadline": "Registration Deadline",
+        "startType": "Start Type",
+        "scheduledStartTime": "Scheduled Start Time",
+        "description": "Description"
+      },
+      "placeholders": {
+        "name": "Club Championship",
+        "roundsRequired": "Required for Swiss",
+        "baseMinutes": "Base minutes",
+        "incrementSeconds": "Increment seconds",
+        "minRating": "Min rating",
+        "maxRating": "Max rating",
+        "description": "Optional tournament notes"
+      },
+      "creating": "Creating...",
+      "createDraft": "Create Draft"
+    }
+  }
 }

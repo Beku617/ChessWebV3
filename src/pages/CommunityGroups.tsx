@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Loader2, Search, Users } from "lucide-react";
 import Sidebar from "../components/Sidebar";
+import { FeedPagination } from "../components/community/FeedPagination";
 import {
   CommunityGroupCard,
   CommunityGroupCreateModal,
@@ -12,8 +13,12 @@ import {
   CommunityGroupsListResponse,
 } from "../components/community/types";
 
+const DISCOVER_GROUPS_PAGE_SIZE = 12;
+const JOINED_GROUPS_FETCH_LIMIT = 100;
+
 export default function CommunityGroups() {
-  const [groups, setGroups] = useState<CommunityGroup[]>([]);
+  const [joinedGroups, setJoinedGroups] = useState<CommunityGroup[]>([]);
+  const [discoverGroups, setDiscoverGroups] = useState<CommunityGroup[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -21,28 +26,67 @@ export default function CommunityGroups() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState("");
+  const [discoverPage, setDiscoverPage] = useState(1);
+  const [discoverTotalPages, setDiscoverTotalPages] = useState(1);
+  const [discoverTotal, setDiscoverTotal] = useState(0);
 
   const loadGroups = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      const params = new URLSearchParams({ limit: "36" });
-      if (search.trim()) params.set("search", search.trim());
-      const res = await fetch(`${API_URL}/api/community/groups?${params}`, {
-        credentials: "include",
+      const joinedParams = new URLSearchParams({
+        scope: "joined",
+        limit: String(JOINED_GROUPS_FETCH_LIMIT),
       });
-      const data: CommunityGroupsListResponse & { error?: string } =
-        await res.json().catch(() => ({ groups: [], total: 0 }));
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to load groups.");
+      const discoverParams = new URLSearchParams({
+        scope: "discover",
+        page: String(discoverPage),
+        limit: String(DISCOVER_GROUPS_PAGE_SIZE),
+      });
+      if (search.trim()) {
+        joinedParams.set("search", search.trim());
+        discoverParams.set("search", search.trim());
       }
-      setGroups(data.groups || []);
+
+      const [joinedRes, discoverRes] = await Promise.all([
+        fetch(`${API_URL}/api/community/groups?${joinedParams.toString()}`, {
+          credentials: "include",
+        }),
+        fetch(`${API_URL}/api/community/groups?${discoverParams.toString()}`, {
+          credentials: "include",
+        }),
+      ]);
+      const [joinedData, discoverData] = await Promise.all([
+        joinedRes
+          .json()
+          .catch(() => ({ groups: [], total: 0 })) as Promise<
+          CommunityGroupsListResponse & { error?: string }
+        >,
+        discoverRes
+          .json()
+          .catch(() => ({ groups: [], total: 0 })) as Promise<
+          CommunityGroupsListResponse & { error?: string }
+        >,
+      ]);
+
+      if (!joinedRes.ok) {
+        throw new Error(joinedData.error || "Failed to load joined groups.");
+      }
+      if (!discoverRes.ok) {
+        throw new Error(discoverData.error || "Failed to load groups.");
+      }
+
+      setJoinedGroups(joinedData.groups || []);
+      setDiscoverGroups(discoverData.groups || []);
+      setDiscoverTotal(Number(discoverData.pagination?.total || discoverData.total || 0));
+      setDiscoverTotalPages(Math.max(1, Number(discoverData.pagination?.pages || 1)));
+      setDiscoverPage(Math.max(1, Number(discoverData.pagination?.page || 1)));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load groups.");
     } finally {
       setLoading(false);
     }
-  }, [search]);
+  }, [discoverPage, search]);
 
   useEffect(() => {
     void loadGroups();
@@ -96,11 +140,6 @@ export default function CommunityGroups() {
     }
   };
 
-  const joinedGroups = useMemo(
-    () => groups.filter((group) => group.joined),
-    [groups],
-  );
-
   return (
     <div className="min-h-screen bg-[#060f1d] text-white flex transition-colors duration-300">
       <Sidebar />
@@ -112,17 +151,9 @@ export default function CommunityGroups() {
           <section className="rounded-[28px] bg-[#0c1728]/84 p-6 shadow-[0_22px_65px_rgba(0,0,0,0.24)]">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-brand-200/70">
-                  Community Groups
-                </div>
-                <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white">
+                <h1 className="text-3xl font-semibold tracking-tight text-white">
                   Find your chess circle
                 </h1>
-                <p className="mt-3 max-w-2xl text-sm leading-7 text-gray-400">
-                  Join public NeonGambit groups for openings, tactics, club prep, and
-                  shared games. Posts from groups you join will surface more often in
-                  your community feed.
-                </p>
               </div>
 
               <button
@@ -140,7 +171,10 @@ export default function CommunityGroups() {
                 <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
                 <input
                   value={search}
-                  onChange={(event) => setSearch(event.target.value)}
+                  onChange={(event) => {
+                    setSearch(event.target.value);
+                    setDiscoverPage(1);
+                  }}
                   placeholder="Search by group name, topic, or description..."
                   className="w-full rounded-2xl bg-white/[0.05] py-3 pl-11 pr-4 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                 />
@@ -188,7 +222,7 @@ export default function CommunityGroups() {
               <div className="rounded-2xl bg-[#0c1728]/82 py-20 shadow-[0_22px_65px_rgba(0,0,0,0.22)] flex items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-brand-400" />
               </div>
-            ) : groups.length === 0 ? (
+            ) : discoverGroups.length === 0 ? (
               <div className="rounded-2xl bg-[#0c1728]/82 px-6 py-20 text-center shadow-[0_22px_65px_rgba(0,0,0,0.22)]">
                 <Users className="mx-auto h-10 w-10 text-gray-500" />
                 <div className="mt-4 text-lg font-semibold text-white">No groups found</div>
@@ -197,16 +231,33 @@ export default function CommunityGroups() {
                 </p>
               </div>
             ) : (
-              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {groups.map((group) => (
-                  <CommunityGroupCard
-                    key={group.id}
-                    group={group}
-                    busy={busyGroupId === group.id}
-                    onToggle={handleToggleGroup}
-                  />
-                ))}
-              </div>
+              <>
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                  {discoverGroups.map((group) => (
+                    <CommunityGroupCard
+                      key={group.id}
+                      group={group}
+                      busy={busyGroupId === group.id}
+                      onToggle={handleToggleGroup}
+                    />
+                  ))}
+                </div>
+
+                {discoverTotalPages > 1 && (
+                  <div className="mt-6 flex flex-col gap-3">
+                    <div className="text-center text-sm text-gray-400">
+                      Showing {(discoverPage - 1) * DISCOVER_GROUPS_PAGE_SIZE + 1} -{" "}
+                      {Math.min(discoverPage * DISCOVER_GROUPS_PAGE_SIZE, discoverTotal)} of{" "}
+                      {discoverTotal} discover groups
+                    </div>
+                    <FeedPagination
+                      currentPage={discoverPage}
+                      totalPages={discoverTotalPages}
+                      onPageChange={setDiscoverPage}
+                    />
+                  </div>
+                )}
+              </>
             )}
           </section>
         </div>

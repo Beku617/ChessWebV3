@@ -618,21 +618,21 @@ router.get("/groups", authMiddleware, async (req, res) => {
       return res.status(401).json({ error: "Invalid user session." });
     }
 
-    const limit = Math.min(40, Math.max(1, Number(req.query.limit) || 24));
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 24));
     const search = String(req.query.search || "").trim();
     const scope = String(req.query.scope || "").trim().toLowerCase();
-    const groups = await listCommunityGroupsForUser(userId, { limit, search });
-
-    const filteredGroups =
-      scope === "joined"
-        ? groups.filter((group) => group?.joined)
-        : scope === "discover"
-          ? groups.filter((group) => !group?.joined)
-          : groups;
+    const data = await listCommunityGroupsForUser(userId, {
+      page,
+      limit,
+      search,
+      scope,
+    });
 
     res.json({
-      groups: filteredGroups,
-      total: filteredGroups.length,
+      groups: data.groups,
+      total: data.total,
+      pagination: data.pagination,
     });
   } catch (err) {
     console.error("Community groups list error:", err);

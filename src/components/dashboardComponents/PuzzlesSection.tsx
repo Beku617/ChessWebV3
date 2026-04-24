@@ -34,7 +34,7 @@ interface PuzzlePreviewBoardProps {
 function PuzzlePreviewBoard({ puzzleId, fen, onClick }: PuzzlePreviewBoardProps) {
   const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const [boardWidth, setBoardWidth] = useState(260);
+  const [boardWidth, setBoardWidth] = useState(0);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -43,7 +43,9 @@ function PuzzlePreviewBoard({ puzzleId, fen, onClick }: PuzzlePreviewBoardProps)
     const updateSize = () => {
       const nextWidth = Math.floor(container.clientWidth);
       if (nextWidth > 0) {
-        setBoardWidth(nextWidth);
+        setBoardWidth((currentWidth) =>
+          currentWidth === nextWidth ? currentWidth : nextWidth,
+        );
       }
     };
 
@@ -73,17 +75,19 @@ function PuzzlePreviewBoard({ puzzleId, fen, onClick }: PuzzlePreviewBoardProps)
     >
       <div
         ref={containerRef}
-        className="w-full rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm cursor-pointer"
+        className="aspect-square w-full rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm cursor-pointer"
       >
-        <Chessboard
-          id={`dashboard-puzzle-${puzzleId}`}
-          position={fen || "start"}
-          boardWidth={boardWidth}
-          arePiecesDraggable={false}
-          showBoardNotation={false}
-          customDarkSquareStyle={{ backgroundColor: "#8ea8bb" }}
-          customLightSquareStyle={{ backgroundColor: "#dde7ee" }}
-        />
+        {boardWidth > 0 ? (
+          <Chessboard
+            id={`dashboard-puzzle-${puzzleId}`}
+            position={fen || "start"}
+            boardWidth={boardWidth}
+            arePiecesDraggable={false}
+            showBoardNotation={false}
+            customDarkSquareStyle={{ backgroundColor: "#8ea8bb" }}
+            customLightSquareStyle={{ backgroundColor: "#dde7ee" }}
+          />
+        ) : null}
       </div>
     </button>
   );
@@ -136,8 +140,7 @@ export function PuzzlesSection({ showTopDivider = true }: PuzzlesSectionProps) {
     return (
       <div className={wrapperClass}>
         <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center space-x-2">
-            <span className="text-xl">🧩</span>
+          <div>
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
               {t("Puzzles")}
             </h3>
@@ -153,8 +156,7 @@ export function PuzzlesSection({ showTopDivider = true }: PuzzlesSectionProps) {
   return (
     <div className={wrapperClass}>
       <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center space-x-2">
-          <span className="text-xl">🧩</span>
+        <div>
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
             {t("Puzzles")}
           </h3>

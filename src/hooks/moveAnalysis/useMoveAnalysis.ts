@@ -16,10 +16,8 @@ export function useMoveAnalysis(
   totalPlies: number,
 ) {
   // Run Stockfish analysis
-  const { analysis, isAnalyzing, analysisProgress } = useStockfishAnalysis(
-    game,
-    positions,
-  );
+  const { analysis, isAnalyzing, analysisProgress, analysisDisabledReason } =
+    useStockfishAnalysis(game, positions);
 
   // Build analysis lookup map
   const analysisByPly = useMemo(() => {
@@ -65,5 +63,6 @@ export function useMoveAnalysis(
     accuracy,
     isAnalyzing,
     analysisProgress,
+    analysisDisabledReason,
   };
 }

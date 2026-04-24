@@ -7,5 +7,7 @@ export { Slider } from "./Slider";
 export { ColorSwatchPicker } from "./ColorSwatchPicker";
 export { BoardThemePicker } from "./BoardThemePicker";
 export { Modal } from "./Modal";
+export { ThemeOptionsGrid } from "./ThemeOptionsGrid";
+export { ThemeWindow } from "./ThemeWindow";
 export { Toast } from "./Toast";
 export { useToast } from "./useToast";

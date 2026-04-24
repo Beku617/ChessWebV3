@@ -7,6 +7,7 @@ export interface User {
   fullName: string;
   avatar?: string;
   authProvider?: "local" | "google" | "facebook";
+  emailVerified?: boolean;
   hasGoogleAuth?: boolean;
   hasFacebookAuth?: boolean;
   rating?: number;
@@ -71,6 +72,28 @@ interface AuthState {
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
+export interface AuthApiError extends Error {
+  status?: number;
+  code?: string;
+  data?: Record<string, unknown>;
+}
+
+async function readJsonResponse(res: Response) {
+  return res.json().catch(() => ({}));
+}
+
+function makeAuthApiError(
+  res: Response,
+  data: Record<string, unknown>,
+  fallbackMessage: string,
+) {
+  const error = new Error(String(data?.error || fallbackMessage)) as AuthApiError;
+  error.status = res.status;
+  error.code = typeof data?.code === "string" ? data.code : undefined;
+  error.data = data;
+  return error;
+}
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
@@ -117,8 +140,8 @@ export const authApi = {
       credentials: "include",
       body: JSON.stringify({ email, password, rememberMe }),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Login failed");
+    const data = await readJsonResponse(res);
+    if (!res.ok) throw makeAuthApiError(res, data, "Login failed");
     return data;
   },
 
@@ -129,8 +152,8 @@ export const authApi = {
       credentials: "include",
       body: JSON.stringify({ token, rememberMe }),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Google login failed");
+    const data = await readJsonResponse(res);
+    if (!res.ok) throw makeAuthApiError(res, data, "Google login failed");
     return data;
   },
 
@@ -141,8 +164,8 @@ export const authApi = {
       credentials: "include",
       body: JSON.stringify({ token, rememberMe }),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Facebook login failed");
+    const data = await readJsonResponse(res);
+    if (!res.ok) throw makeAuthApiError(res, data, "Facebook login failed");
     return data;
   },
 
@@ -153,8 +176,38 @@ export const authApi = {
       credentials: "include",
       body: JSON.stringify({ fullName, email, password }),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Registration failed");
+    const data = await readJsonResponse(res);
+    if (!res.ok) throw makeAuthApiError(res, data, "Registration failed");
+    return data;
+  },
+
+  async verifyEmail(email: string, code: string, rememberMe = false) {
+    const res = await fetch(`${API_URL}/api/verify-email`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ email, code, rememberMe }),
+    });
+    const data = await readJsonResponse(res);
+    if (!res.ok) throw makeAuthApiError(res, data, "Email verification failed");
+    return data;
+  },
+
+  async resendVerificationCode(email: string) {
+    const res = await fetch(`${API_URL}/api/resend-verification-code`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ email }),
+    });
+    const data = await readJsonResponse(res);
+    if (!res.ok) {
+      throw makeAuthApiError(
+        res,
+        data,
+        "Could not resend verification code",
+      );
+    }
     return data;
   },
 
@@ -163,8 +216,8 @@ export const authApi = {
       method: "POST",
       credentials: "include",
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Logout failed");
+    const data = await readJsonResponse(res);
+    if (!res.ok) throw makeAuthApiError(res, data, "Logout failed");
     return data;
   },
 

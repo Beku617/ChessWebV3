@@ -4,7 +4,8 @@ type SupportedVariant =
   | "standard"
   | "chess960"
   | "threeCheck"
-  | "kingOfHill";
+  | "kingOfHill"
+  | "atomic";
 
 export type GameOverMode = "bot" | "quick" | "friend" | "local";
 
@@ -29,6 +30,14 @@ function normalizeVariant(variant?: string | null): SupportedVariant {
   if (typeof variant !== "string") return "standard";
   const normalized = variant.trim().toLowerCase();
   if (normalized === "chess960") return "chess960";
+  if (
+    normalized === "atomic" ||
+    normalized === "atomicchess" ||
+    normalized === "atomic-chess" ||
+    normalized === "atomic_chess"
+  ) {
+    return "atomic";
+  }
   if (
     normalized === "kingofhill" ||
     normalized === "king-of-hill" ||

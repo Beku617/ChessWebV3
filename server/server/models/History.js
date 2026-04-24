@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { MIN_REAL_GAME_PLIES } from "../utils/gameLifecyclePolicy.js";
 
 const HistorySchema = new mongoose.Schema(
   {
@@ -18,7 +19,7 @@ const HistorySchema = new mongoose.Schema(
     result: { type: String, required: true },
     variant: {
       type: String,
-      enum: ["standard", "chess960", "threeCheck", "kingOfHill"],
+      enum: ["standard", "chess960", "threeCheck", "kingOfHill", "atomic"],
       default: "standard",
     },
     whiteCheckCount: { type: Number, default: 0, min: 0 },
@@ -83,8 +84,9 @@ const HistorySchema = new mongoose.Schema(
       type: [String],
       default: [],
       validate: {
-        validator: (moves) => Array.isArray(moves) && moves.length >= 3,
-        message: "Game must contain at least 3 moves to be stored",
+        validator: (moves) =>
+          Array.isArray(moves) && moves.length >= MIN_REAL_GAME_PLIES,
+        message: `Game must contain at least ${MIN_REAL_GAME_PLIES} moves to be stored`,
       },
     },
     moveText: { type: String, default: "" },

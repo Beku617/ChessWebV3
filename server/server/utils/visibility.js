@@ -1,24 +1,82 @@
-import { BlockedUser } from "../models/index.js";
+import { BlockedUser, User } from "../models/index.js";
 import { normalizeId } from "./friendship.js";
+import mongoose from "mongoose";
 
-export async function areUsersBlocked(userA, userB) {
-  const a = normalizeId(userA);
-  const b = normalizeId(userB);
+function isValidObjectId(value) {
+  return mongoose.Types.ObjectId.isValid(String(value || ""));
+}
 
-  if (!a || !b || a === b) {
+async function hasLegacyBlock(blockerId, blockedId) {
+  const edge = await BlockedUser.findOne({
+    blocker: blockerId,
+    blocked: blockedId,
+  })
+    .select("_id")
+    .lean();
+  return !!edge;
+}
+
+export async function isBlocked(blockerId, blockedId) {
+  const blocker = normalizeId(blockerId);
+  const blocked = normalizeId(blockedId);
+
+  if (
+    !blocker ||
+    !blocked ||
+    blocker === blocked ||
+    !isValidObjectId(blocker) ||
+    !isValidObjectId(blocked)
+  ) {
     return false;
   }
 
-  const edge = await BlockedUser.findOne({
-    $or: [
-      { blocker: a, blocked: b },
-      { blocker: b, blocked: a },
-    ],
+  const blockerDoc = await User.findOne({
+    _id: blocker,
+    blockedUsers: blocked,
   })
     .select("_id")
     .lean();
 
-  return !!edge;
+  if (blockerDoc) {
+    return true;
+  }
+
+  return hasLegacyBlock(blocker, blocked);
+}
+
+export async function getBlockStatusBetween(userA, userB) {
+  const a = normalizeId(userA);
+  const b = normalizeId(userB);
+
+  if (
+    !a ||
+    !b ||
+    a === b ||
+    !isValidObjectId(a) ||
+    !isValidObjectId(b)
+  ) {
+    return {
+      isBlocked: false,
+      isBlockedByTarget: false,
+      isAnyBlocked: false,
+    };
+  }
+
+  const [blockedByViewer, blockedByTarget] = await Promise.all([
+    isBlocked(a, b),
+    isBlocked(b, a),
+  ]);
+
+  return {
+    isBlocked: blockedByViewer,
+    isBlockedByTarget: blockedByTarget,
+    isAnyBlocked: blockedByViewer || blockedByTarget,
+  };
+}
+
+export async function areUsersBlocked(userA, userB) {
+  const status = await getBlockStatusBetween(userA, userB);
+  return status.isAnyBlocked;
 }
 
 export async function canViewerAccessUser(viewerId, targetUserId) {
@@ -32,5 +90,6 @@ export async function canViewerAccessUser(viewerId, targetUserId) {
     return true;
   }
 
-  return !(await areUsersBlocked(viewer, target));
+  const hasBlockedTarget = await isBlocked(viewer, target);
+  return !hasBlockedTarget;
 }

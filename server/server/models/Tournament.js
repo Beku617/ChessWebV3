@@ -5,7 +5,7 @@ const TournamentSchema = new mongoose.Schema(
     name: { type: String, required: true, trim: true, maxlength: 120 },
     type: {
       type: String,
-      enum: ["swiss", "roundRobin", "knockout"],
+      enum: ["swiss"],
       required: true,
     },
     timeControl: {
@@ -25,7 +25,6 @@ const TournamentSchema = new mongoose.Schema(
       enum: [
         "DRAFT",
         "REGISTRATION_OPEN",
-        "PAIRING_PREVIEW",
         "LIVE_ROUND",
         "ROUND_CLOSED",
         "FINISHED",

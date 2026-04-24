@@ -1,4 +1,5 @@
 import { QualityCounts } from "../../hooks/useGameReplay";
+import { useTranslation } from "react-i18next";
 import { MoveQualityPill } from "./MoveQualityPill";
 
 const order: Array<keyof QualityCounts> = [
@@ -21,11 +22,12 @@ export function QualityBreakdown({
   white: QualityCounts;
   black: QualityCounts;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
       <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-3">
         <div className="text-xs uppercase tracking-wide text-gray-500 mb-2">
-          White
+          {t("analysis.qualityBreakdown.white", "White")}
         </div>
         <div className="space-y-1.5">
           {order.map((key) => (
@@ -41,7 +43,7 @@ export function QualityBreakdown({
 
       <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-3">
         <div className="text-xs uppercase tracking-wide text-gray-500 mb-2">
-          Black
+          {t("analysis.qualityBreakdown.black", "Black")}
         </div>
         <div className="space-y-1.5">
           {order.map((key) => (

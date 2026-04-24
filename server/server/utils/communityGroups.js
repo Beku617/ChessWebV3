@@ -187,7 +187,10 @@ export async function buildCommunityGroupsOverview(userId, { joinedLimit = 4, di
   };
 }
 
-export async function listCommunityGroupsForUser(userId, { limit = 24, search = "" } = {}) {
+export async function listCommunityGroupsForUser(
+  userId,
+  { page = 1, limit = 24, search = "", scope = "" } = {},
+) {
   const currentUserId = String(userId || "");
   const user = currentUserId
     ? await User.findById(currentUserId).select("communityJoinedGroupIds").lean()
@@ -195,6 +198,9 @@ export async function listCommunityGroupsForUser(userId, { limit = 24, search = 
   const joinedGroupIds = Array.isArray(user?.communityJoinedGroupIds)
     ? user.communityJoinedGroupIds.map((value) => String(value || ""))
     : [];
+  const joinedObjectIds = joinedGroupIds
+    .filter((value) => mongoose.Types.ObjectId.isValid(value))
+    .map((value) => new mongoose.Types.ObjectId(value));
 
   const query = {};
   const searchValue = String(search || "").trim();
@@ -203,23 +209,57 @@ export async function listCommunityGroupsForUser(userId, { limit = 24, search = 
     query.$or = [{ name: regex }, { description: regex }, { topic: regex }];
   }
 
+  if (scope === "joined") {
+    if (joinedObjectIds.length === 0) {
+      return {
+        groups: [],
+        total: 0,
+        pagination: {
+          page: 1,
+          limit: Math.max(1, Math.min(100, Number(limit) || 24)),
+          total: 0,
+          pages: 1,
+        },
+      };
+    }
+    query._id = { $in: joinedObjectIds };
+  } else if (scope === "discover" && joinedObjectIds.length > 0) {
+    query._id = { $nin: joinedObjectIds };
+  }
+
+  const safeLimit = Math.max(1, Math.min(100, Number(limit) || 24));
+  const total = await CommunityGroup.countDocuments(query);
+  const pages = Math.max(1, Math.ceil(total / safeLimit));
+  const safePage = Math.min(Math.max(1, Number(page) || 1), pages);
+  const skip = (safePage - 1) * safeLimit;
+
   const groups = await CommunityGroup.find(query)
     .populate("creatorId", "fullName avatar")
     .sort({ memberCount: -1, createdAt: -1 })
-    .limit(Math.max(1, Math.min(60, Number(limit) || 24)))
+    .skip(skip)
+    .limit(safeLimit)
     .lean();
 
-  return groups
-    .map((group) =>
-      normalizeCommunityGroup(
-        {
-          ...group,
-          currentUserJoinedGroupIds: joinedGroupIds,
-        },
-        currentUserId,
-      ),
-    )
-    .filter(Boolean);
+  return {
+    groups: groups
+      .map((group) =>
+        normalizeCommunityGroup(
+          {
+            ...group,
+            currentUserJoinedGroupIds: joinedGroupIds,
+          },
+          currentUserId,
+        ),
+      )
+      .filter(Boolean),
+    total,
+    pagination: {
+      page: safePage,
+      limit: safeLimit,
+      total,
+      pages,
+    },
+  };
 }
 
 export async function buildCommunityGroupDetail(identifier, userId) {

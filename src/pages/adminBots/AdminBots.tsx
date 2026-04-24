@@ -1,23 +1,5 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Plus,
-  Search,
-  Pencil,
-  Trash2,
-  Download,
-  Filter,
-  ToggleLeft,
-  ToggleRight,
-  Bot,
-  Users,
-  Crown,
-  ChevronLeft,
-  ChevronRight,
-  Loader2,
-  Check,
-  X,
-} from "lucide-react";
 import AdminSidebar from "../../components/AdminSidebar";
 import { useAdminStore } from "../../store/adminStore";
 import { useAdminBots } from "./useAdminBots";
@@ -186,11 +168,9 @@ export default function AdminBots() {
                 : "bg-red-500 text-white"
             }`}
           >
-            {notification.type === "success" ? (
-              <Check className="w-5 h-5" />
-            ) : (
-              <X className="w-5 h-5" />
-            )}
+            <span className="text-sm font-semibold uppercase tracking-wide">
+              {notification.type === "success" ? "Success" : "Error"}
+            </span>
             {notification.message}
           </div>
         )}
@@ -198,27 +178,21 @@ export default function AdminBots() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-              <Bot className="w-8 h-8 text-brand-500" />
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
               Bot Management
             </h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-1">
-              Create and manage chess bots for players
-            </p>
           </div>
           <div className="flex items-center gap-3">
             <button
               onClick={handleExport}
               className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center gap-2"
             >
-              <Download className="w-4 h-4" />
               Export CSV
             </button>
             <button
               onClick={handleCreate}
               className="px-4 py-2 rounded-lg bg-gradient-to-r from-brand-500 to-brand-500 text-white font-medium hover:from-brand-600 hover:to-brand-600 transition-colors flex items-center gap-2"
             >
-              <Plus className="w-4 h-4" />
               Create Bot
             </button>
           </div>
@@ -237,9 +211,6 @@ export default function AdminBots() {
                     {stats.total}
                   </p>
                 </div>
-                <div className="w-12 h-12 rounded-xl bg-brand-500/10 flex items-center justify-center">
-                  <Bot className="w-6 h-6 text-brand-500" />
-                </div>
               </div>
             </div>
             <div className="bg-white dark:bg-slate-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800">
@@ -251,9 +222,6 @@ export default function AdminBots() {
                   <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                     {stats.active}
                   </p>
-                </div>
-                <div className="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center">
-                  <ToggleRight className="w-6 h-6 text-green-500" />
                 </div>
               </div>
             </div>
@@ -267,9 +235,6 @@ export default function AdminBots() {
                     {stats.inactive}
                   </p>
                 </div>
-                <div className="w-12 h-12 rounded-xl bg-gray-500/10 flex items-center justify-center">
-                  <ToggleLeft className="w-6 h-6 text-gray-500" />
-                </div>
               </div>
             </div>
             <div className="bg-white dark:bg-slate-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800">
@@ -282,9 +247,6 @@ export default function AdminBots() {
                     {stats.byDifficulty?.master || 0}
                   </p>
                 </div>
-                <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center">
-                  <Crown className="w-6 h-6 text-amber-500" />
-                </div>
               </div>
             </div>
           </div>
@@ -296,13 +258,12 @@ export default function AdminBots() {
             {/* Search */}
             <div className="flex-1 min-w-[200px]">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search bots..."
-                  className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500"
+                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500"
                 />
               </div>
             </div>
@@ -352,11 +313,12 @@ export default function AdminBots() {
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center py-20">
-              <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
+              <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                Loading bots...
+              </span>
             </div>
           ) : bots.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-gray-500">
-              <Bot className="w-12 h-12 mb-4 opacity-50" />
               <p>No bots found</p>
               <button
                 onClick={handleCreate}
@@ -415,20 +377,17 @@ export default function AdminBots() {
                       />
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="text-2xl">{bot.avatar}</div>
-                        <div>
-                          <div className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
-                            {bot.name}
-                            {bot.title && (
-                              <span className="px-1.5 py-0.5 text-[10px] font-bold bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded">
-                                {bot.title}
-                              </span>
-                            )}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {bot.playStyle}
-                          </div>
+                      <div>
+                        <div className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
+                          {bot.name}
+                          {bot.title && (
+                            <span className="px-1.5 py-0.5 text-[10px] font-bold bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded">
+                              {bot.title}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {bot.playStyle}
                         </div>
                       </div>
                     </td>
@@ -466,17 +425,17 @@ export default function AdminBots() {
                       <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => handleEdit(bot)}
-                          className="p-2 rounded-lg text-gray-500 hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"
+                          className="px-3 py-1.5 rounded-lg text-sm text-gray-500 hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"
                           title="Edit"
                         >
-                          <Pencil className="w-4 h-4" />
+                          Edit
                         </button>
                         <button
                           onClick={() => setDeleteBot(bot)}
-                          className="p-2 rounded-lg text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                          className="px-3 py-1.5 rounded-lg text-sm text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                           title="Delete"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          Delete
                         </button>
                       </div>
                     </td>
@@ -498,9 +457,9 @@ export default function AdminBots() {
                 <button
                   onClick={() => setPage(pagination.page - 1)}
                   disabled={pagination.page <= 1}
-                  className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <ChevronLeft className="w-4 h-4" />
+                  Previous
                 </button>
                 <span className="px-3 py-1 text-sm text-gray-600 dark:text-gray-400">
                   Page {pagination.page} of {pagination.pages}
@@ -508,9 +467,9 @@ export default function AdminBots() {
                 <button
                   onClick={() => setPage(pagination.page + 1)}
                   disabled={pagination.page >= pagination.pages}
-                  className="p-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <ChevronRight className="w-4 h-4" />
+                  Next
                 </button>
               </div>
             </div>

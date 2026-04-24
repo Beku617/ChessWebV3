@@ -1,5 +1,3 @@
-import { Brain, Zap, BarChart3, Loader2 } from "lucide-react";
-
 interface AnalysisLoadingOverlayProps {
   progress: number;
 }
@@ -10,16 +8,6 @@ export function AnalysisLoadingOverlay({
   return (
     <div className="h-screen bg-[#f5f5f7] dark:bg-gray-950 flex items-center justify-center">
       <div className="text-center">
-        {/* Animated chess analysis icon */}
-        <div className="relative mb-8">
-          <div className="w-24 h-24 mx-auto rounded-2xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-2xl shadow-brand-500/30">
-            <Brain className="w-12 h-12 text-white animate-pulse" />
-          </div>
-          <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center animate-bounce">
-            <Zap className="w-4 h-4 text-white" />
-          </div>
-        </div>
-
         {/* Title */}
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
           Analyzing Your Game
@@ -45,16 +33,10 @@ export function AnalysisLoadingOverlay({
 
         {/* Analysis steps */}
         <div className="flex items-center justify-center gap-6 text-sm text-gray-500 dark:text-gray-400">
-          <div className="flex items-center gap-2">
-            <BarChart3
-              className={`w-4 h-4 ${progress > 0 ? "text-brand-500" : ""}`}
-            />
+          <div className={progress > 0 ? "text-brand-500" : ""}>
             <span>Evaluating positions</span>
           </div>
-          <div className="flex items-center gap-2">
-            <Loader2
-              className={`w-4 h-4 ${progress > 50 ? "text-brand-500 animate-spin" : "animate-spin"}`}
-            />
+          <div className={progress > 50 ? "text-brand-500" : ""}>
             <span>Calculating accuracy</span>
           </div>
         </div>

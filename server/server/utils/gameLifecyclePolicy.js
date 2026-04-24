@@ -2,18 +2,6 @@ export const ABORT_TIMEOUT_MS_DEFAULT = 60 * 1000;
 export const ABORT_TIMEOUT_MS_BULLET_ONE_ZERO = 10 * 1000;
 export const MIN_REAL_GAME_PLIES = 2;
 
-const EARLY_ABORT_REASONS = new Set([
-  "opponent_left",
-  "resign",
-  "timeout",
-  "leave",
-  "leavegame",
-  "disconnect",
-  "quit",
-  "exit",
-  "abandon",
-]);
-
 function normalizeSeconds(value, fallback) {
   const parsed = Number(value);
   if (!Number.isFinite(parsed) || parsed < 0) return fallback;
@@ -46,13 +34,7 @@ export function isRealGameByPlies(plies) {
 export function shouldConvertToAborted(reason, plies) {
   const normalizedReason = String(reason || "").trim().toLowerCase();
   if (normalizedReason === "aborted") return true;
-
-  const normalizedPlies = Number(plies);
-  if (!Number.isFinite(normalizedPlies) || normalizedPlies > 0) {
-    return false;
-  }
-
-  return EARLY_ABORT_REASONS.has(normalizedReason);
+  return false;
 }
 
 export function resolveTerminalReason(reason, plies) {

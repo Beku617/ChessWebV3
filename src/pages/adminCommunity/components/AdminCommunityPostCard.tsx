@@ -117,9 +117,6 @@ export function AdminCommunityPostCard({
   const reviewStateLabel = post.reviewedAt
     ? `Reviewed ${formatRelativeTime(post.reviewedAt)}`
     : "Awaiting review";
-  const postingQuotaLabel = resolvedRestrictionDraft.unlimitedPosts
-    ? "Unlimited posting"
-    : "5 posts / 3 hours";
   const showApproveAction = post.status !== "approved";
   const showRejectAction = post.status !== "rejected";
   const showSecondaryActionRow = !isEditing || showRejectBox || showRejectAction;
@@ -279,7 +276,6 @@ export function AdminCommunityPostCard({
           restrictionDurationOptions={restrictionDurationOptions}
           isRestrictionBusy={isRestrictionBusy}
           isRateLimitBypassBusy={isRateLimitBypassBusy}
-          postingQuotaLabel={postingQuotaLabel}
           isBusy={isBusy}
           showRejectBox={showRejectBox}
           rejectionDraft={rejectionDraft}

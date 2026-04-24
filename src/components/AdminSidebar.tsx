@@ -1,24 +1,23 @@
-import {
-  Users,
-  Gamepad2,
-  Sun,
-  Moon,
-  LogOut,
-  Shield,
-  Brain,
-  Bot,
-  Trophy,
-  MessageSquare,
-  BookOpen,
-} from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useThemeStore } from "../store/themeStore";
 import { useAdminStore } from "../store/adminStore";
+import type { LucideIcon } from "lucide-react";
+import {
+  BookOpen,
+  Calendar,
+  Cpu,
+  Folder,
+  Gamepad2,
+  ListChecks,
+  LogOut,
+  MessageSquare,
+  Users,
+} from "lucide-react";
 
 export default function AdminSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { isDarkMode, toggleTheme } = useThemeStore();
+  const { isDarkMode } = useThemeStore();
   const { admin, logout } = useAdminStore();
   const isActive = (path: string) => location.pathname === path;
   const logoSrc = isDarkMode ? "/images/Logo.png" : "/images/LightModeLogo.png";
@@ -28,15 +27,16 @@ export default function AdminSidebar() {
     navigate("/login");
   };
 
-  const navItems = [
-    { icon: Users, label: "Users", path: "/admin/users" },
-    { icon: Bot, label: "Bots", path: "/admin/bots" },
-    { icon: Brain, label: "Puzzles", path: "/admin/puzzles" },
-    { icon: BookOpen, label: "Learn", path: "/admin/learn" },
-    { icon: Trophy, label: "Events", path: "/admin/events" },
-    { icon: Gamepad2, label: "Games", path: "/admin/games" },
-    { icon: MessageSquare, label: "Community", path: "/admin/community" },
-    { icon: Users, label: "Groups", path: "/admin/groups" },
+  const navItems: Array<{ label: string; path: string; Icon: LucideIcon }> = [
+    { label: "Users", path: "/admin/users", Icon: Users },
+    { label: "Bots", path: "/admin/bots", Icon: Cpu },
+    { label: "Puzzles", path: "/admin/puzzles", Icon: ListChecks },
+    { label: "Learn", path: "/admin/learn", Icon: BookOpen },
+    { label: "Events", path: "/admin/events", Icon: Calendar },
+    { label: "Tournaments", path: "/admin/tournaments", Icon: Calendar },
+    { label: "Games", path: "/admin/games", Icon: Gamepad2 },
+    { label: "Community", path: "/admin/community", Icon: MessageSquare },
+    { label: "Groups", path: "/admin/groups", Icon: Folder },
   ];
 
   const resolveAvatarUrl = (avatar?: string) => {
@@ -54,11 +54,11 @@ export default function AdminSidebar() {
   };
 
   return (
-    <div className="w-72 h-screen overflow-hidden bg-[#ebebed] dark:bg-gray-900 border-r border-gray-200/60 dark:border-gray-800 flex flex-col fixed left-0 top-0 z-50 transition-colors duration-300">
+    <div className="w-72 h-screen overflow-hidden bg-theme-secondary border-r border-theme-glass flex flex-col fixed left-0 top-0 z-50 transition-colors duration-300">
       {/* Logo */}
       <Link
         to="/admin"
-        className="px-6 py-4 flex items-center gap-3 border-b border-gray-200/70 dark:border-gray-800"
+        className="px-6 py-4 flex items-center gap-3 border-b border-theme-glass"
       >
         <img
           src={logoSrc}
@@ -77,42 +77,30 @@ export default function AdminSidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 min-h-0 overflow-y-auto premium-scrollbar px-4 pr-3 space-y-2 mt-2">
-        {navItems.map((item) => (
-          <Link
-            key={item.path}
-            to={item.path}
-            className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 group ${
-              isActive(item.path)
-                ? "bg-brand-500/10 text-brand-600 dark:text-brand-400 border-l-4 border-brand-500"
-                : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white"
-            }`}
-          >
-            <item.icon
-              className={`w-5 h-5 ${isActive(item.path) ? "text-brand-600 dark:text-brand-400" : "text-gray-400 dark:text-gray-500 group-hover:text-gray-900 dark:group-hover:text-white"}`}
-            />
-            <span className="font-medium">{item.label}</span>
-          </Link>
-        ))}
+        {navItems.map((item) => {
+          const Icon = item.Icon;
+
+          return (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group ${
+                isActive(item.path)
+                  ? "bg-brand-500/10 text-brand-600 dark:text-brand-400 border-l-4 border-brand-500"
+                  : "text-gray-500 dark:text-gray-300 hover:bg-white/45 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white"
+              }`}
+            >
+              <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
+              <span className="font-medium">{item.label}</span>
+            </Link>
+          );
+        })}
       </nav>
 
-      {/* Theme Toggle & Profile */}
-      <div className="shrink-0 p-4 border-t border-gray-200 dark:border-gray-800 space-y-2">
-        <button
-          onClick={toggleTheme}
-          className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-colors"
-        >
-          {isDarkMode ? (
-            <Sun className="w-5 h-5" />
-          ) : (
-            <Moon className="w-5 h-5" />
-          )}
-          <span className="font-medium">
-            {isDarkMode ? "Light Mode" : "Dark Mode"}
-          </span>
-        </button>
-
+      {/* Profile */}
+      <div className="shrink-0 p-4 border-t border-theme-glass space-y-2">
         {/* Admin Profile */}
-        <div className="flex items-center space-x-3 px-4 py-3 rounded-lg bg-gray-100 dark:bg-gray-800">
+        <div className="theme-glass-panel-soft flex items-center space-x-3 px-4 py-3 rounded-lg">
           <Link
             to="/admin/profile"
             className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-lg hover:opacity-80 transition-opacity flex-shrink-0 overflow-hidden"
@@ -125,7 +113,7 @@ export default function AdminSidebar() {
                 className="h-full w-full object-cover"
               />
             ) : (
-              <Shield className="w-5 h-5 text-white" />
+              <span className="text-xs font-bold text-white">AD</span>
             )}
           </Link>
           <Link
@@ -141,9 +129,9 @@ export default function AdminSidebar() {
 
         <button
           onClick={handleLogout}
-          className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-500 hover:bg-red-500/10 transition-colors"
         >
-          <LogOut className="w-5 h-5" />
+          <LogOut className="h-5 w-5 shrink-0" aria-hidden="true" />
           <span className="font-medium">Log Out</span>
         </button>
       </div>

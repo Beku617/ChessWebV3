@@ -7,6 +7,7 @@ import {
   RotateCcw,
   UserRound,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { LearnCatalogCourse } from "../../features/learn/types";
 
 interface LearnCourseCardProps {
@@ -30,6 +31,7 @@ export function LearnCourseCard({
   onContinue,
   onOpenLesson,
 }: LearnCourseCardProps) {
+  const { t } = useTranslation();
   const badgeText = course.badge?.trim() || course.difficulty;
   const continueSlug = course.progress.continueLessonSlug || course.lessons[0]?.slug;
   const retrySlug = course.lessons[0]?.slug || continueSlug;
@@ -41,10 +43,26 @@ export function LearnCourseCard({
   const progressPercent = Math.max(0, Math.min(100, course.progress.percentComplete));
   const secondaryText = course.subtitle || course.description;
   const actionLabel = isCompleted
-    ? "Retry Course"
+    ? t("learn.retryCourse", "Retry Course")
     : isStarted
-      ? "Continue Lesson"
-      : "Start Course";
+      ? t("learn.continueLesson", "Continue Lesson")
+      : t("learn.startCourse", "Start Course");
+  const categoryLabel =
+    course.category === "Openings"
+      ? t("learn.categories.openings", "Openings")
+      : course.category === "Middlegame"
+        ? t("learn.categories.middlegame", "Middlegame")
+        : course.category === "Endgame"
+          ? t("learn.categories.endgame", "Endgame")
+          : t("learn.categories.strategy", "Strategy");
+  const localizedBadgeText =
+    badgeText === "Beginner"
+      ? t("learn.difficulty.beginner", "Beginner")
+      : badgeText === "Intermediate"
+        ? t("learn.difficulty.intermediate", "Intermediate")
+        : badgeText === "Advanced"
+          ? t("learn.difficulty.advanced", "Advanced")
+          : badgeText;
 
   return (
     <article className="overflow-hidden rounded-2xl border border-gray-800 bg-gray-900/70 shadow-[0_20px_40px_-32px_rgba(15,23,42,0.95)]">
@@ -65,7 +83,7 @@ export function LearnCourseCard({
           <div className="relative z-10 flex h-full flex-col justify-between p-5 sm:p-6">
             <div className="flex items-start justify-between gap-3">
               <span className="inline-flex h-8 items-center rounded-full border border-brand-400/35 bg-brand-500/12 px-3 text-[10px] font-semibold uppercase tracking-[0.1em] text-brand-100">
-                {badgeText}
+                {localizedBadgeText}
               </span>
             </div>
 
@@ -79,7 +97,8 @@ export function LearnCourseCard({
               <div className="inline-flex items-center gap-2 text-gray-300/85">
                 <UserRound className="h-4 w-4 text-gray-400" />
                 <span className="text-sm">
-                  {course.instructorName || "NeonGambit Instructor"}
+                  {course.instructorName ||
+                    t("learn.instructorFallback", "NeonGambit Instructor")}
                 </span>
               </div>
             </div>
@@ -89,14 +108,18 @@ export function LearnCourseCard({
         <div className="flex flex-col gap-6 bg-gray-900/65 p-5 sm:p-6">
           <div className="flex items-center">
             <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-gray-400/90">
-              Course Progress
+              {t("learn.courseProgress", "Course Progress")}
             </p>
           </div>
 
           <div className="rounded-2xl border border-gray-800 bg-gray-950/70 p-4">
             <div className="mb-2.5 flex items-center justify-between text-xs text-gray-400">
               <span>
-                {course.progress.completedLessonsCount}/{course.progress.totalLessons} lessons
+                {t("learn.lessonProgress", {
+                  defaultValue: "{{completed}}/{{total}} lessons",
+                  completed: course.progress.completedLessonsCount,
+                  total: course.progress.totalLessons,
+                })}
               </span>
               <span>{progressPercent}%</span>
             </div>
@@ -111,12 +134,12 @@ export function LearnCourseCard({
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-gray-400/90">
-                Quick Lessons
+                {t("learn.quickLessons", "Quick Lessons")}
               </p>
               <span
                 className={`rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] ${difficultyClass(course.difficulty)}`}
               >
-                {course.category}
+                {categoryLabel}
               </span>
             </div>
 
@@ -142,8 +165,10 @@ export function LearnCourseCard({
           <div className="mt-auto space-y-3 pt-1">
             {course.lessons.length > visibleLessons.length ? (
               <p className="text-xs text-gray-500">
-                +{course.lessons.length - visibleLessons.length} more lesson
-                {course.lessons.length - visibleLessons.length === 1 ? "" : "s"}
+                {t("learn.moreLessons", {
+                  defaultValue: "+{{count}} more lessons",
+                  count: course.lessons.length - visibleLessons.length,
+                })}
               </p>
             ) : null}
           </div>

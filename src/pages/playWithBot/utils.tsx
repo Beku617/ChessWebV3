@@ -1,17 +1,7 @@
-import { Flame, Shield, Shuffle, Zap } from "lucide-react";
 import { BotPersonality } from "../../data/botPersonalities";
 
-export function getPlayStyleIcon(style: BotPersonality["playStyle"]) {
-  switch (style) {
-    case "aggressive":
-      return <Flame className="w-3.5 h-3.5 text-red-500" />;
-    case "defensive":
-      return <Shield className="w-3.5 h-3.5 text-blue-500" />;
-    case "random":
-      return <Shuffle className="w-3.5 h-3.5 text-purple-500" />;
-    default:
-      return <Zap className="w-3.5 h-3.5 text-yellow-500" />;
-  }
+export function getPlayStyleLabel(style: BotPersonality["playStyle"]) {
+  return style;
 }
 
 export function getCategoryColor(category: BotPersonality["category"]) {

@@ -14,25 +14,8 @@ const PIECE_LABELS: Record<PromotionPiece, string> = {
   n: "Knight",
 };
 
-const PIECE_SYMBOLS = {
-  w: {
-    q: "♕",
-    r: "♖",
-    b: "♗",
-    n: "♘",
-  },
-  b: {
-    q: "♛",
-    r: "♜",
-    b: "♝",
-    n: "♞",
-  },
-} as const;
-
 export function PromotionModal({ state, onSelect }: PromotionModalProps) {
   if (!state.isOpen || !state.color) return null;
-
-  const symbols = PIECE_SYMBOLS[state.color];
 
   return (
     <div className="absolute inset-0 z-[90] flex items-center justify-center">
@@ -56,10 +39,7 @@ export function PromotionModal({ state, onSelect }: PromotionModalProps) {
               className="group flex h-20 flex-col items-center justify-center rounded-xl border border-white/15 bg-slate-900/80 transition hover:-translate-y-0.5 hover:border-brand-300/70 hover:bg-slate-800"
               aria-label={`Promote to ${PIECE_LABELS[piece]}`}
             >
-              <span className="text-4xl leading-none text-slate-100">
-                {symbols[piece]}
-              </span>
-              <span className="mt-1 text-[10px] font-medium uppercase tracking-wide text-slate-400 group-hover:text-brand-200">
+              <span className="text-sm font-semibold uppercase tracking-wide text-slate-200 group-hover:text-brand-200">
                 {PIECE_LABELS[piece]}
               </span>
             </button>

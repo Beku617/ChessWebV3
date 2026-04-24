@@ -1,19 +1,10 @@
-import { useMemo, type ComponentType } from "react";
+import { useMemo } from "react";
 import {
   Area,
   AreaChart,
   XAxis,
   YAxis,
 } from "recharts";
-import {
-  ArrowDown,
-  ArrowUp,
-  Clock3,
-  Landmark,
-  Shield,
-  TimerReset,
-  Zap,
-} from "lucide-react";
 import { useAuthStore } from "../../store/authStore";
 import { type RatingPool, type RatingTimelinePoint, useRatingTimeline } from "../../hooks/useRatingsData";
 import { useElementSize } from "../../hooks/useElementSize";
@@ -34,33 +25,23 @@ const CARD_THEME: Record<
   RatingPool,
   {
     label: string;
-    icon: ComponentType<{ className?: string }>;
-    iconColor: string;
     lineColor: string;
   }
 > = {
   rapid: {
     label: "Rapid",
-    icon: Clock3,
-    iconColor: "text-lime-400",
     lineColor: "#7dd3fc",
   },
   blitz: {
     label: "Blitz",
-    icon: Zap,
-    iconColor: "text-amber-400",
     lineColor: "#7dd3fc",
   },
   bullet: {
     label: "Bullet",
-    icon: TimerReset,
-    iconColor: "text-orange-400",
     lineColor: "#67e8f9",
   },
   classical: {
     label: "Classical",
-    icon: Landmark,
-    iconColor: "text-brand-400",
     lineColor: "#93c5fd",
   },
 };
@@ -226,7 +207,6 @@ export function FormatStatsCard({
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
           Format Ratings
         </h3>
-        <Shield className="w-5 h-5 text-brand-500" />
       </div>
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
         {cards.map((format) => (
@@ -236,9 +216,6 @@ export function FormatStatsCard({
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-start gap-3">
-                <format.meta.icon
-                  className={`w-7 h-7 mt-1 ${format.meta.iconColor}`}
-                />
                 <div>
                   <div className="text-sm text-slate-500 dark:text-gray-300">
                     {format.meta.label}
@@ -252,11 +229,7 @@ export function FormatStatsCard({
                         format.delta >= 0 ? "text-brand-400" : "text-red-400"
                       }`}
                     >
-                      {format.delta >= 0 ? (
-                        <ArrowUp className="w-3.5 h-3.5" />
-                      ) : (
-                        <ArrowDown className="w-3.5 h-3.5" />
-                      )}
+                      {format.delta >= 0 ? "+" : "-"}
                       {Math.abs(format.delta)}
                     </span>
                   </div>

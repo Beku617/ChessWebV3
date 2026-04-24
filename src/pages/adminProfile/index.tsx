@@ -1,16 +1,12 @@
-import { ReactNode, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   CheckCircle,
   Eye,
   EyeOff,
-  Gamepad2,
   Key,
   Loader2,
   Save,
-  Sparkles,
-  TrendingUp,
-  Users,
   XCircle,
 } from "lucide-react";
 import AdminSidebar from "../../components/AdminSidebar";
@@ -27,17 +23,13 @@ interface Stats {
 }
 
 function StatCard({
-  icon,
   label,
   value,
   sub,
-  color,
 }: {
-  icon: ReactNode;
   label: string;
   value: string | number;
   sub?: string;
-  color: string;
 }) {
   return (
     <div className="rounded-2xl border border-gray-200/80 bg-white/95 p-5 shadow-[0_12px_30px_rgba(15,23,42,0.08)] dark:border-white/10 dark:bg-slate-900/90">
@@ -54,11 +46,6 @@ function StatCard({
               {sub}
             </div>
           ) : null}
-        </div>
-        <div
-          className={`flex h-12 w-12 items-center justify-center rounded-2xl text-white shadow-lg ${color}`}
-        >
-          {icon}
         </div>
       </div>
     </div>
@@ -261,30 +248,22 @@ export default function AdminProfile() {
               ) : (
                 <div className="grid gap-4 sm:grid-cols-2">
                   <StatCard
-                    icon={<Users className="h-6 w-6" />}
                     label="Total Users"
                     value={stats?.totalUsers ?? 0}
                     sub={`+${stats?.newUsersThisWeek ?? 0} this week`}
-                    color="bg-brand-500"
                   />
                   <StatCard
-                    icon={<Gamepad2 className="h-6 w-6" />}
                     label="Total Games"
                     value={stats?.totalGames ?? 0}
                     sub={`+${stats?.gamesThisWeek ?? 0} this week`}
-                    color="bg-blue-500"
                   />
                   <StatCard
-                    icon={<TrendingUp className="h-6 w-6" />}
                     label="New Users (7d)"
                     value={stats?.newUsersThisWeek ?? 0}
-                    color="bg-brand-500"
                   />
                   <StatCard
-                    icon={<Sparkles className="h-6 w-6" />}
                     label="Games This Week"
                     value={stats?.gamesThisWeek ?? 0}
-                    color="bg-purple-500"
                   />
                 </div>
               )}

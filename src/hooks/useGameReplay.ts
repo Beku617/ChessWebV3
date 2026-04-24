@@ -68,6 +68,7 @@ export function useGameReplay(game: GameHistory) {
     accuracy,
     isAnalyzing,
     analysisProgress,
+    analysisDisabledReason,
   } = useMoveAnalysis(game, positions, moveRows, totalPlies);
 
   // Playback controls
@@ -144,6 +145,7 @@ export function useGameReplay(game: GameHistory) {
     // Analysis state
     isAnalyzing,
     analysisProgress,
+    analysisDisabledReason,
 
     // Evaluation
     evalPercent,

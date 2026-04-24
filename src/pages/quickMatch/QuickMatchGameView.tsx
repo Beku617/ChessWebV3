@@ -8,7 +8,12 @@ import type { HistoryPersistenceStatus } from "../../hooks/gameHistorySaver/hist
 import { BOARD_FRAME } from "./types";
 import type { CSSProperties } from "react";
 
-type MatchVariant = "standard" | "chess960" | "threeCheck" | "kingOfHill";
+type MatchVariant =
+  | "standard"
+  | "chess960"
+  | "threeCheck"
+  | "kingOfHill"
+  | "atomic";
 const KING_OF_HILL_SQUARE_STYLES: Record<string, CSSProperties> = {
   d4: { boxShadow: "inset 0 0 0 9999px rgba(250, 204, 21, 0.16)" },
   e4: { boxShadow: "inset 0 0 0 9999px rgba(250, 204, 21, 0.16)" },
@@ -72,6 +77,7 @@ interface QuickMatchGameViewProps {
   preMoveSquares: Record<string, CSSProperties>;
   playerRating?: number | null;
   opponentRating?: number | null;
+  statusMessage?: string | null;
   gameOverElo?: {
     rated?: boolean;
     applied?: boolean;
@@ -91,6 +97,7 @@ interface QuickMatchGameViewProps {
   playerClockSeed?: number;
   opponentClockSeed?: number;
   clockResetToken?: number;
+  isClockPaused?: boolean;
   onTimeOut: (isPlayer: boolean) => void;
   onResign: () => void;
   onRematch: () => void;
@@ -135,6 +142,7 @@ export function QuickMatchGameView({
   preMoveSquares,
   playerRating,
   opponentRating,
+  statusMessage,
   gameOverElo,
   onSquareClick,
   onPieceDrop,
@@ -145,6 +153,7 @@ export function QuickMatchGameView({
   playerClockSeed,
   opponentClockSeed,
   clockResetToken,
+  isClockPaused = false,
   onTimeOut,
   onResign,
   onRematch,
@@ -184,6 +193,8 @@ export function QuickMatchGameView({
         ? "King of the Hill"
       : variant === "threeCheck"
         ? "Three-Check"
+        : variant === "atomic"
+          ? "Atomic Chess"
         : "";
   const persistentSquareStyles =
     variant === "kingOfHill" ? KING_OF_HILL_SQUARE_STYLES : {};
@@ -231,7 +242,7 @@ export function QuickMatchGameView({
   }, []);
 
   return (
-    <div className="relative h-screen w-full bg-slate-100 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 overflow-hidden">
+    <div className="relative h-screen w-full bg-transparent overflow-hidden">
       <div className="relative h-full w-full grid grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] overflow-hidden">
         <GameOverModal
           isOpen={showGameOverModal}
@@ -272,7 +283,8 @@ export function QuickMatchGameView({
                 !isPlayerTurn &&
                 !gameOver &&
                 gameSettings.timeControl.initial > 0 &&
-                opponentTimerAllowed
+                opponentTimerAllowed &&
+                !isClockPaused
               }
               onTimeOut={() => onTimeOut(false)}
               onTimeChange={setOpponentTime}
@@ -282,7 +294,7 @@ export function QuickMatchGameView({
 
           {/* Chessboard */}
           <div
-            className="rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-gray-200/60 dark:border-white/5 shadow-xl"
+            className="theme-glass-panel-strong rounded-2xl"
             style={{ width: boardWidth + BOARD_FRAME }}
           >
             <GameBoard
@@ -328,7 +340,8 @@ export function QuickMatchGameView({
                 isPlayerTurn &&
                 !gameOver &&
                 gameSettings.timeControl.initial > 0 &&
-                playerTimerAllowed
+                playerTimerAllowed &&
+                !isClockPaused
               }
               onTimeOut={() => onTimeOut(true)}
               onTimeChange={setPlayerTime}
@@ -339,7 +352,7 @@ export function QuickMatchGameView({
 
         {/* Sidebar */}
         <div className="min-w-0 w-full lg:flex-1 lg:self-stretch min-h-0 flex flex-col">
-          <div className="flex-1 rounded-3xl border border-white/10 bg-white/70 dark:bg-slate-900/80 shadow-2xl backdrop-blur-xl px-4 py-4 flex flex-col overflow-hidden">
+          <div className="theme-glass-panel-strong flex-1 rounded-3xl px-4 py-4 flex flex-col overflow-hidden">
             {/* Header */}
             <div className="flex items-center justify-center mb-3 pb-3 border-b border-gray-200/60 dark:border-white/10">
               <h2 className="text-lg font-bold text-gray-900 dark:text-white">
@@ -350,7 +363,7 @@ export function QuickMatchGameView({
             </div>
 
             {tournamentMode && (
-              <div className="mb-3 flex items-center gap-2 rounded-xl border border-gray-200/60 bg-gray-100/70 p-1 dark:border-white/10 dark:bg-slate-800/60">
+              <div className="theme-glass-panel-soft mb-3 flex items-center gap-2 rounded-xl p-1">
                 <button
                   onClick={() => setTournamentTab("standings")}
                   className={`flex-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors ${
@@ -384,8 +397,14 @@ export function QuickMatchGameView({
               </div>
             )}
 
+            {statusMessage && (
+              <div className="theme-glass-panel-soft mb-3 rounded-xl px-3 py-2 text-xs text-gray-600 dark:text-gray-300">
+                {statusMessage}
+              </div>
+            )}
+
             {/* Content */}
-            <div className="flex-1 mb-3 rounded-xl bg-gray-50/50 dark:bg-slate-800/50 border border-gray-200/60 dark:border-white/5 overflow-hidden">
+            <div className="theme-glass-panel-soft flex-1 mb-3 rounded-xl overflow-hidden">
               {(!tournamentMode || tournamentTab === "moves") && (
                 <div className="h-full overflow-auto p-2.5">
                   {moves.length === 0 ? (
@@ -541,7 +560,7 @@ export function QuickMatchGameView({
                   onLeave?.();
                   navigate(tournamentMode ? "/tournaments" : "/play");
                 }}
-                className="w-full px-4 py-2.5 rounded-xl bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-800 dark:text-gray-200 font-medium transition-colors"
+                className="w-full px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-gray-800 dark:text-gray-200 font-medium transition-colors"
               >
                 {tournamentMode ? "Back to Tournament" : "Back to Play"}
               </button>

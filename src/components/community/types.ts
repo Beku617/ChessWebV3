@@ -179,6 +179,12 @@ export interface CommunityGroupsOverviewResponse {
 export interface CommunityGroupsListResponse {
   groups: CommunityGroup[];
   total: number;
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
 }
 
 export interface CommunityGroupDetailResponse {

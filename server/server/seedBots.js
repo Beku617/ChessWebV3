@@ -13,35 +13,35 @@ const MONGODB_URL =
 
 async function reseedBots() {
   try {
-    console.log("🔌 Connecting to MongoDB...");
+    console.log(" Connecting to MongoDB...");
     await mongoose.connect(MONGODB_URL);
-    console.log("✅ Connected to MongoDB");
+    console.log(" Connected to MongoDB");
 
     // Delete all existing bots
-    console.log("🗑️  Deleting existing bots...");
+    console.log("  Deleting existing bots...");
     const deleteResult = await Bot.deleteMany({});
     console.log(`   Deleted ${deleteResult.deletedCount} bots`);
 
     // Insert new bots
-    console.log("🤖 Inserting bot seed data...");
+    console.log(" Inserting bot seed data...");
     const result = await Bot.insertMany(botSeedData);
-    console.log(`✅ Successfully seeded ${result.length} bots!`);
+    console.log(` Successfully seeded ${result.length} bots!`);
 
     // Show summary by difficulty
     const summary = {};
     result.forEach((bot) => {
       summary[bot.difficulty] = (summary[bot.difficulty] || 0) + 1;
     });
-    console.log("\n📊 Summary by difficulty:");
+    console.log("\n Summary by difficulty:");
     Object.entries(summary).forEach(([diff, count]) => {
       console.log(`   ${diff}: ${count} bots`);
     });
 
     await mongoose.disconnect();
-    console.log("\n👋 Done!");
+    console.log("\n Done!");
     process.exit(0);
   } catch (error) {
-    console.error("❌ Error:", error);
+    console.error(" Error:", error);
     process.exit(1);
   }
 }

@@ -8,16 +8,21 @@ import {
   OverviewTabContent,
   GamesTabContent,
   NoGamesPlaceholder,
-  TournamentProfileSection,
   API_URL,
   calculateStats,
   filterGames,
-  type TournamentProfileData,
   type FilterType,
+  type TournamentHistoryEntry,
   type TabType,
 } from "../components/profilePage";
 import type { Relationship } from "../components/profilePage/ProfileHeader";
 import { useFriendStore } from "../store/friendStore";
+import {
+  blockUser,
+  unblockUser,
+  useBlockStatus,
+  refreshBlockingCaches,
+} from "../features/blocking/api";
 
 interface PublicUser {
   id: string;
@@ -63,9 +68,17 @@ export default function UserProfile() {
   const [filter, setFilter] = useState<FilterType>("all");
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [friendLoading, setFriendLoading] = useState(false);
-  const [tournamentProfile, setTournamentProfile] =
-    useState<TournamentProfileData | null>(null);
-  const [loadingTournamentProfile, setLoadingTournamentProfile] = useState(false);
+  const [blockActionLoading, setBlockActionLoading] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [tournamentHistory, setTournamentHistory] = useState<
+    TournamentHistoryEntry[]
+  >([]);
+  const {
+    data: blockStatus,
+    mutate: mutateBlockStatus,
+  } = useBlockStatus(userId);
+
+  const isBlockedByMe = Boolean(blockStatus?.isBlocked);
 
   // If viewing own profile, redirect to /profile
   useEffect(() => {
@@ -125,24 +138,23 @@ export default function UserProfile() {
   useEffect(() => {
     if (!userId) return;
     let cancelled = false;
-    async function fetchTournamentProfile() {
+
+    async function fetchTournamentHistory() {
       try {
-        setLoadingTournamentProfile(true);
         const res = await fetch(`${API_URL}/api/users/${userId}/profile`, {
           credentials: "include",
         });
         const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.error || "Failed to load tournament profile");
+        if (!res.ok) throw new Error(data.error || "Failed to load profile");
         if (!cancelled) {
-          setTournamentProfile(data.profile || null);
+          setTournamentHistory(data.profile?.tournamentHistory || []);
         }
       } catch {
-        if (!cancelled) setTournamentProfile(null);
-      } finally {
-        if (!cancelled) setLoadingTournamentProfile(false);
+        if (!cancelled) setTournamentHistory([]);
       }
     }
-    void fetchTournamentProfile();
+
+    void fetchTournamentHistory();
     return () => {
       cancelled = true;
     };
@@ -166,8 +178,13 @@ export default function UserProfile() {
 
   const handleAddFriend = useCallback(async () => {
     if (!userId || friendLoading) return;
+    if (isBlockedByMe) {
+      setActionError("You cannot send a friend request to this player.");
+      return;
+    }
     try {
       setFriendLoading(true);
+      setActionError(null);
       const result = await sendFriendRequest(userId);
       if (result.status === "accepted") {
         setRelationship("friends");
@@ -181,12 +198,13 @@ export default function UserProfile() {
     } finally {
       setFriendLoading(false);
     }
-  }, [userId, friendLoading, sendFriendRequest]);
+  }, [userId, friendLoading, sendFriendRequest, isBlockedByMe]);
 
   const handleRemoveFriend = useCallback(async () => {
     if (!userId || friendLoading) return;
     try {
       setFriendLoading(true);
+      setActionError(null);
       await removeFriendship(userId);
       setRelationship("none");
       setPendingRequestId(null);
@@ -201,6 +219,7 @@ export default function UserProfile() {
     if (!pendingRequestId || friendLoading) return;
     try {
       setFriendLoading(true);
+      setActionError(null);
       await acceptFriendRequest(pendingRequestId);
       setRelationship("friends");
       setPendingRequestId(null);
@@ -213,6 +232,7 @@ export default function UserProfile() {
     if (!pendingRequestId || friendLoading) return;
     try {
       setFriendLoading(true);
+      setActionError(null);
       await ignoreFriendRequest(pendingRequestId);
       setRelationship("none");
       setPendingRequestId(null);
@@ -222,9 +242,68 @@ export default function UserProfile() {
   }, [pendingRequestId, friendLoading, ignoreFriendRequest]);
 
   const handleChallenge = useCallback(() => {
+    if (isBlockedByMe) {
+      setActionError("You cannot challenge this player.");
+      return;
+    }
     if (relationship !== "friends") return;
     navigate("/play/friend");
-  }, [navigate, relationship]);
+  }, [navigate, relationship, isBlockedByMe]);
+
+  const handleMessage = useCallback(() => {
+    if (!userId || !profileUser?.fullName) return;
+    if (isBlockedByMe) {
+      setActionError("Unable to send message.");
+      return;
+    }
+    navigate(
+      `/messages?chat=${encodeURIComponent(userId)}&name=${encodeURIComponent(profileUser.fullName)}`,
+    );
+  }, [isBlockedByMe, navigate, profileUser?.fullName, userId]);
+
+  const handleToggleBlock = useCallback(async () => {
+    if (!userId || blockActionLoading) return;
+
+    const previous = blockStatus || {
+      isBlocked: false,
+      isBlockedByTarget: false,
+      isAnyBlocked: false,
+    };
+    const nextIsBlocked = !Boolean(previous.isBlocked);
+
+    setBlockActionLoading(true);
+    setActionError(null);
+    if (nextIsBlocked) {
+      setRelationship("none");
+      setPendingRequestId(null);
+    }
+
+    await mutateBlockStatus(
+      {
+        isBlocked: nextIsBlocked,
+        isBlockedByTarget: Boolean(previous.isBlockedByTarget),
+        isAnyBlocked: nextIsBlocked || Boolean(previous.isBlockedByTarget),
+      },
+      false,
+    );
+
+    try {
+      if (nextIsBlocked) {
+        await blockUser(userId);
+      } else {
+        await unblockUser(userId);
+      }
+      await mutateBlockStatus();
+      await refreshBlockingCaches(userId);
+    } catch (error) {
+      await mutateBlockStatus(previous, false);
+      setActionError(
+        error instanceof Error ? error.message : "Unable to update block status.",
+      );
+    } finally {
+      setBlockActionLoading(false);
+    }
+  }, [blockActionLoading, blockStatus, mutateBlockStatus, userId]);
 
   if (loading) {
     return (
@@ -275,20 +354,21 @@ export default function UserProfile() {
           onAddFriend={canUseFriendActions ? handleAddFriend : undefined}
           onRemoveFriend={canUseFriendActions ? handleRemoveFriend : undefined}
           onChallenge={canUseFriendActions ? handleChallenge : undefined}
+          onMessage={canUseFriendActions ? handleMessage : undefined}
           onAcceptRequest={canUseFriendActions ? handleAcceptRequest : undefined}
           onIgnoreRequest={canUseFriendActions ? handleIgnoreRequest : undefined}
           friendLoading={friendLoading}
+          isBlocked={isBlockedByMe}
+          onToggleBlock={canUseFriendActions ? handleToggleBlock : undefined}
+          blockActionLoading={blockActionLoading}
         />
 
         <div className="px-4 lg:px-6 py-6">
-          <div className="mb-6">
-            <TournamentProfileSection
-              data={tournamentProfile}
-              isLoading={loadingTournamentProfile}
-              title="Tournament & ELO"
-            />
-          </div>
-
+          {actionError ? (
+            <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
+              {actionError}
+            </div>
+          ) : null}
           {stats ? (
             activeTab === "overview" ? (
               <OverviewTabContent
@@ -304,6 +384,8 @@ export default function UserProfile() {
             ) : (
               <GamesTabContent
                 filteredGames={filteredGames}
+                allGames={games}
+                tournamentHistory={tournamentHistory}
                 filter={filter}
                 setFilter={setFilter}
                 expandedId={expandedId}

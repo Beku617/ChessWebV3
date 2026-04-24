@@ -5,10 +5,8 @@ import {
   Loader2,
   Paperclip,
   Send,
-  Smile,
   Video,
   X,
-  Crown,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -209,7 +207,6 @@ export function MessageComposer({
         pendingImages.length === 0 &&
         !pendingVideo && (
           <div className="mb-2 flex items-center gap-2 rounded-xl border border-brand-500/20 bg-brand-500/5 px-3 py-2">
-            <Crown className="h-4 w-4 shrink-0 text-brand-400" />
             <span className="text-xs text-brand-300/90">
               Type <span className="font-mono font-semibold">/game1</span>,{" "}
               <span className="font-mono font-semibold">/game2</span>, etc. to
@@ -233,13 +230,6 @@ export function MessageComposer({
         >
           <Video className="h-4 w-4" />
         </button>
-        <button
-          type="button"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-[#1b2a41] hover:text-slate-100"
-        >
-          <Smile className="h-4 w-4" />
-        </button>
-
         <input
           value={draft}
           onChange={(event) => onDraftChange(event.target.value)}

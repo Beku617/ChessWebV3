@@ -15,6 +15,7 @@ export type { TournamentProfileData } from "./TournamentProfileSection";
 export {
   type ProfileStats,
   type FilterType,
+  type TournamentHistoryEntry,
   type TabType,
   API_URL,
   formatDuration,

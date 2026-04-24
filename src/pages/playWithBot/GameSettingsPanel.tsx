@@ -25,7 +25,6 @@ export function GameSettingsPanel({
         {selectedBot ? (
           <div className="mb-6 pb-4 border-b border-gray-200/60 dark:border-white/10">
             <div className="flex items-center gap-3">
-              <div className="text-4xl">{selectedBot.avatar}</div>
               <div>
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-gray-900 dark:text-white">
@@ -68,7 +67,7 @@ export function GameSettingsPanel({
                     : "bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600"
                 }`}
               >
-                {color === "random" ? "🎲 Random" : color}
+                {color === "random" ? " Random" : color}
               </button>
             ))}
           </div>
@@ -96,7 +95,6 @@ export function GameSettingsPanel({
                     : "bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600"
                 }`}
               >
-                <opt.icon className="w-3.5 h-3.5" />
                 {opt.label}
               </button>
             ))}

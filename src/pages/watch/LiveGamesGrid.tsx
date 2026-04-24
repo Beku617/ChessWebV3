@@ -56,7 +56,7 @@ export function LiveGameCard({ game }: LiveGameCardProps) {
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-2">
             <div className="w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-xs">
-              ♟️
+
             </div>
             <div className="flex items-center gap-1">
               {game.whiteTitle && (
@@ -76,7 +76,7 @@ export function LiveGameCard({ game }: LiveGameCardProps) {
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-2">
             <div className="w-6 h-6 rounded bg-gray-100 dark:bg-gray-100 flex items-center justify-center text-xs text-black">
-              ♙
+
             </div>
             <div className="flex items-center gap-1">
               {game.blackTitle && (

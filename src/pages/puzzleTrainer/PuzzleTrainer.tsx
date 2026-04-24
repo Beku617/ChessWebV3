@@ -7,8 +7,8 @@ import {
   Lightbulb,
   Loader2,
   RefreshCcw,
-  Sparkles,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import Sidebar from "../../components/Sidebar";
 import { usePuzzleTrainer } from "./usePuzzleTrainer";
 import { TRAINER_MODES } from "./types";
@@ -39,6 +39,7 @@ function ratingDeltaClass(delta: number) {
 }
 
 export default function PuzzleTrainer() {
+  const { t } = useTranslation();
   const { allowClickInput, allowDragInput } = useGameplayPreferences();
   const {
     loading,
@@ -124,6 +125,9 @@ export default function PuzzleTrainer() {
     boardSize + LEFT_SECTION_X_PADDING * 2 + BOARD_FRAME_PADDING * 2;
   const ratingDelta = attemptFeedback?.ratingChange ?? 0;
   const showRatingDelta = ratingDelta !== 0;
+  const sideToMoveLabel = puzzleStartsWithWhite
+    ? t("puzzles.trainer.whiteToMove", "White to move")
+    : t("puzzles.trainer.blackToMove", "Black to move");
 
   return (
     <div className="h-screen overflow-hidden bg-[#070b14] text-white">
@@ -147,7 +151,7 @@ export default function PuzzleTrainer() {
                         : "text-slate-400 hover:text-slate-100"
                     }`}
                   >
-                    {tab.label}
+                    {t(`puzzles.modeLabels.${tab.mode}`, tab.label)}
                   </button>
                 );
               })}
@@ -157,7 +161,7 @@ export default function PuzzleTrainer() {
                 onClick={() => navigate("/puzzles/history")}
                 className="relative h-full px-3.5 text-[12.5px] font-medium text-slate-400 transition-colors hover:text-slate-100"
               >
-                History
+                {t("puzzles.trainer.historyTab", "History")}
               </button>
             </div>
 
@@ -184,7 +188,7 @@ export default function PuzzleTrainer() {
                       <div className="flex h-full w-full flex-col items-center justify-center px-4 text-center">
                         <Loader2 className="mb-3 h-10 w-10 animate-spin text-emerald-400" />
                         <p className="text-sm text-slate-300">
-                          Loading puzzle...
+                          {t("puzzles.trainer.loading", "Loading puzzle...")}
                         </p>
                       </div>
                     ) : networkError ? (
@@ -196,13 +200,26 @@ export default function PuzzleTrainer() {
                         <div className="max-w-md text-center">
                           <p className="text-lg font-semibold text-slate-100">
                             {activeMode === "review"
-                              ? "No review puzzles right now"
-                              : "No puzzle available"}
+                              ? t(
+                                  "puzzles.trainer.noReviewTitle",
+                                  "No review puzzles right now",
+                                )
+                              : t(
+                                  "puzzles.trainer.noPuzzleTitle",
+                                  "No puzzle available",
+                                )}
                           </p>
                           <p className="mt-2 text-sm leading-6 text-slate-400">
                             {activeMode === "review"
-                              ? "You are all caught up. Solve a rated puzzle to generate new reviews."
-                              : selectionReason || "Please try again in a moment."}
+                              ? t(
+                                  "puzzles.trainer.noReviewDescription",
+                                  "You are all caught up. Solve a rated puzzle to generate new reviews.",
+                                )
+                              : selectionReason ||
+                                t(
+                                  "puzzles.trainer.noPuzzleDescription",
+                                  "Please try again in a moment.",
+                                )}
                           </p>
                         </div>
                       </div>
@@ -258,8 +275,10 @@ export default function PuzzleTrainer() {
               <aside className="min-h-0 overflow-y-auto overflow-x-hidden border-l border-white/10 bg-[#0d172b] px-4 py-3">
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-3 text-xs">
-                    <div className={statCardClass}>
-                      <p className="text-slate-400">Puzzle Elo</p>
+                  <div className={statCardClass}>
+                      <p className="text-slate-400">
+                        {t("puzzles.trainer.puzzleElo", "Puzzle Elo")}
+                      </p>
                       <p className="mt-1 flex items-baseline gap-2 text-[30px] font-semibold leading-none text-emerald-200">
                         {puzzleElo}
                         {showRatingDelta ? (
@@ -276,7 +295,9 @@ export default function PuzzleTrainer() {
                     </div>
 
                     <div className={statCardClass}>
-                      <p className="text-slate-400">Streak</p>
+                      <p className="text-slate-400">
+                        {t("puzzles.trainer.streak", "Streak")}
+                      </p>
                       <p className="mt-1 text-[30px] font-semibold leading-none text-amber-200">
                         {streak}
                       </p>
@@ -284,9 +305,51 @@ export default function PuzzleTrainer() {
                   </div>
 
                   <div className={cardClass}>
+                    <p className="text-xs uppercase tracking-[0.16em] text-slate-400">
+                      {t("puzzles.trainer.sideToMove", "Side to move")}
+                    </p>
+
+                    {currentPuzzle ? (
+                      <div className="mt-3 flex items-center gap-3 rounded-2xl border border-white/10 bg-[#101d33] px-3.5 py-3">
+                        <span
+                          className={`h-4 w-4 rounded-full border ${
+                            puzzleStartsWithWhite
+                              ? "border-slate-200 bg-white"
+                              : "border-slate-500 bg-slate-900"
+                          }`}
+                          aria-hidden="true"
+                        />
+                        <div>
+                          <p className="text-sm font-semibold text-white">
+                            {sideToMoveLabel}
+                          </p>
+                          <p className="text-xs text-slate-400">
+                            {puzzleStartsWithWhite
+                              ? t(
+                                  "puzzles.trainer.playFirstMoveWhite",
+                                  "Play the first move for White.",
+                                )
+                              : t(
+                                  "puzzles.trainer.playFirstMoveBlack",
+                                  "Play the first move for Black.",
+                                )}
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="mt-2 text-sm text-slate-500">
+                        {t(
+                          "puzzles.trainer.waitingForPuzzle",
+                          "Waiting for puzzle...",
+                        )}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className={cardClass}>
                     <p className="inline-flex items-center gap-1.5 text-xs text-slate-400">
                       <Clock3 className="h-2 w-3.5 text-slate-300" />
-                      Timer
+                      {t("puzzles.trainer.timer", "Timer")}
                     </p>
                     <p className="mt-2 text-3xl font-mono leading-none text-white">
                       {formatTime(elapsedTime)}
@@ -304,8 +367,8 @@ export default function PuzzleTrainer() {
                         <span className="inline-flex items-center gap-2">
                           <Bookmark className="h-3.5 w-3.5" />
                           {currentPuzzle?.userState?.isBookmarked
-                            ? "Bookmarked"
-                            : "Bookmark"}
+                            ? t("puzzles.trainer.bookmarked", "Bookmarked")
+                            : t("puzzles.trainer.bookmark", "Bookmark")}
                         </span>
                       </button>
 
@@ -321,7 +384,9 @@ export default function PuzzleTrainer() {
                       >
                         <span className="inline-flex items-center gap-2">
                           <Lightbulb className="h-3.5 w-3.5 text-amber-300" />
-                          {hintLevel >= 1 ? "Hint Used" : "Use Hint"}
+                          {hintLevel >= 1
+                            ? t("puzzles.trainer.hintUsed", "Hint Used")
+                            : t("puzzles.trainer.useHint", "Use Hint")}
                         </span>
                       </button>
 
@@ -335,8 +400,10 @@ export default function PuzzleTrainer() {
                         className={secondaryButtonClass}
                       >
                         <span className="inline-flex items-center gap-2">
-                          <Sparkles className="h-3.5 w-3.5 text-cyan-300" />
-                          Show Solution
+                          {t(
+                            "puzzles.trainer.showSolution",
+                            "Show Solution",
+                          )}
                         </span>
                       </button>
 
@@ -348,7 +415,7 @@ export default function PuzzleTrainer() {
                       >
                         <span className="inline-flex items-center gap-2">
                           <RefreshCcw className="h-3.5 w-3.5" />
-                          Try Again
+                          {t("puzzles.trainer.tryAgain", "Try Again")}
                         </span>
                       </button>
 
@@ -360,8 +427,11 @@ export default function PuzzleTrainer() {
                       >
                         <span className="inline-flex items-center gap-2">
                           {activeMode === "random"
-                            ? "Shuffle Puzzle"
-                            : "Next Puzzle"}
+                            ? t(
+                                "puzzles.trainer.shufflePuzzle",
+                                "Shuffle Puzzle",
+                              )
+                            : t("puzzles.trainer.nextPuzzle", "Next Puzzle")}
                         </span>
                         <ArrowRight className="h-3.5 w-3.5" />
                       </button>
@@ -370,15 +440,20 @@ export default function PuzzleTrainer() {
 
                   <div className={cardClass}>
                     <p className="mb-3 text-xs uppercase tracking-[0.16em] text-slate-400">
-                      Line
+                      {t("puzzles.trainer.line", "Line")}
                     </p>
 
                     {!solutionLineVisible ? (
                       <p className="text-xs leading-5 text-slate-500">
-                        Click Show Solution to reveal the line.
+                        {t(
+                          "puzzles.trainer.revealLine",
+                          "Click Show Solution to reveal the line.",
+                        )}
                       </p>
                     ) : solutionMoves.length === 0 ? (
-                      <p className="text-xs text-slate-500">No stored line.</p>
+                      <p className="text-xs text-slate-500">
+                        {t("puzzles.trainer.noStoredLine", "No stored line.")}
+                      </p>
                     ) : (
                       <div className="flex flex-wrap gap-2">
                         {solutionMoves.map((move, index) => (

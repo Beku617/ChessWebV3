@@ -20,7 +20,7 @@ export function PuzzleProgressBar({
             />
           </div>
           <div className="flex items-center gap-1">
-            <span className="text-amber-500 text-lg">🏆</span>
+            <span className="text-amber-500 text-lg"></span>
             <span className="font-bold text-sm">5</span>
           </div>
         </div>

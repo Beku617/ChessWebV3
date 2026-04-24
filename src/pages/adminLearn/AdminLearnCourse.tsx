@@ -230,9 +230,6 @@ export default function AdminLearnCourse() {
   const statCardClass = isDarkMode
     ? "border-slate-800 bg-slate-900/70"
     : "border-gray-200 bg-gray-50/90";
-  const sectionLabelClass = isDarkMode
-    ? "text-brand-300/80"
-    : "text-brand-600";
   const alertClass = isDarkMode
     ? "border-red-500/25 bg-red-500/10 text-red-200"
     : "border-red-200 bg-red-50 text-red-700";
@@ -276,15 +273,9 @@ export default function AdminLearnCourse() {
 
               <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <div className={`text-[11px] uppercase tracking-[0.2em] ${sectionLabelClass}`}>
-                    Course Detail
-                  </div>
-                  <h1 className="mt-2 text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
+                  <h1 className="text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
                     {course?.title || "Loading course..."}
                   </h1>
-                  <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                    {course?.subtitle || "Manage lessons, order, and publishing state."}
-                  </p>
                 </div>
                 <button
                   onClick={openCreate}
@@ -298,15 +289,15 @@ export default function AdminLearnCourse() {
               <div className="mt-5 grid gap-3 sm:grid-cols-3">
                 <div className={`rounded-2xl border px-4 py-4 ${statCardClass}`}>
                   <div className="text-[11px] uppercase tracking-[0.2em] text-gray-500">
-                    Slug
+                    Course Link
                   </div>
                   <div className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
-                    {course?.slug || "-"}
+                    {course?.slug ? `/learn/${course.slug}` : "-"}
                   </div>
                 </div>
                 <div className={`rounded-2xl border px-4 py-4 ${statCardClass}`}>
                   <div className="text-[11px] uppercase tracking-[0.2em] text-gray-500">
-                    Category / Difficulty
+                    Topic / Level
                   </div>
                   <div className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
                     {course?.category || "-"} / {course?.difficulty || "-"}
@@ -393,7 +384,7 @@ export default function AdminLearnCourse() {
                               {lesson.subtitle || lesson.description || "No subtitle."}
                             </p>
                             <div className="mt-2 text-xs text-gray-500">
-                              {lesson.stepCount} steps · {lesson.estimatedMinutes} min · /learn/
+                              {lesson.stepCount} steps - {lesson.estimatedMinutes} min - /learn/
                               {course?.slug}/{lesson.slug}
                             </div>
                           </div>
@@ -491,7 +482,7 @@ export default function AdminLearnCourse() {
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 <label className="space-y-1">
                   <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                    Title
+                    Lesson name
                   </span>
                   <input
                     value={draft.title}
@@ -503,20 +494,7 @@ export default function AdminLearnCourse() {
                 </label>
                 <label className="space-y-1">
                   <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                    Slug
-                  </span>
-                  <input
-                    value={draft.slug}
-                    onChange={(event) =>
-                      setDraft((current) => ({ ...current, slug: event.target.value }))
-                    }
-                    placeholder="auto-from-title"
-                    className={inputClass}
-                  />
-                </label>
-                <label className="space-y-1">
-                  <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                    Estimated Minutes
+                    Time
                   </span>
                   <input
                     type="number"
@@ -531,7 +509,7 @@ export default function AdminLearnCourse() {
                     className={inputClass}
                   />
                 </label>
-                <label className="mt-7 inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                <label className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
                   <input
                     type="checkbox"
                     checked={draft.isPublished}
@@ -543,13 +521,13 @@ export default function AdminLearnCourse() {
                     }
                     className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-400/40"
                   />
-                  Publish lesson
+                  Show lesson
                 </label>
               </div>
 
               <label className="mt-4 block space-y-1">
                 <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                  Subtitle
+                  Short label
                 </span>
                 <input
                   value={draft.subtitle}
@@ -562,7 +540,7 @@ export default function AdminLearnCourse() {
 
               <label className="mt-4 block space-y-1">
                 <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                  Description
+                  Details
                 </span>
                 <textarea
                   value={draft.description}

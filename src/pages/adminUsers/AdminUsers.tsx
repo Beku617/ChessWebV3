@@ -9,6 +9,7 @@ export default function AdminUsers() {
   const {
     users,
     totalUsers,
+    stats,
     searchQuery,
     page,
     loadingUsers,
@@ -52,9 +53,6 @@ export default function AdminUsers() {
               <Users className="w-7 h-7 text-brand-500" />
               User Management
             </h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-1">
-              Manage all registered users on the platform
-            </p>
           </div>
           <div className="flex items-center gap-3">
             <button
@@ -67,7 +65,7 @@ export default function AdminUsers() {
           </div>
         </div>
 
-        <UserStatsCards users={users} totalUsers={totalUsers} />
+        <UserStatsCards stats={stats} />
 
         {/* Users Table */}
         <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden">

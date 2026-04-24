@@ -74,7 +74,6 @@ export function BotSelector({
               }`}
             >
               <div className="flex items-center gap-2">
-                <span className="text-2xl">{bot.avatar}</span>
                 <div className="flex-1 min-w-0">
                   <div className="font-medium truncate">
                     {bot.title && (
@@ -110,7 +109,6 @@ function BotInfoCard({ bot }: { bot: BotPersonality }) {
   return (
     <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
       <div className="flex items-start gap-3">
-        <span className="text-4xl">{bot.avatar}</span>
         <div className="flex-1">
           <h3 className="font-bold text-gray-900 dark:text-white">
             {bot.title && (

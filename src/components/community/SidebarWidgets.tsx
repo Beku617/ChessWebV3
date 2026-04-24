@@ -2,20 +2,6 @@
    Community Right Sidebar Widgets
    ═══════════════════════════════════════════════════════ */
 import { memo } from "react";
-import {
-  Heart,
-  Tv,
-  Crown,
-  Puzzle,
-  UserPlus,
-  Calendar,
-  Eye,
-  Trophy,
-  Zap,
-  Radio,
-  Flame,
-  ShieldCheck,
-} from "lucide-react";
 import { Link } from "react-router-dom";
 import {
   SidebarCard,
@@ -116,7 +102,6 @@ export const TrendingWidget = memo(function TrendingWidget({
                 <div className="shrink-0">
                   {showLikes ? (
                     <div className="inline-flex items-center gap-1.5 rounded-full bg-brand-500/10 px-2.5 py-1 text-[11px] font-medium text-brand-100">
-                      <Heart className="h-3.5 w-3.5 fill-current opacity-75" />
                       {formatCount(post.likeCount)}
                     </div>
                   ) : (
@@ -138,7 +123,6 @@ export function CommunityGuidelinesWidget() {
   return (
     <SidebarCard
       title="Community Notes"
-      icon={<ShieldCheck className="w-4 h-4 text-brand-400" />}
     >
       <div className="space-y-3 text-sm text-gray-300 leading-6">
         <p className="text-gray-300">
@@ -170,7 +154,6 @@ export function LiveGamesWidget() {
   return (
     <SidebarCard
       title={t("Live Now")}
-      icon={<Radio className="w-4 h-4 text-red-500 animate-pulse" />}
       action={
         <span className="flex items-center gap-1 text-[10px] font-bold text-red-400">
           <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
@@ -218,7 +201,6 @@ export function LiveGamesWidget() {
                   {game.format}
                 </div>
                 <div className="flex items-center gap-1 text-[10px] text-gray-400 mt-0.5">
-                  <Eye className="w-2.5 h-2.5" />
                   {formatCount(game.viewers)}
                 </div>
               </div>
@@ -236,7 +218,6 @@ export function TopPlayersWidget() {
   return (
     <SidebarCard
       title={t("Top Players")}
-      icon={<Crown className="w-4 h-4 text-amber-500" />}
     >
       <div className="space-y-1.5">
         {TOP_PLAYERS_ONLINE.map((player) => (
@@ -276,7 +257,6 @@ export function PuzzleLeaderboardWidget() {
   return (
     <SidebarCard
       title={t("Puzzle Leaders")}
-      icon={<Puzzle className="w-4 h-4 text-violet-500" />}
       action={
         <button className="text-[11px] font-semibold text-brand-500 hover:text-brand-400 transition-colors">
           {t("Full board")}
@@ -324,7 +304,6 @@ export function WhoToFollowWidget() {
   return (
     <SidebarCard
       title={t("Who to Follow")}
-      icon={<UserPlus className="w-4 h-4 text-brand-500" />}
     >
       <div className="space-y-3">
         {SUGGESTED_USERS.map((su) => (
@@ -352,32 +331,18 @@ export function WhoToFollowWidget() {
 /* ─── Upcoming Events ─── */
 export function EventsWidget() {
   const { t } = useTranslation();
-  const typeIcon: Record<string, { icon: typeof Trophy; color: string }> = {
-    tournament: { icon: Trophy, color: "text-amber-500 bg-amber-500/10" },
-    stream: { icon: Tv, color: "text-red-500 bg-red-500/10" },
-    puzzle: { icon: Puzzle, color: "text-violet-500 bg-violet-500/10" },
-    match: { icon: Zap, color: "text-brand-500 bg-brand-500/10" },
-  };
 
   return (
     <SidebarCard
       title={t("Upcoming Events")}
-      icon={<Calendar className="w-4 h-4 text-blue-500" />}
     >
       <div className="space-y-2">
         {UPCOMING_EVENTS.map((event) => {
-          const config = typeIcon[event.type] || typeIcon.tournament;
-          const Icon = config.icon;
           return (
             <button
               key={event.name}
-              className="w-full flex items-center gap-3 p-2.5 -mx-1 rounded-xl hover:bg-gray-100/60 dark:hover:bg-gray-800/40 transition-all duration-150 text-left"
+              className="w-full flex items-center p-2.5 -mx-1 rounded-xl hover:bg-gray-100/60 dark:hover:bg-gray-800/40 transition-all duration-150 text-left"
             >
-              <div
-                className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${config.color}`}
-              >
-                <Icon className="w-4 h-4" />
-              </div>
               <div className="min-w-0 flex-1">
                 <div className="text-xs font-bold text-gray-800 dark:text-gray-200 truncate">
                   {event.name}
@@ -413,7 +378,6 @@ export function DailyPuzzleWidget() {
   return (
     <SidebarCard
       title={t("Daily Puzzle")}
-      icon={<Flame className="w-4 h-4 text-orange-500" />}
     >
       <button className="w-full group">
         <div className="rounded-xl overflow-hidden border border-gray-200/30 dark:border-gray-800/30">
@@ -432,7 +396,7 @@ export function DailyPuzzleWidget() {
         </div>
         <div className="mt-2 text-center">
           <span className="text-xs font-bold text-brand-500 group-hover:text-brand-400 transition-colors">
-            {t("Solve Today's Puzzle →")}
+            {t("Solve Today's Puzzle")}
           </span>
         </div>
       </button>

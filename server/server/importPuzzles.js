@@ -1,186 +1,119 @@
 import mongoose from "mongoose";
-import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
+import { buildPuzzle3Dataset } from "../../src/data/Puzzle3/buildPuzzleDataset.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 dotenv.config({ path: path.join(__dirname, "..", ".env") });
+dotenv.config({ path: path.join(__dirname, "..", "..", ".env") });
 
-// Puzzle Schema (same as in index.js)
-const puzzleSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  difficulty: {
-    type: String,
-    enum: ["Easy", "Medium", "Hard"],
-    default: "Medium",
+const puzzleSchema = new mongoose.Schema(
+  {
+    title: { type: String, required: true },
+    difficulty: {
+      type: String,
+      enum: ["Easy", "Medium", "Hard"],
+      required: true,
+    },
+    category: { type: String, default: "mate" },
+    description: { type: String, default: "" },
+    fen: { type: String, required: true },
+    solution: { type: [String], required: true },
+    rating: { type: Number, default: 1200 },
+    isActive: { type: Boolean, default: true },
+    isWhiteToMove: { type: Boolean, required: true },
+    mateIn: { type: Number, default: 2 },
+    timesPlayed: { type: Number, default: 0 },
+    timesSolved: { type: Number, default: 0 },
+    featured: { type: Boolean, default: false },
   },
-  themes: [String],
-  description: { type: String, default: "" },
-  icon: { type: String, default: "🧩" },
-  fen: { type: String, required: true },
-  solution: [String],
-  rating: { type: Number, default: 1200 },
-  isWhiteToMove: { type: Boolean, default: true },
-  timesPlayed: { type: Number, default: 0 },
-  timesSolved: { type: Number, default: 0 },
-  createdAt: { type: Date, default: Date.now },
-});
+  { timestamps: true },
+);
 
-const Puzzle = mongoose.model("Puzzle", puzzleSchema);
+const Puzzle =
+  mongoose.models.PuzzleImportServer ||
+  mongoose.model("PuzzleImportServer", puzzleSchema, "puzzles");
 
-// Parse the Puzzle3 format (mate in 2 puzzles)
-function parsePuzzle3File(content) {
-  const puzzles = [];
-  const lines = content.split("\n");
-  const normalizeFen = (fen) => {
-    const parts = fen.trim().split(/\s+/);
-    if (parts.length >= 6) {
-      const halfmove = Number.isNaN(parseInt(parts[4], 10))
-        ? 0
-        : parseInt(parts[4], 10);
-      let fullmove = parseInt(parts[5], 10);
-      if (Number.isNaN(fullmove) || fullmove < 1) fullmove = 1;
-      parts[4] = String(halfmove);
-      parts[5] = String(fullmove);
-      return parts.slice(0, 6).join(" ");
-    }
-    return fen.trim();
-  };
+function normalizeFenKey(fen) {
+  const parts = String(fen || "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
 
-  let i = 0;
-  // Skip header lines
-  while (i < lines.length && !lines[i].includes(" vs ")) {
-    i++;
+  if (parts.length < 2) {
+    return String(fen || "").trim().toLowerCase();
   }
 
-  while (i < lines.length) {
-    const citationLine = lines[i]?.trim();
-    if (!citationLine || !citationLine.includes(" vs ")) {
-      i++;
-      continue;
-    }
-
-    // Next line should be FEN
-    i++;
-    const fenLine = lines[i]?.trim();
-    if (!fenLine || !fenLine.includes("/")) {
-      continue;
-    }
-
-    // Next line should be solution
-    i++;
-    const solutionLine = lines[i]?.trim();
-    if (!solutionLine) {
-      continue;
-    }
-
-    // Parse citation: "Player vs Opponent, Location, Year"
-    const citation = citationLine;
-
-    // Parse solution: "1. Nf6+ gxf6 2. Bxf7#" -> extract moves
-    const solutionMoves = [];
-    // Remove move numbers and dots, then split by spaces
-    const cleanedSolution = solutionLine
-      .replace(/\d+\.(\.\.)?\s*/g, "") // Remove "1. ", "1... ", "2. ", etc.
-      .replace(/\s+/g, " ") // Normalize whitespace
-      .trim();
-
-    // Split by space and filter out empty strings
-    const moves = cleanedSolution
-      .split(" ")
-      .map((m) => m.trim())
-      .filter(
-        (m) =>
-          m.length > 0 &&
-          m !== "*" &&
-          m !== "..." &&
-          m !== ".." &&
-          !/^(1-0|0-1|1\/2-1\/2)$/.test(m),
-      )
-      .map((m) => m.replace(/[?!]+$/g, ""));
-    solutionMoves.push(...moves);
-
-    // Determine who moves from FEN
-    const fenParts = fenLine.split(" ");
-    const sideToMove = fenParts[1] || "w";
-    const isWhiteToMove = sideToMove === "w";
-
-    puzzles.push({
-      citation,
-      fen: normalizeFen(fenLine),
-      solution: solutionMoves,
-      isWhiteToMove,
-    });
-
-    i++;
-    // Skip empty lines
-    while (i < lines.length && lines[i].trim() === "") {
-      i++;
-    }
-  }
-
-  return puzzles;
+  return `${parts[0]} ${parts[1]}`.toLowerCase();
 }
 
-async function importPuzzles(count = 10) {
+async function importPuzzles() {
+  const limit = Number.parseInt(process.argv[2], 10);
+
   try {
-    // Connect to MongoDB
     await mongoose.connect(process.env.MONGODB_URL);
     console.log("Connected to MongoDB");
 
-    // Read Puzzle3 file
-    const filePath = path.join(
-      __dirname,
-      "..",
-      "src",
-      "data",
-      "Puzzle3",
-      "PuzzleData.txt",
+    const allPuzzles = buildPuzzle3Dataset();
+    const puzzles =
+      Number.isFinite(limit) && limit > 0 ? allPuzzles.slice(0, limit) : allPuzzles;
+
+    const existingPuzzleDocs = await Puzzle.find(
+      {},
+      {
+        fen: 1,
+        isActive: 1,
+        featured: 1,
+        timesPlayed: 1,
+        timesSolved: 1,
+      },
+    ).lean();
+    const existingByFenKey = new Map(
+      existingPuzzleDocs.map((puzzle) => [normalizeFenKey(puzzle.fen), puzzle]),
     );
 
-    const fileContent = fs.readFileSync(filePath, "utf-8");
-    const puzzles = parsePuzzle3File(fileContent);
+    console.log(`Prepared ${puzzles.length} normalized Puzzle3 records`);
 
-    console.log(`Found ${puzzles.length} puzzles in file`);
-
-    const importedPuzzles = [];
     let imported = 0;
+    let updated = 0;
 
-    for (let i = 0; i < Math.min(count, puzzles.length); i++) {
-      const p = puzzles[i];
+    for (const puzzle of puzzles) {
+      const fenKey = normalizeFenKey(puzzle.fen);
+      const existing = existingByFenKey.get(fenKey);
 
-      // Check if puzzle already exists by FEN
-      const exists = await Puzzle.findOne({ fen: p.fen });
-      if (exists) {
-        console.log(`Puzzle already exists, skipping: ${p.citation}`);
+      if (existing?._id) {
+        await Puzzle.findByIdAndUpdate(existing._id, {
+          ...puzzle,
+          isActive: existing.isActive !== false,
+          featured: existing.featured === true,
+          timesPlayed: Number(existing.timesPlayed || 0),
+          timesSolved: Number(existing.timesSolved || 0),
+        });
+        updated += 1;
+        console.log(`[Updated ${updated}/${puzzles.length}] ${puzzle.title}`);
         continue;
       }
 
-      // Create puzzle
-      const puzzle = new Puzzle({
-        title: `Mate in 2 - ${p.citation.split(",")[0]}`,
-        difficulty: "Medium",
-        themes: ["Mate in 2", "Checkmate"],
-        description: `Historic game: ${p.citation}. ${p.isWhiteToMove ? "White" : "Black"} to play and deliver checkmate in 2 moves.`,
-        icon: "👑",
-        fen: p.fen,
-        solution: p.solution,
-        rating: 1400,
-        isWhiteToMove: p.isWhiteToMove,
+      const created = await new Puzzle(puzzle).save();
+      existingByFenKey.set(fenKey, {
+        _id: created._id,
+        fen: created.fen,
+        isActive: created.isActive,
+        featured: created.featured,
+        timesPlayed: created.timesPlayed,
+        timesSolved: created.timesSolved,
       });
-
-      await puzzle.save();
-      importedPuzzles.push(puzzle);
-      imported++;
-      console.log(`✓ Imported: ${puzzle.title}`);
+      imported += 1;
+      console.log(`[Imported ${imported}/${puzzles.length}] ${puzzle.title}`);
     }
 
-    console.log(`\n✅ Successfully imported ${imported} puzzles!`);
+    console.log("");
+    console.log(`Imported ${imported} puzzles`);
+    console.log(`Updated existing: ${updated}`);
 
-    // Close connection
     await mongoose.connection.close();
     console.log("Disconnected from MongoDB");
   } catch (error) {
@@ -189,8 +122,4 @@ async function importPuzzles(count = 10) {
   }
 }
 
-// Get count from command line argument or default to 10
-const count = parseInt(process.argv[2]) || 10;
-console.log(`Importing ${count} puzzles from Puzzle3...\n`);
-
-importPuzzles(count);
+importPuzzles();

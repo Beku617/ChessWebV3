@@ -1,4 +1,4 @@
-import { Crown, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { SharedGame } from "../types";
@@ -36,13 +36,6 @@ export function SharedGameCard({ game, mine }: SharedGameCardProps) {
       className={`mt-1 block cursor-pointer rounded-xl border ${cardBg} p-3 transition-colors group`}
     >
       <div className="flex items-start gap-3">
-        <div
-          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
-            mine ? "bg-white/15 text-white" : "bg-brand-500/10 text-brand-400"
-          }`}
-        >
-          <Crown className="h-4.5 w-4.5" />
-        </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5 text-[13px] font-semibold">
             <span className={mine ? "text-white" : "text-slate-100"}>

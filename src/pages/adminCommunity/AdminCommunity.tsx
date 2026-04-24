@@ -1284,9 +1284,6 @@ export default function AdminCommunity() {
                 const reviewStateLabel = post.reviewedAt
                   ? `Reviewed ${formatRelativeTime(post.reviewedAt)}`
                   : "Awaiting review";
-                const postingQuotaLabel = restrictionDraft?.unlimitedPosts
-                  ? "Unlimited posting"
-                  : "5 posts / 3 hours";
                 const showApproveAction = post.status !== "approved";
                 const showRejectAction = post.status !== "rejected";
                 const showSecondaryActionRow = !isEditing || showRejectBox || showRejectAction;
@@ -1616,25 +1613,9 @@ export default function AdminCommunity() {
                                   {formatRestrictionLabel(restriction)}
                                 </div>
                               </div>
-                              <span className="rounded-full bg-white/[0.05] px-2.5 py-1 text-[11px] font-medium text-gray-400">
-                                {postingQuotaLabel}
-                              </span>
                             </div>
 
                             <div className="mt-4 space-y-3 border-t border-white/[0.05] pt-4">
-                              <div className="flex items-center justify-between rounded-[14px] bg-black/10 px-3.5 py-2.5 text-xs">
-                                <span className="text-gray-400">Posting quota</span>
-                                <span
-                                  className={`font-semibold ${
-                                    restrictionDraft.unlimitedPosts
-                                      ? "text-brand-200"
-                                      : "text-gray-300"
-                                  }`}
-                                >
-                                  {postingQuotaLabel}
-                                </span>
-                              </div>
-
                               <button
                                 type="button"
                                 disabled={isRateLimitBypassBusy}

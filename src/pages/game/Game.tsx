@@ -99,7 +99,7 @@ export default function Game() {
     });
 
   return (
-    <div className="relative h-full w-full bg-slate-100 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 overflow-hidden">
+    <div className="relative h-full w-full bg-transparent overflow-hidden">
       <div
         ref={containerRef}
         className="relative h-full w-full flex flex-col lg:flex-row lg:items-stretch gap-2 lg:gap-3 px-2 sm:px-3 lg:px-4 py-3 lg:py-4 overflow-hidden"
@@ -145,7 +145,7 @@ export default function Game() {
           {/* Chessboard */}
           <div className="flex-shrink-0">
             <div
-              className="rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-gray-200/60 dark:border-white/5 shadow-xl p-2"
+              className="theme-glass-panel-strong rounded-2xl p-2"
               style={{ width: boardWidth + BOARD_FRAME }}
             >
               <GameBoard

@@ -576,7 +576,6 @@ export default function AdminLearnLesson() {
   const alertClass = isDarkMode
     ? "rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-200"
     : "rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700";
-  const sectionAccentClass = isDarkMode ? "text-brand-300/80" : "text-brand-600";
   const headingTextClass = isDarkMode ? "text-white" : "text-gray-900";
   const mutedTextClass = isDarkMode ? "text-slate-400" : "text-gray-500";
   const secondaryTextClass = isDarkMode ? "text-slate-300" : "text-gray-600";
@@ -585,12 +584,9 @@ export default function AdminLearnLesson() {
     ? "border-slate-700 bg-slate-900 text-slate-100 placeholder:text-slate-400"
     : "border-gray-200 bg-gray-50 text-gray-900 placeholder:text-gray-400";
   const searchInputClass = `h-10 w-full rounded-xl border py-2 pl-10 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30 ${interactiveFieldToneClass}`;
-  const inputClass = `h-10 rounded-xl border px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30 ${interactiveFieldToneClass}`;
   const fullInputClass = `h-10 w-full rounded-xl border px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30 ${interactiveFieldToneClass}`;
   const textareaClass = `w-full rounded-xl border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30 ${interactiveFieldToneClass}`;
-  const orderHintClass = isDarkMode
-    ? "h-10 rounded-xl border border-slate-700 bg-slate-900 px-3 text-xs text-slate-400 flex items-center"
-    : "h-10 rounded-xl border border-gray-200 bg-gray-100 px-3 text-xs text-gray-500 flex items-center";
+  const fieldLabelClass = "text-xs font-medium text-gray-500 dark:text-slate-400";
   const inactiveStepCardClass = isDarkMode
     ? "border-slate-800 bg-slate-900/70 hover:border-slate-700"
     : "border-gray-200 bg-gray-50/90 hover:border-gray-300";
@@ -628,15 +624,9 @@ export default function AdminLearnLesson() {
               </button>
 
               <div className="mt-4">
-                <div className={`text-[11px] uppercase tracking-[0.2em] ${sectionAccentClass}`}>
-                  Lesson Step Editor
-                </div>
-                <h1 className={`mt-2 text-3xl font-semibold tracking-tight ${headingTextClass}`}>
+                <h1 className={`text-3xl font-semibold tracking-tight ${headingTextClass}`}>
                   {lesson?.title || "Loading lesson..."}
                 </h1>
-                <p className={`mt-2 text-sm ${mutedTextClass}`}>
-                  {course?.title || "Course"} · {steps.length} steps
-                </p>
               </div>
             </section>
 
@@ -748,7 +738,7 @@ export default function AdminLearnLesson() {
                 <section className={`rounded-[24px] border p-5 ${surfaceClass}`}>
                   <div className="flex items-center justify-between gap-2">
                     <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-gray-500">
-                      Lesson Metadata
+                      Lesson Info
                     </h2>
                     <button
                       disabled={savingLesson || !lessonDraft}
@@ -760,73 +750,75 @@ export default function AdminLearnLesson() {
                       ) : (
                         <Save className="h-3.5 w-3.5" />
                       )}
-                      Save Lesson
+                      Save Info
                     </button>
                   </div>
 
                   {lessonDraft && (
                     <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                      <input
-                        value={lessonDraft.title}
-                        onChange={(event) =>
-                          setLessonDraft((current) =>
-                            current ? { ...current, title: event.target.value } : current,
-                          )
-                        }
-                        placeholder="Lesson title"
-                        className={inputClass}
-                      />
-                      <input
-                        value={lessonDraft.slug}
-                        onChange={(event) =>
-                          setLessonDraft((current) =>
-                            current ? { ...current, slug: event.target.value } : current,
-                          )
-                        }
-                        placeholder="Lesson slug"
-                        className={inputClass}
-                      />
-                      <input
-                        value={lessonDraft.subtitle}
-                        onChange={(event) =>
-                          setLessonDraft((current) =>
-                            current
-                              ? { ...current, subtitle: event.target.value }
-                              : current,
-                          )
-                        }
-                        placeholder="Subtitle"
-                        className={inputClass}
-                      />
-                      <input
-                        type="number"
-                        min={1}
-                        value={lessonDraft.estimatedMinutes}
-                        onChange={(event) =>
-                          setLessonDraft((current) =>
-                            current
-                              ? {
-                                  ...current,
-                                  estimatedMinutes: Number(event.target.value || 1),
-                                }
-                              : current,
-                          )
-                        }
-                        placeholder="Estimated minutes"
-                        className={inputClass}
-                      />
-                      <textarea
-                        value={lessonDraft.description}
-                        onChange={(event) =>
-                          setLessonDraft((current) =>
-                            current
-                              ? { ...current, description: event.target.value }
-                              : current,
-                          )
-                        }
-                        placeholder="Lesson description"
-                        className={`min-h-[85px] sm:col-span-2 ${textareaClass}`}
-                      />
+                      <label className="space-y-1">
+                        <span className={fieldLabelClass}>Lesson name</span>
+                        <input
+                          value={lessonDraft.title}
+                          onChange={(event) =>
+                            setLessonDraft((current) =>
+                              current ? { ...current, title: event.target.value } : current,
+                            )
+                          }
+                          placeholder="Pawn structure basics"
+                          className={fullInputClass}
+                        />
+                      </label>
+                      <label className="space-y-1">
+                        <span className={fieldLabelClass}>Time</span>
+                        <input
+                          type="number"
+                          min={1}
+                          value={lessonDraft.estimatedMinutes}
+                          onChange={(event) =>
+                            setLessonDraft((current) =>
+                              current
+                                ? {
+                                    ...current,
+                                    estimatedMinutes: Number(event.target.value || 1),
+                                  }
+                                : current,
+                            )
+                          }
+                          placeholder="10 min"
+                          className={fullInputClass}
+                        />
+                      </label>
+                      <label className="space-y-1 sm:col-span-2">
+                        <span className={fieldLabelClass}>Short label</span>
+                        <input
+                          value={lessonDraft.subtitle}
+                          onChange={(event) =>
+                            setLessonDraft((current) =>
+                              current
+                                ? { ...current, subtitle: event.target.value }
+                                : current,
+                            )
+                          }
+                          placeholder="Quick lesson summary"
+                          className={fullInputClass}
+                        />
+                      </label>
+                      <label className="space-y-1 sm:col-span-2">
+                        <span className={fieldLabelClass}>Details</span>
+                        <textarea
+                          value={lessonDraft.description}
+                          onChange={(event) =>
+                            setLessonDraft((current) =>
+                              current
+                                ? { ...current, description: event.target.value }
+                                : current,
+                            )
+                          }
+                          placeholder="What students will learn"
+                          className={`min-h-[85px] ${textareaClass}`}
+                        />
+                      </label>
                       <label className={checkboxLabelClass}>
                         <input
                           type="checkbox"
@@ -840,7 +832,7 @@ export default function AdminLearnLesson() {
                           }
                           className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-400/40"
                         />
-                        Lesson is published
+                        Show lesson
                       </label>
                     </div>
                   )}
@@ -869,130 +861,151 @@ export default function AdminLearnLesson() {
                     <div className="space-y-5">
                       <div>
                         <h3 className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                          Section A - Metadata
+                          Step Info
                         </h3>
-                        <div className="mt-2 grid gap-3 sm:grid-cols-2">
-                          <input
-                            value={stepDraft.title}
-                            onChange={(event) =>
-                              setStepDraft((current) => ({
-                                ...current,
-                                title: event.target.value,
-                              }))
-                            }
-                            placeholder="Step title"
-                            className={inputClass}
-                          />
-                          <div className={orderHintClass}>
-                            Order managed with Up/Down controls
-                          </div>
+                        <div className="mt-2">
+                          <label className="block space-y-1">
+                            <span className={fieldLabelClass}>Step name</span>
+                            <input
+                              value={stepDraft.title}
+                              onChange={(event) =>
+                                setStepDraft((current) => ({
+                                  ...current,
+                                  title: event.target.value,
+                                }))
+                              }
+                              placeholder="Find the best pawn break"
+                              className={fullInputClass}
+                            />
+                          </label>
                         </div>
                       </div>
 
                       <div>
                         <h3 className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                          Section B - Board State
+                          Board
                         </h3>
                         <div className="mt-2 space-y-3">
-                          <textarea
-                            value={stepDraft.fen}
-                            onChange={(event) =>
-                              setStepDraft((current) => ({
-                                ...current,
-                                fen: event.target.value,
-                              }))
-                            }
-                            placeholder="FEN"
-                            className={`min-h-[75px] ${textareaClass}`}
-                          />
+                          <label className="block space-y-1">
+                            <span className={fieldLabelClass}>Board position</span>
+                            <textarea
+                              value={stepDraft.fen}
+                              onChange={(event) =>
+                                setStepDraft((current) => ({
+                                  ...current,
+                                  fen: event.target.value,
+                                }))
+                              }
+                              placeholder="Paste FEN here"
+                              className={`min-h-[75px] ${textareaClass}`}
+                            />
+                          </label>
                           <div className="grid gap-3 sm:grid-cols-2">
-                            <select
-                              value={stepDraft.sideToMove}
-                              onChange={(event) =>
-                                setStepDraft((current) => ({
-                                  ...current,
-                                  sideToMove: event.target.value as "white" | "black",
-                                }))
-                              }
-                              className={fullInputClass}
-                            >
-                              <option value="white">White to move</option>
-                              <option value="black">Black to move</option>
-                            </select>
-                            <select
-                              value={stepDraft.boardOrientation}
-                              onChange={(event) =>
-                                setStepDraft((current) => ({
-                                  ...current,
-                                  boardOrientation: event.target.value as "white" | "black",
-                                }))
-                              }
-                              className={fullInputClass}
-                            >
-                              <option value="white">Board white orientation</option>
-                              <option value="black">Board black orientation</option>
-                            </select>
+                            <label className="space-y-1">
+                              <span className={fieldLabelClass}>Move color</span>
+                              <select
+                                value={stepDraft.sideToMove}
+                                onChange={(event) =>
+                                  setStepDraft((current) => ({
+                                    ...current,
+                                    sideToMove: event.target.value as "white" | "black",
+                                  }))
+                                }
+                                className={fullInputClass}
+                              >
+                                <option value="white">White to move</option>
+                                <option value="black">Black to move</option>
+                              </select>
+                            </label>
+                            <label className="space-y-1">
+                              <span className={fieldLabelClass}>Board view</span>
+                              <select
+                                value={stepDraft.boardOrientation}
+                                onChange={(event) =>
+                                  setStepDraft((current) => ({
+                                    ...current,
+                                    boardOrientation: event.target.value as "white" | "black",
+                                  }))
+                                }
+                                className={fullInputClass}
+                              >
+                                <option value="white">White at bottom</option>
+                                <option value="black">Black at bottom</option>
+                              </select>
+                            </label>
                           </div>
                         </div>
                       </div>
 
                       <div>
                         <h3 className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                          Section C - Instruction
+                          Teaching Text
                         </h3>
                         <div className="mt-2 space-y-3">
-                          <textarea
-                            value={stepDraft.instructionText}
-                            onChange={(event) =>
-                              setStepDraft((current) => ({
-                                ...current,
-                                instructionText: event.target.value,
-                              }))
-                            }
-                            placeholder="Instruction text"
-                            className={`min-h-[82px] ${textareaClass}`}
-                          />
-                          <textarea
-                            value={stepDraft.explanationBeforeMove}
-                            onChange={(event) =>
-                              setStepDraft((current) => ({
-                                ...current,
-                                explanationBeforeMove: event.target.value,
-                              }))
-                            }
-                            placeholder="Explanation before move"
-                            className={`min-h-[72px] ${textareaClass}`}
-                          />
-                          <textarea
-                            value={stepDraft.hintText}
-                            onChange={(event) =>
-                              setStepDraft((current) => ({
-                                ...current,
-                                hintText: event.target.value,
-                              }))
-                            }
-                            placeholder="Hint text"
-                            className={`min-h-[62px] ${textareaClass}`}
-                          />
+                          <label className="block space-y-1">
+                            <span className={fieldLabelClass}>Instruction</span>
+                            <textarea
+                              value={stepDraft.instructionText}
+                              onChange={(event) =>
+                                setStepDraft((current) => ({
+                                  ...current,
+                                  instructionText: event.target.value,
+                                }))
+                              }
+                              placeholder="Ask the student what to play"
+                              className={`min-h-[82px] ${textareaClass}`}
+                            />
+                          </label>
+                          <label className="block space-y-1">
+                            <span className={fieldLabelClass}>Before move note</span>
+                            <textarea
+                              value={stepDraft.explanationBeforeMove}
+                              onChange={(event) =>
+                                setStepDraft((current) => ({
+                                  ...current,
+                                  explanationBeforeMove: event.target.value,
+                                }))
+                              }
+                              placeholder="Optional context before the move"
+                              className={`min-h-[72px] ${textareaClass}`}
+                            />
+                          </label>
+                          <label className="block space-y-1">
+                            <span className={fieldLabelClass}>Hint</span>
+                            <textarea
+                              value={stepDraft.hintText}
+                              onChange={(event) =>
+                                setStepDraft((current) => ({
+                                  ...current,
+                                  hintText: event.target.value,
+                                }))
+                              }
+                              placeholder="Optional hint"
+                              className={`min-h-[62px] ${textareaClass}`}
+                            />
+                          </label>
                         </div>
                       </div>
 
                       <div>
                         <h3 className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                          Section D - Validation
+                          Correct Moves
                         </h3>
                         <div className="mt-2 space-y-3">
-                          <textarea
-                            value={stepDraft.acceptedMoves}
-                            onChange={(event) =>
-                              setStepDraft((current) => ({
-                                ...current,
-                                acceptedMoves: event.target.value,
-                              }))
-                            }
-                            placeholder="Accepted moves (comma or new line)"
-                            className={`min-h-[70px] ${textareaClass}`}
-                          />
+                          <label className="block space-y-1">
+                            <span className={fieldLabelClass}>Correct moves</span>
+                            <textarea
+                              value={stepDraft.acceptedMoves}
+                              onChange={(event) =>
+                                setStepDraft((current) => ({
+                                  ...current,
+                                  acceptedMoves: event.target.value,
+                                }))
+                              }
+                              placeholder="Example: e4, Nf3"
+                              className={`min-h-[70px] ${textareaClass}`}
+                            />
+                          </label>
                           <div className="flex flex-wrap items-center gap-2">
                             <button
                               type="button"
@@ -1028,11 +1041,6 @@ export default function AdminLearnLesson() {
                             <span className={`text-xs ${mutedTextClass}`}>
                               Drag or click a legal move on the preview board to add it.
                             </span>
-                            {stepDraft.validationMode === "exact" && (
-                              <span className={`text-xs ${mutedTextClass}`}>
-                                Exact mode keeps only one accepted move.
-                              </span>
-                            )}
                           </div>
                           {acceptedMoveTokens.length > 0 && (
                             <div className="flex flex-wrap gap-1.5">
@@ -1049,81 +1057,40 @@ export default function AdminLearnLesson() {
                                     className={moveChipRemoveClass}
                                     aria-label={`Remove move ${token}`}
                                   >
-                                    ×
+                                    x
                                   </button>
                                 </span>
                               ))}
                             </div>
                           )}
-                          <select
-                            value={stepDraft.validationMode}
-                            onChange={(event) =>
-                              setStepDraft((current) => ({
-                                ...current,
-                                validationMode: event.target.value as
-                                  | "exact"
-                                  | "one_of_many",
-                                acceptedMoves:
-                                  event.target.value === "exact"
-                                    ? mergeAcceptedMoves(
-                                        splitAcceptedMoves(current.acceptedMoves),
-                                      )
-                                        .slice(0, 1)
-                                        .join(", ")
-                                    : mergeAcceptedMoves(
-                                        splitAcceptedMoves(current.acceptedMoves),
-                                      ).join(", "),
-                              }))
-                            }
-                            className={fullInputClass}
-                          >
-                            <option value="one_of_many">Validation: one of many</option>
-                            <option value="exact">Validation: exact first move</option>
-                          </select>
-                          <textarea
-                            value={stepDraft.successMessage}
-                            onChange={(event) =>
-                              setStepDraft((current) => ({
-                                ...current,
-                                successMessage: event.target.value,
-                              }))
-                            }
-                            placeholder="Success message"
-                            className={`min-h-[62px] ${textareaClass}`}
-                          />
-                          <textarea
-                            value={stepDraft.wrongMoveMessage}
-                            onChange={(event) =>
-                              setStepDraft((current) => ({
-                                ...current,
-                                wrongMoveMessage: event.target.value,
-                              }))
-                            }
-                            placeholder="Wrong move message"
-                            className={`min-h-[62px] ${textareaClass}`}
-                          />
-                          <input
-                            value={stepDraft.nextFen}
-                            onChange={(event) =>
-                              setStepDraft((current) => ({
-                                ...current,
-                                nextFen: event.target.value,
-                              }))
-                            }
-                            placeholder="Optional next FEN"
-                            className={fullInputClass}
-                          />
-                          <textarea
-                            value={stepDraft.annotations}
-                            onChange={(event) =>
-                              setStepDraft((current) => ({
-                                ...current,
-                                annotations: event.target.value,
-                              }))
-                            }
-                            placeholder="Annotations JSON (optional)"
-                            className={`min-h-[82px] ${textareaClass}`}
-                          />
+                          <label className="block space-y-1">
+                            <span className={fieldLabelClass}>Good move message</span>
+                            <textarea
+                              value={stepDraft.successMessage}
+                              onChange={(event) =>
+                                setStepDraft((current) => ({
+                                  ...current,
+                                  successMessage: event.target.value,
+                                }))
+                              }
+                              placeholder="Shown after a correct move"
+                              className={`min-h-[62px] ${textareaClass}`}
+                            />
+                          </label>
+                          <label className="block space-y-1">
+                            <span className={fieldLabelClass}>Wrong move message</span>
+                            <textarea
+                              value={stepDraft.wrongMoveMessage}
+                              onChange={(event) =>
+                                setStepDraft((current) => ({
+                                  ...current,
+                                  wrongMoveMessage: event.target.value,
+                                }))
+                              }
+                              placeholder="Shown after an incorrect move"
+                              className={`min-h-[62px] ${textareaClass}`}
+                            />
+                          </label>
                           <div className="flex flex-wrap gap-4">
                             <label className={checkboxLabelClass}>
                               <input
@@ -1137,35 +1104,7 @@ export default function AdminLearnLesson() {
                                 }
                                 className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-400/40"
                               />
-                              Allow retry
-                            </label>
-                            <label className={checkboxLabelClass}>
-                              <input
-                                type="checkbox"
-                                checked={stepDraft.autoAdvance}
-                                onChange={(event) =>
-                                  setStepDraft((current) => ({
-                                    ...current,
-                                    autoAdvance: event.target.checked,
-                                  }))
-                                }
-                                className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-400/40"
-                              />
-                              Auto advance
-                            </label>
-                            <label className={checkboxLabelClass}>
-                              <input
-                                type="checkbox"
-                                checked={stepDraft.keepPositionOnWrong}
-                                onChange={(event) =>
-                                  setStepDraft((current) => ({
-                                    ...current,
-                                    keepPositionOnWrong: event.target.checked,
-                                  }))
-                                }
-                                className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-400/40"
-                              />
-                              Keep board on wrong move
+                              Let students retry
                             </label>
                             <label className={checkboxLabelClass}>
                               <input
@@ -1179,7 +1118,7 @@ export default function AdminLearnLesson() {
                                 }
                                 className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-400/40"
                               />
-                              Step is published
+                              Show step
                             </label>
                           </div>
                         </div>

@@ -1,21 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Chessboard } from "react-chessboard";
 import {
-  Calendar,
   ChevronDown,
   ChevronUp,
-  Clock,
-  Crown,
-  Hash,
-  LayoutGrid,
   Play,
   Search,
-  Shuffle,
   Timer,
   Users,
-  Zap,
 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 import { useAuthStore } from "../../store/authStore";
 import { BOARD_FRAME } from "./types";
 import { useBoardTheme } from "../../hooks/useBoardTheme";
@@ -66,9 +58,8 @@ interface FriendPreview {
 }
 
 interface GameTypeOption {
-  id: "standard" | "chess960" | "threeCheck" | "kingOfHill";
+  id: "standard" | "chess960" | "threeCheck" | "kingOfHill" | "atomic";
   label: string;
-  icon: LucideIcon;
 }
 
 interface ChallengeTimeOption {
@@ -80,22 +71,21 @@ interface ChallengeTimeOption {
 interface TimeGroup {
   id: string;
   label: string;
-  icon: LucideIcon;
   options: ChallengeTimeOption[];
 }
 
 const GAME_TYPE_OPTIONS: GameTypeOption[] = [
-  { id: "standard", label: "Standard", icon: LayoutGrid },
-  { id: "chess960", label: "Chess960", icon: Hash },
-  { id: "threeCheck", label: "Three-Check", icon: Zap },
-  { id: "kingOfHill", label: "King of the Hill", icon: Crown },
+  { id: "standard", label: "Standard" },
+  { id: "chess960", label: "Chess960" },
+  { id: "threeCheck", label: "Three-Check" },
+  { id: "kingOfHill", label: "King of the Hill" },
+  { id: "atomic", label: "Atomic Chess" },
 ];
 
 const TIME_GROUPS: TimeGroup[] = [
   {
     id: "bullet",
     label: "Bullet",
-    icon: Zap,
     options: [
       { label: "1 min", initial: 60, increment: 0 },
       { label: "1 | 1", initial: 60, increment: 1 },
@@ -105,7 +95,6 @@ const TIME_GROUPS: TimeGroup[] = [
   {
     id: "blitz",
     label: "Blitz",
-    icon: Zap,
     options: [
       { label: "3 min", initial: 180, increment: 0 },
       { label: "3 | 2", initial: 180, increment: 2 },
@@ -115,7 +104,6 @@ const TIME_GROUPS: TimeGroup[] = [
   {
     id: "rapid",
     label: "Rapid",
-    icon: Clock,
     options: [
       { label: "10 min", initial: 600, increment: 0 },
       { label: "15 | 10", initial: 900, increment: 10 },
@@ -125,7 +113,6 @@ const TIME_GROUPS: TimeGroup[] = [
   {
     id: "daily",
     label: "Daily",
-    icon: Calendar,
     options: [
       { label: "1 day", initial: 86400, increment: 0 },
       { label: "3 days", initial: 259200, increment: 0 },
@@ -135,9 +122,9 @@ const TIME_GROUPS: TimeGroup[] = [
 ];
 
 const PLAY_AS_OPTIONS = [
-  { id: "white", label: "White", icon: Crown, iconClassName: "" },
-  { id: "random", label: "Random", icon: Shuffle, iconClassName: "" },
-  { id: "black", label: "Black", icon: Crown, iconClassName: "rotate-180" },
+  { id: "white", label: "White" },
+  { id: "random", label: "Random" },
+  { id: "black", label: "Black" },
 ] as const;
 
 export function FriendGameSetup({
@@ -162,9 +149,8 @@ export function FriendGameSetup({
   const [loadingFriends, setLoadingFriends] = useState(false);
   const [friendsError, setFriendsError] = useState<string | null>(null);
   const [hasChosenFriend, setHasChosenFriend] = useState(false);
-  const [isRated, setIsRated] = useState(false);
   const [selectedGameTypeId, setSelectedGameTypeId] = useState<
-    "standard" | "chess960" | "threeCheck" | "kingOfHill"
+    "standard" | "chess960" | "threeCheck" | "kingOfHill" | "atomic"
   >("standard");
   const [isGameTypeOpen, setIsGameTypeOpen] = useState(false);
   const [isTimeControlOpen, setIsTimeControlOpen] = useState(false);
@@ -304,8 +290,6 @@ export function FriendGameSetup({
       GAME_TYPE_OPTIONS[0],
     [selectedGameTypeId],
   );
-  const isUnratedGameType =
-    selectedGameType.id === "threeCheck" || selectedGameType.id === "kingOfHill";
 
   const selectedTimeOption = useMemo(() => {
     for (const group of TIME_GROUPS) {
@@ -334,7 +318,7 @@ export function FriendGameSetup({
       toUserId: selectedFriend.id,
       toName: selectedFriend.name,
       gameType: selectedGameType.id,
-      rated: !isUnratedGameType && isRated,
+      rated: false,
       playAs,
       timeControl,
     });
@@ -361,7 +345,7 @@ export function FriendGameSetup({
   return (
     <div
       ref={containerRef}
-      className="relative h-screen w-full bg-slate-100 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 overflow-hidden"
+      className="relative h-screen w-full bg-transparent overflow-hidden"
     >
       <div className="h-full grid grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)]">
         {/* Left Side - Board Preview */}
@@ -400,7 +384,7 @@ export function FriendGameSetup({
 
           {/* Chess Board Preview */}
           <div
-            className="rounded-2xl overflow-hidden shadow-2xl border border-gray-200/60 dark:border-white/10"
+            className="theme-glass-panel-strong rounded-2xl overflow-hidden"
             style={{ width: boardWidth, height: boardWidth }}
           >
             <Chessboard
@@ -469,10 +453,10 @@ export function FriendGameSetup({
         </div>
 
         {/* Right Side - Settings Panel */}
-        <div className="min-w-0 w-full bg-white/90 dark:bg-slate-900/95 border-l border-gray-200/60 dark:border-white/10 flex flex-col h-full overflow-hidden">
+        <div className="theme-glass-panel-strong min-w-0 w-full rounded-none border-l-0 flex flex-col h-full overflow-hidden">
           <div className="flex-1 flex flex-col gap-3 px-3 py-3 overflow-y-auto min-h-0">
             {!hasChosenFriend ? (
-              <div className="rounded-2xl border border-gray-200/70 dark:border-white/10 bg-white/70 dark:bg-slate-900/60 p-3 flex-shrink-0">
+              <div className="theme-glass-panel-soft rounded-2xl p-3 flex-shrink-0">
                 <div className="text-[12px] font-semibold text-gray-900 dark:text-white mb-2">
                   Opponent
                 </div>
@@ -483,7 +467,7 @@ export function FriendGameSetup({
                     value={friendSearch}
                     onChange={(e) => setFriendSearch(e.target.value)}
                     placeholder="Search by username"
-                    className="w-full pl-10 pr-3 py-2 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-900 dark:text-white text-[12px] border border-gray-200 dark:border-white/10 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    className="w-full pl-10 pr-3 py-2 rounded-xl bg-white/60 dark:bg-white/10 text-gray-900 dark:text-white text-[12px] border border-white/10 focus:outline-none focus:ring-2 focus:ring-brand-500"
                   />
                 </div>
 
@@ -561,7 +545,7 @@ export function FriendGameSetup({
               </div>
             ) : (
               <>
-                <div className="rounded-2xl border border-gray-200/70 dark:border-white/10 bg-white/70 dark:bg-slate-900/60 p-3">
+                <div className="theme-glass-panel-soft rounded-2xl p-3">
                   <div className="flex items-center gap-2 text-[12px] font-semibold text-gray-900 dark:text-white">
                     <Users className="w-4 h-4 text-brand-500" />
                     <span>Play vs</span>
@@ -596,23 +580,22 @@ export function FriendGameSetup({
                   <button
                     type="button"
                     onClick={() => setHasChosenFriend(false)}
-                    className="mt-3 w-full py-2 rounded-xl border border-gray-200/70 dark:border-white/10 bg-gray-100 dark:bg-slate-800 text-[12px] font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-200/80 dark:hover:bg-slate-700 transition-colors"
+                    className="mt-3 w-full py-2 rounded-xl border border-white/10 bg-white/55 dark:bg-white/10 text-[12px] font-semibold text-gray-700 dark:text-gray-300 hover:bg-white/75 dark:hover:bg-white/15 transition-colors"
                   >
                     Change Friend
                   </button>
                 </div>
 
-                <div className="rounded-2xl border border-gray-200/70 dark:border-white/10 bg-white/70 dark:bg-slate-900/60 p-3">
+                <div className="theme-glass-panel-soft rounded-2xl p-3">
                   <div className="text-[12px] font-semibold text-gray-900 dark:text-white mb-2">
                     Game Type
                   </div>
                   <button
                     type="button"
                     onClick={() => setIsGameTypeOpen((value) => !value)}
-                    className="w-full py-3 px-3 rounded-xl bg-gray-100 dark:bg-slate-800 border border-gray-200/70 dark:border-white/10 text-gray-800 dark:text-gray-100 flex items-center justify-between"
+                    className="w-full py-3 px-3 rounded-xl bg-white/55 dark:bg-white/10 border border-white/10 text-gray-800 dark:text-gray-100 flex items-center justify-between"
                   >
                     <span className="flex items-center gap-2 text-[13px] font-semibold">
-                      <selectedGameType.icon className="w-4 h-4 text-gray-600 dark:text-gray-300" />
                       {selectedGameType.label}
                     </span>
                     {isGameTypeOpen ? (
@@ -623,9 +606,8 @@ export function FriendGameSetup({
                   </button>
 
                   {isGameTypeOpen && (
-                    <div className="mt-2 rounded-xl border border-gray-200/70 dark:border-white/10 overflow-hidden">
+                    <div className="mt-2 rounded-xl border border-white/10 overflow-hidden">
                       {GAME_TYPE_OPTIONS.map((option) => {
-                        const Icon = option.icon;
                         const active = selectedGameType.id === option.id;
                         return (
                           <button
@@ -633,22 +615,15 @@ export function FriendGameSetup({
                             type="button"
                             onClick={() => {
                               setSelectedGameTypeId(option.id);
-                              if (
-                                option.id === "threeCheck" ||
-                                option.id === "kingOfHill"
-                              ) {
-                                setIsRated(false);
-                              }
                               setIsGameTypeOpen(false);
                             }}
                             className={`w-full px-3 py-2.5 flex items-center justify-between text-left transition-colors ${
                               active
                                 ? "bg-brand-500/15 text-brand-600 dark:text-brand-300"
-                                : "bg-white dark:bg-slate-900 hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-700 dark:text-gray-200"
+                                : "bg-white/55 dark:bg-white/10 hover:bg-white/75 dark:hover:bg-white/15 text-gray-700 dark:text-gray-200"
                             }`}
                           >
                             <span className="flex items-center gap-2 text-[13px] font-medium">
-                              <Icon className="w-4 h-4" />
                               <span>{option.label}</span>
                             </span>
                           </button>
@@ -658,11 +633,11 @@ export function FriendGameSetup({
                   )}
                 </div>
 
-                <div className="rounded-2xl border border-gray-200/70 dark:border-white/10 bg-white/70 dark:bg-slate-900/60 p-3">
+                <div className="theme-glass-panel-soft rounded-2xl p-3">
                   <button
                     type="button"
                     onClick={() => setIsTimeControlOpen((value) => !value)}
-                    className="w-full py-3 px-3 rounded-xl bg-gray-100 dark:bg-slate-800 border border-gray-200/70 dark:border-white/10 text-gray-800 dark:text-gray-100 flex items-center justify-between"
+                    className="w-full py-3 px-3 rounded-xl bg-white/55 dark:bg-white/10 border border-white/10 text-gray-800 dark:text-gray-100 flex items-center justify-between"
                   >
                     <span className="flex items-center gap-2 text-[13px] font-semibold">
                       <Timer className="w-4 h-4 text-yellow-500" />
@@ -677,12 +652,9 @@ export function FriendGameSetup({
 
                   {isTimeControlOpen && (
                     <div className="mt-3 space-y-3">
-                      {TIME_GROUPS.map((group) => {
-                        const GroupIcon = group.icon;
-                        return (
-                          <div key={group.id}>
+                      {TIME_GROUPS.map((group) => (
+                        <div key={group.id}>
                             <div className="flex items-center gap-1.5 text-[12px] font-semibold text-gray-800 dark:text-gray-200">
-                              <GroupIcon className="w-4 h-4 text-yellow-500" />
                               <span>{group.label}</span>
                             </div>
                             <div className="mt-1.5 grid grid-cols-3 gap-2">
@@ -712,10 +684,9 @@ export function FriendGameSetup({
                                 );
                               })}
                             </div>
-                          </div>
-                        );
-                      })}
-                      <div className="rounded-xl border border-gray-200/70 dark:border-white/10 bg-white dark:bg-slate-900 p-2.5">
+                        </div>
+                      ))}
+                      <div className="theme-glass-panel-soft rounded-xl p-2.5">
                         <div className="text-[12px] font-semibold text-gray-800 dark:text-gray-200">
                           Custom
                         </div>
@@ -730,7 +701,7 @@ export function FriendGameSetup({
                               onChange={(event) =>
                                 setCustomBaseMinutes(event.target.value)
                               }
-                              className="mt-1 w-full rounded-lg border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 px-2 py-1.5 text-[12px] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500/40"
+                              className="mt-1 w-full rounded-lg border border-white/10 bg-white/60 dark:bg-white/10 px-2 py-1.5 text-[12px] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500/40"
                             />
                           </label>
                           <label className="text-[11px] text-gray-600 dark:text-gray-300">
@@ -743,7 +714,7 @@ export function FriendGameSetup({
                               onChange={(event) =>
                                 setCustomIncrementSeconds(event.target.value)
                               }
-                              className="mt-1 w-full rounded-lg border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 px-2 py-1.5 text-[12px] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500/40"
+                              className="mt-1 w-full rounded-lg border border-white/10 bg-white/60 dark:bg-white/10 px-2 py-1.5 text-[12px] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500/40"
                             />
                           </label>
                         </div>
@@ -759,39 +730,16 @@ export function FriendGameSetup({
                   )}
                 </div>
 
-                <div className="flex items-center justify-between px-1">
-                  <span className="text-[14px] font-semibold text-gray-900 dark:text-white">
-                    Rated
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setIsRated((value) => !value)}
-                    disabled={isUnratedGameType}
-                    className={`relative w-14 h-8 rounded-full transition-colors ${
-                      isRated ? "bg-brand-500" : "bg-gray-300 dark:bg-slate-700"
-                    }${isUnratedGameType ? " opacity-60 cursor-not-allowed" : ""}`}
-                    aria-pressed={isRated}
-                  >
-                    <span
-                      className={`absolute top-1 w-6 h-6 rounded-full bg-white shadow transition-all ${
-                        isRated ? "left-7" : "left-1"
-                      }`}
-                    />
-                  </button>
-                </div>
-                {isUnratedGameType && (
-                  <p className="px-1 text-[11px] text-gray-500 dark:text-gray-400">
-                    This variant is unrated.
-                  </p>
-                )}
+                <p className="px-1 text-[11px] text-gray-500 dark:text-gray-400">
+                  Friend games are always unrated. Elo does not change.
+                </p>
 
-                <div className="rounded-2xl border border-gray-200/70 dark:border-white/10 bg-white/70 dark:bg-slate-900/60 p-3">
+                <div className="theme-glass-panel-soft rounded-2xl p-3">
                   <div className="text-[12px] font-semibold text-gray-900 dark:text-white mb-2">
                     I play as
                   </div>
                   <div className="grid grid-cols-3 gap-2">
                     {PLAY_AS_OPTIONS.map((option) => {
-                      const Icon = option.icon;
                       const active = playAs === option.id;
                       return (
                         <button
@@ -804,9 +752,7 @@ export function FriendGameSetup({
                               : "bg-gray-100 dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-300"
                           }`}
                         >
-                          <span className="flex items-center justify-center">
-                            <Icon className={`w-5 h-5 ${option.iconClassName}`} />
-                          </span>
+                          {option.label}
                         </button>
                       );
                     })}
@@ -829,7 +775,7 @@ export function FriendGameSetup({
           </div>
 
           {/* Play Button */}
-          <div className="p-3 border-t border-gray-200/60 dark:border-white/10 flex-shrink-0">
+          <div className="p-3 border-t border-theme-glass flex-shrink-0">
             {hasChosenFriend ? (
               <button
                 onClick={handleSendChallenge}

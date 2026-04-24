@@ -21,13 +21,16 @@ const LEGAL_CAPTURE_STYLE = {
 export function useMoveOptions(
   gameRef: React.MutableRefObject<Chess>,
   setOptionSquares: React.Dispatch<React.SetStateAction<OptionSquares>>,
+  isMoveAllowed?: (move: any, currentGame: Chess) => boolean,
 ) {
   const { showLegalMoves } = useGameplayPreferences();
 
   const getMoveOptions = useCallback(
     (square: Square) => {
       const currentGame = gameRef.current;
-      const movesForSquare = currentGame.moves({ square, verbose: true });
+      const movesForSquare = currentGame
+        .moves({ square, verbose: true })
+        .filter((move) => isMoveAllowed?.(move, currentGame) ?? true);
       if (movesForSquare.length === 0) {
         setOptionSquares({});
         return false;
@@ -47,7 +50,7 @@ export function useMoveOptions(
       setOptionSquares(newSquares);
       return true;
     },
-    [gameRef, setOptionSquares, showLegalMoves],
+    [gameRef, isMoveAllowed, setOptionSquares, showLegalMoves],
   );
 
   return getMoveOptions;

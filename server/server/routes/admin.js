@@ -1,12 +1,13 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
-import { Admin, User, History, Puzzle } from "../models/index.js";
+import { Admin, User } from "../models/index.js";
 import { adminAuthMiddleware } from "../middleware/index.js";
 import {
   ADMIN_MAX_AGE_1_DAY_MS,
   buildAdminCookieOptions,
   clearAdminCookie,
 } from "../utils/cookies.js";
+import { countGameHistories } from "../utils/gameHistoryStats.js";
 
 const router = Router();
 
@@ -131,20 +132,63 @@ router.put("/profile", adminAuthMiddleware, async (req, res) => {
   }
 });
 
+router.post("/change-password", adminAuthMiddleware, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body || {};
+
+    if (
+      !currentPassword ||
+      typeof currentPassword !== "string" ||
+      !newPassword ||
+      typeof newPassword !== "string"
+    ) {
+      return res.status(400).json({
+        error: "Current password and new password are required",
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        error: "New password must be at least 6 characters",
+      });
+    }
+
+    const admin = await Admin.findById(req.admin.adminId);
+    if (!admin) {
+      return res.status(404).json({ error: "Admin not found" });
+    }
+
+    const isPasswordValid = await bcrypt.compare(currentPassword, admin.password);
+    if (!isPasswordValid) {
+      return res.status(400).json({ error: "Current password is incorrect" });
+    }
+
+    admin.password = await bcrypt.hash(newPassword, 10);
+    await admin.save();
+
+    return res.json({
+      success: true,
+      message: "Password changed successfully",
+    });
+  } catch (err) {
+    console.error("Admin change password error:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
+
 // Get stats
 router.get("/stats", adminAuthMiddleware, async (req, res) => {
   try {
-    const totalUsers = await User.countDocuments();
-    const totalGames = await History.countDocuments();
-
     const weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - 7);
-    const newUsersThisWeek = await User.countDocuments({
-      createdAt: { $gte: weekAgo },
-    });
-    const gamesThisWeek = await History.countDocuments({
-      createdAt: { $gte: weekAgo },
-    });
+
+    const [totalUsers, totalGames, newUsersThisWeek, gamesThisWeek] =
+      await Promise.all([
+        User.countDocuments(),
+        countGameHistories(),
+        User.countDocuments({ createdAt: { $gte: weekAgo } }),
+        countGameHistories({ createdAt: { $gte: weekAgo } }),
+      ]);
 
     res.json({
       totalUsers,

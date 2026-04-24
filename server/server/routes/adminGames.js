@@ -18,7 +18,13 @@ const ALLOWED_SORT_FIELDS = new Set([
   "rated",
 ]);
 
-const ENUM_VARIANT = new Set(["standard", "chess960", "threeCheck", "kingOfHill"]);
+const ENUM_VARIANT = new Set([
+  "standard",
+  "chess960",
+  "threeCheck",
+  "kingOfHill",
+  "atomic",
+]);
 const ENUM_PLAY_AS = new Set(["white", "black"]);
 const ENUM_RATING_POOL = new Set(["bullet", "blitz", "rapid", "classical"]);
 
@@ -192,6 +198,14 @@ function normalizeVariant(value) {
   if (normalized === "standard") return "standard";
   if (normalized === "chess960") return "chess960";
   if (
+    normalized === "atomic" ||
+    normalized === "atomicchess" ||
+    normalized === "atomic-chess" ||
+    normalized === "atomic_chess"
+  ) {
+    return "atomic";
+  }
+  if (
     normalized === "threecheck" ||
     normalized === "three-check" ||
     normalized === "three_check"
@@ -254,7 +268,8 @@ function sanitizeGamePayload(payload, { partial = false } = {}) {
     const variant = normalizeVariant(payload.variant);
     if (variant === null) {
       return {
-        error: "variant must be standard, chess960, threeCheck, or kingOfHill",
+        error:
+          "variant must be standard, chess960, threeCheck, kingOfHill, or atomic",
       };
     }
     if (variant !== undefined) {
@@ -514,6 +529,8 @@ router.get("/stats", adminAuthMiddleware, async (req, res) => {
       chess960ThreeCheck,
       historyKingOfHill,
       chess960KingOfHill,
+      historyAtomic,
+      chess960Atomic,
       historyRecent,
       chess960Recent,
       historyResults,
@@ -531,6 +548,8 @@ router.get("/stats", adminAuthMiddleware, async (req, res) => {
       History960.countDocuments({ variant: "threeCheck" }),
       History.countDocuments({ variant: "kingOfHill" }),
       History960.countDocuments({ variant: "kingOfHill" }),
+      History.countDocuments({ variant: "atomic" }),
+      History960.countDocuments({ variant: "atomic" }),
       History.countDocuments(recentQuery),
       History960.countDocuments(recentQuery),
       History.aggregate([{ $group: { _id: "$result", count: { $sum: 1 } } }]),
@@ -543,6 +562,7 @@ router.get("/stats", adminAuthMiddleware, async (req, res) => {
     const chess960 = historyChess960 + chess960Chess960;
     const threeCheck = historyThreeCheck + chess960ThreeCheck;
     const kingOfHill = historyKingOfHill + chess960KingOfHill;
+    const atomic = historyAtomic + chess960Atomic;
     const recent24h = historyRecent + chess960Recent;
     const results = [...historyResults, ...chess960Results];
 
@@ -560,7 +580,7 @@ router.get("/stats", adminAuthMiddleware, async (req, res) => {
       total,
       rated,
       unrated: total - rated,
-      byVariant: { standard, chess960, threeCheck, kingOfHill },
+      byVariant: { standard, chess960, threeCheck, kingOfHill, atomic },
       byResult,
       recent24h,
     });

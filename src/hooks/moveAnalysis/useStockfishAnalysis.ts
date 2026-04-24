@@ -3,6 +3,19 @@ import { GameHistory } from "../../historyTypes";
 import { AnalysisEntry } from "../useGameReplayTypes";
 import { createStockfishWorker } from "../../utils/stockfishWorker";
 
+const ATOMIC_ANALYSIS_UNAVAILABLE = "Analysis not available in Atomic Chess.";
+
+function isAtomicVariant(value: unknown): boolean {
+  if (typeof value !== "string") return false;
+  const normalized = value.trim().toLowerCase();
+  return (
+    normalized === "atomic" ||
+    normalized === "atomicchess" ||
+    normalized === "atomic-chess" ||
+    normalized === "atomic_chess"
+  );
+}
+
 /**
  * Hook to run Stockfish analysis on positions when no analysis is provided
  */
@@ -12,18 +25,32 @@ export function useStockfishAnalysis(game: GameHistory, positions: string[]) {
   );
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState(0);
+  const analysisDisabledReason = isAtomicVariant(game.variant)
+    ? ATOMIC_ANALYSIS_UNAVAILABLE
+    : null;
 
   // Sync external analysis if present
   useEffect(() => {
+    if (analysisDisabledReason) {
+      setAnalysis(game.analysis || []);
+      setIsAnalyzing(false);
+      setAnalysisProgress(0);
+      return;
+    }
     if (game.analysis && game.analysis.length > 0) {
       setAnalysis(game.analysis);
       setIsAnalyzing(false);
       setAnalysisProgress(100);
     }
-  }, [game]);
+  }, [analysisDisabledReason, game]);
 
   // Compute evaluations locally when none provided
   useEffect(() => {
+    if (analysisDisabledReason) {
+      setIsAnalyzing(false);
+      setAnalysisProgress(0);
+      return;
+    }
     if ((game.analysis && game.analysis.length > 0) || positions.length === 0) {
       return;
     }
@@ -99,7 +126,7 @@ export function useStockfishAnalysis(game: GameHistory, positions: string[]) {
       worker.postMessage("quit");
       worker.terminate();
     };
-  }, [game.analysis, positions]);
+  }, [analysisDisabledReason, game.analysis, positions]);
 
-  return { analysis, isAnalyzing, analysisProgress };
+  return { analysis, isAnalyzing, analysisProgress, analysisDisabledReason };
 }

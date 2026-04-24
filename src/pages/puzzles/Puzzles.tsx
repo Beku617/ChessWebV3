@@ -12,6 +12,7 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import { Chessboard } from "react-chessboard";
+import { useTranslation } from "react-i18next";
 import type { PuzzleItem } from "./types";
 import { fetchPuzzleLibrary, togglePuzzleBookmark } from "./api";
 
@@ -55,13 +56,7 @@ function badgeClass(badge: string) {
 }
 
 function badgeLabel(badge: string) {
-  if (badge === "new") return "New";
-  if (badge === "solved") return "Solved";
-  if (badge === "failed_before") return "Failed Before";
-  if (badge === "review_due") return "Review Due";
-  if (badge === "mastered") return "Mastered";
-  if (badge === "bookmarked") return "Bookmarked";
-  return "Unseen";
+  return badge;
 }
 
 function mergedMotifs(puzzle: PuzzleItem): string[] {
@@ -75,14 +70,28 @@ function mergedMotifs(puzzle: PuzzleItem): string[] {
 }
 
 function statusLabel(status?: string) {
-  if (status === "unseen") return "New";
-  if (status === "seen") return "Seen";
-  if (status === "solved") return "Solved";
-  if (status === "failed") return "Failed";
-  if (status === "review_due") return "Review Due";
-  if (status === "mastered") return "Mastered";
-  if (status === "archived") return "Archived";
-  return "Unknown";
+  return status || "unknown";
+}
+
+function difficultyLabel(
+  difficulty: string,
+  t: (key: string, defaultValue?: string) => string,
+) {
+  if (difficulty === "Easy") return t("puzzles.difficulty.easy", "Easy");
+  if (difficulty === "Hard") return t("puzzles.difficulty.hard", "Hard");
+  return t("puzzles.difficulty.medium", "Medium");
+}
+
+function badgeTranslationKey(badge: string) {
+  if (badge === "failed_before") return "failedBefore";
+  if (badge === "review_due") return "reviewDue";
+  return badge;
+}
+
+function statusTranslationKey(status?: string) {
+  if (status === "review_due") return "reviewDue";
+  if (status === "unseen") return "new";
+  return status || "unknown";
 }
 
 function statusPillClass(status?: string) {
@@ -107,7 +116,7 @@ function PuzzlePreviewBoard({
   fen: string;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const [boardWidth, setBoardWidth] = useState(260);
+  const [boardWidth, setBoardWidth] = useState(0);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -116,7 +125,9 @@ function PuzzlePreviewBoard({
     const updateSize = () => {
       const nextWidth = Math.floor(container.clientWidth);
       if (nextWidth > 0) {
-        setBoardWidth(nextWidth);
+        setBoardWidth((currentWidth) =>
+          currentWidth === nextWidth ? currentWidth : nextWidth,
+        );
       }
     };
 
@@ -140,23 +151,32 @@ function PuzzlePreviewBoard({
   return (
     <div
       ref={containerRef}
-      className="w-full rounded-lg overflow-hidden border border-[#2d3f63] shadow-sm"
+      className="aspect-square w-full rounded-lg overflow-hidden border border-[#2d3f63] shadow-sm"
     >
-      <Chessboard
-        id={`library-puzzle-${puzzleId}`}
-        position={fen || "start"}
-        boardWidth={boardWidth}
-        arePiecesDraggable={false}
-        showBoardNotation={false}
-        customDarkSquareStyle={{ backgroundColor: "#8ea8bb" }}
-        customLightSquareStyle={{ backgroundColor: "#dde7ee" }}
-      />
+      {boardWidth > 0 ? (
+        <Chessboard
+          id={`library-puzzle-${puzzleId}`}
+          position={fen || "start"}
+          boardWidth={boardWidth}
+          arePiecesDraggable={false}
+          showBoardNotation={false}
+          customDarkSquareStyle={{ backgroundColor: "#8ea8bb" }}
+          customLightSquareStyle={{ backgroundColor: "#dde7ee" }}
+        />
+      ) : null}
     </div>
   );
 }
 
 export default function Puzzles() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const translateDefault = (key: string, defaultValue?: string) =>
+    String(defaultValue === undefined ? t(key) : t(key, defaultValue));
+  const loadFailedMessage = t(
+    "puzzles.library.loadFailed",
+    "Failed to load puzzle library",
+  );
   const [items, setItems] = useState<PuzzleItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -183,9 +203,9 @@ export default function Puzzles() {
   }, [query, status, difficulty, includeMastered, minRating, maxRating, viewMode]);
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      let cancelled = false;
+    let cancelled = false;
 
+    const timeout = setTimeout(() => {
       async function loadLibrary() {
         setLoading(true);
         setError(null);
@@ -205,7 +225,7 @@ export default function Puzzles() {
           setError(
             loadError instanceof Error
               ? loadError.message
-              : "Failed to load puzzle library",
+              : loadFailedMessage,
           );
         } finally {
           if (!cancelled) setLoading(false);
@@ -213,22 +233,39 @@ export default function Puzzles() {
       }
 
       void loadLibrary();
-      return () => {
-        cancelled = true;
-      };
     }, 220);
 
-    return () => clearTimeout(timeout);
-  }, [difficulty, includeMastered, maxRating, minRating, query, status]);
+    return () => {
+      cancelled = true;
+      clearTimeout(timeout);
+    };
+  }, [
+    difficulty,
+    includeMastered,
+    loadFailedMessage,
+    maxRating,
+    minRating,
+    query,
+    status,
+  ]);
 
   const statusOptions: Array<{ value: StatusFilter; label: string }> = [
-    { value: "all", label: "All" },
-    { value: "new", label: "New" },
-    { value: "solved", label: "Solved" },
-    { value: "failed_before", label: "Failed Before" },
-    { value: "review_due", label: "Review Due" },
-    { value: "mastered", label: "Mastered" },
-    { value: "bookmarked", label: "Bookmarked" },
+    { value: "all", label: t("puzzles.status.all", "All") },
+    { value: "new", label: t("puzzles.status.new", "New") },
+    { value: "solved", label: t("puzzles.status.solved", "Solved") },
+    {
+      value: "failed_before",
+      label: t("puzzles.status.failedBefore", "Failed Before"),
+    },
+    {
+      value: "review_due",
+      label: t("puzzles.status.reviewDue", "Review Due"),
+    },
+    { value: "mastered", label: t("puzzles.status.mastered", "Mastered") },
+    {
+      value: "bookmarked",
+      label: t("puzzles.status.bookmarked", "Bookmarked"),
+    },
   ];
 
   const onBookmark = async (puzzle: PuzzleItem) => {
@@ -287,50 +324,47 @@ export default function Puzzles() {
       <section className="rounded-2xl border border-[#243250] bg-[#0f172a] px-5 py-5 shadow-[0_25px_80px_-55px_rgba(20,184,166,0.45)]">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-[11px] uppercase tracking-[0.2em] text-emerald-300/90">
-              Puzzle Library
-            </p>
             <h1 className="text-2xl font-semibold text-white">
-              Browse Puzzles
+              {t("puzzles.library.title", "Browse Puzzles")}
             </h1>
-            <p className="mt-1 text-sm text-slate-300">
-              Search and filter by status and rating.
-            </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
-              onClick={() => navigate(-1)}
-              className="inline-flex items-center rounded-lg border border-[#304464] bg-[#111b31] px-3 py-2 text-xs font-medium text-slate-100 transition-colors hover:bg-[#162541]"
-            >
-              Back
-            </button>
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center rounded-lg border border-[#304464] bg-[#111b31] px-3 py-2 text-xs font-medium text-slate-100 transition-colors hover:bg-[#162541]"
+          >
+            {t("analysis.back", "Back")}
+          </button>
             <Link
               to="/puzzles/history"
               className="inline-flex items-center gap-1.5 rounded-lg border border-[#304464] bg-[#111b31] px-3 py-2 text-xs font-semibold text-slate-100 hover:border-cyan-300/60"
             >
               <BookOpen className="h-3.5 w-3.5" />
-              History
+              {t("puzzles.trainer.historyTab", "History")}
             </Link>
           </div>
         </div>
 
         <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-2">
           <label className="rounded-xl border border-[#304464] bg-[#111b31] px-3 py-2 text-xs text-slate-200">
-            Search
+            {t("puzzles.library.searchLabel", "Search")}
             <div className="mt-1 flex items-center gap-2">
               <Search className="h-3.5 w-3.5 text-slate-400" />
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search title"
+                placeholder={t(
+                  "puzzles.library.searchPlaceholder",
+                  "Search title",
+                )}
                 className="w-full bg-transparent outline-none text-sm placeholder:text-slate-500"
               />
             </div>
           </label>
 
           <label className="rounded-xl border border-[#304464] bg-[#111b31] px-3 py-2 text-xs text-slate-200">
-            Status
+            {t("puzzles.library.statusLabel", "Status")}
             <select
               value={status}
               onChange={(event) =>
@@ -351,7 +385,7 @@ export default function Puzzles() {
           </label>
 
           <label className="rounded-xl border border-[#304464] bg-[#111b31] px-3 py-2 text-xs text-slate-200">
-            Difficulty
+            {t("puzzles.library.difficultyLabel", "Difficulty")}
             <select
               value={difficulty}
               onChange={(event) =>
@@ -362,7 +396,7 @@ export default function Puzzles() {
               className="mt-1 w-full bg-transparent text-sm outline-none"
             >
               <option value="" className="bg-[#0d1322] text-slate-100">
-                All
+                {t("puzzles.status.all", "All")}
               </option>
               {["Easy", "Medium", "Hard"].map((item) => (
                 <option
@@ -370,7 +404,7 @@ export default function Puzzles() {
                   value={item}
                   className="bg-[#0d1322] text-slate-100"
                 >
-                  {item}
+                  {difficultyLabel(item, translateDefault)}
                 </option>
               ))}
             </select>
@@ -390,7 +424,9 @@ export default function Puzzles() {
               min={100}
               max={maxRating}
             />
-            <span className="text-xs text-slate-500">to</span>
+            <span className="text-xs text-slate-500">
+              {t("puzzles.library.ratingSeparator", "to")}
+            </span>
             <input
               type="number"
               value={maxRating}
@@ -409,7 +445,7 @@ export default function Puzzles() {
               checked={includeMastered}
               onChange={(event) => setIncludeMastered(event.target.checked)}
             />
-            Include mastered
+            {t("puzzles.library.includeMastered", "Include mastered")}
           </label>
 
           <div className="ml-auto inline-flex rounded-lg border border-[#304464] bg-[#111b31] p-1">
@@ -423,7 +459,7 @@ export default function Puzzles() {
               }`}
             >
               <Grid2X2 className="h-3.5 w-3.5" />
-              Grid
+              {t("puzzles.library.grid", "Grid")}
             </button>
             <button
               type="button"
@@ -435,7 +471,7 @@ export default function Puzzles() {
               }`}
             >
               <List className="h-3.5 w-3.5" />
-              List
+              {t("puzzles.library.list", "List")}
             </button>
           </div>
         </div>
@@ -443,7 +479,10 @@ export default function Puzzles() {
 
       {loading ? (
         <div className="rounded-2xl border border-[#243250] bg-[#0f172a] px-4 py-12 flex justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-emerald-300" />
+          <div className="flex flex-col items-center gap-2 text-sm text-slate-300">
+            <Loader2 className="w-8 h-8 animate-spin text-emerald-300" />
+            <span>{t("puzzles.library.loading", "Loading puzzle library...")}</span>
+          </div>
         </div>
       ) : error ? (
         <div className="rounded-2xl border border-red-400/50 bg-red-500/10 px-4 py-4 text-sm text-red-100">
@@ -452,8 +491,14 @@ export default function Puzzles() {
       ) : items.length === 0 ? (
         <div className="rounded-2xl border border-[#243250] bg-[#0f172a] px-4 py-6 text-sm text-slate-300">
           {status === "review_due"
-            ? "No reviews due. Try a new rated puzzle."
-            : "No puzzles match your filters."}
+            ? t(
+                "puzzles.library.emptyReviewDue",
+                "No reviews due. Try a new rated puzzle.",
+              )
+            : t(
+                "puzzles.library.emptyFiltered",
+                "No puzzles match your filters.",
+              )}
         </div>
       ) : viewMode === "grid" ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
@@ -479,8 +524,8 @@ export default function Puzzles() {
                       type="button"
                       onClick={() => onBookmark(puzzle)}
                       className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-fuchsia-300/60 bg-fuchsia-500/15 text-fuchsia-200 hover:bg-fuchsia-500/25"
-                      title="Bookmarked"
-                      aria-label="Bookmarked"
+                      title={t("puzzles.library.bookmarked", "Bookmarked")}
+                      aria-label={t("puzzles.library.bookmarked", "Bookmarked")}
                     >
                       <Bookmark className="h-3.5 w-3.5" fill="currentColor" />
                     </button>
@@ -493,14 +538,19 @@ export default function Puzzles() {
                       puzzle.difficulty,
                     )}`}
                   >
-                    {puzzle.difficulty}
+                    {difficultyLabel(puzzle.difficulty, translateDefault)}
                   </span>
                   <span
                     className={`px-2 py-1 rounded-md border text-[11px] font-semibold ${statusPillClass(
                       puzzle.userState?.status,
                     )}`}
                   >
-                    {statusLabel(puzzle.userState?.status)}
+                    {t(
+                      `puzzles.status.${statusTranslationKey(
+                        statusLabel(puzzle.userState?.status),
+                      )}`,
+                      "Unknown",
+                    )}
                   </span>
                   {badge === "bookmarked" ? null : (
                     <span
@@ -508,7 +558,10 @@ export default function Puzzles() {
                         badge,
                       )}`}
                     >
-                      {badgeLabel(badge)}
+                      {t(
+                        `puzzles.status.${badgeTranslationKey(badgeLabel(badge))}`,
+                        badge,
+                      )}
                     </span>
                   )}
                   {mergedMotifs(puzzle)
@@ -524,12 +577,16 @@ export default function Puzzles() {
                 </div>
 
                 <p className="mt-2 text-xs text-slate-300 line-clamp-2">
-                  {puzzle.description || "No description"}
+                  {puzzle.description ||
+                    t("puzzles.library.noDescription", "No description")}
                 </p>
 
                 <div className="mt-3 flex items-center justify-between gap-2">
                   <div className="text-[11px] text-slate-400">
-                    {puzzle.quality?.attempts || 0} attempts
+                    {t("puzzles.library.attempts", {
+                      defaultValue: "{{count}} attempts",
+                      count: puzzle.quality?.attempts || 0,
+                    })}
                   </div>
                   <button
                     type="button"
@@ -538,7 +595,7 @@ export default function Puzzles() {
                     }
                     className="rounded-lg border border-emerald-300/70 bg-emerald-500/20 px-3 py-1.5 text-[11px] font-semibold text-emerald-100 hover:bg-emerald-500/30"
                   >
-                    Start
+                    {t("puzzles.library.start", "Start")}
                   </button>
                 </div>
               </article>
@@ -565,7 +622,8 @@ export default function Puzzles() {
                     {puzzle.title}
                   </p>
                   <p className="text-xs text-slate-400 truncate">
-                    {mergedMotifs(puzzle).join(" • ") || "No motifs"}
+                    {mergedMotifs(puzzle).join(" • ") ||
+                      t("puzzles.library.noMotifs", "No motifs")}
                   </p>
                 </div>
                 <span
@@ -573,14 +631,17 @@ export default function Puzzles() {
                     badge,
                   )}`}
                 >
-                  {badgeLabel(badge)}
+                  {t(
+                    `puzzles.status.${badgeTranslationKey(badgeLabel(badge))}`,
+                    badge,
+                  )}
                 </span>
                 <span
                   className={`px-2 py-1 rounded-md border text-[11px] font-semibold shrink-0 ${difficultyClass(
                     puzzle.difficulty,
                   )}`}
                 >
-                  {puzzle.difficulty}
+                  {difficultyLabel(puzzle.difficulty, translateDefault)}
                 </span>
                 <span className="text-xs text-slate-300 w-14 text-right shrink-0">
                   {puzzle.rating}
@@ -592,7 +653,7 @@ export default function Puzzles() {
                   }
                   className="rounded-lg border border-emerald-300/70 bg-emerald-500/20 px-3 py-1.5 text-[11px] font-semibold text-emerald-100 hover:bg-emerald-500/30 shrink-0"
                 >
-                  Start
+                  {t("puzzles.library.start", "Start")}
                 </button>
               </div>
             );
@@ -603,8 +664,12 @@ export default function Puzzles() {
       {items.length > 0 && totalPages > 1 ? (
         <div className="rounded-xl border border-[#243250] bg-[#0f172a] p-4 flex items-center justify-between">
           <p className="text-sm text-slate-400">
-            Showing {pageStart + 1} -{" "}
-            {Math.min(pageStart + pageSize, items.length)} of {items.length}
+            {t("puzzles.library.pagination", {
+              defaultValue: "Showing {{start}} - {{end}} of {{total}}",
+              start: pageStart + 1,
+              end: Math.min(pageStart + pageSize, items.length),
+              total: items.length,
+            })}
           </p>
           <div className="flex items-center gap-2">
             <button

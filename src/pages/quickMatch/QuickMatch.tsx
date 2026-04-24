@@ -12,7 +12,12 @@ import type { GameHistory } from "../../historyTypes";
 import { useGameplayPreferences } from "../../hooks/useGameplayPreferences";
 import { resolveQuickMatchDefaultTimeControl } from "../../utils/gameplaySettings";
 
-type MatchVariant = "standard" | "chess960" | "threeCheck" | "kingOfHill";
+type MatchVariant =
+  | "standard"
+  | "chess960"
+  | "threeCheck"
+  | "kingOfHill"
+  | "atomic";
 const LAST_QUICK_TIME_CONTROL_KEY = "quickMatch:lastTimeControl";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 const DEFAULT_TIME_CONTROL = resolveQuickMatchDefaultTimeControl("rapid");
@@ -21,6 +26,14 @@ function normalizeVariant(value: unknown): MatchVariant {
   if (typeof value !== "string") return "standard";
   const normalized = value.trim().toLowerCase();
   if (normalized === "chess960") return "chess960";
+  if (
+    normalized === "atomic" ||
+    normalized === "atomicchess" ||
+    normalized === "atomic-chess" ||
+    normalized === "atomic_chess"
+  ) {
+    return "atomic";
+  }
   if (
     normalized === "kingofhill" ||
     normalized === "king-of-hill" ||
@@ -206,6 +219,7 @@ export default function QuickMatch() {
     playerClockSeed,
     opponentClockSeed,
     clockResetToken,
+    isClockPaused,
     setPlayerTime,
     setOpponentTime,
     onSquareClick,
@@ -564,6 +578,7 @@ export default function QuickMatch() {
         playerRating={isRatedMatch ? playerRating : null}
         opponentRating={isRatedMatch ? opponentRating : null}
         gameOverElo={isRatedMatch ? lastGameOver?.elo ?? null : null}
+        statusMessage={queueStatus}
         onSquareClick={onSquareClick}
         onPieceDrop={onPieceDrop}
         onCancelSelection={onCancelSelection}
@@ -577,6 +592,7 @@ export default function QuickMatch() {
         playerClockSeed={playerClockSeed}
         opponentClockSeed={opponentClockSeed}
         clockResetToken={clockResetToken}
+        isClockPaused={isClockPaused}
         onTimeOut={timeOut}
         onResign={resign}
         onRematch={rematch}

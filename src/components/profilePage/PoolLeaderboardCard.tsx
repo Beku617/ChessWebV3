@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Trophy, Crown, Medal } from "lucide-react";
 import { useAuthStore } from "../../store/authStore";
 import { type RatingPool, useLeaderboard } from "../../hooks/useRatingsData";
 
@@ -18,21 +17,18 @@ function rankAccent(rank: number) {
       bg: "bg-amber-500/10 dark:bg-amber-500/10",
       ring: "ring-1 ring-amber-400/30",
       text: "text-amber-400",
-      icon: <Crown size={14} className="text-amber-400" />,
     };
   if (rank === 2)
     return {
       bg: "bg-gray-300/10 dark:bg-gray-400/10",
       ring: "ring-1 ring-gray-400/20",
       text: "text-slate-500 dark:text-gray-300",
-      icon: <Medal size={14} className="text-slate-500 dark:text-gray-300" />,
     };
   if (rank === 3)
     return {
       bg: "bg-orange-400/10 dark:bg-orange-500/10",
       ring: "ring-1 ring-orange-400/20",
       text: "text-orange-400",
-      icon: <Medal size={14} className="text-orange-400" />,
     };
   return null;
 }
@@ -50,7 +46,6 @@ export function PoolLeaderboardCard() {
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white tracking-tight">
           Leaderboard
         </h3>
-        <Trophy className="w-5 h-5 text-amber-500" />
       </div>
 
       {/* Pool tabs */}
@@ -113,7 +108,6 @@ export function PoolLeaderboardCard() {
                   >
                     {/* Rank */}
                     <div className="flex items-center gap-1.5">
-                      {accent?.icon}
                       <span
                         className={`text-sm font-bold tabular-nums ${
                           accent

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { X, Search, Send, Loader2, Crown, Check } from "lucide-react";
+import { Search, Send, Loader2, Check } from "lucide-react";
 import { useFriendStore, FriendListItem } from "../store/friendStore";
 import { GameHistory } from "../historyTypes";
 
@@ -107,18 +107,15 @@ export function ShareGameModal({ game, onClose }: ShareGameModalProps) {
           <h3 className="text-lg font-semibold text-slate-100">Share Game</h3>
           <button
             onClick={onClose}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-[#1b2a41] hover:text-slate-100"
+            className="inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-sm font-medium text-slate-400 transition-colors hover:bg-[#1b2a41] hover:text-slate-100"
           >
-            <X className="h-4 w-4" />
+            Close
           </button>
         </div>
 
         {/* Game preview */}
         <div className="border-b border-[#1f2c45] px-5 py-3">
           <div className="flex items-center gap-3 rounded-xl border border-[#25344e] bg-[#0b1424]/80 px-4 py-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-500/10 text-brand-400">
-              <Crown className="h-5 w-5" />
-            </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 text-sm">
                 <span className="font-medium text-slate-100">{game.white}</span>

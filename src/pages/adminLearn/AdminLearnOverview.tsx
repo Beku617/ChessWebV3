@@ -328,16 +328,9 @@ export default function AdminLearnOverview() {
             >
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-brand-300/80">
-                    Admin Learn
-                  </div>
-                  <h1 className="mt-2 text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
+                  <h1 className="text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
                     Learn Course Management
                   </h1>
-                  <p className="mt-3 max-w-2xl text-sm leading-7 text-gray-500 dark:text-gray-400">
-                    Create and manage production Learn courses, publishing states,
-                    and lesson structures.
-                  </p>
                 </div>
 
                 <button
@@ -387,7 +380,7 @@ export default function AdminLearnOverview() {
                   <input
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
-                    placeholder="Search by title, slug, tags..."
+                    placeholder="Search courses..."
                     className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 py-2 pl-10 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                   />
                 </label>
@@ -456,9 +449,8 @@ export default function AdminLearnOverview() {
                     <thead>
                       <tr className="text-left text-xs uppercase tracking-[0.14em] text-gray-500 dark:text-gray-500">
                         <th className="px-3 py-3">Course</th>
-                        <th className="px-3 py-3">Category</th>
-                        <th className="px-3 py-3">Difficulty</th>
-                        <th className="px-3 py-3">Order</th>
+                        <th className="px-3 py-3">Topic</th>
+                        <th className="px-3 py-3">Level</th>
                         <th className="px-3 py-3">Lessons</th>
                         <th className="px-3 py-3">Status</th>
                         <th className="px-3 py-3">Updated</th>
@@ -486,9 +478,6 @@ export default function AdminLearnOverview() {
                             </td>
                             <td className="px-3 py-4 text-sm text-gray-600 dark:text-gray-300">
                               {course.difficulty}
-                            </td>
-                            <td className="px-3 py-4 text-sm text-gray-600 dark:text-gray-300">
-                              {course.sortOrder}
                             </td>
                             <td className="px-3 py-4 text-sm text-gray-600 dark:text-gray-300">
                               {course.totalLessons} total / {course.publishedLessons} published
@@ -594,7 +583,7 @@ export default function AdminLearnOverview() {
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 <label className="space-y-1">
                   <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                    Title
+                    Course name
                   </span>
                   <input
                     value={draft.title}
@@ -606,20 +595,7 @@ export default function AdminLearnOverview() {
                 </label>
                 <label className="space-y-1">
                   <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                    Slug
-                  </span>
-                  <input
-                    value={draft.slug}
-                    onChange={(event) =>
-                      setDraft((current) => ({ ...current, slug: event.target.value }))
-                    }
-                    placeholder="auto-from-title"
-                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                  />
-                </label>
-                <label className="space-y-1">
-                  <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                    Category
+                    Topic
                   </span>
                   <select
                     value={draft.category}
@@ -640,7 +616,7 @@ export default function AdminLearnOverview() {
                 </label>
                 <label className="space-y-1">
                   <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                    Difficulty
+                    Level
                   </span>
                   <select
                     value={draft.difficulty}
@@ -661,7 +637,7 @@ export default function AdminLearnOverview() {
                 </label>
                 <label className="space-y-1">
                   <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                    Instructor
+                    Teacher
                   </span>
                   <input
                     value={draft.instructorName}
@@ -676,14 +652,14 @@ export default function AdminLearnOverview() {
                 </label>
                 <label className="space-y-1">
                   <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                    Badge
+                    Short label
                   </span>
                   <input
                     value={draft.badge}
                     onChange={(event) =>
                       setDraft((current) => ({ ...current, badge: event.target.value }))
                     }
-                    placeholder="Course badge text"
+                    placeholder="Example: Beginner guide"
                     className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                   />
                 </label>
@@ -702,39 +678,7 @@ export default function AdminLearnOverview() {
                 </label>
                 <label className="space-y-1">
                   <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                    Sort Order
-                  </span>
-                  <input
-                    type="number"
-                    min={0}
-                    value={draft.sortOrder}
-                    onChange={(event) =>
-                      setDraft((current) => ({
-                        ...current,
-                        sortOrder: Number(event.target.value || 0),
-                      }))
-                    }
-                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                  />
-                </label>
-                <label className="space-y-1">
-                  <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                    Cover Image URL
-                  </span>
-                  <input
-                    value={draft.coverImage}
-                    onChange={(event) =>
-                      setDraft((current) => ({
-                        ...current,
-                        coverImage: event.target.value,
-                      }))
-                    }
-                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                  />
-                </label>
-                <label className="space-y-1">
-                  <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                    Upload Cover Image
+                    Cover image
                   </span>
                   <input
                     type="file"
@@ -745,23 +689,11 @@ export default function AdminLearnOverview() {
                     className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 file:mr-3 file:rounded-md file:border-0 file:bg-brand-600/20 file:px-2.5 file:py-1.5 file:text-xs file:font-semibold file:text-brand-200 hover:file:bg-brand-600/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                   />
                 </label>
-                <label className="space-y-1">
-                  <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                    Icon
-                  </span>
-                  <input
-                    value={draft.icon}
-                    onChange={(event) =>
-                      setDraft((current) => ({ ...current, icon: event.target.value }))
-                    }
-                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                  />
-                </label>
               </div>
 
               <div className="mt-4">
                 <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                  Cover Preview
+                  Cover
                 </span>
                 <div className="mt-1.5 h-36 w-full overflow-hidden rounded-xl border border-gray-200 bg-gray-100 dark:border-slate-700 dark:bg-slate-900">
                   {coverPreviewUrl ? (
@@ -780,7 +712,7 @@ export default function AdminLearnOverview() {
 
               <label className="mt-4 block space-y-1">
                 <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                  Subtitle
+                  Summary
                 </span>
                 <input
                   value={draft.subtitle}
@@ -793,7 +725,7 @@ export default function AdminLearnOverview() {
 
               <label className="mt-4 block space-y-1">
                 <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                  Description
+                  Details
                 </span>
                 <textarea
                   value={draft.description}
@@ -819,7 +751,7 @@ export default function AdminLearnOverview() {
                   }
                   className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-400/40"
                 />
-                Publish immediately
+                Show course
               </label>
 
               <div className="mt-6 flex justify-end gap-3">

@@ -90,7 +90,7 @@ export const preparedTexts: Record<string, string[]> = {
     "Could've pounced.",
     "They got lucky.",
     "Didn't capitalize.",
-    "The knockout was there.",
+    "The tactic was there.",
     "Hesitation cost you.",
   ],
   // Fallback texts for AI-explained moves (shown if AI is disabled or fails)

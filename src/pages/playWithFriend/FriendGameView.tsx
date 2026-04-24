@@ -9,7 +9,12 @@ import type { HistoryPersistenceStatus } from "../../hooks/gameHistorySaver/hist
 import { BOARD_FRAME } from "./types";
 import type { CSSProperties } from "react";
 
-type MatchVariant = "standard" | "chess960" | "threeCheck" | "kingOfHill";
+type MatchVariant =
+  | "standard"
+  | "chess960"
+  | "threeCheck"
+  | "kingOfHill"
+  | "atomic";
 const KING_OF_HILL_SQUARE_STYLES: Record<string, CSSProperties> = {
   d4: { boxShadow: "inset 0 0 0 9999px rgba(250, 204, 21, 0.16)" },
   e4: { boxShadow: "inset 0 0 0 9999px rgba(250, 204, 21, 0.16)" },
@@ -50,6 +55,7 @@ interface FriendGameViewProps {
   preMoveSquares: Record<string, CSSProperties>;
   playerRating?: number | null;
   opponentRating?: number | null;
+  statusMessage?: string | null;
   gameOverElo?: {
     rated?: boolean;
     applied?: boolean;
@@ -66,6 +72,10 @@ interface FriendGameViewProps {
   isDraggablePiece: (sourceSquare: Square) => boolean;
   setOpponentTime: (time: number) => void;
   setPlayerTime: (time: number) => void;
+  playerClockSeed?: number;
+  opponentClockSeed?: number;
+  clockResetToken?: string | number;
+  isClockPaused?: boolean;
   onTimeOut: (isPlayer: boolean) => void;
   onResign: () => void;
   onTryAgain: () => void;
@@ -99,6 +109,7 @@ export function FriendGameView({
   preMoveSquares,
   playerRating,
   opponentRating,
+  statusMessage,
   gameOverElo,
   onSquareClick,
   onPieceDrop,
@@ -106,6 +117,10 @@ export function FriendGameView({
   isDraggablePiece,
   setOpponentTime,
   setPlayerTime,
+  playerClockSeed,
+  opponentClockSeed,
+  clockResetToken,
+  isClockPaused = false,
   onTimeOut,
   onResign,
   onTryAgain,
@@ -166,7 +181,7 @@ export function FriendGameView({
   }, []);
 
   return (
-    <div className="relative h-screen w-full bg-slate-100 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 overflow-hidden">
+    <div className="relative h-screen w-full bg-transparent overflow-hidden">
       <div className="relative h-full w-full grid grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] gap-2 p-2 overflow-hidden">
         <GameOverModal
           isOpen={showGameOverModal}
@@ -198,22 +213,28 @@ export function FriendGameView({
               rating={opponentRating}
               avatarLetter={friendName.substring(0, 2).toUpperCase()}
               avatarStyle="opponent"
-              initialTime={gameSettings.timeControl.initial}
+              initialTime={
+                Number.isFinite(Number(opponentClockSeed))
+                  ? Number(opponentClockSeed)
+                  : gameSettings.timeControl.initial
+              }
               increment={gameSettings.timeControl.increment}
               isTimerActive={
                 gameStarted &&
                 !isPlayerTurn &&
                 !gameOver &&
-                gameSettings.timeControl.initial > 0
+                gameSettings.timeControl.initial > 0 &&
+                !isClockPaused
               }
               onTimeOut={() => onTimeOut(false)}
               onTimeChange={setOpponentTime}
+              timerResetToken={`opp:${clockResetToken ?? 0}`}
             />
           </div>
 
           {/* Chessboard */}
           <div
-            className="rounded-2xl bg-white/80 dark:bg-slate-900/80 border border-gray-200/60 dark:border-white/5 shadow-xl"
+            className="theme-glass-panel-strong rounded-2xl"
             style={{ width: boardWidth + BOARD_FRAME }}
           >
             <GameBoard
@@ -252,23 +273,29 @@ export function FriendGameView({
               }
               avatarImage={playerAvatarUrl}
               avatarStyle="player"
-              initialTime={gameSettings.timeControl.initial}
+              initialTime={
+                Number.isFinite(Number(playerClockSeed))
+                  ? Number(playerClockSeed)
+                  : gameSettings.timeControl.initial
+              }
               increment={gameSettings.timeControl.increment}
               isTimerActive={
                 gameStarted &&
                 isPlayerTurn &&
                 !gameOver &&
-                gameSettings.timeControl.initial > 0
+                gameSettings.timeControl.initial > 0 &&
+                !isClockPaused
               }
               onTimeOut={() => onTimeOut(true)}
               onTimeChange={setPlayerTime}
+              timerResetToken={`self:${clockResetToken ?? 0}`}
             />
           </div>
         </div>
 
         {/* Sidebar */}
         <div className="min-w-0 w-full lg:flex-1 lg:self-stretch min-h-0 flex flex-col">
-          <div className="flex-1 rounded-3xl border border-white/10 bg-white/70 dark:bg-slate-900/80 shadow-2xl backdrop-blur-xl px-4 py-4 flex flex-col overflow-hidden">
+          <div className="theme-glass-panel-strong flex-1 rounded-3xl px-4 py-4 flex flex-col overflow-hidden">
             {/* Header */}
             <div className="flex items-center justify-center mb-3 pb-3 border-b border-gray-200/60 dark:border-white/10">
               <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
@@ -278,7 +305,7 @@ export function FriendGameView({
             </div>
 
             {/* Turn Indicator */}
-            <div className="mb-3 p-2.5 rounded-xl bg-brand-500/10 border border-brand-500/20 text-center">
+            <div className="theme-glass-panel-soft mb-3 p-2.5 rounded-xl text-center">
               <p className="text-xs font-medium text-brand-600 dark:text-brand-400">
                 {isPlayerTurn ? "Your turn" : `${friendName}'s turn`}
               </p>
@@ -287,8 +314,14 @@ export function FriendGameView({
               </p>
             </div>
 
+            {statusMessage && (
+              <div className="theme-glass-panel-soft mb-3 rounded-xl px-3 py-2 text-xs text-gray-600 dark:text-gray-300">
+                {statusMessage}
+              </div>
+            )}
+
             {/* Move List */}
-            <div className="flex-1 mb-3 rounded-xl bg-gray-50/50 dark:bg-slate-800/50 border border-gray-200/60 dark:border-white/5 overflow-hidden">
+            <div className="theme-glass-panel-soft flex-1 mb-3 rounded-xl overflow-hidden">
               <div className="p-2.5">
                 {moves.length === 0 ? (
                   <div className="text-center text-gray-400 dark:text-gray-500 text-xs py-6">
@@ -336,7 +369,7 @@ export function FriendGameView({
                   onLeave?.();
                   navigate("/play");
                 }}
-                className="w-full px-4 py-2.5 rounded-xl bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-800 dark:text-gray-200 font-medium transition-colors"
+                className="w-full px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-gray-800 dark:text-gray-200 font-medium transition-colors"
               >
                 Back to Play
               </button>

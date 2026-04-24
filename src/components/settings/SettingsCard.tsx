@@ -10,7 +10,6 @@ interface SettingsCardProps {
 }
 
 export function SettingsCard({
-  icon,
   title,
   subtitle,
   children,
@@ -19,7 +18,7 @@ export function SettingsCard({
 }: SettingsCardProps) {
   return (
     <section
-      className={`relative overflow-hidden rounded-2xl border border-gray-200/60 dark:border-gray-800/80 bg-white/70 dark:bg-gray-900/60 backdrop-blur-xl shadow-sm transition-colors duration-300 ${className}`}
+      className={`theme-glass-panel relative overflow-hidden rounded-2xl transition-colors duration-300 ${className}`}
     >
       {/* Subtle glow accent */}
       {accent && (
@@ -29,8 +28,7 @@ export function SettingsCard({
       )}
       <div className="relative">
         {/* Header */}
-        <div className="flex items-center gap-3 px-6 pt-5 pb-4 border-b border-gray-100 dark:border-gray-800/60">
-          {icon && <span className="shrink-0">{icon}</span>}
+        <div className="flex items-center gap-3 px-6 pt-5 pb-4 border-b border-theme-glass">
           <div>
             <h3 className="text-base font-bold text-gray-900 dark:text-white leading-tight">
               {title}

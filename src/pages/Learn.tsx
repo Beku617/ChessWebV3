@@ -1,11 +1,9 @@
-import { type ReactNode, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
-  CheckCircle2,
   ChevronDown,
-  Flame,
   Search,
-  Sparkles,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { LearnCourseCard } from "../components/learn/LearnCourseCard";
 import { fetchLearnCatalog } from "../features/learn/api";
@@ -43,11 +41,9 @@ const EMPTY_SUMMARY: LearnSummary = {
 interface StatTileProps {
   label: string;
   value: number;
-  icon: ReactNode;
-  iconToneClass: string;
 }
 
-function StatTile({ label, value, icon, iconToneClass }: StatTileProps) {
+function StatTile({ label, value }: StatTileProps) {
   return (
     <article className="rounded-2xl border border-gray-800 bg-gray-900/70 px-4 py-4 sm:px-5 sm:py-4 shadow-[0_14px_32px_-26px_rgba(15,23,42,0.9)]">
       <div className="flex items-center justify-between gap-4">
@@ -59,18 +55,32 @@ function StatTile({ label, value, icon, iconToneClass }: StatTileProps) {
             {value}
           </p>
         </div>
-        <div
-          className={`flex h-12 w-12 items-center justify-center rounded-xl border border-gray-800 bg-gray-950/70 ${iconToneClass}`}
-        >
-          {icon}
-        </div>
       </div>
     </article>
   );
 }
 
+function categoryLabel(
+  category: LearnCategory,
+  t: (key: string, defaultValue?: string) => string,
+) {
+  if (category === "Openings") return t("learn.categories.openings", "Openings");
+  if (category === "Middlegame") {
+    return t("learn.categories.middlegame", "Middlegame");
+  }
+  if (category === "Endgame") return t("learn.categories.endgame", "Endgame");
+  return t("learn.categories.strategy", "Strategy");
+}
+
 export default function Learn() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const translateDefault = (key: string, defaultValue?: string) =>
+    String(defaultValue === undefined ? t(key) : t(key, defaultValue));
+  const loadFailedMessage = t(
+    "learn.loadFailed",
+    "Failed to load learn catalog.",
+  );
   const [courses, setCourses] = useState<LearnCatalogCourse[]>([]);
   const [summary, setSummary] = useState<LearnSummary>(EMPTY_SUMMARY);
   const [categoryCounts, setCategoryCounts] = useState<
@@ -85,58 +95,76 @@ export default function Learn() {
 
   useEffect(() => {
     let cancelled = false;
-    const timer = setTimeout(async () => {
-      try {
-        setLoading(true);
-        setError("");
-        const data = await fetchLearnCatalog({
-          q: searchQuery,
-          category: activeCategory,
-          difficulty: difficulty === "all" ? "" : difficulty,
-          progress: progressFilter === "all" ? "" : progressFilter,
-        });
-        if (cancelled) return;
-        setCourses(data.courses || []);
-        setSummary(data.summary || EMPTY_SUMMARY);
-      } catch (err) {
-        if (cancelled) return;
-        setCourses([]);
-        setSummary(EMPTY_SUMMARY);
-        setError(
-          err instanceof Error ? err.message : "Failed to load learn catalog.",
-        );
-      } finally {
-        if (!cancelled) setLoading(false);
+
+    const timer = setTimeout(() => {
+      async function loadCatalog() {
+        try {
+          setLoading(true);
+          setError("");
+          const data = await fetchLearnCatalog({
+            q: searchQuery,
+            category: activeCategory,
+            difficulty: difficulty === "all" ? "" : difficulty,
+            progress: progressFilter === "all" ? "" : progressFilter,
+          });
+          if (cancelled) return;
+          setCourses(data.courses || []);
+          setSummary(data.summary || EMPTY_SUMMARY);
+        } catch (err) {
+          if (cancelled) return;
+          setCourses([]);
+          setSummary(EMPTY_SUMMARY);
+          setError(
+            err instanceof Error
+              ? err.message
+              : loadFailedMessage,
+          );
+        } finally {
+          if (!cancelled) setLoading(false);
+        }
       }
+
+      void loadCatalog();
     }, 220);
 
     return () => {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [activeCategory, difficulty, progressFilter, searchQuery]);
+  }, [
+    activeCategory,
+    difficulty,
+    loadFailedMessage,
+    progressFilter,
+    searchQuery,
+  ]);
 
   useEffect(() => {
     let cancelled = false;
-    const timer = setTimeout(async () => {
-      try {
-        const data = await fetchLearnCatalog({
-          q: searchQuery,
-          difficulty: difficulty === "all" ? "" : difficulty,
-          progress: progressFilter === "all" ? "" : progressFilter,
-        });
-        if (cancelled) return;
 
-        const nextCounts: Record<LearnCategory, number> = { ...EMPTY_CATEGORY_COUNTS };
-        data.courses.forEach((course) => {
-          nextCounts[course.category] += 1;
-        });
-        setCategoryCounts(nextCounts);
-      } catch {
-        if (!cancelled) {
-          setCategoryCounts(EMPTY_CATEGORY_COUNTS);
+    const timer = setTimeout(() => {
+      async function loadCategoryCounts() {
+        try {
+          const data = await fetchLearnCatalog({
+            q: searchQuery,
+            difficulty: difficulty === "all" ? "" : difficulty,
+            progress: progressFilter === "all" ? "" : progressFilter,
+          });
+          if (cancelled) return;
+
+          const nextCounts: Record<LearnCategory, number> = { ...EMPTY_CATEGORY_COUNTS };
+          data.courses.forEach((course) => {
+            nextCounts[course.category] += 1;
+          });
+          setCategoryCounts(nextCounts);
+        } catch {
+          if (!cancelled) {
+            setCategoryCounts(EMPTY_CATEGORY_COUNTS);
+          }
         }
       }
+
+      void loadCategoryCounts();
     }, 220);
 
     return () => {
@@ -153,22 +181,16 @@ export default function Learn() {
     <div className="space-y-6 lg:space-y-7">
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <StatTile
-          label="Completed"
+          label={t("learn.stats.completed", "Completed")}
           value={summary.completedLessons}
-          icon={<CheckCircle2 className="w-6 h-6" />}
-          iconToneClass="text-brand-300"
         />
         <StatTile
-          label="In Progress"
+          label={t("learn.stats.inProgress", "In Progress")}
           value={summary.inProgressCourses}
-          icon={<Sparkles className="w-6 h-6" />}
-          iconToneClass="text-brand-300"
         />
         <StatTile
-          label="Day Streak"
+          label={t("learn.stats.dayStreak", "Day Streak")}
           value={summary.dayStreak}
-          icon={<Flame className="w-6 h-6" />}
-          iconToneClass="text-orange-300"
         />
       </section>
 
@@ -179,7 +201,10 @@ export default function Learn() {
             <input
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search courses, openings, or grandmasters..."
+              placeholder={t(
+                "learn.searchPlaceholder",
+                "Search courses, openings, or grandmasters...",
+              )}
               className="h-11 w-full rounded-xl border border-gray-800 bg-gray-950/70 pl-12 pr-4 text-base text-gray-100 placeholder:text-gray-500 focus:outline-none focus:border-brand-300/50"
             />
           </label>
@@ -190,10 +215,16 @@ export default function Learn() {
               onChange={(event) => setDifficulty(event.target.value as DifficultyFilter)}
               className="h-11 w-full appearance-none rounded-xl border border-gray-800 bg-gray-950/70 px-4 pr-10 text-sm text-gray-100 focus:outline-none focus:border-brand-300/50"
             >
-              <option value="all">All Difficulty</option>
-              <option value="Beginner">Beginner</option>
-              <option value="Intermediate">Intermediate</option>
-              <option value="Advanced">Advanced</option>
+              <option value="all">{t("learn.difficulty.all", "All Difficulty")}</option>
+              <option value="Beginner">
+                {t("learn.difficulty.beginner", "Beginner")}
+              </option>
+              <option value="Intermediate">
+                {t("learn.difficulty.intermediate", "Intermediate")}
+              </option>
+              <option value="Advanced">
+                {t("learn.difficulty.advanced", "Advanced")}
+              </option>
             </select>
             <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
           </div>
@@ -206,10 +237,16 @@ export default function Learn() {
               }
               className="h-11 w-full appearance-none rounded-xl border border-gray-800 bg-gray-950/70 px-4 pr-10 text-sm text-gray-100 focus:outline-none focus:border-brand-300/50"
             >
-              <option value="all">All Progress</option>
-              <option value="not_started">Not Started</option>
-              <option value="in_progress">In Progress</option>
-              <option value="completed">Completed</option>
+              <option value="all">{t("learn.progress.all", "All Progress")}</option>
+              <option value="not_started">
+                {t("learn.progress.notStarted", "Not Started")}
+              </option>
+              <option value="in_progress">
+                {t("learn.progress.inProgress", "In Progress")}
+              </option>
+              <option value="completed">
+                {t("learn.progress.completed", "Completed")}
+              </option>
             </select>
             <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
           </div>
@@ -229,7 +266,7 @@ export default function Learn() {
                     : "border-gray-800 bg-gray-900/70 text-gray-200 hover:border-brand-300/40 hover:text-brand-100"
                 }`}
               >
-                <span>{category}</span>
+                <span>{categoryLabel(category, translateDefault)}</span>
                 <span className="ml-1.5 text-xs opacity-80">({categoryCount})</span>
               </button>
             );
@@ -245,11 +282,13 @@ export default function Learn() {
 
       {loading ? (
         <div className="rounded-2xl border border-gray-800 bg-gray-900/70 px-4 py-16 text-center text-gray-400">
-          Loading learn catalog...
+          {t("learn.loading", "Loading learn catalog...")}
         </div>
       ) : courses.length === 0 ? (
         <div className="rounded-2xl border border-gray-800 bg-gray-900/70 px-4 py-16 text-center">
-          <p className="text-gray-300">No courses matched your filters.</p>
+          <p className="text-gray-300">
+            {t("learn.empty", "No courses matched your filters.")}
+          </p>
           <button
             onClick={() => {
               setSearchQuery("");
@@ -258,7 +297,7 @@ export default function Learn() {
             }}
             className="mt-4 inline-flex h-11 items-center rounded-xl border border-brand-400/35 bg-brand-500/12 px-5 text-sm text-brand-100 hover:bg-brand-500/20"
           >
-            Clear search and filters
+            {t("learn.clearFilters", "Clear search and filters")}
           </button>
         </div>
       ) : (

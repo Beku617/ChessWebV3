@@ -41,7 +41,7 @@ export const COMMUNITY_POSTS: CommunityPost[] = [
       online: true,
     },
     content:
-      "Just had an intense game against Hikaru! The endgame was tricky but managed to find the winning line. That Nd5 sacrifice was the key moment. ♟️🔥",
+      "Just had an intense game against Hikaru! The endgame was tricky but managed to find the winning line. That Nd5 sacrifice was the key moment.",
     pgn: "1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 4. Ba4 Nf6 5. O-O Be7",
     tags: ["#Endgame", "#Classical", "#WorldChess"],
     likes: 12500,
@@ -66,7 +66,7 @@ export const COMMUNITY_POSTS: CommunityPost[] = [
       online: true,
     },
     content:
-      "🏆 Tournament Update: The Candidates 2024 is heating up! Who is your pick to challenge the World Champion?\n\nVote below and share your predictions!",
+      "Tournament Update: The Candidates 2024 is heating up! Who is your pick to challenge the World Champion?\n\nVote below and share your predictions!",
     poll: {
       question: "Who will win the Candidates?",
       options: [
@@ -95,7 +95,7 @@ export const COMMUNITY_POSTS: CommunityPost[] = [
       online: true,
     },
     content:
-      "This puzzle absolutely destroyed me in Titled Tuesday. Can you find the winning move? White to play. 🧩",
+      "This puzzle absolutely destroyed me in Titled Tuesday. Can you find the winning move? White to play.",
     fen: "r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 4 4",
     tags: ["#Puzzle", "#TitledTuesday", "#Tactics"],
     likes: 5100,
@@ -114,7 +114,7 @@ export const COMMUNITY_POSTS: CommunityPost[] = [
       verified: true,
     },
     content:
-      "New video dropping tomorrow: \"The Most Insane Sacrifice in Chess History\" — trust me, you've never seen this one before. The engine evaluation goes from +0.3 to +12.7 in ONE MOVE. 🤯\n\nDrop a ♟️ if you're excited!",
+      "New video dropping tomorrow: \"The Most Insane Sacrifice in Chess History\" — trust me, you've never seen this one before. The engine evaluation goes from +0.3 to +12.7 in one move.",
     tags: ["#Content", "#Sacrifice", "#ChessHistory"],
     likes: 15700,
     comments: 2100,
@@ -133,7 +133,7 @@ export const COMMUNITY_POSTS: CommunityPost[] = [
       online: true,
     },
     content:
-      "Beautiful checkmate pattern from my game today. The double bishop sacrifice followed by Qh7# was chef's kiss 👨‍🍳✨\n\nAlways look for those diagonal batteries!",
+      "Beautiful checkmate pattern from my game today. The double bishop sacrifice followed by Qh7# was clean.\n\nAlways look for those diagonal batteries!",
     pgn: "1. d4 d5 2. c4 e6 3. Nc3 Nf6 4. Bg5 Be7 5. e3 O-O",
     tags: ["#Checkmate", "#Tactics", "#Blitz"],
     likes: 4300,
@@ -158,7 +158,7 @@ export const COMMUNITY_POSTS: CommunityPost[] = [
       verified: true,
     },
     content:
-      "Oh no my queen! ...wait. 😏\n\nStafford Gambit strikes again. My opponent resigned on move 14 after falling into the trap. Never gets old!",
+      "Oh no, my queen was bait.\n\nStafford Gambit strikes again. My opponent resigned on move 14 after falling into the trap. Never gets old!",
     tags: ["#Gambit", "#Trap", "#Stafford"],
     likes: 9800,
     comments: 670,

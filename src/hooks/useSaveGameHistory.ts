@@ -5,7 +5,12 @@ import { MIN_STORED_MOVES } from "./gameHistorySaver/historyPersistence";
 let historyErrorLogged = false;
 const CHESS960_EVENT_FALLBACK = "Live Chess960";
 const CHESS960_SITE_FALLBACK = "NeonGambit";
-const UNRATED_VARIANTS = new Set(["chess960", "threeCheck", "kingOfHill"]);
+const UNRATED_VARIANTS = new Set([
+  "chess960",
+  "threeCheck",
+  "kingOfHill",
+  "atomic",
+]);
 const CHESS960_STRIPPED_FIELDS: Array<keyof GameHistoryPayload> = [
   "ratingBefore",
   "ratingAfter",
@@ -40,6 +45,8 @@ function normalizePayload(payload: GameHistoryPayload): GameHistoryPayload {
         ? "threeCheck"
         : payload.variant === "kingOfHill"
           ? "kingOfHill"
+          : payload.variant === "atomic"
+            ? "atomic"
           : "chess960",
     rated: false,
     isProvisional: false,

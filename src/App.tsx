@@ -1,10 +1,19 @@
-import { lazy, Suspense, useEffect, useLayoutEffect, useRef } from "react";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+} from "react";
 import {
   Routes,
   Route,
   useLocation,
   Navigate,
   useNavigate,
+  useBlocker,
+  useBeforeUnload,
 } from "react-router-dom";
 import Sidebar from "./components/Sidebar";
 import { useThemeStore } from "./store/themeStore";
@@ -13,6 +22,17 @@ import { useFriendChallengeStore } from "./store/friendChallengeStore";
 import { useFriendStore } from "./store/friendStore";
 import FriendChallengeOverlay from "./components/FriendChallengeOverlay";
 import { applyThemeClass } from "./utils/theme";
+import { useTheme } from "./hooks/useTheme";
+import {
+  buildActiveOnlineGamePath,
+  clearActiveOnlineGame,
+  isOnlineGameRoute,
+  readActiveOnlineGame,
+  sessionResponseToRecord,
+  setActiveGameRedirectNotice,
+  storeActiveOnlineGame,
+  type ActiveOnlineGameSessionResponse,
+} from "./utils/activeOnlineGame";
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Game = lazy(() => import("./pages/game"));
@@ -47,7 +67,6 @@ const Profile = lazy(() => import("./pages/Profile"));
 const UserProfile = lazy(() => import("./pages/UserProfile"));
 const Analyze = lazy(() => import("./pages/analyze"));
 const Analyze960 = lazy(() => import("./pages/analyze960"));
-const AdminDashboard = lazy(() => import("./pages/adminDashboard"));
 const AdminUsers = lazy(() => import("./pages/adminUsers"));
 const AdminUserProfile = lazy(() => import("./pages/AdminUserProfile"));
 const AdminAnalyze = lazy(() => import("./pages/adminAnalyze"));
@@ -60,6 +79,7 @@ const AdminFeaturedEvents = lazy(async () => {
   const module = await import("./pages/adminFeaturedEvents");
   return { default: module.AdminFeaturedEvents };
 });
+const AdminTournaments = lazy(() => import("./pages/adminTournaments"));
 const AdminGames = lazy(async () => {
   const module = await import("./pages/adminGames");
   return { default: module.AdminGames };
@@ -74,6 +94,7 @@ const Messages = lazy(async () => {
   const module = await import("./pages/messages");
   return { default: module.Messages };
 });
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 // Auth check component
 function AuthChecker() {
@@ -113,7 +134,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-950 flex items-center justify-center">
+      <div className="min-h-screen bg-theme-primary flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -132,7 +153,7 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-950 flex items-center justify-center">
+      <div className="min-h-screen bg-theme-primary flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -146,11 +167,11 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 }
 
 function ThemeController() {
-  const { isDarkMode } = useThemeStore();
+  const { themeName } = useTheme();
 
   useLayoutEffect(() => {
-    applyThemeClass(isDarkMode);
-  }, [isDarkMode]);
+    applyThemeClass(themeName);
+  }, [themeName]);
 
   return null;
 }
@@ -235,6 +256,152 @@ function RealtimeBridge() {
   return null;
 }
 
+function getActiveGameRedirectMessage(pathname: string) {
+  const normalized = String(pathname || "").toLowerCase();
+  if (
+    normalized.startsWith("/puzzles") ||
+    normalized.startsWith("/play/bot") ||
+    normalized.startsWith("/play/practice")
+  ) {
+    return "You were redirected because you already have an active online game in progress.";
+  }
+  return "You already have an active game in progress.";
+}
+
+function ActiveGameGuard() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { isAuthenticated, isLoading } = useAuthStore();
+  const handlingBlockedNavigationRef = useRef(false);
+  const allowGuardRedirectRef = useRef(false);
+
+  useEffect(() => {
+    allowGuardRedirectRef.current = false;
+  }, [location.pathname, location.search]);
+
+  useBeforeUnload(
+    useCallback((event: BeforeUnloadEvent) => {
+      const activeGame = readActiveOnlineGame();
+      if (!activeGame?.gameId) return;
+      if (!isOnlineGameRoute(location.pathname)) return;
+      event.preventDefault();
+      event.returnValue = "";
+    }, [location.pathname]),
+  );
+
+  const blocker = useBlocker(
+    useCallback(
+      ({ currentLocation, nextLocation }) => {
+        if (allowGuardRedirectRef.current) return false;
+        const activeGame = readActiveOnlineGame();
+        if (!activeGame?.gameId) return false;
+        if (!isOnlineGameRoute(currentLocation.pathname)) return false;
+        const currentUrl = `${currentLocation.pathname}${currentLocation.search}${currentLocation.hash}`;
+        const nextUrl = `${nextLocation.pathname}${nextLocation.search}${nextLocation.hash}`;
+        return currentUrl !== nextUrl;
+      },
+      [],
+    ),
+  );
+
+  useEffect(() => {
+    if (blocker.state !== "blocked" || handlingBlockedNavigationRef.current) {
+      return;
+    }
+    handlingBlockedNavigationRef.current = true;
+
+    const shouldLeave = window.confirm(
+      "You are currently in a game. If you leave, you may forfeit. Do you want to resign and leave?",
+    );
+
+    if (!shouldLeave) {
+      blocker.reset();
+      handlingBlockedNavigationRef.current = false;
+      return;
+    }
+
+    const activeGame = readActiveOnlineGame();
+
+    void (async () => {
+      try {
+        if (activeGame?.gameId) {
+          await fetch(`${API_URL}/api/active-game/resign`, {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ gameId: activeGame.gameId }),
+          });
+        }
+      } catch {
+        // Navigation should continue even if the resign request fails client-side.
+      } finally {
+        clearActiveOnlineGame();
+        blocker.proceed();
+        handlingBlockedNavigationRef.current = false;
+      }
+    })();
+  }, [blocker]);
+
+  useEffect(() => {
+    if (isLoading) return;
+    if (!isAuthenticated) {
+      clearActiveOnlineGame();
+      return;
+    }
+    if (location.pathname.startsWith("/admin")) return;
+
+    const controller = new AbortController();
+
+    void (async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/active-game`, {
+          credentials: "include",
+          signal: controller.signal,
+        });
+        if (!response.ok) {
+          if (response.status === 401) return;
+          throw new Error("Failed to load active game");
+        }
+
+        const payload =
+          (await response.json()) as ActiveOnlineGameSessionResponse;
+        if (!payload.active || !payload.session) {
+          clearActiveOnlineGame();
+          return;
+        }
+
+        const activeGame = sessionResponseToRecord(payload.session);
+        if (!activeGame) {
+          clearActiveOnlineGame();
+          return;
+        }
+
+        storeActiveOnlineGame(activeGame);
+
+        const targetPath = buildActiveOnlineGamePath(activeGame);
+        const targetPrefix = targetPath.split("?")[0];
+        const alreadyOnTargetRoute = location.pathname.startsWith(targetPrefix);
+
+        if (!alreadyOnTargetRoute) {
+          setActiveGameRedirectNotice(
+            getActiveGameRedirectMessage(location.pathname),
+          );
+          allowGuardRedirectRef.current = true;
+          navigate(targetPath, { replace: true });
+        }
+      } catch (error) {
+        if ((error as { name?: string })?.name === "AbortError") return;
+      }
+    })();
+
+    return () => {
+      controller.abort();
+    };
+  }, [isAuthenticated, isLoading, location.pathname, navigate]);
+
+  return null;
+}
+
 function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const { isDarkMode } = useThemeStore();
@@ -282,7 +449,7 @@ function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div
-      className={`bg-[#f5f5f7] dark:bg-gray-950 text-gray-900 dark:text-white font-sans selection:bg-brand-500/30 transition-colors duration-300 ${
+      className={`bg-theme-primary text-gray-900 dark:text-white font-sans selection:bg-brand-500/30 transition-colors duration-300 ${
         isWorkspacePage ? "h-screen overflow-hidden" : "min-h-screen"
       }`}
     >
@@ -313,7 +480,7 @@ function Layout({ children }: { children: React.ReactNode }) {
 
 function RouteFallback() {
   return (
-    <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-950 flex items-center justify-center">
+    <div className="min-h-screen bg-theme-primary flex items-center justify-center">
       <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
     </div>
   );
@@ -325,6 +492,7 @@ function App() {
       <ThemeController />
       <AuthChecker />
       <RealtimeBridge />
+      <ActiveGameGuard />
       <Layout>
         <Suspense fallback={<RouteFallback />}>
           <Routes>
@@ -604,13 +772,14 @@ function App() {
               }
             />
 
-            {/* Admin dashboard - uses same login page, admin auth checked inside */}
-            <Route path="/admin" element={<AdminDashboard />} />
+            {/* Admin routes - uses same login page, admin auth checked inside */}
+            <Route path="/admin" element={<Navigate to="/admin/users" replace />} />
             <Route path="/admin/users" element={<AdminUsers />} />
             <Route path="/admin/users/:userId" element={<AdminUserProfile />} />
             <Route path="/admin/puzzles" element={<AdminPuzzles />} />
             <Route path="/admin/bots" element={<AdminBots />} />
             <Route path="/admin/events" element={<AdminFeaturedEvents />} />
+            <Route path="/admin/tournaments" element={<AdminTournaments />} />
             <Route path="/admin/games" element={<AdminGames />} />
             <Route path="/admin/community" element={<AdminCommunity />} />
             <Route path="/admin/groups" element={<AdminGroups />} />

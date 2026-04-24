@@ -1,9 +1,8 @@
 import { Router } from "express";
 import mongoose from "mongoose";
 import multer from "multer";
-import { authMiddleware } from "../middleware/index.js";
+import { authMiddleware, checkBlocked } from "../middleware/index.js";
 import {
-  BlockedUser,
   Friend,
   History,
   History960,
@@ -22,6 +21,7 @@ import {
   cleanupMessageMedia,
   ensureMessageAttachmentMedia,
 } from "../utils/messageMedia.js";
+import { isBlocked } from "../utils/visibility.js";
 
 const ALLOWED_IMAGE_TYPES = new Set([
   "image/jpeg",
@@ -133,14 +133,7 @@ const isValidObjectId = (value) =>
 const getUserRoom = (userId) => `user:${userId}`;
 
 async function hasBlockRelation(userA, userB) {
-  return !!(await BlockedUser.findOne({
-    $or: [
-      { blocker: userA, blocked: userB },
-      { blocker: userB, blocked: userA },
-    ],
-  })
-    .select("_id")
-    .lean());
+  return isBlocked(userA, userB);
 }
 
 router.use(authMiddleware);
@@ -482,7 +475,14 @@ router.get("/:friendId", async (req, res) => {
 });
 
 // POST /api/messages — send a message (text and/or media)
-router.post("/", uploadAttachments, async (req, res) => {
+router.post(
+  "/",
+  checkBlocked({
+    bodyKeys: ["receiverId"],
+    message: "Unable to send message.",
+  }),
+  uploadAttachments,
+  async (req, res) => {
   try {
     const senderId = req.user.userId;
     const receiverId = String(req.body?.receiverId || "").trim();
@@ -696,7 +696,13 @@ router.post("/", uploadAttachments, async (req, res) => {
 });
 
 // POST /api/messages/share-game — send a shared game message
-router.post("/share-game", async (req, res) => {
+router.post(
+  "/share-game",
+  checkBlocked({
+    bodyKeys: ["receiverId"],
+    message: "Unable to send message.",
+  }),
+  async (req, res) => {
   try {
     const senderId = req.user.userId;
     const receiverId = String(req.body?.receiverId || "").trim();

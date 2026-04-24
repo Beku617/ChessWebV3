@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { MoveRow } from "../../hooks/useGameReplay";
 import { MoveQualityPill } from "./MoveQualityPill";
 
@@ -15,6 +16,7 @@ export function ReplayMoveList({
   onJumpTo,
   opening,
 }: ReplayMoveListProps) {
+  const { t } = useTranslation();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const rowRefs = useRef<Map<number, HTMLDivElement>>(new Map());
 
@@ -29,7 +31,6 @@ export function ReplayMoveList({
       }
     };
 
-  // Auto-scroll to active move (or nearest) whenever ply changes
   useEffect(() => {
     const target =
       rowRefs.current.get(currentPly) ||
@@ -49,21 +50,18 @@ export function ReplayMoveList({
 
   return (
     <div className="h-full flex flex-col bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
-      {/* Header */}
       <div className="flex-shrink-0 px-4 py-3 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
         <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-          Moves
+          {t("analysis.moves", "Moves")}
         </h3>
       </div>
 
-      {/* Column Headers */}
       <div className="flex-shrink-0 grid grid-cols-[40px_1fr_1fr] text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/30">
         <div className="px-3 py-2">#</div>
-        <div className="px-3 py-2">White</div>
-        <div className="px-3 py-2">Black</div>
+        <div className="px-3 py-2">{t("analysis.moveListWhite", "White")}</div>
+        <div className="px-3 py-2">{t("analysis.moveListBlack", "Black")}</div>
       </div>
 
-      {/* Opening Name */}
       {opening && (
         <div className="flex-shrink-0 px-4 py-2 border-b border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/20">
           <span className="text-xs text-gray-600 dark:text-gray-400">
@@ -72,14 +70,13 @@ export function ReplayMoveList({
         </div>
       )}
 
-      {/* Moves List */}
       <div
         ref={scrollContainerRef}
         className="flex-1 overflow-y-auto no-scrollbar"
       >
         {moveRows.length === 0 ? (
           <div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
-            No moves recorded
+            {t("analysis.noMovesRecorded", "No moves recorded")}
           </div>
         ) : (
           <div className="divide-y divide-gray-100 dark:divide-gray-800/50">
@@ -89,12 +86,10 @@ export function ReplayMoveList({
                 ref={setRowRef(row.plyWhite, row.plyBlack)}
                 className="grid grid-cols-[40px_1fr_1fr] hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors"
               >
-                {/* Move Number */}
                 <div className="px-3 py-2.5 text-sm font-mono text-gray-400 dark:text-gray-500">
                   {row.moveNumber}.
                 </div>
 
-                {/* White Move */}
                 <div
                   className={`px-3 py-2.5 cursor-pointer transition-all ${
                     currentPly === row.plyWhite
@@ -119,7 +114,6 @@ export function ReplayMoveList({
                   </div>
                 </div>
 
-                {/* Black Move */}
                 <div
                   className={`px-3 py-2.5 cursor-pointer transition-all ${
                     row.plyBlack && currentPly === row.plyBlack
@@ -151,13 +145,11 @@ export function ReplayMoveList({
         )}
       </div>
 
-      {/* Footer with navigation hints */}
       <div className="flex-shrink-0 px-4 py-2 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/30">
         <span className="text-[11px] text-gray-400 dark:text-gray-500">
-          ← → Navigate • Space Play • F Flip
+          {t("analysis.moveListHints", "← → Navigate • Space Play • F Flip")}
         </span>
       </div>
     </div>
   );
 }
-

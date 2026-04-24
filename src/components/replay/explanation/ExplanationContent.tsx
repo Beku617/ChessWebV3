@@ -1,4 +1,5 @@
-import { Sparkles, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface ExplanationContentProps {
   title: string;
@@ -19,6 +20,7 @@ export function ExplanationContent({
   aiError,
   showAiBadge,
 }: ExplanationContentProps) {
+  const { t } = useTranslation();
   return (
     <>
       {/* Title */}
@@ -26,7 +28,6 @@ export function ExplanationContent({
         {title}
         {showAiBadge && (
           <span className="inline-flex items-center gap-1 text-xs font-normal text-purple-500">
-            <Sparkles className="w-3 h-3" />
             AI
           </span>
         )}
@@ -36,7 +37,7 @@ export function ExplanationContent({
       {aiLoading ? (
         <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-2">
           <Loader2 className="w-4 h-4 animate-spin" />
-          <span>Getting AI explanation...</span>
+          <span>{t("analysis.aiLoading", "Getting AI explanation...")}</span>
         </div>
       ) : aiExplanation ? (
         <p className="text-sm text-gray-700 dark:text-gray-300 mb-2 leading-relaxed">

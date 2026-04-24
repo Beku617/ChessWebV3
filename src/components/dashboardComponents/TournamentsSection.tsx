@@ -1,11 +1,17 @@
 import { useEffect, useState } from "react";
-import { AlertCircle, Crown, Trophy, Users } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 type TournamentStatus = "draft" | "registering" | "running" | "finished";
+type TournamentApiStatus =
+  | TournamentStatus
+  | "DRAFT"
+  | "REGISTRATION_OPEN"
+  | "LIVE_ROUND"
+  | "ROUND_CLOSED"
+  | "FINISHED";
 
 interface TournamentSummary {
   id: string;
@@ -23,6 +29,11 @@ interface TournamentSummary {
     incMs: number;
     label?: string;
   };
+}
+
+interface TournamentApiSummary extends Omit<TournamentSummary, "status"> {
+  status?: TournamentApiStatus | string | null;
+  timeControlLabel?: string;
 }
 
 interface WinnerSummary {
@@ -97,6 +108,67 @@ function formatRelativeTime(value?: string | null) {
   }
 
   return formatAbsoluteDate(value);
+}
+
+// The dashboard still expects legacy lower-case states, while the main API now
+// returns enum-style states such as REGISTRATION_OPEN and LIVE_ROUND.
+function normalizeTournamentStatus(
+  status?: TournamentApiStatus | string | null,
+): TournamentStatus {
+  const raw = String(status || "").trim();
+  const normalized = raw.toUpperCase();
+
+  if (normalized === "REGISTRATION_OPEN" || normalized === "REGISTERING") {
+    return "registering";
+  }
+
+  if (
+    normalized === "LIVE_ROUND" ||
+    normalized === "ROUND_CLOSED" ||
+    normalized === "PAIRING_PREVIEW" ||
+    normalized === "RUNNING"
+  ) {
+    return "running";
+  }
+
+  if (normalized === "FINISHED") {
+    return "finished";
+  }
+
+  return "draft";
+}
+
+function normalizeTournamentSummary(
+  item: TournamentApiSummary,
+): TournamentSummary | null {
+  const id = String(item?.id || "").trim();
+  if (!id) return null;
+
+  return {
+    id,
+    name: String(item?.name || "Tournament"),
+    status: normalizeTournamentStatus(item?.status),
+    roundsPlanned: Math.max(0, Number(item?.roundsPlanned || 0)),
+    currentRound: Math.max(0, Number(item?.currentRound || 0)),
+    registeredCount: Math.max(0, Number(item?.registeredCount || 0)),
+    isRegistered: !!item?.isRegistered,
+    startedAt: item?.startedAt ?? null,
+    finishedAt: item?.finishedAt ?? null,
+    createdAt: item?.createdAt ?? null,
+    timeControl: item?.timeControl
+      ? {
+          baseMs: Number(item.timeControl.baseMs || 0),
+          incMs: Number(item.timeControl.incMs || 0),
+          label: item.timeControl.label || item.timeControlLabel,
+        }
+      : item?.timeControlLabel
+        ? {
+            baseMs: 0,
+            incMs: 0,
+            label: item.timeControlLabel,
+          }
+        : undefined,
+  };
 }
 
 function getCardClasses(status: TournamentStatus) {
@@ -190,7 +262,9 @@ export function TournamentsSection() {
         if (cancelled) return;
 
         const nextTournaments = Array.isArray(data?.tournaments)
-          ? (data.tournaments as TournamentSummary[])
+          ? (data.tournaments as TournamentApiSummary[])
+              .map((item) => normalizeTournamentSummary(item))
+              .filter((item): item is TournamentSummary => item !== null)
           : [];
 
         setTournaments(nextTournaments);
@@ -276,7 +350,7 @@ export function TournamentsSection() {
     "createdAt",
   );
   const prioritizedTournaments =
-    runningTournaments.length > 0 ? runningTournaments : upcomingTournaments;
+    upcomingTournaments.length > 0 ? upcomingTournaments : runningTournaments;
 
   if (loading) {
     return <LoadingCards />;
@@ -287,7 +361,6 @@ export function TournamentsSection() {
       <div className="rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3 min-w-0">
-            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-500 dark:text-red-400" />
             <div className="min-w-0">
               <p className="text-sm font-medium text-gray-900 dark:text-white">
                 {t("Unable to load tournaments")}
@@ -321,7 +394,6 @@ export function TournamentsSection() {
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-600 dark:text-amber-300">
-                  <Trophy className="h-3.5 w-3.5" />
                   <span>
                     {tournament.status === "running" ? t("Active") : t("Upcoming")}
                   </span>
@@ -342,16 +414,10 @@ export function TournamentsSection() {
                 </p>
               </div>
 
-              <div className="shrink-0">
-                <span className="inline-flex rounded-full border border-white/10 bg-white/60 px-2.5 py-1 text-[11px] font-medium text-gray-700 shadow-sm backdrop-blur dark:border-gray-700 dark:bg-gray-900/60 dark:text-gray-200">
-                  {getStatusLabel(tournament)}
-                </span>
-              </div>
             </div>
 
             <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="inline-flex min-w-0 items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                <Users className="h-3.5 w-3.5 shrink-0" />
                 <span className="truncate">
                   {tournament.registeredCount} {t("players joined")}
                 </span>
@@ -393,7 +459,6 @@ export function TournamentsSection() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-600 dark:text-amber-300">
-              <Crown className="h-3.5 w-3.5" />
               <span>{t("Latest Result")}</span>
             </div>
             <h3 className="mt-2 text-lg font-semibold leading-tight text-gray-900 dark:text-white break-words">
@@ -416,7 +481,6 @@ export function TournamentsSection() {
 
         <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="inline-flex min-w-0 items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-            <Users className="h-3.5 w-3.5 shrink-0" />
             <span className="truncate">
               {finishedTournament.registeredCount} {t("players")}
             </span>
@@ -435,9 +499,6 @@ export function TournamentsSection() {
 
   return (
     <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/20 px-4 py-8 text-center">
-      <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full border border-amber-200 bg-amber-50 text-amber-600 dark:border-amber-800/40 dark:bg-amber-900/20 dark:text-amber-300">
-        <Trophy className="h-4 w-4" />
-      </div>
       <p className="mt-3 text-sm font-medium text-gray-900 dark:text-white">
         {t("No tournaments available")}
       </p>

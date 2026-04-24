@@ -7,7 +7,6 @@ import {
   StarOff,
   Eye,
   EyeOff,
-  Trophy,
   Search,
   X,
   ChevronLeft,
@@ -384,12 +383,9 @@ export default function AdminFeaturedEvents() {
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
               Featured Events
             </h1>
-            <p className="text-gray-500 dark:text-gray-400">
-              Manage tournaments, matches, and events shown on the Watch page
-            </p>
           </div>
           <button
             onClick={openNewModal}
@@ -431,7 +427,6 @@ export default function AdminFeaturedEvents() {
           </div>
         ) : filteredEvents.length === 0 ? (
           <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-            <Trophy className="w-12 h-12 mx-auto mb-4 opacity-50" />
             <p>No events found</p>
             <button
               onClick={openNewModal}

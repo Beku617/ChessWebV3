@@ -1,4 +1,4 @@
-import { Check, X, Eye, Lightbulb, Sparkles } from "lucide-react";
+import { Check, X, Eye, Lightbulb } from "lucide-react";
 import { PuzzleStatus } from "./types";
 import { formatTime } from "./utils";
 
@@ -22,9 +22,7 @@ export function PuzzleStatusArea({
           <Check size={18} strokeWidth={3} />
         </div>
         <div>
-          <h3 className="font-bold text-brand-400 text-sm flex items-center gap-1">
-            Correct! <Sparkles size={14} />
-          </h3>
+          <h3 className="font-bold text-brand-400 text-sm">Correct!</h3>
           <p className="text-brand-500 text-xs">
             Solved in {formatTime(elapsedTime)}
           </p>

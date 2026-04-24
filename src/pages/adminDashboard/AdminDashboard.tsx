@@ -12,6 +12,8 @@ export default function AdminDashboard() {
   const { isAuthenticated, isLoading, checkAuth } = useAdminStore();
 
   const [stats, setStats] = useState<Stats | null>(null);
+  const [loadingStats, setLoadingStats] = useState(false);
+  const [statsError, setStatsError] = useState<string | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [totalUsers, setTotalUsers] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
@@ -34,10 +36,25 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (!isAuthenticated) return;
 
+    setLoadingStats(true);
+    setStatsError(null);
+
     fetch(`${API_URL}/api/admin/stats`, { credentials: "include" })
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Failed to load dashboard stats");
+        }
+        return res.json();
+      })
       .then((data) => setStats(data))
-      .catch(console.error);
+      .catch((err) => {
+        console.error(err);
+        setStats(null);
+        setStatsError(
+          err instanceof Error ? err.message : "Failed to load dashboard stats",
+        );
+      })
+      .finally(() => setLoadingStats(false));
   }, [isAuthenticated]);
 
   // Fetch users
@@ -54,8 +71,8 @@ export default function AdminDashboard() {
     fetch(`${API_URL}/api/admin/users?${params}`, { credentials: "include" })
       .then((res) => res.json())
       .then((data) => {
-        setUsers(data.users);
-        setTotalUsers(data.total);
+        setUsers(data.users || []);
+        setTotalUsers(data.total || 0);
       })
       .catch(console.error)
       .finally(() => setLoadingUsers(false));
@@ -100,13 +117,14 @@ export default function AdminDashboard() {
         {/* Page Title */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold">Dashboard</h1>
-          <p className="text-gray-500 dark:text-gray-400">
-            Overview of your platform
-          </p>
         </div>
 
         {/* Stats */}
-        <DashboardStats stats={stats} />
+        <DashboardStats
+          stats={stats}
+          isLoading={loadingStats}
+          error={statsError}
+        />
 
         {/* Users Table */}
         <DashboardUsersTable

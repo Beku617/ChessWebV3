@@ -32,7 +32,7 @@ const Admin = mongoose.model("Admin", AdminSchema);
 async function seedAdmin() {
   try {
     await mongoose.connect(MONGODB_URL);
-    console.log("✅ MongoDB connected");
+    console.log(" MongoDB connected");
 
     // Default admin credentials - CHANGE THESE!
     const adminData = {
@@ -43,7 +43,7 @@ async function seedAdmin() {
 
     // Delete existing admin if exists
     await Admin.deleteOne({ email: adminData.email });
-    console.log("🗑️ Removed existing admin (if any)");
+    console.log(" Removed existing admin (if any)");
 
     // Hash password
     const hashedPassword = await bcrypt.hash(adminData.password, 10);
@@ -55,16 +55,16 @@ async function seedAdmin() {
       password: hashedPassword,
     });
 
-    console.log("✅ Admin created successfully!");
-    console.log("📧 Email:", admin.email);
-    console.log("👤 Username:", admin.username);
-    console.log("🔑 Password: admin123");
+    console.log(" Admin created successfully!");
+    console.log(" Email:", admin.email);
+    console.log(" Username:", admin.username);
+    console.log(" Password: admin123");
     console.log("");
     console.log("Login at: http://localhost:5173/admin/login");
 
     process.exit(0);
   } catch (err) {
-    console.error("❌ Error creating admin:", err);
+    console.error(" Error creating admin:", err);
     process.exit(1);
   }
 }

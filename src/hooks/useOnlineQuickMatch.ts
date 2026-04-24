@@ -18,7 +18,17 @@ import {
 import { detectOpeningFromSan } from "../utils/openingExplorer";
 import { useAuthStore } from "../store/authStore";
 import { playChessMoveSound, playGameplaySound } from "../utils/moveSounds";
-import { formatPerspectiveResult } from "./onlineGameShared";
+import {
+  formatPerspectiveResult,
+  isAtomicKingCaptureAttempt,
+  isAtomicVerboseMoveAllowed,
+} from "./onlineGameShared";
+import {
+  clearActiveOnlineGame,
+  consumeActiveGameRedirectNotice,
+  readActiveOnlineGame,
+  storeActiveOnlineGame,
+} from "../utils/activeOnlineGame";
 import {
   getRatingPoolForMatch,
   getUserRatingForPool,
@@ -34,7 +44,12 @@ const ACTIVE_GAME_STORAGE_KEY = "neongambit:activeGameId";
 const BOARD_FILES = ["a", "b", "c", "d", "e", "f", "g", "h"] as const;
 
 type PlayerColor = "w" | "b";
-type MatchVariant = "standard" | "chess960" | "threeCheck" | "kingOfHill";
+type MatchVariant =
+  | "standard"
+  | "chess960"
+  | "threeCheck"
+  | "kingOfHill"
+  | "atomic";
 type GameOverReason =
   | "checkmate"
   | "draw"
@@ -43,7 +58,8 @@ type GameOverReason =
   | "opponent_left"
   | "aborted"
   | "three_check"
-  | "king_of_the_hill";
+  | "king_of_the_hill"
+  | "atomic_explosion";
 
 interface MatchFoundPayload {
   gameId: string;
@@ -63,6 +79,7 @@ interface MatchFoundPayload {
   blackTimeLeft?: number;
   playerClock?: number;
   opponentClock?: number;
+  clockPaused?: boolean;
 }
 
 interface MoveAppliedPayload {
@@ -183,6 +200,14 @@ function normalizeMatchVariant(value: unknown): MatchVariant {
   const normalized = value.trim().toLowerCase();
   if (normalized === "chess960") return "chess960";
   if (
+    normalized === "atomic" ||
+    normalized === "atomicchess" ||
+    normalized === "atomic-chess" ||
+    normalized === "atomic_chess"
+  ) {
+    return "atomic";
+  }
+  if (
     normalized === "kingofhill" ||
     normalized === "king-of-hill" ||
     normalized === "king_of_hill"
@@ -200,7 +225,11 @@ function normalizeMatchVariant(value: unknown): MatchVariant {
 }
 
 function isUnratedMatchVariant(variant: MatchVariant): boolean {
-  return variant === "threeCheck" || variant === "kingOfHill";
+  return (
+    variant === "threeCheck" ||
+    variant === "kingOfHill" ||
+    variant === "atomic"
+  );
 }
 
 function normalizeThreeCheckCounts(payload?: {
@@ -236,22 +265,35 @@ interface GameStateRestoredPayload {
   blackTimeLeft?: number;
   playerClock?: number;
   opponentClock?: number;
+  clockPaused?: boolean;
 }
 
 function storeActiveGameId(gameId: string | null) {
-  if (typeof window === "undefined") return;
-  try {
-    if (!gameId) {
-      window.localStorage.removeItem(ACTIVE_GAME_STORAGE_KEY);
-      return;
-    }
-    window.localStorage.setItem(ACTIVE_GAME_STORAGE_KEY, String(gameId));
-  } catch {
-    // no-op
+  if (!gameId) {
+    clearActiveOnlineGame();
+    return;
   }
+  const existing = readActiveOnlineGame();
+  storeActiveOnlineGame({
+    ...existing,
+    gameId,
+    kind: "classic",
+    mode:
+      existing?.mode === "friend" || existing?.mode === "tournament"
+        ? existing.mode
+        : "quick",
+  });
 }
 
 function readActiveGameId() {
+  const existing = readActiveOnlineGame();
+  if (
+    existing?.kind === "classic" &&
+    existing.mode !== "friend" &&
+    existing.gameId
+  ) {
+    return existing.gameId;
+  }
   if (typeof window === "undefined") return "";
   try {
     return String(window.localStorage.getItem(ACTIVE_GAME_STORAGE_KEY) || "").trim();
@@ -314,6 +356,7 @@ export function useOnlineQuickMatch() {
     defaultGameSettings.timeControl.initial,
   );
   const [clockResetToken, setClockResetToken] = useState(0);
+  const [isClockPaused, setIsClockPaused] = useState(false);
   const [threeCheckState, setThreeCheckState] = useState(() =>
     normalizeThreeCheckCounts(),
   );
@@ -335,7 +378,15 @@ export function useOnlineQuickMatch() {
   );
   const saveGameHistory = useSaveGameHistory();
 
-  const getMoveOptions = useMoveOptions(gameRef, setOptionSquares);
+  const isMoveAllowedForVariant = useCallback((move: any) => {
+    if (matchVariantRef.current !== "atomic") return true;
+    return isAtomicVerboseMoveAllowed(move);
+  }, []);
+  const getMoveOptions = useMoveOptions(
+    gameRef,
+    setOptionSquares,
+    isMoveAllowedForVariant,
+  );
   const isPlayerTurn = game.turn() === playerColor;
   const preMoveSquares = buildPreMoveSquares(pendingPreMove);
 
@@ -419,6 +470,20 @@ export function useOnlineQuickMatch() {
       playerColorRef.current,
       matchVariantRef.current,
     );
+    if (
+      matchVariantRef.current === "atomic" &&
+      isAtomicKingCaptureAttempt(
+        validationGame,
+        queuedPreMove.from,
+        queuedPreMove.to,
+        playerColorRef.current,
+      )
+    ) {
+      pendingPreMoveRef.current = null;
+      setPendingPreMove(null);
+      playGameplaySound("illegal");
+      return false;
+    }
     const preview =
       !isChess960Castle &&
       validationGame.move({
@@ -477,6 +542,8 @@ export function useOnlineQuickMatch() {
     setPlayerClockSeed(defaultGameSettings.timeControl.initial);
     setOpponentClockSeed(defaultGameSettings.timeControl.initial);
     setClockResetToken((value) => value + 1);
+    setIsClockPaused(false);
+    setQueueStatus(null);
     startTimeRef.current = null;
     startingFenRef.current = "";
     historySavedRef.current = false;
@@ -525,6 +592,13 @@ export function useOnlineQuickMatch() {
   useEffect(() => {
     pendingPreMoveRef.current = pendingPreMove;
   }, [pendingPreMove]);
+
+  useEffect(() => {
+    const notice = consumeActiveGameRedirectNotice();
+    if (notice) {
+      setQueueStatus(notice);
+    }
+  }, []);
 
   useEffect(() => {
     const socket = io(SOCKET_URL, {
@@ -607,6 +681,9 @@ export function useOnlineQuickMatch() {
     socket.on("connect", () => {
       clearConnectProbeTimer();
       setIsConnected(true);
+      if (!gameIdRef.current && !readActiveGameId()) {
+        setIsClockPaused(false);
+      }
       setQueueStatus(null);
       attemptRestore();
     });
@@ -618,6 +695,7 @@ export function useOnlineQuickMatch() {
         setQueueStatus("Connection lost. Reconnecting...");
       } else if (gameIdRef.current || readActiveGameId()) {
         setIsSearching(false);
+        setIsClockPaused(true);
         setQueueStatus("Connection lost. Reconnecting to your game...");
       } else {
         setIsSearching(false);
@@ -633,6 +711,7 @@ export function useOnlineQuickMatch() {
         setQueueStatus("Reconnecting to matchmaking server...");
       } else if (gameIdRef.current || readActiveGameId()) {
         setIsSearching(false);
+        setIsClockPaused(true);
         setQueueStatus("Reconnecting to your game...");
       } else {
         setIsSearching(false);
@@ -722,6 +801,14 @@ export function useOnlineQuickMatch() {
 
       const timeControl =
         payload.timeControl || defaultGameSettings.timeControl;
+      storeActiveOnlineGame({
+        gameId: payload.gameId,
+        kind: "classic",
+        mode: activeTournamentJoinGameIdRef.current ? "tournament" : "quick",
+        variant: normalizedVariant,
+        opponentName: payload.opponentName || "Opponent",
+        timeControl,
+      });
       const ratingPool = getRatingPoolForMatch(timeControl, normalizedVariant);
       const canShowRatedInfo = payload.rated === true && ratingPool !== null;
       const fallbackPlayerRating = getUserRatingForPool(
@@ -766,6 +853,7 @@ export function useOnlineQuickMatch() {
       setPlayerClockSeed(normalizedPlayerClock);
       setOpponentClockSeed(normalizedOpponentClock);
       setClockResetToken((value) => value + 1);
+      setIsClockPaused(Boolean(payload.clockPaused));
     });
 
     socket.on("moveApplied", (payload: MoveAppliedPayload) => {
@@ -789,6 +877,20 @@ export function useOnlineQuickMatch() {
             { ...payload.move, castlingSide: "k" },
             { isOpponentMove: true },
           );
+        }
+      } else if (matchVariantRef.current === "atomic") {
+        const previewGame = new Chess(gameRef.current.fen());
+        const applied = previewGame.move({
+          from: payload.move.from,
+          to: payload.move.to,
+          promotion: (payload.move as any).promotion || "q",
+        });
+        const nextGame = new Chess(payload.fen);
+        gameRef.current = nextGame;
+        setGame(nextGame);
+        appendStoredMove(payload.move.san || applied?.san || "");
+        if (isOpponentMove) {
+          playChessMoveSound(applied || payload.move, { isOpponentMove: true });
         }
       } else {
         const currentGame = gameRef.current;
@@ -866,6 +968,7 @@ export function useOnlineQuickMatch() {
         setPlayerTime(Math.max(0, ownClock));
         setOpponentTime(Math.max(0, oppClock));
       }
+      setIsClockPaused(false);
 
       // Opponent just moved and it may now be our turn.
       trySubmitQueuedPreMove();
@@ -878,6 +981,20 @@ export function useOnlineQuickMatch() {
       setGameId(normalizedGameId);
       gameIdRef.current = normalizedGameId;
       storeActiveGameId(normalizedGameId);
+      const existingActiveGame = readActiveOnlineGame();
+      storeActiveOnlineGame({
+        ...existingActiveGame,
+        gameId: normalizedGameId,
+        kind: "classic",
+        mode:
+          activeTournamentJoinGameIdRef.current ||
+          existingActiveGame?.mode === "tournament"
+            ? "tournament"
+            : "quick",
+        variant: existingActiveGame?.variant || matchVariantRef.current,
+        opponentName: existingActiveGame?.opponentName || opponentName,
+        timeControl: existingActiveGame?.timeControl || gameSettings.timeControl,
+      });
       setGameStarted(true);
       setGameOver(false);
       setShowGameOverModal(false);
@@ -924,6 +1041,7 @@ export function useOnlineQuickMatch() {
       setPlayerClockSeed(playerClock);
       setOpponentClockSeed(opponentClock);
       setClockResetToken((value) => value + 1);
+      setIsClockPaused(Boolean(payload.clockPaused));
       setQueueStatus("Game restored after reconnect.");
       setIsSearching(false);
       clearTournamentJoinRetry();
@@ -934,6 +1052,7 @@ export function useOnlineQuickMatch() {
       (payload?: { gameId?: string; graceMs?: number }) => {
         if (payload?.gameId && payload.gameId !== gameIdRef.current) return;
         const graceSeconds = Math.max(1, Math.round(Number(payload?.graceMs || 30000) / 1000));
+        setIsClockPaused(true);
         setQueueStatus(`Opponent disconnected. Waiting ${graceSeconds}s for reconnect...`);
       },
     );
@@ -942,6 +1061,7 @@ export function useOnlineQuickMatch() {
       "opponent_reconnected",
       (payload?: { gameId?: string }) => {
         if (payload?.gameId && payload.gameId !== gameIdRef.current) return;
+        setIsClockPaused(false);
         setQueueStatus("Opponent reconnected.");
       },
     );
@@ -950,6 +1070,7 @@ export function useOnlineQuickMatch() {
       "opponent_abandoned",
       (payload?: { gameId?: string }) => {
         if (payload?.gameId && payload.gameId !== gameIdRef.current) return;
+        setIsClockPaused(false);
         setQueueStatus("Opponent abandoned the game.");
       },
     );
@@ -975,6 +1096,7 @@ export function useOnlineQuickMatch() {
     socket.on("gameOver", (payload: GameOverPayload) => {
       if (payload.gameId !== gameIdRef.current) return;
       storeActiveGameId(null);
+      setIsClockPaused(false);
       setGameOver(true);
       setShowGameOverModal(true);
       setGameResult(formatResult(payload));
@@ -1157,6 +1279,7 @@ export function useOnlineQuickMatch() {
       opponent_left: "opponent left",
       three_check: "3-check",
       king_of_the_hill: "reaching the center",
+      atomic_explosion: "king explosion",
       draw: "draw",
       aborted: "aborted",
     };
@@ -1197,6 +1320,8 @@ export function useOnlineQuickMatch() {
         ? `${lastGameOver.winner === "w" ? "White" : "Black"} wins by 3-check (White ${whiteThreeChecks}/3, Black ${blackThreeChecks}/3)`
         : lastGameOver.reason === "king_of_the_hill"
           ? `${lastGameOver.winner === "w" ? "White" : "Black"} wins by reaching the center`
+        : lastGameOver.reason === "atomic_explosion"
+          ? `${lastGameOver.winner === "w" ? "White" : "Black"} wins by atomic king explosion`
         : `${lastGameOver.winner === "w" ? "White" : "Black"} won by ${
             reasonMap[lastGameOver.reason] || "checkmate"
           }`;
@@ -1294,6 +1419,8 @@ export function useOnlineQuickMatch() {
             ? "Live Three-Check"
             : matchVariant === "kingOfHill"
               ? "Live King of the Hill"
+              : matchVariant === "atomic"
+                ? "Live Atomic Chess"
               : "Live Chess",
       variant: matchVariant,
       site: "NeonGambit",
@@ -1434,6 +1561,15 @@ export function useOnlineQuickMatch() {
       name?: string,
       variant: MatchVariant = "standard",
     ) => {
+      const existing = readActiveOnlineGame();
+      if (existing?.gameId) {
+        setQueueStatus("You already have an active game in progress.");
+        setIsSearching(false);
+        if (existing.kind === "classic" && socketRef.current?.connected) {
+          socketRef.current.emit("rejoinGame", { gameId: existing.gameId });
+        }
+        return;
+      }
       playerNameRef.current = name || "Player";
       // Always clear previous game/modal state before a rematch/start attempt.
       resetGameState();
@@ -1818,6 +1954,14 @@ export function useOnlineQuickMatch() {
           selectPreMoveSource(square);
           return;
         }
+        if (
+          matchVariantRef.current === "atomic" &&
+          isAtomicKingCaptureAttempt(currentGame, moveFrom, square, playerColor)
+        ) {
+          playGameplaySound("illegal");
+          clearSelection();
+          return;
+        }
 
         const isPromo =
           sourcePiece.type === "p" &&
@@ -1856,7 +2000,7 @@ export function useOnlineQuickMatch() {
 
       const isLegalStandardMove = currentGame
         .moves({ square: moveFrom, verbose: true })
-        .some((move) => move.to === square);
+        .some((move) => move.to === square && isMoveAllowedForVariant(move));
       const isLegalChess960Castle = isChess960CastlingDrop(
         currentGame,
         moveFrom,
@@ -1921,6 +2065,7 @@ export function useOnlineQuickMatch() {
       gameStarted,
       addChess960CastlingTargets,
       getMoveOptions,
+      isMoveAllowedForVariant,
       isPlayerTurn,
       moveFrom,
       playLocalMoveSound,
@@ -1964,6 +2109,19 @@ export function useOnlineQuickMatch() {
           selectPreMoveSource(sourceSquare);
           return false;
         }
+        if (
+          matchVariantRef.current === "atomic" &&
+          isAtomicKingCaptureAttempt(
+            currentGame,
+            sourceSquare,
+            targetSquare,
+            playerColor,
+          )
+        ) {
+          playGameplaySound("illegal");
+          clearSelection();
+          return false;
+        }
 
         const isPromo =
           sourcePiece.type === "p" &&
@@ -1997,7 +2155,10 @@ export function useOnlineQuickMatch() {
 
       const isLegalStandardMove = currentGame
         .moves({ square: sourceSquare, verbose: true })
-        .some((move) => move.to === targetSquare);
+        .some(
+          (move) =>
+            move.to === targetSquare && isMoveAllowedForVariant(move),
+        );
       const isLegalChess960Castle = isChess960CastlingDrop(
         currentGame,
         sourceSquare,
@@ -2056,6 +2217,7 @@ export function useOnlineQuickMatch() {
       gameStarted,
       getMoveOptions,
       isChess960CastlingDrop,
+      isMoveAllowedForVariant,
       isPlayerTurn,
       playLocalMoveSound,
       playerColor,
@@ -2135,6 +2297,7 @@ export function useOnlineQuickMatch() {
     playerClockSeed,
     opponentClockSeed,
     clockResetToken,
+    isClockPaused,
     setPlayerTime,
     setOpponentTime,
     isSearching,

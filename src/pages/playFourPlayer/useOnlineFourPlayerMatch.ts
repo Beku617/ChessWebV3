@@ -15,6 +15,12 @@ import {
   Square,
 } from "./types";
 import { playChessMoveSound, playGameplaySound } from "../../utils/moveSounds";
+import {
+  clearActiveOnlineGame,
+  consumeActiveGameRedirectNotice,
+  readActiveOnlineGame,
+  storeActiveOnlineGame,
+} from "../../utils/activeOnlineGame";
 
 const socketBaseUrl =
   import.meta.env.VITE_SOCKET_URL ||
@@ -55,6 +61,18 @@ interface StatePayload {
 }
 
 function storeActiveFourPlayerGameId(gameId: string | null) {
+  if (!gameId) {
+    clearActiveOnlineGame();
+  } else {
+    const existing = readActiveOnlineGame();
+    storeActiveOnlineGame({
+      ...existing,
+      gameId,
+      kind: "fourPlayer",
+      mode: "fourPlayer",
+      variant: "fourPlayer",
+    });
+  }
   if (typeof window === "undefined") return;
   try {
     if (!gameId) {
@@ -71,6 +89,14 @@ function storeActiveFourPlayerGameId(gameId: string | null) {
 }
 
 function readActiveFourPlayerGameId() {
+  const existing = readActiveOnlineGame();
+  if (
+    existing?.kind === "fourPlayer" &&
+    existing.mode === "fourPlayer" &&
+    existing.gameId
+  ) {
+    return existing.gameId;
+  }
   if (typeof window === "undefined") return "";
   try {
     return String(
@@ -142,6 +168,8 @@ export function useOnlineFourPlayerMatch() {
     setPlayerColor("red");
     setPlayers(DEFAULT_PLAYERS);
     setGameStarted(false);
+    setIsSearching(false);
+    setQueueStatus(null);
     setSelected(null);
     setLastMove(null);
     setSystemMessage(null);
@@ -149,6 +177,13 @@ export function useOnlineFourPlayerMatch() {
     setForfeitedColor(null);
     lastSoundMoveKeyRef.current = "";
     moveInFlightRef.current = false;
+  }, []);
+
+  useEffect(() => {
+    const notice = consumeActiveGameRedirectNotice();
+    if (notice) {
+      setQueueStatus(notice);
+    }
   }, []);
 
   useEffect(() => {
@@ -178,6 +213,15 @@ export function useOnlineFourPlayerMatch() {
               gameIdRef.current = restoredGameId;
               setGameId(restoredGameId);
               storeActiveFourPlayerGameId(restoredGameId);
+              const existing = readActiveOnlineGame();
+              storeActiveOnlineGame({
+                ...existing,
+                gameId: restoredGameId,
+                kind: "fourPlayer",
+                mode: "fourPlayer",
+                variant: "fourPlayer",
+                timeControl: existing?.timeControl || timeControl,
+              });
               setQueueStatus("Game restored after reconnect.");
               setIsSearching(false);
             }
@@ -247,6 +291,13 @@ export function useOnlineFourPlayerMatch() {
       setGameId(payload.gameId);
       gameIdRef.current = payload.gameId;
       storeActiveFourPlayerGameId(payload.gameId);
+      storeActiveOnlineGame({
+        gameId: payload.gameId,
+        kind: "fourPlayer",
+        mode: "fourPlayer",
+        variant: "fourPlayer",
+        timeControl: payload.timeControl,
+      });
       setPlayerColor(payload.color);
       setGameState(payload.state);
       setPlayers(payload.players || DEFAULT_PLAYERS);
@@ -270,6 +321,17 @@ export function useOnlineFourPlayerMatch() {
       }
       if (payload.timeControl) {
         setTimeControl(payload.timeControl);
+      }
+      if (payload.gameId) {
+        const existing = readActiveOnlineGame();
+        storeActiveOnlineGame({
+          ...existing,
+          gameId: payload.gameId,
+          kind: "fourPlayer",
+          mode: "fourPlayer",
+          variant: "fourPlayer",
+          timeControl: payload.timeControl || existing?.timeControl || timeControl,
+        });
       }
       if (payload.lastMove) {
         setLastMove(payload.lastMove);
@@ -314,11 +376,11 @@ export function useOnlineFourPlayerMatch() {
           setGameState(payload.state);
         }
         setGameOverReason(payload.reason || "game_over");
-        if (payload.forfeitedColor) {
-          setForfeitedColor(payload.forfeitedColor);
-        }
-        storeActiveFourPlayerGameId(null);
-        playGameplaySound("gameEnd");
+      if (payload.forfeitedColor) {
+        setForfeitedColor(payload.forfeitedColor);
+      }
+      storeActiveFourPlayerGameId(null);
+      playGameplaySound("gameEnd");
       },
     );
 
@@ -340,6 +402,16 @@ export function useOnlineFourPlayerMatch() {
     (nextTimeControl: TimeControl, name?: string) => {
       const socket = socketRef.current;
       if (!socket) return;
+
+      const existing = readActiveOnlineGame();
+      if (existing?.gameId) {
+        setQueueStatus("You already have an active game in progress.");
+        setIsSearching(false);
+        if (existing.kind === "fourPlayer" && socket.connected) {
+          socket.emit("rejoinFourPlayerGame", { gameId: existing.gameId });
+        }
+        return;
+      }
 
       // Clear stale board/modal state before any new search attempt.
       resetLocalState();

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, Lock, User, ArrowRight, Sun, Moon } from "lucide-react";
+import { Mail, Lock, User, ArrowRight, Palette } from "lucide-react";
 import { useGoogleLogin, type TokenResponse } from "@react-oauth/google";
 import FacebookLogin, {
   type SuccessResponse as FacebookSuccessResponse,
@@ -10,6 +10,7 @@ import { useThemeStore } from "../store/themeStore";
 import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "../components/LanguageSwitcher";
 import { useOAuthConfig } from "../hooks/useOAuthConfig";
+import { ThemeWindow } from "../components/settings";
 
 type GoogleTokenSuccess = Omit<
   TokenResponse,
@@ -19,7 +20,7 @@ type GoogleTokenSuccess = Omit<
 export default function Register() {
   const navigate = useNavigate();
   const { setUser, setError } = useAuthStore();
-  const { isDarkMode, toggleTheme } = useThemeStore();
+  const { isDarkMode } = useThemeStore();
   const { t } = useTranslation();
   const logoSrc = isDarkMode ? "/images/Logo.png" : "/images/LightModeLogo.png";
   const { googleClientId, facebookAppId, isLoading: isOAuthConfigLoading } =
@@ -30,6 +31,7 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setLocalError] = useState("");
+  const [themeWindowOpen, setThemeWindowOpen] = useState(false);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -125,7 +127,7 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#fbfcfe] via-[#f1f4f8] to-[#e8edf5] dark:from-[#020617] dark:via-[#0b1220] dark:to-[#0f1a2e] flex items-center justify-center p-4 transition-colors duration-300">
+    <div className="min-h-screen bg-theme-primary flex items-center justify-center p-4 transition-colors duration-300">
       <div
         className="fixed inset-0 opacity-[0.025] dark:opacity-[0.04] pointer-events-none"
         style={{
@@ -138,25 +140,21 @@ export default function Register() {
       <div className="fixed top-4 inset-x-4 flex items-center justify-between z-[60] gap-3">
         <LanguageSwitcher compact className="shrink-0 z-[60]" />
         <button
-          onClick={toggleTheme}
-          aria-label={t("common.toggleTheme", "Toggle theme")}
-          className="shrink-0 p-3 rounded-2xl border border-gray-200/80 dark:border-slate-700/80 bg-white/90 dark:bg-slate-900/90 shadow-lg backdrop-blur-md transition-all duration-200 hover:scale-105"
+          onClick={() => setThemeWindowOpen(true)}
+          aria-label={t("settings.appearance.theme", "Theme")}
+          className="theme-glass-panel-strong shrink-0 p-3 rounded-2xl transition-all duration-200 hover:scale-105"
         >
-          {isDarkMode ? (
-            <Sun className="w-5 h-5 text-yellow-400" />
-          ) : (
-            <Moon className="w-5 h-5 text-gray-600" />
-          )}
+          <Palette className="w-5 h-5 text-brand-400" />
         </button>
       </div>
 
       <div className="relative max-w-md w-full my-8">
-        <div className="absolute -inset-1 rounded-3xl bg-gradient-to-br from-emerald-500/20 via-transparent to-emerald-600/10 dark:from-emerald-500/10 dark:to-emerald-600/5 blur-xl pointer-events-none" />
+        <div className="absolute -inset-1 rounded-3xl bg-gradient-to-br from-brand-500/20 via-transparent to-brand-600/10 dark:from-brand-500/10 dark:to-brand-600/5 blur-xl pointer-events-none" />
 
-        <div className="relative bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-gray-200/80 dark:border-gray-700/50">
+        <div className="theme-glass-panel-strong relative rounded-2xl p-8">
           <div className="text-center mb-7">
             <div className="relative inline-block">
-              <div className="absolute inset-0 bg-emerald-500/10 dark:bg-emerald-400/10 rounded-full blur-xl scale-150" />
+              <div className="absolute inset-0 bg-brand-500/10 dark:bg-brand-400/10 rounded-full blur-xl scale-150" />
               <img
                 src={logoSrc}
                 alt="NeonGambit"
@@ -166,9 +164,6 @@ export default function Register() {
             <h1 className="mt-3 text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
               {t("auth.createAccount", "Create Account")}
             </h1>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              {t("auth.registerSubtitle", "Join the community of chess masters")}
-            </p>
           </div>
 
           {error && (
@@ -183,12 +178,12 @@ export default function Register() {
                 {t("auth.fullName", "Full Name")}
               </label>
               <div className="relative group">
-                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-emerald-500 transition-colors w-[18px] h-[18px]" />
+                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-brand-500 transition-colors w-[18px] h-[18px]" />
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-gray-50 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all text-sm placeholder:text-gray-400"
+                  className="w-full bg-gray-50 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all text-sm placeholder:text-gray-400"
                   placeholder={t("auth.namePlaceholder", "John Doe")}
                   required
                   disabled={isLoading}
@@ -201,12 +196,12 @@ export default function Register() {
                 {t("auth.email", "Email Address")}
               </label>
               <div className="relative group">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-emerald-500 transition-colors w-[18px] h-[18px]" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-brand-500 transition-colors w-[18px] h-[18px]" />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-gray-50 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all text-sm placeholder:text-gray-400"
+                  className="w-full bg-gray-50 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all text-sm placeholder:text-gray-400"
                   placeholder={t("auth.emailPlaceholder", "you@example.com")}
                   required
                   disabled={isLoading}
@@ -219,12 +214,12 @@ export default function Register() {
                 {t("auth.password", "Password")}
               </label>
               <div className="relative group">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-emerald-500 transition-colors w-[18px] h-[18px]" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-brand-500 transition-colors w-[18px] h-[18px]" />
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-gray-50 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all text-sm placeholder:text-gray-400"
+                  className="w-full bg-gray-50 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all text-sm placeholder:text-gray-400"
                   placeholder="********"
                   required
                   disabled={isLoading}
@@ -239,7 +234,7 @@ export default function Register() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-800 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-all shadow-lg shadow-emerald-900/20 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] text-sm mt-2"
+              className="w-full bg-brand-600 hover:bg-brand-500 disabled:bg-brand-800 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-all shadow-lg shadow-brand-900/20 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] text-sm mt-2"
             >
               {isLoading ? (
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -254,7 +249,7 @@ export default function Register() {
 
           <div className="my-6 relative flex items-center">
             <div className="flex-1 border-t border-gray-200 dark:border-gray-700/60" />
-            <span className="mx-3 text-xs text-gray-400 dark:text-gray-500 bg-white dark:bg-gray-900 px-1">
+            <span className="mx-3 text-xs text-gray-400 dark:text-gray-500 bg-transparent px-1">
               {t("auth.orSignup", "Or sign up with")}
             </span>
             <div className="flex-1 border-t border-gray-200 dark:border-gray-700/60" />
@@ -331,13 +326,19 @@ export default function Register() {
             {t("auth.haveAccount", "Already have an account?")} {" "}
             <Link
               to="/login"
-              className="font-semibold text-emerald-600 dark:text-emerald-400 hover:underline"
+              className="font-semibold text-brand-600 dark:text-brand-400 hover:underline"
             >
               {t("auth.signInCta", "Sign in")}
             </Link>
           </p>
         </div>
       </div>
+
+      <ThemeWindow
+        open={themeWindowOpen}
+        onClose={() => setThemeWindowOpen(false)}
+        closeOnSelect
+      />
     </div>
   );
 }

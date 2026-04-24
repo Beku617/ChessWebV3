@@ -12,3 +12,4 @@ ChessWeb2.8] Broken/
 .env*.local
 vercel-deploy-temp/  
 client_secret_*.json
+tmp/

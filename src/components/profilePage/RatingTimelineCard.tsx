@@ -31,12 +31,57 @@ const RANGES: Array<{ id: RatingRange; label: string }> = [
   { id: "all", label: "ALL" },
 ];
 
-function formatPointDate(value: string, range: RatingRange) {
+type TimelineChartPoint = {
+  idx: number;
+  x: string;
+  rating: number;
+  displayLabel: string;
+  timestamp: string;
+  delta: number;
+  rd?: number;
+  volatility?: number;
+};
+
+/**
+ * Recharts needs at least 2 data points to draw line/area.
+ * If only one point exists, duplicate it with an empty label so XAxis does
+ * not render duplicate tick text.
+ */
+function buildRenderableData(
+  data: TimelineChartPoint[],
+): { points: TimelineChartPoint[]; lastRenderIdx: number } {
+  if (data.length !== 1) {
+    return { points: data, lastRenderIdx: data.length - 1 };
+  }
+
+  const only = data[0];
+  const maybeTs = Date.parse(only.timestamp);
+  const syntheticTimestamp = Number.isFinite(maybeTs)
+    ? new Date(maybeTs + 1000).toISOString()
+    : `${only.timestamp}__duplicate`;
+  return {
+    points: [
+      only,
+      {
+        ...only,
+        idx: only.idx + 1,
+        x: `${only.x}__duplicate`,
+        timestamp: syntheticTimestamp,
+        displayLabel: "",
+      },
+    ],
+    lastRenderIdx: 1,
+  };
+}
+
+function formatPointDate(value: string, range: RatingRange): string {
   const date = new Date(value);
   if (!Number.isFinite(date.getTime())) return value;
+
   if (range === "7d" || range === "30d") {
     return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   }
+
   return date.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
@@ -44,9 +89,10 @@ function formatPointDate(value: string, range: RatingRange) {
   });
 }
 
-function formatTooltipDate(value: string) {
+function formatTooltipDate(value: string): string {
   const date = new Date(value);
   if (!Number.isFinite(date.getTime())) return value;
+
   return date.toLocaleString("en-US", {
     month: "short",
     day: "numeric",
@@ -55,6 +101,15 @@ function formatTooltipDate(value: string) {
     minute: "2-digit",
   });
 }
+
+function normalizeRating(value: unknown): number {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+type TooltipPayloadEntry = {
+  payload?: TimelineChartPoint;
+};
 
 interface RatingTimelineCardProps {
   enabled?: boolean;
@@ -67,57 +122,46 @@ export function RatingTimelineCard({
 }: RatingTimelineCardProps) {
   const [pool, setPool] = useState<RatingPool>("blitz");
   const [range, setRange] = useState<RatingRange>("90d");
-  const { points, loading, error } = useRatingTimeline(pool, range, {
-    enabled,
-  });
+  const { points, loading, error } = useRatingTimeline(pool, range, { enabled });
   const chartSize = useElementSize<HTMLDivElement>();
 
   const chart = useMemo(() => {
     if (points.length === 0) {
       return {
-        data: [] as Array<{
-          idx: number;
-          rating: number;
-          label: string;
-          timestamp: string;
-          delta: number;
-          rd?: number;
-          volatility?: number;
-        }>,
+        data: [] as TimelineChartPoint[],
+        renderData: [] as TimelineChartPoint[],
+        lastRenderIdx: -1,
         min: 0,
         max: 0,
         first: 0,
         last: 0,
         yMin: 0,
         yMax: 0,
-        lastPoint: null as null | {
-          idx: number;
-          rating: number;
-          label: string;
-          timestamp: string;
-          delta: number;
-          rd?: number;
-          volatility?: number;
-        },
+        lastPoint: null as TimelineChartPoint | null,
       };
     }
 
-    const data = points.map((point, index) => ({
+    const data: TimelineChartPoint[] = points.map((point, index) => ({
       idx: index,
-      rating: point.rating,
-      label: formatPointDate(point.ts, range),
+      x: `${point.ts}#${index}`,
+      rating: normalizeRating(point.rating),
+      displayLabel: formatPointDate(point.ts, range),
       timestamp: point.ts,
       delta: point.delta,
       rd: point.rd,
       volatility: point.volatility,
     }));
-    const values = data.map((point) => point.rating);
+
+    const { points: renderData, lastRenderIdx } = buildRenderableData(data);
+    const values = data.map((p) => p.rating);
     const min = Math.min(...values);
     const max = Math.max(...values);
     const padding = Math.max(8, Math.round((max - min) * 0.12));
 
     return {
       data,
+      renderData,
+      lastRenderIdx,
       min,
       max,
       first: data[0]?.rating ?? 0,
@@ -129,7 +173,11 @@ export function RatingTimelineCard({
   }, [points, range]);
 
   const delta = chart.last - chart.first;
-  const deltaLabel = delta > 0 ? `+${delta}` : `${delta}`;
+  const isSinglePoint = chart.data.length <= 1;
+  const deltaLabel = isSinglePoint ? "--" : delta > 0 ? `+${delta}` : `${delta}`;
+  const selectedPoolLabel = POOLS.find((option) => option.id === pool)?.label ?? pool;
+  const selectedRangeLabel =
+    RANGES.find((option) => option.id === range)?.label ?? range.toUpperCase();
 
   return (
     <div className="h-full min-w-0 bg-white/85 dark:bg-slate-900/70 rounded-2xl p-6 border border-gray-200/70 dark:border-white/10 shadow-[0_10px_30px_rgba(15,23,42,0.08)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.4)] backdrop-blur flex flex-col">
@@ -140,17 +188,17 @@ export function RatingTimelineCard({
         <LineChartIcon className="w-5 h-5 text-brand-500" />
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-2">
+      <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-gray-200/70 bg-white/60 p-1.5 dark:border-white/10 dark:bg-black/20">
         {POOLS.map((option) => (
           <button
             key={option.id}
             type="button"
             onClick={() => setPool(option.id)}
             disabled={!enabled}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 ${
               pool === option.id
-                ? "bg-brand-500 text-white"
-                : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200"
+                ? "bg-brand-500 text-white shadow-[0_8px_20px_rgba(20,184,166,0.35)]"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700/90 dark:text-gray-200 dark:hover:bg-gray-700"
             } ${!enabled ? "cursor-not-allowed opacity-60" : ""}`}
           >
             {option.label}
@@ -158,17 +206,17 @@ export function RatingTimelineCard({
         ))}
       </div>
 
-      <div className="mt-2 flex flex-wrap items-center gap-2">
+      <div className="mt-2 flex flex-wrap items-center gap-2 rounded-xl border border-gray-200/70 bg-white/60 p-1.5 dark:border-white/10 dark:bg-black/20">
         {RANGES.map((option) => (
           <button
             key={option.id}
             type="button"
             onClick={() => setRange(option.id)}
             disabled={!enabled}
-            className={`px-2.5 py-1 rounded-md text-[11px] font-semibold ${
+            className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all duration-150 ${
               range === option.id
                 ? "bg-brand-100 text-brand-700 dark:bg-brand-500/20 dark:text-brand-300"
-                : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700/90 dark:text-gray-300 dark:hover:bg-gray-700"
             } ${!enabled ? "cursor-not-allowed opacity-60" : ""}`}
           >
             {option.label}
@@ -195,26 +243,30 @@ export function RatingTimelineCard({
           </div>
         ) : (
           <motion.div
-            key={`${pool}-${range}-${chart.data.length}`}
+            key={`${pool}-${range}-${chart.renderData.length}`}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.28, ease: "easeOut" }}
             className="min-w-0 space-y-2 flex-1 flex flex-col"
           >
-            <div className="flex items-center justify-end">
+            <div className="flex items-center justify-between gap-2 rounded-lg border border-gray-200/70 bg-white/55 px-3 py-2 dark:border-white/10 dark:bg-slate-900/45">
+              <span className="text-[11px] font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                {selectedPoolLabel} | {selectedRangeLabel}
+              </span>
               <span className="text-[12px] font-semibold text-gray-700 dark:text-gray-200">
                 Current: {chart.last}
                 {typeof chart.lastPoint?.rd === "number"
-                  ? ` ± ${Math.round(chart.lastPoint.rd)}`
+                  ? ` +/- ${Math.round(chart.lastPoint.rd)}`
                   : ""}
               </span>
             </div>
+
             <div ref={chartSize.ref} className="h-[210px] w-full min-w-0">
               {chartSize.hasSize ? (
                 <AreaChart
                   width={chartSize.width}
                   height={chartSize.height}
-                  data={chart.data}
+                  data={chart.renderData}
                   margin={{ top: 8, right: 6, left: 0, bottom: 0 }}
                 >
                   <defs>
@@ -231,11 +283,17 @@ export function RatingTimelineCard({
                     opacity={0.28}
                   />
                   <XAxis
-                    dataKey="label"
+                    dataKey="x"
                     tick={{ fill: "#94a3b8", fontSize: 11 }}
                     axisLine={false}
                     tickLine={false}
                     minTickGap={42}
+                    tickFormatter={(value: string) => {
+                      const separatorIndex = value.lastIndexOf("#");
+                      const ts =
+                        separatorIndex >= 0 ? value.slice(0, separatorIndex) : value;
+                      return formatPointDate(ts, range);
+                    }}
                   />
                   <YAxis
                     domain={[chart.yMin, chart.yMax]}
@@ -244,7 +302,7 @@ export function RatingTimelineCard({
                     axisLine={false}
                     tickLine={false}
                     tickCount={4}
-                    tickFormatter={(value) => `${Math.round(Number(value))}`}
+                    tickFormatter={(value: number) => `${Math.round(value)}`}
                   />
                   <Tooltip
                     cursor={{
@@ -262,10 +320,10 @@ export function RatingTimelineCard({
                       boxShadow: "0 8px 24px rgba(0,0,0,0.25)",
                     }}
                     labelStyle={{ color: "#cbd5e1", marginBottom: "4px" }}
-                    formatter={(value: unknown) => [Number(value), "Rating"]}
-                    labelFormatter={(_label: unknown, payload: any) => {
+                    formatter={(value: number) => [value, "Rating"] as [number, string]}
+                    labelFormatter={(_label: string, payload: TooltipPayloadEntry[]) => {
                       const ts = payload?.[0]?.payload?.timestamp;
-                      return formatTooltipDate(String(ts || ""));
+                      return ts ? formatTooltipDate(ts) : "";
                     }}
                   />
                   <Area
@@ -278,17 +336,25 @@ export function RatingTimelineCard({
                     isAnimationActive
                     animationDuration={850}
                     animationEasing="ease-out"
-                    dot={(props: any) => {
-                      if (
-                        !chart.lastPoint ||
-                        props?.index !== chart.lastPoint.idx ||
-                        typeof props?.cx !== "number" ||
-                        typeof props?.cy !== "number"
-                      ) {
-                        return null;
-                      }
+                    dot={(
+                      props: {
+                        index?: number;
+                        cx?: number;
+                        cy?: number;
+                        key?: string;
+                      },
+                    ) => {
+                      const isLast =
+                        typeof props.index === "number" &&
+                        props.index === chart.lastRenderIdx &&
+                        typeof props.cx === "number" &&
+                        typeof props.cy === "number";
+
+                      if (!isLast) return <g key={props.key} />;
+
                       return (
                         <circle
+                          key={props.key}
                           cx={props.cx}
                           cy={props.cy}
                           r={4}
@@ -310,11 +376,16 @@ export function RatingTimelineCard({
                 <div className="h-full w-full animate-pulse rounded-lg bg-slate-200/60 dark:bg-slate-800/50" />
               )}
             </div>
+
             <div className="mt-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
               <span>Low {chart.min}</span>
               <span
-                className={`font-semibold ${
-                  delta >= 0 ? "text-brand-500" : "text-red-500"
+                className={`rounded-md px-2 py-0.5 font-semibold ${
+                  isSinglePoint
+                    ? "text-gray-400 dark:text-gray-500"
+                    : delta >= 0
+                      ? "text-brand-500"
+                      : "text-red-500"
                 }`}
               >
                 {deltaLabel}
@@ -327,4 +398,3 @@ export function RatingTimelineCard({
     </div>
   );
 }
-

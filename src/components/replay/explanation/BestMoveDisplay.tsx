@@ -1,4 +1,4 @@
-import { Target } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { BestMoveInfo } from "./types";
 
 interface BestMoveDisplayProps {
@@ -6,13 +6,14 @@ interface BestMoveDisplayProps {
 }
 
 export function BestMoveDisplay({ bestMoveInfo }: BestMoveDisplayProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="mb-3 p-2.5 rounded-md bg-gray-100 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
       <div className="flex items-center gap-2">
-        <Target className="w-4 h-4 text-green-500 flex-shrink-0" />
         <div className="flex-1">
           <span className="text-xs text-gray-500 dark:text-gray-400">
-            Best move:{" "}
+            {t("analysis.bestMove", "Best move:")}{" "}
           </span>
           <span
             className={`font-mono font-semibold ${
@@ -25,7 +26,7 @@ export function BestMoveDisplay({ bestMoveInfo }: BestMoveDisplayProps) {
           </span>
           {bestMoveInfo.wasPlayed && (
             <span className="ml-2 text-xs text-green-600 dark:text-green-400">
-              ✓ You played this!
+              {t("analysis.bestMovePlayed", "You played this!")}
             </span>
           )}
         </div>

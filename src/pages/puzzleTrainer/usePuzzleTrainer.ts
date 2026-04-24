@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Chess } from "chess.js";
+import i18n from "../../i18n";
 import { useAuthStore } from "../../store/authStore";
 import { useGameplayPreferences } from "../../hooks/useGameplayPreferences";
 import {
@@ -217,9 +218,7 @@ export function usePuzzleTrainer() {
           const puzzle = await fetchPuzzleById(puzzleId);
           if (cancelled) return;
           setCurrentPuzzle(puzzle);
-          setSelectionReason(
-            activeMode === "library" ? "Library puzzle" : "Selected puzzle",
-          );
+          setSelectionReason("");
           resetBoardState(puzzle);
           setLoading(false);
           return;
@@ -233,26 +232,21 @@ export function usePuzzleTrainer() {
         if (cancelled) return;
         if (!selection.puzzle) {
           setCurrentPuzzle(null);
-          setSelectionReason(
-            selection.reason ||
-              (activeMode === "review"
-                ? "No reviews due. Try a new rated puzzle."
-                : "No puzzle available right now."),
-          );
+          setSelectionReason("");
           return;
         }
 
         setCurrentPuzzle(selection.puzzle);
-        setSelectionReason(
-          selection.reason || "New rated puzzle near your level",
-        );
+        setSelectionReason("");
         resetBoardState(selection.puzzle);
       } catch (error) {
         console.error("Failed to load puzzle:", error);
         if (cancelled) return;
         setCurrentPuzzle(null);
         setNetworkError(
-          error instanceof Error ? error.message : "Failed to load puzzle",
+          i18n.t("puzzles.trainer.loadFailed", {
+            defaultValue: "Failed to load puzzle",
+          }),
         );
       } finally {
         if (!cancelled) {
@@ -324,7 +318,9 @@ export function usePuzzleTrainer() {
       } catch (error) {
         console.error("Failed to submit puzzle attempt:", error);
         setNetworkError(
-          error instanceof Error ? error.message : "Failed to submit attempt",
+          i18n.t("puzzles.trainer.submitFailed", {
+            defaultValue: "Failed to submit attempt",
+          }),
         );
         return null;
       }

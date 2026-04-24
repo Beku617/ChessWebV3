@@ -14,7 +14,7 @@ const learnSeedCourses = [
     category: "Openings",
     difficulty: "Intermediate",
     coverImage: "",
-    icon: "♞",
+    icon: "",
     instructorName: "GM Elena Martinez",
     tags: ["ruy lopez", "opening", "classical chess"],
     isPublished: true,
@@ -226,7 +226,7 @@ const learnSeedCourses = [
     category: "Middlegame",
     difficulty: "Intermediate",
     coverImage: "",
-    icon: "⚔️",
+    icon: "",
     instructorName: "IM Viktor Asanov",
     tags: ["middlegame", "piece activity", "king safety"],
     isPublished: true,
@@ -290,7 +290,7 @@ const learnSeedCourses = [
     category: "Endgame",
     difficulty: "Advanced",
     coverImage: "",
-    icon: "♜",
+    icon: "",
     instructorName: "GM Pavel Richter",
     tags: ["endgame", "berlin", "technique"],
     isPublished: true,
@@ -354,7 +354,7 @@ const learnSeedCourses = [
     category: "Strategy",
     difficulty: "Beginner",
     coverImage: "",
-    icon: "♟️",
+    icon: "",
     instructorName: "IM Sarah Lee",
     tags: ["strategy", "pawn structure", "fundamentals"],
     isPublished: true,
@@ -478,5 +478,5 @@ export async function seedLearn() {
     }
   }
 
-  console.log("✅ Learn courses seeded successfully");
+  console.log(" Learn courses seeded successfully");
 }

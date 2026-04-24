@@ -1,4 +1,4 @@
-import { Trophy, Eye, ExternalLink, Calendar, Users } from "lucide-react";
+import { Eye, ExternalLink, Calendar, Users } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { FeaturedEvent } from "../../hooks/useWatchPage";
 import { TransformedLiveGame } from "../../utils/lichessApi";
@@ -22,7 +22,6 @@ export function FeaturedMatch({
       <section className="mb-10">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
-            <Trophy className="w-5 h-5 text-yellow-500 mr-2" />
             {t("Featured Match")}
           </h2>
         </div>
@@ -42,7 +41,6 @@ export function FeaturedMatch({
       <section className="mb-10">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
-            <Trophy className="w-5 h-5 text-yellow-500 mr-2" />
             {t("Featured")}{" "}
             {event.type === "tournament"
               ? t("Tournament")
@@ -106,7 +104,7 @@ export function FeaturedMatch({
                   </div>
                 </div>
                 <div className="w-16 h-16 rounded-xl bg-gray-100 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 flex items-center justify-center text-2xl shadow-lg">
-                  ♟️
+
                 </div>
               </div>
 
@@ -120,7 +118,7 @@ export function FeaturedMatch({
               {/* Player 2 */}
               <div className="flex items-center space-x-4 flex-1">
                 <div className="w-16 h-16 rounded-xl bg-gray-100 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 flex items-center justify-center text-2xl shadow-lg">
-                  ♙
+
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
@@ -187,7 +185,6 @@ export function FeaturedMatch({
       <section className="mb-10">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
-            <Trophy className="w-5 h-5 text-yellow-500 mr-2" />
             {t("Featured Match")}
             <span className="ml-2 text-xs bg-gray-200 dark:bg-gray-800 px-2 py-1 rounded text-gray-500">
               {t("via Lichess")}
@@ -220,7 +217,7 @@ export function FeaturedMatch({
                 </div>
               </div>
               <div className="w-16 h-16 rounded-xl bg-gray-100 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 flex items-center justify-center text-2xl shadow-lg">
-                ♟️
+
               </div>
             </div>
 
@@ -242,7 +239,7 @@ export function FeaturedMatch({
             {/* Player 2 */}
             <div className="flex items-center space-x-4 flex-1">
               <div className="w-16 h-16 rounded-xl bg-gray-100 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 flex items-center justify-center text-2xl shadow-lg">
-                ♙
+
               </div>
               <div>
                 <div className="flex items-center gap-2">
@@ -283,7 +280,6 @@ export function FeaturedMatch({
     <section className="mb-10">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
-          <Trophy className="w-5 h-5 text-yellow-500 mr-2" />
           {t("Featured Match")}
         </h2>
       </div>

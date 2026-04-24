@@ -12,7 +12,7 @@ const BotSchema = new mongoose.Schema(
     },
     avatar: {
       type: String,
-      default: "🤖",
+      default: "",
     },
     avatarUrl: {
       type: String,

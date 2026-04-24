@@ -11,6 +11,7 @@ import {
   Loader2,
   RotateCcw,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { LessonPanel } from "../components/learn/LessonPanel";
 import { fetchLearnLesson, submitLearnLessonStep } from "../features/learn/api";
 import { useGameplayPreferences } from "../hooks/useGameplayPreferences";
@@ -39,6 +40,11 @@ export default function LearnLesson() {
     lessonSlug: string;
   }>();
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const lessonLoadFailedMessage = t(
+    "learn.lessonLoadFailed",
+    "Failed to load lesson.",
+  );
   const { allowClickInput, allowDragInput, showLegalMoves } =
     useGameplayPreferences();
 
@@ -112,7 +118,11 @@ export default function LearnLesson() {
         if (cancelled) return;
         setLessonData(null);
         setProgress(null);
-        setError(err instanceof Error ? err.message : "Failed to load lesson.");
+        setError(
+          err instanceof Error
+            ? err.message
+            : lessonLoadFailedMessage,
+        );
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -122,7 +132,7 @@ export default function LearnLesson() {
     return () => {
       cancelled = true;
     };
-  }, [courseSlug, lessonSlug]);
+  }, [courseSlug, lessonLoadFailedMessage, lessonSlug]);
 
   const currentStep = useMemo(() => {
     if (!lessonData || lessonData.steps.length === 0) return null;
@@ -249,7 +259,9 @@ export default function LearnLesson() {
       setFeedback({
         kind: "wrong",
         message:
-          err instanceof Error ? err.message : "Failed to submit lesson move.",
+          err instanceof Error
+            ? err.message
+            : t("learn.submitMoveFailed", "Failed to submit lesson move."),
       });
       setBoardFen(currentStep.fen);
       setLastMove(null);
@@ -399,15 +411,21 @@ export default function LearnLesson() {
         <div className="w-14 h-14 mx-auto rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center">
           <BookOpen className="w-7 h-7 text-slate-400" />
         </div>
-        <h1 className="mt-4 text-2xl font-semibold text-slate-100">Lesson Not Found</h1>
+        <h1 className="mt-4 text-2xl font-semibold text-slate-100">
+          {t("learn.lessonNotFound", "Lesson Not Found")}
+        </h1>
         <p className="mt-2 text-slate-400">
-          {error || "The requested lesson could not be loaded."}
+          {error ||
+            t(
+              "learn.lessonNotFoundDescription",
+              "The requested lesson could not be loaded.",
+            )}
         </p>
         <button
           onClick={() => navigate("/learn")}
           className="mt-6 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-500/20 border border-brand-400/35 text-brand-200 hover:bg-brand-500/30"
         >
-          Back to Learn
+          {t("learn.backToLearn", "Back to Learn")}
         </button>
       </div>
     );
@@ -477,7 +495,7 @@ export default function LearnLesson() {
 
               {showHint && currentStep.hintText && (
                 <div className="rounded-xl border border-cyan-400/35 bg-cyan-500/10 px-3 py-2 text-sm text-cyan-200">
-                  Hint: {currentStep.hintText}
+                  {t("learn.hint", "Hint")}: {currentStep.hintText}
                 </div>
               )}
 
@@ -490,7 +508,7 @@ export default function LearnLesson() {
               {lessonCompleted && (
                 <div className="rounded-xl border border-brand-400/35 bg-brand-500/10 px-3 py-2 text-sm text-brand-200 inline-flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4" />
-                  Lesson complete.
+                  {t("learn.lessonComplete", "Lesson complete.")}
                 </div>
               )}
             </div>
@@ -503,7 +521,9 @@ export default function LearnLesson() {
                     className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 text-xs hover:border-slate-600"
                   >
                     <Lightbulb className="w-3.5 h-3.5" />
-                    {showHint ? "Hide Hint" : "Show Hint"}
+                    {showHint
+                      ? t("learn.hideHint", "Hide Hint")
+                      : t("learn.showHint", "Show Hint")}
                   </button>
                 )}
 
@@ -513,7 +533,7 @@ export default function LearnLesson() {
                   className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 text-xs hover:border-slate-600 disabled:cursor-not-allowed disabled:opacity-45"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
-                  Retry Step
+                  {t("learn.retryStep", "Retry Step")}
                 </button>
 
                 {lessonCompleted && (
@@ -522,7 +542,7 @@ export default function LearnLesson() {
                     className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 text-xs hover:border-slate-600"
                   >
                     <BookOpen className="w-3.5 h-3.5" />
-                    Back to Learn
+                    {t("learn.backToLearn", "Back to Learn")}
                   </button>
                 )}
               </div>
@@ -530,7 +550,7 @@ export default function LearnLesson() {
               {isSubmittingMove && (
                 <div className="inline-flex items-center gap-1.5 text-xs text-slate-400">
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  Checking move...
+                  {t("learn.checkingMove", "Checking move...")}
                 </div>
               )}
             </div>
@@ -543,7 +563,7 @@ export default function LearnLesson() {
               className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs bg-slate-900 border border-slate-700 text-slate-300 hover:border-slate-600 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <ChevronLeft className="w-3.5 h-3.5" />
-              Previous
+              {t("learn.previous", "Previous")}
             </button>
             {lessonCompleted && hasNextLesson ? (
               <button
@@ -551,7 +571,7 @@ export default function LearnLesson() {
                 className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs bg-brand-500/20 border border-brand-400/35 text-brand-200 hover:bg-brand-500/30"
               >
                 <ChevronRight className="w-3.5 h-3.5" />
-                Next Lesson
+                {t("learn.nextLesson", "Next Lesson")}
               </button>
             ) : lessonCompleted ? (
               <button
@@ -559,7 +579,7 @@ export default function LearnLesson() {
                 className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs bg-slate-900 border border-slate-700 text-slate-300 hover:border-slate-600"
               >
                 <BookOpen className="w-3.5 h-3.5" />
-                Back to Learn
+                {t("learn.backToLearn", "Back to Learn")}
               </button>
             ) : (
               <button
@@ -567,7 +587,7 @@ export default function LearnLesson() {
                 className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs bg-slate-900 border border-slate-700 text-slate-300 hover:border-slate-600"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
-                Retry Lesson
+                {t("learn.retryLesson", "Retry Lesson")}
               </button>
             )}
           </div>

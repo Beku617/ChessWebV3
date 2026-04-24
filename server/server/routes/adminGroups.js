@@ -17,10 +17,19 @@ function isValidObjectId(value) {
   return mongoose.Types.ObjectId.isValid(String(value || ""));
 }
 
+function parsePositiveInt(value, fallback) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 1) {
+    return fallback;
+  }
+  return Math.floor(parsed);
+}
+
 router.get("/", adminAuthMiddleware, async (req, res) => {
   try {
     const search = String(req.query.search || "").trim();
-    const limit = Math.min(80, Math.max(1, Number(req.query.limit) || 48));
+    const requestedPage = Math.max(1, parsePositiveInt(req.query.page, 1));
+    const limit = Math.min(24, Math.max(1, parsePositiveInt(req.query.limit, 8)));
     const query = {};
 
     if (search) {
@@ -28,9 +37,15 @@ router.get("/", adminAuthMiddleware, async (req, res) => {
       query.$or = [{ name: regex }, { description: regex }, { topic: regex }, { slug: regex }];
     }
 
+    const total = await CommunityGroup.countDocuments(query);
+    const pages = Math.max(1, Math.ceil(total / limit));
+    const page = Math.min(requestedPage, pages);
+    const skip = (page - 1) * limit;
+
     const groups = await CommunityGroup.find(query)
       .populate("creatorId", "fullName avatar")
       .sort({ memberCount: -1, createdAt: -1 })
+      .skip(skip)
       .limit(limit)
       .lean();
 
@@ -69,7 +84,13 @@ router.get("/", adminAuthMiddleware, async (req, res) => {
         totalPostCount: countMap.get(String(group._id))?.totalPostCount || 0,
         approvedPostCount: countMap.get(String(group._id))?.approvedPostCount || 0,
       })),
-      total: groups.length,
+      total,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages,
+      },
     });
   } catch (err) {
     console.error("Admin groups list error:", err);

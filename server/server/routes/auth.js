@@ -7,6 +7,7 @@ import rateLimit from "express-rate-limit";
 import { body, param, validationResult } from "express-validator";
 import {
   User,
+  BlockedUser,
   Friend,
   FriendRequest,
   Tournament,
@@ -19,7 +20,16 @@ import {
   clearAuthCookie,
   resolveAuthMaxAge,
 } from "../utils/cookies.js";
-import { canViewerAccessUser } from "../utils/visibility.js";
+import { canViewerAccessUser, getBlockStatusBetween } from "../utils/visibility.js";
+import {
+  createEmailVerificationCode,
+  getEmailVerificationCodeTtlMs,
+  getEmailVerificationResendCooldownMs,
+  hashEmailVerificationCode,
+  isEmailVerificationRequired,
+  isVerificationEmailConfigured,
+  sendEmailVerificationCode,
+} from "../services/emailVerification.js";
 
 const router = Router();
 
@@ -130,6 +140,9 @@ function toPublicUser(user) {
     fullName: user.fullName,
     avatar: user.avatar || "",
     authProvider: user.authProvider || "local",
+    emailVerified:
+      !isEmailVerificationRequired() ||
+      user.authProvider !== "local" || user.emailVerified !== false,
     hasGoogleAuth: !!String(user.googleId || "").trim(),
     hasFacebookAuth: !!String(user.facebookId || "").trim(),
     rating: baseRating,
@@ -214,6 +227,14 @@ const registerRateLimiter = makeAuthRateLimiter({
 });
 const socialRateLimiter = makeAuthRateLimiter({
   windowMs: 15 * 60 * 1000,
+  max: 10,
+});
+const verifyEmailRateLimiter = makeAuthRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+});
+const resendVerificationRateLimiter = makeAuthRateLimiter({
+  windowMs: 60 * 60 * 1000,
   max: 10,
 });
 
@@ -302,6 +323,69 @@ const socialAuthValidation = [
   validateRequest,
 ];
 
+const verifyEmailValidation = [
+  body("email")
+    .exists({ values: "falsy" })
+    .withMessage("Email is required")
+    .bail()
+    .isString()
+    .withMessage("Email must be a string")
+    .bail()
+    .isEmail()
+    .withMessage("Invalid email format")
+    .bail()
+    .normalizeEmail(),
+  body("code")
+    .exists({ values: "falsy" })
+    .withMessage("Verification code is required")
+    .bail()
+    .isString()
+    .withMessage("Verification code must be a string")
+    .bail()
+    .trim()
+    .matches(/^\d{6}$/)
+    .withMessage("Verification code must be 6 digits"),
+  body("rememberMe")
+    .optional()
+    .isBoolean()
+    .withMessage("rememberMe must be a boolean"),
+  validateRequest,
+];
+
+const resendVerificationValidation = [
+  body("email")
+    .exists({ values: "falsy" })
+    .withMessage("Email is required")
+    .bail()
+    .isString()
+    .withMessage("Email must be a string")
+    .bail()
+    .isEmail()
+    .withMessage("Invalid email format")
+    .bail()
+    .normalizeEmail(),
+  validateRequest,
+];
+
+const changePasswordValidation = [
+  body("currentPassword")
+    .exists({ values: "falsy" })
+    .withMessage("Current password is required")
+    .bail()
+    .isString()
+    .withMessage("Current password must be a string"),
+  body("newPassword")
+    .exists({ values: "falsy" })
+    .withMessage("New password is required")
+    .bail()
+    .isString()
+    .withMessage("New password must be a string")
+    .bail()
+    .isLength({ min: 8 })
+    .withMessage("New password must be at least 8 characters"),
+  validateRequest,
+];
+
 const profileValidation = [
   body("fullName")
     .optional()
@@ -342,6 +426,80 @@ const avatarValidation = [
   validateRequest,
 ];
 
+function buildTokenData(user) {
+  return {
+    userId: user._id,
+    email: user.email,
+    fullName: user.fullName,
+  };
+}
+
+function getDateOrNull(value) {
+  if (!value) return null;
+  const parsed = new Date(value);
+  if (!Number.isFinite(parsed.getTime())) return null;
+  return parsed;
+}
+
+function isValidObjectId(value) {
+  return mongoose.Types.ObjectId.isValid(String(value || ""));
+}
+
+async function syncLegacyBlockedEdge(blockerId, blockedId, shouldExist) {
+  if (shouldExist) {
+    try {
+      await BlockedUser.updateOne(
+        { blocker: blockerId, blocked: blockedId },
+        { $setOnInsert: { blocker: blockerId, blocked: blockedId } },
+        { upsert: true },
+      );
+    } catch (error) {
+      if (error?.code !== 11000) {
+        throw error;
+      }
+    }
+    return;
+  }
+
+  await BlockedUser.deleteOne({ blocker: blockerId, blocked: blockedId });
+}
+
+async function removeFriendshipAndPendingRequests(userA, userB) {
+  await Promise.all([
+    Friend.deleteMany({
+      $or: [
+        { userId: userA, friendId: userB },
+        { userId: userB, friendId: userA },
+      ],
+    }),
+    FriendRequest.deleteMany({
+      status: "pending",
+      $or: [
+        { senderId: userA, receiverId: userB },
+        { senderId: userB, receiverId: userA },
+      ],
+    }),
+  ]);
+}
+
+async function issueVerificationCodeForUser(user) {
+  const code = createEmailVerificationCode();
+  const expiresAt = new Date(Date.now() + getEmailVerificationCodeTtlMs());
+
+  user.emailVerificationCodeHash = hashEmailVerificationCode(code);
+  user.emailVerificationCodeExpiresAt = expiresAt;
+  user.emailVerificationCodeSentAt = new Date();
+  await user.save();
+
+  await sendEmailVerificationCode({
+    toEmail: user.email,
+    fullName: user.fullName,
+    code,
+  });
+
+  return expiresAt;
+}
+
 // Public OAuth configuration (client-side SDK initialization)
 router.get("/oauth/config", (_req, res) => {
   const { googleClientId } = getGoogleAuthConfig();
@@ -367,32 +525,58 @@ router.post("/register", registerRateLimiter, registerValidation, async (req, re
       return res.status(400).json({ error: "Email already in use" });
     }
 
+    const requiresEmailVerification = isEmailVerificationRequired();
+
+    if (requiresEmailVerification && !isVerificationEmailConfigured()) {
+      return res.status(503).json({
+        error:
+          "Email verification is not configured on the server. Please contact support.",
+        code: "EMAIL_TRANSPORT_NOT_CONFIGURED",
+      });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
       fullName,
       email,
       password: hashedPassword,
+      authProvider: "local",
+      emailVerified: !requiresEmailVerification,
     });
 
-    const tokenData = {
-      userId: user._id,
-      email: user.email,
-      fullName: user.fullName,
-    };
+    if (!requiresEmailVerification) {
+      const maxAge = resolveAuthMaxAge(false);
+      res.cookie(
+        "authToken",
+        JSON.stringify(buildTokenData(user)),
+        buildAuthCookieOptions({ maxAge }),
+      );
 
-    res.cookie(
-      "authToken",
-      JSON.stringify(tokenData),
-      buildAuthCookieOptions({
-        maxAge: resolveAuthMaxAge(false),
-      }),
-    );
+      return res.status(201).json({
+        success: true,
+        message: "User registered successfully",
+        requiresEmailVerification: false,
+        user: toPublicUser(user),
+      });
+    }
 
-    res.json({
+    let emailSent = false;
+    try {
+      await issueVerificationCodeForUser(user);
+      emailSent = true;
+    } catch (emailError) {
+      console.error("Register verification email error:", emailError);
+    }
+
+    res.status(201).json({
       success: true,
-      message: "User registered successfully",
-      user: toPublicUser(user),
+      message: emailSent
+        ? "User registered. Verification code sent to your email."
+        : "User registered, but we could not send the verification email. Request a new code from login.",
+      requiresEmailVerification: true,
+      emailSent,
+      email: user.email,
     });
   } catch (err) {
     console.error("Register error:", err);
@@ -433,11 +617,16 @@ router.post("/login", loginRateLimiter, loginValidation, async (req, res) => {
       return res.status(401).json({ error: "Invalid email or password" });
     }
 
-    const tokenData = {
-      userId: user._id,
-      email: user.email,
-      fullName: user.fullName,
-    };
+    if (isEmailVerificationRequired() && user.emailVerified === false) {
+      return res.status(403).json({
+        error: "Please verify your email before logging in",
+        code: "EMAIL_NOT_VERIFIED",
+        requiresEmailVerification: true,
+        email: user.email,
+      });
+    }
+
+    const tokenData = buildTokenData(user);
 
     const maxAge = resolveAuthMaxAge(Boolean(rememberMe));
 
@@ -457,6 +646,178 @@ router.post("/login", loginRateLimiter, loginValidation, async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
+
+// Verify local account email
+router.post(
+  "/verify-email",
+  verifyEmailRateLimiter,
+  verifyEmailValidation,
+  async (req, res) => {
+    try {
+      const { email, code, rememberMe } = req.body || {};
+      const user = await User.findOne({ email });
+
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      if (user.banned) {
+        return res.status(403).json({
+          error: "Your account has been banned",
+          banned: true,
+          banReason: user.banReason || "No reason provided",
+        });
+      }
+
+      if (user.authProvider !== "local") {
+        return res.status(400).json({ error: "This account uses social sign-in" });
+      }
+
+      if (!isEmailVerificationRequired()) {
+        const maxAge = resolveAuthMaxAge(Boolean(rememberMe));
+        res.cookie(
+          "authToken",
+          JSON.stringify(buildTokenData(user)),
+          buildAuthCookieOptions({ maxAge }),
+        );
+        return res.json({
+          success: true,
+          message: "Email verification is currently disabled",
+          user: toPublicUser(user),
+        });
+      }
+
+      if (user.emailVerified !== false) {
+        const maxAge = resolveAuthMaxAge(Boolean(rememberMe));
+        res.cookie(
+          "authToken",
+          JSON.stringify(buildTokenData(user)),
+          buildAuthCookieOptions({ maxAge }),
+        );
+        return res.json({
+          success: true,
+          message: "Email already verified",
+          user: toPublicUser(user),
+        });
+      }
+
+      const expiresAt = getDateOrNull(user.emailVerificationCodeExpiresAt);
+      const storedHash = String(user.emailVerificationCodeHash || "");
+      if (!storedHash || !expiresAt || expiresAt.getTime() <= Date.now()) {
+        return res.status(400).json({
+          error: "Verification code expired. Please request a new code.",
+          code: "VERIFICATION_CODE_EXPIRED",
+        });
+      }
+
+      const submittedHash = hashEmailVerificationCode(code);
+      if (submittedHash !== storedHash) {
+        return res.status(400).json({
+          error: "Invalid verification code",
+          code: "VERIFICATION_CODE_INVALID",
+        });
+      }
+
+      user.emailVerified = true;
+      user.emailVerificationCodeHash = "";
+      user.emailVerificationCodeExpiresAt = null;
+      user.emailVerificationCodeSentAt = null;
+      await user.save();
+
+      const maxAge = resolveAuthMaxAge(Boolean(rememberMe));
+      res.cookie(
+        "authToken",
+        JSON.stringify(buildTokenData(user)),
+        buildAuthCookieOptions({ maxAge }),
+      );
+
+      return res.json({
+        success: true,
+        message: "Email verified successfully",
+        user: toPublicUser(user),
+      });
+    } catch (err) {
+      console.error("Verify email error:", err);
+      return res.status(500).json({ error: "Server error" });
+    }
+  },
+);
+
+// Resend local account verification code
+router.post(
+  "/resend-verification-code",
+  resendVerificationRateLimiter,
+  resendVerificationValidation,
+  async (req, res) => {
+    try {
+      if (!isEmailVerificationRequired()) {
+        return res.json({
+          success: true,
+          message: "Email verification is currently disabled. You can log in normally.",
+        });
+      }
+
+      const { email } = req.body || {};
+
+      if (!isVerificationEmailConfigured()) {
+        return res.status(503).json({
+          error:
+            "Email verification is not configured on the server. Please contact support.",
+          code: "EMAIL_TRANSPORT_NOT_CONFIGURED",
+        });
+      }
+
+      const user = await User.findOne({ email });
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      if (user.banned) {
+        return res.status(403).json({
+          error: "Your account has been banned",
+          banned: true,
+          banReason: user.banReason || "No reason provided",
+        });
+      }
+
+      if (user.authProvider !== "local") {
+        return res.status(400).json({ error: "This account uses social sign-in" });
+      }
+
+      if (user.emailVerified !== false) {
+        return res.status(400).json({
+          error: "Email is already verified",
+          code: "EMAIL_ALREADY_VERIFIED",
+        });
+      }
+
+      const cooldownMs = getEmailVerificationResendCooldownMs();
+      const lastSentAt = getDateOrNull(user.emailVerificationCodeSentAt);
+      const elapsedMs = Date.now() - Number(lastSentAt?.getTime() || 0);
+      if (lastSentAt && elapsedMs < cooldownMs) {
+        const retryAfterSeconds = Math.ceil((cooldownMs - elapsedMs) / 1000);
+        return res.status(429).json({
+          error: "Please wait before requesting another code",
+          code: "VERIFICATION_CODE_RESEND_COOLDOWN",
+          retryAfterSeconds,
+        });
+      }
+
+      await issueVerificationCodeForUser(user);
+
+      return res.json({
+        success: true,
+        message: "Verification code sent",
+        email: user.email,
+      });
+    } catch (err) {
+      console.error("Resend verification code error:", err);
+      return res.status(500).json({
+        error: "Could not send verification code. Please try again.",
+      });
+    }
+  },
+);
 
 // Google OAuth login/register
 router.post(
@@ -529,6 +890,7 @@ router.post(
         avatar: String(payload.picture || ""),
         googleId,
         authProvider: "google",
+        emailVerified: true,
       });
     } else {
       if (user.banned) {
@@ -556,16 +918,19 @@ router.post(
         user.fullName = String(payload.name);
         needsSave = true;
       }
+      if (user.emailVerified !== true) {
+        user.emailVerified = true;
+        user.emailVerificationCodeHash = "";
+        user.emailVerificationCodeExpiresAt = null;
+        user.emailVerificationCodeSentAt = null;
+        needsSave = true;
+      }
       if (needsSave) {
         await user.save();
       }
     }
 
-    const tokenData = {
-      userId: user._id,
-      email: user.email,
-      fullName: user.fullName,
-    };
+    const tokenData = buildTokenData(user);
     const maxAge = resolveAuthMaxAge(Boolean(rememberMe));
 
     res.cookie(
@@ -653,6 +1018,7 @@ router.post(
         avatar: avatarUrl,
         facebookId,
         authProvider: "facebook",
+        emailVerified: true,
       });
     } else {
       if (user.banned) {
@@ -684,16 +1050,19 @@ router.post(
         user.fullName = fullName;
         needsSave = true;
       }
+      if (user.emailVerified !== true) {
+        user.emailVerified = true;
+        user.emailVerificationCodeHash = "";
+        user.emailVerificationCodeExpiresAt = null;
+        user.emailVerificationCodeSentAt = null;
+        needsSave = true;
+      }
       if (needsSave) {
         await user.save();
       }
     }
 
-    const tokenData = {
-      userId: user._id,
-      email: user.email,
-      fullName: user.fullName,
-    };
+    const tokenData = buildTokenData(user);
     const maxAge = resolveAuthMaxAge(Boolean(rememberMe));
 
     res.cookie(
@@ -722,6 +1091,56 @@ router.post("/logout", (req, res) => {
   res.json({ success: true, message: "Logged out successfully" });
 });
 
+router.post(
+  "/change-password",
+  authMiddleware,
+  changePasswordValidation,
+  async (req, res) => {
+    try {
+      const { currentPassword, newPassword } = req.body || {};
+      const user = await User.findById(req.user?.userId);
+
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      if (user.banned) {
+        clearAuthCookie(res);
+        return res.status(403).json({
+          error: "Your account has been banned",
+          banned: true,
+          banReason: user.banReason || "No reason provided",
+        });
+      }
+
+      if (user.authProvider !== "local" || !user.password) {
+        return res.status(400).json({
+          error: "Password changes are only available for email/password accounts",
+        });
+      }
+
+      const isPasswordValid = await bcrypt.compare(
+        currentPassword,
+        user.password,
+      );
+      if (!isPasswordValid) {
+        return res.status(400).json({ error: "Current password is incorrect" });
+      }
+
+      user.password = await bcrypt.hash(newPassword, 10);
+      await user.save();
+
+      return res.json({
+        success: true,
+        message: "Password changed successfully",
+      });
+    } catch (err) {
+      console.error("Change password error:", err);
+      return res.status(500).json({ error: "Server error" });
+    }
+  },
+);
+
 // Get current user/session
 router.get("/me", optionalAuthMiddleware, async (req, res) => {
   try {
@@ -747,6 +1166,169 @@ router.get("/me", optionalAuthMiddleware, async (req, res) => {
   } catch (err) {
     console.error("Get user error:", err);
     res.status(500).json({ error: "Server error" });
+  }
+});
+
+router.get("/users/blocks", authMiddleware, async (req, res) => {
+  try {
+    const blockerId = String(req.user.userId || "");
+    const blocker = await User.findById(blockerId)
+      .select("blockedUsers")
+      .lean();
+    const legacyBlocked = await BlockedUser.find({ blocker: blockerId })
+      .select("blocked")
+      .lean();
+
+    const blockedIds = [
+      ...new Set([
+        ...(Array.isArray(blocker?.blockedUsers)
+          ? blocker.blockedUsers.map((id) => String(id))
+          : []),
+        ...legacyBlocked.map((item) => String(item.blocked || "")),
+      ].filter(Boolean)),
+    ];
+
+    if (!blockedIds.length) {
+      return res.json({ blocks: [] });
+    }
+
+    const [blockedUsers, legacyEdges] = await Promise.all([
+      User.find({ _id: { $in: blockedIds } })
+        .select("_id fullName avatar rating banned")
+        .lean(),
+      BlockedUser.find({
+        blocker: blockerId,
+        blocked: { $in: blockedIds },
+      })
+        .select("blocked createdAt")
+        .lean(),
+    ]);
+
+    const userMap = new Map(
+      blockedUsers
+        .filter((entry) => !entry?.banned)
+        .map((entry) => [String(entry._id), entry]),
+    );
+    const blockedAtMap = new Map(
+      legacyEdges.map((edge) => [String(edge.blocked), edge.createdAt || null]),
+    );
+
+    const blocks = blockedIds
+      .map((blockedId) => {
+        const target = userMap.get(blockedId);
+        if (!target) return null;
+
+        return {
+          id: blockedId,
+          fullName: target.fullName || "Player",
+          avatar: target.avatar || "",
+          rating: Number(target.rating || 1200),
+          blockedAt: blockedAtMap.get(blockedId) || null,
+        };
+      })
+      .filter(Boolean);
+
+    return res.json({ blocks });
+  } catch (err) {
+    console.error("Get blocked users error:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
+
+router.get("/users/:id/block-status", authMiddleware, async (req, res) => {
+  try {
+    const requesterId = String(req.user.userId || "");
+    const targetUserId = String(req.params.id || "");
+
+    if (!isValidObjectId(targetUserId)) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    if (requesterId === targetUserId) {
+      return res.json({
+        isBlocked: false,
+        isBlockedByTarget: false,
+        isAnyBlocked: false,
+      });
+    }
+
+    const target = await User.findById(targetUserId)
+      .select("_id banned")
+      .lean();
+    if (!target || target.banned) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const status = await getBlockStatusBetween(requesterId, targetUserId);
+    return res.json(status);
+  } catch (err) {
+    console.error("Get block status error:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
+
+router.post("/users/:id/block", authMiddleware, async (req, res) => {
+  try {
+    const blockerId = String(req.user.userId || "");
+    const blockedId = String(req.params.id || "");
+
+    if (!isValidObjectId(blockedId)) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    if (blockerId === blockedId) {
+      return res.status(400).json({ error: "You cannot block yourself." });
+    }
+
+    const target = await User.findById(blockedId)
+      .select("_id banned")
+      .lean();
+    if (!target || target.banned) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    await User.updateOne(
+      { _id: blockerId },
+      { $addToSet: { blockedUsers: blockedId } },
+    );
+    await syncLegacyBlockedEdge(blockerId, blockedId, true);
+    await removeFriendshipAndPendingRequests(blockerId, blockedId);
+
+    return res.json({
+      success: true,
+      isBlocked: true,
+      blockedUserId: blockedId,
+    });
+  } catch (err) {
+    console.error("Block user error:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
+
+router.post("/users/:id/unblock", authMiddleware, async (req, res) => {
+  try {
+    const blockerId = String(req.user.userId || "");
+    const blockedId = String(req.params.id || "");
+
+    if (!isValidObjectId(blockedId)) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    if (blockerId === blockedId) {
+      return res.status(400).json({ error: "You cannot unblock yourself." });
+    }
+
+    await User.updateOne(
+      { _id: blockerId },
+      { $pull: { blockedUsers: blockedId } },
+    );
+    await syncLegacyBlockedEdge(blockerId, blockedId, false);
+
+    return res.json({
+      success: true,
+      isBlocked: false,
+      blockedUserId: blockedId,
+    });
+  } catch (err) {
+    console.error("Unblock user error:", err);
+    return res.status(500).json({ error: "Server error" });
   }
 });
 
@@ -902,11 +1484,17 @@ router.get("/users/:userId/profile", optionalAuthMiddleware, async (req, res) =>
     if (!mongoose.Types.ObjectId.isValid(String(userId || ""))) {
       return res.status(404).json({ error: "User not found" });
     }
+    const viewerId = req.user?.userId || null;
 
     const user = await User.findById(userId)
       .select("fullName avatar rating createdAt")
       .lean();
     if (!user || user.banned) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const canAccess = await canViewerAccessUser(viewerId, user._id);
+    if (!canAccess) {
       return res.status(404).json({ error: "User not found" });
     }
 

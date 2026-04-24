@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Calendar,
@@ -6,6 +6,7 @@ import {
   History,
   MoreHorizontal,
   Swords,
+  MessageCircle,
   UserRoundPlus,
   UserCheck,
   Settings,
@@ -58,9 +59,13 @@ interface ProfileHeaderProps {
   onAddFriend?: () => void;
   onRemoveFriend?: () => void;
   onChallenge?: () => void;
+  onMessage?: () => void;
   onAcceptRequest?: () => void;
   onIgnoreRequest?: () => void;
   friendLoading?: boolean;
+  isBlocked?: boolean;
+  onToggleBlock?: () => void;
+  blockActionLoading?: boolean;
 }
 
 export function ProfileHeader({
@@ -74,15 +79,21 @@ export function ProfileHeader({
   onAddFriend,
   onRemoveFriend,
   onChallenge,
+  onMessage,
   onAcceptRequest,
   onIgnoreRequest,
   friendLoading,
+  isBlocked = false,
+  onToggleBlock,
+  blockActionLoading = false,
 }: ProfileHeaderProps) {
   const navigate = useNavigate();
   const realtimePresence = useFriendChallengeStore((state) => state.presenceStatus);
   const realtimeLastSeenAt = useFriendChallengeStore((state) => state.lastSeenAt);
   const realtimeConnected = useFriendChallengeStore((state) => state.isConnected);
   const [clockTick, setClockTick] = useState(0);
+  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
+  const moreMenuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -90,6 +101,17 @@ export function ProfileHeader({
     }, 60 * 1000);
     return () => window.clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    if (!isMoreMenuOpen) return;
+    const handlePointerDown = (event: MouseEvent) => {
+      if (!moreMenuRef.current) return;
+      if (moreMenuRef.current.contains(event.target as Node)) return;
+      setIsMoreMenuOpen(false);
+    };
+    window.addEventListener("mousedown", handlePointerDown);
+    return () => window.removeEventListener("mousedown", handlePointerDown);
+  }, [isMoreMenuOpen]);
 
   const displayName = user?.fullName?.trim() || "Chess Player";
   const totalGames = Math.max(
@@ -138,8 +160,12 @@ export function ProfileHeader({
     () => presenceText(effectiveStatus, effectiveLastSeen),
     [clockTick, effectiveLastSeen, effectiveStatus],
   );
-  const showVisitorActions = !isMe && (!!onChallenge || !!onAddFriend || !!onRemoveFriend);
-  const canChallenge = relationship === "friends";
+  const showVisitorActions =
+    !isMe &&
+    (!!onChallenge || !!onAddFriend || !!onRemoveFriend || !!onMessage || !!onToggleBlock);
+  const canChallenge = relationship === "friends" && !isBlocked;
+  const canMessage = !isBlocked && !!onMessage;
+  const blockActionLabel = isBlocked ? "Unblock" : "Block";
 
   return (
     <div className="relative">
@@ -206,9 +232,26 @@ export function ProfileHeader({
                       <button
                         type="button"
                         onClick={() => {
+                          if (canMessage) onMessage?.();
+                        }}
+                        disabled={!canMessage}
+                        title={isBlocked ? "Messaging is unavailable for blocked users." : undefined}
+                        className={`px-4 py-2.5 rounded-lg text-sm font-semibold inline-flex items-center gap-2 transition-colors ${
+                          canMessage
+                            ? "bg-indigo-600 hover:bg-indigo-700 text-white"
+                            : "cursor-not-allowed bg-slate-200 text-slate-500 dark:bg-slate-800/60 dark:text-slate-400"
+                        }`}
+                      >
+                        <MessageCircle size={16} />
+                        Message
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
                           if (canChallenge) onChallenge?.();
                         }}
                         disabled={!canChallenge}
+                        title={isBlocked ? "You cannot challenge this player." : undefined}
                         className={`px-4 py-2.5 rounded-lg text-sm font-semibold inline-flex items-center gap-2 transition-colors ${
                           canChallenge
                             ? "bg-brand-600 hover:bg-brand-700 text-white shadow-[0_8px_20px_rgba(13,148,136,0.35)]"
@@ -218,60 +261,84 @@ export function ProfileHeader({
                         <Swords size={16} />
                         Challenge
                       </button>
-                  {relationship === "friends" ? (
-                    <button
-                      type="button"
-                      onClick={onRemoveFriend}
-                      disabled={friendLoading}
-                      className="px-4 py-2.5 rounded-lg border border-brand-400/40 bg-brand-50/80 dark:bg-brand-500/10 hover:bg-brand-100 dark:hover:bg-brand-500/20 text-sm font-semibold text-brand-700 dark:text-brand-300 inline-flex items-center gap-2 transition-colors disabled:opacity-50"
-                    >
-                      <UserCheck size={16} />
-                      Friends
-                    </button>
-                  ) : relationship === "incoming_pending" ? (
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => onAcceptRequest?.()}
-                        disabled={friendLoading}
-                        className="px-4 py-2.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-sm font-semibold text-white inline-flex items-center gap-2 transition-colors disabled:opacity-50"
-                      >
-                        <UserCheck size={16} />
-                        Accept
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => onIgnoreRequest?.()}
-                        disabled={friendLoading}
-                        className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors disabled:opacity-50 dark:border-slate-500/40 dark:bg-slate-800/70 dark:text-slate-200"
-                      >
-                        <Hourglass size={16} />
-                        Ignore
-                      </button>
-                    </div>
-                  ) : relationship === "outgoing_pending" ? (
-                    <span className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 dark:border-slate-500/40 dark:bg-slate-800/70 dark:text-slate-200">
-                      <Hourglass size={16} />
-                      Request sent
-                    </span>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={onAddFriend}
-                      disabled={friendLoading}
-                      className="px-4 py-2.5 rounded-lg border border-gray-300/80 dark:border-white/15 bg-white/85 dark:bg-black/25 hover:bg-white dark:hover:bg-black/35 text-sm font-semibold text-gray-900 dark:text-white inline-flex items-center gap-2 transition-colors disabled:opacity-50"
-                    >
-                      <UserRoundPlus size={16} />
-                      Add Friend
-                    </button>
-                  )}
-                      <button
-                        type="button"
-                        className="w-10 h-10 rounded-lg border border-gray-300/80 dark:border-white/15 bg-white/85 dark:bg-black/25 hover:bg-white dark:hover:bg-black/35 text-gray-700 dark:text-gray-200 inline-flex items-center justify-center transition-colors"
-                        aria-label="More profile actions"
-                      >
-                        <MoreHorizontal size={18} />
-                      </button>
+                      {isBlocked ? (
+                        <span className="inline-flex items-center gap-2 rounded-lg border border-red-300/70 bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-700 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-300">
+                          Blocked
+                        </span>
+                      ) : relationship === "friends" ? (
+                        <button
+                          type="button"
+                          onClick={onRemoveFriend}
+                          disabled={friendLoading}
+                          className="px-4 py-2.5 rounded-lg border border-brand-400/40 bg-brand-50/80 dark:bg-brand-500/10 hover:bg-brand-100 dark:hover:bg-brand-500/20 text-sm font-semibold text-brand-700 dark:text-brand-300 inline-flex items-center gap-2 transition-colors disabled:opacity-50"
+                        >
+                          <UserCheck size={16} />
+                          Friends
+                        </button>
+                      ) : relationship === "incoming_pending" ? (
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => onAcceptRequest?.()}
+                            disabled={friendLoading}
+                            className="px-4 py-2.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-sm font-semibold text-white inline-flex items-center gap-2 transition-colors disabled:opacity-50"
+                          >
+                            <UserCheck size={16} />
+                            Accept
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => onIgnoreRequest?.()}
+                            disabled={friendLoading}
+                            className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors disabled:opacity-50 dark:border-slate-500/40 dark:bg-slate-800/70 dark:text-slate-200"
+                          >
+                            <Hourglass size={16} />
+                            Ignore
+                          </button>
+                        </div>
+                      ) : relationship === "outgoing_pending" ? (
+                        <span className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 dark:border-slate-500/40 dark:bg-slate-800/70 dark:text-slate-200">
+                          <Hourglass size={16} />
+                          Request sent
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={onAddFriend}
+                          disabled={friendLoading}
+                          className="px-4 py-2.5 rounded-lg border border-gray-300/80 dark:border-white/15 bg-white/85 dark:bg-black/25 hover:bg-white dark:hover:bg-black/35 text-sm font-semibold text-gray-900 dark:text-white inline-flex items-center gap-2 transition-colors disabled:opacity-50"
+                        >
+                          <UserRoundPlus size={16} />
+                          Add Friend
+                        </button>
+                      )}
+                      <div className="relative" ref={moreMenuRef}>
+                        <button
+                          type="button"
+                          onClick={() => setIsMoreMenuOpen((value) => !value)}
+                          className="w-10 h-10 rounded-lg border border-gray-300/80 dark:border-white/15 bg-white/85 dark:bg-black/25 hover:bg-white dark:hover:bg-black/35 text-gray-700 dark:text-gray-200 inline-flex items-center justify-center transition-colors"
+                          aria-label="More profile actions"
+                        >
+                          <MoreHorizontal size={18} />
+                        </button>
+                        {isMoreMenuOpen && onToggleBlock ? (
+                          <div className="absolute right-0 mt-2 w-52 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-slate-900 shadow-lg p-1 z-50">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                onToggleBlock();
+                                setIsMoreMenuOpen(false);
+                              }}
+                              disabled={blockActionLoading}
+                              className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-gray-100 dark:hover:bg-slate-800 disabled:opacity-60"
+                            >
+                              {blockActionLoading
+                                ? `${blockActionLabel}ing...`
+                                : `${blockActionLabel} ${displayName}`}
+                            </button>
+                          </div>
+                        ) : null}
+                      </div>
                     </>
                   ) : null}
                 </div>

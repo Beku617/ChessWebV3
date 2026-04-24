@@ -9,6 +9,11 @@ interface UsersTableHeaderProps {
   onSort: (field: SortField) => void;
 }
 
+function sortMarker(field: SortField, sortBy: SortField, sortOrder: SortOrder) {
+  if (field !== sortBy) return "";
+  return sortOrder === "desc" ? " v" : " ^";
+}
+
 export function UsersTableHeader({
   searchQuery,
   onSearchChange,
@@ -37,19 +42,19 @@ export function UsersTableHeader({
           onClick={() => onSort("createdAt")}
           className={`px-2 py-1 rounded ${sortBy === "createdAt" ? "bg-brand-500/20 text-brand-600" : "hover:bg-gray-100 dark:hover:bg-gray-800"}`}
         >
-          Date {sortBy === "createdAt" && (sortOrder === "desc" ? "↓" : "↑")}
+          Date{sortMarker("createdAt", sortBy, sortOrder)}
         </button>
         <button
           onClick={() => onSort("rating")}
           className={`px-2 py-1 rounded ${sortBy === "rating" ? "bg-brand-500/20 text-brand-600" : "hover:bg-gray-100 dark:hover:bg-gray-800"}`}
         >
-          Rating {sortBy === "rating" && (sortOrder === "desc" ? "↓" : "↑")}
+          Rating{sortMarker("rating", sortBy, sortOrder)}
         </button>
         <button
           onClick={() => onSort("gamesPlayed")}
           className={`px-2 py-1 rounded ${sortBy === "gamesPlayed" ? "bg-brand-500/20 text-brand-600" : "hover:bg-gray-100 dark:hover:bg-gray-800"}`}
         >
-          Games {sortBy === "gamesPlayed" && (sortOrder === "desc" ? "↓" : "↑")}
+          Games{sortMarker("gamesPlayed", sortBy, sortOrder)}
         </button>
       </div>
     </div>
@@ -90,4 +95,3 @@ export function UsersTableEmpty({
     </div>
   );
 }
-

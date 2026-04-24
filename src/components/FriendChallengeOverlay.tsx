@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Check, X, Users } from "lucide-react";
 import { useFriendChallengeStore } from "../store/friendChallengeStore";
 
 function formatGameTypeLabel(value: string): string {
@@ -8,6 +7,14 @@ function formatGameTypeLabel(value: string): string {
     .trim()
     .toLowerCase();
   if (normalized === "chess960") return "Chess960";
+  if (
+    normalized === "atomic" ||
+    normalized === "atomicchess" ||
+    normalized === "atomic-chess" ||
+    normalized === "atomic_chess"
+  ) {
+    return "Atomic Chess";
+  }
   if (
     normalized === "threecheck" ||
     normalized === "three-check" ||
@@ -67,7 +74,6 @@ export default function FriendChallengeOverlay() {
   return (
     <div className="fixed right-4 bottom-4 z-[80] w-[320px] max-w-[calc(100vw-2rem)] rounded-2xl border border-gray-200 dark:border-white/10 bg-white/95 dark:bg-slate-900/95 shadow-2xl p-3 backdrop-blur">
       <div className="flex items-center gap-2">
-        <Users className="w-4 h-4 text-brand-500" />
         <h3 className="text-sm font-bold text-gray-900 dark:text-white">
           Friend Challenge
         </h3>
@@ -107,7 +113,6 @@ export default function FriendChallengeOverlay() {
           }}
           className="py-2 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-200 font-semibold hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors flex items-center justify-center gap-1"
         >
-          <X className="w-4 h-4" />
           Decline
         </button>
         <button
@@ -127,7 +132,6 @@ export default function FriendChallengeOverlay() {
           }}
           className="py-2 rounded-xl bg-brand-500 text-white font-semibold hover:bg-brand-600 transition-colors flex items-center justify-center gap-1"
         >
-          <Check className="w-4 h-4" />
           Accept
         </button>
       </div>

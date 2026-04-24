@@ -1,81 +1,136 @@
-import mongoose from 'mongoose';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import mongoose from "mongoose";
+import path from "path";
+import dotenv from "dotenv";
+import { fileURLToPath } from "url";
+import { buildPuzzle3Dataset } from "./src/data/Puzzle3/buildPuzzleDataset.js";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-const MONGODB_URL = process.env.MONGODB_URL || 'mongodb://localhost:27017/neongambit';
+dotenv.config({ path: path.join(__dirname, ".env") });
 
-// Define Puzzle schema
-const puzzleSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  fen: { type: String, required: true },
-  solution: { type: String, required: true },
-  difficulty: { type: String, default: 'Medium' },
-  rating: { type: Number, default: 1200 },
-  description: { type: String },
-  themes: [String],
-  motifs: [String],
-  quality: {
-    attempts: { type: Number, default: 0 },
-    avgRating: { type: Number, default: 0 }
+const MONGODB_URL =
+  process.env.MONGODB_URL || "mongodb://localhost:27017/neongambit";
+
+const puzzleSchema = new mongoose.Schema(
+  {
+    title: { type: String, required: true },
+    difficulty: {
+      type: String,
+      enum: ["Easy", "Medium", "Hard"],
+      required: true,
+    },
+    category: { type: String, default: "mate" },
+    description: { type: String, default: "" },
+    fen: { type: String, required: true },
+    solution: { type: [String], required: true },
+    rating: { type: Number, default: 1200 },
+    isActive: { type: Boolean, default: true },
+    isWhiteToMove: { type: Boolean, required: true },
+    mateIn: { type: Number, default: 2 },
+    timesPlayed: { type: Number, default: 0 },
+    timesSolved: { type: Number, default: 0 },
+    featured: { type: Boolean, default: false },
   },
-  createdAt: { type: Date, default: Date.now }
-});
+  { timestamps: true },
+);
 
-const Puzzle = mongoose.model('Puzzle', puzzleSchema, 'puzzles');
+const Puzzle =
+  mongoose.models.PuzzleImportRoot ||
+  mongoose.model("PuzzleImportRoot", puzzleSchema, "puzzles");
+
+function normalizeFenKey(fen) {
+  const parts = String(fen || "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+
+  if (parts.length < 2) {
+    return String(fen || "").trim().toLowerCase();
+  }
+
+  return `${parts[0]} ${parts[1]}`.toLowerCase();
+}
 
 async function importPuzzles() {
-  try {
-    console.log(`📡 Connecting to MongoDB: ${MONGODB_URL}`);
-    await mongoose.connect(MONGODB_URL);
-    console.log('✅ Connected to MongoDB\n');
+  const limit = Number.parseInt(process.argv[2], 10);
 
-    // Read the parsed puzzles
-    const puzzlesData = JSON.parse(
-      fs.readFileSync(path.join(__dirname, 'puzzles-import-test-50.json'), 'utf8')
+  try {
+    console.log(`Connecting to MongoDB: ${MONGODB_URL}`);
+    await mongoose.connect(MONGODB_URL);
+
+    const allPuzzles = buildPuzzle3Dataset();
+    const puzzlesData =
+      Number.isFinite(limit) && limit > 0 ? allPuzzles.slice(0, limit) : allPuzzles;
+
+    const existingPuzzleDocs = await Puzzle.find(
+      {},
+      {
+        fen: 1,
+        isActive: 1,
+        featured: 1,
+        timesPlayed: 1,
+        timesSolved: 1,
+      },
+    ).lean();
+    const existingByFenKey = new Map(
+      existingPuzzleDocs.map((puzzle) => [normalizeFenKey(puzzle.fen), puzzle]),
     );
 
-    console.log(`📤 Importing ${puzzlesData.length} puzzles to MongoDB\n`);
+    console.log(`Importing ${puzzlesData.length} normalized puzzles`);
 
     let imported = 0;
+    let updated = 0;
     let failed = 0;
 
     for (const puzzle of puzzlesData) {
+      const fenKey = normalizeFenKey(puzzle.fen);
+      const existing = existingByFenKey.get(fenKey);
+
       try {
-        // Check if puzzle already exists
-        const existing = await Puzzle.findOne({ fen: puzzle.fen });
-        if (existing) {
-          console.log(`⏭️  [Skipped] ${puzzle.title} (already exists)`);
+        if (existing?._id) {
+          await Puzzle.findByIdAndUpdate(existing._id, {
+            ...puzzle,
+            isActive: existing.isActive !== false,
+            featured: existing.featured === true,
+            timesPlayed: Number(existing.timesPlayed || 0),
+            timesSolved: Number(existing.timesSolved || 0),
+          });
+          updated += 1;
+          console.log(`[Updated ${updated}/${puzzlesData.length}] ${puzzle.title}`);
           continue;
         }
 
-        // Create new puzzle
         const newPuzzle = new Puzzle(puzzle);
         await newPuzzle.save();
-        imported++;
-        console.log(`✅ [${imported}/${puzzlesData.length}] ${puzzle.title}`);
+        existingByFenKey.set(fenKey, {
+          _id: newPuzzle._id,
+          fen: newPuzzle.fen,
+          isActive: newPuzzle.isActive,
+          featured: newPuzzle.featured,
+          timesPlayed: newPuzzle.timesPlayed,
+          timesSolved: newPuzzle.timesSolved,
+        });
+        imported += 1;
+        console.log(`[Imported ${imported}/${puzzlesData.length}] ${puzzle.title}`);
       } catch (error) {
-        failed++;
-        console.log(`❌ [${failed}] ${puzzle.title} - ${error.message}`);
+        failed += 1;
+        console.log(`[Failed ${failed}] ${puzzle.title} - ${error.message}`);
       }
     }
 
-    console.log(`\n📊 Import Summary:`);
-    console.log(`   ✅ Successfully imported: ${imported}/${puzzlesData.length}`);
-    console.log(`   ⏭️  Skipped (duplicates): ${puzzlesData.length - imported - failed}`);
-    console.log(`   ❌ Failed: ${failed}/${puzzlesData.length}`);
-    console.log(`   📈 Success rate: ${((imported / puzzlesData.length) * 100).toFixed(1)}%\n`);
-
-    // Get total count
     const totalPuzzles = await Puzzle.countDocuments();
-    console.log(`📚 Total puzzles in database: ${totalPuzzles}`);
+
+    console.log("");
+    console.log("Import Summary");
+    console.log(`Imported: ${imported}`);
+    console.log(`Updated existing: ${updated}`);
+    console.log(`Failed: ${failed}`);
+    console.log(`Total puzzles in database: ${totalPuzzles}`);
 
     await mongoose.disconnect();
-    console.log('✅ Disconnected from MongoDB');
   } catch (error) {
-    console.error('❌ Import failed:', error.message);
+    console.error("Import failed:", error.message);
     process.exit(1);
   }
 }

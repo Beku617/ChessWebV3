@@ -1,10 +1,10 @@
+import type { LucideIcon } from "lucide-react";
 import {
-  LucideIcon,
-  Gamepad2,
   Bot,
-  Users,
+  Gamepad2,
   Shuffle,
   Target,
+  Users,
 } from "lucide-react";
 
 export interface QuickAction {
@@ -18,11 +18,11 @@ export interface QuickAction {
 }
 
 export const iconMap: Record<string, LucideIcon> = {
-  Gamepad2,
   Bot,
-  Users,
+  Gamepad2,
   Shuffle,
   Target,
+  Users,
 };
 
 export const QUICK_ACTIONS: QuickAction[] = [

@@ -4,7 +4,6 @@ import {
   Hourglass,
   MessageCircle,
   Search,
-  Sparkles,
   Swords,
   UserPlus,
   UserX,
@@ -19,6 +18,7 @@ import {
   type FriendListItem,
   type FriendRelationship,
 } from "../../store/friendStore";
+import { fetchBlockStatus } from "../../features/blocking/api";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
@@ -120,22 +120,17 @@ function StatusBadge({ status }: { status: FriendRequestItem["status"] }) {
 }
 
 const shellClass =
-  "rounded-2xl border border-transparent bg-gradient-to-br from-[#0c1424] via-[#0b1220] to-[#0d1629] shadow-[0_24px_60px_rgba(0,0,0,0.4)]";
+  "theme-glass-panel-strong rounded-2xl";
 
 function EmptyState({
-  icon: Icon = Hourglass,
   title,
   description,
 }: {
-  icon?: LucideIcon;
   title: string;
   description?: string;
 }) {
   return (
     <div className="flex flex-col items-center justify-center gap-3 rounded-2xl bg-gradient-to-b from-[#0c1524]/88 to-[#0b1220]/72 px-4 py-8 text-center shadow-[0_16px_40px_rgba(0,0,0,0.24)] ring-1 ring-[#0d1523]/18">
-      <div className="w-10 h-10 rounded-full bg-[#111b2d] ring-1 ring-[#16243a]/28 flex items-center justify-center text-brand-200/85">
-        <Icon className="w-4 h-4" />
-      </div>
       <div className="text-sm font-semibold text-slate-100">{title}</div>
       {description && (
         <p className="text-xs text-slate-400 max-w-xs leading-relaxed">
@@ -295,6 +290,11 @@ export default function Friends() {
   const handleSendRequest = async (targetId: string) => {
     try {
       setActionId(targetId);
+      const status = await fetchBlockStatus(targetId);
+      if (status.isBlocked) {
+        setSearchError("You cannot send a friend request to this player.");
+        return;
+      }
       await sendRequest(targetId);
       setSearchError(null);
     } catch (error) {
@@ -315,6 +315,45 @@ export default function Friends() {
       const msg =
         error instanceof Error ? error.message : "Failed to accept request";
       setSearchError(msg);
+    } finally {
+      setActionId(null);
+    }
+  };
+
+  const handleMessageFriend = async (friend: FriendListItem) => {
+    try {
+      setActionId(friend.id);
+      const status = await fetchBlockStatus(friend.id);
+      if (status.isBlocked) {
+        setSearchError("Unable to send message.");
+        return;
+      }
+      navigate(
+        `/messages?chat=${encodeURIComponent(friend.id)}&name=${encodeURIComponent(friend.name)}`,
+      );
+    } catch {
+      setSearchError("Unable to send message.");
+    } finally {
+      setActionId(null);
+    }
+  };
+
+  const handleChallengeFriend = async (friend: FriendListItem) => {
+    try {
+      setActionId(friend.id);
+      const status = await fetchBlockStatus(friend.id);
+      if (status.isBlocked) {
+        setSearchError("You cannot challenge this player.");
+        return;
+      }
+      navigate("/play/friend", {
+        state: {
+          preselectedFriendId: friend.id,
+          preselectedFriendName: friend.name,
+        },
+      });
+    } catch {
+      setSearchError("You cannot challenge this player.");
     } finally {
       setActionId(null);
     }
@@ -499,19 +538,19 @@ export default function Friends() {
         </div>
         <div className="flex items-center gap-2">
           <button
+            disabled={disabled}
             className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-500/15 text-brand-200 border border-brand-500/30 hover:bg-brand-500/25"
-            onClick={() =>
-              navigate(
-                `/messages?chat=${encodeURIComponent(friend.id)}&name=${encodeURIComponent(friend.name)}`,
-              )
-            }
+            onClick={() => void handleMessageFriend(friend)}
+            title="Send a direct message"
           >
             <MessageCircle className="w-4 h-4 inline-block mr-1" />
             Message
           </button>
           <button
+            disabled={disabled}
             className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-500/15 text-cyan-200 border border-cyan-500/30 hover:bg-cyan-500/25"
-            onClick={() => navigate("/play/friend")}
+            onClick={() => void handleChallengeFriend(friend)}
+            title="Challenge this friend"
           >
             <Swords className="w-4 h-4 inline-block mr-1" />
             Challenge
@@ -586,7 +625,7 @@ export default function Friends() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#060b16] text-slate-100 flex">
+    <div className="min-h-screen bg-transparent text-slate-100 flex">
       <Sidebar />
       <main className="flex-1 ml-[60px] md:ml-72 px-5 md:px-8 lg:px-10 py-7 space-y-6">
         <header className="space-y-3">
@@ -641,13 +680,11 @@ export default function Friends() {
                 </div>
                 {loading ? (
                   <EmptyState
-                    icon={Hourglass}
                     title="Loading friends..."
                     description="Fetching your circle."
                   />
                 ) : filteredFriends.length === 0 ? (
                   <EmptyState
-                    icon={Users}
                     title="Your friends list is empty"
                     description="Add players to start challenging and chatting."
                   />
@@ -667,12 +704,10 @@ export default function Friends() {
                 </div>
                 {loading ? (
                   <EmptyState
-                    icon={Hourglass}
                     title="Loading incoming requests..."
                   />
                 ) : pendingIncoming.length === 0 ? (
                   <EmptyState
-                    icon={Sparkles}
                     title="No incoming requests"
                     description="You'll see friend invites here as they arrive."
                   />
@@ -696,12 +731,10 @@ export default function Friends() {
                 </div>
                 {loading ? (
                   <EmptyState
-                    icon={Hourglass}
                     title="Loading outgoing requests..."
                   />
                 ) : pendingOutgoing.length === 0 ? (
                   <EmptyState
-                    icon={Sparkles}
                     title="No outgoing requests"
                     description="Send an invite to start a new connection."
                   />
@@ -764,13 +797,11 @@ export default function Friends() {
             <div className="rounded-xl border border-transparent bg-[#0c1627]/60 p-3 space-y-2 max-h-[480px] overflow-y-auto premium-scrollbar shadow-[0_10px_26px_rgba(0,0,0,0.2)]">
               {searching ? (
                 <EmptyState
-                  icon={Hourglass}
                   title="Searching..."
                   description="Looking for players across NeonGambit."
                 />
               ) : searchResults.length === 0 ? (
                 <EmptyState
-                  icon={Sparkles}
                   title="Find players"
                   description="Search to add new friends. Your results will appear here."
                 />

@@ -1,6 +1,9 @@
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { MoveQualityInfo } from "../../../utils/moveQuality";
-import { getQualityColor } from "../../../utils/moveExplanations";
+import {
+  getQualityColor,
+  getQualityLabel,
+} from "../../../utils/moveExplanations";
 import { EvalTrend } from "./types";
 
 interface ExplanationHeaderProps {
@@ -26,7 +29,7 @@ export function ExplanationHeader({
           <span
             className={`text-sm font-semibold ${getQualityColor(qualityInfo.label)}`}
           >
-            {qualityInfo.label}
+            {getQualityLabel(qualityInfo.label)}
           </span>
         )}
       </div>

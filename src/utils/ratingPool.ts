@@ -4,7 +4,8 @@ export type MatchVariant =
   | "standard"
   | "chess960"
   | "threeCheck"
-  | "kingOfHill";
+  | "kingOfHill"
+  | "atomic";
 export type RatingPool =
   | "bullet"
   | "blitz"

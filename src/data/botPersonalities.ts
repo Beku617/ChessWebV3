@@ -3,7 +3,7 @@ import { PlayStyle } from "../chess/StockfishEngine";
 export interface BotPersonality {
   id: string;
   name: string;
-  avatar: string; // emoji or image path
+  avatar: string; // initials or image path
   avatarUrl?: string; // actual image URL
   rating: number;
   title?: string; // GM, IM, etc.
@@ -24,7 +24,7 @@ export const botPersonalities: BotPersonality[] = [
   {
     id: "nelson",
     name: "Nelson",
-    avatar: "🧒",
+    avatar: "",
     rating: 250,
     description:
       "Just learning the rules! Makes lots of mistakes and hangs pieces frequently.",
@@ -41,7 +41,7 @@ export const botPersonalities: BotPersonality[] = [
   {
     id: "martin",
     name: "Martin",
-    avatar: "👴",
+    avatar: "",
     rating: 350,
     description:
       "A friendly grandpa who plays chess casually. Very forgiving opponent.",
@@ -58,7 +58,7 @@ export const botPersonalities: BotPersonality[] = [
   {
     id: "wendy",
     name: "Wendy",
-    avatar: "👧",
+    avatar: "",
     rating: 450,
     description: "A young player learning the basics. Sometimes sees tactics!",
     personality: "I'm getting better every day!",
@@ -74,7 +74,7 @@ export const botPersonalities: BotPersonality[] = [
   {
     id: "tommy",
     name: "Tommy",
-    avatar: "🧑",
+    avatar: "",
     rating: 550,
     description: "Likes to attack but often leaves pieces undefended.",
     personality: "Attack! Attack! Attack!",
@@ -92,7 +92,7 @@ export const botPersonalities: BotPersonality[] = [
   {
     id: "elena",
     name: "Elena",
-    avatar: "👩",
+    avatar: "",
     rating: 650,
     description: "A club player who enjoys positional chess.",
     personality: "Slow and steady wins the race.",
@@ -108,7 +108,7 @@ export const botPersonalities: BotPersonality[] = [
   {
     id: "pablo",
     name: "Pablo",
-    avatar: "🧔",
+    avatar: "",
     rating: 750,
     description: "Loves gambits and sacrifices. Sometimes they work!",
     personality: "Fortune favors the bold!",
@@ -124,7 +124,7 @@ export const botPersonalities: BotPersonality[] = [
   {
     id: "grace",
     name: "Grace",
-    avatar: "👩‍🦰",
+    avatar: "",
     rating: 850,
     description: "A patient player who waits for your mistakes.",
     personality: "I'll wait for my chance.",
@@ -140,7 +140,7 @@ export const botPersonalities: BotPersonality[] = [
   {
     id: "sven",
     name: "Sven",
-    avatar: "🧑‍🦱",
+    avatar: "",
     rating: 950,
     description: "Solid player with good tactical awareness.",
     personality: "Let's see what you've got!",
@@ -158,7 +158,7 @@ export const botPersonalities: BotPersonality[] = [
   {
     id: "lin",
     name: "Lin",
-    avatar: "👨‍💼",
+    avatar: "",
     rating: 1050,
     description: "Studies openings and knows basic endgames.",
     personality: "Theory is important!",
@@ -174,7 +174,7 @@ export const botPersonalities: BotPersonality[] = [
   {
     id: "fatima",
     name: "Fatima",
-    avatar: "🧕",
+    avatar: "",
     rating: 1150,
     description: "Strong positional understanding. Controls the center well.",
     personality: "The center is key!",
@@ -190,7 +190,7 @@ export const botPersonalities: BotPersonality[] = [
   {
     id: "boris",
     name: "Boris",
-    avatar: "🧔‍♂️",
+    avatar: "",
     rating: 1250,
     description: "Aggressive Russian style. Will sacrifice for the attack!",
     personality: "Tal is my hero!",
@@ -206,7 +206,7 @@ export const botPersonalities: BotPersonality[] = [
   {
     id: "maria",
     name: "Maria",
-    avatar: "👩‍🎓",
+    avatar: "",
     rating: 1350,
     description: "Chess teacher. Plays instructive, educational chess.",
     personality: "Every move teaches something.",
@@ -224,7 +224,7 @@ export const botPersonalities: BotPersonality[] = [
   {
     id: "chen",
     name: "Chen",
-    avatar: "🧑‍💻",
+    avatar: "",
     rating: 1450,
     description: "Computer scientist who calculates deep variations.",
     personality: "I see 10 moves ahead!",
@@ -240,7 +240,7 @@ export const botPersonalities: BotPersonality[] = [
   {
     id: "anna",
     name: "Anna",
-    avatar: "👸",
+    avatar: "",
     rating: 1550,
     title: "WCM",
     description: "Woman Candidate Master. Excellent endgame technique.",
@@ -257,7 +257,7 @@ export const botPersonalities: BotPersonality[] = [
   {
     id: "viktor",
     name: "Viktor",
-    avatar: "🎭",
+    avatar: "",
     rating: 1650,
     title: "CM",
     description: "Candidate Master. Plays principled, classical chess.",
@@ -274,7 +274,7 @@ export const botPersonalities: BotPersonality[] = [
   {
     id: "yuki",
     name: "Yuki",
-    avatar: "🥷",
+    avatar: "",
     rating: 1750,
     title: "FM",
     description: "FIDE Master. Unpredictable and creative.",
@@ -293,7 +293,7 @@ export const botPersonalities: BotPersonality[] = [
   {
     id: "igor",
     name: "Igor",
-    avatar: "🎩",
+    avatar: "",
     rating: 1900,
     title: "FM",
     description: "FIDE Master with aggressive attacking style.",
@@ -310,7 +310,7 @@ export const botPersonalities: BotPersonality[] = [
   {
     id: "sophia",
     name: "Sophia",
-    avatar: "👩‍⚖️",
+    avatar: "",
     rating: 2000,
     title: "IM",
     description: "International Master. Rock solid defense.",
@@ -327,7 +327,7 @@ export const botPersonalities: BotPersonality[] = [
   {
     id: "magnus",
     name: "Maximus",
-    avatar: "🦁",
+    avatar: "",
     rating: 2200,
     title: "IM",
     description: "International Master. Plays like a machine.",
@@ -344,7 +344,7 @@ export const botPersonalities: BotPersonality[] = [
   {
     id: "kasparov",
     name: "Alexandr",
-    avatar: "👑",
+    avatar: "",
     rating: 2500,
     title: "GM",
     description: "Grandmaster level. Nearly impossible to beat!",

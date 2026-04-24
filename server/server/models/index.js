@@ -1,5 +1,6 @@
 export { default as User } from "./User.js";
 export { default as Admin } from "./Admin.js";
+export { default as ActiveGameSession } from "./ActiveGameSession.js";
 export { default as History } from "./History.js";
 export { default as History960 } from "./History960.js";
 export { default as GamePageConfig } from "./GamePageConfig.js";

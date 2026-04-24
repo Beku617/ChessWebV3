@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { MoveQualityInfo } from "../../../utils/moveQuality";
 import { AnalysisEntry } from "../../../hooks/useGameReplayTypes";
 import { useSettingsStore } from "../../../store/settingsStore";
@@ -6,8 +7,8 @@ import {
   getAiBatchExplanations,
   isGroqConfigured,
 } from "../../../utils/groqApi";
-import { preparedTexts, AI_EXPLAINABLE_TYPES } from "./constants";
-import { uciToSan, pickRandom } from "./utils";
+import { AI_EXPLAINABLE_TYPES } from "./constants";
+import { uciToSan } from "./utils";
 
 interface UseAiExplanationsParams {
   moveQualities: MoveQualityInfo[];
@@ -22,6 +23,7 @@ export function useAiExplanations({
   positions,
   sanMoves,
 }: UseAiExplanationsParams) {
+  const { t } = useTranslation();
   const { enableAiExplanations } = useSettingsStore();
   const [explanationsByPly, setExplanationsByPly] = useState<
     Map<number, string>
@@ -38,17 +40,6 @@ export function useAiExplanations({
     });
     return map;
   }, [sanMoves]);
-
-  // Build prepared texts immediately so we always have something short
-  useEffect(() => {
-    const preset = new Map<number, string>();
-    moveQualities.forEach((mq) => {
-      const pool = preparedTexts[mq.label] || preparedTexts.Inaccuracy;
-      const pick = pickRandom(pool);
-      preset.set(mq.ply, pick);
-    });
-    setExplanationsByPly(preset);
-  }, [moveQualities]);
 
   // Fetch AI batch once per analysis session (game)
   useEffect(() => {
@@ -96,7 +87,13 @@ export function useAiExplanations({
         });
       })
       .catch((err) => {
-        setAiError(err.message || "Failed to get AI explanations");
+        setAiError(
+          err.message ||
+            t(
+              "analysis.aiLoadFailed",
+              "Failed to get AI explanations",
+            ),
+        );
       })
       .finally(() => {
         setAiLoading(false);
@@ -108,6 +105,7 @@ export function useAiExplanations({
     positions,
     sanByPly,
     hasRequestedBatch,
+    t,
   ]);
 
   return {

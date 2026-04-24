@@ -78,7 +78,7 @@ export async function seedGamePageConfig() {
   if (count > 0) return;
 
   await GamePageConfig.create(defaultConfig);
-  console.log("✅ Game page config seeded successfully");
+  console.log(" Game page config seeded successfully");
 }
 
 export { defaultConfig };

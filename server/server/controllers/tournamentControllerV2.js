@@ -41,7 +41,7 @@ import { maybeAdvanceTournament } from "../services/tournamentRuntime.js";
 
 const router = Router();
 
-const TOURNAMENT_TYPES = new Set(["swiss", "roundRobin", "knockout"]);
+const TOURNAMENT_TYPES = new Set(["swiss"]);
 const RESULT_INPUT_MAP = new Map([
   ["1-0", "1-0"],
   ["0-1", "0-1"],
@@ -109,9 +109,7 @@ function parseOptionalRatingValue(value) {
 
 function normalizeTournamentType(input) {
   const raw = String(input || "swiss").trim();
-  if (raw === "round-robin") return "roundRobin";
-  if (raw === "roundrobin") return "roundRobin";
-  return raw;
+  return raw || "swiss";
 }
 
 function normalizeResultValue(input) {
@@ -134,7 +132,7 @@ function normalizeStatusFilter(status) {
   }
   if (normalized === "draft") return TOURNAMENT_STATES.DRAFT;
   if (normalized === "finished") return TOURNAMENT_STATES.FINISHED;
-  if (normalized === "pairing_preview") return TOURNAMENT_STATES.PAIRING_PREVIEW;
+  if (normalized === "pairing_preview") return TOURNAMENT_STATES.LIVE_ROUND;
   if (normalized === "round_closed") return TOURNAMENT_STATES.ROUND_CLOSED;
   return null;
 }
@@ -151,8 +149,6 @@ function normalizeSortMode(value) {
 }
 
 function formatTypeLabel(type) {
-  if (type === "roundRobin") return "Round-Robin";
-  if (type === "knockout") return "Knockout";
   return "Swiss";
 }
 
@@ -746,7 +742,7 @@ async function ensureOrganizerAccess(req, res, tournamentId) {
     res.status(400).json({ error: "Invalid tournament id" });
     return null;
   }
-  const tournament = await Tournament.findById(tournamentId);
+  const tournament = await Tournament.findOne({ _id: tournamentId, type: "swiss" });
   if (!tournament) {
     res.status(404).json({ error: "Tournament not found" });
     return null;
@@ -945,10 +941,10 @@ async function generatePairingsPreview({
   const allowed = new Set([
     TOURNAMENT_STATES.REGISTRATION_OPEN,
     TOURNAMENT_STATES.ROUND_CLOSED,
-    TOURNAMENT_STATES.PAIRING_PREVIEW,
+    TOURNAMENT_STATES.LIVE_ROUND,
   ]);
   if (!allowed.has(state)) {
-    throw new Error("Pairings preview can only be generated from registration or closed round states.");
+    throw new Error("Pairings can only be generated from registration, closed round, or live states.");
   }
 
   let playerQuery = TournamentPlayer.find({
@@ -1065,13 +1061,10 @@ async function generatePairingsPreview({
   });
   const inserted = await insertQuery;
 
-  const previousState = normalizeTournamentState(tournament.status);
-  const nextState = TOURNAMENT_STATES.PAIRING_PREVIEW;
   let updateQuery = Tournament.updateOne(
     { _id: tournament._id },
     {
       $set: {
-        status: nextState,
         currentRound: targetRound,
         roundsPlanned,
       },
@@ -1081,23 +1074,19 @@ async function generatePairingsPreview({
   );
   await updateQuery;
 
-  await logStateTransition({
-    session,
-    tournamentId: tournament._id,
-    fromState: previousState,
-    toState: nextState,
-    action: "generate_pairings_preview",
-    actorUserId,
-    meta: { roundNumber: targetRound, forceRegenerate: !!forceRegenerate },
-  });
-
   return inserted.map((doc) => (doc.toObject ? doc.toObject() : doc));
 }
 
 async function publishPairings({ tournament, actorUserId, session }) {
   const state = normalizeTournamentState(tournament.status);
-  if (![TOURNAMENT_STATES.PAIRING_PREVIEW, TOURNAMENT_STATES.LIVE_ROUND].includes(state)) {
-    throw new Error("Pairings can only be published from PAIRING_PREVIEW state.");
+  if (
+    ![
+      TOURNAMENT_STATES.REGISTRATION_OPEN,
+      TOURNAMENT_STATES.ROUND_CLOSED,
+      TOURNAMENT_STATES.LIVE_ROUND,
+    ].includes(state)
+  ) {
+    throw new Error("Pairings can only be published from registration, closed round, or live states.");
   }
 
   let roundNumber = Number(tournament.currentRound || 0);
@@ -1232,6 +1221,26 @@ async function publishPairings({ tournament, actorUserId, session }) {
   return { published, alreadyPublished: false };
 }
 
+async function generateAndPublishPairings({
+  tournament,
+  actorUserId,
+  forceRegenerate = false,
+  session,
+}) {
+  await generatePairingsPreview({
+    tournament,
+    actorUserId,
+    forceRegenerate,
+    session,
+  });
+  const refreshed = await Tournament.findById(tournament._id).session(session);
+  return publishPairings({
+    tournament: refreshed,
+    actorUserId,
+    session,
+  });
+}
+
 async function completeTournament({
   tournament,
   actorUserId,
@@ -1349,7 +1358,7 @@ router.get("/", optionalAuthMiddleware, async (req, res) => {
     const limit = Math.max(1, Math.min(100, parsePositiveInt(req.query.limit, 50) || 50));
     const page = Math.max(1, parsePositiveInt(req.query.page, 1) || 1);
 
-    const query = {};
+    const query = { type: "swiss" };
     if (TOURNAMENT_TYPES.has(requestedType)) {
       query.type = requestedType;
     }
@@ -1439,15 +1448,18 @@ router.get("/", optionalAuthMiddleware, async (req, res) => {
     });
 
     const total = withSummary.length;
-    const offset = (page - 1) * limit;
+    const pages = Math.max(1, Math.ceil(total / limit));
+    const safePage = Math.min(page, pages);
+    const offset = (safePage - 1) * limit;
     const paged = withSummary.slice(offset, offset + limit);
 
     res.json({
       tournaments: paged,
       pagination: {
-        page,
+        page: safePage,
         limit,
         total,
+        pages,
         hasMore: offset + paged.length < total,
       },
     });
@@ -1509,10 +1521,7 @@ router.post("/templates", authMiddleware, async (req, res) => {
 router.post("/", authMiddleware, async (req, res) => {
   try {
     const parsed = await parseTemplatePayload(req.body || {});
-    const roundsPlanned =
-      parsed.type === "swiss"
-        ? parsePositiveInt(parsed.roundsPlanned, null) || 1
-        : computeRoundsPlanned(parsed.type, parsed.minPlayers, parsed.roundsPlanned);
+    const roundsPlanned = parsePositiveInt(parsed.roundsPlanned, null) || 1;
 
     const tournament = await Tournament.create({
       name: parsed.name,
@@ -1581,7 +1590,10 @@ router.get("/by-game/:gameId/context", authMiddleware, async (req, res) => {
       return res.status(404).json({ error: "Tournament game not found" });
     }
 
-    const tournament = await Tournament.findById(game.tournamentId);
+    const tournament = await Tournament.findOne({
+      _id: game.tournamentId,
+      type: "swiss",
+    });
     if (!tournament) {
       return res.status(404).json({ error: "Tournament not found" });
     }
@@ -1643,7 +1655,7 @@ router.get("/:id", optionalAuthMiddleware, async (req, res) => {
     if (!isValidObjectId(id)) {
       return res.status(400).json({ error: "Invalid tournament id" });
     }
-    const tournament = await Tournament.findById(id);
+    const tournament = await Tournament.findOne({ _id: id, type: "swiss" });
     if (!tournament) {
       return res.status(404).json({ error: "Tournament not found" });
     }
@@ -1661,7 +1673,7 @@ router.get("/:id/players", optionalAuthMiddleware, async (req, res) => {
     if (!isValidObjectId(id)) {
       return res.status(400).json({ error: "Invalid tournament id" });
     }
-    const tournament = await Tournament.findById(id).lean();
+    const tournament = await Tournament.findOne({ _id: id, type: "swiss" }).lean();
     if (!tournament) {
       return res.status(404).json({ error: "Tournament not found" });
     }
@@ -1717,7 +1729,7 @@ router.get("/:id/pairings", optionalAuthMiddleware, async (req, res) => {
     if (!isValidObjectId(id)) {
       return res.status(400).json({ error: "Invalid tournament id" });
     }
-    const tournament = await Tournament.findById(id).lean();
+    const tournament = await Tournament.findOne({ _id: id, type: "swiss" }).lean();
     if (!tournament) {
       return res.status(404).json({ error: "Tournament not found" });
     }
@@ -1764,7 +1776,7 @@ router.get("/:id/standings", optionalAuthMiddleware, async (req, res) => {
     if (!isValidObjectId(id)) {
       return res.status(400).json({ error: "Invalid tournament id" });
     }
-    const tournament = await Tournament.findById(id).lean();
+    const tournament = await Tournament.findOne({ _id: id, type: "swiss" }).lean();
     if (!tournament) {
       return res.status(404).json({ error: "Tournament not found" });
     }
@@ -1796,7 +1808,7 @@ router.get("/:id/export/players.csv", authMiddleware, async (req, res) => {
     if (!isValidObjectId(id)) {
       return res.status(400).json({ error: "Invalid tournament id" });
     }
-    const tournament = await Tournament.findById(id);
+    const tournament = await Tournament.findOne({ _id: id, type: "swiss" });
     if (!tournament) {
       return res.status(404).json({ error: "Tournament not found" });
     }
@@ -1830,7 +1842,7 @@ router.get("/:id/export/standings.csv", authMiddleware, async (req, res) => {
     if (!isValidObjectId(id)) {
       return res.status(400).json({ error: "Invalid tournament id" });
     }
-    const tournament = await Tournament.findById(id);
+    const tournament = await Tournament.findOne({ _id: id, type: "swiss" });
     if (!tournament) {
       return res.status(404).json({ error: "Tournament not found" });
     }
@@ -1880,7 +1892,7 @@ router.get("/:id/export/games.pgn", authMiddleware, async (req, res) => {
     if (!isValidObjectId(id)) {
       return res.status(400).json({ error: "Invalid tournament id" });
     }
-    const tournament = await Tournament.findById(id).lean();
+    const tournament = await Tournament.findOne({ _id: id, type: "swiss" }).lean();
     if (!tournament) {
       return res.status(404).json({ error: "Tournament not found" });
     }
@@ -1937,7 +1949,7 @@ router.post("/:id/register", authMiddleware, async (req, res) => {
     if (!isValidObjectId(id)) {
       return res.status(400).json({ error: "Invalid tournament id" });
     }
-    const tournament = await Tournament.findById(id);
+    const tournament = await Tournament.findOne({ _id: id, type: "swiss" });
     if (!tournament) {
       return res.status(404).json({ error: "Tournament not found" });
     }
@@ -2028,7 +2040,7 @@ async function unregisterHandler(req, res) {
     if (!isValidObjectId(id)) {
       return res.status(400).json({ error: "Invalid tournament id" });
     }
-    const tournament = await Tournament.findById(id);
+    const tournament = await Tournament.findOne({ _id: id, type: "swiss" });
     if (!tournament) {
       return res.status(404).json({ error: "Tournament not found" });
     }
@@ -2089,19 +2101,38 @@ router.patch("/:id/state", authMiddleware, async (req, res) => {
     }
 
     if (action === "close_registration" || action === "next_round") {
-      const detail = await withMongoTransaction(async (session) => {
+      const out = await withMongoTransaction(async (session) => {
         const doc = await Tournament.findById(tournament._id).session(session);
-        await generatePairingsPreview({
+        const result = await generateAndPublishPairings({
           tournament: doc,
           actorUserId: req.user.userId,
           forceRegenerate: false,
           session,
         });
         const refreshed = await Tournament.findById(tournament._id).session(session);
-        return buildTournamentDetail(refreshed, req.user.userId);
+        await computeAndPersistPlayerStats(refreshed, session);
+        const detail = await buildTournamentDetail(refreshed, req.user.userId);
+        return { detail, refreshed, published: result.published };
       });
-      emitTournamentStateChanged(req.app, tournament, TOURNAMENT_STATES.PAIRING_PREVIEW);
-      return res.json({ success: true, ...detail });
+
+      const publishedPairings = (out.published || []).map((game) =>
+        toRoundPairingPayload(game),
+      );
+      emitTournamentStateChanged(req.app, out.refreshed, TOURNAMENT_STATES.LIVE_ROUND);
+      emitPairingsPublished(
+        req.app,
+        out.refreshed,
+        Number(out.refreshed.currentRound || 0),
+        publishedPairings,
+      );
+      emitRoundBoardAssignments(
+        req.app,
+        out.refreshed,
+        Number(out.refreshed.currentRound || 0),
+        publishedPairings,
+      );
+      emitStandingsUpdated(req.app, out.refreshed, out.detail.standings || []);
+      return res.json({ success: true, ...out.detail });
     }
 
     if (action === "start_round" || action === "publish_pairings") {
@@ -2177,23 +2208,41 @@ router.post("/:id/pairings/generate", authMiddleware, async (req, res) => {
     const forceRegenerate =
       req.body?.forceRegenerate === true || req.body?.regenerate === true;
 
-    const detail = await withMongoTransaction(async (session) => {
+    const out = await withMongoTransaction(async (session) => {
       const doc = await Tournament.findById(tournament._id).session(session);
-      await generatePairingsPreview({
+      const result = await generateAndPublishPairings({
         tournament: doc,
         actorUserId: req.user.userId,
         forceRegenerate,
         session,
       });
       const refreshed = await Tournament.findById(tournament._id).session(session);
-      return buildTournamentDetail(refreshed, req.user.userId);
+      await computeAndPersistPlayerStats(refreshed, session);
+      const detail = await buildTournamentDetail(refreshed, req.user.userId);
+      return { detail, refreshed, published: result.published };
     });
 
-    emitTournamentStateChanged(req.app, tournament, TOURNAMENT_STATES.PAIRING_PREVIEW);
-    res.json({ success: true, ...detail });
+    const publishedPairings = (out.published || []).map((game) =>
+      toRoundPairingPayload(game),
+    );
+    emitTournamentStateChanged(req.app, out.refreshed, TOURNAMENT_STATES.LIVE_ROUND);
+    emitPairingsPublished(
+      req.app,
+      out.refreshed,
+      Number(out.refreshed.currentRound || 0),
+      publishedPairings,
+    );
+    emitRoundBoardAssignments(
+      req.app,
+      out.refreshed,
+      Number(out.refreshed.currentRound || 0),
+      publishedPairings,
+    );
+    emitStandingsUpdated(req.app, out.refreshed, out.detail.standings || []);
+    res.json({ success: true, ...out.detail });
   } catch (error) {
-    console.error("Generate pairings preview error:", error);
-    res.status(400).json({ error: error?.message || "Failed to generate pairings preview" });
+    console.error("Generate pairings error:", error);
+    res.status(400).json({ error: error?.message || "Failed to generate pairings" });
   }
 });
 
@@ -2582,12 +2631,18 @@ router.post("/:id/rounds/:round/repair", authMiddleware, async (req, res) => {
       return res.status(400).json({ error: "Invalid round number" });
     }
 
-    const state = normalizeTournamentState(tournament.status);
-    if (state !== TOURNAMENT_STATES.PAIRING_PREVIEW) {
-      return res.status(400).json({ error: "Round repair is only available in PAIRING_PREVIEW." });
-    }
     if (targetRound !== Number(tournament.currentRound || 0)) {
-      return res.status(400).json({ error: "Only current preview round can be repaired." });
+      return res.status(400).json({ error: "Only the current round can be repaired." });
+    }
+    const publishedInRound = await TournamentGame.countDocuments({
+      tournamentId: tournament._id,
+      roundNumber: targetRound,
+      isPublished: true,
+    });
+    if (publishedInRound > 0) {
+      return res.status(400).json({
+        error: "Round repair is only available before pairings are published.",
+      });
     }
 
     const out = await withMongoTransaction(async (session) => {
@@ -2722,5 +2777,19 @@ router.post("/:id/stop", authMiddleware, async (req, res) => {
     res.status(500).json({ error: error?.message || "Failed to stop tournament" });
   }
 });
+
+export {
+  buildTournamentDetail,
+  completeTournament,
+  computeAndPersistPlayerStats,
+  ensureTournamentState,
+  generateAndPublishPairings,
+  generatePairingsPreview,
+  logStateTransition,
+  parseTemplatePayload,
+  publishPairings,
+  toRoundPairingPayload,
+  withMongoTransaction,
+};
 
 export default router;

@@ -1,3 +1,4 @@
+import i18n from "../i18n";
 import { MoveQuality, MoveQualityInfo } from "./moveQuality";
 
 export interface MoveExplanation {
@@ -8,141 +9,273 @@ export interface MoveExplanation {
   evalChange: string;
 }
 
-/**
- * Convert centipawn to human-readable eval string
- */
+type ExplanationTemplate = {
+  title: () => string;
+  getDescription: (info: MoveQualityInfo, san: string) => string;
+  getDetails: (info: MoveQualityInfo) => string;
+  getSuggestion?: (info: MoveQualityInfo) => string;
+};
+
+const qualityKeyMap: Record<MoveQuality, string> = {
+  Brilliant: "brilliant",
+  Great: "great",
+  Best: "best",
+  Excellent: "excellent",
+  Good: "good",
+  Book: "book",
+  Inaccuracy: "inaccuracy",
+  Mistake: "mistake",
+  Miss: "miss",
+  Blunder: "blunder",
+  Unknown: "unknown",
+};
+
+function tr(
+  key: string,
+  defaultValue: string,
+  options?: Record<string, unknown>,
+): string {
+  return i18n.t(key, { defaultValue, ...(options ?? {}) });
+}
+
 function cpToString(cp: number): string {
   const sign = cp >= 0 ? "+" : "";
   return `${sign}${(cp / 100).toFixed(2)}`;
 }
 
-/**
- * Convert expected points to percentage for display
- */
 function epToPercent(ep: number): number {
   return Math.round(ep * 100);
 }
 
-/**
- * Get color name from mover
- */
-function colorName(mover: "w" | "b"): string {
-  return mover === "w" ? "White" : "Black";
+function formatPercent(ep: number): string {
+  return `${epToPercent(ep)}%`;
 }
 
-/**
- * Generate explanations based on move quality
- */
-const qualityExplanations: Record<
-  MoveQuality,
-  {
-    title: string;
-    getDescription: (info: MoveQualityInfo, san: string) => string;
-    getDetails: (info: MoveQualityInfo, san: string) => string;
-    getSuggestion?: (info: MoveQualityInfo) => string;
-  }
-> = {
+function colorName(mover: "w" | "b"): string {
+  return mover === "w"
+    ? tr("analysis.colors.white", "White")
+    : tr("analysis.colors.black", "Black");
+}
+
+export function getQualityLabel(quality: MoveQuality): string {
+  return tr(
+    `analysis.qualityLabels.${quality}`,
+    quality === "Unknown" ? "—" : quality,
+  );
+}
+
+const qualityExplanations: Record<MoveQuality, ExplanationTemplate> = {
   Brilliant: {
-    title: "Brilliant Move! ✨",
+    title: () =>
+      tr("analysis.moveExplanations.brilliant.title", "Brilliant Move!"),
     getDescription: (info, san) =>
-      `${san} is a brilliant sacrifice! This move demonstrates deep calculation and turns the position decisively in ${colorName(info.mover)}'s favor.`,
+      tr(
+        "analysis.moveExplanations.brilliant.description",
+        "{{san}} is a brilliant sacrifice! This move demonstrates deep calculation and turns the position decisively in {{mover}}'s favor.",
+        { san, mover: colorName(info.mover) },
+      ),
     getDetails: (info) =>
-      `This move improved the position significantly (${epToPercent(info.epGain)}% swing) through a tactical sacrifice that the opponent cannot easily refute.`,
+      tr(
+        "analysis.moveExplanations.brilliant.details",
+        "This move improved the position significantly ({{swing}} swing) through a tactical sacrifice that the opponent cannot easily refute.",
+        { swing: formatPercent(info.epGain) },
+      ),
     getSuggestion: () =>
-      "This is exactly the kind of move that separates strong players!",
+      tr(
+        "analysis.moveExplanations.brilliant.suggestion",
+        "This is exactly the kind of move that separates strong players!",
+      ),
   },
-
   Great: {
-    title: "Great Move! ⭐",
+    title: () => tr("analysis.moveExplanations.great.title", "Great Move!"),
     getDescription: (info, san) =>
-      `${san} is a great move that significantly improved ${colorName(info.mover)}'s position.`,
+      tr(
+        "analysis.moveExplanations.great.description",
+        "{{san}} is a great move that significantly improved {{mover}}'s position.",
+        { san, mover: colorName(info.mover) },
+      ),
     getDetails: (info) =>
-      `Win probability shifted from ${epToPercent(info.epBefore)}% to ${epToPercent(info.epAfter)}% — a ${epToPercent(info.epGain)}% improvement.`,
-    getSuggestion: () => "This move found a critical resource in the position.",
+      tr(
+        "analysis.moveExplanations.great.details",
+        "Win probability shifted from {{before}} to {{after}} — a {{gain}} improvement.",
+        {
+          before: formatPercent(info.epBefore),
+          after: formatPercent(info.epAfter),
+          gain: formatPercent(info.epGain),
+        },
+      ),
+    getSuggestion: () =>
+      tr(
+        "analysis.moveExplanations.great.suggestion",
+        "This move found a critical resource in the position.",
+      ),
   },
-
   Best: {
-    title: "Best Move ✓",
-    getDescription: (info, san) =>
-      `${san} is the best move in this position, maintaining or improving the evaluation.`,
+    title: () => tr("analysis.moveExplanations.best.title", "Best Move"),
+    getDescription: (_, san) =>
+      tr(
+        "analysis.moveExplanations.best.description",
+        "{{san}} is the best move in this position, maintaining or improving the evaluation.",
+        { san },
+      ),
     getDetails: (info) =>
-      `Position evaluation stayed strong at ${epToPercent(info.epAfter)}% win probability.`,
+      tr(
+        "analysis.moveExplanations.best.details",
+        "Position evaluation stayed strong at {{after}} win probability.",
+        { after: formatPercent(info.epAfter) },
+      ),
   },
-
   Excellent: {
-    title: "Excellent Move",
-    getDescription: (info, san) =>
-      `${san} is an excellent move, very close to the engine's top choice.`,
+    title: () =>
+      tr("analysis.moveExplanations.excellent.title", "Excellent Move"),
+    getDescription: (_, san) =>
+      tr(
+        "analysis.moveExplanations.excellent.description",
+        "{{san}} is an excellent move, very close to the engine's top choice.",
+        { san },
+      ),
     getDetails: (info) =>
-      `Only a tiny ${(info.epLoss * 100).toFixed(1)}% loss compared to the absolute best move.`,
+      tr(
+        "analysis.moveExplanations.excellent.details",
+        "Only a tiny {{loss}} loss compared to the absolute best move.",
+        { loss: `${(info.epLoss * 100).toFixed(1)}%` },
+      ),
   },
-
   Good: {
-    title: "Good Move",
-    getDescription: (info, san) =>
-      `${san} is a good, solid move that keeps the position playable.`,
+    title: () => tr("analysis.moveExplanations.good.title", "Good Move"),
+    getDescription: (_, san) =>
+      tr(
+        "analysis.moveExplanations.good.description",
+        "{{san}} is a good, solid move that keeps the position playable.",
+        { san },
+      ),
     getDetails: (info) =>
-      `About ${(info.epLoss * 100).toFixed(1)}% accuracy loss — not perfect but reasonable.`,
+      tr(
+        "analysis.moveExplanations.good.details",
+        "About {{loss}} accuracy loss — not perfect but reasonable.",
+        { loss: `${(info.epLoss * 100).toFixed(1)}%` },
+      ),
   },
-
   Book: {
-    title: "Book Move 📖",
-    getDescription: (info, san) =>
-      `${san} is a standard opening move, following established theory.`,
+    title: () => tr("analysis.moveExplanations.book.title", "Book Move"),
+    getDescription: (_, san) =>
+      tr(
+        "analysis.moveExplanations.book.description",
+        "{{san}} is a standard opening move, following established theory.",
+        { san },
+      ),
     getDetails: () =>
-      `This move is part of well-known opening theory. Both sides are following established lines.`,
+      tr(
+        "analysis.moveExplanations.book.details",
+        "This move is part of well-known opening theory. Both sides are following established lines.",
+      ),
   },
-
   Inaccuracy: {
-    title: "Inaccuracy ⚠️",
-    getDescription: (info, san) =>
-      `${san} is an inaccuracy — not the best choice in this position.`,
+    title: () => tr("analysis.moveExplanations.inaccuracy.title", "Inaccuracy"),
+    getDescription: (_, san) =>
+      tr(
+        "analysis.moveExplanations.inaccuracy.description",
+        "{{san}} is an inaccuracy — not the best choice in this position.",
+        { san },
+      ),
     getDetails: (info) =>
-      `Win probability dropped from ${epToPercent(info.epBefore)}% to ${epToPercent(info.epAfter)}% (${(info.epLoss * 100).toFixed(1)}% loss).`,
-    getSuggestion: (info) =>
-      `Look for moves that maintain piece activity and don't give your opponent free tempos.`,
+      tr(
+        "analysis.moveExplanations.inaccuracy.details",
+        "Win probability dropped from {{before}} to {{after}} ({{loss}} loss).",
+        {
+          before: formatPercent(info.epBefore),
+          after: formatPercent(info.epAfter),
+          loss: `${(info.epLoss * 100).toFixed(1)}%`,
+        },
+      ),
+    getSuggestion: () =>
+      tr(
+        "analysis.moveExplanations.inaccuracy.suggestion",
+        "Look for moves that maintain piece activity and do not give your opponent free tempos.",
+      ),
   },
-
   Mistake: {
-    title: "Mistake ❌",
+    title: () => tr("analysis.moveExplanations.mistake.title", "Mistake"),
     getDescription: (info, san) =>
-      `${san} is a mistake that significantly hurts ${colorName(info.mover)}'s position.`,
+      tr(
+        "analysis.moveExplanations.mistake.description",
+        "{{san}} is a mistake that significantly hurts {{mover}}'s position.",
+        { san, mover: colorName(info.mover) },
+      ),
     getDetails: (info) =>
-      `Win probability dropped from ${epToPercent(info.epBefore)}% to ${epToPercent(info.epAfter)}% — that's a ${(info.epLoss * 100).toFixed(1)}% swing!`,
+      tr(
+        "analysis.moveExplanations.mistake.details",
+        "Win probability dropped from {{before}} to {{after}} — that is a {{loss}} swing!",
+        {
+          before: formatPercent(info.epBefore),
+          after: formatPercent(info.epAfter),
+          loss: `${(info.epLoss * 100).toFixed(1)}%`,
+        },
+      ),
     getSuggestion: () =>
-      `Before moving, check for tactics: captures, checks, and threats. Ask yourself what your opponent wants to do.`,
+      tr(
+        "analysis.moveExplanations.mistake.suggestion",
+        "Before moving, check for tactics: captures, checks, and threats. Ask yourself what your opponent wants to do.",
+      ),
   },
-
   Miss: {
-    title: "Missed Opportunity",
-    getDescription: (info, san) =>
-      `${san} missed a chance to capitalize on the opponent's previous error.`,
+    title: () =>
+      tr("analysis.moveExplanations.miss.title", "Missed Opportunity"),
+    getDescription: (_, san) =>
+      tr(
+        "analysis.moveExplanations.miss.description",
+        "{{san}} missed a chance to capitalize on the opponent's previous error.",
+        { san },
+      ),
     getDetails: () =>
-      `Your opponent made a mistake, but this move didn't punish it effectively. The advantage wasn't fully converted.`,
+      tr(
+        "analysis.moveExplanations.miss.details",
+        "Your opponent made a mistake, but this move did not punish it effectively. The advantage was not fully converted.",
+      ),
     getSuggestion: () =>
-      `When your opponent blunders, slow down and look for the tactical punishment!`,
+      tr(
+        "analysis.moveExplanations.miss.suggestion",
+        "When your opponent blunders, slow down and look for the tactical punishment.",
+      ),
   },
-
   Blunder: {
-    title: "Blunder ❌❌",
-    getDescription: (info, san) =>
-      `${san} is a serious blunder that dramatically changes the game.`,
+    title: () => tr("analysis.moveExplanations.blunder.title", "Blunder"),
+    getDescription: (_, san) =>
+      tr(
+        "analysis.moveExplanations.blunder.description",
+        "{{san}} is a serious blunder that dramatically changes the game.",
+        { san },
+      ),
     getDetails: (info) =>
-      `Win probability crashed from ${epToPercent(info.epBefore)}% to ${epToPercent(info.epAfter)}% — a devastating ${(info.epLoss * 100).toFixed(1)}% loss.`,
+      tr(
+        "analysis.moveExplanations.blunder.details",
+        "Win probability crashed from {{before}} to {{after}} — a devastating {{loss}} loss.",
+        {
+          before: formatPercent(info.epBefore),
+          after: formatPercent(info.epAfter),
+          loss: `${(info.epLoss * 100).toFixed(1)}%`,
+        },
+      ),
     getSuggestion: () =>
-      `Always check for hanging pieces and tactical threats before finalizing your move. "Is my piece safe? What can my opponent capture or attack?"`,
+      tr(
+        "analysis.moveExplanations.blunder.suggestion",
+        "Always check for hanging pieces and tactical threats before finalizing your move. Ask: is my piece safe and what can my opponent attack?",
+      ),
   },
-
   Unknown: {
-    title: "Move",
-    getDescription: (_, san) => `${san} was played.`,
-    getDetails: () => `Analysis not available for this move.`,
+    title: () => tr("analysis.moveExplanations.unknown.title", "Move"),
+    getDescription: (_, san) =>
+      tr("analysis.moveExplanations.unknown.description", "{{san}} was played.", {
+        san,
+      }),
+    getDetails: () =>
+      tr(
+        "analysis.moveExplanations.unknown.details",
+        "Analysis not available for this move.",
+      ),
   },
 };
 
-/**
- * Generate a complete move explanation
- */
 export function generateMoveExplanation(
   qualityInfo: MoveQualityInfo | undefined,
   san: string,
@@ -151,37 +284,36 @@ export function generateMoveExplanation(
 ): MoveExplanation {
   if (!qualityInfo) {
     return {
-      title: "Move Analysis",
-      description: `${san} was played.`,
-      details: "No analysis data available for this move.",
+      title: tr("analysis.moveAnalysisTitle", "Move Analysis"),
+      description: tr("analysis.movePlayed", "{{san}} was played.", { san }),
+      details: tr(
+        "analysis.moveAnalysisUnavailable",
+        "No analysis data available for this move.",
+      ),
       evalChange: "—",
     };
   }
 
   const template = qualityExplanations[qualityInfo.label];
 
-  // Build eval change string
   let evalChange = "";
   if (cpBefore !== undefined && cpAfter !== undefined) {
     evalChange = `${cpToString(cpBefore)} → ${cpToString(cpAfter)}`;
   } else {
-    const beforePct = epToPercent(qualityInfo.epBefore);
-    const afterPct = epToPercent(qualityInfo.epAfter);
-    evalChange = `${beforePct}% → ${afterPct}%`;
+    evalChange = `${formatPercent(qualityInfo.epBefore)} → ${formatPercent(
+      qualityInfo.epAfter,
+    )}`;
   }
 
   return {
-    title: template.title,
+    title: template.title(),
     description: template.getDescription(qualityInfo, san),
-    details: template.getDetails(qualityInfo, san),
+    details: template.getDetails(qualityInfo),
     suggestion: template.getSuggestion?.(qualityInfo),
     evalChange,
   };
 }
 
-/**
- * Get color for quality badge
- */
 export function getQualityColor(quality: MoveQuality): string {
   const colors: Record<MoveQuality, string> = {
     Brilliant: "text-cyan-400",
@@ -199,9 +331,6 @@ export function getQualityColor(quality: MoveQuality): string {
   return colors[quality] || "text-gray-400";
 }
 
-/**
- * Get background color for quality
- */
 export function getQualityBgColor(quality: MoveQuality): string {
   const colors: Record<MoveQuality, string> = {
     Brilliant: "bg-cyan-500/20 border-cyan-500/50",
@@ -217,4 +346,8 @@ export function getQualityBgColor(quality: MoveQuality): string {
     Unknown: "bg-gray-500/10 border-gray-500/30",
   };
   return colors[quality] || "bg-gray-500/10 border-gray-500/30";
+}
+
+export function getQualityKey(quality: MoveQuality): string {
+  return qualityKeyMap[quality];
 }

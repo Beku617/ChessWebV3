@@ -1,6 +1,4 @@
 import { motion } from "framer-motion";
-import type { ReactNode } from "react";
-import { Target, Brain, Zap } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { PuzzleUserStats } from "./types";
 
@@ -39,8 +37,6 @@ export function PuzzleStatsCards({ stats, loading = false }: PuzzleStatsCardsPro
         label={t("Puzzle Rating")}
         value={rating.toLocaleString()}
         helper={`${t("Best:")} ${bestRating.toLocaleString()}`}
-        icon={<Target className="h-4 w-4" />}
-        accent="border-brand-400/30 bg-brand-500/12 text-brand-200"
       />
 
       <StatCard
@@ -48,8 +44,6 @@ export function PuzzleStatsCards({ stats, loading = false }: PuzzleStatsCardsPro
         label={t("Solved Today")}
         value={solvedToday.toLocaleString()}
         helper={`${solved}/${attempts} ${t("solved overall")}`}
-        icon={<Brain className="h-4 w-4" />}
-        accent="border-cyan-400/35 bg-cyan-500/12 text-cyan-200"
       />
 
       <StatCard
@@ -57,8 +51,6 @@ export function PuzzleStatsCards({ stats, loading = false }: PuzzleStatsCardsPro
         label={t("Streak")}
         value={`${streak} ${streak === 1 ? t("Day") : t("Days")}`}
         helper={t("Consecutive solve days")}
-        icon={<Zap className="h-4 w-4" />}
-        accent="border-amber-400/30 bg-amber-500/10 text-amber-200"
       />
     </div>
   );
@@ -68,15 +60,11 @@ function StatCard({
   label,
   value,
   helper,
-  icon,
-  accent,
   delay,
 }: {
   label: string;
   value: string;
   helper: string;
-  icon: ReactNode;
-  accent: string;
   delay?: number;
 }) {
   return (
@@ -91,11 +79,6 @@ function StatCard({
         <p className="mt-1 text-lg font-semibold leading-tight text-white">{value}</p>
         <p className="mt-0.5 text-[11px] text-gray-500">{helper}</p>
       </div>
-      <span
-        className={`ml-3 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border ${accent}`}
-      >
-        {icon}
-      </span>
     </motion.div>
   );
 }

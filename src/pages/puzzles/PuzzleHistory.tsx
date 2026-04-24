@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Chessboard } from "react-chessboard";
 import { ChevronLeft, ChevronRight, Loader2, Search } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { fetchPuzzleHistory } from "./api";
 import type { PuzzleHistoryItem } from "./types";
 import { formatTime } from "../puzzleTrainer/utils";
@@ -31,19 +32,47 @@ function resultClass(result: PuzzleHistoryItem["result"]) {
   return "border-slate-400/50 bg-slate-400/10 text-slate-200";
 }
 
-function resultLabel(result: PuzzleHistoryItem["result"]) {
-  if (result === "SOLVED") return "Solved";
-  if (result === "FAILED") return "Failed";
-  if (result === "SKIPPED") return "Skipped";
-  return "Abandoned";
+function difficultyLabel(
+  difficulty: string | undefined,
+  t: (key: string, defaultValue?: string) => string,
+) {
+  if (difficulty === "Easy") return t("puzzles.difficulty.easy", "Easy");
+  if (difficulty === "Hard") return t("puzzles.difficulty.hard", "Hard");
+  return t("puzzles.difficulty.medium", "Medium");
 }
 
-function historySummary(item: PuzzleHistoryItem) {
-  const dateLabel = new Date(item.date).toLocaleDateString();
-  const modeLabel = String(item.mode || "rated").toUpperCase();
-  return `${modeLabel} • ${resultLabel(item.result)} • ${dateLabel} • ${formatTime(
-    Math.floor(item.timeSpent / 1000),
-  )}`;
+function resultTranslationKey(result: PuzzleHistoryItem["result"]) {
+  if (result === "SOLVED") return "solved";
+  if (result === "FAILED") return "failed";
+  if (result === "SKIPPED") return "skipped";
+  return "abandoned";
+}
+
+function modeLabel(
+  mode: string | undefined,
+  t: (key: string, defaultValue?: string) => string,
+) {
+  if (mode === "review") return t("puzzles.modeLabels.review", "Review");
+  if (mode === "random") return t("puzzles.modeLabels.random", "Random");
+  if (mode === "library") return t("puzzles.modeLabels.library", "Library");
+  return t("puzzles.modeLabels.rated", "Rated");
+}
+
+function historySummary(
+  item: PuzzleHistoryItem,
+  t: (key: string, options?: Record<string, unknown> | string) => string,
+  locale: string,
+) {
+  return t("puzzles.history.summary", {
+    defaultValue: "{{mode}} • {{result}} • {{date}} • {{time}}",
+    mode: modeLabel(item.mode, t as (key: string, defaultValue?: string) => string),
+    result: (t as (key: string, defaultValue?: string) => string)(
+      `puzzles.results.${resultTranslationKey(item.result)}`,
+      item.result,
+    ),
+    date: new Date(item.date).toLocaleDateString(locale),
+    time: formatTime(Math.floor(item.timeSpent / 1000)),
+  });
 }
 
 function PuzzlePreviewBoard({
@@ -54,7 +83,7 @@ function PuzzlePreviewBoard({
   fen: string;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const [boardWidth, setBoardWidth] = useState(260);
+  const [boardWidth, setBoardWidth] = useState(0);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -63,7 +92,9 @@ function PuzzlePreviewBoard({
     const updateSize = () => {
       const nextWidth = Math.floor(container.clientWidth);
       if (nextWidth > 0) {
-        setBoardWidth(nextWidth);
+        setBoardWidth((currentWidth) =>
+          currentWidth === nextWidth ? currentWidth : nextWidth,
+        );
       }
     };
 
@@ -87,17 +118,19 @@ function PuzzlePreviewBoard({
   return (
     <div
       ref={containerRef}
-      className="w-full rounded-lg overflow-hidden border border-[#2d3f63] shadow-sm"
+      className="aspect-square w-full rounded-lg overflow-hidden border border-[#2d3f63] shadow-sm"
     >
-      <Chessboard
-        id={`history-puzzle-${puzzleId}`}
-        position={fen || "start"}
-        boardWidth={boardWidth}
-        arePiecesDraggable={false}
-        showBoardNotation={false}
-        customDarkSquareStyle={{ backgroundColor: "#8ea8bb" }}
-        customLightSquareStyle={{ backgroundColor: "#dde7ee" }}
-      />
+      {boardWidth > 0 ? (
+        <Chessboard
+          id={`history-puzzle-${puzzleId}`}
+          position={fen || "start"}
+          boardWidth={boardWidth}
+          arePiecesDraggable={false}
+          showBoardNotation={false}
+          customDarkSquareStyle={{ backgroundColor: "#8ea8bb" }}
+          customLightSquareStyle={{ backgroundColor: "#dde7ee" }}
+        />
+      ) : null}
     </div>
   );
 }
@@ -116,6 +149,17 @@ function getPageNumbers(current: number, total: number): Array<number | "..."> {
 
 export default function PuzzleHistory() {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
+  const translateDefault = (key: string, defaultValue?: string) =>
+    String(defaultValue === undefined ? t(key) : t(key, defaultValue));
+  const translateHistory = (
+    key: string,
+    options?: Record<string, unknown> | string,
+  ) => String(typeof options === "string" ? t(key, options) : t(key, options));
+  const loadFailedMessage = t(
+    "puzzles.history.loadFailed",
+    "Failed to load puzzle history",
+  );
   const [items, setItems] = useState<PuzzleHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -137,7 +181,7 @@ export default function PuzzleHistory() {
         setError(
           historyError instanceof Error
             ? historyError.message
-            : "Failed to load puzzle history",
+            : loadFailedMessage,
         );
       } finally {
         if (!cancelled) setLoading(false);
@@ -148,7 +192,7 @@ export default function PuzzleHistory() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [loadFailedMessage]);
 
   useEffect(() => {
     setPage(1);
@@ -172,6 +216,7 @@ export default function PuzzleHistory() {
     [filteredItems, pageStart],
   );
   const pageNumbers = getPageNumbers(safePage, totalPages);
+  const locale = i18n.resolvedLanguage === "mn" ? "mn-MN" : "en-US";
 
   return (
     <div className="space-y-4 max-w-full">
@@ -179,7 +224,7 @@ export default function PuzzleHistory() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[11px] uppercase tracking-[0.2em] text-emerald-300/90">
-              Puzzle History
+              {t("puzzles.history.eyebrow", "Puzzle History")}
             </p>
           </div>
           <button
@@ -187,19 +232,22 @@ export default function PuzzleHistory() {
             onClick={() => navigate("/puzzles/train?mode=rated")}
             className="inline-flex items-center rounded-lg border border-[#304464] bg-[#111b31] px-3 py-2 text-xs font-medium text-slate-100 transition-colors hover:bg-[#162541]"
           >
-            Back
+            {t("analysis.back", "Back")}
           </button>
         </div>
 
         <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-2">
           <label className="rounded-xl border border-[#304464] bg-[#111b31] px-3 py-2 text-xs text-slate-200">
-            Search
+            {t("puzzles.history.searchLabel", "Search")}
             <div className="mt-1 flex items-center gap-2">
               <Search className="h-3.5 w-3.5 text-slate-400" />
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search title"
+                placeholder={t(
+                  "puzzles.history.searchPlaceholder",
+                  "Search title",
+                )}
                 className="w-full bg-transparent outline-none text-sm placeholder:text-slate-500"
               />
             </div>
@@ -209,7 +257,10 @@ export default function PuzzleHistory() {
 
       {loading ? (
         <div className="rounded-2xl border border-[#243250] bg-[#0f172a] px-4 py-12 flex justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-emerald-300" />
+          <div className="flex flex-col items-center gap-2 text-sm text-slate-300">
+            <Loader2 className="w-8 h-8 animate-spin text-emerald-300" />
+            <span>{t("puzzles.history.loading", "Loading puzzle history...")}</span>
+          </div>
         </div>
       ) : error ? (
         <div className="rounded-2xl border border-red-400/50 bg-red-500/10 px-4 py-4 text-sm text-red-100">
@@ -217,7 +268,7 @@ export default function PuzzleHistory() {
         </div>
       ) : filteredItems.length === 0 ? (
         <div className="rounded-2xl border border-[#243250] bg-[#0f172a] px-4 py-6 text-sm text-slate-300">
-          No history items match your search.
+          {t("puzzles.history.empty", "No history items match your search.")}
         </div>
       ) : (
         <div className="space-y-4">
@@ -244,7 +295,10 @@ export default function PuzzleHistory() {
                       item.result,
                     )}`}
                   >
-                    {item.result}
+                    {t(
+                      `puzzles.results.${resultTranslationKey(item.result)}`,
+                      item.result,
+                    )}
                   </span>
                 </div>
 
@@ -254,10 +308,10 @@ export default function PuzzleHistory() {
                       item.puzzleDifficulty,
                     )}`}
                   >
-                    {item.puzzleDifficulty || "Medium"}
+                    {difficultyLabel(item.puzzleDifficulty, translateDefault)}
                   </span>
                   <span className="px-2 py-1 rounded-md border border-[#31446d] bg-[#0d1629] text-[11px] text-slate-200 uppercase">
-                    {item.mode}
+                    {modeLabel(item.mode, translateDefault)}
                   </span>
                   {item.motifs.slice(0, 2).map((motif) => (
                     <span
@@ -270,12 +324,12 @@ export default function PuzzleHistory() {
                 </div>
 
                 <p className="mt-2 text-xs text-slate-300 line-clamp-2">
-                  {historySummary(item)}
+                  {historySummary(item, translateHistory, locale)}
                 </p>
 
                 <div className="mt-3 flex items-center justify-between gap-2">
                   <div className="text-[11px] text-slate-400">
-                    {new Date(item.date).toLocaleDateString()} - {" "}
+                    {new Date(item.date).toLocaleDateString(locale)} -{" "}
                     {formatTime(Math.floor(item.timeSpent / 1000))}
                   </div>
                   {item.puzzleId ? (
@@ -283,7 +337,7 @@ export default function PuzzleHistory() {
                       to={`/puzzles/train/${item.puzzleId}?mode=library`}
                       className="rounded-lg border border-emerald-300/70 bg-emerald-500/20 px-3 py-1.5 text-[11px] font-semibold text-emerald-100 hover:bg-emerald-500/30"
                     >
-                      Start
+                      {t("puzzles.library.start", "Start")}
                     </Link>
                   ) : null}
                 </div>
@@ -294,9 +348,12 @@ export default function PuzzleHistory() {
           {totalPages > 1 ? (
             <div className="rounded-xl border border-[#243250] bg-[#0f172a] p-4 flex items-center justify-between">
               <p className="text-sm text-slate-400">
-                Showing {pageStart + 1} - {" "}
-                {Math.min(pageStart + PAGE_SIZE, filteredItems.length)} of {" "}
-                {filteredItems.length}
+                {t("puzzles.library.pagination", {
+                  defaultValue: "Showing {{start}} - {{end}} of {{total}}",
+                  start: pageStart + 1,
+                  end: Math.min(pageStart + PAGE_SIZE, filteredItems.length),
+                  total: filteredItems.length,
+                })}
               </p>
               <div className="flex items-center gap-1.5">
                 <button

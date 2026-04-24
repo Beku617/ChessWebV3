@@ -221,10 +221,7 @@ export default function CommunityGroupDetail() {
                   <div className="flex min-w-0 flex-1 items-start gap-4">
                     <CommunityGroupAvatar group={group} size="lg" />
                     <div className="min-w-0">
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-brand-200/70">
-                        Public Group
-                      </div>
-                      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white">
+                      <h1 className="text-3xl font-semibold tracking-tight text-white">
                         {group.name}
                       </h1>
                       <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-gray-500">

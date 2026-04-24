@@ -14,7 +14,7 @@ export interface GameHistory {
   white: string;
   black: string;
   result: string; // "1-0" | "0-1" | "1/2-1/2"
-  variant?: "standard" | "chess960" | "threeCheck" | "kingOfHill";
+  variant?: "standard" | "chess960" | "threeCheck" | "kingOfHill" | "atomic";
   currentPosition: string;
   startingFen?: string;
   timeControl: string;

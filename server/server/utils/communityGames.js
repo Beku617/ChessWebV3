@@ -30,6 +30,14 @@ function normalizeVariant(value) {
   const normalized = String(value || "").trim().toLowerCase();
   if (normalized === "chess960") return "chess960";
   if (
+    normalized === "atomic" ||
+    normalized === "atomicchess" ||
+    normalized === "atomic-chess" ||
+    normalized === "atomic_chess"
+  ) {
+    return "atomic";
+  }
+  if (
     normalized === "kingofhill" ||
     normalized === "king-of-hill" ||
     normalized === "king_of_hill"

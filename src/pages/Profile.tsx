@@ -7,12 +7,11 @@ import {
   OverviewTabContent,
   GamesTabContent,
   NoGamesPlaceholder,
-  TournamentProfileSection,
   API_URL,
   calculateStats,
   filterGames,
-  type TournamentProfileData,
   type FilterType,
+  type TournamentHistoryEntry,
   type TabType,
 } from "../components/profilePage";
 
@@ -24,9 +23,9 @@ export default function Profile() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [filter, setFilter] = useState<FilterType>("all");
   const [activeTab, setActiveTab] = useState<TabType>("overview");
-  const [tournamentProfile, setTournamentProfile] =
-    useState<TournamentProfileData | null>(null);
-  const [loadingTournamentProfile, setLoadingTournamentProfile] = useState(false);
+  const [tournamentHistory, setTournamentHistory] = useState<
+    TournamentHistoryEntry[]
+  >([]);
 
   useEffect(() => {
     async function fetchGames() {
@@ -49,24 +48,23 @@ export default function Profile() {
   useEffect(() => {
     if (!user?.id) return;
     let cancelled = false;
-    async function fetchTournamentProfile() {
+
+    async function fetchTournamentHistory() {
       try {
-        setLoadingTournamentProfile(true);
         const res = await fetch(`${API_URL}/api/users/${user.id}/profile`, {
           credentials: "include",
         });
         const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.error || "Failed to load tournament profile");
+        if (!res.ok) throw new Error(data.error || "Failed to load profile");
         if (!cancelled) {
-          setTournamentProfile(data.profile || null);
+          setTournamentHistory(data.profile?.tournamentHistory || []);
         }
       } catch {
-        if (!cancelled) setTournamentProfile(null);
-      } finally {
-        if (!cancelled) setLoadingTournamentProfile(false);
+        if (!cancelled) setTournamentHistory([]);
       }
     }
-    void fetchTournamentProfile();
+
+    void fetchTournamentHistory();
     return () => {
       cancelled = true;
     };
@@ -117,14 +115,6 @@ export default function Profile() {
             </div>
           )}
 
-          <div className="mb-6">
-            <TournamentProfileSection
-              data={tournamentProfile}
-              isLoading={loadingTournamentProfile}
-              title="Tournament & ELO"
-            />
-          </div>
-
           {stats ? (
             activeTab === "overview" ? (
               <OverviewTabContent
@@ -138,6 +128,7 @@ export default function Profile() {
               <GamesTabContent
                 filteredGames={filteredGames}
                 allGames={games}
+                tournamentHistory={tournamentHistory}
                 filter={filter}
                 setFilter={setFilter}
                 expandedId={expandedId}

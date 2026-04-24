@@ -1,4 +1,5 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 function getPageNumbers(current: number, total: number): (number | "...")[] {
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
@@ -28,6 +29,8 @@ export function FeedPagination({
   onPageChange,
   className = "justify-center",
 }: FeedPaginationProps) {
+  const { t } = useTranslation();
+
   if (totalPages <= 1) return null;
 
   const pageNums = getPageNumbers(currentPage, totalPages);
@@ -42,7 +45,7 @@ export function FeedPagination({
     <div className={`flex items-center gap-1.5 ${className}`}>
       <button
         type="button"
-        aria-label="Previous page"
+        aria-label={t("pagination.previousPage", "Previous page")}
         disabled={currentPage <= 1}
         onClick={() => onPageChange(Math.max(1, currentPage - 1))}
         className={`${btnBase} w-9 h-9 bg-white/[0.04] text-gray-400 hover:bg-white/[0.08] hover:text-brand-300`}
@@ -56,13 +59,16 @@ export function FeedPagination({
             key={`dots-${index}`}
             className="w-9 h-9 flex items-center justify-center text-gray-500 text-sm select-none"
           >
-            …
+            ...
           </span>
         ) : (
           <button
             key={pageNum}
             type="button"
-            aria-label={`Go to page ${pageNum}`}
+            aria-label={t("pagination.goToPage", {
+              page: pageNum,
+              defaultValue: `Go to page ${pageNum}`,
+            })}
             onClick={() => onPageChange(pageNum)}
             className={btnPage(pageNum === currentPage)}
           >
@@ -73,7 +79,7 @@ export function FeedPagination({
 
       <button
         type="button"
-        aria-label="Next page"
+        aria-label={t("pagination.nextPage", "Next page")}
         disabled={currentPage >= totalPages}
         onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
         className={`${btnBase} w-9 h-9 bg-white/[0.04] text-gray-400 hover:bg-white/[0.08] hover:text-brand-300`}
@@ -83,4 +89,3 @@ export function FeedPagination({
     </div>
   );
 }
-

@@ -1,4 +1,6 @@
+import { useTranslation } from "react-i18next";
 import { MoveQuality } from "../../hooks/useGameReplay";
+import { getQualityLabel } from "../../utils/moveExplanations";
 
 const colorMap: Record<MoveQuality, string> = {
   Best: "bg-brand-100 text-brand-700 dark:bg-brand-900/40 dark:text-brand-200",
@@ -14,7 +16,8 @@ const colorMap: Record<MoveQuality, string> = {
     "bg-orange-50 text-orange-700 dark:bg-orange-900/30 dark:text-orange-200",
   Blunder:
     "bg-red-50 text-red-700 dark:bg-red-900/40 dark:text-red-200",
-  Great: "bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-200",
+  Great:
+    "bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-200",
   Brilliant:
     "bg-purple-50 text-purple-700 dark:bg-purple-900/40 dark:text-purple-200",
   Miss:
@@ -23,22 +26,9 @@ const colorMap: Record<MoveQuality, string> = {
     "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-200",
 };
 
-const labelMap: Partial<Record<MoveQuality, string>> = {
-  Best: "Best",
-  Excellent: "Excellent",
-  Good: "Good",
-  Book: "Book",
-  Inaccuracy: "Inaccuracy",
-  Mistake: "Mistake",
-  Blunder: "Blunder",
-  Great: "Great",
-  Brilliant: "Brilliant",
-  Miss: "Miss",
-  Unknown: "—",
-};
-
 export function MoveQualityPill({ quality }: { quality: MoveQuality }) {
-  const label = labelMap[quality] || "—";
+  useTranslation();
+  const label = getQualityLabel(quality);
   const styles = colorMap[quality] || colorMap.Unknown;
 
   return (
@@ -47,4 +37,3 @@ export function MoveQualityPill({ quality }: { quality: MoveQuality }) {
     </span>
   );
 }
-

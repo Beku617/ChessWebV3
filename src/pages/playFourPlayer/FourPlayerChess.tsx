@@ -814,9 +814,6 @@ export default function FourPlayerChess() {
               <h1 className="text-lg font-bold text-gray-900 dark:text-white">
                 4-Player Chess Online
               </h1>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                You are {playerColor.toUpperCase()}
-              </p>
             </div>
             <div
               className={`px-3 py-2 rounded-lg text-xs font-semibold ${

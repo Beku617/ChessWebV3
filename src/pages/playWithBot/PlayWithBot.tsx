@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Chessboard } from "react-chessboard";
-import { Bot, ChevronDown, Crown, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../../store/authStore";
 import type { BotPersonality } from "../../data/botPersonalities";
@@ -33,12 +32,23 @@ function resolveBotAvatarUrl(input: unknown): string {
   return `${API_URL}${avatarUrl.startsWith("/") ? "" : "/"}${avatarUrl}`;
 }
 
+function getBotInitials(name?: string): string {
+  const trimmed = String(name || "").trim();
+  if (!trimmed) return "?";
+  return trimmed
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
+}
+
 // Map database bot to BotPersonality interface
 function mapDbBotToPersonality(dbBot: any): BotPersonality {
   return {
     id: dbBot._id,
     name: dbBot.name,
-    avatar: dbBot.avatar || "🤖",
+    avatar: "",
     avatarUrl: resolveBotAvatarUrl(dbBot.avatarUrl),
     rating: dbBot.eloRating,
     title: dbBot.title || undefined,
@@ -186,9 +196,7 @@ export default function PlayWithBot() {
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center">
                   <span className="text-white text-lg leading-none">
-                    {selectedBot?.avatar ||
-                      selectedBot?.name?.substring(0, 2).toUpperCase() ||
-                      "?"}
+                    {getBotInitials(selectedBot?.name)}
                   </span>
                 </div>
               )}
@@ -257,8 +265,7 @@ export default function PlayWithBot() {
         <div className="w-full bg-white/90 dark:bg-slate-900/95 border-l border-gray-200/60 dark:border-white/10 flex flex-col h-full min-h-0">
           {/* Panel Header */}
           <div className="p-4 border-b border-gray-200/60 dark:border-white/10">
-            <div className="flex items-center gap-2">
-              <Bot className="w-5 h-5 text-brand-500" />
+            <div>
               <h2 className="font-bold text-lg text-gray-900 dark:text-white">
                 {t("Play Bots")}
               </h2>
@@ -282,8 +289,7 @@ export default function PlayWithBot() {
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center">
                       <span className="text-white text-2xl leading-none">
-                        {selectedBot.avatar ||
-                          selectedBot.name.substring(0, 2).toUpperCase()}
+                        {getBotInitials(selectedBot.name)}
                       </span>
                     </div>
                   )}
@@ -315,8 +321,7 @@ export default function PlayWithBot() {
           <div className="flex-1 min-h-0 overflow-y-auto pr-1 pb-3 [scrollbar-width:thin] [scrollbar-color:#334155_transparent]">
             {loading ? (
               <div className="flex items-center justify-center py-10">
-                <Loader2 className="w-6 h-6 text-brand-500 animate-spin" />
-                <span className="ml-2 text-gray-500">{t("Loading bots...")}</span>
+                <span className="text-gray-500">{t("Loading bots...")}</span>
               </div>
             ) : error ? (
               <div className="flex items-center justify-center py-10">
@@ -350,9 +355,9 @@ export default function PlayWithBot() {
                           {categoryBots.length}{" "}
                           {categoryBots.length === 1 ? t("bot") : t("bots")}
                         </span>
-                        <ChevronDown
-                          className={`w-4 h-4 text-gray-400 transition-transform ${isExpanded ? "rotate-180" : ""}`}
-                        />
+                        <span className="text-xs font-semibold text-gray-400">
+                          {isExpanded ? "Hide" : "Show"}
+                        </span>
                       </div>
                     </button>
 
@@ -382,16 +387,13 @@ export default function PlayWithBot() {
                               ) : (
                                 <div className="w-full h-full bg-gradient-to-br from-rose-500 to-pink-600 flex flex-col items-center justify-center">
                                   <span className="text-2xl leading-none text-white">
-                                    {bot.avatar || "🤖"}
+                                    {getBotInitials(bot.name)}
                                   </span>
                                   <span className="mt-1 text-[10px] font-semibold text-white/90">
                                     {bot.name.match(/\d+/)?.[0] ||
                                       bot.name.substring(0, 2).toUpperCase()}
                                   </span>
                                 </div>
-                              )}
-                              {bot.title && (
-                                <Crown className="absolute -top-1 -right-1 w-3 h-3 text-amber-500" />
                               )}
                             </div>
                             <span

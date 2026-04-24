@@ -222,7 +222,7 @@ router.post(
 
       const botData = {
         name,
-        avatar: avatar || "🤖",
+        avatar: avatar || "",
         avatarUrl: req.file ? req.file.url : "",
         avatarAssetId: req.file ? String(req.file.assetId || "") : "",
         avatarMimeType: req.file ? String(req.file.mimetype || "") : "",

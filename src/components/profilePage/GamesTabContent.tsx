@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, History, Trophy } from "lucide-react";
+import { ChevronLeft, ChevronRight, History } from "lucide-react";
 import { GameHistory } from "../../historyTypes";
 import { GameCard } from "../profile";
 import { ShareGameModal } from "../ShareGameModal";
-import { FilterType } from "./types";
+import { FilterType, TournamentHistoryEntry } from "./types";
 
 const GAMES_PER_PAGE = 10;
 
@@ -23,6 +23,7 @@ function getPageNumbers(current: number, total: number): (number | "...")[] {
 interface GamesTabContentProps {
   filteredGames: GameHistory[];
   allGames?: GameHistory[];
+  tournamentHistory?: TournamentHistoryEntry[];
   filter: FilterType;
   setFilter: (filter: FilterType) => void;
   expandedId: string | null;
@@ -31,9 +32,17 @@ interface GamesTabContentProps {
   showShareButton?: boolean;
 }
 
+function formatTournamentDate(input: string | null): string {
+  if (!input) return "-";
+  const parsed = new Date(input);
+  if (!Number.isFinite(parsed.getTime())) return "-";
+  return parsed.toLocaleDateString();
+}
+
 export function GamesTabContent({
   filteredGames,
   allGames,
+  tournamentHistory = [],
   filter,
   setFilter,
   expandedId,
@@ -108,6 +117,72 @@ export function GamesTabContent({
         </div>
       </div>
 
+      <div className="mb-6 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+        <div className="px-4 py-3 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            Tournament History ({tournamentHistory.length})
+          </h3>
+        </div>
+        <div className="overflow-x-auto bg-white dark:bg-gray-900">
+          <table className="w-full text-left text-xs sm:text-sm">
+            <thead className="bg-gray-50 dark:bg-gray-950/50 text-gray-500 dark:text-gray-400">
+              <tr>
+                <th className="px-3 py-2">Tournament</th>
+                <th className="px-3 py-2">Format</th>
+                <th className="px-3 py-2">Placement</th>
+                <th className="px-3 py-2">Score</th>
+                <th className="px-3 py-2">ELO Change</th>
+                <th className="px-3 py-2">Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {tournamentHistory.slice(0, 20).map((row) => (
+                <tr
+                  key={`${row.tournamentId}:${row.date || ""}`}
+                  className="border-t border-gray-200 dark:border-gray-800"
+                >
+                  <td className="px-3 py-2 text-gray-900 dark:text-gray-100">
+                    {row.tournamentName}
+                  </td>
+                  <td className="px-3 py-2 text-gray-700 dark:text-gray-300">
+                    {row.format}
+                  </td>
+                  <td className="px-3 py-2 text-gray-700 dark:text-gray-300">
+                    {row.placement ? `#${row.placement}` : "-"}
+                  </td>
+                  <td className="px-3 py-2 text-gray-700 dark:text-gray-300">
+                    {row.score}
+                  </td>
+                  <td
+                    className={`px-3 py-2 font-semibold ${
+                      row.eloChange >= 0
+                        ? "text-emerald-600 dark:text-emerald-400"
+                        : "text-red-600 dark:text-red-400"
+                    }`}
+                  >
+                    {row.eloChange >= 0 ? "+" : ""}
+                    {row.eloChange}
+                  </td>
+                  <td className="px-3 py-2 text-gray-500 dark:text-gray-400">
+                    {formatTournamentDate(row.date)}
+                  </td>
+                </tr>
+              ))}
+              {tournamentHistory.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="px-3 py-6 text-center text-sm text-gray-500 dark:text-gray-400"
+                  >
+                    No tournament history yet.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       {/* Range info */}
       {filteredGames.length > 0 && (
         <div className="text-sm text-gray-500 dark:text-gray-400 mb-4">
@@ -132,10 +207,6 @@ export function GamesTabContent({
           ))
         ) : (
           <div className="text-center py-12 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800">
-            <Trophy
-              size={48}
-              className="mx-auto text-gray-300 dark:text-gray-600 mb-4"
-            />
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">
               No games found
             </h3>

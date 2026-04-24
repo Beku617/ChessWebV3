@@ -15,6 +15,14 @@ export interface User {
   banReason?: string;
 }
 
+export interface UserStats {
+  totalUsers: number;
+  totalGames: number;
+  newUsersThisWeek: number;
+  bannedUsers: number;
+  topRating: number;
+}
+
 export type SortField = "createdAt" | "rating" | "gamesPlayed";
 export type SortOrder = "asc" | "desc";
 

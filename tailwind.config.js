@@ -14,6 +14,12 @@ export default {
         "light-bg": "#f5f5f7",
         "light-bg-secondary": "#eeeef0",
         "light-card": "#ffffff",
+        // Theme CSS variable colors
+        surface: {
+          primary: "var(--bg-primary)",
+          secondary: "var(--bg-secondary)",
+        },
+        accent: "var(--accent)",
         // Global brand scale driven by CSS variables in src/index.css
         brand: {
           50: "rgb(var(--color-brand-50-rgb) / <alpha-value>)",

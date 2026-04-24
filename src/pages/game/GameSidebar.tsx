@@ -32,7 +32,7 @@ export function GameSidebar({ onStartMatch }: GameSidebarProps) {
 
   return (
     <div className="w-full lg:flex-1 lg:self-stretch min-h-0 flex flex-col">
-      <div className="flex-1 rounded-3xl border border-white/10 bg-white/70 dark:bg-slate-900/80 shadow-2xl backdrop-blur-xl px-5 py-6 lg:p-6 flex flex-col overflow-hidden">
+      <div className="theme-glass-panel-strong flex-1 rounded-3xl px-5 py-6 lg:p-6 flex flex-col overflow-hidden">
         <div className="flex items-center justify-center flex-shrink-0 mb-5">
           <div className="flex items-center gap-2">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white">
@@ -48,9 +48,9 @@ export function GameSidebar({ onStartMatch }: GameSidebarProps) {
               onClick={action.onClick}
               className={`w-full text-left rounded-xl border border-white/5 bg-gradient-to-r ${action.accent} p-[1px] shadow-md transition-all duration-200 hover:shadow-lg hover:-translate-y-[1px] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0`}
             >
-              <div className="h-full rounded-[12px] bg-white/90 dark:bg-slate-900/90 px-3.5 py-3 flex items-center gap-2.5">
-                <div className="p-2 rounded-lg bg-gradient-to-br from-white/80 to-gray-100/50 dark:from-white/10 dark:to-white/5 shadow-sm">
-                  <action.IconComponent className="w-5 h-5 text-gray-700 dark:text-gray-200" />
+              <div className="theme-glass-panel-soft h-full rounded-[12px] px-3.5 py-3 flex items-center gap-2.5">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-theme-glass bg-white/35 text-gray-700 shadow-sm dark:bg-white/5 dark:text-gray-200">
+                  <action.IconComponent className="h-5 w-5" aria-hidden="true" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm sm:text-base font-semibold leading-snug text-gray-800 dark:text-white">

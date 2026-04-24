@@ -215,70 +215,6 @@ function sortSwissStandings(rows) {
   });
 }
 
-function enrichRoundRobinTiebreaks(players, games) {
-  const byUserId = new Map(players.map((player) => [toId(player.userId), player]));
-  const scoreGroups = new Map();
-  for (const player of players) {
-    const key = String(player.score || 0);
-    if (!scoreGroups.has(key)) scoreGroups.set(key, []);
-    scoreGroups.get(key).push(toId(player.userId));
-  }
-
-  for (const ids of scoreGroups.values()) {
-    if (ids.length < 2) continue;
-    const playerSet = new Set(ids);
-    const h2h = computeHeadToHeadPoints(games, playerSet);
-    for (const id of ids) {
-      const player = byUserId.get(id);
-      if (!player) continue;
-      player.directEncounter = Number(h2h.get(id) || 0);
-    }
-  }
-
-  for (const player of players) {
-    const playerId = toId(player.userId);
-    let sb = 0;
-    let koya = 0;
-    for (const game of games || []) {
-      const result = normalizeResultPoints(String(game.result || "*"));
-      if (!result) continue;
-      const whiteId = toId(game.whiteId);
-      const blackId = toId(game.blackId);
-      if (!whiteId || !blackId) continue;
-      if (whiteId !== playerId && blackId !== playerId) continue;
-
-      const opponentId = whiteId === playerId ? blackId : whiteId;
-      const opponent = byUserId.get(opponentId);
-      if (!opponent) continue;
-      const opponentScore = Number(opponent.score || 0);
-      const playerScoreInGame =
-        whiteId === playerId ? result.white : result.black;
-      sb += playerScoreInGame * opponentScore;
-      if (opponentScore >= 0.5) {
-        koya += playerScoreInGame;
-      }
-    }
-    player.sonnebornBerger = Math.round(sb * 100) / 100;
-    player.koya = Math.round(koya * 100) / 100;
-  }
-
-  return players;
-}
-
-function sortRoundRobinStandings(rows) {
-  return sortWithFallback(rows, (a, b) => {
-    const pointsDiff = Number(b.points || 0) - Number(a.points || 0);
-    if (pointsDiff !== 0) return pointsDiff;
-    const deDiff = Number(b.directEncounter || 0) - Number(a.directEncounter || 0);
-    if (deDiff !== 0) return deDiff;
-    const sbDiff = Number(b.sonnebornBerger || 0) - Number(a.sonnebornBerger || 0);
-    if (sbDiff !== 0) return sbDiff;
-    const koyaDiff = Number(b.koya || 0) - Number(a.koya || 0);
-    if (koyaDiff !== 0) return koyaDiff;
-    return Number(b.wins || 0) - Number(a.wins || 0);
-  });
-}
-
 function applyDenseRanksByPoints(rows) {
   const sortedRows = [...rows];
   let currentRank = 0;
@@ -294,41 +230,6 @@ function applyDenseRanksByPoints(rows) {
   return sortedRows;
 }
 
-function computeKnockoutStandings(players, games) {
-  const rows = players.map((player) => ({
-    ...player,
-    eliminatedRound: 0,
-  }));
-  const byUserId = new Map(rows.map((row) => [toId(row.userId), row]));
-
-  for (const game of games || []) {
-    const result = normalizeResultPoints(String(game.result || "*"));
-    if (!result) continue;
-    const whiteId = toId(game.whiteId);
-    const blackId = toId(game.blackId);
-    const roundNumber = Number(game.roundNumber || 0);
-    if (!whiteId || !blackId) continue;
-    const white = byUserId.get(whiteId);
-    const black = byUserId.get(blackId);
-    if (!white || !black) continue;
-
-    if (result.white === 1) {
-      black.eliminatedRound = Math.max(black.eliminatedRound, roundNumber);
-      white.wins = Number(white.wins || 0) + 1;
-    } else if (result.black === 1) {
-      white.eliminatedRound = Math.max(white.eliminatedRound, roundNumber);
-      black.wins = Number(black.wins || 0) + 1;
-    }
-  }
-
-  return sortWithFallback(rows, (a, b) => {
-    const aAlive = a.eliminatedRound === 0 ? 1 : 0;
-    const bAlive = b.eliminatedRound === 0 ? 1 : 0;
-    if (bAlive !== aAlive) return bAlive - aAlive;
-    return Number(b.eliminatedRound || 0) - Number(a.eliminatedRound || 0);
-  });
-}
-
 export function computeTournamentStandings({
   tournamentType,
   players,
@@ -336,18 +237,9 @@ export function computeTournamentStandings({
   usersById = new Map(),
 }) {
   const enrichedPlayers = computeCommonPlayerMetrics(players || [], games || [], tournamentType);
-
-  let rows = [];
-  if (tournamentType === "swiss") {
-    rows = enrichSwissTiebreaks(enrichedPlayers, games || []);
-    rows = sortSwissStandings(buildBaseRows(rows, usersById));
-  } else if (tournamentType === "roundRobin") {
-    rows = enrichRoundRobinTiebreaks(enrichedPlayers, games || []);
-    rows = sortRoundRobinStandings(buildBaseRows(rows, usersById));
-  } else {
-    rows = computeKnockoutStandings(enrichedPlayers, games || []);
-    rows = buildBaseRows(rows, usersById);
-  }
+  const rows = sortSwissStandings(
+    buildBaseRows(enrichSwissTiebreaks(enrichedPlayers, games || []), usersById),
+  );
 
   return applyDenseRanksByPoints(rows).map((row) => ({ ...row }));
 }

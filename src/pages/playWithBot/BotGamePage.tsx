@@ -25,12 +25,23 @@ function resolveBotAvatarUrl(input: unknown): string {
   return `${API_URL}${avatarUrl.startsWith("/") ? "" : "/"}${avatarUrl}`;
 }
 
+function getBotInitials(name?: string): string {
+  const trimmed = String(name || "").trim();
+  if (!trimmed) return "?";
+  return trimmed
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
+}
+
 // Map database bot to BotPersonality interface
 function mapDbBotToPersonality(dbBot: any): BotPersonality {
   return {
     id: dbBot._id,
     name: dbBot.name,
-    avatar: dbBot.avatar || "🤖",
+    avatar: "",
     avatarUrl: resolveBotAvatarUrl(dbBot.avatarUrl),
     rating: dbBot.eloRating,
     title: dbBot.title || undefined,
@@ -245,7 +256,7 @@ export default function BotGamePage() {
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center">
                         <span className="text-white font-bold text-sm">
-                          {bot.name.substring(0, 2).toUpperCase()}
+                          {getBotInitials(bot.name)}
                         </span>
                       </div>
                     )}
@@ -347,7 +358,7 @@ export default function BotGamePage() {
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center">
                           <span className="text-white font-bold">
-                            {bot.name.substring(0, 2).toUpperCase()}
+                            {getBotInitials(bot.name)}
                           </span>
                         </div>
                       )}

@@ -1,4 +1,5 @@
 import { ArrowLeft } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { AdvantageGraph } from "./AdvantageGraph";
 import { AccuracyBadge } from "./AccuracyBadge";
 import { QualityBreakdown } from "./QualityBreakdown";
@@ -26,6 +27,7 @@ export function GameSummary({
   activePlayerSide?: "white" | "black" | null;
   onBack?: () => void;
 }) {
+  const { t } = useTranslation();
   const openingLabel = opening
     ? opening.variation
       ? `${opening.name}: ${opening.variation}`
@@ -71,7 +73,7 @@ export function GameSummary({
             {opening && openingLabel && (
               <div className="mt-3 inline-flex max-w-full items-center gap-2 rounded-full border border-slate-300/70 dark:border-white/10 bg-white/75 dark:bg-slate-900/65 px-3.5 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_8px_24px_rgba(15,23,42,0.12)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_10px_28px_rgba(2,6,23,0.45)] backdrop-blur-md mx-auto">
                 <span className="inline-flex items-center rounded-full border border-brand-200 dark:border-brand-400/30 bg-brand-50 dark:bg-brand-400/10 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-brand-700 dark:text-brand-200 shrink-0">
-                  Opening
+                  {t("analysis.opening", "Opening")}
                 </span>
                 <span className="h-1 w-1 rounded-full bg-amber-500/80 shrink-0" />
                 <span className="truncate text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200">

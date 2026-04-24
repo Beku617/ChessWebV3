@@ -46,7 +46,7 @@ export function PlayerInfo({
   }, [avatarImage]);
 
   return (
-    <div className="w-full bg-white/75 dark:bg-gray-900/80 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-md px-3 py-2.5 flex items-center justify-between gap-3 backdrop-blur">
+    <div className="theme-glass-panel-soft w-full rounded-2xl px-3 py-2.5 flex items-center justify-between gap-3">
       <div className="flex items-center gap-3 min-w-0">
         <div
           className={`w-12 h-12 rounded-xl flex items-center justify-center text-base font-semibold text-white shadow-sm overflow-hidden flex-shrink-0 ${

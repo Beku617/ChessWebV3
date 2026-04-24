@@ -6,7 +6,8 @@ export type MatchVariant =
   | "standard"
   | "chess960"
   | "threeCheck"
-  | "kingOfHill";
+  | "kingOfHill"
+  | "atomic";
 export type GameOverReason =
   | "checkmate"
   | "draw"
@@ -15,7 +16,8 @@ export type GameOverReason =
   | "opponent_left"
   | "aborted"
   | "three_check"
-  | "king_of_the_hill";
+  | "king_of_the_hill"
+  | "atomic_explosion";
 
 export interface MoveAppliedPayload {
   gameId: string;
@@ -146,6 +148,9 @@ export function formatPerspectiveResult(
   if (payload.reason === "king_of_the_hill") {
     return `${win ? "You Win" : "You Lose"} (by reaching the center)`;
   }
+  if (payload.reason === "atomic_explosion") {
+    return `${win ? "You Win" : "You Lose"} (by king explosion)`;
+  }
   const reasonMap: Record<GameOverReason, string> = {
     checkmate: "by checkmate",
     resign: "by resignation",
@@ -154,6 +159,7 @@ export function formatPerspectiveResult(
     aborted: "game aborted",
     three_check: "by three checks",
     king_of_the_hill: "by reaching the center",
+    atomic_explosion: "by king explosion",
     draw: "",
   };
   const reason = reasonMap[payload.reason];
@@ -214,6 +220,14 @@ export function normalizeMatchVariant(value: unknown): MatchVariant {
   const normalized = value.trim().toLowerCase();
   if (normalized === "chess960") return "chess960";
   if (
+    normalized === "atomic" ||
+    normalized === "atomicchess" ||
+    normalized === "atomic-chess" ||
+    normalized === "atomic_chess"
+  ) {
+    return "atomic";
+  }
+  if (
     normalized === "kingofhill" ||
     normalized === "king-of-hill" ||
     normalized === "king_of_hill"
@@ -231,5 +245,31 @@ export function normalizeMatchVariant(value: unknown): MatchVariant {
 }
 
 export function isUnratedVariant(variant: MatchVariant): boolean {
-  return variant === "threeCheck" || variant === "kingOfHill";
+  return (
+    variant === "threeCheck" ||
+    variant === "kingOfHill" ||
+    variant === "atomic"
+  );
+}
+
+export function isAtomicKingCaptureAttempt(
+  currentGame: Pick<Chess, "get"> | null | undefined,
+  sourceSquare: Square,
+  targetSquare: Square,
+  moverColor?: PlayerColor,
+) {
+  if (!currentGame || typeof currentGame.get !== "function") return false;
+  const movingPiece = currentGame.get(sourceSquare);
+  if (!movingPiece || movingPiece.type !== "k") return false;
+  if (moverColor && movingPiece.color !== moverColor) return false;
+
+  const targetPiece = currentGame.get(targetSquare);
+  return !!targetPiece && targetPiece.color !== movingPiece.color;
+}
+
+export function isAtomicVerboseMoveAllowed(move: {
+  piece?: string;
+  captured?: string;
+}) {
+  return !(move?.piece === "k" && !!move?.captured);
 }

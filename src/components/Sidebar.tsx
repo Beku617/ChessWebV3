@@ -1,20 +1,22 @@
 import { useEffect } from "react";
-import {
-  Puzzle,
-  GraduationCap,
-  Eye,
-  Users,
-  Settings,
-  MessageSquare,
-  LogOut,
-  Trophy,
-} from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuthStore, authApi } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
 import { useTranslation } from "react-i18next";
 import { useFriendStore } from "../store/friendStore";
 import { useMessageStore } from "../store/messageStore";
+import type { LucideIcon } from "lucide-react";
+import {
+  BookOpen,
+  Calendar,
+  ListChecks,
+  LogOut,
+  MessageCircle,
+  MessageSquare,
+  Radio,
+  Settings,
+  Users,
+} from "lucide-react";
 
 export default function Sidebar() {
   const location = useLocation();
@@ -62,27 +64,27 @@ export default function Sidebar() {
     }
   };
 
-  const navItems = [
+  const navItems: Array<{ label: string; path: string; Icon: LucideIcon }> = [
     {
-      icon: Trophy,
       label: t("nav.tournaments", "Tournaments"),
       path: "/tournaments",
+      Icon: Calendar,
     },
     {
-      icon: Puzzle,
       label: t("nav.puzzles", "Puzzles"),
       path: "/puzzles",
+      Icon: ListChecks,
     },
     {
-      icon: GraduationCap,
       label: t("nav.learn", "Learn"),
       path: "/learn",
+      Icon: BookOpen,
     },
-    { icon: Eye, label: t("nav.watch", "Watch"), path: "/watch" },
+    { label: t("nav.watch", "Watch"), path: "/watch", Icon: Radio },
     {
-      icon: Users,
       label: t("nav.community", "Community"),
       path: "/community",
+      Icon: MessageSquare,
     },
   ];
   const fontSizeGroup = {
@@ -98,15 +100,13 @@ export default function Sidebar() {
     navWrapper: isCompact ? "px-1 py-3 md:px-3 md:py-3" : "px-1 py-4 md:px-3 md:py-4",
     navGap: isCompact ? "gap-1" : "gap-1.5",
     rowPadding: isCompact ? "px-2 py-2 md:px-3 md:py-2" : "px-2 py-2 md:px-3.5 md:py-2.5",
-    rowIcon: isCompact ? "w-4 h-4" : "w-5 h-5",
     profileRowPadding: isCompact ? "px-2 py-2 md:px-3 md:py-2" : "px-2 py-2 md:px-3 md:py-2.5",
-    iconButtonPadding: isCompact ? "p-1.5" : "p-1.5 md:p-2",
   } as const;
   const logoSrc = isDarkMode ? "/images/Logo.png" : "/images/LightModeLogo.png";
   const formatCount = (value: number) => (value > 99 ? "99+" : value.toString());
 
   return (
-    <div className={`${sidebarWidthClass} h-screen bg-[#ebebed] dark:bg-gray-900 flex flex-col fixed left-0 top-0 z-50 transition-colors duration-300`}>
+    <div className={`${sidebarWidthClass} h-screen bg-theme-secondary border-r border-theme-glass flex flex-col fixed left-0 top-0 z-50 transition-colors duration-300`}>
       {/* Logo */}
       <Link
         to="/"
@@ -129,36 +129,36 @@ export default function Sidebar() {
       {/* Navigation */}
       <nav className={`flex-1 overflow-y-auto ${styleGroup.navWrapper}`}>
         <div className={`flex flex-col ${styleGroup.navGap}`}>
-          {navItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`flex items-center justify-center md:justify-start gap-0 md:gap-2.5 min-h-[44px] ${styleGroup.rowPadding} rounded-xl border border-transparent transition-all duration-200 group ${
-                isActive(item.path)
-                  ? "bg-brand-500/14 border-brand-400/35 text-brand-700 dark:text-brand-300 shadow-[0_8px_18px_rgba(20,184,166,0.16)]"
-                  : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/80 hover:text-gray-900 dark:hover:text-white"
-              }`}
-            >
-              <item.icon
-                className={`shrink-0 ${styleGroup.rowIcon} ${
+          {navItems.map((item) => {
+            const Icon = item.Icon;
+
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex items-center justify-center md:justify-start gap-0 md:gap-3 min-h-[44px] ${styleGroup.rowPadding} rounded-xl border border-transparent transition-all duration-200 group ${
                   isActive(item.path)
-                    ? "text-brand-700 dark:text-brand-300"
-                    : "text-gray-400 dark:text-gray-500 group-hover:text-gray-900 dark:group-hover:text-white"
+                    ? "bg-brand-500/14 border-brand-400/35 text-brand-700 dark:text-brand-300 shadow-[0_8px_18px_rgba(20,184,166,0.16)]"
+                    : "text-gray-500 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white"
                 }`}
-              />
-              <span
-                className={`hidden md:inline font-medium leading-none ${fontSizeGroup.primary}`}
+                title={item.label}
               >
-                {item.label}
-              </span>
-            </Link>
-          ))}
+                <Icon className="h-4 w-4 shrink-0 md:h-5 md:w-5" aria-hidden="true" />
+                <span
+                  className={`hidden md:inline font-medium leading-none ${fontSizeGroup.primary}`}
+                >
+                  {item.label}
+                </span>
+                <span className="sr-only md:hidden">{item.label}</span>
+              </Link>
+            );
+          })}
         </div>
       </nav>
 
       {/* Bottom Section */}
       <div
-        className={`border-t border-gray-200/70 dark:border-gray-800/90 flex flex-col ${isCompact ? "px-1 py-3 gap-1 md:px-3" : "px-1 py-4 gap-1.5 md:px-3"}`}
+        className={`border-t border-theme-glass flex flex-col ${isCompact ? "px-1 py-3 gap-1 md:px-3" : "px-1 py-4 gap-1.5 md:px-3"}`}
       >
         {/* User Profile & Quick Actions */}
         <div className={`${isCompact ? "pt-1" : "pt-1.5"}`}>
@@ -169,7 +169,7 @@ export default function Sidebar() {
               className={`w-full md:flex-1 min-w-0 flex items-center justify-center md:justify-start gap-2.5 rounded-xl border border-transparent transition-colors cursor-pointer group ${styleGroup.profileRowPadding} ${
                 isActive("/profile")
                   ? "bg-brand-500/10 border-brand-400/25"
-                  : "hover:bg-gray-100 dark:hover:bg-gray-800"
+                  : "hover:bg-white/50 dark:hover:bg-white/10"
               }`}
             >
               <div
@@ -202,35 +202,35 @@ export default function Sidebar() {
             </Link>
 
             <div className="flex flex-col md:flex-row items-center gap-1.5">
-              {/* Messages Icon Button */}
               <Link
                 to="/messages"
                 className={`relative inline-flex items-center justify-center flex-shrink-0 rounded-lg transition-colors ${
                   isActive("/messages")
                     ? "bg-brand-500/10 text-brand-600 dark:text-brand-300"
-                    : "text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300"
-                } ${styleGroup.iconButtonPadding}`}
+                    : "text-gray-400 hover:bg-white/50 dark:hover:bg-white/10 hover:text-gray-600 dark:hover:text-gray-200"
+                } px-2 py-1.5 md:px-3 md:py-2`}
                 title={t("nav.messages", "Messages")}
               >
-                <MessageSquare className={styleGroup.rowIcon} />
+                <MessageCircle className="h-4 w-4 md:h-5 md:w-5" aria-hidden="true" />
+                <span className="sr-only">{t("nav.messages", "Messages")}</span>
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[18px] h-5 px-1.5 rounded-full bg-cyan-500 text-[10px] font-bold text-white leading-none flex items-center justify-center shadow-[0_0_0_1px_rgba(0,0,0,0.35)]">
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-5 px-1.5 rounded-full bg-brand-500 text-[10px] font-bold text-white leading-none flex items-center justify-center shadow-[0_0_0_1px_rgba(0,0,0,0.35)]">
                     {formatCount(unreadCount)}
                   </span>
                 )}
               </Link>
 
-              {/* Friends Icon Button */}
               <Link
                 to="/friends"
                 className={`relative inline-flex items-center justify-center flex-shrink-0 rounded-lg transition-colors ${
                   isActive("/friends")
                     ? "bg-brand-500/10 text-brand-600 dark:text-brand-300"
-                    : "text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300"
-                } ${styleGroup.iconButtonPadding}`}
+                    : "text-gray-400 hover:bg-white/50 dark:hover:bg-white/10 hover:text-gray-600 dark:hover:text-gray-200"
+                } px-2 py-1.5 md:px-3 md:py-2`}
                 title={t("nav.friends", "Friends")}
               >
-                <Users className={styleGroup.rowIcon} />
+                <Users className="h-4 w-4 md:h-5 md:w-5" aria-hidden="true" />
+                <span className="sr-only">{t("nav.friends", "Friends")}</span>
                 {pendingIncomingCount > 0 && (
                   <span className="absolute -top-1 -right-1 min-w-[18px] h-5 px-1.5 rounded-full bg-brand-500 text-[10px] font-bold text-white leading-none flex items-center justify-center shadow-[0_0_0_1px_rgba(0,0,0,0.35)]">
                     {formatCount(pendingIncomingCount)}
@@ -238,17 +238,17 @@ export default function Sidebar() {
                 )}
               </Link>
 
-              {/* Settings Icon Button */}
               <Link
                 to="/settings"
-                className={`flex-shrink-0 rounded-lg transition-colors ${
+                className={`inline-flex items-center justify-center flex-shrink-0 rounded-lg transition-colors ${
                   isActive("/settings")
                     ? "bg-brand-500/10 text-brand-600 dark:text-brand-300"
-                    : "text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300"
-                } ${styleGroup.iconButtonPadding}`}
+                    : "text-gray-400 hover:bg-white/50 dark:hover:bg-white/10 hover:text-gray-600 dark:hover:text-gray-200"
+                } px-2 py-1.5 md:px-3 md:py-2`}
                 title={t("nav.settings", "Settings")}
               >
-                <Settings className={styleGroup.rowIcon} />
+                <Settings className="h-4 w-4 md:h-5 md:w-5" aria-hidden="true" />
+                <span className="sr-only">{t("nav.settings", "Settings")}</span>
               </Link>
             </div>
           </div>
@@ -257,12 +257,14 @@ export default function Sidebar() {
         {/* Logout */}
         <button
           onClick={handleLogout}
-          className={`w-full flex items-center justify-center md:justify-start gap-0 md:gap-3 min-h-[44px] ${styleGroup.rowPadding} rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors`}
+          className={`w-full flex items-center justify-center md:justify-start gap-0 md:gap-3 min-h-[44px] ${styleGroup.rowPadding} rounded-xl text-red-500 hover:bg-red-500/10 transition-colors`}
+          title={t("nav.logout", "Log Out")}
         >
-          <LogOut className={styleGroup.rowIcon} />
+          <LogOut className="h-4 w-4 shrink-0 md:h-5 md:w-5" aria-hidden="true" />
           <span className={`hidden md:inline font-medium leading-none ${fontSizeGroup.primary}`}>
             {t("nav.logout", "Log Out")}
           </span>
+          <span className="sr-only md:hidden">{t("nav.logout", "Log Out")}</span>
         </button>
       </div>
     </div>

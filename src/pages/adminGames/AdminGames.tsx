@@ -9,7 +9,6 @@ import {
   Gamepad2,
   Loader2,
   Pencil,
-  Plus,
   Search,
   Trash2,
   X,
@@ -67,7 +66,6 @@ export default function AdminGames() {
     ratedFilter,
     setRatedFilter,
     setPage,
-    createGame,
     updateGame,
     deleteGame,
     exportGames,
@@ -98,11 +96,6 @@ export default function AdminGames() {
     setTimeout(() => setNotification(null), 3200);
   };
 
-  const handleCreateClick = () => {
-    setEditingGame(null);
-    setShowFormModal(true);
-  };
-
   const handleEditClick = (game: AdminGame) => {
     setEditingGame(game);
     setShowFormModal(true);
@@ -115,8 +108,7 @@ export default function AdminGames() {
         await updateGame(editingGame._id, formData);
         showNotification("success", "Game updated successfully");
       } else {
-        await createGame(formData);
-        showNotification("success", "Game created successfully");
+        throw new Error("No game selected for editing");
       }
       setShowFormModal(false);
     } catch (err) {
@@ -196,10 +188,6 @@ export default function AdminGames() {
               <Gamepad2 className="w-8 h-8 text-brand-500" />
               Games Management
             </h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-1">
-              Cleanly manage game records, CRUD operations, and jump directly to
-              admin analysis.
-            </p>
           </div>
 
           <div className="flex items-center gap-3">
@@ -210,14 +198,6 @@ export default function AdminGames() {
             >
               <Download className="w-4 h-4" />
               Export CSV
-            </button>
-            <button
-              type="button"
-              onClick={handleCreateClick}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-brand-500 to-brand-500 text-white font-medium hover:from-brand-600 hover:to-brand-600 transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              Create Game
             </button>
           </div>
         </div>
@@ -334,14 +314,6 @@ export default function AdminGames() {
             <div className="py-20 text-center text-gray-500 dark:text-gray-400">
               <Gamepad2 className="w-12 h-12 mx-auto mb-3 opacity-40" />
               <p>No games found with current filters.</p>
-              <button
-                type="button"
-                onClick={handleCreateClick}
-                className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-brand-500 text-white hover:bg-brand-600 transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                Create First Game
-              </button>
             </div>
           ) : (
             <table className="w-full">

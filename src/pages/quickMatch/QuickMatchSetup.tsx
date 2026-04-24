@@ -3,19 +3,21 @@ import { Chessboard } from "react-chessboard";
 import {
   ChevronDown,
   ChevronUp,
-  Clock,
   ExternalLink,
   LayoutGrid,
   Timer,
-  Zap,
 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../../store/authStore";
 import { BOARD_FRAME } from "./types";
 import { useBoardTheme } from "../../hooks/useBoardTheme";
 
-type MatchVariant = "standard" | "chess960" | "threeCheck" | "kingOfHill";
+type MatchVariant =
+  | "standard"
+  | "chess960"
+  | "threeCheck"
+  | "kingOfHill"
+  | "atomic";
 
 interface QuickMatchSetupProps {
   timeControl: { initial: number; increment: number };
@@ -46,7 +48,6 @@ interface QuickTimeOption {
 interface QuickTimeGroup {
   id: string;
   label: string;
-  icon: LucideIcon;
   options: QuickTimeOption[];
 }
 
@@ -54,7 +55,6 @@ const QUICK_TIME_GROUPS: QuickTimeGroup[] = [
   {
     id: "bullet",
     label: "Bullet",
-    icon: Zap,
     options: [
       { label: "1 min", initial: 60, increment: 0 },
       { label: "2 | 1", initial: 120, increment: 1 },
@@ -63,7 +63,6 @@ const QUICK_TIME_GROUPS: QuickTimeGroup[] = [
   {
     id: "blitz",
     label: "Blitz",
-    icon: Zap,
     options: [
       { label: "3 min", initial: 180, increment: 0 },
       { label: "3 | 2", initial: 180, increment: 2 },
@@ -74,7 +73,6 @@ const QUICK_TIME_GROUPS: QuickTimeGroup[] = [
   {
     id: "rapid",
     label: "Rapid",
-    icon: Clock,
     options: [
       { label: "10 min", initial: 600, increment: 0 },
       { label: "10 | 5", initial: 600, increment: 5 },
@@ -85,7 +83,6 @@ const QUICK_TIME_GROUPS: QuickTimeGroup[] = [
   {
     id: "classical",
     label: "Classical",
-    icon: Clock,
     options: [
       { label: "30 | 20", initial: 1800, increment: 20 },
     ],
@@ -97,6 +94,7 @@ const GAME_TYPE_OPTIONS: GameTypeOption[] = [
   { id: "chess960", label: "Chess960", source: "quick" },
   { id: "kingOfHill", label: "King of the Hill", source: "variants" },
   { id: "threeCheck", label: "Three-Check", source: "variants" },
+  { id: "atomic", label: "Atomic Chess", source: "variants" },
   { id: "fourPlayer", label: "4-Player Chess", source: "variants" },
 ];
 
@@ -222,6 +220,8 @@ export function QuickMatchSetup({
         ? t("King of the Hill")
       : variant === "threeCheck"
         ? t("Three-Check")
+        : variant === "atomic"
+          ? t("Atomic Chess")
         : "";
   const selectedGameType =
     GAME_TYPE_OPTIONS.find((option) => option.id === variant) ||
@@ -233,7 +233,7 @@ export function QuickMatchSetup({
     ? `${selectedTimeOption.label} (${t(selectedTimeOption.groupLabel)})`
     : `${timeOptionLabel} (${timeGroupLabel})`;
   const isUnratedVariant =
-    variant === "threeCheck" || variant === "kingOfHill";
+    variant === "threeCheck" || variant === "kingOfHill" || variant === "atomic";
   const searchingGameText = tournamentMode
     ? queueStatus ||
       t("Waiting for your tournament opponent to open the game link...")
@@ -258,7 +258,7 @@ export function QuickMatchSetup({
   return (
     <div
       ref={containerRef}
-      className="relative h-full min-h-0 w-full bg-slate-100 dark:bg-gradient-to-b dark:from-slate-950 dark:via-slate-900 dark:to-slate-950"
+      className="relative h-full min-h-0 w-full bg-transparent"
     >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(20,184,166,0.14),transparent_48%),radial-gradient(circle_at_85%_10%,rgba(56,189,248,0.08),transparent_42%)]" />
       <div className="relative h-full min-h-0 grid grid-cols-1 lg:grid-cols-2">
@@ -366,14 +366,14 @@ export function QuickMatchSetup({
         </div>
 
         {/* Right Side - Quick Match Panel */}
-        <div className="w-full h-full min-h-0 rounded-2xl overflow-hidden bg-white/85 dark:bg-slate-900/75 border border-gray-200/60 dark:border-white/10 shadow-[0_16px_36px_rgba(0,0,0,0.32)] backdrop-blur-md flex flex-col">
+        <div className="theme-glass-panel-strong w-full h-full min-h-0 rounded-2xl overflow-hidden flex flex-col">
           {isSearching ? (
             <>
               <div className="relative flex-1 overflow-hidden">
-                <div className="absolute inset-5 lg:inset-6 rounded-2xl border border-gray-200/45 dark:border-white/10 bg-gray-50/20 dark:bg-slate-800/25" />
+                <div className="theme-glass-panel-soft absolute inset-5 lg:inset-6 rounded-2xl" />
 
                 <div className="absolute inset-0 flex items-center justify-center px-6">
-                  <div className="w-full max-w-[300px] rounded-2xl border border-gray-200/70 dark:border-white/10 bg-white/90 dark:bg-slate-900/85 p-7 text-center shadow-[0_20px_40px_rgba(0,0,0,0.35)]">
+                  <div className="theme-glass-panel-strong w-full max-w-[300px] rounded-2xl p-7 text-center">
                     <Timer className="w-10 h-10 mx-auto text-gray-700 dark:text-gray-200" />
                     <p className="mt-3 text-2xl font-semibold text-gray-900 dark:text-white">
                       {searchElapsedSeconds} sec
@@ -403,7 +403,7 @@ export function QuickMatchSetup({
           ) : (
             <>
               {/* Panel Header */}
-              <div className="px-4 py-3 border-b border-gray-200/55 dark:border-white/10">
+              <div className="px-4 py-3 border-b border-theme-glass">
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4 text-brand-500" />
@@ -435,14 +435,14 @@ export function QuickMatchSetup({
                 {!tournamentMode && (
                   <>
                     {/* Game Type */}
-                    <div className="rounded-2xl border border-gray-200/55 dark:border-white/10 bg-white/60 dark:bg-slate-900/45 p-3">
+                    <div className="theme-glass-panel-soft rounded-2xl p-3">
                       <div className="text-[12px] font-semibold text-gray-900 dark:text-white mb-2">
                         {t("Game Type")}
                       </div>
                       <button
                         type="button"
                         onClick={() => setIsGameTypeOpen((value) => !value)}
-                        className="w-full py-3 px-3 rounded-xl bg-gray-100 dark:bg-slate-800 border border-gray-200/70 dark:border-white/10 text-gray-800 dark:text-gray-100 flex items-center justify-between"
+                        className="w-full py-3 px-3 rounded-xl bg-white/55 dark:bg-white/10 border border-white/10 text-gray-800 dark:text-gray-100 flex items-center justify-between"
                       >
                         <span className="flex items-center gap-2 text-[13px] font-semibold">
                           <LayoutGrid className="w-4 h-4 text-gray-600 dark:text-gray-300" />
@@ -456,7 +456,7 @@ export function QuickMatchSetup({
                       </button>
 
                       {isGameTypeOpen && (
-                        <div className="mt-2 rounded-xl border border-gray-200/70 dark:border-white/10 overflow-hidden">
+                        <div className="mt-2 rounded-xl border border-white/10 overflow-hidden">
                           {GAME_TYPE_OPTIONS.map((option) => {
                             const isActive = selectedGameType.id === option.id;
                             return (
@@ -474,7 +474,7 @@ export function QuickMatchSetup({
                                 className={`w-full px-3 py-2.5 flex items-center justify-between text-left transition-colors ${
                                   isActive
                                     ? "bg-brand-500/15 text-brand-600 dark:text-brand-300"
-                                    : "bg-white dark:bg-slate-900 hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-700 dark:text-gray-200"
+                                    : "bg-white/55 dark:bg-white/10 hover:bg-white/75 dark:hover:bg-white/15 text-gray-700 dark:text-gray-200"
                                 }`}
                               >
                                 <span className="text-[13px] font-medium">
@@ -491,11 +491,11 @@ export function QuickMatchSetup({
                     </div>
 
                     {/* Time Control */}
-                    <div className="rounded-2xl border border-gray-200/55 dark:border-white/10 bg-white/60 dark:bg-slate-900/45 p-3">
+                    <div className="theme-glass-panel-soft rounded-2xl p-3">
                       <button
                         type="button"
                         onClick={() => setIsTimeControlOpen((value) => !value)}
-                        className="w-full py-3 px-3 rounded-xl bg-gray-100 dark:bg-slate-800 border border-gray-200/70 dark:border-white/10 text-gray-800 dark:text-gray-100 flex items-center justify-between"
+                        className="w-full py-3 px-3 rounded-xl bg-white/55 dark:bg-white/10 border border-white/10 text-gray-800 dark:text-gray-100 flex items-center justify-between"
                       >
                         <span className="flex items-center gap-2 text-[13px] font-semibold">
                           <Timer className="w-4 h-4 text-yellow-500" />
@@ -511,11 +511,9 @@ export function QuickMatchSetup({
                       {isTimeControlOpen && (
                         <div className="mt-3 space-y-3">
                           {QUICK_TIME_GROUPS.map((group) => {
-                            const GroupIcon = group.icon;
                             return (
                               <div key={group.id}>
                                 <div className="mb-1 flex items-center gap-1.5 text-[12px] font-semibold text-gray-800 dark:text-gray-200">
-                                  <GroupIcon className="w-4 h-4 text-yellow-500" />
                                   <span>{t(group.label)}</span>
                                 </div>
                                 <div className="grid grid-cols-3 gap-2">
@@ -547,7 +545,7 @@ export function QuickMatchSetup({
                               </div>
                             );
                           })}
-                          <div className="rounded-xl border border-gray-200/70 dark:border-white/10 bg-white dark:bg-slate-900 p-2.5">
+                          <div className="theme-glass-panel-soft rounded-xl p-2.5">
                             <div className="text-[12px] font-semibold text-gray-800 dark:text-gray-200">
                               Custom
                             </div>
@@ -562,7 +560,7 @@ export function QuickMatchSetup({
                                   onChange={(event) =>
                                     setCustomBaseMinutes(event.target.value)
                                   }
-                                  className="mt-1 w-full rounded-lg border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 px-2 py-1.5 text-[12px] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500/40"
+                                  className="mt-1 w-full rounded-lg border border-white/10 bg-white/60 dark:bg-white/10 px-2 py-1.5 text-[12px] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500/40"
                                 />
                               </label>
                               <label className="text-[11px] text-gray-600 dark:text-gray-300">
@@ -575,7 +573,7 @@ export function QuickMatchSetup({
                                   onChange={(event) =>
                                     setCustomIncrementSeconds(event.target.value)
                                   }
-                                  className="mt-1 w-full rounded-lg border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 px-2 py-1.5 text-[12px] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500/40"
+                                  className="mt-1 w-full rounded-lg border border-white/10 bg-white/60 dark:bg-white/10 px-2 py-1.5 text-[12px] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500/40"
                                 />
                               </label>
                             </div>
@@ -594,14 +592,14 @@ export function QuickMatchSetup({
                 )}
 
                 {tournamentMode && (
-                  <div className="rounded-2xl border border-gray-200/55 dark:border-white/10 bg-white/60 dark:bg-slate-900/45 p-3 text-sm text-gray-700 dark:text-gray-200">
+                  <div className="theme-glass-panel-soft rounded-2xl p-3 text-sm text-gray-700 dark:text-gray-200">
                     {t("This is a tournament pairing. The game will start automatically once both players join this link. You can keep this tab open; no extra matchmaking is needed.")}
                   </div>
                 )}
               </div>
 
               {!tournamentMode && (
-                <div className="p-4 pt-3 border-t border-gray-200/55 dark:border-white/10 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+                <div className="p-4 pt-3 border-t border-theme-glass pb-[calc(1rem+env(safe-area-inset-bottom))]">
                   <button
                     onClick={onStart}
                     disabled={isSearching || !isConnected}

@@ -6,6 +6,7 @@ import { useAuthStore } from "../../store/authStore";
 import { useFriendChallengeStore } from "../../store/friendChallengeStore";
 import { FriendGameSetup } from "./FriendGameSetup";
 import { FriendGameView } from "./FriendGameView";
+import { fetchBlockStatus } from "../../features/blocking/api";
 
 export default function PlayWithFriend() {
   const navigate = useNavigate();
@@ -71,6 +72,11 @@ export default function PlayWithFriend() {
     isRated,
     lastGameOver,
     isConnected,
+    statusMessage,
+    playerClockSeed,
+    opponentClockSeed,
+    clockResetToken,
+    isClockPaused,
   } = useFriendOnlineGame();
 
   const [playAs, setPlayAs] = useState<"white" | "black" | "random">("white");
@@ -109,6 +115,14 @@ export default function PlayWithFriend() {
     setIsSendingChallenge(true);
     setChallengeError(null);
     clearInfo();
+
+    const blockStatus = await fetchBlockStatus(payload.toUserId);
+    if (blockStatus.isBlocked) {
+      setChallengeError("You cannot challenge this player.");
+      setIsSendingChallenge(false);
+      return;
+    }
+
     const response = await sendChallenge({
       ...payload,
       fromRating: user?.rating,
@@ -135,6 +149,13 @@ export default function PlayWithFriend() {
     setIsSendingChallenge(true);
     setChallengeError(null);
     clearInfo();
+
+    const blockStatus = await fetchBlockStatus(rematchTargetUserId);
+    if (blockStatus.isBlocked) {
+      setChallengeError("You cannot challenge this player.");
+      setIsSendingChallenge(false);
+      return;
+    }
 
     const response = await sendChallenge({
       toUserId: rematchTargetUserId,
@@ -179,6 +200,7 @@ export default function PlayWithFriend() {
         preMoveSquares={preMoveSquares}
         playerRating={playerRating}
         opponentRating={opponentRating}
+        statusMessage={statusMessage}
         onSquareClick={onSquareClick}
         onPieceDrop={onPieceDrop}
         onCancelSelection={onCancelSelection}
@@ -187,6 +209,10 @@ export default function PlayWithFriend() {
         onPromotionPieceSelect={onPromotionPieceSelect}
         setOpponentTime={setOpponentTime}
         setPlayerTime={setPlayerTime}
+        playerClockSeed={playerClockSeed}
+        opponentClockSeed={opponentClockSeed}
+        clockResetToken={clockResetToken}
+        isClockPaused={isClockPaused}
         onTimeOut={timeOut}
         onResign={resign}
         onTryAgain={handleTryAgain}

@@ -507,66 +507,6 @@ function generateSwissPairings({ players, games, roundNumber }) {
   return pairings;
 }
 
-function rotateRoundRobin(players) {
-  if (players.length <= 2) return [...players];
-  const fixed = players[0];
-  const movable = players.slice(1);
-  const last = movable.pop();
-  return [fixed, last, ...movable];
-}
-
-function generateRoundRobinPairings({ players, roundNumber }) {
-  const seeded = stableSortBySeed(players);
-  const participantIds = seeded.map((player) => toId(player.userId));
-
-  if (participantIds.length % 2 === 1) {
-    participantIds.push(null);
-  }
-
-  const roundsCount = Math.max(1, participantIds.length - 1);
-  if (roundNumber > roundsCount) return [];
-
-  let arrangement = [...participantIds];
-  for (let i = 1; i < roundNumber; i += 1) {
-    arrangement = rotateRoundRobin(arrangement);
-  }
-
-  const pairings = [];
-  const half = arrangement.length / 2;
-  let matchIndex = 0;
-
-  for (let i = 0; i < half; i += 1) {
-    const playerA = arrangement[i];
-    const playerB = arrangement[arrangement.length - 1 - i];
-
-    if (!playerA && !playerB) continue;
-    if (!playerA || !playerB) {
-      pairings.push(createByePairing(roundNumber, matchIndex, playerA || playerB));
-      matchIndex += 1;
-      continue;
-    }
-
-    const swapColors = (roundNumber + i) % 2 === 0;
-    pairings.push(
-      createBasePairing({
-        roundNumber,
-        matchIndex,
-        whiteId: swapColors ? playerB : playerA,
-        blackId: swapColors ? playerA : playerB,
-      }),
-    );
-    matchIndex += 1;
-  }
-
-  return pairings;
-}
-
-function nextPowerOfTwo(value) {
-  let power = 1;
-  while (power < value) power *= 2;
-  return power;
-}
-
 export function resolveWinnerId(game) {
   if (!game) return "";
   if (game.winnerId) return toId(game.winnerId);
@@ -582,79 +522,11 @@ export function resolveWinnerId(game) {
   return "";
 }
 
-function generateKnockoutPairings({ players, games, roundNumber }) {
-  const seeded = stableSortBySeed(players);
-
-  if (roundNumber === 1) {
-    const slots = seeded.map((player) => toId(player.userId));
-    const bracketSize = nextPowerOfTwo(Math.max(2, slots.length));
-    while (slots.length < bracketSize) slots.push(null);
-
-    const pairings = [];
-    let matchIndex = 0;
-    for (let i = 0; i < bracketSize / 2; i += 1) {
-      const playerA = slots[i];
-      const playerB = slots[bracketSize - 1 - i];
-      if (!playerA && !playerB) continue;
-      if (!playerA || !playerB) {
-        pairings.push(createByePairing(roundNumber, matchIndex, playerA || playerB));
-      } else {
-        pairings.push(
-          createBasePairing({
-            roundNumber,
-            matchIndex,
-            whiteId: i % 2 === 0 ? playerA : playerB,
-            blackId: i % 2 === 0 ? playerB : playerA,
-          }),
-        );
-      }
-      matchIndex += 1;
-    }
-    return pairings;
-  }
-
-  const previousRoundGames = [...games]
-    .filter((game) => Number(game.roundNumber) === Number(roundNumber) - 1)
-    .sort((a, b) => Number(a.matchIndex || 0) - Number(b.matchIndex || 0));
-
-  const winners = previousRoundGames
-    .map((game) => resolveWinnerId(game))
-    .filter(Boolean);
-  if (winners.length <= 1) return [];
-
-  const pairings = [];
-  let matchIndex = 0;
-  for (let i = 0; i < winners.length; i += 2) {
-    const playerA = winners[i];
-    const playerB = winners[i + 1] || null;
-    if (!playerB) {
-      pairings.push(createByePairing(roundNumber, matchIndex, playerA));
-    } else {
-      pairings.push(
-        createBasePairing({
-          roundNumber,
-          matchIndex,
-          whiteId: i % 4 === 0 ? playerA : playerB,
-          blackId: i % 4 === 0 ? playerB : playerA,
-        }),
-      );
-    }
-    matchIndex += 1;
-  }
-  return pairings;
-}
-
 export function generateRoundPairings({ tournamentType, players, games, roundNumber }) {
   if (!Array.isArray(players) || players.length === 0) return [];
 
   if (tournamentType === "swiss") {
     return generateSwissPairings({ players, games, roundNumber });
-  }
-  if (tournamentType === "roundRobin") {
-    return generateRoundRobinPairings({ players, roundNumber });
-  }
-  if (tournamentType === "knockout") {
-    return generateKnockoutPairings({ players, games, roundNumber });
   }
   return [];
 }
@@ -716,25 +588,14 @@ export function computeRoundsPlanned(tournamentType, playerCount, requestedRound
   const requested = Number(requestedRounds);
   const hasRequested = Number.isInteger(requested) && requested > 0;
 
-  if (tournamentType === "swiss") {
-    if (hasRequested) {
-      // Respect explicit requests (e.g., 2 players but 4 rounds for color balance),
-      // while keeping an upper safety cap.
-      return Math.max(1, Math.min(MAX_SWISS_ROUNDS, requested));
-    }
-    const suggested = Math.max(3, Math.ceil(Math.log2(count)) + 1);
-    return Math.max(1, Math.min(Math.max(1, count - 1), suggested, MAX_SWISS_ROUNDS));
+  if (hasRequested) {
+    // Respect explicit requests (e.g., 2 players but 4 rounds for color balance),
+    // while keeping an upper safety cap.
+    return Math.max(1, Math.min(MAX_SWISS_ROUNDS, requested));
   }
 
-  if (tournamentType === "roundRobin") {
-    return count % 2 === 0 ? count - 1 : count;
-  }
-
-  if (tournamentType === "knockout") {
-    return Math.max(1, Math.ceil(Math.log2(count)));
-  }
-
-  return hasRequested ? requested : 1;
+  const suggested = Math.max(3, Math.ceil(Math.log2(count)) + 1);
+  return Math.max(1, Math.min(Math.max(1, count - 1), suggested, MAX_SWISS_ROUNDS));
 }
 
 export function getWinnerFromResult(result, whiteId, blackId) {
@@ -745,7 +606,7 @@ export function getWinnerFromResult(result, whiteId, blackId) {
   return "";
 }
 
-export function createPlayerStatsMap(players, games, tournamentType) {
+export function createPlayerStatsMap(players, games) {
   const statsMap = new Map();
 
   for (const player of players) {
@@ -791,24 +652,22 @@ export function createPlayerStatsMap(players, games, tournamentType) {
     blackStats.opponents.push(whiteId);
   }
 
-  if (tournamentType === "swiss") {
-    for (const [userId, stats] of statsMap.entries()) {
-      let buchholz = 0;
-      for (const opponentId of stats.opponents) {
-        const opponentStats = statsMap.get(opponentId);
-        if (opponentStats) {
-          buchholz += opponentStats.score;
-        }
+  for (const [userId, stats] of statsMap.entries()) {
+    let buchholz = 0;
+    for (const opponentId of stats.opponents) {
+      const opponentStats = statsMap.get(opponentId);
+      if (opponentStats) {
+        buchholz += opponentStats.score;
       }
-      stats.buchholz = toRoundNumber(buchholz);
-      statsMap.set(userId, stats);
     }
+    stats.buchholz = toRoundNumber(buchholz);
+    statsMap.set(userId, stats);
   }
 
   for (const [userId, stats] of statsMap.entries()) {
     statsMap.set(userId, {
       score: toRoundNumber(stats.score),
-      buchholz: tournamentType === "swiss" ? toRoundNumber(stats.buchholz) : 0,
+      buchholz: toRoundNumber(stats.buchholz),
       gamesPlayed: stats.gamesPlayed,
       hadBye: !!stats.hadBye,
     });
@@ -843,7 +702,6 @@ export function buildManualRoundPairings({
   pairings,
   registeredIds,
   existingGames = [],
-  tournamentType = "swiss",
   allowRematch = false,
 }) {
   if (!Number.isInteger(Number(roundNumber)) || Number(roundNumber) <= 0) {
@@ -925,14 +783,6 @@ export function buildManualRoundPairings({
 
   if (seenPlayers.size !== normalizedRegisteredIds.size) {
     throw new Error("Manual pairings must include every registered player exactly once");
-  }
-
-  if (tournamentType === "knockout") {
-    for (const game of built) {
-      if (!game.isBye && !game.blackId) {
-        throw new Error("Invalid knockout pairing");
-      }
-    }
   }
 
   return built;

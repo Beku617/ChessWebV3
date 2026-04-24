@@ -1,33 +1,128 @@
 import { Router } from "express";
-import { User, History } from "../models/index.js";
+import { User, History, History960 } from "../models/index.js";
 import { adminAuthMiddleware } from "../middleware/index.js";
+import {
+  countGameHistories,
+  getGameHistoryStatsByUserIds,
+} from "../utils/gameHistoryStats.js";
 
 const router = Router();
+const ALLOWED_SORT_FIELDS = new Set(["createdAt", "rating", "gamesPlayed"]);
+
+function buildUserQuery(search) {
+  const normalizedSearch = String(search || "").trim();
+  if (!normalizedSearch) return {};
+
+  return {
+    $or: [
+      { fullName: { $regex: normalizedSearch, $options: "i" } },
+      { email: { $regex: normalizedSearch, $options: "i" } },
+    ],
+  };
+}
+
+function buildUserSort(sortBy, sortOrder) {
+  const safeSortBy = ALLOWED_SORT_FIELDS.has(String(sortBy))
+    ? String(sortBy)
+    : "createdAt";
+  const direction = String(sortOrder || "desc").toLowerCase() === "asc" ? 1 : -1;
+  return { [safeSortBy]: direction, _id: -1 };
+}
+
+function withHistoryStats(users, statsByUserId) {
+  return users.map((user) => {
+    const stats = statsByUserId.get(String(user._id));
+    if (!stats) return user;
+
+    return {
+      ...user,
+      gamesPlayed: Math.max(
+        Number(user.gamesPlayed || 0),
+        Number(stats.gamesPlayed || 0),
+      ),
+      gamesWon: Math.max(
+        Number(user.gamesWon || 0),
+        Number(stats.gamesWon || 0),
+      ),
+      gamesLost: Math.max(
+        Number(user.gamesLost || 0),
+        Number(stats.gamesLost || 0),
+      ),
+      gamesDraw: Math.max(
+        Number(user.gamesDraw || 0),
+        Number(stats.gamesDraw || 0),
+      ),
+    };
+  });
+}
+
+async function countGamesForUserQuery(query, hasSearch) {
+  if (!hasSearch) {
+    return countGameHistories();
+  }
+
+  const matchingUsers = await User.find(query).select("_id").lean();
+  const userIds = matchingUsers.map((user) => user._id);
+  if (userIds.length === 0) return 0;
+
+  return countGameHistories({ userId: { $in: userIds } });
+}
+
+async function buildUserStats(query, hasSearch, totalUsers) {
+  const weekAgo = new Date();
+  weekAgo.setDate(weekAgo.getDate() - 7);
+
+  const [newUsersThisWeek, bannedUsers, topUser, totalGames] =
+    await Promise.all([
+      User.countDocuments({ ...query, createdAt: { $gte: weekAgo } }),
+      User.countDocuments({ ...query, banned: true }),
+      User.findOne(query).select("rating").sort({ rating: -1 }).lean(),
+      countGamesForUserQuery(query, hasSearch),
+    ]);
+
+  return {
+    totalUsers,
+    totalGames,
+    newUsersThisWeek,
+    bannedUsers,
+    topRating: Number(topUser?.rating || 0),
+  };
+}
 
 // Get all users
 router.get("/", adminAuthMiddleware, async (req, res) => {
   try {
-    const { limit = 50, skip = 0, search = "" } = req.query;
+    const {
+      limit = 50,
+      skip = 0,
+      search = "",
+      sortBy = "createdAt",
+      sortOrder = "desc",
+    } = req.query;
 
-    const query = search
-      ? {
-          $or: [
-            { fullName: { $regex: search, $options: "i" } },
-            { email: { $regex: search, $options: "i" } },
-          ],
-        }
-      : {};
+    const query = buildUserQuery(search);
+    const sort = buildUserSort(sortBy, sortOrder);
 
-    const users = await User.find(query)
-      .select("-password")
-      .sort({ createdAt: -1 })
-      .skip(Number(skip))
-      .limit(Number(limit))
-      .lean();
+    const [users, total] = await Promise.all([
+      User.find(query)
+        .select("-password")
+        .sort(sort)
+        .skip(Number(skip))
+        .limit(Number(limit))
+        .lean(),
+      User.countDocuments(query),
+    ]);
 
-    const total = await User.countDocuments(query);
+    const [historyStatsByUserId, stats] = await Promise.all([
+      getGameHistoryStatsByUserIds(users.map((user) => user._id)),
+      buildUserStats(query, Boolean(String(search || "").trim()), total),
+    ]);
 
-    res.json({ users, total });
+    res.json({
+      users: withHistoryStats(users, historyStatsByUserId),
+      total,
+      stats,
+    });
   } catch (err) {
     console.error("Admin get users error:", err);
     res.status(500).json({ error: "Server error" });
@@ -41,7 +136,9 @@ router.get("/:id", adminAuthMiddleware, async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-    res.json({ user });
+
+    const statsByUserId = await getGameHistoryStatsByUserIds([user._id]);
+    res.json({ user: withHistoryStats([user], statsByUserId)[0] });
   } catch (err) {
     console.error("Admin get user error:", err);
     res.status(500).json({ error: "Server error" });
@@ -52,16 +149,23 @@ router.get("/:id", adminAuthMiddleware, async (req, res) => {
 router.get("/:id/games", adminAuthMiddleware, async (req, res) => {
   try {
     const { limit = 50, skip = 0 } = req.query;
+    const userQuery = { userId: req.params.id };
 
-    const games = await History.find({ userId: req.params.id })
-      .sort({ createdAt: -1 })
-      .skip(Number(skip))
-      .limit(Number(limit))
-      .lean();
+    const [standardGames, chess960Games, standardTotal, chess960Total] =
+      await Promise.all([
+        History.find(userQuery).sort({ createdAt: -1 }).lean(),
+        History960.find(userQuery).sort({ createdAt: -1 }).lean(),
+        History.countDocuments(userQuery),
+        History960.countDocuments(userQuery),
+      ]);
 
-    const total = await History.countDocuments({ userId: req.params.id });
+    const offset = Number(skip);
+    const pageSize = Number(limit);
+    const games = [...standardGames, ...chess960Games]
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(offset, offset + pageSize);
 
-    res.json({ games, total });
+    res.json({ games, total: standardTotal + chess960Total });
   } catch (err) {
     console.error("Admin get user games error:", err);
     res.status(500).json({ error: "Server error" });
@@ -75,7 +179,10 @@ router.delete("/:id", adminAuthMiddleware, async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-    await History.deleteMany({ userId: req.params.id });
+    await Promise.all([
+      History.deleteMany({ userId: req.params.id }),
+      History960.deleteMany({ userId: req.params.id }),
+    ]);
     res.json({ success: true, message: "User deleted" });
   } catch (err) {
     console.error("Admin delete user error:", err);

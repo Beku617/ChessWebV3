@@ -82,6 +82,13 @@ export function BotGameView({
   const movesEndRef = useRef<HTMLDivElement | null>(null);
   const timerInitialTime = 0;
   const timerIncrement = 0;
+  const opponentInitials =
+    gameSettings.selectedBot?.name
+      ?.split(/\s+/)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase() || "AI";
 
   // Auto-scroll moves list to the latest move
   useEffect(() => {
@@ -93,7 +100,7 @@ export function BotGameView({
   return (
     <div
       ref={containerRef}
-      className="relative h-screen w-full bg-slate-100 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 overflow-hidden"
+      className="relative h-screen w-full bg-transparent overflow-hidden"
     >
       <div className="h-full grid grid-cols-1 lg:grid-cols-2 min-h-0">
         <GameOverModal
@@ -117,7 +124,7 @@ export function BotGameView({
             <PlayerInfo
               name={gameSettings.selectedBot?.name || "Stockfish"}
               subtitle={gameSettings.selectedBot?.title || "AI opponent"}
-              avatarLetter={gameSettings.selectedBot?.avatar || "🤖"}
+              avatarLetter={opponentInitials}
               avatarStyle="opponent"
               initialTime={timerInitialTime}
               increment={timerIncrement}
@@ -135,7 +142,7 @@ export function BotGameView({
 
           {/* Chess Board */}
           <div
-            className="rounded-2xl overflow-hidden shadow-2xl border border-gray-200/60 dark:border-white/10"
+            className="theme-glass-panel-strong rounded-2xl overflow-hidden"
             style={{ width: boardWidth }}
           >
             <GameBoard
@@ -179,13 +186,10 @@ export function BotGameView({
         </div>
 
         {/* Right Side - Game Panel (same width as bot selection) */}
-        <div className="w-full bg-white/90 dark:bg-slate-900/95 border-l border-gray-200/60 dark:border-white/10 flex flex-col h-full">
+        <div className="theme-glass-panel-strong w-full rounded-none border-l-0 flex flex-col h-full">
           {/* Panel Header */}
-          <div className="p-4 border-b border-gray-200/60 dark:border-white/10">
+          <div className="p-4 border-b border-theme-glass">
             <div className="flex items-center gap-3">
-              <div className="text-3xl">
-                {gameSettings.selectedBot?.avatar || "🤖"}
-              </div>
               <div>
                 <div className="flex items-center gap-2">
                   <h2 className="text-xl font-bold text-gray-900 dark:text-white">
@@ -243,7 +247,7 @@ export function BotGameView({
           </div>
 
           {/* Action Buttons */}
-          <div className="p-4 pb-6 border-t border-gray-200/60 dark:border-white/10 flex flex-col gap-2">
+          <div className="p-4 pb-6 border-t border-theme-glass flex flex-col gap-2">
             <button
               onClick={onResign}
               disabled={gameOver}
@@ -253,7 +257,7 @@ export function BotGameView({
             </button>
             <button
               onClick={() => navigate("/play/bot")}
-              className="w-full py-3 rounded-xl bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-800 dark:text-gray-200 font-medium transition-colors"
+              className="w-full py-3 rounded-xl bg-white/10 hover:bg-white/15 text-gray-800 dark:text-gray-200 font-medium transition-colors"
             >
               Back to Bot Selection
             </button>

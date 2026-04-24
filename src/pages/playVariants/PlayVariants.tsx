@@ -30,6 +30,11 @@ const VARIANTS: VariantOption[] = [
     description: "Win by giving three checks.",
   },
   {
+    key: "atomic",
+    label: "Atomic Chess",
+    description: "Captures explode nearby pieces and kings.",
+  },
+  {
     key: "fourPlayer",
     label: "4-Player Chess",
     description: "Online matchmaking on a 14x14 cross board.",
@@ -164,7 +169,7 @@ function FourPlayerPreview({ size }: { size: number }) {
 
   return (
     <div
-      className="rounded-2xl overflow-hidden shadow-2xl border border-gray-200/60 dark:border-white/10 bg-gray-200/20 dark:bg-black/20 relative"
+      className="theme-glass-panel-strong rounded-2xl overflow-hidden relative"
       style={{ width: size, height: size }}
     >
       <div
@@ -292,6 +297,8 @@ export default function PlayVariants() {
           ? "kingOfHill"
         : selectedVariant.key === "threeCheck"
           ? "threeCheck"
+          : selectedVariant.key === "atomic"
+            ? "atomic"
           : "standard";
     const params = new URLSearchParams({
       initial: String(timeControl.initial),
@@ -315,7 +322,7 @@ export default function PlayVariants() {
   return (
     <div
       ref={containerRef}
-      className="relative h-screen w-full bg-slate-100 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 overflow-hidden"
+      className="relative h-screen w-full bg-transparent overflow-hidden"
     >
       <div className="h-full grid grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)]">
         {/* Left Side - Board Preview */}
@@ -350,7 +357,7 @@ export default function PlayVariants() {
             <FourPlayerPreview size={boardWidth} />
           ) : (
             <div
-              className="rounded-2xl overflow-hidden shadow-2xl border border-gray-200/60 dark:border-white/10"
+              className="theme-glass-panel-strong rounded-2xl overflow-hidden"
               style={{ width: boardWidth, height: boardWidth }}
             >
               <Chessboard
@@ -420,9 +427,9 @@ export default function PlayVariants() {
         </div>
 
         {/* Right Side - Variants Panel */}
-        <div className="min-w-0 w-full bg-white/90 dark:bg-slate-900/95 border-l border-gray-200/60 dark:border-white/10 flex flex-col h-full overflow-hidden">
+        <div className="theme-glass-panel-strong min-w-0 w-full rounded-none border-l-0 flex flex-col h-full overflow-hidden">
           {/* Panel Header */}
-          <div className="p-3 border-b border-gray-200/60 dark:border-white/10">
+          <div className="p-3 border-b border-theme-glass">
             <div className="flex items-center gap-2">
               <Shuffle className="w-4 h-4 text-brand-500" />
               <h2 className="font-bold text-[15px] text-gray-900 dark:text-white">
@@ -436,7 +443,7 @@ export default function PlayVariants() {
 
           <div className="flex-1 flex flex-col gap-3 px-3 py-3 overflow-hidden min-h-0">
             {/* Variant Options */}
-            <div className="rounded-2xl border border-gray-200/70 dark:border-white/10 bg-white/70 dark:bg-slate-900/60 p-3">
+            <div className="theme-glass-panel-soft rounded-2xl p-3">
               <div className="text-[12px] font-semibold text-gray-900 dark:text-white mb-2">
                 {t("Variants")}
               </div>
@@ -450,7 +457,7 @@ export default function PlayVariants() {
                       className={`rounded-xl p-2.5 text-left transition-all border ${
                         isSelected
                           ? "bg-brand-500/10 border-brand-500 text-brand-600 dark:text-brand-400"
-                          : "bg-gray-100 dark:bg-slate-800 border-gray-200/60 dark:border-white/10 text-gray-700 dark:text-gray-300"
+                          : "bg-white/55 dark:bg-white/10 border-white/10 text-gray-700 dark:text-gray-300"
                       }`}
                     >
                       <div className="flex items-center gap-2">
@@ -468,7 +475,7 @@ export default function PlayVariants() {
             </div>
 
             {/* Time Control */}
-            <div className="flex-1 min-h-0 rounded-2xl border border-gray-200/70 dark:border-white/10 bg-white/70 dark:bg-slate-900/60 p-3 flex flex-col">
+            <div className="theme-glass-panel-soft flex-1 min-h-0 rounded-2xl p-3 flex flex-col">
               <div className="flex items-center gap-2 text-[13px] font-semibold text-gray-900 dark:text-white mb-2">
                 <Clock className="w-4 h-4 text-brand-500" />
                 <span>{t("Time Control")}</span>
@@ -490,7 +497,7 @@ export default function PlayVariants() {
                       className={`py-2 px-3 rounded-xl text-center text-[13px] font-semibold transition-all ${
                         isSelected
                           ? "bg-brand-500 text-white ring-2 ring-brand-500"
-                          : "bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 ring-1 ring-gray-200 dark:ring-slate-700 hover:ring-gray-300 dark:hover:ring-slate-600"
+                          : "bg-white/55 dark:bg-white/10 text-gray-700 dark:text-gray-300 ring-1 ring-white/10 hover:ring-white/20"
                       }`}
                     >
                       {opt.label}
@@ -502,7 +509,7 @@ export default function PlayVariants() {
           </div>
 
           {/* Play Button */}
-          <div className="p-3 border-t border-gray-200/60 dark:border-white/10 flex-shrink-0">
+          <div className="p-3 border-t border-theme-glass flex-shrink-0">
             <button
               onClick={handleStart}
               className="w-full py-3 rounded-2xl bg-gradient-to-r from-brand-500 to-brand-500 hover:from-brand-600 hover:to-brand-600 text-white font-bold text-[15px] transition-all shadow-lg hover:shadow-xl active:scale-[0.98]"

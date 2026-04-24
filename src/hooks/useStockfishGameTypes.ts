@@ -6,7 +6,12 @@ export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
 export interface GameHistoryPayload {
   event?: string;
-  variant?: "standard" | "chess960" | "threeCheck" | "kingOfHill";
+  variant?:
+    | "standard"
+    | "chess960"
+    | "threeCheck"
+    | "kingOfHill"
+    | "atomic";
   site?: string;
   date?: string;
   round?: string;

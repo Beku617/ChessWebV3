@@ -75,7 +75,7 @@ export function GameFormModal({
         <div className="sticky top-0 z-10 flex items-center justify-between p-5 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-b border-gray-200 dark:border-gray-800">
           <div>
             <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-              {editingGame ? "Edit Game" : "Create Game"}
+              Edit Game
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
               Manage game data and make it ready for admin analysis.
@@ -425,7 +425,7 @@ export function GameFormModal({
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-brand-500 to-brand-500 text-white font-medium hover:from-brand-600 hover:to-brand-600 transition-colors disabled:opacity-50"
             >
               {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-              {editingGame ? "Save Changes" : "Create Game"}
+              Save Changes
             </button>
           </div>
         </form>

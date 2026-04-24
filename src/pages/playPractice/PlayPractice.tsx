@@ -6,8 +6,11 @@ import { Chessboard } from "react-chessboard";
 import { useLocation, useNavigate } from "react-router-dom";
 import { PromotionModal } from "../../components/game/PromotionModal";
 import type { PromotionPiece, PromotionState } from "../../components/game";
+import { usePreMove } from "../../chess/usePreMove";
 import { useBoardTheme } from "../../hooks/useBoardTheme";
 import { useGameplayPreferences } from "../../hooks/useGameplayPreferences";
+import { useOpeningExplorer } from "../../hooks/useOpeningExplorer";
+import { usePositionTopMoves } from "../../hooks/usePositionTopMoves";
 import {
   playChessMoveSound,
   playGameplaySound,
@@ -141,6 +144,12 @@ const LEGAL_TARGET_STYLE: CSSProperties = {
 
 const LEGAL_CAPTURE_STYLE: CSSProperties = {
   backgroundColor: "rgba(220, 38, 38, 0.35)",
+  borderRadius: "0",
+};
+
+const PREMOVE_SOURCE_STYLE: CSSProperties = {
+  backgroundColor: "rgba(245, 158, 11, 0.35)",
+  boxShadow: "inset 0 0 0 3px rgba(245, 158, 11, 0.8)",
   borderRadius: "0",
 };
 
@@ -329,11 +338,31 @@ function sanitizeFenForPractice(rawFen: string, preferredTurn?: "w" | "b") {
   return [board, turn, "-", "-", "0", "1"].join(" ");
 }
 
+function withTurnFromFen(rawFen: string, sideToMove: "w" | "b") {
+  const parts = rawFen.trim().split(/\s+/);
+  if (parts.length < 6) return null;
+  parts[1] = sideToMove;
+  return parts.slice(0, 6).join(" ");
+}
+
+function formatTopMoveScore(scoreCp?: number, scoreMate?: number) {
+  if (typeof scoreMate === "number") {
+    const sign = scoreMate > 0 ? "+" : "";
+    return `${sign}M${scoreMate}`;
+  }
+  if (typeof scoreCp === "number") {
+    const pawns = scoreCp / 100;
+    const sign = pawns > 0 ? "+" : "";
+    return `${sign}${pawns.toFixed(2)}`;
+  }
+  return "--";
+}
+
 export default function PlayPractice() {
   const navigate = useNavigate();
   const location = useLocation();
   const { colors } = useBoardTheme();
-  const { autoQueen, allowClickInput, allowDragInput, showLegalMoves } =
+  const { autoQueen, allowClickInput, allowDragInput, showLegalMoves, premoves } =
     useGameplayPreferences();
 
   const normalizedPath = location.pathname.replace(/\/+$/, "").toLowerCase();
@@ -410,6 +439,13 @@ export default function PlayPractice() {
   const [pendingPromotionMove, setPendingPromotionMove] =
     useState<PracticePromotionMove | null>(null);
   const [boardWidth, setBoardWidth] = useState(620);
+  const {
+    preMove,
+    preMoveSquares,
+    setPreMove,
+    clearPreMove,
+    getPreMove,
+  } = usePreMove();
 
   const leftRef = useRef<HTMLDivElement>(null);
   const movesEndRef = useRef<HTMLDivElement>(null);
@@ -419,10 +455,24 @@ export default function PlayPractice() {
   const suppressNextSquareClickRef = useRef(false);
 
   const evalState = useMemo(() => evaluateGame(createGameFromFen(fen)), [fen]);
+  const practicePlayerColor: "w" | "b" =
+    boardOrientation === "white" ? "w" : "b";
   const sanMoves = useMemo(
     () => freeMoveHistory.map((move) => move.san),
     [freeMoveHistory],
   );
+  const { opening, isLoading: openingLoading } = useOpeningExplorer(sanMoves, {
+    enableRemote: true,
+  });
+  const {
+    topMoves,
+    isAnalyzing: topMovesLoading,
+    error: topMovesError,
+  } = usePositionTopMoves(fen, {
+    enabled: isFreeMoveActive,
+    multiPv: 5,
+    depth: 14,
+  });
   const moveRows = useMemo(() => buildMoveRows(sanMoves), [sanMoves]);
   const activeMode = useMemo(
     () => PRACTICE_MODES.find((mode) => mode.id === selectedModeId) ?? PRACTICE_MODES[0],
@@ -442,8 +492,8 @@ export default function PlayPractice() {
     };
   }, [lastMove]);
   const boardSquareStyles = useMemo(
-    () => ({ ...lastMoveSquares, ...optionSquares }),
-    [lastMoveSquares, optionSquares],
+    () => ({ ...lastMoveSquares, ...preMoveSquares, ...optionSquares }),
+    [lastMoveSquares, preMoveSquares, optionSquares],
   );
   const boardKey = isFreeMoveActive
     ? (isPositionBuilderFreeMoveActive ? "pb-free-move" : "free-move")
@@ -464,6 +514,7 @@ export default function PlayPractice() {
   );
 
   const initializeFreeMoveSession = (nextFen: string, notice: string | null) => {
+    clearPreMove();
     setFen(nextFen);
     setFreeMoveInitialFen(nextFen);
     setFreeMoveHistory([]);
@@ -494,8 +545,9 @@ export default function PlayPractice() {
       wasFreeMoveRef.current = false;
       freeMovePathRef.current = null;
       setPendingPromotionMove(null);
+      clearPreMove();
     }
-  }, [isFreeMoveActive]);
+  }, [clearPreMove, isFreeMoveActive]);
 
   useEffect(() => {
     if (!isPracticeFreeMoveActive) return;
@@ -547,9 +599,10 @@ export default function PlayPractice() {
       setPositionBuilderSelectedPiece("wK");
       setPositionBuilderSideToMove("w");
       setPositionBuilderFenInput(freshGame.fen());
+      clearPreMove();
     }
     wasPositionBuilderRef.current = isPositionBuilderActive;
-  }, [isPositionBuilderActive]);
+  }, [clearPreMove, isPositionBuilderActive]);
 
   useEffect(() => {
     if (!isPositionBuilderActive) return;
@@ -632,6 +685,108 @@ export default function PlayPractice() {
     return true;
   };
 
+  const getPreMoveTargetMoves = (
+    currentGame: Chess,
+    sourceSquare: Square,
+    targetSquare: Square,
+  ) => {
+    const adjustedFen = withTurnFromFen(currentGame.fen(), practicePlayerColor);
+    if (!adjustedFen) return [];
+    const preMoveValidationGame = createGameFromFen(adjustedFen);
+    const legalMovesFromSource = getLegalMovesFromSquare(
+      preMoveValidationGame,
+      sourceSquare,
+    );
+    return legalMovesFromSource.filter((move) => move.to === targetSquare);
+  };
+
+  const showPreMoveSourceOptions = (square: Square) => {
+    const currentGame = createGameFromFen(fen);
+    const adjustedFen = withTurnFromFen(currentGame.fen(), practicePlayerColor);
+    if (!adjustedFen) {
+      setOptionSquares({});
+      return false;
+    }
+
+    const preMoveValidationGame = createGameFromFen(adjustedFen);
+    const legalMoves = getLegalMovesFromSquare(preMoveValidationGame, square);
+    if (!legalMoves.length) {
+      setOptionSquares({});
+      return false;
+    }
+
+    const squares: Record<string, CSSProperties> = {
+      [square]: PREMOVE_SOURCE_STYLE,
+    };
+    if (showLegalMoves) {
+      legalMoves.forEach((move) => {
+        const isCapture = Boolean(currentGame.get(move.to as Square));
+        squares[move.to] = isCapture
+          ? LEGAL_CAPTURE_STYLE
+          : LEGAL_TARGET_STYLE;
+      });
+    }
+
+    setOptionSquares(squares);
+    return true;
+  };
+
+  const applyQueuedPreMoveFromFen = (baseFen: string) => {
+    const queuedPreMove = getPreMove();
+    if (!queuedPreMove) return false;
+
+    const preMoveGame = createGameFromFen(baseFen);
+    if (preMoveGame.turn() !== practicePlayerColor) {
+      return false;
+    }
+
+    try {
+      const move = preMoveGame.move({
+        from: queuedPreMove.from as Square,
+        to: queuedPreMove.to as Square,
+        promotion: queuedPreMove.promotion ?? "q",
+      });
+
+      clearPreMove();
+      if (!move) {
+        setPanelNotice("Queued pre-move is no longer legal.");
+        return false;
+      }
+
+      const preMoveFen = preMoveGame.fen();
+      setFen(preMoveFen);
+      setFreeMoveHistory((current) => [
+        ...current,
+        {
+          color: move.color,
+          fenAfter: preMoveFen,
+          fenBefore: baseFen,
+          from: queuedPreMove.from as Square,
+          promotion: move.promotion ?? undefined,
+          san: move.san,
+          to: queuedPreMove.to as Square,
+        },
+      ]);
+      setLastMove({
+        from: queuedPreMove.from as Square,
+        to: queuedPreMove.to as Square,
+      });
+      clearSelection();
+      setPanelNotice("Pre-move played.");
+      setExportFallback("");
+      setRedoStack([]);
+      playChessMoveSound(move, { isOpponentMove: move.color !== practicePlayerColor });
+      if (hasGameOverMethod(preMoveGame) && !hasCheckmateMethod(preMoveGame)) {
+        playGameplaySound("gameEnd");
+      }
+      return true;
+    } catch {
+      clearPreMove();
+      setPanelNotice("Queued pre-move was invalid.");
+      return false;
+    }
+  };
+
   const applyFreeMove = (
     sourceSquare: Square,
     targetSquare: Square,
@@ -660,6 +815,10 @@ export default function PlayPractice() {
       }
 
       const nextFen = game.fen();
+      const shouldTryQueuedPreMove =
+        premoves &&
+        move.color !== practicePlayerColor &&
+        !hasGameOverMethod(game);
       setFen(nextFen);
       setFreeMoveHistory((current) => [
         ...current,
@@ -678,9 +837,18 @@ export default function PlayPractice() {
       setPanelNotice(null);
       setExportFallback("");
       setRedoStack([]);
+      if (move.color === practicePlayerColor || hasGameOverMethod(game)) {
+        clearPreMove();
+      }
       playChessMoveSound(move, { isOpponentMove: move.color === "b" });
       if (isGameOver && !hasCheckmateMethod(game)) {
         playGameplaySound("gameEnd");
+      }
+
+      if (shouldTryQueuedPreMove) {
+        window.setTimeout(() => {
+          applyQueuedPreMoveFromFen(nextFen);
+        }, 0);
       }
       return true;
     } catch {
@@ -706,12 +874,29 @@ export default function PlayPractice() {
     }
 
     const currentGame = createGameFromFen(fen);
+    const currentTurn = currentGame.turn();
+    const isPreMoveTurn = currentTurn !== practicePlayerColor;
     const square = squareName as Square;
     if (!moveFrom) {
       const clickedPiece = currentGame.get(square);
-      if (!clickedPiece || clickedPiece.color !== currentGame.turn()) {
+      if (!clickedPiece) {
         return;
       }
+
+      if (isPreMoveTurn && premoves && clickedPiece.color === practicePlayerColor) {
+        const hasOptions = showPreMoveSourceOptions(square);
+        if (!hasOptions) {
+          playGameplaySound("illegal");
+          return;
+        }
+        setMoveFrom(square);
+        return;
+      }
+
+      if (clickedPiece.color !== currentTurn) {
+        return;
+      }
+
       getMoveOptionsForSquare(square);
       setMoveFrom(square);
       return;
@@ -723,25 +908,61 @@ export default function PlayPractice() {
     }
 
     const clickedPiece = currentGame.get(square);
-    if (clickedPiece && clickedPiece.color === currentGame.turn()) {
-      getMoveOptionsForSquare(square);
+    const sourcePiece = currentGame.get(moveFrom);
+    if (!sourcePiece) {
+      clearSelection();
+      return;
+    }
+
+    const isSelectedPreMoveSource =
+      isPreMoveTurn && sourcePiece.color === practicePlayerColor;
+    if (
+      clickedPiece &&
+      clickedPiece.color ===
+        (isSelectedPreMoveSource ? practicePlayerColor : currentTurn)
+    ) {
+      if (isSelectedPreMoveSource) {
+        showPreMoveSourceOptions(square);
+      } else {
+        getMoveOptionsForSquare(square);
+      }
       setMoveFrom(square);
       return;
     }
 
-    const legalMovesFromSource = getLegalMovesFromSquare(currentGame, moveFrom);
-    const targetMoves = legalMovesFromSource.filter((move) => move.to === square);
+    const targetMoves = isSelectedPreMoveSource
+      ? getPreMoveTargetMoves(currentGame, moveFrom, square)
+      : getLegalMovesFromSquare(currentGame, moveFrom).filter(
+          (move) => move.to === square,
+        );
     const isLegalTarget = targetMoves.length > 0;
 
     if (!isLegalTarget) {
       playGameplaySound("illegal");
-      setPanelNotice("Choose one of the highlighted legal moves.");
+      setPanelNotice(
+        isSelectedPreMoveSource
+          ? "Select a legal pre-move target."
+          : "Choose one of the highlighted legal moves.",
+      );
+      return;
+    }
+
+    if (isSelectedPreMoveSource) {
+      const targetHasPromotion = targetMoves.some((move) => Boolean(move.promotion));
+      if (targetHasPromotion) {
+        if (!autoQueen) {
+          setPanelNotice("Promotion pre-moves are queued as a queen.");
+        }
+        setPreMove(moveFrom, square, "q");
+      } else {
+        setPreMove(moveFrom, square);
+      }
+      clearSelection();
+      setPanelNotice("Pre-move queued.");
       return;
     }
 
     if (targetMoves.some((move) => Boolean(move.promotion))) {
-      const sourcePiece = currentGame.get(moveFrom);
-      if (!sourcePiece) return;
       if (autoQueen) {
         applyFreeMove(moveFrom, square, { promotion: "q" });
         return;
@@ -762,10 +983,35 @@ export default function PlayPractice() {
     const sourcePiece = currentGame.get(source);
     if (!sourcePiece) return false;
 
-    const legalMovesFromSource = getLegalMovesFromSquare(currentGame, source);
-    const targetMoves = legalMovesFromSource.filter((move) => move.to === target);
+    const currentTurn = currentGame.turn();
+    const isPreMoveTurn = currentTurn !== practicePlayerColor;
+    const isPreMoveDrop =
+      isPreMoveTurn && premoves && sourcePiece.color === practicePlayerColor;
+
+    const targetMoves = isPreMoveDrop
+      ? getPreMoveTargetMoves(currentGame, source, target)
+      : getLegalMovesFromSquare(currentGame, source).filter(
+          (move) => move.to === target,
+        );
+
     if (!targetMoves.length) {
       playGameplaySound("illegal");
+      return false;
+    }
+
+    if (isPreMoveDrop) {
+      const targetHasPromotion = targetMoves.some((move) => Boolean(move.promotion));
+      if (targetHasPromotion) {
+        if (!autoQueen) {
+          setPanelNotice("Promotion pre-moves are queued as a queen.");
+        }
+        setPreMove(source, target, "q");
+      } else {
+        setPreMove(source, target);
+      }
+      clearSelection();
+      setPanelNotice("Pre-move queued.");
+      suppressNextSquareClickRef.current = true;
       return false;
     }
 
@@ -1082,6 +1328,7 @@ export default function PlayPractice() {
     setFen(undone.fenBefore);
     setLastMove(null);
     clearSelection();
+    clearPreMove();
     setPanelNotice("Last move undone.");
     setExportFallback("");
   };
@@ -1111,6 +1358,7 @@ export default function PlayPractice() {
     setFen(redoMove.fenAfter);
     setLastMove({ from: redoMove.from, to: redoMove.to });
     clearSelection();
+    clearPreMove();
     setPanelNotice("Move restored.");
     setExportFallback("");
     playChessMoveSound(move, { isOpponentMove: move.color === "b" });
@@ -1122,6 +1370,7 @@ export default function PlayPractice() {
     setFreeMoveHistory([]);
     setLastMove(null);
     clearSelection();
+    clearPreMove();
     setPanelNotice(
       isPositionBuilderFreeMoveActive
         ? "Position reset to builder start."
@@ -1133,6 +1382,7 @@ export default function PlayPractice() {
   };
 
   const handleFlipBoard = () => {
+    clearPreMove();
     setBoardOrientation((current) => (current === "white" ? "black" : "white"));
   };
 
@@ -1207,7 +1457,11 @@ export default function PlayPractice() {
                 }}
                 onSquareRightClick={() => {
                   if (promotionState.isOpen) return;
-                  clearSelection();
+                  if (moveFrom) {
+                    clearSelection();
+                    return;
+                  }
+                  clearPreMove();
                 }}
                 onPieceDrop={(sourceSquare, targetSquare) => {
                   if (promotionState.isOpen) return false;
@@ -1229,13 +1483,17 @@ export default function PlayPractice() {
                   if (promotionState.isOpen) return false;
                   const currentGame = createGameFromFen(fen);
                   const turn = currentGame.turn();
+                  const canPreMove = premoves && turn !== practicePlayerColor;
                   if (typeof piece === "string" && piece.length > 0) {
-                    return piece[0].toLowerCase() === turn;
+                    const pieceColor = piece[0].toLowerCase();
+                    if (pieceColor === turn) return true;
+                    return canPreMove && pieceColor === practicePlayerColor;
                   }
                   if (!sourceSquare) return false;
                   const boardPiece = currentGame.get(sourceSquare as Square);
                   if (!boardPiece) return false;
-                  return boardPiece.color === turn;
+                  if (boardPiece.color === turn) return true;
+                  return canPreMove && boardPiece.color === practicePlayerColor;
                 }}
                 customSquareStyles={boardSquareStyles}
                 customDarkSquareStyle={{
@@ -1400,10 +1658,10 @@ export default function PlayPractice() {
                       />
                       <span
                         style={{
-                          fontSize: 11,
+                          fontSize: 10,
                           fontWeight: 700,
                           color: "#64748b",
-                          letterSpacing: "0.07em",
+                          letterSpacing: "0.1em",
                           textTransform: "uppercase",
                         }}
                       >
@@ -1411,6 +1669,7 @@ export default function PlayPractice() {
                       </span>
                     </div>
                     <div
+                      className="practice-history-scroll"
                       style={{
                         flex: 1,
                         minHeight: 0,
@@ -1554,6 +1813,177 @@ export default function PlayPractice() {
                         display: "flex",
                         alignItems: "center",
                         gap: 8,
+                        padding: "10px 14px",
+                        borderBottom: "1px solid #1a2640",
+                        background: "#111827",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 6,
+                          height: 6,
+                          borderRadius: "50%",
+                          background: "#334155",
+                        }}
+                      />
+                      <span
+                        style={{
+                          fontSize: 10,
+                          fontWeight: 700,
+                          color: "#64748b",
+                          letterSpacing: "0.1em",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        Position Insights
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        padding: "10px 12px",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 10,
+                      }}
+                    >
+                      {opening && (
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 3,
+                            padding: "0 2px",
+                          }}
+                        >
+                          <div
+                            style={{
+                              fontSize: 12.5,
+                              fontWeight: 600,
+                              color: "#cbd5e1",
+                            }}
+                          >
+                            {opening.variation
+                              ? `${opening.name}: ${opening.variation}`
+                              : opening.name}
+                          </div>
+                          <div
+                            style={{
+                              fontSize: 11,
+                              color: "#64748b",
+                            }}
+                          >
+                            {opening.eco ? `ECO ${opening.eco}` : ""}
+                            {opening.line ? ` • ${opening.line}` : ""}
+                          </div>
+                        </div>
+                      )}
+
+                      <div
+                        style={{
+                          borderRadius: 10,
+                          border: "1px solid #24324d",
+                          background: "#111827",
+                          padding: "8px 10px",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            gap: 10,
+                            marginBottom: 6,
+                          }}
+                        >
+                          <div
+                            style={{
+                              fontSize: 10.5,
+                              fontWeight: 700,
+                              color: "#64748b",
+                              letterSpacing: "0.08em",
+                              textTransform: "uppercase",
+                            }}
+                          >
+                            Top 5 Moves
+                          </div>
+                          <div
+                            style={{
+                              fontSize: 10.5,
+                              color: "#64748b",
+                            }}
+                          >
+                            {createGameFromFen(fen).turn() === "w"
+                              ? "White to move"
+                              : "Black to move"}
+                          </div>
+                        </div>
+
+                        {topMoves.length === 0 ? (
+                          <div
+                            style={{
+                              fontSize: 11.5,
+                              color: "#64748b",
+                            }}
+                          >
+                            {topMovesLoading
+                              ? "Analyzing top moves..."
+                              : topMovesError
+                                ? topMovesError
+                                : "Top moves will appear here."}
+                          </div>
+                        ) : (
+                          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                            {topMoves.map((line) => (
+                              <div
+                                key={`${line.rank}-${line.uci}`}
+                                style={{
+                                  display: "grid",
+                                  gridTemplateColumns: "24px minmax(0,1fr) auto",
+                                  gap: 8,
+                                  alignItems: "center",
+                                  padding: "2px 0",
+                                  fontFamily: '"Roboto Mono", monospace',
+                                  fontSize: 11.5,
+                                  color: "#cbd5e1",
+                                }}
+                              >
+                                <span style={{ color: "#64748b" }}>#{line.rank}</span>
+                                <span
+                                  style={{
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                    whiteSpace: "nowrap",
+                                  }}
+                                >
+                                  {line.san}
+                                  {line.pvSan.length > 1
+                                    ? ` • ${line.pvSan.slice(0, 4).join(" ")}`
+                                    : ""}
+                                </span>
+                                <span style={{ color: "#94a3b8" }}>
+                                  {formatTopMoveScore(line.scoreCp, line.scoreMate)}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      background: "#141c2e",
+                      border: "1px solid #1e2d45",
+                      borderRadius: 14,
+                      overflow: "hidden",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
                         padding: "11px 14px",
                         borderBottom: "1px solid #1a2640",
                         background: "#111827",
@@ -1569,10 +1999,10 @@ export default function PlayPractice() {
                       />
                       <span
                         style={{
-                          fontSize: 11,
+                          fontSize: 10,
                           fontWeight: 700,
                           color: "#64748b",
-                          letterSpacing: "0.07em",
+                          letterSpacing: "0.1em",
                           textTransform: "uppercase",
                         }}
                       >
@@ -1582,52 +2012,68 @@ export default function PlayPractice() {
 
                     <div
                       style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 0,
                         padding: "10px 12px",
                         borderBottom: "1px solid #1a2640",
                       }}
                     >
-                      <button
-                        onClick={handleUndo}
-                        disabled={sanMoves.length === 0}
-                        className="transition-colors hover:text-slate-300"
+                      <div
                         style={{
-                          ...FREE_MOVE_ARROW_BUTTON_STYLE,
-                          opacity: sanMoves.length === 0 ? 0.5 : 1,
-                          cursor: sanMoves.length === 0 ? "not-allowed" : "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                          padding: 6,
+                          borderRadius: 12,
+                          border: "1px solid #1e2d45",
+                          background: "#141c2e",
                         }}
                       >
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ width: 14, height: 14 }}>
-                          <path d="M19 12H5M12 5l-7 7 7 7" />
-                        </svg>
-                      </button>
-                      <span
-                        style={{
-                          fontSize: 12,
-                          color: "#334155",
-                          flex: 1,
-                          textAlign: "center",
-                          padding: "0 8px",
-                        }}
-                      >
-                        {sanMoves.length === 0 ? "Start position" : `${sanMoves.length} ply`}
-                      </span>
-                      <button
-                        onClick={handleRedo}
-                        disabled={redoStack.length === 0}
-                        className="transition-colors hover:text-slate-300"
-                        style={{
-                          ...FREE_MOVE_ARROW_BUTTON_STYLE,
-                          opacity: redoStack.length === 0 ? 0.5 : 1,
-                          cursor: redoStack.length === 0 ? "not-allowed" : "pointer",
-                        }}
-                      >
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ width: 14, height: 14 }}>
-                          <path d="M5 12h14M12 5l7 7-7 7" />
-                        </svg>
-                      </button>
+                        <button
+                          onClick={handleUndo}
+                          disabled={sanMoves.length === 0}
+                          className="transition-colors hover:text-slate-300"
+                          style={{
+                            ...FREE_MOVE_ARROW_BUTTON_STYLE,
+                            width: 32,
+                            height: 32,
+                            background: "#1a2540",
+                            opacity: sanMoves.length === 0 ? 0.5 : 1,
+                            cursor: sanMoves.length === 0 ? "not-allowed" : "pointer",
+                          }}
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ width: 14, height: 14 }}>
+                            <path d="M19 12H5M12 5l-7 7 7 7" />
+                          </svg>
+                        </button>
+                        <span
+                          style={{
+                            fontSize: 12,
+                            color: "#334155",
+                            flex: 1,
+                            textAlign: "center",
+                            padding: "0 8px",
+                            fontWeight: 500,
+                          }}
+                        >
+                          {sanMoves.length === 0 ? "Start position" : `${sanMoves.length} ply`}
+                        </span>
+                        <button
+                          onClick={handleRedo}
+                          disabled={redoStack.length === 0}
+                          className="transition-colors hover:text-slate-300"
+                          style={{
+                            ...FREE_MOVE_ARROW_BUTTON_STYLE,
+                            width: 32,
+                            height: 32,
+                            background: "#1a2540",
+                            opacity: redoStack.length === 0 ? 0.5 : 1,
+                            cursor: redoStack.length === 0 ? "not-allowed" : "pointer",
+                          }}
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" style={{ width: 14, height: 14 }}>
+                            <path d="M5 12h14M12 5l7 7-7 7" />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
 
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 7, padding: "10px 12px" }}>
@@ -1675,10 +2121,23 @@ export default function PlayPractice() {
                           cursor: "pointer",
                         }}
                       >
-                        ⇄ Flip Board
+                        Flip Board
                       </button>
                     </div>
-
+                    {preMove && (
+                      <div
+                        style={{
+                          padding: "0 12px 10px",
+                          fontSize: 11,
+                          color: "#f59e0b",
+                          fontFamily: '"Roboto Mono", monospace',
+                        }}
+                      >
+                        Queued pre-move: {preMove.from}{"->"}
+                        {preMove.to}
+                        {preMove.promotion ?? ""}
+                      </div>
+                    )}
                     {panelNotice && (
                       <div
                         style={{
@@ -2341,7 +2800,6 @@ export default function PlayPractice() {
                       </button>
                     </div>
                   </div>
-
                   {panelNotice && (
                     <div
                       style={{

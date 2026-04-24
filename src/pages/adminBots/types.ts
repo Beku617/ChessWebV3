@@ -109,7 +109,7 @@ export const PLAY_STYLE_OPTIONS: {
 
 export const DEFAULT_BOT_FORM: BotFormData = {
   name: "",
-  avatar: "🤖",
+  avatar: "",
   avatarFile: null,
   eloRating: 1200,
   difficulty: "beginner",

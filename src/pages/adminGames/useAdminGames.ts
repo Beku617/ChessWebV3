@@ -40,7 +40,10 @@ function toOptionalNumber(value: number | ""): number | undefined {
   return Number.isFinite(parsed) ? parsed : undefined;
 }
 
-function formToPayload(form: GameFormData) {
+function formToPayload(
+  form: GameFormData,
+  { includeMoves = true }: { includeMoves?: boolean } = {},
+) {
   return {
     userId: form.userId.trim(),
     event: form.event.trim() || "NeonGambit Game",
@@ -60,7 +63,7 @@ function formToPayload(form: GameFormData) {
     termination: form.termination.trim(),
     moveText: form.moveText.trim(),
     pgn: form.pgn.trim(),
-    moves: parseMovesText(form.movesText),
+    ...(includeMoves ? { moves: parseMovesText(form.movesText) } : {}),
   };
 }
 
@@ -262,8 +265,12 @@ export function useAdminGames({ enabled }: UseAdminGamesOptions) {
 
   const updateGame = useCallback(
     async (id: string, formData: GameFormData): Promise<AdminGame> => {
-      const payload = formToPayload(formData);
-      if ((payload.moves?.length || 0) < MIN_STORED_MOVES) {
+      const includeMoves = formData.movesText.trim().length > 0;
+      const payload = formToPayload(formData, { includeMoves });
+      if (
+        payload.moves !== undefined &&
+        payload.moves.length < MIN_STORED_MOVES
+      ) {
         throw new Error(
           `Games must have at least ${MIN_STORED_MOVES} moves to be saved`,
         );

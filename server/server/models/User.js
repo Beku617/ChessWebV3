@@ -12,6 +12,10 @@ const UserSchema = new mongoose.Schema(
       enum: ["local", "google", "facebook"],
       default: "local",
     },
+    emailVerified: { type: Boolean, default: false },
+    emailVerificationCodeHash: { type: String, default: "" },
+    emailVerificationCodeExpiresAt: { type: Date, default: null },
+    emailVerificationCodeSentAt: { type: Date, default: null },
     avatar: { type: String, default: "" },
     rating: { type: Number, default: 1200 },
     bulletRating: { type: Number, default: 1200 },
@@ -106,6 +110,9 @@ const UserSchema = new mongoose.Schema(
       default: [],
       index: true,
     },
+    blockedUsers: [
+      { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    ],
   },
   { timestamps: true },
 );
@@ -120,6 +127,7 @@ UserSchema.index({ chess960RapidRating: -1 });
 UserSchema.index({ chess960ClassicalRating: -1 });
 UserSchema.index({ communityPostingRestrictedForever: 1 });
 UserSchema.index({ communityPostingRestrictedUntil: 1 });
+UserSchema.index({ blockedUsers: 1 });
 
 const User = mongoose.models.User || mongoose.model("User", UserSchema);
 

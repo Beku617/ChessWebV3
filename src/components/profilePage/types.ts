@@ -5,6 +5,17 @@ export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 export type FilterType = "all" | "wins" | "losses" | "draws";
 export type TabType = "overview" | "games";
 
+export interface TournamentHistoryEntry {
+  tournamentId: string;
+  tournamentName: string;
+  format: string;
+  placement: number | null;
+  score: number;
+  eloChange: number;
+  date: string | null;
+  status: string;
+}
+
 export interface ProfileStats {
   total: number;
   wins: number;

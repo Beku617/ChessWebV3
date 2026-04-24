@@ -1,32 +1,18 @@
-import { Users, Gamepad2, TrendingUp } from "lucide-react";
 import { Stats } from "./types";
 
 interface StatCardProps {
-  icon: React.ReactNode;
   label: string;
-  value: number;
-  color: "teal" | "blue" | "green" | "purple";
+  value: number | null;
+  isLoading: boolean;
 }
 
-export function StatCard({ icon, label, value, color }: StatCardProps) {
-  const colors = {
-    teal: "from-brand-500 to-brand-600",
-    blue: "from-blue-500 to-cyan-600",
-    green: "from-green-500 to-brand-600",
-    purple: "from-purple-500 to-pink-600",
-  };
-
+export function StatCard({ label, value, isLoading }: StatCardProps) {
   return (
     <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4">
       <div className="flex items-center gap-3">
-        <div
-          className={`w-12 h-12 rounded-lg bg-gradient-to-br ${colors[color]} flex items-center justify-center`}
-        >
-          {icon}
-        </div>
         <div>
           <div className="text-2xl font-bold text-gray-900 dark:text-white">
-            {value.toLocaleString()}
+            {isLoading ? "..." : value === null ? "--" : value.toLocaleString()}
           </div>
           <div className="text-sm text-gray-500 dark:text-gray-400">
             {label}
@@ -39,36 +25,41 @@ export function StatCard({ icon, label, value, color }: StatCardProps) {
 
 interface DashboardStatsProps {
   stats: Stats | null;
+  isLoading: boolean;
+  error?: string | null;
 }
 
-export function DashboardStats({ stats }: DashboardStatsProps) {
+export function DashboardStats({ stats, isLoading, error }: DashboardStatsProps) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-      <StatCard
-        icon={<Users className="w-6 h-6" />}
-        label="Total Users"
-        value={stats?.totalUsers ?? 0}
-        color="teal"
-      />
-      <StatCard
-        icon={<Gamepad2 className="w-6 h-6" />}
-        label="Total Games"
-        value={stats?.totalGames ?? 0}
-        color="blue"
-      />
-      <StatCard
-        icon={<TrendingUp className="w-6 h-6" />}
-        label="New Users (7d)"
-        value={stats?.newUsersThisWeek ?? 0}
-        color="green"
-      />
-      <StatCard
-        icon={<Gamepad2 className="w-6 h-6" />}
-        label="Games (7d)"
-        value={stats?.gamesThisWeek ?? 0}
-        color="purple"
-      />
-    </div>
+    <>
+      {error && (
+        <div className="mb-4 rounded-lg border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/30 px-4 py-3 text-sm text-red-700 dark:text-red-300">
+          {error}
+        </div>
+      )}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <StatCard
+          label="Total Users"
+          value={stats?.totalUsers ?? null}
+          isLoading={isLoading}
+        />
+        <StatCard
+          label="Total Games"
+          value={stats?.totalGames ?? null}
+          isLoading={isLoading}
+        />
+        <StatCard
+          label="New Users (7d)"
+          value={stats?.newUsersThisWeek ?? null}
+          isLoading={isLoading}
+        />
+        <StatCard
+          label="Games (7d)"
+          value={stats?.gamesThisWeek ?? null}
+          isLoading={isLoading}
+        />
+      </div>
+    </>
   );
 }
 

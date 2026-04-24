@@ -1,4 +1,5 @@
 import { Chess } from "chess.js";
+import i18n from "../../i18n";
 
 /**
  * Normalize FEN string to ensure valid 6-field format
@@ -59,7 +60,11 @@ export function safeLoadGame(
       try {
         return new Chess(); // start position fallback
       } catch {
-        setFenError("Invalid FEN for this puzzle");
+        setFenError(
+          i18n.t("puzzles.trainer.invalidFen", {
+            defaultValue: "Invalid FEN for this puzzle",
+          }),
+        );
         return new Chess();
       }
     }

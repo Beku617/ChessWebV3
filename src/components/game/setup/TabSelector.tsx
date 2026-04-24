@@ -16,7 +16,7 @@ export function TabSelector({ activeTab, setActiveTab }: TabSelectorProps) {
             : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
         }`}
       >
-        🤖 Play vs Bot
+        Play vs Bot
       </button>
       <button
         onClick={() => setActiveTab("custom")}
@@ -26,7 +26,7 @@ export function TabSelector({ activeTab, setActiveTab }: TabSelectorProps) {
             : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
         }`}
       >
-        ⚙️ Custom Level
+        Custom Level
       </button>
     </div>
   );

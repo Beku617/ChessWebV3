@@ -2,7 +2,6 @@
    Community — Shared small components
    ═══════════════════════════════════════════════════════ */
 import type { ReactNode } from "react";
-import { Crown, CheckCircle2, Circle, Wifi } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { resolveAssetUrl } from "./types";
 
@@ -29,7 +28,7 @@ export function TitleBadge({ title }: { title: string }) {
 /* ─── Verified Check ─── */
 export function VerifiedBadge() {
   return (
-    <CheckCircle2 className="w-3.5 h-3.5 text-brand-400 fill-brand-400/20 shrink-0" />
+    <span className="text-[10px] font-semibold text-brand-400">Verified</span>
   );
 }
 
@@ -38,7 +37,6 @@ export function RatingPill({ rating }: { rating: number }) {
   if (!rating) return null;
   return (
     <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-white/[0.06] text-[10px] font-bold text-gray-300 tabular-nums">
-      <Crown className="w-2.5 h-2.5" />
       {rating}
     </span>
   );
@@ -100,7 +98,6 @@ interface SidebarCardProps {
 
 export function SidebarCard({
   title,
-  icon,
   children,
   action,
 }: SidebarCardProps) {
@@ -108,7 +105,6 @@ export function SidebarCard({
     <div className="rounded-2xl bg-[#0c1728]/82 backdrop-blur-xl shadow-[0_18px_55px_rgba(0,0,0,0.22)] overflow-hidden">
       <div className="flex items-center justify-between px-5 pt-4 pb-3">
         <div className="flex items-center gap-2">
-          {icon}
           <h3 className="text-sm font-semibold text-white">
             {title}
           </h3>

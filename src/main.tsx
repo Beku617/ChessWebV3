@@ -1,6 +1,6 @@
 import { StrictMode, Suspense, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter } from "react-router-dom";
+import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import "./index.css";
 import App from "./App.tsx";
@@ -11,6 +11,21 @@ import { applyThemeClass, readStoredTheme } from "./utils/theme";
 import { loadOAuthConfig, type OAuthConfig } from "./utils/oauthConfig";
 
 applyThemeClass(readStoredTheme());
+
+const router = createBrowserRouter(
+  [
+    {
+      path: "*",
+      element: <App />,
+    },
+  ],
+  {
+    future: {
+      v7_startTransition: true,
+      v7_relativeSplatPath: true,
+    },
+  },
+);
 
 function Root() {
   const [oauthConfig, setOAuthConfig] = useState<OAuthConfig>({
@@ -32,14 +47,7 @@ function Root() {
 
   const appContent = (
     <I18nextProvider i18n={i18n}>
-      <BrowserRouter
-        future={{
-          v7_startTransition: true,
-          v7_relativeSplatPath: true,
-        }}
-      >
-        <App />
-      </BrowserRouter>
+      <RouterProvider router={router} />
     </I18nextProvider>
   );
 
@@ -51,7 +59,7 @@ function Root() {
     <StrictMode>
       <Suspense
         fallback={
-          <div className="min-h-screen flex items-center justify-center bg-[#f5f5f7] dark:bg-gray-950 text-gray-700 dark:text-gray-200">
+          <div className="min-h-screen flex items-center justify-center bg-theme-primary text-gray-700 dark:text-gray-200">
             <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
           </div>
         }

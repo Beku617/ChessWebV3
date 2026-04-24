@@ -15,7 +15,7 @@ export function PuzzlePanelHeader({ onBack }: PuzzlePanelHeaderProps) {
       </button>
       <div className="flex items-center gap-2">
         <div className="w-7 h-7 bg-amber-600 rounded flex items-center justify-center">
-          <span className="text-white font-bold text-xs">🧩</span>
+          <span className="text-white font-bold text-xs"></span>
         </div>
         <span className="text-lg font-bold">Puzzles</span>
       </div>

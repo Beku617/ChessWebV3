@@ -31,12 +31,25 @@ const CHESS960_STRIPPED_FIELDS = [
   "opponentVolatilityAfter",
   "opponentVolatilityDelta",
 ];
-const UNRATED_VARIANTS = new Set(["chess960", "threeCheck", "kingOfHill"]);
+const UNRATED_VARIANTS = new Set([
+  "chess960",
+  "threeCheck",
+  "kingOfHill",
+  "atomic",
+]);
 
 function normalizeVariant(value) {
   const normalized = String(value || "")
     .trim()
     .toLowerCase();
+  if (
+    normalized === "atomic" ||
+    normalized === "atomicchess" ||
+    normalized === "atomic-chess" ||
+    normalized === "atomic_chess"
+  ) {
+    return "atomic";
+  }
   if (
     normalized === "kingofhill" ||
     normalized === "king-of-hill" ||
@@ -61,6 +74,9 @@ function detectVariantFromEvent(event) {
   const text = String(event || "");
   if (/four[\s_-]?player|4[\s_-]?player/i.test(text)) {
     return "fourPlayer";
+  }
+  if (/atomic(\s|-|_)?chess|atomic/i.test(text)) {
+    return "atomic";
   }
   if (/king[\s_-]?of[\s_-]?hill/i.test(text)) {
     return "kingOfHill";

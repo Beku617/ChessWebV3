@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Shield, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { timeFormats } from "../../data/mockData";
 import type { GameHistory } from "../../historyTypes";
@@ -121,7 +121,6 @@ export function FormatRatingsCard() {
         <h3 className="text-xl md:text-2xl font-semibold text-gray-900 dark:text-white">
           {t("Format Ratings")}
         </h3>
-        <Shield className="w-5 h-5 text-brand-500 dark:text-brand-400" />
       </div>
       <div className="space-y-3">
         {timeFormats.map((format) => (
@@ -130,7 +129,6 @@ export function FormatRatingsCard() {
             className="flex items-center justify-between p-3 rounded-lg bg-white dark:bg-gray-800/30 border border-gray-200 dark:border-gray-700"
           >
             <div className="flex items-center space-x-3">
-              <span className="text-xl">{format.icon}</span>
               <div>
                 <div className="font-medium text-gray-900 dark:text-white">
                   {t(format.name)}
@@ -146,10 +144,10 @@ export function FormatRatingsCard() {
               </div>
               <div className="text-xs text-gray-500 dark:text-gray-400">
                 {format.rating > 1850
-                  ? t("🔥 Hot")
+                  ? t("Hot")
                   : format.rating > 1750
-                    ? t("📈 Rising")
-                    : t("📊 Stable")}
+                    ? t("Rising")
+                    : t("Stable")}
               </div>
             </div>
           </div>

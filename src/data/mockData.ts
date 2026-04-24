@@ -45,7 +45,7 @@ export interface Course {
   lessons: number;
   progress: number;
   author: string;
-  image: string; // Emoji or placeholder
+  image: string; // image path or placeholder
   level: "Beginner" | "Intermediate" | "Advanced";
 }
 
@@ -57,7 +57,7 @@ export const timeFormats: TimeFormat[] = [
     displayTime: "1 minute",
     description: "60 seconds, no increment",
     rating: 1756,
-    icon: "⚡",
+    icon: "",
   },
   {
     id: "blitz",
@@ -66,7 +66,7 @@ export const timeFormats: TimeFormat[] = [
     displayTime: "3 minutes",
     description: "3 minutes, no increment",
     rating: 1823,
-    icon: "🔥",
+    icon: "",
   },
   {
     id: "rapid",
@@ -75,7 +75,7 @@ export const timeFormats: TimeFormat[] = [
     displayTime: "10 minutes",
     description: "10 minutes, 5 second increment",
     rating: 1891,
-    icon: "🚀",
+    icon: "",
   },
 ];
 
@@ -145,7 +145,7 @@ export const puzzles: PuzzleItem[] = [
     difficulty: "Easy",
     themes: ["Back Rank", "Queen Sac"],
     description: "Find the winning move for White.",
-    icon: "🧩",
+    icon: "",
     fen: "6k1/5ppp/8/8/8/8/1Q3PPP/6K1 w - - 0 1",
     solution: ["Qb8+", "Qxf8#"],
     rating: 1100,
@@ -157,7 +157,7 @@ export const puzzles: PuzzleItem[] = [
     difficulty: "Medium",
     themes: ["Knight Fork", "Double Attack"],
     description: "Black to move and win material.",
-    icon: "🐴",
+    icon: "",
     fen: "r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 4 4",
     solution: ["Qxf7#"],
     rating: 1200,
@@ -169,7 +169,7 @@ export const puzzles: PuzzleItem[] = [
     difficulty: "Hard",
     themes: ["Promotion", "Opposition"],
     description: "White to move and promote.",
-    icon: "♟️",
+    icon: "",
     fen: "8/8/8/8/8/4k3/4P3/4K3 w - - 0 1",
     solution: ["Kf1"],
     rating: 1600,
@@ -181,7 +181,7 @@ export const puzzles: PuzzleItem[] = [
     difficulty: "Medium",
     themes: ["Pin", "Skewer"],
     description: "Exploit the pinned piece.",
-    icon: "📍",
+    icon: "",
     fen: "r2qkb1r/ppp2ppp/2n1bn2/4p3/4P3/1PN2N2/PBPP1PPP/R2QKB1R w KQkq - 0 6",
     solution: ["Bb5"],
     rating: 1350,
@@ -193,7 +193,7 @@ export const puzzles: PuzzleItem[] = [
     difficulty: "Hard",
     themes: ["Sacrifice", "King Hunt"],
     description: "Classic bishop sacrifice on h7.",
-    icon: "🎁",
+    icon: "",
     fen: "r1bq1rk1/pppp1ppp/2n2n2/2b1p3/2B1P3/3P1N2/PPP2PPP/RNBQ1RK1 w - - 0 6",
     solution: ["Bxh7+"],
     rating: 1550,
@@ -205,7 +205,7 @@ export const puzzles: PuzzleItem[] = [
     difficulty: "Hard",
     themes: ["Checkmate", "Knight"],
     description: "Beautiful mate with the knight.",
-    icon: "⚔️",
+    icon: "",
     fen: "r1b1kb1r/pppp1Npp/5n2/8/3nq3/8/PPPPBPPP/RNBQK2R b KQkq - 0 1",
     solution: ["Qxe2#"],
     rating: 1500,
@@ -221,7 +221,7 @@ export const courses: Course[] = [
     lessons: 12,
     progress: 45,
     author: "GM Martinez",
-    image: "🏰",
+    image: "",
     level: "Intermediate",
   },
   {
@@ -231,7 +231,7 @@ export const courses: Course[] = [
     lessons: 8,
     progress: 10,
     author: "IM Sarah Lee",
-    image: "♟️",
+    image: "",
     level: "Beginner",
   },
   {
@@ -241,7 +241,7 @@ export const courses: Course[] = [
     lessons: 15,
     progress: 0,
     author: "GM Johnson",
-    image: "♜",
+    image: "",
     level: "Advanced",
   },
   {
@@ -251,7 +251,7 @@ export const courses: Course[] = [
     lessons: 10,
     progress: 80,
     author: "GM Tal Fan",
-    image: "⚔️",
+    image: "",
     level: "Intermediate",
   },
 ];

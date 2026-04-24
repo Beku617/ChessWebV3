@@ -8,7 +8,6 @@ import {
   Paperclip,
   Search,
   Send,
-  Smile,
   Archive,
   ArchiveRestore,
   Trash2,
@@ -19,7 +18,6 @@ import {
   ChevronRight,
   Image as ImageIcon,
   Video,
-  Crown,
   ExternalLink,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -920,7 +918,10 @@ export default function Messages() {
 
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
-          setError(data.error || "Failed to share game.");
+          const blocked =
+            data?.code === "user_blocked" ||
+            String(data?.error || "").toLowerCase().includes("blocked");
+          setError(blocked ? "Unable to send message." : data.error || "Failed to share game.");
           return;
         }
 
@@ -974,7 +975,14 @@ export default function Messages() {
 
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error || t("messages.errors.send", "Failed to send message."));
+        const blocked =
+          data?.code === "user_blocked" ||
+          String(data?.error || "").toLowerCase().includes("blocked");
+        setError(
+          blocked
+            ? "Unable to send message."
+            : data.error || t("messages.errors.send", "Failed to send message."),
+        );
         return;
       }
 
@@ -1106,12 +1114,12 @@ export default function Messages() {
   }, [challengeFriendId, challengeFriendName, navigate]);
 
   return (
-    <div className="min-h-screen h-screen bg-[#060b16] text-slate-100 flex transition-colors duration-300">
+    <div className="min-h-screen h-screen bg-transparent text-slate-100 flex transition-colors duration-300">
       <Sidebar />
 
       <div className="flex-1 ml-[60px] md:ml-72 grid h-screen min-h-0 grid-cols-12 overflow-hidden">
-        <aside className="col-span-4 min-w-0 min-h-0 overflow-y-auto premium-scrollbar border-r border-[#1b2740] bg-[#0d1525]/92 backdrop-blur-xl">
-          <div className="sticky top-0 z-20 bg-[#101a2d]/92 p-5 backdrop-blur-xl">
+        <aside className="theme-glass-panel-strong col-span-4 min-w-0 min-h-0 overflow-y-auto premium-scrollbar rounded-none border-r">
+          <div className="theme-glass-panel-soft sticky top-0 z-20 rounded-none px-5 py-5">
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
               <input
@@ -1124,7 +1132,7 @@ export default function Messages() {
           </div>
 
           <div className="p-4 pt-0">
-            <section className="overflow-hidden rounded-xl border border-[#25344e] bg-[#0c1629]/60 shadow-[0_10px_30px_rgba(0,0,0,0.18)]">
+            <section className="theme-glass-panel-soft overflow-hidden rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.18)]">
               <div className="flex border-b border-[#25344e] bg-[#0c1629]/65">
                 <button
                   type="button"
@@ -1257,7 +1265,7 @@ export default function Messages() {
           </div>
         </aside>
 
-        <section className="col-span-8 min-w-0 min-h-0 flex flex-col overflow-hidden bg-[#08101d]/85">
+        <section className="theme-glass-panel-strong col-span-8 min-w-0 min-h-0 flex flex-col overflow-hidden rounded-none">
           {!activeChatId ? (
             loading ? (
               <div className="flex flex-1 items-center justify-center text-sm text-slate-500">
@@ -1284,7 +1292,7 @@ export default function Messages() {
             )
           ) : (
             <>
-              <header className="flex shrink-0 items-center justify-between border-b border-[#1f2c45] bg-[#111b2f]/94 px-5 py-3.5 backdrop-blur-xl">
+              <header className="theme-glass-panel-soft flex shrink-0 items-center justify-between rounded-none px-5 py-3.5">
                 <div className="flex min-w-0 items-center gap-3">
                   <div className="relative h-11 w-11 shrink-0 rounded-full bg-[#1a2940] ring-1 ring-[#2a3a57]">
                     {activeConversation?.partnerAvatar ? (
@@ -1452,9 +1460,6 @@ export default function Messages() {
                                 className={`mt-1 block rounded-xl border ${cardBg} p-3 transition-colors cursor-pointer group`}
                               >
                                 <div className="flex items-start gap-3">
-                                  <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${mine ? "bg-white/15 text-white" : "bg-brand-500/10 text-brand-400"}`}>
-                                    <Crown className="h-4.5 w-4.5" />
-                                  </div>
                                   <div className="min-w-0 flex-1">
                                     <div className="flex items-center gap-1.5 text-[13px] font-semibold">
                                       <span className={mine ? "text-white" : "text-slate-100"}>{sg.white}</span>
@@ -1516,7 +1521,7 @@ export default function Messages() {
               </div>
 
               {activeConversationArchived ? (
-                <div className="shrink-0 border-t border-[#1f2c45] bg-[#0f182a]/95 px-4 py-3 backdrop-blur-xl">
+                <div className="theme-glass-panel-soft shrink-0 rounded-none px-4 py-3">
                   <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#27354f] bg-[#121e31]/92 px-3 py-3">
                     <div className="text-sm text-slate-200">
                       {t("messages.archivedReadOnly", "This conversation is archived. Unarchive to reply.")}
@@ -1533,7 +1538,7 @@ export default function Messages() {
                   </div>
                 </div>
               ) : (
-                <div className="shrink-0 border-t border-[#1f2c45] bg-[#0f182a]/95 px-4 py-3 backdrop-blur-xl">
+                <div className="theme-glass-panel-soft shrink-0 rounded-none px-4 py-3">
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -1651,7 +1656,6 @@ export default function Messages() {
                   {/* /gameN command hint */}
                   {/^\/game\d*$/i.test(draft.trim()) && !pendingImages.length && !pendingVideo && (
                     <div className="mb-2 flex items-center gap-2 rounded-xl border border-brand-500/20 bg-brand-500/5 px-3 py-2">
-                      <Crown className="h-4 w-4 shrink-0 text-brand-400" />
                       <span className="text-xs text-brand-300/90">
                         Type <span className="font-mono font-semibold">/game1</span>, <span className="font-mono font-semibold">/game2</span>, etc. to share a game from your profile history
                       </span>
@@ -1681,13 +1685,6 @@ export default function Messages() {
                     >
                       <Video className="h-4 w-4" />
                     </button>
-                    <button
-                      type="button"
-                      className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-[#1b2a41] hover:text-slate-100"
-                    >
-                      <Smile className="h-4 w-4" />
-                    </button>
-
                     <input
                       value={draft}
                       onChange={(e) => setDraft(e.target.value)}

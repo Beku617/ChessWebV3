@@ -1,10 +1,9 @@
 import { useMemo } from "react";
-import { MoveQualityInfo } from "../../../utils/moveQuality";
+import { useTranslation } from "react-i18next";
 import {
   generateMoveExplanation,
   getQualityBgColor,
 } from "../../../utils/moveExplanations";
-import { AnalysisEntry } from "../../../hooks/useGameReplayTypes";
 import { MoveExplanationPanelProps, EvalTrend } from "./types";
 import { useAiExplanations } from "./useAiExplanations";
 import { useBestMove } from "./useBestMove";
@@ -22,7 +21,8 @@ export function MoveExplanationPanel({
   positions,
   sanMoves = [],
 }: MoveExplanationPanelProps) {
-  // AI explanations hook
+  const { t } = useTranslation();
+
   const {
     explanationsByPly,
     aiLoading,
@@ -36,7 +36,6 @@ export function MoveExplanationPanel({
     sanMoves,
   });
 
-  // Best move hook
   const bestMoveInfo = useBestMove({
     currentPly,
     currentMoveSan,
@@ -44,16 +43,20 @@ export function MoveExplanationPanel({
     positions,
   });
 
-  // Get current AI explanation
   const aiExplanation = explanationsByPly.get(currentPly) || null;
 
-  // Generate explanation
   const explanation = useMemo(() => {
     if (currentPly === 0) {
       return {
-        title: "Starting Position",
-        description: "The game begins from the standard starting position.",
-        details: "Select a move to see its analysis and explanation.",
+        title: t("analysis.startingPositionTitle", "Starting Position"),
+        description: t(
+          "analysis.startingPositionDescription",
+          "The game begins from the standard starting position.",
+        ),
+        details: t(
+          "analysis.startingPositionDetails",
+          "Select a move to see its analysis and explanation.",
+        ),
         evalChange: "—",
       };
     }
@@ -68,12 +71,10 @@ export function MoveExplanationPanel({
       before?.cp,
       after?.cp,
     );
-  }, [currentPly, currentMoveSan, moveQualities, analysisByPly]);
+  }, [analysisByPly, currentMoveSan, currentPly, moveQualities, t]);
 
-  // Get quality info for current ply
   const qualityInfo = moveQualities.find((q) => q.ply === currentPly);
 
-  // Calculate eval trend
   const evalTrend: EvalTrend = useMemo(() => {
     if (!qualityInfo) return "neutral";
     if (qualityInfo.epGain > 0.05) return "up";
@@ -81,7 +82,6 @@ export function MoveExplanationPanel({
     return "neutral";
   }, [qualityInfo]);
 
-  // Show empty state for starting position
   if (currentPly === 0) {
     return <EmptyState />;
   }

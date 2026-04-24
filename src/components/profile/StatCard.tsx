@@ -4,8 +4,7 @@ interface StatCardProps {
   title: string;
   value: string | number;
   subtext?: string;
-  icon: React.ComponentType<{ className?: string }>;
-  color: string;
+  icon?: React.ComponentType<{ className?: string }>;
   gradient?: string;
 }
 
@@ -13,8 +12,6 @@ export function StatCard({
   title,
   value,
   subtext,
-  icon: Icon,
-  color,
   gradient,
 }: StatCardProps) {
   return (
@@ -28,11 +25,6 @@ export function StatCard({
       )}
       <div className="relative z-10">
         <div className="flex justify-between items-start mb-3">
-          <div className={`p-2.5 rounded-xl ${color} bg-opacity-15`}>
-            <Icon
-              className={`w-5 h-5 ${color.includes("text-") ? color : color.replace("bg-", "text-")}`}
-            />
-          </div>
           {subtext && (
             <span className="text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2.5 py-1 rounded-full">
               {subtext}

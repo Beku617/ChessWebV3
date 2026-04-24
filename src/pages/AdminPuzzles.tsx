@@ -8,7 +8,6 @@ import {
   Loader2,
   X,
   Check,
-  Brain,
   RotateCcw,
   Play,
   Square as SquareIcon,
@@ -40,6 +39,12 @@ import type {
 import { Chess } from "chess.js";
 import AdminSidebar from "../components/AdminSidebar";
 import { useAdminStore } from "../store/adminStore";
+import bishopIcon from "../assets/pieces/cburnett/bishop.svg";
+import kingIcon from "../assets/pieces/cburnett/king.svg";
+import knightIcon from "../assets/pieces/cburnett/knight.svg";
+import pawnIcon from "../assets/pieces/cburnett/pawn.svg";
+import queenIcon from "../assets/pieces/cburnett/queen.svg";
+import rookIcon from "../assets/pieces/cburnett/rook.svg";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
@@ -101,23 +106,57 @@ type SelectedTool = Piece | "eraser" | null;
 
 const EMPTY_BOARD_FEN = "8/8/8/8/8/8/8/8";
 
-const PIECE_SYMBOLS: Record<Piece, string> = {
-  wK: "\u2654",
-  wQ: "\u2655",
-  wR: "\u2656",
-  wB: "\u2657",
-  wN: "\u2658",
-  wP: "\u2659",
-  bK: "\u265A",
-  bQ: "\u265B",
-  bR: "\u265C",
-  bB: "\u265D",
-  bN: "\u265E",
-  bP: "\u265F",
+const PIECE_ICONS: Record<Piece, string> = {
+  wK: kingIcon,
+  wQ: queenIcon,
+  wR: rookIcon,
+  wB: bishopIcon,
+  wN: knightIcon,
+  wP: pawnIcon,
+  bK: kingIcon,
+  bQ: queenIcon,
+  bR: rookIcon,
+  bB: bishopIcon,
+  bN: knightIcon,
+  bP: pawnIcon,
+};
+
+const PIECE_LABELS: Record<Piece, string> = {
+  wK: "White king",
+  wQ: "White queen",
+  wR: "White rook",
+  wB: "White bishop",
+  wN: "White knight",
+  wP: "White pawn",
+  bK: "Black king",
+  bQ: "Black queen",
+  bR: "Black rook",
+  bB: "Black bishop",
+  bN: "Black knight",
+  bP: "Black pawn",
 };
 
 const WHITE_PIECES: Piece[] = ["wK", "wQ", "wR", "wB", "wN", "wP"];
 const BLACK_PIECES: Piece[] = ["bK", "bQ", "bR", "bB", "bN", "bP"];
+
+function PiecePaletteIcon({ piece }: { piece: Piece }) {
+  const isBlackPiece = piece.startsWith("b");
+
+  return (
+    <img
+      src={PIECE_ICONS[piece]}
+      alt=""
+      aria-hidden="true"
+      draggable={false}
+      className="h-7 w-7 select-none object-contain"
+      style={{
+        filter: isBlackPiece
+          ? "invert(1) drop-shadow(0 0 1px rgba(255,255,255,0.9))"
+          : "drop-shadow(0 0 1px rgba(0,0,0,0.85))",
+      }}
+    />
+  );
+}
 
 function getFenSideToMove(fen: string, fallback = true): boolean {
   const parts = fen.trim().split(/\s+/).filter(Boolean);
@@ -568,9 +607,6 @@ export default function AdminPuzzles() {
           <div className="flex items-center justify-between mb-8">
             <div>
               <h1 className="text-3xl font-bold">Puzzles</h1>
-              <p className="text-gray-500 dark:text-gray-400 mt-1">
-                Manage chess puzzles
-              </p>
             </div>
             <button
               onClick={handleCreate}
@@ -792,7 +828,6 @@ export default function AdminPuzzles() {
 
               {filteredPuzzles.length === 0 && (
                 <div className="text-center py-12 text-gray-500">
-                  <Brain className="w-12 h-12 mx-auto mb-3 opacity-50" />
                   <p>No puzzles found</p>
                 </div>
               )}
@@ -914,27 +949,15 @@ export default function AdminPuzzles() {
                                   selectedPiece === piece ? null : piece,
                                 )
                               }
+                              aria-label={PIECE_LABELS[piece]}
+                              title={PIECE_LABELS[piece]}
                               className={`w-9 h-9 flex items-center justify-center rounded transition-colors ${
                                 selectedPiece === piece
                                   ? "bg-brand-500 ring-2 ring-brand-400"
                                   : "bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
                               }`}
                             >
-                              <span
-                                aria-hidden="true"
-                                className={`text-2xl leading-none select-none ${
-                                  piece.startsWith("w")
-                                    ? "text-white drop-shadow-[0_0_1px_rgba(0,0,0,0.9)]"
-                                    : "text-gray-900 drop-shadow-[0_0_1px_rgba(255,255,255,0.8)]"
-                                }`}
-                                style={{
-                                  fontFamily:
-                                    '"Segoe UI Symbol","Noto Sans Symbols 2","Arial Unicode MS",serif',
-                                  fontWeight: 400,
-                                }}
-                              >
-                                {PIECE_SYMBOLS[piece]}
-                              </span>
+                              <PiecePaletteIcon piece={piece} />
                             </button>
                           ))}
                         </div>
@@ -954,27 +977,15 @@ export default function AdminPuzzles() {
                                   selectedPiece === piece ? null : piece,
                                 )
                               }
+                              aria-label={PIECE_LABELS[piece]}
+                              title={PIECE_LABELS[piece]}
                               className={`w-9 h-9 flex items-center justify-center rounded transition-colors ${
                                 selectedPiece === piece
                                   ? "bg-brand-500 ring-2 ring-brand-400"
                                   : "bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
                               }`}
                             >
-                              <span
-                                aria-hidden="true"
-                                className={`text-2xl leading-none select-none ${
-                                  piece.startsWith("w")
-                                    ? "text-white drop-shadow-[0_0_1px_rgba(0,0,0,0.9)]"
-                                    : "text-gray-900 drop-shadow-[0_0_1px_rgba(255,255,255,0.8)]"
-                                }`}
-                                style={{
-                                  fontFamily:
-                                    '"Segoe UI Symbol","Noto Sans Symbols 2","Arial Unicode MS",serif',
-                                  fontWeight: 400,
-                                }}
-                              >
-                                {PIECE_SYMBOLS[piece]}
-                              </span>
+                              <PiecePaletteIcon piece={piece} />
                             </button>
                           ))}
                         </div>

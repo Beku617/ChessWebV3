@@ -1,4 +1,3 @@
-import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   BotPersonality,
@@ -6,7 +5,7 @@ import {
   getBotsByCategory,
 } from "../../data/botPersonalities";
 import { CategoryFilter, CATEGORIES } from "./types";
-import { getPlayStyleIcon, getCategoryColor } from "./utils";
+import { getPlayStyleLabel, getCategoryColor } from "./utils";
 
 interface BotSelectionGridProps {
   categoryFilter: CategoryFilter;
@@ -33,17 +32,14 @@ export function BotSelectionGrid({
       <div className="flex items-center gap-4 mb-6">
         <button
           onClick={() => navigate("/play")}
-          className="p-2 rounded-lg bg-white/80 dark:bg-slate-800/80 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+          className="px-3 py-2 rounded-lg text-sm font-medium bg-white/80 dark:bg-slate-800/80 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
         >
-          <ArrowLeft className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+          Back
         </button>
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             Play with Bot
           </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Choose your opponent and start playing
-          </p>
         </div>
       </div>
 
@@ -77,7 +73,6 @@ export function BotSelectionGrid({
             }`}
           >
             <div className="flex items-start gap-3">
-              <div className="text-3xl">{bot.avatar}</div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-gray-900 dark:text-white">
@@ -98,7 +93,9 @@ export function BotSelectionGrid({
                   >
                     {bot.category}
                   </span>
-                  {getPlayStyleIcon(bot.playStyle)}
+                  <span className="text-xs text-gray-500 dark:text-gray-400 capitalize">
+                    {getPlayStyleLabel(bot.playStyle)}
+                  </span>
                 </div>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
                   {bot.description}

@@ -14,7 +14,6 @@ import {
   generateRoundPairings,
   getUserRatingForTournament,
   parseTimeControl,
-  resolveWinnerId,
   sortStandings,
 } from "../utils/tournamentEngine.js";
 import {
@@ -24,7 +23,7 @@ import {
 
 const router = Router();
 
-const TOURNAMENT_TYPES = new Set(["swiss", "roundRobin", "knockout"]);
+const TOURNAMENT_TYPES = new Set(["swiss"]);
 const REPORTABLE_RESULTS = new Set(["1-0", "0-1", "1/2-1/2"]);
 
 function toId(value) {
@@ -395,7 +394,7 @@ async function buildTournamentDetail(tournament, viewerId) {
 
 async function maybeAdvanceTournament(tournamentId, options = {}) {
   const app = options?.app || null;
-  let tournament = await Tournament.findById(tournamentId);
+  let tournament = await Tournament.findOne({ _id: tournamentId, type: "swiss" });
   if (!tournament || tournament.status !== "running") {
     return tournament;
   }
@@ -409,29 +408,7 @@ async function maybeAdvanceTournament(tournamentId, options = {}) {
     });
     if (pendingGames > 0) break;
 
-    if (tournament.type === "knockout") {
-      const currentRoundGames = await TournamentGame.find({
-        tournamentId,
-        roundNumber: tournament.currentRound,
-      }).lean();
-      const winners = [
-        ...new Set(currentRoundGames.map((game) => resolveWinnerId(game)).filter(Boolean)),
-      ];
-      if (
-        winners.length <= 1 ||
-        tournament.currentRound >= Number(tournament.roundsPlanned || 1)
-      ) {
-        tournament = await Tournament.findByIdAndUpdate(
-          tournamentId,
-          { $set: { status: "finished", finishedAt: new Date() } },
-          { new: true },
-        );
-        if (tournament) {
-          await notifyTournamentFinished(app, tournament);
-        }
-        break;
-      }
-    } else if (tournament.currentRound >= Number(tournament.roundsPlanned || 1)) {
+    if (tournament.currentRound >= Number(tournament.roundsPlanned || 1)) {
       tournament = await Tournament.findByIdAndUpdate(
         tournamentId,
         { $set: { status: "finished", finishedAt: new Date() } },
@@ -491,7 +468,7 @@ router.get("/", authMiddleware, async (req, res) => {
     const { type, status } = req.query;
     const limit = Math.max(1, Math.min(100, Number(req.query.limit) || 50));
 
-    const query = {};
+    const query = { type: "swiss" };
     if (type && TOURNAMENT_TYPES.has(String(type))) {
       query.type = String(type);
     }
@@ -616,7 +593,7 @@ router.post("/:id/managers", authMiddleware, async (req, res) => {
       return res.status(400).json({ error: "Invalid manager user id" });
     }
 
-    const tournament = await Tournament.findById(id);
+    const tournament = await Tournament.findOne({ _id: id, type: "swiss" });
     if (!tournament) {
       return res.status(404).json({ error: "Tournament not found" });
     }
@@ -636,7 +613,7 @@ router.post("/:id/managers", authMiddleware, async (req, res) => {
       { $addToSet: { managerIds: managerId } },
     );
 
-    const refreshed = await Tournament.findById(id);
+    const refreshed = await Tournament.findOne({ _id: id, type: "swiss" });
     const detail = await buildTournamentDetail(refreshed, req.user.userId);
     res.json({ success: true, ...detail });
   } catch (error) {
@@ -655,7 +632,7 @@ router.delete("/:id/managers/:managerId", authMiddleware, async (req, res) => {
       return res.status(400).json({ error: "Invalid manager user id" });
     }
 
-    const tournament = await Tournament.findById(id);
+    const tournament = await Tournament.findOne({ _id: id, type: "swiss" });
     if (!tournament) {
       return res.status(404).json({ error: "Tournament not found" });
     }
@@ -670,7 +647,7 @@ router.delete("/:id/managers/:managerId", authMiddleware, async (req, res) => {
       { $pull: { managerIds: managerId } },
     );
 
-    const refreshed = await Tournament.findById(id);
+    const refreshed = await Tournament.findOne({ _id: id, type: "swiss" });
     const detail = await buildTournamentDetail(refreshed, req.user.userId);
     res.json({ success: true, ...detail });
   } catch (error) {
@@ -686,13 +663,13 @@ router.get("/:id", authMiddleware, async (req, res) => {
       return res.status(400).json({ error: "Invalid tournament id" });
     }
 
-    const tournament = await Tournament.findById(id);
+    const tournament = await Tournament.findOne({ _id: id, type: "swiss" });
     if (!tournament) {
       return res.status(404).json({ error: "Tournament not found" });
     }
 
     await refreshTournamentStats(tournament._id, tournament.type);
-    const refreshed = await Tournament.findById(tournament._id);
+    const refreshed = await Tournament.findOne({ _id: tournament._id, type: "swiss" });
     const detail = await buildTournamentDetail(refreshed, req.user.userId);
     res.json(detail);
   } catch (error) {
@@ -708,7 +685,7 @@ router.post("/:id/register", authMiddleware, async (req, res) => {
       return res.status(400).json({ error: "Invalid tournament id" });
     }
 
-    const tournament = await Tournament.findById(id);
+    const tournament = await Tournament.findOne({ _id: id, type: "swiss" });
     if (!tournament) {
       return res.status(404).json({ error: "Tournament not found" });
     }
@@ -803,7 +780,7 @@ router.post("/:id/unregister", authMiddleware, async (req, res) => {
       return res.status(400).json({ error: "Invalid tournament id" });
     }
 
-    const tournament = await Tournament.findById(id);
+    const tournament = await Tournament.findOne({ _id: id, type: "swiss" });
     if (!tournament) {
       return res.status(404).json({ error: "Tournament not found" });
     }
@@ -833,7 +810,7 @@ router.post("/:id/start", authMiddleware, async (req, res) => {
       return res.status(400).json({ error: "Invalid tournament id" });
     }
 
-    const tournament = await Tournament.findById(id);
+    const tournament = await Tournament.findOne({ _id: id, type: "swiss" });
     if (!tournament) {
       return res.status(404).json({ error: "Tournament not found" });
     }
@@ -959,7 +936,7 @@ router.post("/:id/rounds/:round/pair", authMiddleware, async (req, res) => {
       return res.status(400).json({ error: "Invalid round number" });
     }
 
-    const tournament = await Tournament.findById(id);
+    const tournament = await Tournament.findOne({ _id: id, type: "swiss" });
     if (!tournament) {
       return res.status(404).json({ error: "Tournament not found" });
     }
@@ -1044,7 +1021,7 @@ router.post("/:id/rounds/:round/repair", authMiddleware, async (req, res) => {
       return res.status(400).json({ error: "Invalid round number" });
     }
 
-    const tournament = await Tournament.findById(id);
+    const tournament = await Tournament.findOne({ _id: id, type: "swiss" });
     if (!tournament) {
       return res.status(404).json({ error: "Tournament not found" });
     }
@@ -1122,7 +1099,7 @@ router.post("/:id/rounds/:round/repair", authMiddleware, async (req, res) => {
 
     await refreshTournamentStats(tournament._id, tournament.type);
     void notifyRoundPairings(req.app, tournament, repairedPairings, targetRound);
-    const refreshed = await Tournament.findById(tournament._id);
+    const refreshed = await Tournament.findOne({ _id: tournament._id, type: "swiss" });
     const detail = await buildTournamentDetail(refreshed, req.user.userId);
     res.json({ success: true, ...detail });
   } catch (error) {
@@ -1143,7 +1120,7 @@ router.post("/:id/games/:gameId/result", authMiddleware, async (req, res) => {
       return res.status(400).json({ error: "Invalid game result" });
     }
 
-    const tournament = await Tournament.findById(id);
+    const tournament = await Tournament.findOne({ _id: id, type: "swiss" });
     if (!tournament) {
       return res.status(404).json({ error: "Tournament not found" });
     }
@@ -1173,28 +1150,12 @@ router.post("/:id/games/:gameId/result", authMiddleware, async (req, res) => {
       return res.status(400).json({ error: "Bye results are automatic" });
     }
 
-    if (tournament.type === "knockout" && result === "1/2-1/2") {
-      return res
-        .status(400)
-        .json({ error: "Knockout matches cannot end in a draw" });
-    }
-
     await markTournamentGameStarted(gameId);
 
     const syncResult = await syncTournamentGameResultByGameId(gameId, result);
     if (!syncResult.updated) {
       if (syncResult.reason === "already_reported") {
         return res.status(409).json({ error: "Result already reported" });
-      }
-      if (syncResult.reason === "knockout_draw_not_allowed") {
-        return res
-          .status(400)
-          .json({ error: "Knockout matches cannot end in a draw" });
-      }
-      if (syncResult.reason === "knockout_winner_required") {
-        return res
-          .status(400)
-          .json({ error: "Knockout matches must produce a winner" });
       }
       return res.status(400).json({ error: "Failed to sync game result" });
     }
@@ -1218,7 +1179,7 @@ router.post("/:id/finish", authMiddleware, async (req, res) => {
       return res.status(400).json({ error: "Invalid tournament id" });
     }
 
-    const tournament = await Tournament.findById(id);
+    const tournament = await Tournament.findOne({ _id: id, type: "swiss" });
     if (!tournament) {
       return res.status(404).json({ error: "Tournament not found" });
     }
@@ -1251,7 +1212,7 @@ router.post("/:id/stop", authMiddleware, async (req, res) => {
       return res.status(400).json({ error: "Invalid tournament id" });
     }
 
-    const tournament = await Tournament.findById(id);
+    const tournament = await Tournament.findOne({ _id: id, type: "swiss" });
     if (!tournament) {
       return res.status(404).json({ error: "Tournament not found" });
     }
@@ -1283,7 +1244,7 @@ router.delete("/:id", authMiddleware, async (req, res) => {
       return res.status(400).json({ error: "Invalid tournament id" });
     }
 
-    const tournament = await Tournament.findById(id);
+    const tournament = await Tournament.findOne({ _id: id, type: "swiss" });
     if (!tournament) {
       return res.status(404).json({ error: "Tournament not found" });
     }

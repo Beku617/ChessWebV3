@@ -9,7 +9,6 @@ import {
   createPlayerStatsMap,
   generateRoundPairings,
   getWinnerFromResult,
-  resolveWinnerId,
 } from "../utils/tournamentEngine.js";
 import { calculateTournamentEloPair } from "../modules/elo/tournamentElo.js";
 import { normalizeTournamentState, TOURNAMENT_STATES } from "../modules/tournaments/stateMachine.js";
@@ -152,25 +151,7 @@ export async function maybeAdvanceTournament(tournamentId, options = {}) {
     if (pendingGames > 0) break;
     progression.roundsClosed.push(currentRound);
 
-    if (tournament.type === "knockout") {
-      const currentRoundGames = await TournamentGame.find({
-        tournamentId,
-        roundNumber: currentRound,
-      }).lean();
-      const winners = [
-        ...new Set(currentRoundGames.map((game) => resolveWinnerId(game)).filter(Boolean)),
-      ];
-      if (
-        winners.length <= 1 ||
-        currentRound >= Number(tournament.roundsPlanned || 1)
-      ) {
-        const completed = await completeTournamentAuto(tournament);
-        tournament = completed.tournament;
-        progression.finished = true;
-        progression.top3 = completed.top3 || [];
-        break;
-      }
-    } else if (currentRound >= Number(tournament.roundsPlanned || 1)) {
+    if (currentRound >= Number(tournament.roundsPlanned || 1)) {
       const completed = await completeTournamentAuto(tournament);
       tournament = completed.tournament;
       progression.finished = true;
@@ -305,26 +286,7 @@ export async function syncTournamentGameResultByGameId(
     return { matched: true, updated: false, reason: "bye_game" };
   }
 
-  if (
-    tournament.type === "knockout" &&
-    normalizedResult === "1/2-1/2" &&
-    options.allowKnockoutDraw !== true
-  ) {
-    return { matched: true, updated: false, reason: "knockout_draw_not_allowed" };
-  }
-
   const winnerId = getWinnerFromResult(normalizedResult, game.whiteId, game.blackId);
-  if (
-    tournament.type === "knockout" &&
-    !winnerId &&
-    options.allowKnockoutDraw !== true
-  ) {
-    return {
-      matched: true,
-      updated: false,
-      reason: "knockout_winner_required",
-    };
-  }
 
   const eloChanges = { white: 0, black: 0 };
   if (!game.isBye && game.blackId) {

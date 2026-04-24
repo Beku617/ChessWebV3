@@ -1,6 +1,8 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { FeedPagination } from "../../components/community/FeedPagination";
 import { useAuthStore } from "../../store/authStore";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
@@ -10,16 +12,15 @@ const SOCKET_URL = (
   "http://localhost:3001"
 ).replace(/\/api\/?$/, "");
 
-type TournamentType = "swiss" | "roundRobin" | "knockout";
+type TournamentType = "swiss";
 type TournamentStatus =
   | "DRAFT"
   | "REGISTRATION_OPEN"
-  | "PAIRING_PREVIEW"
   | "LIVE_ROUND"
   | "ROUND_CLOSED"
   | "FINISHED";
 
-type TabKey = "standings" | "rounds" | "bracket";
+type TabKey = "standings" | "rounds";
 type SortMode = "newest" | "most_players" | "my_tournaments";
 type StatusFilter = "all" | "DRAFT" | "REGISTRATION_OPEN" | "LIVE_ROUND" | "FINISHED";
 type RatingFilterMode = "none" | "min" | "max" | "range";
@@ -145,22 +146,6 @@ interface DetailResponse {
     isOfficial: boolean;
     label: string;
   };
-  previewPairings: Array<{
-    id: string;
-    gameId: string;
-    board: number;
-    whiteId: string;
-    blackId: string;
-    white: string;
-    black: string;
-    isBye: boolean;
-    explanation: {
-      scoreGroup?: string;
-      colorAssignment?: string;
-      byeReason?: string;
-      rematchesAvoided?: string[];
-    };
-  }>;
   winners: WinnerRow[];
 }
 
@@ -169,6 +154,17 @@ interface ConfirmDialogState {
   confirmLabel?: string;
   tone?: "warning" | "danger";
   onConfirm: () => Promise<void> | void;
+}
+
+interface TournamentListResponse {
+  tournaments: TournamentSummary[];
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    pages?: number;
+    hasMore?: boolean;
+  };
 }
 
 const TIME_PRESETS = [
@@ -186,31 +182,22 @@ const STANDINGS_PAGE_SIZE = 50;
 
 const STATUS_BADGE: Record<
   TournamentStatus,
-  { label: string; className: string; pulse?: boolean }
+  { className: string; pulse?: boolean }
 > = {
   DRAFT: {
-    label: "DRAFT",
     className: "bg-gray-500/20 text-gray-300 border-gray-500/40",
   },
   REGISTRATION_OPEN: {
-    label: "OPEN",
     className: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40",
   },
-  PAIRING_PREVIEW: {
-    label: "PREVIEW",
-    className: "bg-cyan-500/20 text-cyan-300 border-cyan-500/40",
-  },
   LIVE_ROUND: {
-    label: "LIVE",
     className: "bg-amber-500/20 text-amber-300 border-amber-500/40",
     pulse: true,
   },
   ROUND_CLOSED: {
-    label: "ROUND CLOSED",
     className: "bg-indigo-500/20 text-indigo-300 border-indigo-500/40",
   },
   FINISHED: {
-    label: "FINISHED",
     className: "bg-zinc-500/20 text-zinc-300 border-zinc-500/40",
   },
 };
@@ -225,8 +212,7 @@ function statusForFilter(status: StatusFilter) {
 }
 
 function formatType(type: TournamentType) {
-  if (type === "roundRobin") return "Round-Robin";
-  if (type === "knockout") return "Knockout";
+  void type;
   return "Swiss";
 }
 
@@ -258,6 +244,7 @@ function parseOptionalNonNegativeNumber(value: string): number | null {
 
 export default function Tournaments() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const user = useAuthStore((state) => state.user);
 
   const [search, setSearch] = useState("");
@@ -266,6 +253,9 @@ export default function Tournaments() {
   const [sort, setSort] = useState<SortMode>("newest");
 
   const [list, setList] = useState<TournamentSummary[]>([]);
+  const [listPage, setListPage] = useState(1);
+  const [listTotal, setListTotal] = useState(0);
+  const [listTotalPages, setListTotalPages] = useState(1);
   const [selectedId, setSelectedId] = useState("");
   const [detail, setDetail] = useState<DetailResponse | null>(null);
   const [tab, setTab] = useState<TabKey>("standings");
@@ -296,6 +286,42 @@ export default function Tournaments() {
 
   const currentUserId = String(user?.id || "");
   const autoJoinGameIdRef = useRef<string>("");
+  const serverReconnectMessage = t(
+    "tournamentsPage.errors.serverReconnect",
+    "Unable to reach server. Reconnecting...",
+  );
+  const realtimeReconnectMessage = t(
+    "tournamentsPage.errors.realtimeReconnect",
+    "Realtime disconnected. Reconnecting...",
+  );
+  const realtimeFailedMessage = t(
+    "tournamentsPage.errors.realtimeFailed",
+    "Realtime connection failed. Reconnecting...",
+  );
+  const formatStatusLabel = (status: TournamentStatus) => {
+    if (status === "REGISTRATION_OPEN") {
+      return t("tournamentCommon.badges.open", "OPEN");
+    }
+    if (status === "LIVE_ROUND") {
+      return t("tournamentCommon.badges.live", "LIVE");
+    }
+    if (status === "ROUND_CLOSED") {
+      return t("tournamentCommon.badges.roundClosed", "ROUND CLOSED");
+    }
+    if (status === "FINISHED") {
+      return t("tournamentCommon.badges.finished", "FINISHED");
+    }
+    return t("tournamentCommon.badges.draft", "DRAFT");
+  };
+  const formatTimePresetLabel = (key: string, fallback: string) =>
+    t(`tournamentCommon.timePresets.${key}`, fallback);
+  const formatRatingRequirementLabel = (value?: string | null) => {
+    const normalized = String(value || "").trim();
+    if (!normalized || /^none$/i.test(normalized)) {
+      return t("tournamentCommon.rating.none", "None");
+    }
+    return normalized;
+  };
 
   const selectedTournament = useMemo(
     () => list.find((item) => item.id === selectedId) || null,
@@ -358,7 +384,7 @@ export default function Tournaments() {
       if (!options?.silent) setLoadingList(true);
       const reachable = await isServerReachable();
       if (!reachable) {
-        setError("Unable to reach server. Reconnecting...");
+        setError(serverReconnectMessage);
         return;
       }
       const params = new URLSearchParams();
@@ -366,14 +392,30 @@ export default function Tournaments() {
       if (formatFilter !== "all") params.set("format", formatFilter);
       if (statusForFilter(statusFilter)) params.set("status", statusForFilter(statusFilter));
       params.set("sort", sort);
-      params.set("limit", "100");
+      params.set("page", String(listPage));
+      params.set("limit", "12");
       const response = await fetch(`${API_URL}/api/tournaments?${params.toString()}`, {
         credentials: "include",
       });
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(payload?.error || "Failed to fetch tournaments");
+      const payload = (await response.json().catch(() => ({}))) as Partial<TournamentListResponse> & {
+        error?: string;
+      };
+      if (!response.ok) {
+        throw new Error(
+          payload?.error ||
+            t("tournamentsPage.errors.fetchTournaments", "Failed to fetch tournaments"),
+        );
+      }
       const tournaments: TournamentSummary[] = payload.tournaments || [];
       setList(tournaments);
+      const total = Number(payload.pagination?.total || 0);
+      const pageSize = Math.max(1, Number(payload.pagination?.limit || 12));
+      const totalPages =
+        Number(payload.pagination?.pages) ||
+        Math.max(1, Math.ceil(total / pageSize));
+      setListTotal(total);
+      setListTotalPages(totalPages);
+      setListPage(Math.max(1, Number(payload.pagination?.page || 1)));
       if (!selectedId && tournaments.length > 0) {
         setSelectedId(tournaments[0].id);
       } else if (
@@ -384,9 +426,12 @@ export default function Tournaments() {
       }
       setError(null);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to fetch tournaments";
+      const message =
+        err instanceof Error
+          ? err.message
+          : t("tournamentsPage.errors.fetchTournaments", "Failed to fetch tournaments");
       if (/failed to fetch|networkerror|fetch/i.test(message)) {
-        setError("Unable to reach server. Reconnecting...");
+        setError(serverReconnectMessage);
       } else {
         setError(message);
       }
@@ -404,20 +449,28 @@ export default function Tournaments() {
       if (!options?.silent) setLoadingDetail(true);
       const reachable = await isServerReachable();
       if (!reachable) {
-        setError("Unable to reach server. Reconnecting...");
+        setError(serverReconnectMessage);
         return;
       }
       const response = await fetch(`${API_URL}/api/tournaments/${tournamentId}`, {
         credentials: "include",
       });
       const payload = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(payload?.error || "Failed to fetch tournament");
+      if (!response.ok) {
+        throw new Error(
+          payload?.error ||
+            t("tournamentsPage.errors.fetchTournament", "Failed to fetch tournament"),
+        );
+      }
       setDetail(payload as DetailResponse);
       setError(null);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to fetch tournament";
+      const message =
+        err instanceof Error
+          ? err.message
+          : t("tournamentsPage.errors.fetchTournament", "Failed to fetch tournament");
       if (/failed to fetch|networkerror|fetch/i.test(message)) {
-        setError("Unable to reach server. Reconnecting...");
+        setError(serverReconnectMessage);
       } else {
         setError(message);
       }
@@ -441,6 +494,10 @@ export default function Tournaments() {
       void loadList({ silent: false });
     }, 250);
     return () => window.clearTimeout(timeout);
+  }, [listPage, search, formatFilter, statusFilter, sort]);
+
+  useEffect(() => {
+    setListPage(1);
   }, [search, formatFilter, statusFilter, sort]);
 
   useEffect(() => {
@@ -448,7 +505,7 @@ export default function Tournaments() {
       void loadList({ silent: true });
     }, 20000);
     return () => window.clearInterval(listTimer);
-  }, [search, formatFilter, statusFilter, sort]);
+  }, [listPage, search, formatFilter, statusFilter, sort]);
 
   useEffect(() => {
     if (!selectedId) return;
@@ -503,12 +560,14 @@ export default function Tournaments() {
         if (disposed || socket.connected) return;
         try {
           const response = await fetch(`${API_URL}/healthz`, { credentials: "include" });
-          if (!response.ok) throw new Error("Server unavailable");
+          if (!response.ok) {
+            throw new Error(t("tournamentsPage.errors.serverUnavailable", "Server unavailable"));
+          }
           if (!disposed && !socket.connected) {
             socket.connect();
           }
         } catch {
-          setError("Unable to reach server. Reconnecting...");
+          setError(serverReconnectMessage);
           scheduleConnectProbe();
         }
       }, 1500);
@@ -521,11 +580,11 @@ export default function Tournaments() {
       }
     };
     const handleConnectError = () => {
-      setError("Realtime connection failed. Reconnecting...");
+      setError(realtimeFailedMessage);
       scheduleConnectProbe();
     };
     const handleReconnectAttempt = () => {
-      setError("Realtime disconnected. Reconnecting...");
+      setError(realtimeReconnectMessage);
     };
     const handleDisconnect = () => {
       scheduleConnectProbe();
@@ -607,12 +666,16 @@ export default function Tournaments() {
       setBusyAction(key);
       const reachable = await isServerReachable();
       if (!reachable) {
-        setError("Unable to reach server. Reconnecting...");
+        setError(serverReconnectMessage);
         return null;
       }
       const response = await call();
       const payload = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(payload?.error || "Request failed");
+      if (!response.ok) {
+        throw new Error(
+          payload?.error || t("tournamentsPage.errors.requestFailed", "Request failed"),
+        );
+      }
       if (payload?.tournament && payload?.players && payload?.standings) {
         setDetail(payload as DetailResponse);
         if ((payload as DetailResponse).tournament.id !== selectedId) {
@@ -628,9 +691,12 @@ export default function Tournaments() {
       setError(null);
       return payload;
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Request failed";
+      const message =
+        err instanceof Error
+          ? err.message
+          : t("tournamentsPage.errors.requestFailed", "Request failed");
       if (/failed to fetch|networkerror|fetch|connection refused/i.test(message)) {
-        setError("Unable to reach server. Reconnecting...");
+        setError(serverReconnectMessage);
       } else {
         setError(message);
       }
@@ -663,10 +729,7 @@ export default function Tournaments() {
           body: JSON.stringify({
             name: createName.trim(),
             type: createType,
-            roundsPlanned:
-              createType === "swiss" && Number(createRounds) > 0
-                ? Number(createRounds)
-                : null,
+            roundsPlanned: Number(createRounds) > 0 ? Number(createRounds) : null,
             timeControl: createTimeControl,
             minPlayers: Math.max(2, Number(minPlayers) || 4),
             maxPlayers: Number(maxPlayers) > 1 ? Number(maxPlayers) : null,
@@ -729,25 +792,16 @@ export default function Tournaments() {
     if (confirmMessage) {
       setConfirmDialog({
         message: confirmMessage,
-        confirmLabel: action === "finish_tournament" ? "End Tournament" : "Confirm",
+        confirmLabel:
+          action === "finish_tournament"
+            ? t("tournamentsPage.actions.endTournament", "End Tournament")
+            : t("common.confirm", "Confirm"),
         tone: action === "finish_tournament" ? "danger" : "warning",
         onConfirm: execute,
       });
       return;
     }
     await execute();
-  }
-
-  async function startRound() {
-    if (!selectedId) return;
-    await runAction("start_round", () =>
-      fetch(`${API_URL}/api/tournaments/${selectedId}/state`, {
-        method: "PATCH",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "start_round" }),
-      }),
-    );
   }
 
   function openGame(gameId: string) {
@@ -762,8 +816,11 @@ export default function Tournaments() {
   async function deleteTournament() {
     if (!selectedId) return;
     setConfirmDialog({
-      message: "Delete this draft tournament permanently?",
-      confirmLabel: "Delete",
+      message: t(
+        "tournamentsPage.confirm.deleteDraftMessage",
+        "Delete this draft tournament permanently?",
+      ),
+      confirmLabel: t("tournamentsPage.actions.delete", "Delete"),
       tone: "danger",
       onConfirm: async () => {
         await runAction(
@@ -791,7 +848,7 @@ export default function Tournaments() {
         )}
       >
         {cfg.pulse && <span className="h-1.5 w-1.5 rounded-full bg-amber-300 animate-pulse" />}
-        {cfg.label}
+        {formatStatusLabel(status)}
       </span>
     );
   }
@@ -800,10 +857,9 @@ export default function Tournaments() {
     <div className="w-full space-y-5">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-100">Tournaments</h1>
-          <p className="mt-1 text-sm text-gray-400">
-            Create and join Swiss, Round-Robin, and Knockout events
-          </p>
+          <h1 className="text-2xl font-bold text-gray-100">
+            {t("tournamentsPage.title", "Tournaments")}
+          </h1>
         </div>
         <button
           onClick={() => {
@@ -811,7 +867,7 @@ export default function Tournaments() {
           }}
           className="rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-emerald-950 hover:bg-emerald-400"
         >
-          Create Tournament
+          {t("tournamentsPage.createTournament", "Create Tournament")}
         </button>
       </header>
 
@@ -825,39 +881,63 @@ export default function Tournaments() {
         <div className="grid grid-cols-1 gap-2 md:grid-cols-4 xl:grid-cols-6">
           <input
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search by name"
+            onChange={(event) => {
+              setSearch(event.target.value);
+              setListPage(1);
+            }}
+            placeholder={t("tournamentsPage.filters.searchPlaceholder", "Search by name")}
             className="rounded-lg border border-gray-700 bg-[#0d1117] px-3 py-2 text-sm text-gray-100 outline-none focus:border-emerald-500"
           />
           <select
             value={formatFilter}
-            onChange={(event) => setFormatFilter(event.target.value as "all" | TournamentType)}
+            onChange={(event) => {
+              setFormatFilter(event.target.value as "all" | TournamentType);
+              setListPage(1);
+            }}
             className="rounded-lg border border-gray-700 bg-[#0d1117] px-3 py-2 text-sm text-gray-100"
           >
-            <option value="all">All Formats</option>
-            <option value="swiss">Swiss</option>
-            <option value="roundRobin">Round-Robin</option>
-            <option value="knockout">Knockout</option>
+            <option value="all">
+              {t("tournamentsPage.filters.allFormats", "All Formats")}
+            </option>
+            <option value="swiss">{t("tournamentCommon.formats.swiss", "Swiss")}</option>
           </select>
           <select
             value={statusFilter}
-            onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}
+            onChange={(event) => {
+              setStatusFilter(event.target.value as StatusFilter);
+              setListPage(1);
+            }}
             className="rounded-lg border border-gray-700 bg-[#0d1117] px-3 py-2 text-sm text-gray-100"
           >
-            <option value="all">All Statuses</option>
-            <option value="REGISTRATION_OPEN">Registration Open</option>
-            <option value="LIVE_ROUND">Live</option>
-            <option value="FINISHED">Finished</option>
-            <option value="DRAFT">Draft</option>
+            <option value="all">
+              {t("tournamentsPage.filters.allStatuses", "All Statuses")}
+            </option>
+            <option value="REGISTRATION_OPEN">
+              {t("tournamentCommon.status.registrationOpen", "Registration Open")}
+            </option>
+            <option value="LIVE_ROUND">
+              {t("tournamentCommon.status.live", "Live")}
+            </option>
+            <option value="FINISHED">
+              {t("tournamentCommon.status.finished", "Finished")}
+            </option>
+            <option value="DRAFT">{t("tournamentCommon.status.draft", "Draft")}</option>
           </select>
           <select
             value={sort}
-            onChange={(event) => setSort(event.target.value as SortMode)}
+            onChange={(event) => {
+              setSort(event.target.value as SortMode);
+              setListPage(1);
+            }}
             className="rounded-lg border border-gray-700 bg-[#0d1117] px-3 py-2 text-sm text-gray-100"
           >
-            <option value="newest">Newest</option>
-            <option value="most_players">Most Players</option>
-            <option value="my_tournaments">My Tournaments</option>
+            <option value="newest">{t("tournamentsPage.sort.newest", "Newest")}</option>
+            <option value="most_players">
+              {t("tournamentsPage.sort.mostPlayers", "Most Players")}
+            </option>
+            <option value="my_tournaments">
+              {t("tournamentsPage.sort.myTournaments", "My Tournaments")}
+            </option>
           </select>
         </div>
       </section>
@@ -876,7 +956,10 @@ export default function Tournaments() {
               </div>
             ) : list.length === 0 ? (
               <div className="rounded-xl border border-gray-800 bg-[#0d1117] px-4 py-6 text-center text-sm text-gray-400">
-                No tournaments yet. Create one to get started.
+                {t(
+                  "tournamentsPage.list.empty",
+                  "No tournaments yet. Create one to get started.",
+                )}
               </div>
             ) : (
               <div className="space-y-2">
@@ -897,16 +980,39 @@ export default function Tournaments() {
                           {item.name}
                         </div>
                         <div className="mt-1 text-xs text-gray-400">
-                          {formatType(item.type)} · {buildTimeLabel(item.timeControl)}
+                          {formatType(item.type)} / {buildTimeLabel(item.timeControl)}
                         </div>
                       </div>
                       {renderStatusBadge(item.status)}
                     </div>
                     <div className="mt-2 text-xs text-gray-400">
-                      {item.registeredCount} players
+                      {t("tournamentsPage.detail.playersCount", {
+                        count: item.registeredCount,
+                        defaultValue: `${item.registeredCount} players`,
+                      })}
                     </div>
                   </button>
                 ))}
+                {listTotalPages > 1 && (
+                  <div className="border-t border-gray-800 pt-4">
+                    <div className="mb-3 text-center text-xs text-gray-400">
+                      {t("tournamentsPage.pagination.showingRange", {
+                        start: (listPage - 1) * 12 + 1,
+                        end: Math.min(listPage * 12, listTotal),
+                        total: listTotal,
+                        defaultValue: `Showing ${(listPage - 1) * 12 + 1} - ${Math.min(
+                          listPage * 12,
+                          listTotal,
+                        )} of ${listTotal} tournaments`,
+                      })}
+                    </div>
+                    <FeedPagination
+                      currentPage={listPage}
+                      totalPages={listTotalPages}
+                      onPageChange={setListPage}
+                    />
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -915,7 +1021,7 @@ export default function Tournaments() {
         <main className="rounded-2xl border border-gray-800 bg-[#0f141c]">
           {!selectedId ? (
             <div className="px-6 py-16 text-center text-sm text-gray-400">
-              Select a tournament to view details.
+              {t("tournamentsPage.detail.selectPrompt", "Select a tournament to view details.")}
             </div>
           ) : loadingDetail || !detail ? (
             <div className="space-y-4 p-4">
@@ -930,17 +1036,32 @@ export default function Tournaments() {
                   <div className="space-y-1">
                     <h2 className="text-xl font-bold text-gray-100">{detail.tournament.name}</h2>
                     <div className="text-sm text-gray-400">
-                      {formatType(detail.tournament.type)} · {buildTimeLabel(detail.tournament.timeControl)} ·{" "}
-                      {detail.tournament.ratingRequirement}
+                      {formatType(detail.tournament.type)} / {buildTimeLabel(detail.tournament.timeControl)} /{" "}
+                      {formatRatingRequirementLabel(detail.tournament.ratingRequirement)}
                     </div>
                     <div className="flex flex-wrap items-center gap-3 text-xs text-gray-400">
                       {renderStatusBadge(detail.tournament.status)}
                       <span>
-                        Round {Math.max(0, detail.tournament.currentRound)} of{" "}
-                        {Math.max(1, detail.tournament.roundsPlanned)}
+                        {t("tournamentsPage.detail.roundOf", {
+                          current: Math.max(0, detail.tournament.currentRound),
+                          total: Math.max(1, detail.tournament.roundsPlanned),
+                          defaultValue: `Round ${Math.max(0, detail.tournament.currentRound)} of ${Math.max(
+                            1,
+                            detail.tournament.roundsPlanned,
+                          )}`,
+                        })}
                       </span>
-                      <span>{detail.tournament.registeredCount} players</span>
-                      <span>Organizer: {detail.tournament.organizer?.username || "User"}</span>
+                      <span>
+                        {t("tournamentsPage.detail.playersCount", {
+                          count: detail.tournament.registeredCount,
+                          defaultValue: `${detail.tournament.registeredCount} players`,
+                        })}
+                      </span>
+                      <span>
+                        {t("tournamentsPage.detail.organizer", "Organizer")}:{" "}
+                        {detail.tournament.organizer?.username ||
+                          t("tournamentCommon.generic.user", "User")}
+                      </span>
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -949,7 +1070,7 @@ export default function Tournaments() {
                         onClick={() => openGame(myPendingGame.gameId)}
                         className="rounded-lg bg-indigo-500 px-3 py-2 text-sm font-semibold text-indigo-50"
                       >
-                        Go to My Board
+                        {t("tournamentsPage.actions.goToMyBoard", "Go to My Board")}
                       </button>
                     )}
                     {!detail.tournament.isRegistered &&
@@ -959,7 +1080,7 @@ export default function Tournaments() {
                           disabled={!!busyAction}
                           className="rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-emerald-950 disabled:opacity-60"
                         >
-                          Register
+                          {t("tournamentsPage.actions.register", "Register")}
                         </button>
                       )}
                     {detail.tournament.isRegistered &&
@@ -970,7 +1091,7 @@ export default function Tournaments() {
                           disabled={!!busyAction}
                           className="rounded-lg border border-gray-700 px-3 py-2 text-sm font-semibold text-gray-200 disabled:opacity-60"
                         >
-                          Unregister
+                          {t("tournamentsPage.actions.unregister", "Unregister")}
                         </button>
                       )}
                   </div>
@@ -986,14 +1107,14 @@ export default function Tournaments() {
                               disabled={!!busyAction}
                               className="rounded-lg bg-emerald-500 px-3 py-2 font-semibold text-emerald-950 disabled:opacity-60"
                             >
-                              Open Registration
+                              {t("tournamentsPage.actions.openRegistration", "Open Registration")}
                             </button>
                             <button
                               onClick={deleteTournament}
                               disabled={!!busyAction}
                               className="rounded-lg bg-red-500/90 px-3 py-2 font-semibold text-red-50 disabled:opacity-60"
                             >
-                              Delete Tournament
+                              {t("tournamentsPage.actions.deleteTournament", "Delete Tournament")}
                             </button>
                           </div>
                         )}
@@ -1001,7 +1122,14 @@ export default function Tournaments() {
                         {canManage && tournamentStatus === "REGISTRATION_OPEN" && (
                           <div className="space-y-3">
                             <div className="text-xs text-gray-400">
-                              Registered players: {detail.players.filter((player) => player.status !== "withdrawn").length}
+                              {t("tournamentsPage.manage.registeredPlayers", {
+                                count: detail.players.filter((player) => player.status !== "withdrawn")
+                                  .length,
+                                defaultValue: `Registered players: ${
+                                  detail.players.filter((player) => player.status !== "withdrawn")
+                                    .length
+                                }`,
+                              })}
                             </div>
                             <div className="flex flex-wrap gap-2">
                               <button
@@ -1009,63 +1137,7 @@ export default function Tournaments() {
                                 disabled={!!busyAction}
                                 className="rounded-lg bg-cyan-500 px-3 py-2 font-semibold text-cyan-950 disabled:opacity-60"
                               >
-                                Close Registration
-                              </button>
-                            </div>
-                          </div>
-                        )}
-
-                        {canManage && tournamentStatus === "PAIRING_PREVIEW" && (
-                          <div className="space-y-3">
-                            <div className="overflow-x-auto rounded-lg border border-gray-800">
-                              <table className="w-full text-left text-xs text-gray-300">
-                                <thead className="bg-[#121922] text-gray-400">
-                                  <tr>
-                                    <th className="px-3 py-2">Board</th>
-                                    <th className="px-3 py-2">White</th>
-                                    <th className="px-3 py-2">Black</th>
-                                    <th className="px-3 py-2">Explain Pairing</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {detail.previewPairings.map((pairing) => (
-                                    <tr key={pairing.id} className="border-t border-gray-800">
-                                      <td className="px-3 py-2">{pairing.board}</td>
-                                      <td className="px-3 py-2">{pairing.white}</td>
-                                      <td className="px-3 py-2">{pairing.black}</td>
-                                      <td className="px-3 py-2 text-[11px] text-gray-400">
-                                        <div>
-                                          Score group: {pairing.explanation.scoreGroup || "n/a"}
-                                        </div>
-                                        <div>{pairing.explanation.colorAssignment || ""}</div>
-                                        {pairing.explanation.byeReason && (
-                                          <div>Bye: {pairing.explanation.byeReason}</div>
-                                        )}
-                                      </td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                              <button
-                                onClick={startRound}
-                                disabled={!!busyAction}
-                                className="rounded-lg bg-amber-400 px-3 py-2 font-semibold text-amber-950 disabled:opacity-60"
-                              >
-                                Start Round
-                              </button>
-                              <button
-                                onClick={() =>
-                                  organizerStateAction(
-                                    "finish_tournament",
-                                    "End this tournament now?",
-                                  )
-                                }
-                                disabled={!!busyAction}
-                                className="rounded-lg bg-amber-500/90 px-3 py-2 font-semibold text-amber-950 disabled:opacity-60"
-                              >
-                                End Tournament
+                                {t("tournamentsPage.actions.startRound", "Start Round")}
                               </button>
                             </div>
                           </div>
@@ -1074,18 +1146,30 @@ export default function Tournaments() {
                         {canManage && tournamentStatus === "LIVE_ROUND" && (
                           <div className="space-y-3">
                             <div className="text-xs text-gray-400">
-                              Results are recorded automatically from finished board games. Round
-                              progression to the next round is fully automatic.
+                              {t(
+                                "tournamentsPage.manage.liveRoundInfo",
+                                "Results are recorded automatically from finished board games. Round progression to the next round is fully automatic.",
+                              )}
                             </div>
                             <div className="overflow-x-auto rounded-lg border border-gray-800">
                               <table className="w-full text-left text-xs text-gray-300">
                                 <thead className="bg-[#121922] text-gray-400">
                                   <tr>
-                                    <th className="px-3 py-2">Board</th>
-                                    <th className="px-3 py-2">White</th>
-                                    <th className="px-3 py-2">Black</th>
-                                    <th className="px-3 py-2">Result</th>
-                                    <th className="px-3 py-2">ELO</th>
+                                    <th className="px-3 py-2">
+                                      {t("tournamentsPage.preview.board", "Board")}
+                                    </th>
+                                    <th className="px-3 py-2">
+                                      {t("tournamentsPage.preview.white", "White")}
+                                    </th>
+                                    <th className="px-3 py-2">
+                                      {t("tournamentsPage.preview.black", "Black")}
+                                    </th>
+                                    <th className="px-3 py-2">
+                                      {t("tournamentsPage.preview.result", "Result")}
+                                    </th>
+                                    <th className="px-3 py-2">
+                                      {t("tournamentsPage.preview.elo", "ELO")}
+                                    </th>
                                   </tr>
                                 </thead>
                                 <tbody>
@@ -1104,7 +1188,12 @@ export default function Tournaments() {
                                                 : "border-gray-700 text-gray-100",
                                             )}
                                           >
-                                            {game.result === "*" ? "In Progress" : game.result}
+                                            {game.result === "*"
+                                              ? t(
+                                                  "tournamentCommon.result.inProgress",
+                                                  "In Progress",
+                                                )
+                                              : game.result}
                                           </span>
                                           {game.result === "*" &&
                                             (game.whiteId === currentUserId ||
@@ -1113,7 +1202,7 @@ export default function Tournaments() {
                                                 onClick={() => openGame(game.gameId)}
                                                 className="rounded border border-indigo-500/60 px-2 py-1 font-semibold text-indigo-300"
                                               >
-                                                Play Board
+                                                {t("tournamentsPage.actions.playBoard", "Play Board")}
                                               </button>
                                             )}
                                         </div>
@@ -1121,12 +1210,20 @@ export default function Tournaments() {
                                       <td className="px-3 py-2">
                                         {game.result !== "*" ? (
                                           <span className="text-[11px] text-gray-400">
-                                            White {game.whiteEloDelta >= 0 ? "+" : ""}
-                                            {game.whiteEloDelta} | Black {game.blackEloDelta >= 0 ? "+" : ""}
-                                            {game.blackEloDelta}
+                                            {t("tournamentsPage.preview.eloDelta", {
+                                              whiteDelta: `${game.whiteEloDelta >= 0 ? "+" : ""}${game.whiteEloDelta}`,
+                                              blackDelta: `${game.blackEloDelta >= 0 ? "+" : ""}${game.blackEloDelta}`,
+                                              defaultValue: `White ${
+                                                game.whiteEloDelta >= 0 ? "+" : ""
+                                              }${game.whiteEloDelta} / Black ${
+                                                game.blackEloDelta >= 0 ? "+" : ""
+                                              }${game.blackEloDelta}`,
+                                            })}
                                           </span>
                                         ) : (
-                                          <span className="text-[11px] text-gray-500">Pending</span>
+                                          <span className="text-[11px] text-gray-500">
+                                            {t("tournamentCommon.result.pending", "Pending")}
+                                          </span>
                                         )}
                                       </td>
                                     </tr>
@@ -1139,16 +1236,22 @@ export default function Tournaments() {
                                 onClick={() =>
                                   organizerStateAction(
                                     "finish_tournament",
-                                    "End this tournament now?",
+                                    t(
+                                      "tournamentsPage.confirm.endTournamentMessage",
+                                      "End this tournament now?",
+                                    ),
                                   )
                                 }
                                 disabled={!!busyAction}
                                 className="rounded-lg bg-amber-500 px-3 py-2 font-semibold text-amber-950 disabled:opacity-60"
                               >
-                                End Tournament
+                                {t("tournamentsPage.actions.endTournament", "End Tournament")}
                               </button>
                               <p className="text-[11px] text-gray-500">
-                                Round progression is automatic after all board games complete.
+                                {t(
+                                  "tournamentsPage.manage.roundProgressionAutomatic",
+                                  "Round progression is automatic after all board games complete.",
+                                )}
                               </p>
                             </div>
                           </div>
@@ -1160,16 +1263,22 @@ export default function Tournaments() {
                               onClick={() =>
                                 organizerStateAction(
                                   "finish_tournament",
-                                  "End this tournament now?",
+                                  t(
+                                    "tournamentsPage.confirm.endTournamentMessage",
+                                    "End this tournament now?",
+                                  ),
                                 )
                               }
                               disabled={!!busyAction}
                               className="rounded-lg bg-amber-500 px-3 py-2 font-semibold text-amber-950 disabled:opacity-60"
                             >
-                              End Tournament
+                              {t("tournamentsPage.actions.endTournament", "End Tournament")}
                             </button>
                             <p className="text-[11px] text-gray-500">
-                              Next round generation is automatic when a live round completes.
+                              {t(
+                                "tournamentsPage.manage.nextRoundAutomatic",
+                                "Next round generation is automatic when a live round completes.",
+                              )}
                             </p>
                           </div>
                         )}
@@ -1177,22 +1286,29 @@ export default function Tournaments() {
                         {tournamentStatus === "FINISHED" && (
                           <div className="rounded-lg border border-gray-800 bg-[#121922] p-3">
                             <div className="text-xs uppercase tracking-wide text-gray-400">
-                              Final Standings
+                              {t("tournamentsPage.finalStandings.title", "Final Standings")}
                             </div>
                             <div className="mt-2 space-y-1 text-sm">
                               <div className="flex items-center gap-2 text-amber-300">
                                 <span>{"\uD83E\uDD47"}</span>
                                 <span className="font-semibold">
-                                  {detail.winners[0]?.username || "TBD"}
+                                  {detail.winners[0]?.username ||
+                                    t("tournamentCommon.generic.tbd", "TBD")}
                                 </span>
                               </div>
                               <div className="flex items-center gap-2 text-gray-200">
                                 <span>{"\uD83E\uDD48"}</span>
-                                <span>{detail.winners[1]?.username || "TBD"}</span>
+                                <span>
+                                  {detail.winners[1]?.username ||
+                                    t("tournamentCommon.generic.tbd", "TBD")}
+                                </span>
                               </div>
                               <div className="flex items-center gap-2 text-orange-300">
                                 <span>{"\uD83E\uDD49"}</span>
-                                <span>{detail.winners[2]?.username || "TBD"}</span>
+                                <span>
+                                  {detail.winners[2]?.username ||
+                                    t("tournamentCommon.generic.tbd", "TBD")}
+                                </span>
                               </div>
                             </div>
                           </div>
@@ -1203,9 +1319,7 @@ export default function Tournaments() {
               </section>
 
               <nav className="flex items-center gap-2 border-b border-gray-800 px-4 py-2">
-                {(["standings", "rounds", "bracket"] as TabKey[])
-                  .filter((item) => !(detail.tournament.type === "swiss" && item === "bracket"))
-                  .map((item) => (
+                {(["standings", "rounds"] as TabKey[]).map((item) => (
                     <button
                       key={item}
                       onClick={() => setTab(item)}
@@ -1217,14 +1331,10 @@ export default function Tournaments() {
                       )}
                     >
                       {item === "rounds"
-                        ? "Rounds"
-                        : item === "standings"
-                          ? "Standings"
-                          : detail.tournament.type === "roundRobin"
-                            ? "Cross-table"
-                            : "Bracket"}
+                        ? t("tournamentsPage.tabs.rounds", "Rounds")
+                        : t("tournamentsPage.tabs.standings", "Standings")}
                     </button>
-                  ))}
+                ))}
               </nav>
 
               <section className="p-4">
@@ -1233,7 +1343,7 @@ export default function Tournaments() {
                   <div className="space-y-3">
                     {detail.rounds.length === 0 && (
                       <div className="rounded-xl border border-gray-800 bg-[#0d1117] px-4 py-6 text-center text-sm text-gray-400">
-                        No rounds yet.
+                        {t("tournamentsPage.rounds.empty", "No rounds yet.")}
                       </div>
                     )}
                     {detail.rounds.map((round) => {
@@ -1246,7 +1356,10 @@ export default function Tournaments() {
                           className="rounded-xl border border-gray-800 bg-[#0d1117]"
                         >
                           <summary className="cursor-pointer list-none px-3 py-2 text-sm font-semibold text-gray-100">
-                            Round {round.roundNumber}
+                            {t("tournamentsPage.detail.roundLabel", {
+                              round: round.roundNumber,
+                              defaultValue: `Round ${round.roundNumber}`,
+                            })}
                           </summary>
                           <div className="border-t border-gray-800">
                             {round.games.map((game) => (
@@ -1256,12 +1369,21 @@ export default function Tournaments() {
                               >
                                 <div className="min-w-[220px]">
                                   <span className="font-semibold">#{game.board}</span>{" "}
-                                  {game.white} ({game.whiteRatingAtPairing}) vs {game.black} (
-                                  {game.blackRatingAtPairing ?? "-"})
+                                  {t("tournamentsPage.preview.playerPairing", {
+                                    white: game.white,
+                                    whiteElo: game.whiteRatingAtPairing,
+                                    black: game.black,
+                                    blackElo: game.blackRatingAtPairing ?? "-",
+                                    defaultValue: `${game.white} (${game.whiteRatingAtPairing}) vs ${game.black} (${
+                                      game.blackRatingAtPairing ?? "-"
+                                    })`,
+                                  })}
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <span className="rounded border border-gray-700 px-2 py-0.5 text-xs text-gray-300">
-                                    {game.result === "*" ? "In Progress" : game.result}
+                                    {game.result === "*"
+                                      ? t("tournamentCommon.result.inProgress", "In Progress")
+                                      : game.result}
                                   </span>
                                   {game.result === "*" &&
                                     (game.whiteId === currentUserId ||
@@ -1270,7 +1392,7 @@ export default function Tournaments() {
                                         onClick={() => openGame(game.gameId)}
                                         className="rounded border border-indigo-500/60 px-2 py-0.5 text-xs font-semibold text-indigo-300"
                                       >
-                                        Play
+                                        {t("tournamentsPage.actions.play", "Play")}
                                       </button>
                                     )}
                                   {game.result !== "*" && (
@@ -1292,15 +1414,25 @@ export default function Tournaments() {
 
                 {tab === "standings" && (
                   <div className="space-y-2">
-                    <div className="text-sm font-semibold text-gray-200">Standings</div>
+                    <div className="text-sm font-semibold text-gray-200">
+                      {t("tournamentsPage.standings.title", "Standings")}
+                    </div>
                     <div className="overflow-x-auto rounded-xl border border-gray-800">
                       <table className="w-full text-left text-sm text-gray-200">
                         <thead className="bg-[#121922] text-xs uppercase tracking-wide text-gray-400">
                           <tr>
-                            <th className="px-3 py-2">Rank</th>
-                            <th className="px-3 py-2">Player</th>
-                            <th className="px-3 py-2">ELO</th>
-                            <th className="px-3 py-2">Points</th>
+                            <th className="px-3 py-2">
+                              {t("tournamentsPage.standings.rank", "Rank")}
+                            </th>
+                            <th className="px-3 py-2">
+                              {t("tournamentsPage.standings.player", "Player")}
+                            </th>
+                            <th className="px-3 py-2">
+                              {t("tournamentsPage.standings.elo", "ELO")}
+                            </th>
+                            <th className="px-3 py-2">
+                              {t("tournamentsPage.standings.points", "Points")}
+                            </th>
                           </tr>
                         </thead>
                         <tbody>
@@ -1317,9 +1449,16 @@ export default function Tournaments() {
                     </div>
                     <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-400">
                       <span>
-                        Showing{" "}
-                        {standingsRows.length === 0 ? 0 : standingsStartIndex + 1}-
-                        {Math.min(standingsEndIndex, standingsRows.length)} of {standingsRows.length}
+                        {t("tournamentsPage.standings.showingRange", {
+                          start: standingsRows.length === 0 ? 0 : standingsStartIndex + 1,
+                          end: Math.min(standingsEndIndex, standingsRows.length),
+                          total: standingsRows.length,
+                          defaultValue: `Showing ${
+                            standingsRows.length === 0 ? 0 : standingsStartIndex + 1
+                          }-${Math.min(standingsEndIndex, standingsRows.length)} of ${
+                            standingsRows.length
+                          }`,
+                        })}
                       </span>
                       <div className="flex items-center gap-2">
                         <button
@@ -1327,10 +1466,14 @@ export default function Tournaments() {
                           disabled={currentStandingsPage <= 1}
                           className="rounded border border-gray-700 px-2 py-1 disabled:opacity-50"
                         >
-                          Previous
+                          {t("common.previous", "Previous")}
                         </button>
                         <span>
-                          Page {currentStandingsPage} / {standingsPageCount}
+                          {t("tournamentsPage.standings.pageOf", {
+                            page: currentStandingsPage,
+                            totalPages: standingsPageCount,
+                            defaultValue: `Page ${currentStandingsPage} / ${standingsPageCount}`,
+                          })}
                         </span>
                         <button
                           onClick={() =>
@@ -1339,48 +1482,10 @@ export default function Tournaments() {
                           disabled={currentStandingsPage >= standingsPageCount}
                           className="rounded border border-gray-700 px-2 py-1 disabled:opacity-50"
                         >
-                          Next
+                          {t("common.next", "Next")}
                         </button>
                       </div>
                     </div>
-                  </div>
-                )}
-
-                {tab === "bracket" && detail.tournament.type === "knockout" && (
-                  <div className="overflow-x-auto">
-                    <div className="flex min-w-max gap-3">
-                      {detail.rounds.map((round) => (
-                        <div
-                          key={round.roundNumber}
-                          className="w-64 rounded-xl border border-gray-800 bg-[#0d1117] p-3"
-                        >
-                          <div className="mb-2 text-sm font-semibold text-gray-200">
-                            Round {round.roundNumber}
-                          </div>
-                          <div className="space-y-2">
-                            {round.games.map((game) => (
-                              <div
-                                key={game.id}
-                                className="rounded-lg border border-gray-800 bg-[#121922] px-2 py-2 text-xs"
-                              >
-                                <div className="truncate text-gray-200">{game.white}</div>
-                                <div className="truncate text-gray-400">{game.black}</div>
-                                <div className="mt-1 text-emerald-300">
-                                  {game.result === "*" ? "Pending" : game.result}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {tab === "bracket" && detail.tournament.type === "roundRobin" && (
-                  <div className="rounded-xl border border-gray-800 bg-[#0d1117] px-4 py-6 text-center text-sm text-gray-400">
-                    Cross-table view is available through the standings metrics (Direct Encounter and
-                    Sonneborn-Berger) for Round-Robin tournaments.
                   </div>
                 )}
               </section>
@@ -1394,54 +1499,69 @@ export default function Tournaments() {
           <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-gray-700 bg-[#0f141c] p-5">
             <div className="mb-4 flex items-start justify-between gap-2">
               <div>
-                <h3 className="text-lg font-bold text-gray-100">Create Tournament</h3>
+                <h3 className="text-lg font-bold text-gray-100">
+                  {t("tournamentsPage.modal.title", "Create Tournament")}
+                </h3>
               </div>
               <button
                 onClick={() => setShowCreateModal(false)}
                 className="rounded-lg border border-gray-700 px-2 py-1 text-sm text-gray-300"
               >
-                Close
+                {t("common.close", "Close")}
               </button>
             </div>
 
             <form onSubmit={onCreateTournament} className="space-y-4">
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-gray-400">Tournament Name</label>
+                  <label className="text-xs font-semibold text-gray-400">
+                    {t("tournamentsPage.modal.fields.name", "Tournament Name")}
+                  </label>
                   <input
                     required
                     value={createName}
                     onChange={(event) => setCreateName(event.target.value)}
                     className="w-full rounded-lg border border-gray-700 bg-[#0d1117] px-3 py-2 text-sm text-gray-100"
-                    placeholder="Club Championship"
+                    placeholder={t(
+                      "tournamentsPage.modal.placeholders.name",
+                      "Club Championship",
+                    )}
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-gray-400">Format</label>
+                  <label className="text-xs font-semibold text-gray-400">
+                    {t("tournamentsPage.modal.fields.format", "Format")}
+                  </label>
                   <select
                     value={createType}
                     onChange={(event) => setCreateType(event.target.value as TournamentType)}
                     className="w-full rounded-lg border border-gray-700 bg-[#0d1117] px-3 py-2 text-sm text-gray-100"
                   >
-                    <option value="swiss">Swiss</option>
-                    <option value="roundRobin">Round-Robin</option>
-                    <option value="knockout">Knockout</option>
+                    <option value="swiss">
+                      {t("tournamentCommon.formats.swiss", "Swiss")}
+                    </option>
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-gray-400">Number of Rounds</label>
+                  <label className="text-xs font-semibold text-gray-400">
+                    {t("tournamentsPage.modal.fields.rounds", "Number of Rounds")}
+                  </label>
                   <input
                     type="number"
                     min={1}
-                    disabled={createType !== "swiss"}
                     value={createRounds}
                     onChange={(event) => setCreateRounds(event.target.value)}
-                    className="w-full rounded-lg border border-gray-700 bg-[#0d1117] px-3 py-2 text-sm text-gray-100 disabled:opacity-50"
-                    placeholder={createType === "swiss" ? "Required for Swiss" : "Auto"}
+                    className="w-full rounded-lg border border-gray-700 bg-[#0d1117] px-3 py-2 text-sm text-gray-100"
+                    placeholder={t(
+                      "tournamentsPage.modal.placeholders.roundsRequired",
+                      "Required for Swiss",
+                    )}
                   />
                 </div>
                 <div className="space-y-1 md:col-span-2">
-                  <label className="text-xs font-semibold text-gray-400">Time Control</label>
+                  <label className="text-xs font-semibold text-gray-400">
+                    {t("tournamentsPage.modal.fields.timeControl", "Time Control")}
+                  </label>
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                     <select
                       value={timePreset}
@@ -1450,7 +1570,7 @@ export default function Tournaments() {
                     >
                       {TIME_PRESETS.map((preset) => (
                         <option key={preset.key} value={preset.key}>
-                          {preset.label}
+                          {formatTimePresetLabel(preset.key, preset.label)}
                         </option>
                       ))}
                     </select>
@@ -1462,7 +1582,10 @@ export default function Tournaments() {
                           value={customBaseMinutes}
                           onChange={(event) => setCustomBaseMinutes(event.target.value)}
                           className="rounded-lg border border-gray-700 bg-[#0d1117] px-3 py-2 text-sm text-gray-100"
-                          placeholder="Base minutes"
+                          placeholder={t(
+                            "tournamentsPage.modal.placeholders.baseMinutes",
+                            "Base minutes",
+                          )}
                         />
                         <input
                           type="number"
@@ -1470,14 +1593,19 @@ export default function Tournaments() {
                           value={customIncrementSeconds}
                           onChange={(event) => setCustomIncrementSeconds(event.target.value)}
                           className="rounded-lg border border-gray-700 bg-[#0d1117] px-3 py-2 text-sm text-gray-100"
-                          placeholder="Increment seconds"
+                          placeholder={t(
+                            "tournamentsPage.modal.placeholders.incrementSeconds",
+                            "Increment seconds",
+                          )}
                         />
                       </>
                     )}
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-gray-400">Min Players</label>
+                  <label className="text-xs font-semibold text-gray-400">
+                    {t("tournamentsPage.modal.fields.minPlayers", "Min Players")}
+                  </label>
                   <input
                     type="number"
                     min={2}
@@ -1487,28 +1615,40 @@ export default function Tournaments() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-gray-400">Max Players</label>
+                  <label className="text-xs font-semibold text-gray-400">
+                    {t("tournamentsPage.modal.fields.maxPlayers", "Max Players")}
+                  </label>
                   <input
                     type="number"
                     min={2}
                     value={maxPlayers}
                     onChange={(event) => setMaxPlayers(event.target.value)}
                     className="w-full rounded-lg border border-gray-700 bg-[#0d1117] px-3 py-2 text-sm text-gray-100"
-                    placeholder="Optional"
+                    placeholder={t("tournamentCommon.generic.optional", "Optional")}
                   />
                 </div>
                 <div className="space-y-1 md:col-span-2">
-                  <label className="text-xs font-semibold text-gray-400">Rating Filter</label>
+                  <label className="text-xs font-semibold text-gray-400">
+                    {t("tournamentsPage.modal.fields.ratingFilter", "Rating Filter")}
+                  </label>
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                     <select
                       value={ratingFilterMode}
                       onChange={(event) => setRatingFilterMode(event.target.value as RatingFilterMode)}
                       className="rounded-lg border border-gray-700 bg-[#0d1117] px-3 py-2 text-sm text-gray-100"
                     >
-                      <option value="none">None</option>
-                      <option value="min">Min Only</option>
-                      <option value="max">Max Only</option>
-                      <option value="range">Range</option>
+                      <option value="none">
+                        {t("tournamentCommon.ratingFilter.none", "None")}
+                      </option>
+                      <option value="min">
+                        {t("tournamentCommon.ratingFilter.min", "Min Only")}
+                      </option>
+                      <option value="max">
+                        {t("tournamentCommon.ratingFilter.max", "Max Only")}
+                      </option>
+                      <option value="range">
+                        {t("tournamentCommon.ratingFilter.range", "Range")}
+                      </option>
                     </select>
                     {(ratingFilterMode === "min" || ratingFilterMode === "range") && (
                       <input
@@ -1517,7 +1657,10 @@ export default function Tournaments() {
                         value={ratingMin}
                         onChange={(event) => setRatingMin(event.target.value)}
                         className="rounded-lg border border-gray-700 bg-[#0d1117] px-3 py-2 text-sm text-gray-100"
-                        placeholder="Min rating"
+                        placeholder={t(
+                          "tournamentsPage.modal.placeholders.minRating",
+                          "Min rating",
+                        )}
                       />
                     )}
                     {(ratingFilterMode === "max" || ratingFilterMode === "range") && (
@@ -1527,13 +1670,21 @@ export default function Tournaments() {
                         value={ratingMax}
                         onChange={(event) => setRatingMax(event.target.value)}
                         className="rounded-lg border border-gray-700 bg-[#0d1117] px-3 py-2 text-sm text-gray-100"
-                        placeholder="Max rating"
+                        placeholder={t(
+                          "tournamentsPage.modal.placeholders.maxRating",
+                          "Max rating",
+                        )}
                       />
                     )}
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-gray-400">Registration Deadline</label>
+                  <label className="text-xs font-semibold text-gray-400">
+                    {t(
+                      "tournamentsPage.modal.fields.registrationDeadline",
+                      "Registration Deadline",
+                    )}
+                  </label>
                   <input
                     type="datetime-local"
                     value={registrationDeadline}
@@ -1542,19 +1693,30 @@ export default function Tournaments() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-gray-400">Start Type</label>
+                  <label className="text-xs font-semibold text-gray-400">
+                    {t("tournamentsPage.modal.fields.startType", "Start Type")}
+                  </label>
                   <select
                     value={startType}
                     onChange={(event) => setStartType(event.target.value as "manual" | "scheduled")}
                     className="w-full rounded-lg border border-gray-700 bg-[#0d1117] px-3 py-2 text-sm text-gray-100"
                   >
-                    <option value="manual">Manual</option>
-                    <option value="scheduled">Scheduled</option>
+                    <option value="manual">
+                      {t("tournamentCommon.startType.manual", "Manual")}
+                    </option>
+                    <option value="scheduled">
+                      {t("tournamentCommon.startType.scheduled", "Scheduled")}
+                    </option>
                   </select>
                 </div>
                 {startType === "scheduled" && (
                   <div className="space-y-1 md:col-span-2">
-                    <label className="text-xs font-semibold text-gray-400">Scheduled Start Time</label>
+                    <label className="text-xs font-semibold text-gray-400">
+                      {t(
+                        "tournamentsPage.modal.fields.scheduledStartTime",
+                        "Scheduled Start Time",
+                      )}
+                    </label>
                     <input
                       type="datetime-local"
                       value={scheduledStartAt}
@@ -1565,13 +1727,18 @@ export default function Tournaments() {
                   </div>
                 )}
                 <div className="space-y-1 md:col-span-2">
-                  <label className="text-xs font-semibold text-gray-400">Description</label>
+                  <label className="text-xs font-semibold text-gray-400">
+                    {t("tournamentsPage.modal.fields.description", "Description")}
+                  </label>
                   <textarea
                     rows={3}
                     value={description}
                     onChange={(event) => setDescription(event.target.value)}
                     className="w-full rounded-lg border border-gray-700 bg-[#0d1117] px-3 py-2 text-sm text-gray-100"
-                    placeholder="Optional tournament notes"
+                    placeholder={t(
+                      "tournamentsPage.modal.placeholders.description",
+                      "Optional tournament notes",
+                    )}
                   />
                 </div>
               </div>
@@ -1582,14 +1749,16 @@ export default function Tournaments() {
                   onClick={() => setShowCreateModal(false)}
                   className="rounded-lg border border-gray-700 px-4 py-2 text-sm font-semibold text-gray-200"
                 >
-                  Cancel
+                  {t("common.cancel", "Cancel")}
                 </button>
                 <button
                   type="submit"
                   disabled={busyAction === "create"}
                   className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-emerald-950 disabled:opacity-60"
                 >
-                  {busyAction === "create" ? "Creating..." : "Create Draft"}
+                  {busyAction === "create"
+                    ? t("tournamentsPage.modal.creating", "Creating...")
+                    : t("tournamentsPage.modal.createDraft", "Create Draft")}
                 </button>
               </div>
             </form>
@@ -1600,7 +1769,9 @@ export default function Tournaments() {
       {confirmDialog && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4">
           <div className="w-full max-w-md rounded-2xl border border-gray-700 bg-[#0f141c] p-5 shadow-2xl">
-            <h4 className="text-sm font-semibold text-gray-100">Confirm Action</h4>
+            <h4 className="text-sm font-semibold text-gray-100">
+              {t("tournamentsPage.confirm.title", "Confirm Action")}
+            </h4>
             <p className="mt-2 text-sm text-gray-300">{confirmDialog.message}</p>
             <div className="mt-5 flex justify-end gap-2">
               <button
@@ -1608,7 +1779,7 @@ export default function Tournaments() {
                 onClick={() => setConfirmDialog(null)}
                 className="rounded-lg border border-gray-700 px-4 py-2 text-sm font-semibold text-gray-200"
               >
-                Cancel
+                {t("common.cancel", "Cancel")}
               </button>
               <button
                 type="button"
@@ -1624,7 +1795,7 @@ export default function Tournaments() {
                     : "bg-emerald-500 text-emerald-950",
                 )}
               >
-                {confirmDialog.confirmLabel || "Confirm"}
+                {confirmDialog.confirmLabel || t("common.confirm", "Confirm")}
               </button>
             </div>
           </div>

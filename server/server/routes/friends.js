@@ -1,7 +1,8 @@
 import { Router } from "express";
 import mongoose from "mongoose";
-import { authMiddleware } from "../middleware/index.js";
+import { authMiddleware, checkBlocked } from "../middleware/index.js";
 import {
+  BlockedUser,
   Friend,
   FriendRequest,
   User,
@@ -90,6 +91,34 @@ function emitToUser(io, userId, eventName, payload) {
   io.to(room).emit(eventName, payload);
 }
 
+async function buildBlockedExclusionSet(userId) {
+  const normalizedUserId = normalizeId(userId);
+  const [selfDoc, legacyEdges] = await Promise.all([
+    User.findById(normalizedUserId)
+      .select("blockedUsers")
+      .lean(),
+    BlockedUser.find({
+      blocker: normalizedUserId,
+    })
+      .select("blocker blocked")
+      .lean(),
+  ]);
+
+  const excluded = new Set([normalizedUserId]);
+  for (const blockedId of selfDoc?.blockedUsers || []) {
+    const normalized = normalizeId(blockedId);
+    if (normalized) excluded.add(normalized);
+  }
+  for (const edge of legacyEdges) {
+    const blockedId = normalizeId(edge?.blocked);
+    if (blockedId) {
+      excluded.add(blockedId);
+    }
+  }
+
+  return excluded;
+}
+
 async function getFriendshipPayload(userId, friendId) {
   const doc = await Friend.findOne({ userId, friendId })
     .populate("friendId", REQUEST_USER_FIELDS)
@@ -150,12 +179,15 @@ async function loadRequestsForUser(userId) {
 router.get("/", authMiddleware, async (req, res) => {
   try {
     const userId = normalizeId(req.user.userId);
+    const excludedIds = await buildBlockedExclusionSet(userId);
     const friends = await Friend.find({ userId })
       .sort({ createdAt: -1 })
       .populate("friendId", REQUEST_USER_FIELDS)
       .lean();
 
-    const result = friends.map((f) => buildFriendDTO(f));
+    const result = friends
+      .map((f) => buildFriendDTO(f))
+      .filter((friend) => !excludedIds.has(normalizeId(friend.id)));
     res.json({ friends: result });
   } catch (err) {
     console.error("Friends list error:", err);
@@ -299,8 +331,13 @@ const sendRequestHandler = async (req, res) => {
   }
 };
 
-router.post("/", authMiddleware, sendRequestHandler);
-router.post("/requests", authMiddleware, sendRequestHandler);
+const friendRequestBlockGuard = checkBlocked({
+  bodyKeys: ["receiverId", "friendId", "userId"],
+  message: "You cannot send a friend request to this player.",
+});
+
+router.post("/", authMiddleware, friendRequestBlockGuard, sendRequestHandler);
+router.post("/requests", authMiddleware, friendRequestBlockGuard, sendRequestHandler);
 
 // Accept friend request
 router.post("/requests/:requestId/accept", authMiddleware, async (req, res) => {
@@ -490,10 +527,11 @@ router.get("/search", authMiddleware, async (req, res) => {
     const userId = normalizeId(req.user.userId);
     const query = (req.query.q || "").toString().trim();
     if (!query) return res.json({ results: [] });
+    const excludedIds = await buildBlockedExclusionSet(userId);
 
     const regex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
     const users = await User.find({
-      _id: { $ne: userId },
+      _id: { $nin: Array.from(excludedIds) },
       $or: [{ fullName: regex }, { email: regex }],
     })
       .select("_id fullName email avatar rating")

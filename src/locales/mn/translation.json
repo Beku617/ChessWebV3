@@ -2,13 +2,20 @@
   "brand": {
     "name": "NeonGambit"
   },
+  "settingsLang": {
+    "title": "Хэл",
+    "helper": "Хэрэглэх хэлээ сонгоно уу."
+  },
+  "practice": {
+    "description": "Хүссэн байрлалаа байгуулж, түүнийг шинжилнэ."
+  },
   "language": {
     "label": "Хэл"
   },
   "common": {
     "user": "Хэрэглэгч",
     "userInitial": "Х",
-    "toggleTheme": "Гадаад төрх солих"
+    "toggleTheme": "Сэдэв солих"
   },
   "nav": {
     "tournaments": "Тэмцээнүүд",
@@ -17,14 +24,13 @@
     "watch": "Үзэх",
     "community": "Нийгэм",
     "viewProfile": "Профайл харах",
-    "messages": "Захидал",
+    "messages": "Зурвас",
     "friends": "Найзууд",
     "settings": "Тохиргоо",
     "logout": "Гарах"
   },
   "auth": {
     "welcomeBack": "Дахин тавтай морил",
-    "signInSubtitle": "Аяллаа үргэлжлүүлэхийн тулд нэвтэрнэ үү",
     "accountBannedTitle": "Данс түгжигдсэн",
     "accountBannedReason": "Таны данс түгжигдсэн. Шалтгаан: {{reason}}",
     "email": "И-мэйл",
@@ -37,10 +43,9 @@
     "noAccount": "Дансгүй байна уу?",
     "signUp": "Бүртгүүлэх",
     "loginFailed": "Нэвтрэхэд алдаа гарлаа",
-    "googleLoginFailed": "Google-oor nevtrehed aldaa garlaa",
-    "googleNotConfigured": "Google nevtrelt odoohoor tohiruulagdagaagui baina.",
+    "googleLoginFailed": "Google-ээр нэвтрэхэд алдаа гарлаа.",
+    "googleNotConfigured": "Google-ээр нэвтрэх тохиргоо хийгдээгүй байна.",
     "createAccount": "Данс үүсгэх",
-    "registerSubtitle": "Шатрын мастеруудтай нэгдээрэй",
     "fullName": "Бүтэн нэр",
     "namePlaceholder": "Бат Эрдэнэ",
     "minimumChars": "Дор хаяж 8 тэмдэгт",
@@ -64,7 +69,22 @@
       "saved": "Тохиргоо амжилттай хадгалагдлаа!",
       "reset": "Сүүлд хадгалсан төлөвт сэргээв",
       "passwordChanged": "Нууц үг амжилттай шинэчлэгдлээ!",
-      "deletionRequested": "Данс устгах хүсэлт илгээгдсэн"
+      "deletionRequested": "Данс устгах хүсэлт илгээгдсэн",
+      "unblocked": "Хэрэглэгчийн хориг цуцлагдлаа."
+    },
+    "errors": {
+      "fillPasswordFields": "Нууц үгийн бүх талбарыг бөглөнө үү.",
+      "passwordTooShort": "Шинэ нууц үг хамгийн багадаа 8 тэмдэгттэй байх ёстой.",
+      "passwordMismatch": "Шинэ нууц үгүүд таарахгүй байна.",
+      "changePasswordFailed": "Нууц үг солих үед алдаа гарлаа.",
+      "blockedUsersLoad": "Хориглосон хэрэглэгчдийг ачаалж байна...",
+      "noBlockedUsers": "Хориглосон хэрэглэгч алга.",
+      "blockedSince": "{{date}}-с хойш хориглосон",
+      "blocked": "Хориглосон",
+      "unblockFailed": "Хэрэглэгчийн хоригийг цуцалж чадсангүй.",
+      "unblocking": "Хориг цуцалж байна...",
+      "unblock": "Хориг цуцлах",
+      "passwordUpdating": "Шинэчилж байна..."
     },
     "profile": {
       "title": "Профайл ба данс",
@@ -72,30 +92,71 @@
       "username": "Хэрэглэгчийн нэр",
       "email": "И-мэйл",
       "changePassword": "Нууц үг солих",
-      "changePasswordHelper": "Дансаа шинэ нууц үгээр хамгаалах",
+      "changePasswordHelper": "Дансныхаа нууц үгийг шинэчилнэ",
       "linkedAccounts": "Холбосон дансууд",
-      "linkedAccountsHelper": "Гуравдагч талын үйлчилгээ холбох",
-      "google": "Google"
+      "linkedAccountsHelper": "Гуравдагч талын үйлчилгээнүүдийг холбоно",
+      "google": "Google",
+      "facebook": "Facebook"
     },
     "appearance": {
-      "title": "Гадаад төрх",
-      "subtitle": "NeonGambit хэрхэн харагдахыг өөрчил",
-      "theme": "Theme",
+      "title": "Харагдац",
+      "subtitle": "NeonGambit хэрхэн харагдахыг өөрчилнө",
+      "theme": "Сэдэв",
       "themeHelper": "Өнгөний схемээ сонгоно уу",
+      "themeNames": {
+        "dark-neon": "Үндсэн",
+        "midnight-blue": "Шөнийн цэнхэр",
+        "forest-green": "Ойн ногоон",
+        "light-classic": "Сонгодог цайвар",
+        "violet_storm": "Нил шуурга",
+        "aurora": "Туйлын туяа",
+        "solar_gold": "Нарны алт",
+        "arctic_ice": "Туйлын мөс",
+        "ember": "Үнс нурам",
+        "sakura": "Сакура шөнө",
+        "toxic_lime": "Хурц лайм",
+        "obsidian_rose": "Обсидиан сарнай"
+      },
+      "themeDescriptions": {
+        "dark-neon": "NeonGambit-ийн үндсэн бараан сэдэв, тод цэнхэр туяатай",
+        "midnight-blue": "Гүн хөх өнгө, тайван цэнхэр тодруулгатай",
+        "forest-green": "Бараан ногоон өнгө, шинэхэн тод ялгаралтай",
+        "light-classic": "Цэвэрхэн цайвар зохиомж, сонгодог харагдацтай",
+        "violet_storm": "Гүн сансар мэт бараан дэвсгэр, цахилгаан нил гялбаатай",
+        "aurora": "Харанхуй тэнгэрт туйлын туяа бүжиглэх мэт",
+        "solar_gold": "Хайлсан алт шиг өнгөлгөөтэй тансаг бараан сэдэв",
+        "arctic_ice": "Мөсөн цагаан өнгө, хэт цэвэр бараан суурьтай",
+        "ember": "Улайссан улбар туяатай гал мэт бараан сэдэв",
+        "sakura": "Харанхуйд гэрэлтэх сакура цэцгийн өнгө",
+        "toxic_lime": "Хар дэвсгэр дээрх хурц лаймын неон өнгө",
+        "obsidian_rose": "Гүн сарнайн туяатай тансаг бараан өнгө"
+      },
       "themes": {
         "dark": "Хар",
         "dim": "Бүүдгэр",
         "amoled": "AMOLED"
       },
-      "accentColor": "Өнгөний акцент",
+      "accentColor": "Онцлох өнгө",
       "accentHelper": "Гол тод өнгө",
       "accent": {
-        "teal": "Ногоон цэнхэр",
-        "purple": "Ягаан",
+        "teal": "Ногоовтор цэнхэр",
+        "purple": "Нил ягаан",
         "blue": "Цэнхэр"
       },
       "boardTheme": "Самбарын өнгө",
-      "boardThemeHelper": "Самбарын өнгөний схем",
+      "boardThemeHelper": "Самбарын өнгөний схем сонгоно",
+      "boardThemeNames": {
+        "classic": "Сонгодог",
+        "modern-gray": "Орчин үеийн саарал",
+        "blue-ocean": "Цэнхэр далай",
+        "warm-wood": "Дулаан мод",
+        "purple-night": "Нил шөнө",
+        "neon-green": "Неон ногоон",
+        "neon-cyber": "Кибер неон",
+        "neon-purple": "Неон нил",
+        "soft-dark": "Зөөлөн бараан",
+        "high-contrast-minimal": "Өндөр контраст минимал"
+      },
       "boardThemes": {
         "green": "Ногоон",
         "brown": "Бор",
@@ -105,7 +166,7 @@
         "neon": "Неон"
       },
       "pieceStyle": "Хөлгийн дүрс",
-      "pieceStyleHelper": "Хэсгүүдийн хэв маяг",
+      "pieceStyleHelper": "Шатрын хөлгүүдийн харагдах байдал",
       "pieces": {
         "neo": "Нео",
         "classic": "Классик",
@@ -113,51 +174,51 @@
         "merida": "Мерида"
       },
       "reducedMotion": "Хөдөлгөөн багасгах",
-      "reducedMotionHelper": "Анимацийг багасгах"
+      "reducedMotionHelper": "Анимейшнийг багасгах"
     },
     "gameplay": {
       "title": "Тоглолт",
-      "subtitle": "Тоглох туршлагаа тааруулах",
+      "subtitle": "Тоглох туршлагаа тохируулна",
       "defaultTime": "Цагийн хяналтын үндсэн тохиргоо",
       "defaultTimeHelper": "Шинэ тоглолтын эхний цаг",
       "timeControls": {
-        "bullet": "⚡ Буллет",
-        "blitz": "🔥 Блиц",
-        "rapid": "🚀 Рапид",
-        "classical": "🏛️ Классик",
-        "custom": "⚙️ Тохируулга"
+        "bullet": "Bullet",
+        "blitz": "Блиц",
+        "rapid": "Рапид",
+        "classical": "Классик",
+        "custom": "Тохируулга"
       },
-      "autoQueen": "Авто хатан",
+      "autoQueen": "Автомат хатан",
       "autoQueenHelper": "Пиёныг автоматаар хатан болгож дэвшүүлэх",
       "moveInput": "Нүүдэл хийх арга",
-      "moveInputHelper": "Самбар дээр хэрхэн нүүдэл хийх",
+      "moveInputHelper": "Самбар дээр хэрхэн нүүдэл хийхээ сонгоно",
       "input": {
         "click": "Дарж",
         "drag": "Чирж",
-        "both": "Хоёулаа"
+        "both": "Дарж эсвэл чирж"
       },
       "legalMoves": "Зөв нүүдэл харуулах",
-      "legalMovesHelper": "Боломжтой нүдийг гэрэлтүүлэх",
+      "legalMovesHelper": "Боломжит нүдүүдийг гэрэлтүүлэх",
       "confirmMove": "Нүүдэл баталгаажуулах",
-      "confirmMoveHelper": "Нүүхээс өмнө батлах шаардлагатай",
+      "confirmMoveHelper": "Нүүхийн өмнө баталгаажуулах",
       "premoves": "Урьдчилсан нүүдэл",
       "premovesHelper": "Хүлээх хугацаанд дараагийн нүүдлээ бэлдэх"
     },
     "notifications": {
       "title": "Мэдэгдэл",
-      "subtitle": "Ямар дохио авахыг удирдах",
+      "subtitle": "Ямар дохио авахыг удирдана",
       "email": "И-мэйл мэдэгдэл",
-      "emailHelper": "Үйл ажиллагааны талаар имэйл авна",
+      "emailHelper": "Үйл ажиллагааны талаар и-мэйл авна",
       "push": "Push мэдэгдэл",
-      "pushHelper": "Хөтөчийн анхааруулга",
-      "challengeRequests": "Дайралтын хүсэлт",
-      "challengeHelper": "Хэн нэгэн дуудалт өгөхөд мэдэгдэх",
+      "pushHelper": "Хөтчийн push мэдэгдэл",
+      "challengeRequests": "Тоглох урилга",
+      "challengeHelper": "Хэн нэгэн таныг тоглоход урьсан үед мэдэгдэнэ.",
       "tournamentUpdates": "Тэмцээний шинэчлэл",
       "tournamentHelper": "Удахгүй болох тэмцээн, үр дүн",
       "soundEffects": "Дууны эффект",
       "soundEffectsHelper": "Тоглоомын дуу, дохио",
       "soundVolume": "Дууны түвшин",
-      "soundVolumeHelper": "Эффектын чангаарыг тохируулах"
+      "soundVolumeHelper": "Эффектийн чангаарыг тохируулах"
     },
     "privacy": {
       "title": "Нууцлал ба аюулгүй байдал",
@@ -170,19 +231,19 @@
         "private": "Хувийн"
       },
       "onlineStatus": "Онлайн байдлыг харуулах",
-      "onlineStatusHelper": "Бусдад онлайнаар байгааг харуулах",
-      "lastSeen": "Сүүлд идэвхтэй хугацаа",
-      "lastSeenHelper": "Хэзээ идэвхтэй байснаа үзүүлэх",
+      "onlineStatusHelper": "Бусдад онлайн байгаагаа харуулах",
+      "lastSeen": "Сүүлд идэвхтэй байсан үе",
+      "lastSeenHelper": "Хэзээ идэвхтэй байсныг үзүүлэх",
       "blockedUsers": "Хориглосон хэрэглэгчид",
-      "blockedUsersHelper": "Хоригийн жагсаалтыг удирдах"
+      "blockedUsersHelper": "Хоригийн жагсаалтаа удирдах"
     },
     "ai": {
-      "title": "Хиймэл оюун ба анализ",
+      "title": "Хиймэл оюун ба шинжилгээ",
       "subtitle": "AI боломжуудыг тохируулах",
       "explanations": "AI нүүдлийн тайлбар",
-      "explanationsHelper": "Llama 3 дээр суурилсан дэлгэрэнгүй анализ",
-      "groqConnected": "Groq API холбоотой",
-      "groqMissing": "VITE_GROQ_API_KEY байхгүй — .env-д нэмнэ үү",
+      "explanationsHelper": "Llama 3 дээр суурилсан дэлгэрэнгүй шинжилгээ",
+      "groqConnected": "Groq API холбогдсон",
+      "groqMissing": "VITE_GROQ_API_KEY байхгүй — .env файлд нэмнэ үү",
       "explanationLevel": "Тайлбарын түвшин",
       "explanationLevelHelper": "AI тайлбарын нарийвчлал",
       "levels": {
@@ -190,30 +251,30 @@
         "normal": "Энгийн",
         "deep": "Гүн"
       },
-      "postGame": "Тоглолтын дараах анализ",
+      "postGame": "Тоглолтын дараах шинжилгээ",
       "postGameHelper": "Тоглолт дууссаны дараа хөдөлгүүрээр шинжлэх",
       "engineStrength": "Хөдөлгүүрийн хүч",
-      "engineStrengthHelper": "Stockfish-ын түвшин",
+      "engineStrengthHelper": "Stockfish-ийн түвшин",
       "levelLabel": "Түв."
     },
     "stats": {
-      "bullet": "Буллет",
+      "bullet": "Bullet",
       "blitz": "Блиц",
       "rapid": "Рапид",
       "classical": "Классик",
       "gamesPlayed": "Тоглосон тоглолт",
-      "gamesWon": "Ялсан тоглолт"
+      "gamesWon": "Хожсон тоглолт"
     },
     "quickActions": {
       "title": "Түргэн үйлдэл",
-      "exportPgn": "Тоглолтуудыг PGN-ээр экспортлох",
+      "exportPgn": "Тоглолтуудаа PGN-ээр экспортлох",
       "downloadData": "Дансны мэдээлэл татах"
     },
     "danger": {
       "title": "Аюултай бүс",
       "subtitle": "Эргэж буцахгүй үйлдлүүд",
       "signOutAll": "Бүх төхөөрөмжөөс гарах",
-      "deleteAccount": "Дансыг устгах"
+      "deleteAccount": "Данс устгах"
     },
     "modals": {
       "changePassword": {
@@ -221,25 +282,292 @@
         "current": "Одоогийн нууц үг",
         "currentPlaceholder": "Одоогийн нууц үгээ оруулна уу",
         "new": "Шинэ нууц үг",
-        "newPlaceholder": "Шинэ нууц үг оруулах",
+        "newPlaceholder": "Шинэ нууц үгээ оруулна уу",
         "confirm": "Нууц үг батлах",
         "confirmPlaceholder": "Шинэ нууц үгээ дахин оруулна уу",
         "cta": "Нууц үг шинэчлэх"
       },
       "delete": {
         "title": "Данс устгах",
-        "warning": "Энэ үйлдэл буцаах боломжгүй. Таны бүх тоглолт, рейтинг, өгөгдөл устна.",
-        "confirmLabel": "{{name}} гэж бичиж баталгаажуул",
+        "warning": "Энэ үйлдэл байнгын бөгөөд буцаах боломжгүй. Таны бүх тоглолт, рейтинг, өгөгдөл устна.",
+        "confirmLabel": "Баталгаажуулахын тулд {{name}} гэж бичнэ үү",
         "username": "хэрэглэгчийн нэр",
         "cta": "Дансыг бүр мөсөн устгах"
       }
     }
   },
-  "settingsLang": {
-    "title": "Хэл",
-    "helper": "Сонгох хэлээ тодорхойлоорой"
+  "puzzles": {
+    "difficulty": {
+      "easy": "Хялбар",
+      "medium": "Дунд",
+      "hard": "Хэцүү"
+    },
+    "status": {
+      "all": "Бүгд",
+      "new": "Шинэ",
+      "seen": "Үзсэн",
+      "solved": "Бодсон",
+      "failed": "Алдсан",
+      "failedBefore": "Өмнө алдаж байсан",
+      "reviewDue": "Давтах цаг болсон",
+      "mastered": "Эзэмшсэн",
+      "bookmarked": "Хадгалсан",
+      "archived": "Архивласан",
+      "unseen": "Үзээгүй",
+      "unknown": "Тодорхойгүй"
+    },
+    "results": {
+      "solved": "Бодсон",
+      "failed": "Алдсан",
+      "skipped": "Алгассан",
+      "abandoned": "Орхисон"
+    },
+    "modeLabels": {
+      "rated": "Рейтингтэй",
+      "review": "Давталт",
+      "random": "Санамсаргүй",
+      "library": "Сан"
+    },
+    "library": {
+      "title": "Бодолт үзэх",
+      "searchLabel": "Хайлт",
+      "searchPlaceholder": "Гарчгаар хайх",
+      "statusLabel": "Төлөв",
+      "difficultyLabel": "Түвшин",
+      "ratingSeparator": "хүртэл",
+      "includeMastered": "Эзэмшсэнийг оруулах",
+      "grid": "Тор",
+      "list": "Жагсаалт",
+      "loading": "Бодолтын санг ачаалж байна...",
+      "loadFailed": "Бодолтын санг ачаалж чадсангүй",
+      "emptyReviewDue": "Давтах бодолт одоогоор алга. Шинэ рейтингтэй бодолт бодоод үзээрэй.",
+      "emptyFiltered": "Таны шүүлтэд тохирох бодолт олдсонгүй.",
+      "bookmarked": "Хадгалсан",
+      "noDescription": "Тайлбар алга",
+      "attempts": "{{count}} оролдлого",
+      "start": "Эхлэх",
+      "noMotifs": "Мотив алга",
+      "pagination": "{{total}}-оос {{start}}-{{end}}-г харуулж байна"
+    },
+    "history": {
+      "eyebrow": "Бодолтын түүх",
+      "searchLabel": "Хайлт",
+      "searchPlaceholder": "Гарчгаар хайх",
+      "loading": "Бодолтын түүхийг ачаалж байна...",
+      "loadFailed": "Бодолтын түүхийг ачаалж чадсангүй",
+      "empty": "Таны хайлтад тохирох түүх олдсонгүй.",
+      "summary": "{{mode}} • {{result}} • {{date}} • {{time}}"
+    },
+    "trainer": {
+      "historyTab": "Түүх",
+      "loading": "Бодолтыг ачаалж байна...",
+      "noReviewTitle": "Давтах бодолт одоогоор алга",
+      "noReviewDescription": "Та бүх давталтаа хийжээ. Шинэ рейтингтэй бодолт бодож, дараагийн давталтаа үүсгээрэй.",
+      "noPuzzleTitle": "Бодолт олдсонгүй",
+      "noPuzzleDescription": "Түр хүлээгээд дахин оролдоно уу.",
+      "loadFailed": "Бодолтыг ачаалж чадсангүй",
+      "submitFailed": "Оролдлогыг хадгалж чадсангүй",
+      "puzzleElo": "Бодолтын Elo",
+      "streak": "Цуврал",
+      "sideToMove": "Нүүх тал",
+      "whiteToMove": "Цагаан нүүнэ",
+      "blackToMove": "Хар нүүнэ",
+      "playFirstMoveWhite": "Эхний нүүдлийг цагаанаар хийнэ үү.",
+      "playFirstMoveBlack": "Эхний нүүдлийг хараар хийнэ үү.",
+      "waitingForPuzzle": "Бодолтыг хүлээж байна...",
+      "timer": "Хугацаа",
+      "bookmark": "Хадгалах",
+      "bookmarked": "Хадгалсан",
+      "useHint": "Санамж ашиглах",
+      "hintUsed": "Санамж ашигласан",
+      "showSolution": "Шийдлийг харах",
+      "tryAgain": "Дахин оролдох",
+      "shufflePuzzle": "Санамсаргүй бодолт",
+      "nextPuzzle": "Дараагийн бодолт",
+      "line": "Хувилбар",
+      "revealLine": "Хувилбарыг харахын тулд Шийдлийг харах товчийг дарна уу.",
+      "noStoredLine": "Хадгалсан хувилбар алга.",
+      "invalidFen": "Энэ бодолтын FEN буруу байна"
+    }
   },
-  "practice": {
-    "description": "Тусгай байрлалуудыг байршуулж, тэдгээрийг анализлана."
+  "learn": {
+    "stats": {
+      "completed": "Дууссан",
+      "inProgress": "Явж буй",
+      "dayStreak": "Өдрийн цуврал"
+    },
+    "searchPlaceholder": "Курс, нээлт, их мастер хайх...",
+    "difficulty": {
+      "all": "Бүх түвшин",
+      "beginner": "Анхан",
+      "intermediate": "Дунд",
+      "advanced": "Ахисан"
+    },
+    "progress": {
+      "all": "Бүх явц",
+      "notStarted": "Эхлээгүй",
+      "inProgress": "Явж буй",
+      "completed": "Дууссан"
+    },
+    "categories": {
+      "openings": "Нээлт",
+      "middlegame": "Дунд тоглолт",
+      "endgame": "Эндшпиль",
+      "strategy": "Стратеги"
+    },
+    "loading": "Сурах каталогийг ачаалж байна...",
+    "loadFailed": "Сурах каталогийг ачаалж чадсангүй.",
+    "empty": "Таны шүүлтэд тохирох курс олдсонгүй.",
+    "clearFilters": "Хайлт ба шүүлтийг цэвэрлэх",
+    "courseProgress": "Курсын явц",
+    "quickLessons": "Шуурхай хичээлүүд",
+    "lessonProgress": "{{completed}}/{{total}} хичээл",
+    "lessonProgressCompleted": "{{completed}}/{{total}} хичээл дууссан",
+    "moreLessons_one": "+{{count}} өөр хичээл",
+    "moreLessons_other": "+{{count}} өөр хичээл",
+    "retryCourse": "Курсыг дахин үзэх",
+    "continueLesson": "Хичээлийг үргэлжлүүлэх",
+    "startCourse": "Курс эхлэх",
+    "instructorFallback": "NeonGambit-ийн багш",
+    "lessonNotFound": "Хичээл олдсонгүй",
+    "lessonNotFoundDescription": "Хүссэн хичээлийг ачаалж чадсангүй.",
+    "lessonLoadFailed": "Хичээлийг ачаалж чадсангүй.",
+    "submitMoveFailed": "Хичээлийн нүүдлийг илгээж чадсангүй.",
+    "backToLearn": "Сурах хэсэг рүү буцах",
+    "hint": "Санамж",
+    "lessonComplete": "Хичээл дууслаа.",
+    "hideHint": "Санамж нуух",
+    "showHint": "Санамж харах",
+    "retryStep": "Алхамыг дахин оролдох",
+    "checkingMove": "Нүүдлийг шалгаж байна...",
+    "previous": "Өмнөх",
+    "nextLesson": "Дараагийн хичээл",
+    "retryLesson": "Хичээлийг дахин эхлэх",
+    "courseProgressLabel": "Курсын явц",
+    "courseLessons": "Курсын хичээлүүд"
+  },
+  "analysis": {
+    "back": "Буцах",
+    "opening": "Нээлт",
+    "moveExplanation": "Нүүдлийн тайлбар",
+    "moveExplanationHint": "Яагаад сайн эсвэл муу нүүдэл байсныг харахын тулд нүүдлийн жагсаалтаас нэгийг сонгоно уу.",
+    "startingPositionTitle": "Эхний байрлал",
+    "startingPositionDescription": "Тоглолт стандарт эхний байрлалаас эхэлнэ.",
+    "startingPositionDetails": "Шинжилгээ, тайлбарыг харахын тулд нүүдэл сонгоно уу.",
+    "moveAnalysisTitle": "Нүүдлийн шинжилгээ",
+    "movePlayed": "{{san}} нүүгдсэн.",
+    "moveAnalysisUnavailable": "Энэ нүүдэлд шинжилгээний өгөгдөл алга.",
+    "aiLoading": "AI тайлбар авч байна...",
+    "aiLoadFailed": "AI тайлбар авч чадсангүй",
+    "bestMove": "Хамгийн сайн нүүдэл:",
+    "bestMovePlayed": "Та үүнийг нүүсэн байна!",
+    "tip": "Зөвлөгөө:",
+    "none": "Байхгүй",
+    "capturedByWhite": "Цагаан талын авсан хөлөг",
+    "capturedByBlack": "Хар талын авсан хөлөг",
+    "moves": "Нүүдлүүд",
+    "moveListWhite": "Цагаан",
+    "moveListBlack": "Хар",
+    "noMovesRecorded": "Нүүдэл бүртгэгдээгүй байна",
+    "moveListHints": "← → шилжих • Space тоглуулах • F эргүүлэх",
+    "qualityBreakdown": {
+      "white": "Цагаан",
+      "black": "Хар"
+    },
+    "qualityLabels": {
+      "Brilliant": "Гайхалтай",
+      "Great": "Маш сайн",
+      "Best": "Шилдэг",
+      "Excellent": "Онц сайн",
+      "Good": "Сайн",
+      "Book": "Онолын",
+      "Inaccuracy": "Нарийвчлал дутсан",
+      "Mistake": "Алдаа",
+      "Miss": "Боломж алдсан",
+      "Blunder": "Бүдүүлэг алдаа",
+      "Unknown": "—"
+    },
+    "colors": {
+      "white": "цагаан",
+      "black": "хар"
+    },
+    "moveExplanations": {
+      "brilliant": {
+        "title": "Гайхалтай нүүдэл!",
+        "description": "{{san}} бол гайхалтай золиос бүхий нүүдэл. Энэ нүүдэл {{mover}} талд шийдвэрлэх давуу байдал авчирлаа.",
+        "details": "Тактикийн золиосын ачаар байрлал {{swing}}-иар сайжирч, өрсөлдөгч амархан няцааж чадахгүй болов.",
+        "suggestion": "Ийм нүүдэл л хүчтэй тоглогчдыг ялгаруулдаг."
+      },
+      "great": {
+        "title": "Маш сайн нүүдэл!",
+        "description": "{{san}} нь {{mover}} талын байрлалыг мэдэгдэхүйц сайжруулсан маш сайн нүүдэл юм.",
+        "details": "Хожих магадлал {{before}}-аас {{after}} болж, {{gain}}-иар өссөн байна.",
+        "suggestion": "Энэ нүүдэл байрлалын гол нөөцийг олжээ."
+      },
+      "best": {
+        "title": "Шилдэг нүүдэл",
+        "description": "{{san}} бол энэ байрлал дахь хамгийн сайн нүүдэл бөгөөд үнэлгээг хадгалж эсвэл сайжруулж байна.",
+        "details": "Байрлалын үнэлгээ {{after}} хожих магадлалтай хэвээр үлдлээ."
+      },
+      "excellent": {
+        "title": "Онц сайн нүүдэл",
+        "description": "{{san}} нь хөдөлгүүрийн хамгийн сайн сонголтод маш ойртсон, онц сайн нүүдэл байна.",
+        "details": "Хамгийн сайн нүүдэлтэй харьцуулахад ердөө {{loss}} алдагдалтай."
+      },
+      "good": {
+        "title": "Сайн нүүдэл",
+        "description": "{{san}} нь байрлалыг тоглох боломжтой хэвээр үлдээсэн сайн, тогтвортой нүүдэл байна.",
+        "details": "{{loss}} орчим нарийвчлалын алдагдалтай ч гэсэн боломжийн нүүдэл."
+      },
+      "book": {
+        "title": "Онолын нүүдэл",
+        "description": "{{san}} нь тогтсон онолыг дагасан стандарт нээлтийн нүүдэл юм.",
+        "details": "Энэ нүүдэл бол олонд танигдсан нээлтийн онолын хэсэг. Хоёр тал тогтсон хувилбараар явж байна."
+      },
+      "inaccuracy": {
+        "title": "Нарийвчлал дутсан",
+        "description": "{{san}} нь энэ байрлалд хамгийн сайн сонголт байж чадсангүй.",
+        "details": "Хожих магадлал {{before}}-аас {{after}} болж, {{loss}}-иар буурсан.",
+        "suggestion": "Хөлгийн идэвхийг хадгалж, өрсөлдөгчид үнэгүй темп өгөхгүй нүүдэл хайгаарай."
+      },
+      "mistake": {
+        "title": "Алдаа",
+        "description": "{{san}} нь {{mover}} талын байрлалд мэдэгдэхүйц сөргөөр нөлөөлсөн алдаа юм.",
+        "details": "Хожих магадлал {{before}}-аас {{after}} болж, нийт {{loss}}-ийн савлагаа гарлаа.",
+        "suggestion": "Нүүхийн өмнө авах, шахах, аюул заналыг шалга. Өрсөлдөгч чинь юу хүсэж байгааг өөрөөсөө асуугаарай."
+      },
+      "miss": {
+        "title": "Боломж алдсан",
+        "description": "{{san}} нь өрсөлдөгчийн өмнөх алдааг ашиглах боломжийг алдлаа.",
+        "details": "Өрсөлдөгч алдаа гаргасан ч энэ нүүдэл түүнийг хангалттай шийтгэсэнгүй. Давуу тал бүрэн хэрэгжсэнгүй.",
+        "suggestion": "Өрсөлдөгч бүдэрсэн үед яарахгүйгээр тактикийн шийтгэлийг хай."
+      },
+      "blunder": {
+        "title": "Бүдүүлэг алдаа",
+        "description": "{{san}} нь тоглолтын урсгалыг огцом өөрчилсөн ноцтой алдаа юм.",
+        "details": "Хожих магадлал {{before}}-аас {{after}} болж, сүйрлийн {{loss}} алдагдал үүсгэлээ.",
+        "suggestion": "Нүүдлээ батлахын өмнө ил зогсож буй хөлөг болон тактикийн аюулыг заавал шалга. Миний хөлөг аюулгүй юу, өрсөлдөгч юу довтолж чадах вэ гэж өөрөөсөө асуугаарай."
+      },
+      "unknown": {
+        "title": "Нүүдэл",
+        "description": "{{san}} нүүгдсэн.",
+        "details": "Энэ нүүдэлд шинжилгээ алга."
+      }
+    }
+  },
+  "presence": {
+    "unknown": "тодорхойгүй",
+    "justNow": "саяхан",
+    "minutesAgo": "{{count}} мин өмнө",
+    "hoursAgo": "{{count}} цагийн өмнө",
+    "daysAgo": "{{count}} өдрийн өмнө",
+    "lastSeen": "Сүүлд {{time}} харагдсан",
+    "status": {
+      "inGame": "Тоглож байна",
+      "searchingMatch": "Тоглолт хайж байна",
+      "away": "Завгүй",
+      "online": "Онлайн",
+      "offline": "Оффлайн"
+    }
   }
 }

@@ -31,7 +31,6 @@
   },
   "auth": {
     "welcomeBack": "Welcome Back",
-    "signInSubtitle": "Sign in to continue your chess journey",
     "accountBannedTitle": "Account Banned",
     "accountBannedReason": "Your account has been banned. Reason: {{reason}}",
     "email": "Email Address",
@@ -47,7 +46,6 @@
     "googleLoginFailed": "Google login failed",
     "googleNotConfigured": "Google sign-in is not configured yet.",
     "createAccount": "Create Account",
-    "registerSubtitle": "Join the community of chess masters",
     "fullName": "Full Name",
     "namePlaceholder": "John Doe",
     "minimumChars": "Minimum 8 characters",
@@ -71,7 +69,22 @@
       "saved": "Settings saved successfully!",
       "reset": "Settings reset to last saved state",
       "passwordChanged": "Password changed successfully!",
-      "deletionRequested": "Account deletion requested"
+      "deletionRequested": "Account deletion requested",
+      "unblocked": "User unblocked."
+    },
+    "errors": {
+      "fillPasswordFields": "Fill in all password fields.",
+      "passwordTooShort": "New password must be at least 8 characters.",
+      "passwordMismatch": "New passwords do not match.",
+      "changePasswordFailed": "Failed to change password",
+      "blockedUsersLoad": "Loading blocked users...",
+      "noBlockedUsers": "No blocked users.",
+      "blockedSince": "Blocked since {{date}}",
+      "blocked": "Blocked",
+      "unblockFailed": "Unable to unblock user.",
+      "unblocking": "Unblocking...",
+      "unblock": "Unblock",
+      "passwordUpdating": "Updating..."
     },
     "profile": {
       "title": "Profile & Account",
@@ -82,13 +95,42 @@
       "changePasswordHelper": "Update your account password",
       "linkedAccounts": "Linked Accounts",
       "linkedAccountsHelper": "Connect third-party services",
-      "google": "Google"
+      "google": "Google",
+      "facebook": "Facebook"
     },
     "appearance": {
       "title": "Appearance",
       "subtitle": "Customize how NeonGambit looks",
       "theme": "Theme",
       "themeHelper": "Choose your preferred color scheme",
+      "themeNames": {
+        "dark-neon": "Default",
+        "midnight-blue": "Midnight Blue",
+        "forest-green": "Forest Green",
+        "light-classic": "Light Classic",
+        "violet_storm": "Violet Storm",
+        "aurora": "Aurora Borealis",
+        "solar_gold": "Solar Gold",
+        "arctic_ice": "Arctic Ice",
+        "ember": "Ember & Ash",
+        "sakura": "Sakura Night",
+        "toxic_lime": "Toxic Lime",
+        "obsidian_rose": "Obsidian Rose"
+      },
+      "themeDescriptions": {
+        "dark-neon": "Signature NeonGambit dark theme with crisp cyan accents",
+        "midnight-blue": "Deep navy surfaces with cool blue highlights",
+        "forest-green": "Dark botanical tones with fresh green contrast",
+        "light-classic": "Clean light layout with classic tournament clarity",
+        "violet_storm": "Deep space with electric violet strikes",
+        "aurora": "Northern lights dance across dark skies",
+        "solar_gold": "Premium dark with molten gold accents",
+        "arctic_ice": "Razor sharp whites on absolute zero dark",
+        "ember": "Volcanic dark with smoldering orange fire",
+        "sakura": "Cherry blossoms glowing in the dark",
+        "toxic_lime": "Terminal green on pitch black with raw power",
+        "obsidian_rose": "Dark opulence with deep rose undertones"
+      },
       "themes": {
         "dark": "Dark",
         "dim": "Dim",
@@ -103,6 +145,18 @@
       },
       "boardTheme": "Board Theme",
       "boardThemeHelper": "Choose board color scheme",
+      "boardThemeNames": {
+        "classic": "Classic",
+        "modern-gray": "Modern Gray",
+        "blue-ocean": "Blue Ocean",
+        "warm-wood": "Warm Wood",
+        "purple-night": "Purple Night",
+        "neon-green": "Neon Green",
+        "neon-cyber": "Neon Cyber",
+        "neon-purple": "Neon Purple",
+        "soft-dark": "Soft Dark",
+        "high-contrast-minimal": "High Contrast Minimal"
+      },
       "boardThemes": {
         "green": "Green",
         "brown": "Brown",
@@ -128,11 +182,11 @@
       "defaultTime": "Default Time Control",
       "defaultTimeHelper": "Starting time format for new games",
       "timeControls": {
-        "bullet": "⚡ Bullet",
-        "blitz": "🔥 Blitz",
-        "rapid": "🚀 Rapid",
-        "classical": "🏛️ Classical",
-        "custom": "⚙️ Custom"
+        "bullet": "Bullet",
+        "blitz": "Blitz",
+        "rapid": "Rapid",
+        "classical": "Classical",
+        "custom": "Custom"
       },
       "autoQueen": "Auto-Queen",
       "autoQueenHelper": "Automatically promote pawns to queen",
@@ -240,6 +294,280 @@
         "username": "username",
         "cta": "Permanently Delete Account"
       }
+    }
+  },
+  "puzzles": {
+    "difficulty": {
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard"
+    },
+    "status": {
+      "all": "All",
+      "new": "New",
+      "seen": "Seen",
+      "solved": "Solved",
+      "failed": "Failed",
+      "failedBefore": "Failed Before",
+      "reviewDue": "Review Due",
+      "mastered": "Mastered",
+      "bookmarked": "Bookmarked",
+      "archived": "Archived",
+      "unseen": "Unseen",
+      "unknown": "Unknown"
+    },
+    "results": {
+      "solved": "Solved",
+      "failed": "Failed",
+      "skipped": "Skipped",
+      "abandoned": "Abandoned"
+    },
+    "modeLabels": {
+      "rated": "Rated",
+      "review": "Review",
+      "random": "Random",
+      "library": "Library"
+    },
+    "library": {
+      "title": "Browse Puzzles",
+      "searchLabel": "Search",
+      "searchPlaceholder": "Search title",
+      "statusLabel": "Status",
+      "difficultyLabel": "Difficulty",
+      "ratingSeparator": "to",
+      "includeMastered": "Include mastered",
+      "grid": "Grid",
+      "list": "List",
+      "loading": "Loading puzzle library...",
+      "loadFailed": "Failed to load puzzle library",
+      "emptyReviewDue": "No reviews due. Try a new rated puzzle.",
+      "emptyFiltered": "No puzzles match your filters.",
+      "bookmarked": "Bookmarked",
+      "noDescription": "No description",
+      "attempts": "{{count}} attempts",
+      "start": "Start",
+      "noMotifs": "No motifs",
+      "pagination": "Showing {{start}} - {{end}} of {{total}}"
+    },
+    "history": {
+      "eyebrow": "Puzzle History",
+      "searchLabel": "Search",
+      "searchPlaceholder": "Search title",
+      "loading": "Loading puzzle history...",
+      "loadFailed": "Failed to load puzzle history",
+      "empty": "No history items match your search.",
+      "summary": "{{mode}} • {{result}} • {{date}} • {{time}}"
+    },
+    "trainer": {
+      "historyTab": "History",
+      "loading": "Loading puzzle...",
+      "noReviewTitle": "No review puzzles right now",
+      "noReviewDescription": "You are all caught up. Solve a rated puzzle to generate new reviews.",
+      "noPuzzleTitle": "No puzzle available",
+      "noPuzzleDescription": "Please try again in a moment.",
+      "loadFailed": "Failed to load puzzle",
+      "submitFailed": "Failed to submit attempt",
+      "puzzleElo": "Puzzle Elo",
+      "streak": "Streak",
+      "sideToMove": "Side to move",
+      "whiteToMove": "White to move",
+      "blackToMove": "Black to move",
+      "playFirstMoveWhite": "Play the first move for White.",
+      "playFirstMoveBlack": "Play the first move for Black.",
+      "waitingForPuzzle": "Waiting for puzzle...",
+      "timer": "Timer",
+      "bookmark": "Bookmark",
+      "bookmarked": "Bookmarked",
+      "useHint": "Use Hint",
+      "hintUsed": "Hint Used",
+      "showSolution": "Show Solution",
+      "tryAgain": "Try Again",
+      "shufflePuzzle": "Shuffle Puzzle",
+      "nextPuzzle": "Next Puzzle",
+      "line": "Line",
+      "revealLine": "Click Show Solution to reveal the line.",
+      "noStoredLine": "No stored line.",
+      "invalidFen": "Invalid FEN for this puzzle"
+    }
+  },
+  "learn": {
+    "stats": {
+      "completed": "Completed",
+      "inProgress": "In Progress",
+      "dayStreak": "Day Streak"
+    },
+    "searchPlaceholder": "Search courses, openings, or grandmasters...",
+    "difficulty": {
+      "all": "All Difficulty",
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced"
+    },
+    "progress": {
+      "all": "All Progress",
+      "notStarted": "Not Started",
+      "inProgress": "In Progress",
+      "completed": "Completed"
+    },
+    "categories": {
+      "openings": "Openings",
+      "middlegame": "Middlegame",
+      "endgame": "Endgame",
+      "strategy": "Strategy"
+    },
+    "loading": "Loading learn catalog...",
+    "loadFailed": "Failed to load learn catalog.",
+    "empty": "No courses matched your filters.",
+    "clearFilters": "Clear search and filters",
+    "courseProgress": "Course Progress",
+    "quickLessons": "Quick Lessons",
+    "lessonProgress": "{{completed}}/{{total}} lessons",
+    "lessonProgressCompleted": "{{completed}}/{{total}} lessons completed",
+    "moreLessons_one": "+{{count}} more lesson",
+    "moreLessons_other": "+{{count}} more lessons",
+    "retryCourse": "Retry Course",
+    "continueLesson": "Continue Lesson",
+    "startCourse": "Start Course",
+    "instructorFallback": "NeonGambit Instructor",
+    "lessonNotFound": "Lesson Not Found",
+    "lessonNotFoundDescription": "The requested lesson could not be loaded.",
+    "lessonLoadFailed": "Failed to load lesson.",
+    "submitMoveFailed": "Failed to submit lesson move.",
+    "backToLearn": "Back to Learn",
+    "hint": "Hint",
+    "lessonComplete": "Lesson complete.",
+    "hideHint": "Hide Hint",
+    "showHint": "Show Hint",
+    "retryStep": "Retry Step",
+    "checkingMove": "Checking move...",
+    "previous": "Previous",
+    "nextLesson": "Next Lesson",
+    "retryLesson": "Retry Lesson",
+    "courseProgressLabel": "Course progress",
+    "courseLessons": "Course Lessons"
+  },
+  "analysis": {
+    "back": "Back",
+    "opening": "Opening",
+    "moveExplanation": "Move Explanation",
+    "moveExplanationHint": "Click on any move in the move list to see why it's good or bad.",
+    "startingPositionTitle": "Starting Position",
+    "startingPositionDescription": "The game begins from the standard starting position.",
+    "startingPositionDetails": "Select a move to see its analysis and explanation.",
+    "moveAnalysisTitle": "Move Analysis",
+    "movePlayed": "{{san}} was played.",
+    "moveAnalysisUnavailable": "No analysis data available for this move.",
+    "aiLoading": "Getting AI explanation...",
+    "aiLoadFailed": "Failed to get AI explanations",
+    "bestMove": "Best move:",
+    "bestMovePlayed": "You played this!",
+    "tip": "Tip:",
+    "none": "None",
+    "capturedByWhite": "Captured by White",
+    "capturedByBlack": "Captured by Black",
+    "moves": "Moves",
+    "moveListWhite": "White",
+    "moveListBlack": "Black",
+    "noMovesRecorded": "No moves recorded",
+    "moveListHints": "← → Navigate • Space Play • F Flip",
+    "qualityBreakdown": {
+      "white": "White",
+      "black": "Black"
+    },
+    "qualityLabels": {
+      "Brilliant": "Brilliant",
+      "Great": "Great",
+      "Best": "Best",
+      "Excellent": "Excellent",
+      "Good": "Good",
+      "Book": "Book",
+      "Inaccuracy": "Inaccuracy",
+      "Mistake": "Mistake",
+      "Miss": "Miss",
+      "Blunder": "Blunder",
+      "Unknown": "—"
+    },
+    "colors": {
+      "white": "White",
+      "black": "Black"
+    },
+    "moveExplanations": {
+      "brilliant": {
+        "title": "Brilliant Move!",
+        "description": "{{san}} is a brilliant sacrifice! This move demonstrates deep calculation and turns the position decisively in {{mover}}'s favor.",
+        "details": "This move improved the position significantly ({{swing}} swing) through a tactical sacrifice that the opponent cannot easily refute.",
+        "suggestion": "This is exactly the kind of move that separates strong players!"
+      },
+      "great": {
+        "title": "Great Move!",
+        "description": "{{san}} is a great move that significantly improved {{mover}}'s position.",
+        "details": "Win probability shifted from {{before}} to {{after}} — a {{gain}} improvement.",
+        "suggestion": "This move found a critical resource in the position."
+      },
+      "best": {
+        "title": "Best Move",
+        "description": "{{san}} is the best move in this position, maintaining or improving the evaluation.",
+        "details": "Position evaluation stayed strong at {{after}} win probability."
+      },
+      "excellent": {
+        "title": "Excellent Move",
+        "description": "{{san}} is an excellent move, very close to the engine's top choice.",
+        "details": "Only a tiny {{loss}} loss compared to the absolute best move."
+      },
+      "good": {
+        "title": "Good Move",
+        "description": "{{san}} is a good, solid move that keeps the position playable.",
+        "details": "About {{loss}} accuracy loss — not perfect but reasonable."
+      },
+      "book": {
+        "title": "Book Move",
+        "description": "{{san}} is a standard opening move, following established theory.",
+        "details": "This move is part of well-known opening theory. Both sides are following established lines."
+      },
+      "inaccuracy": {
+        "title": "Inaccuracy",
+        "description": "{{san}} is an inaccuracy — not the best choice in this position.",
+        "details": "Win probability dropped from {{before}} to {{after}} ({{loss}} loss).",
+        "suggestion": "Look for moves that maintain piece activity and do not give your opponent free tempos."
+      },
+      "mistake": {
+        "title": "Mistake",
+        "description": "{{san}} is a mistake that significantly hurts {{mover}}'s position.",
+        "details": "Win probability dropped from {{before}} to {{after}} — that is a {{loss}} swing!",
+        "suggestion": "Before moving, check for tactics: captures, checks, and threats. Ask yourself what your opponent wants to do."
+      },
+      "miss": {
+        "title": "Missed Opportunity",
+        "description": "{{san}} missed a chance to capitalize on the opponent's previous error.",
+        "details": "Your opponent made a mistake, but this move did not punish it effectively. The advantage was not fully converted.",
+        "suggestion": "When your opponent blunders, slow down and look for the tactical punishment."
+      },
+      "blunder": {
+        "title": "Blunder",
+        "description": "{{san}} is a serious blunder that dramatically changes the game.",
+        "details": "Win probability crashed from {{before}} to {{after}} — a devastating {{loss}} loss.",
+        "suggestion": "Always check for hanging pieces and tactical threats before finalizing your move. Ask: is my piece safe and what can my opponent attack?"
+      },
+      "unknown": {
+        "title": "Move",
+        "description": "{{san}} was played.",
+        "details": "Analysis not available for this move."
+      }
+    }
+  },
+  "presence": {
+    "unknown": "unknown",
+    "justNow": "just now",
+    "minutesAgo": "{{count}}m ago",
+    "hoursAgo": "{{count}}h ago",
+    "daysAgo": "{{count}}d ago",
+    "lastSeen": "Last seen {{time}}",
+    "status": {
+      "inGame": "In game",
+      "searchingMatch": "Searching for match",
+      "away": "Away",
+      "online": "Online",
+      "offline": "Offline"
     }
   }
 }

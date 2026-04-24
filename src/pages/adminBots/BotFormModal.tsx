@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from "react";
-import { X, Upload, Image as ImageIcon } from "lucide-react";
 import type { BotFormData, BotData } from "./types";
 import {
   DIFFICULTY_OPTIONS,
@@ -28,33 +27,6 @@ interface BotFormModalProps {
   editingBot: BotData | null;
   saving: boolean;
 }
-
-const EMOJI_AVATARS = [
-  "🤖",
-  "🧒",
-  "👴",
-  "👧",
-  "🧑",
-  "👩",
-  "🧔",
-  "👩‍🦰",
-  "🧑‍🦱",
-  "👨‍💼",
-  "🧕",
-  "🧔‍♂️",
-  "👩‍🎓",
-  "🧑‍💻",
-  "👸",
-  "🎭",
-  "🥷",
-  "🎩",
-  "👩‍⚖️",
-  "🦁",
-  "👑",
-  "🎯",
-  "⚔️",
-  "🏆",
-];
 
 export function BotFormModal({
   isOpen,
@@ -153,9 +125,9 @@ export function BotFormModal({
           </h2>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           >
-            <X className="w-5 h-5 text-gray-500" />
+            Close
           </button>
         </div>
 
@@ -186,31 +158,6 @@ export function BotFormModal({
                 )}
               </div>
 
-              {/* Avatar Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Avatar Emoji
-                </label>
-                <div className="flex flex-wrap gap-2 p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-slate-800">
-                  {EMOJI_AVATARS.map((emoji) => (
-                    <button
-                      key={emoji}
-                      type="button"
-                      onClick={() =>
-                        setFormData({ ...formData, avatar: emoji })
-                      }
-                      className={`w-10 h-10 text-xl rounded-lg flex items-center justify-center transition-all ${
-                        formData.avatar === emoji
-                          ? "bg-brand-500 ring-2 ring-brand-400"
-                          : "bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600"
-                      }`}
-                    >
-                      {emoji}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
               {/* Avatar Image Upload */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -228,7 +175,9 @@ export function BotFormModal({
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <ImageIcon className="w-8 h-8 text-gray-400" />
+                      <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                        Image
+                      </span>
                     )}
                   </div>
                   <div className="flex-1">
@@ -244,7 +193,6 @@ export function BotFormModal({
                       onClick={() => fileInputRef.current?.click()}
                       className="px-4 py-2 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors flex items-center gap-2"
                     >
-                      <Upload className="w-4 h-4" />
                       Upload Image
                     </button>
                     <p className="text-xs text-gray-500 mt-1">

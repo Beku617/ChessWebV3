@@ -1,5 +1,6 @@
 import { Admin, User } from "../models/index.js";
 import { clearAdminCookie, clearAuthCookie } from "../utils/cookies.js";
+import mongoose from "mongoose";
 
 function readSignedCookie(req, key) {
   const signedValue = req?.signedCookies?.[key];
@@ -30,6 +31,10 @@ function toSafeUserPayload(user) {
   };
 }
 
+function isValidObjectId(value) {
+  return mongoose.Types.ObjectId.isValid(String(value || ""));
+}
+
 // Auth Middleware for regular users
 export const authMiddleware = async (req, res, next) => {
   if (req.user?.userId) {
@@ -50,6 +55,10 @@ export const authMiddleware = async (req, res, next) => {
   const parsedToken = parseJsonCookie(authToken);
   const userId = String(parsedToken?.userId || "").trim();
   if (!userId) {
+    clearAuthCookie(res);
+    return res.status(401).json({ error: "Invalid token" });
+  }
+  if (!isValidObjectId(userId)) {
     clearAuthCookie(res);
     return res.status(401).json({ error: "Invalid token" });
   }
@@ -76,6 +85,10 @@ export const authMiddleware = async (req, res, next) => {
     req.user = toSafeUserPayload(user);
     return next();
   } catch (error) {
+    if (error?.name === "CastError") {
+      clearAuthCookie(res);
+      return res.status(401).json({ error: "Invalid token" });
+    }
     console.error("Auth middleware error:", error);
     return res.status(500).json({ error: "Server error" });
   }
@@ -99,6 +112,11 @@ export const optionalAuthMiddleware = async (req, res, next) => {
   const parsedToken = parseJsonCookie(authToken);
   const userId = String(parsedToken?.userId || "").trim();
   if (!userId) {
+    clearAuthCookie(res);
+    req.user = null;
+    return next();
+  }
+  if (!isValidObjectId(userId)) {
     clearAuthCookie(res);
     req.user = null;
     return next();
@@ -127,6 +145,11 @@ export const optionalAuthMiddleware = async (req, res, next) => {
     req.user = toSafeUserPayload(user);
     return next();
   } catch (error) {
+    if (error?.name === "CastError") {
+      clearAuthCookie(res);
+      req.user = null;
+      return next();
+    }
     console.error("Optional auth middleware error:", error);
     return res.status(500).json({ error: "Server error" });
   }
@@ -152,6 +175,10 @@ export const adminAuthMiddleware = async (req, res, next) => {
     clearAdminCookie(res);
     return res.status(403).json({ error: "Not authorized" });
   }
+  if (!isValidObjectId(adminId)) {
+    clearAdminCookie(res);
+    return res.status(401).json({ error: "Invalid admin token" });
+  }
 
   try {
     const admin = await Admin.findById(adminId)
@@ -171,6 +198,10 @@ export const adminAuthMiddleware = async (req, res, next) => {
 
     return next();
   } catch (error) {
+    if (error?.name === "CastError") {
+      clearAdminCookie(res);
+      return res.status(401).json({ error: "Invalid admin token" });
+    }
     console.error("Admin auth middleware error:", error);
     return res.status(500).json({ error: "Server error" });
   }

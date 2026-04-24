@@ -242,7 +242,7 @@ export function GameOverModal({
         transition={{ duration: 0.18, ease: "easeOut" }}
         role="dialog"
         aria-modal="true"
-        className={`w-full max-w-[440px] rounded-2xl border ${tone.border} bg-slate-950/95 shadow-[0_24px_80px_rgba(2,6,23,0.8)] overflow-hidden pointer-events-auto`}
+        className={`theme-glass-panel-strong w-full max-w-[440px] rounded-2xl ${tone.border} overflow-hidden pointer-events-auto`}
       >
         <div
           className={`h-1.5 w-full bg-gradient-to-r ${tone.glow} via-transparent to-transparent`}
@@ -283,7 +283,7 @@ export function GameOverModal({
               <button
                 type="button"
                 onClick={() => onBackToTournament?.()}
-                className="w-full h-11 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-100 font-medium transition-colors"
+                className="w-full h-11 rounded-xl bg-white/10 hover:bg-white/15 text-slate-100 font-medium transition-colors"
               >
                 Back to Tournament
               </button>
@@ -300,7 +300,7 @@ export function GameOverModal({
                 <button
                   type="button"
                   onClick={onNewGame}
-                  className="w-full h-11 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-100 font-medium transition-colors flex items-center justify-center gap-2"
+                  className="w-full h-11 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-slate-100 font-medium transition-colors flex items-center justify-center gap-2"
                 >
                   <Swords size={16} />
                   New Game
