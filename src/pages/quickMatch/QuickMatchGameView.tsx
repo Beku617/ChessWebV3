@@ -287,14 +287,15 @@ export function QuickMatchGameView({
                 !isClockPaused
               }
               onTimeOut={() => onTimeOut(false)}
-              onTimeChange={setOpponentTime}
+              onTimeChange={() => {}}
               timerResetToken={`opp:${clockResetToken ?? 0}`}
+              timerManagedExternally
             />
           </div>
 
           {/* Chessboard */}
           <div
-            className="theme-glass-panel-strong rounded-2xl"
+            className="theme-board-panel rounded-2xl"
             style={{ width: boardWidth + BOARD_FRAME }}
           >
             <GameBoard
@@ -344,8 +345,9 @@ export function QuickMatchGameView({
                 !isClockPaused
               }
               onTimeOut={() => onTimeOut(true)}
-              onTimeChange={setPlayerTime}
+              onTimeChange={() => {}}
               timerResetToken={`self:${clockResetToken ?? 0}`}
+              timerManagedExternally
             />
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { GameHistory } from "../../historyTypes";
 import {
   ReplayBoard,
@@ -19,6 +20,7 @@ interface ReplayContent960Props {
 }
 
 export function ReplayContent960({ game }: ReplayContent960Props) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const replay = useGameReplay960(game);
   const viewerUserId = useAuthStore((state) => state.user?.id ?? null);
@@ -40,7 +42,7 @@ export function ReplayContent960({ game }: ReplayContent960Props) {
           className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
         >
           <ArrowLeft size={16} />
-          <span>Back</span>
+          <span>{t("analysis.back")}</span>
         </button>
       </div>
 

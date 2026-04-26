@@ -434,7 +434,8 @@
       "pairingsPublished": "Pairings published",
       "roundClosed": "Round closed",
       "tournamentFinished": "Tournament finished",
-      "actionFailed": "Tournament action failed"
+      "actionFailed": "Tournament action failed",
+      "nextRoundStarted": "Next round started"
     },
     "confirm": {
       "deleteMessage": "Delete \"{{name}}\"? Only tournaments that have not gone live can be removed.",
@@ -450,7 +451,8 @@
       "closeCurrentRound": "Close Current Round",
       "finishTournament": "Finish Tournament",
       "editDraft": "Edit Draft",
-      "deleteTournament": "Delete Tournament"
+      "deleteTournament": "Delete Tournament",
+      "startNextRound": "Start Next Round"
     },
     "preview": {
       "title": "Pairing Preview",
@@ -641,5 +643,29 @@
       "creating": "Creating...",
       "createDraft": "Create Draft"
     }
-  }
+  },
+  "Trending in chess": "Trending in chess",
+  "Full board": "Full board",
+  "Upcoming Events": "Upcoming Events",
+  "Solve Today's Puzzle": "Solve Today's Puzzle",
+  "Hot": "Hot",
+  "Rising": "Rising",
+  "Stable": "Stable",
+  "Unable to load tournaments": "Unable to load tournaments",
+  "Please try again in a moment.": "Please try again in a moment.",
+  "Retry": "Retry",
+  "Active": "Active",
+  "Upcoming": "Upcoming",
+  "players joined": "players joined",
+  "Latest Result": "Latest Result",
+  "Winner": "Winner",
+  "Results pending": "Results pending",
+  "players": "players",
+  "View Results": "View Results",
+  "No tournaments available": "No tournaments available",
+  "Create a tournament or check back for the next event.": "Create a tournament or check back for the next event.",
+  "Three-Check": "Three-Check",
+  "Atomic Chess": "Atomic Chess",
+  "Searching for opponent...": "Searching for opponent...",
+  "Server Offline": "Server Offline"
 }

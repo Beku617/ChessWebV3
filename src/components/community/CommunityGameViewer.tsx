@@ -1,6 +1,7 @@
 import { memo, useEffect, useId, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Chessboard } from "react-chessboard";
+import { useTranslation } from "react-i18next";
 import { useReplayMoveSounds } from "../../hooks/useReplayMoveSounds";
 import { usePositionParser } from "../../hooks/usePositionParser";
 import { useElementSize } from "../../hooks/useElementSize";
@@ -226,16 +227,17 @@ function buildReplayGame(game: CommunitySharedGame): GameHistory {
 
 function getOutcomeLabel(result?: string | null) {
   const normalized = String(result || "").trim();
-  if (normalized === "1-0") return "White won";
-  if (normalized === "0-1") return "Black won";
-  if (normalized === "1/2-1/2") return "Draw";
-  return "Result unavailable";
+  if (normalized === "1-0") return "communityGameViewer.whiteWon";
+  if (normalized === "0-1") return "communityGameViewer.blackWon";
+  if (normalized === "1/2-1/2") return "communityGameViewer.draw";
+  return "communityGameViewer.resultUnavailable";
 }
 
 function CommunityGameViewerComponent({
   game,
   analyzeHref,
 }: CommunityGameViewerProps) {
+  const { t } = useTranslation();
   const viewerId = useId().replace(/[^a-zA-Z0-9_-]/g, "");
   const board = useElementSize<HTMLDivElement>();
   const interactiveRef = useRef<HTMLDivElement | null>(null);
@@ -286,14 +288,14 @@ function CommunityGameViewerComponent({
         }
       : {};
 
-  const outcomeLabel = getOutcomeLabel(game?.result);
+  const outcomeLabel = t(getOutcomeLabel(game?.result));
 
   useReplayMoveSounds(safePly, plies, game?.playAs === "black" ? "black" : "white");
 
   if (!game) {
     return (
       <div className="mt-2 rounded-[18px] bg-white/[0.03] px-4 py-4 text-sm text-gray-400 shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]">
-        Game preview unavailable.
+        {t("communityGameViewer.previewUnavailable")}
       </div>
     );
   }
@@ -347,7 +349,7 @@ function CommunityGameViewerComponent({
                     rel="noreferrer"
                     className="text-brand-200/90 transition-colors hover:text-brand-100"
                   >
-                    Analyze game
+                    {t("communityGameViewer.analyzeGame")}
                   </Link>
                 )}
               </div>
@@ -355,7 +357,9 @@ function CommunityGameViewerComponent({
 
             {totalPlies > 0 && (
               <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px] leading-none text-gray-500 sm:shrink-0 sm:justify-end">
-                <span className="text-gray-600">Use arrow keys</span>
+                <span className="text-gray-600">
+                  {t("communityGameViewer.useArrowKeys")}
+                </span>
               </div>
             )}
           </div>

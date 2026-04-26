@@ -186,7 +186,7 @@ export default function Login() {
   };
 
   return (
-    <div className="h-screen overflow-hidden bg-theme-primary flex items-center justify-center p-4 transition-colors duration-300">
+    <div className="min-h-screen bg-theme-primary flex items-center justify-center p-4 transition-colors duration-300">
       <div
         className="fixed inset-0 opacity-[0.025] dark:opacity-[0.04] pointer-events-none"
         style={{
@@ -207,7 +207,7 @@ export default function Login() {
         </button>
       </div>
 
-      <div className="relative max-w-md w-full">
+      <div className="relative max-w-md w-full my-8">
         <div className="absolute -inset-1 rounded-3xl bg-gradient-to-br from-brand-500/20 via-transparent to-brand-600/10 dark:from-brand-500/10 dark:to-brand-600/5 blur-xl pointer-events-none" />
 
         <div className="theme-glass-panel-strong relative rounded-2xl p-8">

@@ -71,19 +71,24 @@ CLOUDINARY_API_SECRET=your_api_secret
 
 ## Development
 
-Start the development environment with separate client and server processes:
-
-### Start Frontend Development Server
+Start the development environment with one command:
 
 ```bash
-npm run dev -- --host localhost --port 5173
+npm run dev
 ```
 
-### Start Backend Server
+This starts the backend first, waits for `http://localhost:3001/healthz` to respond, and then launches the Vite client.
+
+### Start Frontend Only
 
 ```bash
-cd server
-npm run dev
+npm run dev:client -- --host localhost --port 5173
+```
+
+### Start Backend Only
+
+```bash
+npm run dev:server
 ```
 
 The application will be available at `http://localhost:5173` with the API backend running on `http://localhost:3001`.

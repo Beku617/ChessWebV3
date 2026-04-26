@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Chessboard } from "react-chessboard";
 import { Clock, Shuffle } from "lucide-react";
@@ -216,6 +216,7 @@ export default function PlayVariants() {
 
   // Responsive board width
   const [boardWidth, setBoardWidth] = useState(620);
+  const previewBoardId = useId().replace(/:/g, "");
   const containerRef = useRef<HTMLDivElement>(null);
   const leftRef = useRef<HTMLDivElement>(null);
   const topBarRef = useRef<HTMLDivElement>(null);
@@ -361,6 +362,7 @@ export default function PlayVariants() {
               style={{ width: boardWidth, height: boardWidth }}
             >
               <Chessboard
+                id={`variants-preview-board-${previewBoardId}`}
                 boardWidth={boardWidth}
                 position={previewFen}
                 arePiecesDraggable={false}

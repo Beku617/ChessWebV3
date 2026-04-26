@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Chessboard } from "react-chessboard";
 import {
   ArrowRight,
@@ -41,6 +41,7 @@ function ratingDeltaClass(delta: number) {
 export default function PuzzleTrainer() {
   const { t } = useTranslation();
   const { allowClickInput, allowDragInput } = useGameplayPreferences();
+  const puzzleTrainerBoardId = useId().replace(/:/g, "");
   const {
     loading,
     status,
@@ -230,12 +231,13 @@ export default function PuzzleTrainer() {
                           style={{ width: boardSize, height: boardSize }}
                         >
                           <Chessboard
+                            id={`puzzle-trainer-board-${puzzleTrainerBoardId}`}
+                            allowDragOutsideBoard={false}
                             position={game.fen()}
-                            onPieceDrop={(sourceSquare, targetSquare) =>
-                              allowDragInput
-                                ? onDrop(sourceSquare, targetSquare)
-                                : false
-                            }
+                            onPieceDrop={(sourceSquare, targetSquare) => {
+                              if (!allowDragInput) return false;
+                              return onDrop(sourceSquare, targetSquare);
+                            }}
                             onSquareClick={(square) => {
                               if (!allowClickInput) return;
                               handleSquareClick(square);
@@ -258,6 +260,7 @@ export default function PuzzleTrainer() {
                               status === "solving" &&
                               !isSolutionAnimating
                             }
+                            dropOffBoardAction="snapback"
                           />
                         </div>
 

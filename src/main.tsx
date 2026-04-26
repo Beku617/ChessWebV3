@@ -21,7 +21,6 @@ const router = createBrowserRouter(
   ],
   {
     future: {
-      v7_startTransition: true,
       v7_relativeSplatPath: true,
     },
   },
@@ -47,7 +46,12 @@ function Root() {
 
   const appContent = (
     <I18nextProvider i18n={i18n}>
-      <RouterProvider router={router} />
+      <RouterProvider
+        router={router}
+        future={{
+          v7_startTransition: true,
+        }}
+      />
     </I18nextProvider>
   );
 

@@ -372,6 +372,7 @@ export function useOnlineQuickMatch() {
   const pendingPreMoveRef = useRef<PreMove | null>(null);
   const startTimeRef = useRef<number | null>(null);
   const startingFenRef = useRef<string>("");
+  const clockDisplayIntervalRef = useRef<number | null>(null);
   const historySavedRef = useRef(false);
   const [lastGameOver, setLastGameOver] = useState<GameOverPayload | null>(
     null,
@@ -695,8 +696,8 @@ export function useOnlineQuickMatch() {
         setQueueStatus("Connection lost. Reconnecting...");
       } else if (gameIdRef.current || readActiveGameId()) {
         setIsSearching(false);
-        setIsClockPaused(true);
-        setQueueStatus("Connection lost. Reconnecting to your game...");
+        setIsClockPaused(false);
+        setQueueStatus("Connection lost. Reconnecting to your game. Clock continues server-side...");
       } else {
         setIsSearching(false);
         setQueueStatus("Disconnected from server.");
@@ -711,8 +712,8 @@ export function useOnlineQuickMatch() {
         setQueueStatus("Reconnecting to matchmaking server...");
       } else if (gameIdRef.current || readActiveGameId()) {
         setIsSearching(false);
-        setIsClockPaused(true);
-        setQueueStatus("Reconnecting to your game...");
+        setIsClockPaused(false);
+        setQueueStatus("Reconnecting to your game. Clock continues server-side...");
       } else {
         setIsSearching(false);
         setQueueStatus("Unable to connect to matchmaking server. Reconnecting...");
@@ -853,7 +854,7 @@ export function useOnlineQuickMatch() {
       setPlayerClockSeed(normalizedPlayerClock);
       setOpponentClockSeed(normalizedOpponentClock);
       setClockResetToken((value) => value + 1);
-      setIsClockPaused(Boolean(payload.clockPaused));
+      setIsClockPaused(false);
     });
 
     socket.on("moveApplied", (payload: MoveAppliedPayload) => {
@@ -965,8 +966,13 @@ export function useOnlineQuickMatch() {
           playerColorRef.current === "w" ? whiteClock : blackClock;
         const oppClock =
           playerColorRef.current === "w" ? blackClock : whiteClock;
-        setPlayerTime(Math.max(0, ownClock));
-        setOpponentTime(Math.max(0, oppClock));
+        const normalizedOwnClock = Math.max(0, ownClock);
+        const normalizedOpponentClock = Math.max(0, oppClock);
+        setPlayerTime(normalizedOwnClock);
+        setOpponentTime(normalizedOpponentClock);
+        setPlayerClockSeed(normalizedOwnClock);
+        setOpponentClockSeed(normalizedOpponentClock);
+        setClockResetToken((value) => value + 1);
       }
       setIsClockPaused(false);
 
@@ -1041,7 +1047,7 @@ export function useOnlineQuickMatch() {
       setPlayerClockSeed(playerClock);
       setOpponentClockSeed(opponentClock);
       setClockResetToken((value) => value + 1);
-      setIsClockPaused(Boolean(payload.clockPaused));
+      setIsClockPaused(false);
       setQueueStatus("Game restored after reconnect.");
       setIsSearching(false);
       clearTournamentJoinRetry();
@@ -1051,9 +1057,8 @@ export function useOnlineQuickMatch() {
       "opponent_disconnected",
       (payload?: { gameId?: string; graceMs?: number }) => {
         if (payload?.gameId && payload.gameId !== gameIdRef.current) return;
-        const graceSeconds = Math.max(1, Math.round(Number(payload?.graceMs || 30000) / 1000));
-        setIsClockPaused(true);
-        setQueueStatus(`Opponent disconnected. Waiting ${graceSeconds}s for reconnect...`);
+        setIsClockPaused(false);
+        setQueueStatus("Opponent disconnected. Their clock is still running.");
       },
     );
 
@@ -1886,12 +1891,13 @@ export function useOnlineQuickMatch() {
         clearSelection();
         return true;
       }
-      if (!gameIdRef.current) return false;
+      const activeGameId = gameIdRef.current || gameId;
+      if (!activeGameId) return false;
 
       playLocalMoveSound(from, to, promotion);
 
       emitIfConnected("makeMove", {
-        gameId: gameIdRef.current,
+        gameId: activeGameId,
         from,
         to,
         promotion,
@@ -1907,6 +1913,7 @@ export function useOnlineQuickMatch() {
       playLocalMoveSound,
       promotionToSquare,
       queuePreMove,
+      gameId,
       emitIfConnected,
     ],
   );
@@ -2008,6 +2015,13 @@ export function useOnlineQuickMatch() {
       );
 
       if (isLegalStandardMove || isLegalChess960Castle) {
+        const activeGameId = gameIdRef.current || gameId;
+        if (!activeGameId) {
+          playGameplaySound("illegal");
+          clearSelection();
+          return;
+        }
+
         // Check for promotion
         const srcPiece = currentGame.get(moveFrom);
         const isPromo =
@@ -2019,7 +2033,7 @@ export function useOnlineQuickMatch() {
           if (autoQueen) {
             playLocalMoveSound(moveFrom, square, "q");
             emitIfConnected("makeMove", {
-              gameId,
+              gameId: activeGameId,
               from: moveFrom,
               to: square,
               promotion: "q",
@@ -2036,7 +2050,7 @@ export function useOnlineQuickMatch() {
 
         playLocalMoveSound(moveFrom, square, "q");
         emitIfConnected("makeMove", {
-          gameId,
+          gameId: activeGameId,
           from: moveFrom,
           to: square,
           promotion: "q",
@@ -2080,7 +2094,8 @@ export function useOnlineQuickMatch() {
   const onPieceDrop = useCallback(
     (sourceSquare: Square, targetSquare: Square, piece?: string) => {
       if (!gameStarted || gameOver) return false;
-      if (!gameIdRef.current) return false;
+      const activeGameId = gameIdRef.current || gameId;
+      if (!activeGameId) return false;
 
       const currentGame = gameRef.current;
       const sourcePiece = currentGame.get(sourceSquare);
@@ -2182,7 +2197,7 @@ export function useOnlineQuickMatch() {
       if (isPromo) {
         if (autoQueen) {
           emitIfConnected("makeMove", {
-            gameId: gameIdRef.current,
+            gameId: activeGameId,
             from: sourceSquare,
             to: targetSquare,
             promotion: "q",
@@ -2200,7 +2215,7 @@ export function useOnlineQuickMatch() {
 
       const promotion = extractPromo(piece);
       emitIfConnected("makeMove", {
-        gameId: gameIdRef.current,
+        gameId: activeGameId,
         from: sourceSquare,
         to: targetSquare,
         promotion,
@@ -2215,6 +2230,7 @@ export function useOnlineQuickMatch() {
       clearSelection,
       gameOver,
       gameStarted,
+      gameId,
       getMoveOptions,
       isChess960CastlingDrop,
       isMoveAllowedForVariant,
@@ -2264,6 +2280,65 @@ export function useOnlineQuickMatch() {
       clearSelection();
     }
   }, [clearPreMove, clearSelection, isPlayerTurn, premoves]);
+
+  useEffect(() => {
+    if (clockDisplayIntervalRef.current !== null) {
+      window.clearInterval(clockDisplayIntervalRef.current);
+      clockDisplayIntervalRef.current = null;
+    }
+
+    const hasTimeControl = Number(gameSettings.timeControl.initial) > 0;
+    if (!gameStarted || gameOver || isClockPaused || !hasTimeControl) {
+      return undefined;
+    }
+
+    clockDisplayIntervalRef.current = window.setInterval(() => {
+      if (isPlayerTurn) {
+        setPlayerTime((previous) => {
+          const next = Math.max(0, Math.round((previous - 0.1) * 10) / 10);
+          setPlayerClockSeed(next);
+          return next;
+        });
+        return;
+      }
+
+      setOpponentTime((previous) => {
+        const next = Math.max(0, Math.round((previous - 0.1) * 10) / 10);
+        setOpponentClockSeed(next);
+        return next;
+      });
+    }, 100);
+
+    return () => {
+      if (clockDisplayIntervalRef.current !== null) {
+        window.clearInterval(clockDisplayIntervalRef.current);
+        clockDisplayIntervalRef.current = null;
+      }
+    };
+  }, [
+    gameOver,
+    gameSettings.timeControl.initial,
+    gameStarted,
+    isClockPaused,
+    isPlayerTurn,
+  ]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return undefined;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState !== "visible") return;
+      const socket = socketRef.current;
+      const activeGameId = gameIdRef.current;
+      if (!socket || !socket.connected || !activeGameId) return;
+      socket.emit("rejoinGame", { gameId: activeGameId });
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
 
   const rematch = useCallback(() => {
     startMatch(gameSettings.timeControl, playerNameRef.current, matchVariant);

@@ -6,6 +6,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { useTranslation } from "react-i18next";
 
 export interface TournamentProfileData {
   currentElo: number;
@@ -55,8 +56,11 @@ function formatDateLabel(input: string | null) {
 export default function TournamentProfileSection({
   data,
   isLoading = false,
-  title = "Tournament Profile",
+  title,
 }: Props) {
+  const { t } = useTranslation();
+  const resolvedTitle = title || t("tournamentProfile.title");
+
   if (isLoading) {
     return (
       <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 space-y-3">
@@ -70,7 +74,7 @@ export default function TournamentProfileSection({
   if (!data) {
     return (
       <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 text-sm text-gray-500 dark:text-gray-400">
-        Tournament profile data is unavailable.
+        {t("tournamentProfile.unavailable")}
       </div>
     );
   }
@@ -85,43 +89,55 @@ export default function TournamentProfileSection({
   return (
     <section className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 space-y-4">
       <div>
-        <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">{title}</h3>
+        <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+          {resolvedTitle}
+        </h3>
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          Global ELO, tournament record, and placements.
+          {t("tournamentProfile.description")}
         </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950/40 px-3 py-2">
-          <div className="text-xs text-gray-500 dark:text-gray-400">Current ELO</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400">
+            {t("tournamentProfile.currentElo")}
+          </div>
           <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
             {data.currentElo}
           </div>
           <div className="text-xs text-emerald-600 dark:text-emerald-400">{data.eloTier}</div>
         </div>
         <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950/40 px-3 py-2">
-          <div className="text-xs text-gray-500 dark:text-gray-400">W / D / L</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400">
+            {t("tournamentProfile.record")}
+          </div>
           <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
             {data.record.wins} / {data.record.draws} / {data.record.losses}
           </div>
-          <div className="text-xs text-gray-500 dark:text-gray-400">All tournaments</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400">
+            {t("tournamentProfile.allTournaments")}
+          </div>
         </div>
         <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950/40 px-3 py-2">
-          <div className="text-xs text-gray-500 dark:text-gray-400">Tournaments Created</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400">
+            {t("tournamentProfile.tournamentsCreated")}
+          </div>
           <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
             {data.tournamentsCreated.length}
           </div>
-          <div className="text-xs text-gray-500 dark:text-gray-400">Organizer activity</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400">
+            {t("tournamentProfile.organizerActivity")}
+          </div>
         </div>
       </div>
 
       <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950/40 px-3 py-3">
         <div className="mb-2 text-sm font-semibold text-gray-800 dark:text-gray-200">
-          ELO History
+          {t("tournamentProfile.eloHistory")}
         </div>
         {history.length === 0 ? (
           <div className="text-xs text-gray-500 dark:text-gray-400">
-            No tournament ELO events yet.
+            {t("tournamentProfile.noEloEvents")}
           </div>
         ) : (
           <div className="h-48">
@@ -130,8 +146,15 @@ export default function TournamentProfileSection({
                 <XAxis dataKey="label" hide />
                 <YAxis hide domain={["auto", "auto"]} />
                 <Tooltip
-                  formatter={(value: number, name: string) => [value, name === "elo" ? "ELO" : "Delta"]}
-                  labelFormatter={(label) => `Date: ${label}`}
+                  formatter={(value: number, name: string) => [
+                    value,
+                    name === "elo"
+                      ? t("tournamentProfile.elo")
+                      : t("tournamentProfile.delta"),
+                  ]}
+                  labelFormatter={(label) =>
+                    t("tournamentProfile.dateLabel", { label })
+                  }
                 />
                 <Line
                   type="monotone"
@@ -149,18 +172,18 @@ export default function TournamentProfileSection({
 
       <div className="space-y-2">
         <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">
-          Tournament History
+          {t("tournamentProfile.historyTitle")}
         </div>
         <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-800">
           <table className="w-full text-left text-xs sm:text-sm">
             <thead className="bg-gray-50 dark:bg-gray-950/50 text-gray-500 dark:text-gray-400">
               <tr>
-                <th className="px-3 py-2">Tournament</th>
-                <th className="px-3 py-2">Format</th>
-                <th className="px-3 py-2">Placement</th>
-                <th className="px-3 py-2">Score</th>
-                <th className="px-3 py-2">ELO Change</th>
-                <th className="px-3 py-2">Date</th>
+                <th className="px-3 py-2">{t("profileGames.columns.tournament")}</th>
+                <th className="px-3 py-2">{t("profileGames.columns.format")}</th>
+                <th className="px-3 py-2">{t("profileGames.columns.placement")}</th>
+                <th className="px-3 py-2">{t("profileGames.columns.score")}</th>
+                <th className="px-3 py-2">{t("profileGames.columns.eloChange")}</th>
+                <th className="px-3 py-2">{t("profileGames.columns.date")}</th>
               </tr>
             </thead>
             <tbody>
@@ -193,7 +216,7 @@ export default function TournamentProfileSection({
                     colSpan={6}
                     className="px-3 py-6 text-center text-sm text-gray-500 dark:text-gray-400"
                   >
-                    No tournament history yet.
+                    {t("profileGames.noTournamentHistory")}
                   </td>
                 </tr>
               )}

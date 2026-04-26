@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { GameHistory } from "../../historyTypes";
 import { API_URL } from "../analyze/types";
 import { ReplayContent960 } from "./ReplayContent960";
 
 export default function Analyze960() {
+  const { t } = useTranslation();
   const { gameId } = useParams<{ gameId: string }>();
   const navigate = useNavigate();
   const [game, setGame] = useState<GameHistory | null>(null);
@@ -15,7 +17,7 @@ export default function Analyze960() {
   useEffect(() => {
     async function fetchGame() {
       if (!gameId) {
-        setError("No game ID provided");
+        setError(t("analysis.errors.noGameId"));
         setLoading(false);
         return;
       }
@@ -24,17 +26,17 @@ export default function Analyze960() {
         const res = await fetch(`${API_URL}/api/history/${gameId}`, {
           credentials: "include",
         });
-        if (!res.ok) throw new Error("Failed to fetch game");
+        if (!res.ok) throw new Error(t("analysis.errors.fetchGame"));
         const data = await res.json();
         setGame(data.game || data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load game");
+        setError(err instanceof Error ? err.message : t("analysis.errors.loadGame"));
       } finally {
         setLoading(false);
       }
     }
     fetchGame();
-  }, [gameId]);
+  }, [gameId, t]);
 
   if (loading) {
     return (
@@ -47,14 +49,16 @@ export default function Analyze960() {
   if (error || !game) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-[#f5f5f7] dark:bg-gray-950 text-gray-900 dark:text-white">
-        <h2 className="text-2xl font-bold mb-4">Game Not Found</h2>
-        <p className="text-gray-500 mb-6">{error || "Unable to load game"}</p>
+        <h2 className="text-2xl font-bold mb-4">{t("analysis.gameNotFound")}</h2>
+        <p className="text-gray-500 mb-6">
+          {error || t("analysis.errors.unableToLoadGame")}
+        </p>
         <button
           onClick={() => navigate("/profile")}
           className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-500"
         >
           <ArrowLeft size={18} />
-          Back to Profile
+          {t("analysis.backToProfile")}
         </button>
       </div>
     );

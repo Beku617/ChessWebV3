@@ -1,4 +1,5 @@
 import { Gamepad2, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { CommunityGameViewer } from "../CommunityGameViewer";
 import {
   formatCommunityPerspectiveResult,
@@ -28,6 +29,8 @@ export function SelectedGamePreview({
   onToggleGamePicker,
   onClearSelectedGame,
 }: SelectedGamePreviewProps) {
+  const { t } = useTranslation();
+
   if (!selectedGameSummary) return null;
 
   return (
@@ -35,10 +38,12 @@ export function SelectedGamePreview({
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] px-4 py-3">
         <div className="min-w-0">
           <div className="text-[10px] font-semibold uppercase tracking-[0.24em] text-brand-200/70">
-            Share Game
+            {t("communityComposer.shareGame")}
           </div>
           <div className="mt-1 truncate text-sm font-semibold text-white">
-            vs {selectedGameSummary.opponent}
+            {t("communityComposer.vsOpponent", {
+              opponent: selectedGameSummary.opponent,
+            })}
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-400">
             <span
@@ -64,7 +69,7 @@ export function SelectedGamePreview({
             className="inline-flex items-center gap-2 rounded-lg bg-white/[0.06] px-3 py-2 text-xs font-semibold text-gray-200 hover:bg-white/[0.12] disabled:opacity-50"
           >
             <Gamepad2 className="h-4 w-4" />
-            Change
+            {t("communityComposer.change")}
           </button>
           <button
             type="button"
@@ -73,7 +78,7 @@ export function SelectedGamePreview({
             className="inline-flex items-center gap-2 rounded-lg bg-white/[0.06] px-3 py-2 text-xs font-semibold text-gray-200 hover:bg-white/[0.12] disabled:opacity-50"
           >
             <X className="h-4 w-4" />
-            Remove
+            {t("communityComposer.remove")}
           </button>
         </div>
       </div>

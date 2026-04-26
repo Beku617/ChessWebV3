@@ -11,6 +11,7 @@ import {
   UserCheck,
   Settings,
   Hourglass,
+  Eye,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ProfileStats, TabType } from "./types";
@@ -49,6 +50,15 @@ interface ProfileHeaderProps {
     presenceStatus?: PresenceStatus;
     lastSeenAt?: string | null;
     lastActiveAt?: string | null;
+    isWatchableInGame?: boolean;
+    watchableGame?: {
+      gameId: string;
+      kind: "classic" | "fourPlayer";
+      mode: "quick" | "friend" | "tournament" | "fourPlayer";
+      variant?: string;
+      status?: "active" | "temporarily_disconnected";
+      participantCount?: number;
+    } | null;
   } | null;
   stats: ProfileStats | null;
   memberSince: string;
@@ -59,6 +69,7 @@ interface ProfileHeaderProps {
   onAddFriend?: () => void;
   onRemoveFriend?: () => void;
   onChallenge?: () => void;
+  onWatch?: () => void;
   onMessage?: () => void;
   onAcceptRequest?: () => void;
   onIgnoreRequest?: () => void;
@@ -79,6 +90,7 @@ export function ProfileHeader({
   onAddFriend,
   onRemoveFriend,
   onChallenge,
+  onWatch,
   onMessage,
   onAcceptRequest,
   onIgnoreRequest,
@@ -162,8 +174,9 @@ export function ProfileHeader({
   );
   const showVisitorActions =
     !isMe &&
-    (!!onChallenge || !!onAddFriend || !!onRemoveFriend || !!onMessage || !!onToggleBlock);
+    (!!onChallenge || !!onWatch || !!onAddFriend || !!onRemoveFriend || !!onMessage || !!onToggleBlock);
   const canChallenge = relationship === "friends" && !isBlocked;
+  const canWatch = !isBlocked && !!onWatch && Boolean(user?.isWatchableInGame);
   const canMessage = !isBlocked && !!onMessage;
   const blockActionLabel = isBlocked ? "Unblock" : "Block";
 
@@ -229,6 +242,17 @@ export function ProfileHeader({
                     </>
                   ) : showVisitorActions ? (
                     <>
+                      {canWatch ? (
+                        <button
+                          type="button"
+                          onClick={onWatch}
+                          className="px-4 py-2.5 rounded-lg text-sm font-semibold inline-flex items-center gap-2 transition-colors bg-cyan-500/15 text-cyan-800 hover:bg-cyan-500/25 border border-cyan-500/30 dark:text-cyan-200"
+                          title="Watch this player's live multiplayer game"
+                        >
+                          <Eye size={16} />
+                          Watch
+                        </button>
+                      ) : null}
                       <button
                         type="button"
                         onClick={() => {

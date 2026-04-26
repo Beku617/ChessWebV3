@@ -1,8 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
-import { TransformedLiveGame, TransformedStreamer } from "../utils/lichessApi";
+import { TransformedLiveGame } from "../utils/lichessApi";
 import { liveGames as mockLiveGames } from "../data/mockData";
+import type { WatchLiveGame } from "../pages/watch/types";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const WATCH_LIVE_GAMES_ENDPOINT = String(
+  import.meta.env.VITE_WATCH_LIVE_GAMES_ENDPOINT || "",
+).trim();
 
 // Types for featured events from our backend
 export interface FeaturedEvent {
@@ -104,59 +108,81 @@ export function useLichessLiveGames() {
   return { games, loading, error, refetch: fetchGames };
 }
 
-// Hook for fetching streamers from Lichess
-export function useLichessStreamers() {
-  const [streamers, setStreamers] = useState<TransformedStreamer[]>([]);
+function toCategoryFromTime(time: string): "Blitz" | "Rapid" | "Classical" {
+  const match = time.match(/^([0-9.]+)\+(\d+)/);
+  if (!match) return "Blitz";
+  const minutes = parseFloat(match[1]);
+  if (minutes <= 8) return "Blitz";
+  if (minutes <= 25) return "Rapid";
+  return "Classical";
+}
+
+function buildWatchFallbackGames(): WatchLiveGame[] {
+  return mockLiveGames.map((game, index) => {
+    const category = toCategoryFromTime(game.timeControl);
+    return {
+      id: `${game.id}-${index}`,
+      white: game.players.white,
+      whiteRating: 1500,
+      black: game.players.black,
+      blackRating: 1500,
+      viewers: `${game.viewers}`,
+      time: game.timeControl,
+      type: category,
+      category,
+      speed: category.toLowerCase(),
+      gameUrl: "#",
+    };
+  });
+}
+
+function extractGamesFromPayload(payload: unknown): WatchLiveGame[] {
+  if (Array.isArray(payload)) {
+    return payload as WatchLiveGame[];
+  }
+  if (payload && typeof payload === "object" && Array.isArray((payload as any).games)) {
+    return (payload as any).games as WatchLiveGame[];
+  }
+  return [];
+}
+
+export function useWatchLiveGames() {
+  const [games, setGames] = useState<WatchLiveGame[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fallbackStreamers: TransformedStreamer[] = [
-    {
-      id: "1",
-      name: "ChessLive",
-      title: "IM",
-      viewers: "1200",
-      streamTitle: "Live chess show",
-      avatar: "C",
-      platform: "twitch",
-      url: "https://lichess.org",
-    },
-    {
-      id: "2",
-      name: "RapidBlitz",
-      title: "GM",
-      viewers: "980",
-      streamTitle: "Speed chess",
-      avatar: "R",
-      platform: "youtube",
-      url: "https://lichess.org",
-    },
-  ];
+  const fetchGames = useCallback(async () => {
+    if (!WATCH_LIVE_GAMES_ENDPOINT) {
+      setGames(buildWatchFallbackGames());
+      setError(null);
+      setLoading(false);
+      return;
+    }
 
-  const fetchStreamersData = useCallback(async () => {
     try {
-      const res = await fetch(`${API_URL}/api/lichess/streamers`);
-      if (!res.ok) throw new Error("Failed to fetch streamers");
-      const data = await res.json();
-      setStreamers(data.streamers || fallbackStreamers);
+      setLoading(true);
+      const response = await fetch(WATCH_LIVE_GAMES_ENDPOINT);
+      if (!response.ok) throw new Error("Failed to fetch watch live games");
+      const data = await response.json();
+      const nextGames = extractGamesFromPayload(data);
+      setGames(nextGames.length > 0 ? nextGames : buildWatchFallbackGames());
       setError(null);
     } catch (err: any) {
       if (err?.name !== "AbortError") {
-        console.warn("Streamers fetch failed, using fallback:", err);
+        console.warn("Watch live games fetch failed, using fallback:", err);
       }
-      setError("Offline mode — sample streamers.");
-      setStreamers(fallbackStreamers);
+      setGames(buildWatchFallbackGames());
+      setError("Using local sample live games.");
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchStreamersData();
-    // No polling to avoid repeated errors when offline.
-  }, [fetchStreamersData]);
+    fetchGames();
+  }, [fetchGames]);
 
-  return { streamers, loading, error, refetch: fetchStreamersData };
+  return { games, loading, error, refetch: fetchGames };
 }
 
 // Hook for fetching featured events from our backend
@@ -203,17 +229,12 @@ export function useFeaturedEvents() {
 
 // Combined hook for all watch page data
 export function useWatchPageData() {
-  const lichessGames = useLichessLiveGames();
-  const lichessStreamers = useLichessStreamers();
+  const watchLiveGames = useWatchLiveGames();
   const featuredEvents = useFeaturedEvents();
 
   return {
-    liveGames: lichessGames,
-    streamers: lichessStreamers,
+    liveGames: watchLiveGames,
     featured: featuredEvents,
-    isLoading:
-      lichessGames.loading ||
-      lichessStreamers.loading ||
-      featuredEvents.loading,
+    isLoading: watchLiveGames.loading || featuredEvents.loading,
   };
 }

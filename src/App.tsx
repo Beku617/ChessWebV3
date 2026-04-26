@@ -406,6 +406,7 @@ function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const { isDarkMode } = useThemeStore();
   const isDashboardPage = location.pathname === "/";
+  const isTournamentPage = location.pathname.startsWith("/tournaments");
   const isLearnLessonPage = /^\/learn\/[^/]+\/[^/]+$/.test(location.pathname);
   const isGamePage =
     location.pathname === "/play" ||
@@ -466,6 +467,8 @@ function Layout({ children }: { children: React.ReactNode }) {
           className={`w-full flex-1 flex flex-col ${
             isWorkspacePage
               ? "min-h-0 overflow-hidden px-0 py-0"
+              : isTournamentPage
+                ? "w-full px-0 py-0"
               : isDashboardPage
                 ? "w-full px-4 sm:px-5 lg:px-6 xl:px-8 py-8"
                 : "w-full px-4 sm:px-6 lg:px-8 xl:px-10 py-8"

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { Chess, type Square } from "chess.js";
 import { Chessboard } from "react-chessboard";
 import {
@@ -159,6 +159,7 @@ export default function AdminLearnLesson() {
   const [previewMoveSquares, setPreviewMoveSquares] = useState<
     Record<string, React.CSSProperties>
   >({});
+  const previewBoardId = useId().replace(/:/g, "");
 
   const selectedStep = useMemo(
     () => steps.find((entry) => entry.id === selectedStepId) || null,
@@ -1134,7 +1135,8 @@ export default function AdminLearnLesson() {
                           className={`mx-auto w-[280px] max-w-full rounded-xl overflow-hidden border ${previewBoardBorderClass}`}
                         >
                           <Chessboard
-                            id="admin-learn-step-preview"
+                            id={`admin-learn-step-preview-${previewBoardId}`}
+                            allowDragOutsideBoard={false}
                             position={previewValidation.valid ? stepDraft.fen : "start"}
                             boardOrientation={stepDraft.boardOrientation}
                             onPieceDrop={handleAcceptedMoveDrop}
@@ -1143,6 +1145,7 @@ export default function AdminLearnLesson() {
                             arePiecesDraggable={isRecordingAcceptedMoves && previewValidation.valid}
                             customSquareStyles={previewMoveSquares}
                             boardWidth={280}
+                            dropOffBoardAction="snapback"
                           />
                         </div>
                         {!previewValidation.valid && (

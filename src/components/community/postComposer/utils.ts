@@ -1,3 +1,4 @@
+import i18n from "../../../i18n";
 import type { GameHistory } from "../../../historyTypes";
 import type {
   CommunityPostingAccess,
@@ -18,19 +19,19 @@ export const MAX_TOTAL_IMAGE_BYTES = 40 * 1024 * 1024;
 export function validateFile(file: File, expectedKind: "image" | "video") {
   if (expectedKind === "image") {
     if (!file.type.startsWith("image/")) {
-      return "Please choose a supported image file.";
+      return i18n.t("communityComposer.errors.supportedImage");
     }
     if (file.size > MAX_IMAGE_BYTES) {
-      return "Image is too large. Maximum size is 8MB.";
+      return i18n.t("communityComposer.errors.imageTooLarge");
     }
     return null;
   }
 
   if (!file.type.startsWith("video/")) {
-    return "Please choose a supported video file.";
+    return i18n.t("communityComposer.errors.supportedVideo");
   }
   if (file.size > MAX_VIDEO_BYTES) {
-    return "Video is too large. Maximum size is 50MB.";
+    return i18n.t("communityComposer.errors.videoTooLarge");
   }
   return null;
 }
@@ -72,16 +73,23 @@ export function buildSubmissionBlockedMessage(
   if (postingAccess.reason === "restricted") {
     if (postingAccess.restriction?.forever) {
       return postingAccess.restriction.reason
-        ? `Posting is restricted by moderation. Reason: ${postingAccess.restriction.reason}`
-        : "Posting is currently restricted by moderation.";
+        ? i18n.t("communityComposer.errors.restrictedWithReason", {
+            reason: postingAccess.restriction.reason,
+          })
+        : i18n.t("communityComposer.errors.restricted");
     }
 
     const untilLabel = formatDateTime(postingAccess.restriction?.until);
     const base = untilLabel
-      ? `Posting is temporarily restricted until ${untilLabel}.`
-      : "Posting is temporarily restricted by moderation.";
+      ? i18n.t("communityComposer.errors.temporarilyRestrictedUntil", {
+          until: untilLabel,
+        })
+      : i18n.t("communityComposer.errors.temporarilyRestricted");
     return postingAccess.restriction.reason
-      ? `${base} Reason: ${postingAccess.restriction.reason}`
+      ? i18n.t("communityComposer.errors.temporarilyRestrictedWithReason", {
+          base,
+          reason: postingAccess.restriction.reason,
+        })
       : base;
   }
 
@@ -94,11 +102,18 @@ export function buildSubmissionBlockedMessage(
         ? Math.max(0, retryAt.getTime() - Date.now())
         : 0;
     const waitText =
-      remainingMs > 0 ? ` Try again in ${formatDuration(remainingMs)}.` : "";
-    return `You've reached the posting limit (${postingAccess.rateLimit.maxPosts} posts every 3 hours).${waitText}`;
+      remainingMs > 0
+        ? i18n.t("communityComposer.errors.tryAgainIn", {
+            duration: formatDuration(remainingMs),
+          })
+        : "";
+    return i18n.t("communityComposer.errors.rateLimited", {
+      maxPosts: postingAccess.rateLimit.maxPosts,
+      waitText,
+    });
   }
 
-  return "Posting is unavailable right now.";
+  return i18n.t("communityComposer.errors.unavailable");
 }
 
 export function perspectiveTone(value: ComposerPerspectiveResult) {
@@ -116,7 +131,9 @@ export async function fetchGameDetail(gameId: string) {
     .json()
     .catch(() => ({}));
   if (!res.ok || !data.game) {
-    throw new Error(data.error || "Failed to load the selected game.");
+    throw new Error(
+      data.error || i18n.t("communityComposer.errors.loadSelectedGame"),
+    );
   }
   return data.game;
 }

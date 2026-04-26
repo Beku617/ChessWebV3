@@ -5,9 +5,19 @@ const TournamentSchema = new mongoose.Schema(
     name: { type: String, required: true, trim: true, maxlength: 120 },
     type: {
       type: String,
-      enum: ["swiss"],
+      enum: ["swiss", "arena"],
       required: true,
     },
+    rated: { type: Boolean, default: true },
+    gameType: {
+      type: String,
+      enum: ["standard", "chess960"],
+      default: "standard",
+    },
+    setup: { type: String, default: "standard", maxlength: 80 },
+    pairingLogic: { type: String, default: "", maxlength: 120 },
+    durationMinutes: { type: Number, min: 1, default: null },
+    timezone: { type: String, default: "", maxlength: 120 },
     timeControl: {
       baseMs: { type: Number, required: true, min: 1000 },
       incMs: { type: Number, required: true, min: 0, default: 0 },

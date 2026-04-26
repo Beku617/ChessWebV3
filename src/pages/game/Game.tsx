@@ -145,7 +145,7 @@ export default function Game() {
           {/* Chessboard */}
           <div className="flex-shrink-0">
             <div
-              className="theme-glass-panel-strong rounded-2xl p-2"
+              className="theme-board-panel rounded-2xl p-2"
               style={{ width: boardWidth + BOARD_FRAME }}
             >
               <GameBoard

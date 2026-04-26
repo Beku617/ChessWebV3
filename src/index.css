@@ -520,6 +520,12 @@ body {
     -webkit-backdrop-filter: blur(calc(var(--glass-blur) + 1px));
   }
 
+  .theme-board-panel {
+    background-color: var(--glass-surface-strong);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+  }
+
   .theme-glass-hover:hover {
     background-color: var(--glass-hover);
   }
@@ -660,6 +666,26 @@ body::-webkit-scrollbar-thumb:hover,
 .premium-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: var(--app-scrollbar-thumb) var(--app-scrollbar-track);
+}
+
+@keyframes tournament-live-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 rgba(251, 191, 36, 0), 0 0 14px rgba(251, 191, 36, 0.14);
+  }
+  50% {
+    box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.08), 0 0 22px rgba(251, 191, 36, 0.24);
+  }
+}
+
+.tournament-live-pulse {
+  animation: tournament-live-pulse 2.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tournament-live-pulse {
+    animation: none;
+  }
 }
 
 .no-scrollbar {

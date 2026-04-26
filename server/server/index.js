@@ -30,12 +30,21 @@ import {
   ratingFieldForPool,
 } from "./utils/elo.js";
 import {
-  ABORT_TIMEOUT_MS_DEFAULT,
   getAbortThresholdMs,
-  MIN_REAL_GAME_PLIES,
   resolveTerminalReason,
   shouldApplyRatedResult,
 } from "./utils/gameLifecyclePolicy.js";
+import {
+  applyMoveClockTransition as applyClockMoveTransition,
+  commitClockSnapshot as commitClockStateSnapshot,
+  createInitialClockState,
+  estimateTimeControlSeconds,
+  ensureClockState as ensureServerClockState,
+  freezeGameClock,
+  getTurnTimeoutDelayMs,
+  materializeClock,
+  normalizeTimeControl as normalizeServerTimeControl,
+} from "./utils/gameClock.js";
 import {
   DEFAULT_GLICKO_RD,
   DEFAULT_GLICKO_VOLATILITY,
@@ -173,6 +182,9 @@ const RECONNECT_GRACE_MS_BY_POOL = Object.freeze({
   rapid: 60 * 1000,
   classical: 60 * 1000,
 });
+// Clock timeout/abort timers are process-local. This runtime currently assumes a
+// single active backend instance for authoritative timer scheduling.
+const MAX_TIMEOUT_DELAY_MS = 2_147_000_000;
 const ACTIVE_SESSION_STATUSES = Object.freeze([
   "active",
   "temporarily_disconnected",
@@ -248,6 +260,9 @@ function runPostConnectTasks() {
   seedGamePageConfig().catch(console.error);
   seedBots().catch(console.error);
   seedLearn().catch(console.error);
+  restoreActiveClassicSessionsOnStartup().catch((error) => {
+    console.error("Active classic game restore error:", error);
+  });
   migrateLegacyRuntimeMedia()
     .then((result) => {
       const summaries = [
@@ -300,24 +315,19 @@ app.get("/api/active-game", async (req, res) => {
     return res.status(401).json({ error: "Not authenticated" });
   }
 
-  const session = await ensurePersistedActiveSessionForUser(userId);
+  let session = await ensurePersistedActiveSessionForUser(userId);
   if (!session) {
     return res.status(200).json({ active: false, session: null });
   }
 
-  if (
-    session.status === "temporarily_disconnected" &&
-    session.reconnectDeadlineAt &&
-    new Date(session.reconnectDeadlineAt).getTime() <= Date.now()
-  ) {
-    const disconnectedColor = String(session.disconnectedColor || "") === "b" ? "b" : "w";
-    const winner = session.kind === "classic" ? (disconnectedColor === "w" ? "b" : "w") : "";
-    await completeSessionRecord(session.gameId, {
-      status: "completed",
-      terminalReason: session.kind === "classic" ? "opponent_left" : "disconnect_timeout",
-      winner,
-    });
-    return res.status(200).json({ active: false, session: null });
+  if (session.kind === "classic") {
+    const activeGame = await hydrateClassicGameFromSession(session.gameId);
+    if (activeGame) {
+      await persistClassicGameSession(session.gameId);
+      session =
+        (await ActiveGameSession.findOne({ gameId: session.gameId }).lean()) ||
+        session;
+    }
   }
 
   return res.status(200).json({
@@ -386,10 +396,26 @@ app.post("/api/active-game/resign", async (req, res) => {
 });
 
 function getQueueKey(timeControl, variant) {
-  const initial = Number(timeControl?.initial ?? 300);
-  const increment = Number(timeControl?.increment ?? 0);
+  const normalizedTimeControl = normalizeTimeControl(timeControl);
+  const initial = Number(normalizedTimeControl?.initial ?? 300);
+  const increment = Number(normalizedTimeControl?.increment ?? 0);
+  const delay = Number(normalizedTimeControl?.delay ?? 0);
+  const kind = String(normalizedTimeControl?.kind || "sudden_death");
+  const stageSignature =
+    kind === "staged" && Array.isArray(normalizedTimeControl?.stages)
+      ? normalizedTimeControl.stages
+          .map((stage) => {
+            const start = Number(stage?.startsOnMoveNumber || 1);
+            const extra = Number(stage?.extraBank || 0);
+            const inc = Number(stage?.increment || 0);
+            const stageDelay = Number(stage?.delay || 0);
+            const stageDelayType = String(stage?.delayType || "none");
+            return `${start}:${extra}:${inc}:${stageDelay}:${stageDelayType}`;
+          })
+          .join("|")
+      : "";
   const normalizedVariant = normalizeVariant(variant);
-  return `${normalizedVariant}:${initial}+${increment}`;
+  return `${normalizedVariant}:${kind}:${initial}+${increment}:d${delay}:s${stageSignature}`;
 }
 
 function getQueue(key) {
@@ -785,19 +811,12 @@ function getSocketForUser(io, userId, preferredSocketId = null) {
 }
 
 function normalizeTimeControl(timeControl) {
-  const initial = Number(timeControl?.initial);
-  const increment = Number(timeControl?.increment);
-
-  return {
-    initial: Number.isFinite(initial) && initial >= 0 ? initial : 300,
-    increment: Number.isFinite(increment) && increment >= 0 ? increment : 0,
-  };
+  return normalizeServerTimeControl(timeControl);
 }
 
 function getReconnectGraceMsForTimeControl(timeControl) {
   const normalizedTimeControl = normalizeTimeControl(timeControl);
-  const estimatedSeconds =
-    normalizedTimeControl.initial + normalizedTimeControl.increment * 40;
+  const estimatedSeconds = estimateTimeControlSeconds(normalizedTimeControl);
 
   if (estimatedSeconds < 180) {
     return RECONNECT_GRACE_MS_BY_POOL.bullet;
@@ -833,6 +852,10 @@ function setClassicGameMoves(game, moves) {
   game.persistedMoves = Array.isArray(moves)
     ? moves.map((move) => String(move || "").trim()).filter(Boolean)
     : [];
+  game.moveCount = game.persistedMoves.length;
+  if (game.clockState && typeof game.clockState === "object") {
+    game.clockState.moveCount = game.moveCount;
+  }
 }
 
 function buildClassicPlayerConnection(game, colorKey) {
@@ -849,9 +872,66 @@ function buildClassicPlayerConnection(game, colorKey) {
   };
 }
 
+function toTimestamp(value, fallback = Date.now()) {
+  if (value instanceof Date) {
+    const timestamp = value.getTime();
+    return Number.isFinite(timestamp) ? timestamp : fallback;
+  }
+  const parsed = Number(value);
+  if (Number.isFinite(parsed) && parsed > 0) return parsed;
+  const dateParsed = new Date(value || "").getTime();
+  return Number.isFinite(dateParsed) && dateParsed > 0 ? dateParsed : fallback;
+}
+
+function getClassicGamePgn(game, moves = getClassicGameMoves(game)) {
+  if (typeof game?.chess?.pgn === "function") {
+    const pgn = String(game.chess.pgn() || "").trim();
+    if (pgn) return pgn;
+  }
+  return moves.join(" ");
+}
+
+function resultForWinner(winner) {
+  if (winner === "w") return "white";
+  if (winner === "b") return "black";
+  if (winner === "draw") return "draw";
+  return null;
+}
+
 function buildClassicSessionUpdate(game, overrides = {}) {
   const moves = getClassicGameMoves(game);
   const clock = getClockSnapshot(game);
+  const normalizedStatus = String(overrides.status || "active");
+  const shouldRebaselineActiveClock =
+    ACTIVE_SESSION_STATUSES.includes(normalizedStatus) && clock.running !== false;
+  const persistedClockAsOfMs = Math.max(
+    0,
+    Math.round(Number(clock.asOf || Date.now())),
+  );
+  const persistedTurnStartedAtMs = shouldRebaselineActiveClock
+    ? persistedClockAsOfMs
+    : Math.max(0, Math.round(Number(clock.turnStartedAtMs || Date.now())));
+  const persistedWhiteBankMs = Math.max(
+    0,
+    Math.round(Number(clock.whiteMs || 0)),
+  );
+  const persistedBlackBankMs = Math.max(
+    0,
+    Math.round(Number(clock.blackMs || 0)),
+  );
+  const whiteUserId = normalizeId(game?.playerUsers?.white);
+  const blackUserId = normalizeId(game?.playerUsers?.black);
+  const activeColor = clock.activeColor === "b" ? "b" : "w";
+  const terminalReason = String(overrides.terminalReason || "").trim();
+  const winner = String(overrides.winner || "").trim();
+  const result =
+    overrides.result !== undefined
+      ? overrides.result
+      : terminalReason === "draw"
+        ? "draw"
+        : terminalReason
+          ? resultForWinner(winner)
+          : null;
   const disconnectColor =
     typeof overrides.disconnectedColor === "string" && overrides.disconnectedColor
       ? overrides.disconnectedColor
@@ -869,37 +949,47 @@ function buildClassicSessionUpdate(game, overrides = {}) {
       (game?.mode === "friend" || game?.mode === "tournament"
         ? game.mode
         : "quick"),
-    status: overrides.status || "active",
-    participantUserIds: [
-      normalizeId(game?.playerUsers?.white),
-      normalizeId(game?.playerUsers?.black),
-    ].filter(Boolean),
+    status: normalizedStatus,
+    participantUserIds: [whiteUserId, blackUserId].filter(Boolean),
+    whitePlayerId: whiteUserId,
+    blackPlayerId: blackUserId,
     variant: normalizeVariant(overrides.variant || game?.variant),
     timeControl: normalizeTimeControl(overrides.timeControl || game?.timeControl),
     rated: overrides.rated ?? game?.isRated === true,
     white: buildClassicPlayerConnection(game, "white"),
     black: buildClassicPlayerConnection(game, "black"),
     fen: String(overrides.fen || game?.chess?.fen?.() || "start"),
+    pgn: String(overrides.pgn || getClassicGamePgn(game, moves)),
     moves,
     moveCount: Number.isFinite(Number(overrides.moveCount))
       ? Number(overrides.moveCount)
-      : moves.length,
-    turn: String(overrides.turn || game?.chess?.turn?.() || "w") === "b" ? "b" : "w",
+      : Number(clock.moveCount ?? moves.length),
+    turn: activeColor,
+    whoseTurn: activeColor === "b" ? "black" : "white",
     chess960: game?.chess960 || undefined,
     whiteCheckCount: Number(game?.whiteCheckCount || 0),
     blackCheckCount: Number(game?.blackCheckCount || 0),
     clockState: {
-      ...clock,
-      pausedAt: game?.clockState?.pausedAt || null,
-      pausedForDisconnect: game?.clockState?.pausedForDisconnect || null,
+      whiteBankMs: persistedWhiteBankMs,
+      blackBankMs: persistedBlackBankMs,
+      activeColor,
+      turnStartedAtMs: persistedTurnStartedAtMs,
+      moveCount: Number(clock.moveCount || 0),
+      running: shouldRebaselineActiveClock,
     },
+    whiteTimeRemainingMs: persistedWhiteBankMs,
+    blackTimeRemainingMs: persistedBlackBankMs,
+    turnStartedAt: overrides.turnStartedAt || new Date(persistedTurnStartedAtMs),
+    lastMoveAt: overrides.lastMoveAt || new Date(Number(clock.asOf || Date.now())),
     ratingByColor: game?.ratingByColor || undefined,
     disconnectedColor: disconnectColor,
     disconnectedAt: overrides.disconnectedAt || game?.disconnectedAt?.[disconnectColor] || null,
     reconnectDeadlineAt: overrides.reconnectDeadlineAt || null,
     reconnectGraceMs,
-    terminalReason: overrides.terminalReason || "",
-    winner: overrides.winner || "",
+    terminalReason,
+    winner,
+    result,
+    resultReason: terminalReason || null,
     startedAt: overrides.startedAt || game?.startedAt || new Date(),
     completedAt: overrides.completedAt || null,
   };
@@ -1026,15 +1116,25 @@ async function persistFourPlayerSessionDisconnected(gameId, disconnectedColor) {
 async function completeSessionRecord(gameId, values = {}) {
   const normalizedGameId = String(gameId || "").trim();
   if (!normalizedGameId) return null;
+  const terminalReason = values.terminalReason || "";
+  const winner = values.winner || "";
+  const result =
+    terminalReason === "draw"
+      ? "draw"
+      : terminalReason === "aborted"
+        ? null
+        : resultForWinner(winner);
   return ActiveGameSession.findOneAndUpdate(
     { gameId: normalizedGameId },
     {
       $set: {
         status:
           values.status ||
-          (values.terminalReason === "aborted" ? "aborted" : "completed"),
-        terminalReason: values.terminalReason || "",
-        winner: values.winner || "",
+          (terminalReason === "aborted" ? "aborted" : "completed"),
+        terminalReason,
+        winner,
+        result,
+        resultReason: terminalReason || null,
         completedAt: values.completedAt || new Date(),
         reconnectDeadlineAt: null,
         disconnectedAt: null,
@@ -1077,6 +1177,21 @@ function buildActiveSessionResponse(session, userId) {
     reconnectGraceMs: Number(session.reconnectGraceMs || 0),
     reconnectDeadlineAt: session.reconnectDeadlineAt || null,
     status: String(session.status || "active"),
+    fen: session.fen || null,
+    pgn: session.pgn || "",
+    moves: Array.isArray(session.moves) ? session.moves : [],
+    whiteTimeRemainingMs: Number(session.whiteTimeRemainingMs || 0),
+    blackTimeRemainingMs: Number(session.blackTimeRemainingMs || 0),
+    whiteTimeLeft: Math.max(0, Number(session.whiteTimeRemainingMs || 0) / 1000),
+    blackTimeLeft: Math.max(0, Number(session.blackTimeRemainingMs || 0) / 1000),
+    whoseTurn:
+      session.whoseTurn === "black" || session.turn === "b"
+        ? "black"
+        : "white",
+    gameStatus: String(session.status || "active"),
+    result: session.result || null,
+    resultReason: session.resultReason || session.terminalReason || null,
+    lastMoveAt: session.lastMoveAt || null,
   };
 }
 
@@ -1261,17 +1376,18 @@ function createRealtimeGameRoom({
     tournamentId: tournamentId ? normalizeId(tournamentId) : null,
     tournamentGameId: tournamentGameId ? normalizeId(tournamentGameId) : null,
     firstTurnMoves: isTournamentGame ? { w: false, b: false } : null,
-    clockState: {
-      white: normalizedTimeControl.initial,
-      black: normalizedTimeControl.initial,
+    moveCount: 0,
+    clockState: createInitialClockState(normalizedTimeControl, Date.now(), {
       activeColor: "w",
-      lastTickAt: Date.now(),
-    },
+      moveCount: 0,
+      running: true,
+    }),
     disconnectGraceTimers: { w: null, b: null },
     disconnectedAt: { w: null, b: null },
     reconnectGraceMs: getReconnectGraceMsForTimeControl(normalizedTimeControl),
     startedAt: new Date(),
     persistedMoves: [],
+    timeoutTimer: null,
     ratingByColor: {
       white: normalizeLiveRating(whiteRating),
       black: normalizeLiveRating(blackRating),
@@ -1279,6 +1395,7 @@ function createRealtimeGameRoom({
   });
   const createdGame = games.get(safeGameId);
   scheduleFirstMoveAbortTimer(safeGameId);
+  scheduleGameTimeoutTimer(safeGameId);
 
   whiteSocket.data.gameId = safeGameId;
   blackSocket.data.gameId = safeGameId;
@@ -1312,27 +1429,31 @@ function createRealtimeGameRoom({
     }),
   );
 
+  const initialClockSnapshot = getClockSnapshot(createdGame);
+
   io.to(whiteSocket.id).emit("game_state_restored", {
     gameId: safeGameId,
     color: "w",
     fen: createdGame.chess.fen(),
     moves: getClassicGameMoves(createdGame),
-    whiteTimeLeft: createdGame.clockState.white,
-    blackTimeLeft: createdGame.clockState.black,
-    playerClock: createdGame.clockState.white,
-    opponentClock: createdGame.clockState.black,
-    clockPaused: !!createdGame?.clockState?.pausedAt,
+    ...initialClockSnapshot,
+    whiteTimeLeft: initialClockSnapshot.white,
+    blackTimeLeft: initialClockSnapshot.black,
+    playerClock: initialClockSnapshot.white,
+    opponentClock: initialClockSnapshot.black,
+    clockPaused: false,
   });
   io.to(blackSocket.id).emit("game_state_restored", {
     gameId: safeGameId,
     color: "b",
     fen: createdGame.chess.fen(),
     moves: getClassicGameMoves(createdGame),
-    whiteTimeLeft: createdGame.clockState.white,
-    blackTimeLeft: createdGame.clockState.black,
-    playerClock: createdGame.clockState.black,
-    opponentClock: createdGame.clockState.white,
-    clockPaused: !!createdGame?.clockState?.pausedAt,
+    ...initialClockSnapshot,
+    whiteTimeLeft: initialClockSnapshot.white,
+    blackTimeLeft: initialClockSnapshot.black,
+    playerClock: initialClockSnapshot.black,
+    opponentClock: initialClockSnapshot.white,
+    clockPaused: false,
   });
 
   return true;
@@ -1976,9 +2097,12 @@ function removeFromFourPlayerQueues(socketId) {
 }
 
 function getFourPlayerQueueKey(timeControl) {
-  const initial = Number(timeControl?.initial ?? 300);
-  const increment = Number(timeControl?.increment ?? 0);
-  return `fourPlayer:${initial}+${increment}`;
+  const normalizedTimeControl = normalizeTimeControl(timeControl);
+  const initial = Number(normalizedTimeControl?.initial ?? 300);
+  const increment = Number(normalizedTimeControl?.increment ?? 0);
+  const delay = Number(normalizedTimeControl?.delay ?? 0);
+  const kind = String(normalizedTimeControl?.kind || "sudden_death");
+  return `fourPlayer:${kind}:${initial}+${increment}:d${delay}`;
 }
 
 function getFourPlayerQueue(queueKey) {
@@ -2221,6 +2345,7 @@ function queueFourPlayerStatus(socket, queueKey) {
 
 function clearGameForPlayers(game) {
   clearFirstMoveAbortTimer(game);
+  clearGameTimeoutTimer(game);
   clearReconnectGraceTimers(game);
 
   const whiteSocket = io.sockets.sockets.get(game.players.white);
@@ -2254,109 +2379,33 @@ function clearFirstMoveAbortTimer(game) {
   game.firstMoveAbortTimer = null;
 }
 
+function clearGameTimeoutTimer(game) {
+  if (!game?.timeoutTimer) return;
+  clearTimeout(game.timeoutTimer);
+  game.timeoutTimer = null;
+}
+
 function ensureGameClockState(game) {
-  const initial = Math.max(0, Number(game?.timeControl?.initial || 0));
-  if (!game.clockState || typeof game.clockState !== "object") {
-    game.clockState = {
-      white: initial,
-      black: initial,
-      activeColor: "w",
-      lastTickAt: Date.now(),
-      pausedAt: null,
-      pausedForDisconnect: null,
-    };
-  }
-  if (!Number.isFinite(Number(game.clockState.white))) {
-    game.clockState.white = initial;
-  }
-  if (!Number.isFinite(Number(game.clockState.black))) {
-    game.clockState.black = initial;
-  }
-  if (
-    game.clockState.activeColor !== "w" &&
-    game.clockState.activeColor !== "b"
-  ) {
-    game.clockState.activeColor = "w";
-  }
-  if (!Number.isFinite(Number(game.clockState.lastTickAt))) {
-    game.clockState.lastTickAt = Date.now();
-  }
-  if (
-    game.clockState.pausedAt !== null &&
-    !Number.isFinite(Number(game.clockState.pausedAt))
-  ) {
-    game.clockState.pausedAt = null;
-  }
-  if (
-    game.clockState.pausedForDisconnect !== null &&
-    game.clockState.pausedForDisconnect !== "w" &&
-    game.clockState.pausedForDisconnect !== "b"
-  ) {
-    game.clockState.pausedForDisconnect = null;
-  }
-  return game.clockState;
+  return ensureServerClockState(game, Date.now());
 }
 
 function getClockSnapshot(game, now = Date.now()) {
-  const state = ensureGameClockState(game);
-  let white = Math.max(0, Number(state.white || 0));
-  let black = Math.max(0, Number(state.black || 0));
-  const activeColor = state.activeColor === "b" ? "b" : "w";
-  const lastTickAt = Number(state.lastTickAt || now);
-  const pausedAt = Number.isFinite(Number(state.pausedAt))
-    ? Number(state.pausedAt)
-    : null;
-  const effectiveNow = pausedAt !== null ? pausedAt : now;
-  const elapsedSeconds = Math.max(0, (effectiveNow - lastTickAt) / 1000);
-  if (activeColor === "w") {
-    white = Math.max(0, white - elapsedSeconds);
-  } else {
-    black = Math.max(0, black - elapsedSeconds);
-  }
-  return {
-    white: Math.round(white * 100) / 100,
-    black: Math.round(black * 100) / 100,
-    activeColor,
-    asOf: now,
-  };
+  return materializeClock(game, now);
 }
 
-function commitClockSnapshot(game, snapshot, nextActiveColor) {
-  game.clockState = {
-    white: Math.max(0, Number(snapshot.white || 0)),
-    black: Math.max(0, Number(snapshot.black || 0)),
-    activeColor: nextActiveColor === "b" ? "b" : "w",
-    lastTickAt: Date.now(),
-    pausedAt: null,
-    pausedForDisconnect: null,
-  };
+function commitClockSnapshot(game, snapshot, nextActiveColor, options = {}) {
+  return commitClockStateSnapshot(game, snapshot, nextActiveColor, Date.now(), {
+    moveCount: options.moveCount,
+    running: options.running,
+  });
 }
 
 function pauseGameClockForDisconnect(game, disconnectedColor) {
-  if (!game) return getClockSnapshot(game);
-  const snapshot = getClockSnapshot(game);
-  game.clockState = {
-    white: snapshot.white,
-    black: snapshot.black,
-    activeColor: snapshot.activeColor,
-    lastTickAt: snapshot.asOf,
-    pausedAt: snapshot.asOf,
-    pausedForDisconnect: disconnectedColor === "b" ? "b" : "w",
-  };
-  return snapshot;
+  void disconnectedColor;
+  return getClockSnapshot(game);
 }
 
 function resumeGameClockAfterReconnect(game) {
-  if (!game) return getClockSnapshot(game);
-  const snapshot = getClockSnapshot(game);
-  game.clockState = {
-    white: snapshot.white,
-    black: snapshot.black,
-    activeColor: snapshot.activeColor,
-    lastTickAt: Date.now(),
-    pausedAt: null,
-    pausedForDisconnect: null,
-  };
   return getClockSnapshot(game);
 }
 
@@ -2366,21 +2415,45 @@ function applyMoveClockTransition(
   nextTurnColor,
   clockBeforeMove = null,
 ) {
-  const before = clockBeforeMove || getClockSnapshot(game);
-  let white = Math.max(0, Number(before.white || 0));
-  let black = Math.max(0, Number(before.black || 0));
-  const increment = Math.max(0, Number(game?.timeControl?.increment || 0));
-  if (moverColor === "w") {
-    white += increment;
-  } else {
-    black += increment;
-  }
-  const committed = {
-    white: Math.round(white * 100) / 100,
-    black: Math.round(black * 100) / 100,
+  void clockBeforeMove;
+  return applyClockMoveTransition(game, moverColor, nextTurnColor, Date.now());
+}
+
+function scheduleGameTimeoutTimer(gameId) {
+  const normalizedGameId = String(gameId || "").trim();
+  const game = games.get(normalizedGameId);
+  if (!game || game.isEnding) return;
+  if (Number(game?.timeControl?.initial || 0) <= 0) return;
+  clearGameTimeoutTimer(game);
+
+  const finishOnTimeout = () => {
+    const latestGame = games.get(normalizedGameId);
+    if (!latestGame || latestGame.isEnding) return;
+    const latestClock = getClockSnapshot(latestGame);
+    const latestActiveColor = latestClock.activeColor === "b" ? "b" : "w";
+    const latestRemaining =
+      latestActiveColor === "w" ? latestClock.whiteMs : latestClock.blackMs;
+    if (latestRemaining > 0) {
+      scheduleGameTimeoutTimer(normalizedGameId);
+      return;
+    }
+    const winner = latestActiveColor === "w" ? "b" : "w";
+    void emitGameOver(normalizedGameId, "timeout", winner, {
+      preserveEarlyResult: true,
+    });
   };
-  commitClockSnapshot(game, committed, nextTurnColor);
-  return getClockSnapshot(game);
+
+  const remainingMs = getTurnTimeoutDelayMs(game, Date.now());
+  if (remainingMs <= 0) {
+    finishOnTimeout();
+    return;
+  }
+
+  const delayMs = Math.min(
+    MAX_TIMEOUT_DELAY_MS,
+    Math.max(1, Math.ceil(remainingMs)),
+  );
+  game.timeoutTimer = setTimeout(finishOnTimeout, delayMs);
 }
 
 function buildRealtimeStatePayload(game, color, options = {}) {
@@ -2418,11 +2491,14 @@ function buildRealtimeStatePayload(game, color, options = {}) {
     blackCheckCount: Number(game.blackCheckCount || 0),
     restored: options.restored === true,
     moves: getClassicGameMoves(game),
+    activeColor: clock.activeColor,
+    turnStartedAtMs: clock.turnStartedAtMs,
+    clockAsOf: clock.asOf,
     whiteTimeLeft: clock.white,
     blackTimeLeft: clock.black,
     playerClock: ownClock,
     opponentClock: opponentClock,
-    clockPaused: !!game?.clockState?.pausedAt,
+    clockPaused: false,
   };
 }
 
@@ -2466,37 +2542,7 @@ function scheduleReconnectGraceTimer(gameId, disconnectedColor) {
   game.reconnectGraceMs = graceMs;
   pauseGameClockForDisconnect(game, color);
   void persistSessionDisconnected(gameId, color);
-  game.disconnectGraceTimers[color] = setTimeout(() => {
-    const latestGame = games.get(gameId);
-    if (!latestGame) return;
-    const sideKey = color === "w" ? "white" : "black";
-    if (latestGame.players?.[sideKey]) return;
-
-    const winnerColor = color === "w" ? "b" : "w";
-    const bothDisconnected =
-      !latestGame.players?.white && !latestGame.players?.black;
-    if (bothDisconnected && gamePlies(latestGame) < MIN_REAL_GAME_PLIES) {
-      emitGameOver(gameId, "aborted", null, { preserveEarlyResult: true });
-      return;
-    }
-
-    const winnerSideKey = winnerColor === "w" ? "white" : "black";
-    const winnerSocketId = latestGame.players?.[winnerSideKey] || null;
-    if (winnerSocketId) {
-      io.to(winnerSocketId).emit("opponent_abandoned", {
-        gameId,
-        winner: winnerColor,
-        reason: "disconnect_timeout",
-      });
-    }
-    emitGameOver(gameId, "opponent_left", winnerColor, {
-      preserveEarlyResult: true,
-    });
-  }, graceMs);
-}
-
-function isTournamentRealtimeGame(game) {
-  return !!(game?.tournamentId || game?.tournamentGameId);
+  scheduleGameTimeoutTimer(gameId);
 }
 
 function emitGameSystemMessage(gameId, message, targetColor = null) {
@@ -2524,6 +2570,46 @@ async function hydrateClassicGameFromSession(gameId) {
   }).lean();
   if (!session) return null;
 
+  const normalizedTimeControl = normalizeTimeControl(session.timeControl);
+  const storedClock = session.clockState || {};
+  const whiteBankMs = Number.isFinite(Number(session.whiteTimeRemainingMs))
+    ? Math.max(0, Math.round(Number(session.whiteTimeRemainingMs)))
+    : Number.isFinite(Number(storedClock.whiteBankMs))
+      ? Math.max(0, Math.round(Number(storedClock.whiteBankMs)))
+      : Number.isFinite(Number(storedClock.white))
+        ? Math.max(0, Math.round(Number(storedClock.white) * 1000))
+        : Math.max(0, Math.round(Number(normalizedTimeControl.initialMs || 300_000)));
+  const blackBankMs = Number.isFinite(Number(session.blackTimeRemainingMs))
+    ? Math.max(0, Math.round(Number(session.blackTimeRemainingMs)))
+    : Number.isFinite(Number(storedClock.blackBankMs))
+      ? Math.max(0, Math.round(Number(storedClock.blackBankMs)))
+      : Number.isFinite(Number(storedClock.black))
+        ? Math.max(0, Math.round(Number(storedClock.black) * 1000))
+        : Math.max(0, Math.round(Number(normalizedTimeControl.initialMs || 300_000)));
+  const activeColor =
+    session.whoseTurn === "black"
+      ? "b"
+      : session.whoseTurn === "white"
+        ? "w"
+        : storedClock.activeColor === "b" || session.turn === "b"
+          ? "b"
+          : "w";
+  const turnStartedAtMs = toTimestamp(
+    session.turnStartedAt ||
+      storedClock.turnStartedAtMs ||
+      storedClock.turnStartedAt ||
+      session.lastMoveAt ||
+      session.updatedAt ||
+      session.startedAt,
+  );
+  const moveCount = Number.isFinite(Number(session.moveCount))
+    ? Math.max(0, Math.floor(Number(session.moveCount)))
+    : Array.isArray(session.moves)
+      ? session.moves.length
+      : 0;
+  const whiteSocketId = String(session.white?.socketId || "").trim();
+  const blackSocketId = String(session.black?.socketId || "").trim();
+
   let chess;
   try {
     const persistedFen = String(session.fen || "").trim();
@@ -2540,18 +2626,24 @@ async function hydrateClassicGameFromSession(gameId) {
     room: `game:${normalizedGameId}`,
     chess,
     players: {
-      white: session.white?.connected ? String(session.white?.socketId || "") : null,
-      black: session.black?.connected ? String(session.black?.socketId || "") : null,
+      white:
+        session.white?.connected && io.sockets.sockets.has(whiteSocketId)
+          ? whiteSocketId
+          : null,
+      black:
+        session.black?.connected && io.sockets.sockets.has(blackSocketId)
+          ? blackSocketId
+          : null,
     },
     playerUsers: {
-      white: normalizeId(session.white?.userId),
-      black: normalizeId(session.black?.userId),
+      white: normalizeId(session.whitePlayerId || session.white?.userId),
+      black: normalizeId(session.blackPlayerId || session.black?.userId),
     },
     playerNames: {
       white: String(session.white?.name || "Player"),
       black: String(session.black?.name || "Player"),
     },
-    timeControl: normalizeTimeControl(session.timeControl),
+    timeControl: normalizedTimeControl,
     variant: normalizeVariant(session.variant),
     whiteCheckCount: Number(session.whiteCheckCount || 0),
     blackCheckCount: Number(session.blackCheckCount || 0),
@@ -2564,13 +2656,14 @@ async function hydrateClassicGameFromSession(gameId) {
     tournamentId: null,
     tournamentGameId: null,
     firstTurnMoves: null,
+    moveCount,
     clockState: {
-      white: Number(session.clockState?.white || session.timeControl?.initial || 300),
-      black: Number(session.clockState?.black || session.timeControl?.initial || 300),
-      activeColor: session.clockState?.activeColor === "b" ? "b" : "w",
-      lastTickAt: Date.now(),
-      pausedAt: session.clockState?.pausedAt || null,
-      pausedForDisconnect: session.clockState?.pausedForDisconnect || null,
+      whiteBankMs,
+      blackBankMs,
+      activeColor,
+      turnStartedAtMs,
+      moveCount,
+      running: String(session.status || "active") !== "completed",
     },
     disconnectGraceTimers: { w: null, b: null },
     disconnectedAt: {
@@ -2580,16 +2673,34 @@ async function hydrateClassicGameFromSession(gameId) {
     reconnectGraceMs: Number(session.reconnectGraceMs || 0),
     startedAt: session.startedAt ? new Date(session.startedAt) : new Date(),
     persistedMoves: Array.isArray(session.moves) ? session.moves : [],
+    timeoutTimer: null,
     ratingByColor: session.ratingByColor || {
       white: null,
       black: null,
     },
   };
+  ensureGameClockState(hydratedGame);
 
   games.set(normalizedGameId, hydratedGame);
   setUserActiveGame(hydratedGame.playerUsers.white, normalizedGameId);
   setUserActiveGame(hydratedGame.playerUsers.black, normalizedGameId);
+  if (gamePlies(hydratedGame) === 0) {
+    scheduleFirstMoveAbortTimer(normalizedGameId);
+  }
+  scheduleGameTimeoutTimer(normalizedGameId);
   return hydratedGame;
+}
+
+async function restoreActiveClassicSessionsOnStartup() {
+  const sessions = await ActiveGameSession.find({
+    kind: "classic",
+    status: { $in: ACTIVE_SESSION_STATUSES },
+  })
+    .select("gameId")
+    .lean();
+  for (const session of sessions) {
+    await hydrateClassicGameFromSession(session.gameId);
+  }
 }
 
 async function hydrateFourPlayerGameFromSession(gameId) {
@@ -2647,39 +2758,20 @@ async function hydrateFourPlayerGameFromSession(gameId) {
   return hydratedGame;
 }
 
-function scheduleFirstMoveAbortTimer(gameId) {
+function scheduleFirstMoveAbortTimer(gameId, options = {}) {
   const game = games.get(gameId);
   if (!game) return;
   clearFirstMoveAbortTimer(game);
-  const isTournamentGame = isTournamentRealtimeGame(game);
-  const thresholdMs = isTournamentGame
-    ? ABORT_TIMEOUT_MS_DEFAULT
-    : getAbortThresholdMs(game.timeControl);
-  game.startedAt = Date.now();
+  const thresholdMs = getAbortThresholdMs(game.timeControl);
+  if (options.resetStartedAt === true || !game.startedAt) {
+    game.startedAt = Date.now();
+  }
+  const startedAt = toTimestamp(game.startedAt, Date.now());
+  const elapsedMs = Math.max(0, Date.now() - startedAt);
+  const delayMs = Math.max(1, thresholdMs - elapsedMs);
   game.firstMoveAbortTimer = setTimeout(() => {
     const latestGame = games.get(gameId);
     if (!latestGame) return;
-
-    if (isTournamentRealtimeGame(latestGame)) {
-      const firstTurnMoves =
-        latestGame.firstTurnMoves &&
-        typeof latestGame.firstTurnMoves === "object"
-          ? latestGame.firstTurnMoves
-          : { w: false, b: false };
-      latestGame.firstTurnMoves = firstTurnMoves;
-
-      const turnColor = latestGame.chess?.turn?.() === "b" ? "b" : "w";
-      if (firstTurnMoves[turnColor] === true) return;
-
-      const winner = turnColor === "w" ? "b" : "w";
-      emitGameSystemMessage(
-        gameId,
-        `Tournament forfeit: ${turnColor === "w" ? "White" : "Black"} did not move within 60 seconds.`,
-        turnColor,
-      );
-      emitGameOver(gameId, "timeout", winner, { preserveEarlyResult: true });
-      return;
-    }
 
     if (gamePlies(latestGame) > 0) return;
 
@@ -2689,7 +2781,7 @@ function scheduleFirstMoveAbortTimer(gameId) {
       "w",
     );
     emitGameOver(gameId, "aborted", null);
-  }, thresholdMs);
+  }, delayMs);
 }
 
 function ratingResultForColor(winnerColor, color) {
@@ -2919,6 +3011,8 @@ async function emitGameOver(gameId, reason, winner, options = {}) {
   if (game.isEnding) return;
   game.isEnding = true;
   clearFirstMoveAbortTimer(game);
+  clearGameTimeoutTimer(game);
+  freezeGameClock(game, Date.now());
 
   const plies = gamePlies(game);
   const preserveEarlyResult = options?.preserveEarlyResult === true;
@@ -3410,6 +3504,7 @@ io.on("connection", (socket) => {
         activeGame.playerNames[ownColorKey] = String(socket.data.name || "Player");
         clearReconnectGraceTimer(activeGame, userColor);
         resumeGameClockAfterReconnect(activeGame);
+        scheduleGameTimeoutTimer(gameId);
         socket.data.gameId = gameId;
         setUserActiveGame(userId, gameId);
         socket.join(activeGame.room);
@@ -3453,11 +3548,13 @@ io.on("connection", (socket) => {
           fen: activeGame.chess.fen(),
           moves: getClassicGameMoves(activeGame),
           ...clockSnapshot,
+          whiteTimeLeft: clockSnapshot.white,
+          blackTimeLeft: clockSnapshot.black,
           playerClock:
             userColor === "w" ? clockSnapshot.white : clockSnapshot.black,
           opponentClock:
             userColor === "w" ? clockSnapshot.black : clockSnapshot.white,
-          clockPaused: !!activeGame?.clockState?.pausedAt,
+          clockPaused: false,
         });
         io.to(activeGame.room).emit("opponent_reconnected", {
           gameId,
@@ -3609,6 +3706,7 @@ io.on("connection", (socket) => {
       game.playerNames[ownSideKey] = String(socket.data.name || "Player");
       clearReconnectGraceTimer(game, userColor);
       resumeGameClockAfterReconnect(game);
+      scheduleGameTimeoutTimer(gameId);
       socket.data.gameId = gameId;
       socket.join(game.room);
       setUserActiveGame(userId, gameId);
@@ -3652,11 +3750,13 @@ io.on("connection", (socket) => {
         fen: game.chess.fen(),
         moves: getClassicGameMoves(game),
         ...clockSnapshot,
+        whiteTimeLeft: clockSnapshot.white,
+        blackTimeLeft: clockSnapshot.black,
         playerClock:
           userColor === "w" ? clockSnapshot.white : clockSnapshot.black,
         opponentClock:
           userColor === "w" ? clockSnapshot.black : clockSnapshot.white,
-        clockPaused: !!game?.clockState?.pausedAt,
+        clockPaused: false,
       });
       io.to(game.room).emit("opponent_reconnected", {
         gameId,
@@ -4600,23 +4700,25 @@ io.on("connection", (socket) => {
         chess960: initialPosition.chess960,
         mode: "friend",
         isRated: false,
-        clockState: {
-          white: normalizedTimeControl.initial,
-          black: normalizedTimeControl.initial,
+        moveCount: 0,
+        clockState: createInitialClockState(normalizedTimeControl, Date.now(), {
           activeColor: "w",
-          lastTickAt: Date.now(),
-        },
+          moveCount: 0,
+          running: true,
+        }),
         disconnectGraceTimers: { w: null, b: null },
         disconnectedAt: { w: null, b: null },
         reconnectGraceMs: getReconnectGraceMsForTimeControl(normalizedTimeControl),
         startedAt: new Date(),
         persistedMoves: [],
+        timeoutTimer: null,
         ratingByColor: {
           white: whiteSocketId === challengerSocket.id ? challengerRating : receiverRating,
           black: blackSocketId === challengerSocket.id ? challengerRating : receiverRating,
         },
       });
       scheduleFirstMoveAbortTimer(gameId);
+      scheduleGameTimeoutTimer(gameId);
 
       challengerSocket.data.gameId = gameId;
       receiverSocket.data.gameId = gameId;
@@ -4630,6 +4732,8 @@ io.on("connection", (socket) => {
 
       const challengerColor = challengerSocket.id === whiteSocketId ? "w" : "b";
       const receiverColor = receiverSocket.id === whiteSocketId ? "w" : "b";
+      const createdGame = games.get(gameId);
+      const initialClock = getClockSnapshot(createdGame);
 
       const challengerPayload = {
         challengeId,
@@ -4643,6 +4747,11 @@ io.on("connection", (socket) => {
         variant: normalizedVariant,
         whiteCheckCount: 0,
         blackCheckCount: 0,
+        whiteTimeLeft: initialClock.white,
+        blackTimeLeft: initialClock.black,
+        playerClock: challengerColor === "w" ? initialClock.white : initialClock.black,
+        opponentClock: challengerColor === "w" ? initialClock.black : initialClock.white,
+        clockPaused: false,
         rated: ratedForDisplay,
         playerRating: challengerRating,
         opponentRating: receiverRating,
@@ -4661,6 +4770,11 @@ io.on("connection", (socket) => {
         variant: normalizedVariant,
         whiteCheckCount: 0,
         blackCheckCount: 0,
+        whiteTimeLeft: initialClock.white,
+        blackTimeLeft: initialClock.black,
+        playerClock: receiverColor === "w" ? initialClock.white : initialClock.black,
+        opponentClock: receiverColor === "w" ? initialClock.black : initialClock.white,
+        clockPaused: false,
         rated: ratedForDisplay,
         playerRating: receiverRating,
         opponentRating: challengerRating,
@@ -4739,16 +4853,6 @@ io.on("connection", (socket) => {
       const nextChess = castlingResult.game.chess;
       if (pliesBeforeMove === 0) {
         game.firstMoveAt = Date.now();
-      }
-      if (isTournamentRealtimeGame(game)) {
-        const firstTurnMoves =
-          game.firstTurnMoves && typeof game.firstTurnMoves === "object"
-            ? game.firstTurnMoves
-            : { w: false, b: false };
-        firstTurnMoves[moverColor] = true;
-        game.firstTurnMoves = firstTurnMoves;
-        scheduleFirstMoveAbortTimer(gameId);
-      } else if (pliesBeforeMove === 0) {
         clearFirstMoveAbortTimer(game);
       }
       const postMoveClock = applyMoveClockTransition(
@@ -4757,6 +4861,7 @@ io.on("connection", (socket) => {
         nextChess.turn(),
         preMoveClock,
       );
+      scheduleGameTimeoutTimer(gameId);
       setClassicGameMoves(game, [
         ...getClassicGameMoves(game),
         String(castlingResult.move?.san || "").trim(),
@@ -4810,16 +4915,6 @@ io.on("connection", (socket) => {
 
     if (pliesBeforeMove === 0) {
       game.firstMoveAt = Date.now();
-    }
-    if (isTournamentRealtimeGame(game)) {
-      const firstTurnMoves =
-        game.firstTurnMoves && typeof game.firstTurnMoves === "object"
-          ? game.firstTurnMoves
-          : { w: false, b: false };
-      firstTurnMoves[moverColor] = true;
-      game.firstTurnMoves = firstTurnMoves;
-      scheduleFirstMoveAbortTimer(gameId);
-    } else if (pliesBeforeMove === 0) {
       clearFirstMoveAbortTimer(game);
     }
     const postMoveClock = applyMoveClockTransition(
@@ -4828,6 +4923,7 @@ io.on("connection", (socket) => {
       chess.turn(),
       preMoveClock,
     );
+    scheduleGameTimeoutTimer(gameId);
     setClassicGameMoves(game, [
       ...getClassicGameMoves(game),
       String(move?.san || "").trim(),
@@ -4911,16 +5007,43 @@ io.on("connection", (socket) => {
   });
 
   socket.on("timeout", ({ gameId } = {}) => {
-    const game = games.get(gameId || socket.data.gameId);
+    const normalizedGameId = gameId || socket.data.gameId;
+    const game = games.get(normalizedGameId);
     if (!game) return;
-    const winner =
+    const requesterColor =
       socket.id === game.players.white
-        ? "b"
+        ? "w"
         : socket.id === game.players.black
-          ? "w"
+          ? "b"
           : null;
-    if (!winner) return;
-    emitGameOver(gameId || socket.data.gameId, "timeout", winner);
+    if (!requesterColor) return;
+
+    const clock = getClockSnapshot(game);
+    const activeColor = clock.activeColor === "b" ? "b" : "w";
+    const remaining =
+      activeColor === "w" ? Number(clock.white || 0) : Number(clock.black || 0);
+    if (requesterColor !== activeColor || remaining > 0) {
+      socket.emit("game_state_restored", {
+        gameId: normalizedGameId,
+        color: requesterColor,
+        fen: game.chess.fen(),
+        moves: getClassicGameMoves(game),
+        ...clock,
+        whiteTimeLeft: clock.white,
+        blackTimeLeft: clock.black,
+        playerClock:
+          requesterColor === "w" ? clock.white : clock.black,
+        opponentClock:
+          requesterColor === "w" ? clock.black : clock.white,
+        clockPaused: false,
+      });
+      return;
+    }
+
+    const winner = activeColor === "w" ? "b" : "w";
+    emitGameOver(normalizedGameId, "timeout", winner, {
+      preserveEarlyResult: true,
+    });
   });
 
   socket.on("leaveGame", ({ gameId } = {}) => {
@@ -4933,7 +5056,7 @@ io.on("connection", (socket) => {
           ? "w"
           : null;
     if (!winner) return;
-    emitGameOver(gameId || socket.data.gameId, "opponent_left", winner);
+    emitGameOver(gameId || socket.data.gameId, "resign", winner);
   });
 
   socket.on("disconnect", () => {
@@ -4995,7 +5118,7 @@ io.on("connection", (socket) => {
           }
           emitGameSystemMessage(
             gameId,
-            "Opponent disconnected. Waiting for reconnect...",
+            "Opponent disconnected. Their clock is still running.",
             waitingColor,
           );
           scheduleReconnectGraceTimer(gameId, disconnectedColor);

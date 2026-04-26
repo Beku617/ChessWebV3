@@ -110,6 +110,7 @@ function FourPlayerBoard({
   allowClick?: boolean;
   allowDrag?: boolean;
 }) {
+  const boardRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const suppressClickRef = useRef(false);
   const dragPointerIdRef = useRef<number | null>(null);
@@ -128,6 +129,29 @@ function FourPlayerBoard({
   const cellSize = useMemo(
     () => (boardWidth - 8) / FOUR_PLAYER_BOARD_SIZE,
     [boardWidth],
+  );
+
+  const getClampedBoardPoint = useCallback(
+    (clientX: number, clientY: number) => {
+      const board = boardRef.current;
+      const grid = gridRef.current;
+      if (!board || !grid) return null;
+
+      const boardRect = board.getBoundingClientRect();
+      const gridRect = grid.getBoundingClientRect();
+      const currentCellSize = gridRect.width / FOUR_PLAYER_BOARD_SIZE;
+      const halfCell = currentCellSize / 2;
+      const minX = gridRect.left - boardRect.left + halfCell;
+      const minY = gridRect.top - boardRect.top + halfCell;
+      const maxX = gridRect.right - boardRect.left - halfCell;
+      const maxY = gridRect.bottom - boardRect.top - halfCell;
+
+      return {
+        x: Math.max(minX, Math.min(clientX - boardRect.left, maxX)),
+        y: Math.max(minY, Math.min(clientY - boardRect.top, maxY)),
+      };
+    },
+    [],
   );
 
   // Compute drag-time legal highlights
@@ -205,14 +229,17 @@ function FourPlayerBoard({
         const destination = squareFromPoint(clientX, clientY);
         if (destination) {
           suppressClickRef.current = true;
-          onPieceDrop(
+          const moved = onPieceDrop(
             current.fromRow,
             current.fromCol,
             destination.row,
             destination.col,
           );
+          if (!moved) {
+            onCancelSelection();
+          }
         } else {
-          // Snap back — clear selection
+          // Snap back - clear selection.
           onCancelSelection();
         }
         return null;
@@ -246,10 +273,12 @@ function FourPlayerBoard({
           onSquareClick(current.fromRow, current.fromCol);
         }
 
+        const nextPoint = getClampedBoardPoint(event.clientX, event.clientY);
+
         return {
           ...current,
-          x: event.clientX,
-          y: event.clientY,
+          x: nextPoint?.x ?? current.x,
+          y: nextPoint?.y ?? current.y,
           moved,
         };
       });
@@ -280,7 +309,7 @@ function FourPlayerBoard({
       window.removeEventListener("pointerup", handlePointerUp);
       window.removeEventListener("pointercancel", handlePointerCancel);
     };
-  }, [dragging, finalizeDrag, onSquareClick, selected]);
+  }, [dragging, finalizeDrag, getClampedBoardPoint, onSquareClick, selected]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -296,13 +325,14 @@ function FourPlayerBoard({
 
   return (
     <div
+      ref={boardRef}
       onContextMenu={(event) => {
         event.preventDefault();
         dragPointerIdRef.current = null;
         setDragging(null);
         onCancelSelection();
       }}
-      className="rounded-2xl overflow-hidden border border-gray-200/70 dark:border-white/10 shadow-xl bg-gray-200/20 dark:bg-black/20"
+      className="relative rounded-2xl overflow-hidden border border-gray-200/70 dark:border-white/10 shadow-xl bg-gray-200/20 dark:bg-black/20"
       style={{ width: boardWidth, height: boardWidth }}
     >
       <div
@@ -360,13 +390,17 @@ function FourPlayerBoard({
                     /* ignore if capture fails */
                   }
                   dragPointerIdRef.current = event.pointerId;
+                  const point = getClampedBoardPoint(
+                    event.clientX,
+                    event.clientY,
+                  );
 
                   setDragging({
                     fromRow: row,
                     fromCol: col,
                     piece,
-                    x: event.clientX,
-                    y: event.clientY,
+                    x: point?.x ?? cellSize / 2,
+                    y: point?.y ?? cellSize / 2,
                     startX: event.clientX,
                     startY: event.clientY,
                     moved: false,
@@ -416,13 +450,12 @@ function FourPlayerBoard({
 
       {dragging?.moved && (
         <div
-          className="pointer-events-none fixed z-40"
+          className="pointer-events-none absolute z-40"
           style={{
             width: cellSize,
             height: cellSize,
-            left: dragging.x,
-            top: dragging.y,
-            transform: "translate(-50%, -50%)",
+            left: dragging.x - cellSize / 2,
+            top: dragging.y - cellSize / 2,
           }}
         >
           <PieceIcon

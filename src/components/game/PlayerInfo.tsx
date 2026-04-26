@@ -15,6 +15,7 @@ interface PlayerInfoProps {
   onTimeOut: () => void;
   onTimeChange: (time: number) => void;
   timerResetToken?: string | number;
+  timerManagedExternally?: boolean;
   showTimer?: boolean;
 }
 
@@ -32,6 +33,7 @@ export function PlayerInfo({
   onTimeOut,
   onTimeChange,
   timerResetToken,
+  timerManagedExternally = false,
   showTimer = true,
 }: PlayerInfoProps) {
   const [hasImageError, setHasImageError] = useState(false);
@@ -99,6 +101,7 @@ export function PlayerInfo({
             onTimeOut={onTimeOut}
             onTimeChange={onTimeChange}
             resetToken={timerResetToken}
+            managedExternally={timerManagedExternally}
             className="h-12"
           />
         </div>

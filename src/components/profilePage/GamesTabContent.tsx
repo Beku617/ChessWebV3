@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, History } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { GameHistory } from "../../historyTypes";
 import { GameCard } from "../profile";
 import { ShareGameModal } from "../ShareGameModal";
@@ -50,6 +51,7 @@ export function GamesTabContent({
   analyzeBaseUrl,
   showShareButton = false,
 }: GamesTabContentProps) {
+  const { t } = useTranslation();
   const [currentPage, setCurrentPage] = useState(1);
   const [shareGame, setShareGame] = useState<GameHistory | null>(null);
 
@@ -97,7 +99,7 @@ export function GamesTabContent({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <h2 className="text-xl font-bold flex items-center gap-2">
           <History size={24} className="text-brand-500" />
-          All Games ({filteredGames.length})
+          {t("profileGames.allGames", { count: filteredGames.length })}
         </h2>
 
         <div className="flex bg-white dark:bg-gray-900 p-1 rounded-xl border border-gray-200 dark:border-gray-800">
@@ -111,7 +113,7 @@ export function GamesTabContent({
                   : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
               }`}
             >
-              {f.charAt(0).toUpperCase() + f.slice(1)}
+              {t(`profileGames.filters.${f}`)}
             </button>
           ))}
         </div>
@@ -120,19 +122,21 @@ export function GamesTabContent({
       <div className="mb-6 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
         <div className="px-4 py-3 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
           <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-            Tournament History ({tournamentHistory.length})
+            {t("profileGames.tournamentHistory", {
+              count: tournamentHistory.length,
+            })}
           </h3>
         </div>
         <div className="overflow-x-auto bg-white dark:bg-gray-900">
           <table className="w-full text-left text-xs sm:text-sm">
             <thead className="bg-gray-50 dark:bg-gray-950/50 text-gray-500 dark:text-gray-400">
               <tr>
-                <th className="px-3 py-2">Tournament</th>
-                <th className="px-3 py-2">Format</th>
-                <th className="px-3 py-2">Placement</th>
-                <th className="px-3 py-2">Score</th>
-                <th className="px-3 py-2">ELO Change</th>
-                <th className="px-3 py-2">Date</th>
+                <th className="px-3 py-2">{t("profileGames.columns.tournament")}</th>
+                <th className="px-3 py-2">{t("profileGames.columns.format")}</th>
+                <th className="px-3 py-2">{t("profileGames.columns.placement")}</th>
+                <th className="px-3 py-2">{t("profileGames.columns.score")}</th>
+                <th className="px-3 py-2">{t("profileGames.columns.eloChange")}</th>
+                <th className="px-3 py-2">{t("profileGames.columns.date")}</th>
               </tr>
             </thead>
             <tbody>
@@ -174,7 +178,7 @@ export function GamesTabContent({
                     colSpan={6}
                     className="px-3 py-6 text-center text-sm text-gray-500 dark:text-gray-400"
                   >
-                    No tournament history yet.
+                    {t("profileGames.noTournamentHistory")}
                   </td>
                 </tr>
               )}
@@ -186,7 +190,11 @@ export function GamesTabContent({
       {/* Range info */}
       {filteredGames.length > 0 && (
         <div className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-          {rangeStart}–{rangeEnd} of {filteredGames.length} games
+          {t("profileGames.range", {
+            start: rangeStart,
+            end: rangeEnd,
+            total: filteredGames.length,
+          })}
         </div>
       )}
 
@@ -208,10 +216,10 @@ export function GamesTabContent({
         ) : (
           <div className="text-center py-12 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800">
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">
-              No games found
+              {t("profileGames.noGamesFound")}
             </h3>
             <p className="text-gray-500 dark:text-gray-400">
-              Try changing your filters or play a new game.
+              {t("profileGames.noGamesFoundDescription")}
             </p>
           </div>
         )}

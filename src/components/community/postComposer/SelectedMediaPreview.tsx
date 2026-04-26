@@ -1,4 +1,5 @@
 import { X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { CommunityImageGrid } from "../CommunityImageGrid";
 import type { SelectedComposerImage } from "./types";
 
@@ -19,6 +20,8 @@ export function SelectedMediaPreview({
   onClearSelectedMedia,
   onRemoveSelectedImage,
 }: SelectedMediaPreviewProps) {
+  const { t } = useTranslation();
+
   if (selectedVideoPreviewUrl) {
     return (
       <div className="mt-2">
@@ -28,7 +31,7 @@ export function SelectedMediaPreview({
             onClick={onClearSelectedMedia}
             disabled={isSubmitting}
             className="absolute right-2 top-2 z-10 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-black/60 text-gray-200 transition-colors hover:bg-black/80 hover:text-white disabled:cursor-not-allowed disabled:opacity-45"
-            title="Remove media"
+            title={t("communityComposer.removeMedia")}
           >
             <X className="h-4 w-4" />
           </button>
@@ -51,13 +54,13 @@ export function SelectedMediaPreview({
             onClick={onClearSelectedMedia}
             disabled={isSubmitting}
             className="absolute right-2 top-2 z-10 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-black/60 text-gray-200 transition-colors hover:bg-black/80 hover:text-white disabled:cursor-not-allowed disabled:opacity-45"
-            title="Remove media"
+            title={t("communityComposer.removeMedia")}
           >
             <X className="h-4 w-4" />
           </button>
           <img
             src={selectedImages[0].previewUrl}
-            alt={selectedImages[0].file.name || "Selected preview"}
+            alt={selectedImages[0].file.name || t("communityComposer.selectedPreview")}
             className="w-full max-h-[420px] bg-black object-contain"
           />
         </div>
@@ -71,10 +74,10 @@ export function SelectedMediaPreview({
         <div className="mb-3 flex items-center justify-between gap-3">
           <div className="min-w-0">
             <div className="text-[10px] font-semibold uppercase tracking-[0.24em] text-brand-200/70">
-              Image Set
+              {t("communityComposer.imageSet")}
             </div>
             <div className="mt-1 text-sm font-semibold text-white">
-              {selectedImages.length} images selected
+              {t("communityComposer.imagesSelected", { count: selectedImages.length })}
             </div>
           </div>
 
@@ -85,14 +88,14 @@ export function SelectedMediaPreview({
             className="inline-flex items-center gap-2 rounded-lg bg-white/[0.06] px-3 py-2 text-xs font-semibold text-gray-200 transition-colors hover:bg-white/[0.12] disabled:cursor-not-allowed disabled:opacity-45"
           >
             <X className="h-4 w-4" />
-            Clear all
+            {t("communityComposer.clearAll")}
           </button>
         </div>
 
         <CommunityImageGrid
           items={selectedImages.map((image) => ({
             url: image.previewUrl,
-            alt: image.file.name || "Selected preview",
+            alt: image.file.name || t("communityComposer.selectedPreview"),
           }))}
           onRemoveImage={onRemoveSelectedImage}
         />
@@ -106,7 +109,10 @@ export function SelectedMediaPreview({
               >
                 <img
                   src={image.previewUrl}
-                  alt={image.file.name || `Selected image ${index + 1}`}
+                  alt={
+                    image.file.name ||
+                    t("communityComposer.selectedImageAlt", { index: index + 1 })
+                  }
                   className="h-full w-full object-cover"
                 />
                 <button
@@ -114,7 +120,9 @@ export function SelectedMediaPreview({
                   onClick={() => onRemoveSelectedImage(index)}
                   disabled={isSubmitting}
                   className="absolute right-1 top-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-black/70 text-white hover:bg-black/85 disabled:cursor-not-allowed disabled:opacity-45"
-                  aria-label={`Remove image ${index + 1}`}
+                  aria-label={t("communityComposer.removeImageAria", {
+                    index: index + 1,
+                  })}
                 >
                   <X className="h-3 w-3" />
                 </button>

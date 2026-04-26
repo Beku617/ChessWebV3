@@ -142,6 +142,8 @@ interface MoveAppliedPayload {
   whiteCheckCount?: number;
   blackCheckCount?: number;
   checkAwarded?: PlayerColor | null;
+  whiteTimeLeft?: number;
+  blackTimeLeft?: number;
 }
 
 interface MatchFoundPayload {
@@ -374,6 +376,7 @@ export function useFriendOnlineGame() {
   const playerNameRef = useRef<string>("Player");
   const startTimeRef = useRef<number | null>(null);
   const startingFenRef = useRef<string>("");
+  const clockDisplayIntervalRef = useRef<number | null>(null);
   const historySavedRef = useRef(false);
   const [lastGameOver, setLastGameOver] = useState<GameOverPayload | null>(
     null,
@@ -634,10 +637,30 @@ export function useFriendOnlineGame() {
         difficulty: 0,
         timeControl,
       });
-      setPlayerTime(timeControl.initial);
-      setOpponentTime(timeControl.initial);
-      setPlayerClockSeed(timeControl.initial);
-      setOpponentClockSeed(timeControl.initial);
+      const whiteClock = Number(payload.whiteTimeLeft);
+      const blackClock = Number(payload.blackTimeLeft);
+      const playerClockRaw = Number(payload.playerClock);
+      const opponentClockRaw = Number(payload.opponentClock);
+      const playerClock =
+        Number.isFinite(playerClockRaw)
+          ? Math.max(0, playerClockRaw)
+          : Number.isFinite(whiteClock) && Number.isFinite(blackClock)
+            ? payload.color === "w"
+              ? Math.max(0, whiteClock)
+              : Math.max(0, blackClock)
+            : timeControl.initial;
+      const opponentClock =
+        Number.isFinite(opponentClockRaw)
+          ? Math.max(0, opponentClockRaw)
+          : Number.isFinite(whiteClock) && Number.isFinite(blackClock)
+            ? payload.color === "w"
+              ? Math.max(0, blackClock)
+              : Math.max(0, whiteClock)
+            : timeControl.initial;
+      setPlayerTime(playerClock);
+      setOpponentTime(opponentClock);
+      setPlayerClockSeed(playerClock);
+      setOpponentClockSeed(opponentClock);
       setClockResetToken((value) => value + 1);
       setIsClockPaused(false);
     },
@@ -701,15 +724,15 @@ export function useFriendOnlineGame() {
 
     const handleDisconnect = () => {
       if (gameIdRef.current || readActiveFriendGameId()) {
-        setIsClockPaused(true);
-        setStatusMessage("Connection lost. Reconnecting...");
+        setIsClockPaused(false);
+        setStatusMessage("Connection lost. Reconnecting. Clock continues server-side...");
       }
     };
 
     const handleConnectError = () => {
       if (gameIdRef.current || readActiveFriendGameId()) {
-        setIsClockPaused(true);
-        setStatusMessage("Reconnecting to realtime server...");
+        setIsClockPaused(false);
+        setStatusMessage("Reconnecting to realtime server. Clock continues server-side...");
       }
     };
 
@@ -759,7 +782,7 @@ export function useFriendOnlineGame() {
         setOpponentClockSeed(normalizedOpponentClock);
         setClockResetToken((value) => value + 1);
       }
-      setIsClockPaused(Boolean(payload.clockPaused));
+      setIsClockPaused(false);
 
       if (payload.restored === true) {
         setStatusMessage("Game restored after reconnect.");
@@ -841,7 +864,7 @@ export function useFriendOnlineGame() {
         setClockResetToken((value) => value + 1);
       }
 
-      setIsClockPaused(Boolean(payload.clockPaused));
+      setIsClockPaused(false);
       setStatusMessage("Game restored after reconnect.");
     };
 
@@ -933,6 +956,21 @@ export function useFriendOnlineGame() {
       setShowPromotionDialog(false);
       setPromotionToSquare(null);
       setPendingPromoFrom(null);
+      const whiteClock = Number(payload.whiteTimeLeft);
+      const blackClock = Number(payload.blackTimeLeft);
+      if (Number.isFinite(whiteClock) && Number.isFinite(blackClock)) {
+        const ownClock =
+          playerColorRef.current === "w" ? whiteClock : blackClock;
+        const oppClock =
+          playerColorRef.current === "w" ? blackClock : whiteClock;
+        const normalizedOwnClock = Math.max(0, ownClock);
+        const normalizedOpponentClock = Math.max(0, oppClock);
+        setPlayerTime(normalizedOwnClock);
+        setOpponentTime(normalizedOpponentClock);
+        setPlayerClockSeed(normalizedOwnClock);
+        setOpponentClockSeed(normalizedOpponentClock);
+        setClockResetToken((value) => value + 1);
+      }
       setIsClockPaused(false);
 
       // Opponent just moved and it may now be our turn.
@@ -1069,14 +1107,8 @@ export function useFriendOnlineGame() {
       graceMs?: number;
     }) => {
       if (payload?.gameId && payload.gameId !== gameIdRef.current) return;
-      const graceSeconds = Math.max(
-        1,
-        Math.round(Number(payload?.graceMs || 30000) / 1000),
-      );
-      setIsClockPaused(true);
-      setStatusMessage(
-        `Opponent disconnected. Waiting ${graceSeconds}s for reconnect...`,
-      );
+      setIsClockPaused(false);
+      setStatusMessage("Opponent disconnected. Their clock is still running.");
     };
 
     const handleOpponentReconnected = (payload?: { gameId?: string }) => {
@@ -1108,8 +1140,8 @@ export function useFriendOnlineGame() {
     if (socket.connected) {
       restoreActiveGame(readActiveFriendGameId() || gameIdRef.current);
     } else if (readActiveFriendGameId()) {
-      setIsClockPaused(true);
-      setStatusMessage("Reconnecting to realtime server...");
+      setIsClockPaused(false);
+      setStatusMessage("Reconnecting to realtime server. Clock continues server-side...");
     }
 
     return () => {
@@ -1148,6 +1180,63 @@ export function useFriendOnlineGame() {
     pendingPreMove,
     trySubmitQueuedPreMove,
   ]);
+
+  useEffect(() => {
+    if (clockDisplayIntervalRef.current !== null) {
+      window.clearInterval(clockDisplayIntervalRef.current);
+      clockDisplayIntervalRef.current = null;
+    }
+
+    const hasTimeControl = Number(gameSettings.timeControl.initial) > 0;
+    if (!gameStarted || gameOver || isClockPaused || !hasTimeControl) {
+      return undefined;
+    }
+
+    clockDisplayIntervalRef.current = window.setInterval(() => {
+      if (isPlayerTurn) {
+        setPlayerTime((previous) => {
+          const next = Math.max(0, Math.round((previous - 0.1) * 10) / 10);
+          setPlayerClockSeed(next);
+          return next;
+        });
+        return;
+      }
+
+      setOpponentTime((previous) => {
+        const next = Math.max(0, Math.round((previous - 0.1) * 10) / 10);
+        setOpponentClockSeed(next);
+        return next;
+      });
+    }, 100);
+
+    return () => {
+      if (clockDisplayIntervalRef.current !== null) {
+        window.clearInterval(clockDisplayIntervalRef.current);
+        clockDisplayIntervalRef.current = null;
+      }
+    };
+  }, [
+    gameOver,
+    gameSettings.timeControl.initial,
+    gameStarted,
+    isClockPaused,
+    isPlayerTurn,
+  ]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return undefined;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState !== "visible") return;
+      if (!socket || !socket.connected || !gameIdRef.current) return;
+      socket.emit("rejoinGame", { gameId: gameIdRef.current });
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [socket]);
 
   useEffect(() => {
     if (!gameOver || !lastGameOver || historySavedRef.current) return;

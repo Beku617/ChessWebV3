@@ -165,10 +165,15 @@ export function LearnCourseCard({
           <div className="mt-auto space-y-3 pt-1">
             {course.lessons.length > visibleLessons.length ? (
               <p className="text-xs text-gray-500">
-                {t("learn.moreLessons", {
-                  defaultValue: "+{{count}} more lessons",
+                {t(
+                  course.lessons.length - visibleLessons.length === 1
+                    ? "learn.moreLessons_one"
+                    : "learn.moreLessons_other",
+                  {
+                    defaultValue: "+{{count}} more lessons",
                   count: course.lessons.length - visibleLessons.length,
-                })}
+                  },
+                )}
               </p>
             ) : null}
           </div>

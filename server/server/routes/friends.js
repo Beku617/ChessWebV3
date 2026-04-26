@@ -2,6 +2,7 @@ import { Router } from "express";
 import mongoose from "mongoose";
 import { authMiddleware, checkBlocked } from "../middleware/index.js";
 import {
+  ActiveGameSession,
   BlockedUser,
   Friend,
   FriendRequest,
@@ -19,6 +20,8 @@ import { notifyUser } from "../services/notify.js";
 const router = Router();
 const REQUEST_USER_FIELDS =
   "fullName email avatar rating presenceStatus lastActiveAt lastSeenAt";
+const WATCHABLE_SESSION_STATUSES = ["active", "temporarily_disconnected"];
+const WATCHABLE_SESSION_MODES = ["quick", "friend", "tournament", "fourPlayer"];
 
 function isValidObjectId(value) {
   return mongoose.Types.ObjectId.isValid(String(value || ""));
@@ -54,6 +57,80 @@ function resolveUser(doc) {
   };
 }
 
+function normalizeWatchMode(mode) {
+  if (mode === "friend" || mode === "tournament" || mode === "fourPlayer") {
+    return mode;
+  }
+  return "quick";
+}
+
+function normalizeWatchKind(kind) {
+  return kind === "fourPlayer" ? "fourPlayer" : "classic";
+}
+
+async function buildWatchableSessionMap(userIds) {
+  const normalizedUserIds = Array.from(
+    new Set(
+      (Array.isArray(userIds) ? userIds : [])
+        .map((id) => normalizeId(id))
+        .filter(Boolean),
+    ),
+  );
+  if (normalizedUserIds.length === 0) {
+    return new Map();
+  }
+
+  const sessions = await ActiveGameSession.find({
+    participantUserIds: { $in: normalizedUserIds },
+    status: { $in: WATCHABLE_SESSION_STATUSES },
+    mode: { $in: WATCHABLE_SESSION_MODES },
+  })
+    .select("gameId kind mode status variant participantUserIds updatedAt")
+    .sort({ updatedAt: -1 })
+    .lean();
+
+  const targetUsers = new Set(normalizedUserIds);
+  const byUserId = new Map();
+
+  for (const session of sessions) {
+    const participants = Array.from(
+      new Set(
+        (Array.isArray(session?.participantUserIds) ? session.participantUserIds : [])
+          .map((id) => normalizeId(id))
+          .filter(Boolean),
+      ),
+    );
+    if (participants.length < 2) {
+      continue;
+    }
+
+    const sessionInfo = {
+      gameId: String(session?.gameId || "").trim(),
+      kind: normalizeWatchKind(session?.kind),
+      mode: normalizeWatchMode(session?.mode),
+      variant: String(session?.variant || "standard"),
+      status:
+        String(session?.status || "") === "temporarily_disconnected"
+          ? "temporarily_disconnected"
+          : "active",
+      participantCount: participants.length,
+    };
+
+    if (!sessionInfo.gameId) {
+      continue;
+    }
+
+    for (const participantId of participants) {
+      if (!targetUsers.has(participantId) || byUserId.has(participantId)) {
+        continue;
+      }
+      byUserId.set(participantId, sessionInfo);
+    }
+  }
+
+  return byUserId;
+}
+
 function buildRequestDTO(requestDoc, viewerId) {
   const sender = resolveUser(requestDoc.senderId);
   const receiver = resolveUser(requestDoc.receiverId);
@@ -71,8 +148,10 @@ function buildRequestDTO(requestDoc, viewerId) {
   };
 }
 
-function buildFriendDTO(friendDoc) {
+function buildFriendDTO(friendDoc, watchableSessionMap = null) {
   const friend = resolveUser(friendDoc.friendId || friendDoc);
+  const friendId = normalizeId(friend.id);
+  const watchableGame = friendId ? watchableSessionMap?.get(friendId) || null : null;
   return {
     id: friend.id,
     name: friend.name,
@@ -81,6 +160,8 @@ function buildFriendDTO(friendDoc) {
     rating: friend.rating,
     presenceStatus: friend.presenceStatus,
     lastActiveAt: friend.lastActiveAt,
+    isWatchableInGame: !!watchableGame,
+    watchableGame,
     since: friendDoc.createdAt || new Date(),
   };
 }
@@ -133,6 +214,8 @@ async function getFriendshipPayload(userId, friendId) {
         rating: 1200,
         presenceStatus: "offline",
         lastActiveAt: null,
+        isWatchableInGame: false,
+        watchableGame: null,
       }),
       since: new Date(),
     };
@@ -184,9 +267,13 @@ router.get("/", authMiddleware, async (req, res) => {
       .sort({ createdAt: -1 })
       .populate("friendId", REQUEST_USER_FIELDS)
       .lean();
+    const friendIds = friends
+      .map((edge) => normalizeId(edge?.friendId?._id || edge?.friendId))
+      .filter(Boolean);
+    const watchableSessionMap = await buildWatchableSessionMap(friendIds);
 
     const result = friends
-      .map((f) => buildFriendDTO(f))
+      .map((f) => buildFriendDTO(f, watchableSessionMap))
       .filter((friend) => !excludedIds.has(normalizeId(friend.id)));
     res.json({ friends: result });
   } catch (err) {

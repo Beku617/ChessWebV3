@@ -10,6 +10,148 @@ import {
 } from "../utils/botMedia.js";
 
 const router = Router();
+const VALID_DIFFICULTIES = new Set([
+  "beginner",
+  "casual",
+  "intermediate",
+  "advanced",
+  "master",
+]);
+const VALID_PLAY_STYLES = new Set(["aggressive", "defensive", "balanced", "random"]);
+
+function cleanString(value, { max = 1000 } = {}) {
+  return String(value || "")
+    .replace(/\u0000/g, "")
+    .trim()
+    .slice(0, max);
+}
+
+function escapeRegex(value) {
+  return String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function parseNumber(value, { label, min, max, fallback, integer = false }) {
+  if (value === undefined || value === null || value === "") {
+    if (fallback !== undefined) return fallback;
+    return { error: `${label} is required` };
+  }
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) {
+    return { error: `${label} must be a number` };
+  }
+  const normalized = integer ? Math.trunc(parsed) : parsed;
+  if (min !== undefined && normalized < min) {
+    return { error: `${label} must be at least ${min}` };
+  }
+  if (max !== undefined && normalized > max) {
+    return { error: `${label} must be at most ${max}` };
+  }
+  return normalized;
+}
+
+function parseBoolean(value, fallback = false) {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === "true") return true;
+    if (normalized === "false") return false;
+  }
+  return fallback;
+}
+
+function normalizeBotPayload(payload = {}, { partial = false } = {}) {
+  const data = {};
+
+  if (!partial || payload.name !== undefined) {
+    const name = cleanString(payload.name, { max: 80 });
+    if (name.length < 2 || name.length > 50) {
+      return { error: "Bot name must be 2-50 characters" };
+    }
+    data.name = name;
+  }
+
+  if (!partial || payload.eloRating !== undefined) {
+    const eloRating = parseNumber(payload.eloRating, {
+      label: "ELO rating",
+      min: 100,
+      max: 3000,
+      integer: true,
+    });
+    if (eloRating && typeof eloRating === "object" && eloRating.error) {
+      return { error: "ELO rating must be between 100-3000" };
+    }
+    data.eloRating = eloRating;
+  }
+
+  if (!partial || payload.difficulty !== undefined) {
+    const difficulty = cleanString(payload.difficulty).toLowerCase() || "beginner";
+    if (!VALID_DIFFICULTIES.has(difficulty)) {
+      return { error: "Invalid bot difficulty" };
+    }
+    data.difficulty = difficulty;
+  }
+
+  if (!partial || payload.playStyle !== undefined) {
+    const playStyle = cleanString(payload.playStyle).toLowerCase() || "balanced";
+    if (!VALID_PLAY_STYLES.has(playStyle)) {
+      return { error: "Invalid bot play style" };
+    }
+    data.playStyle = playStyle;
+  }
+
+  const stringFields = [
+    ["avatar", 500],
+    ["category", 80],
+    ["title", 80],
+    ["quote", 200],
+    ["description", 500],
+    ["personality", 200],
+    ["countryCode", 5],
+  ];
+  for (const [field, max] of stringFields) {
+    if (payload[field] !== undefined) {
+      data[field] = cleanString(payload[field], { max });
+    }
+  }
+  if (!partial && data.category === undefined) data.category = "general";
+  if (!partial && !data.category) data.category = "general";
+
+  const numericFields = [
+    ["skillLevel", { label: "Skill level", min: 0, max: 20, fallback: 5, integer: true }],
+    ["depth", { label: "Depth", min: 1, max: 25, fallback: 10, integer: true }],
+    [
+      "thinkTimeMs",
+      { label: "Think time", min: 100, max: 10000, fallback: 2000, integer: true },
+    ],
+    [
+      "blunderChance",
+      { label: "Blunder chance", min: 0, max: 1, fallback: 0.1 },
+    ],
+    [
+      "aggressiveness",
+      { label: "Aggressiveness", min: -100, max: 100, fallback: 0, integer: true },
+    ],
+    ["sortOrder", { label: "Sort order", fallback: 0, integer: true }],
+  ];
+  for (const [field, options] of numericFields) {
+    if (!partial || payload[field] !== undefined) {
+      const parsed = parseNumber(payload[field], options);
+      if (parsed && typeof parsed === "object" && parsed.error) {
+        return { error: parsed.error };
+      }
+      data[field] = parsed;
+    }
+  }
+
+  if (!partial || payload.openingBook !== undefined) {
+    data.openingBook = parseBoolean(payload.openingBook, true);
+  }
+  if (!partial || payload.isActive !== undefined) {
+    data.isActive = parseBoolean(payload.isActive, true);
+  }
+
+  return { data };
+}
 
 const fileFilter = (req, file, cb) => {
   const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
@@ -171,47 +313,18 @@ router.post(
   uploadAvatarFile,
   async (req, res) => {
     try {
-      const {
-        name,
-        avatar,
-        eloRating,
-        difficulty,
-        category,
-        title,
-        quote,
-        description,
-        personality,
-        countryCode,
-        playStyle,
-        skillLevel,
-        depth,
-        thinkTimeMs,
-        blunderChance,
-        aggressiveness,
-        openingBook,
-        isActive,
-        sortOrder,
-      } = req.body;
-
-      // Validate required fields
-      if (!name || name.length < 2 || name.length > 50) {
+      const { data: normalizedData, error: validationError } = normalizeBotPayload(
+        req.body,
+        { partial: false },
+      );
+      if (validationError) {
         await cleanupBotAvatarMedia(req.file);
-        return res
-          .status(400)
-          .json({ error: "Bot name must be 2-50 characters" });
-      }
-
-      const rating = parseInt(eloRating);
-      if (isNaN(rating) || rating < 100 || rating > 3000) {
-        await cleanupBotAvatarMedia(req.file);
-        return res
-          .status(400)
-          .json({ error: "ELO rating must be between 100-3000" });
+        return res.status(400).json({ error: validationError });
       }
 
       // Check for duplicate name
       const existing = await Bot.findOne({
-        name: { $regex: `^${name}$`, $options: "i" },
+        name: { $regex: `^${escapeRegex(normalizedData.name)}$`, $options: "i" },
       });
       if (existing) {
         await cleanupBotAvatarMedia(req.file);
@@ -221,30 +334,12 @@ router.post(
       }
 
       const botData = {
-        name,
-        avatar: avatar || "",
+        ...normalizedData,
         avatarUrl: req.file ? req.file.url : "",
         avatarAssetId: req.file ? String(req.file.assetId || "") : "",
         avatarMimeType: req.file ? String(req.file.mimetype || "") : "",
         avatarOriginalName: req.file ? String(req.file.originalName || "") : "",
         avatarSize: req.file ? Number(req.file.size || 0) : 0,
-        eloRating: rating,
-        difficulty: difficulty || "beginner",
-        category: category || "general",
-        title: title || "",
-        quote: quote || "",
-        description: description || "",
-        personality: personality || "",
-        countryCode: countryCode || "",
-        playStyle: playStyle || "balanced",
-        skillLevel: parseInt(skillLevel) || 5,
-        depth: parseInt(depth) || 10,
-        thinkTimeMs: parseInt(thinkTimeMs) || 2000,
-        blunderChance: parseFloat(blunderChance) || 0.1,
-        aggressiveness: parseInt(aggressiveness) || 0,
-        openingBook: openingBook === "true" || openingBook === true,
-        isActive: isActive === "true" || isActive === true,
-        sortOrder: parseInt(sortOrder) || 0,
       };
 
       const bot = new Bot(botData);
@@ -259,6 +354,9 @@ router.post(
           .status(400)
           .json({ error: "A bot with this name already exists" });
       }
+      if (error?.name === "ValidationError") {
+        return res.status(400).json({ error: error.message });
+      }
       res.status(500).json({ error: "Failed to create bot" });
     }
   },
@@ -271,50 +369,22 @@ router.put(
   uploadAvatarFile,
   async (req, res) => {
     try {
-      const {
-        name,
-        avatar,
-        eloRating,
-        difficulty,
-        category,
-        title,
-        quote,
-        description,
-        personality,
-        countryCode,
-        playStyle,
-        skillLevel,
-        depth,
-        thinkTimeMs,
-        blunderChance,
-        aggressiveness,
-        openingBook,
-        isActive,
-        sortOrder,
-      } = req.body;
-
-      // Validate required fields
-      if (name && (name.length < 2 || name.length > 50)) {
+      const { data: normalizedData, error: validationError } = normalizeBotPayload(
+        req.body,
+        { partial: true },
+      );
+      if (validationError) {
         await cleanupBotAvatarMedia(req.file);
-        return res
-          .status(400)
-          .json({ error: "Bot name must be 2-50 characters" });
-      }
-
-      if (eloRating) {
-        const rating = parseInt(eloRating);
-        if (isNaN(rating) || rating < 100 || rating > 3000) {
-          await cleanupBotAvatarMedia(req.file);
-          return res
-            .status(400)
-            .json({ error: "ELO rating must be between 100-3000" });
-        }
+        return res.status(400).json({ error: validationError });
       }
 
       // Check for duplicate name (excluding current bot)
-      if (name) {
+      if (normalizedData.name) {
         const existing = await Bot.findOne({
-          name: { $regex: `^${name}$`, $options: "i" },
+          name: {
+            $regex: `^${escapeRegex(normalizedData.name)}$`,
+            $options: "i",
+          },
           _id: { $ne: req.params.id },
         });
         if (existing) {
@@ -331,9 +401,7 @@ router.put(
         return res.status(404).json({ error: "Bot not found" });
       }
 
-      const updateData = {};
-      if (name) updateData.name = name;
-      if (avatar) updateData.avatar = avatar;
+      const updateData = { ...normalizedData };
       if (req.file) {
         updateData.avatarUrl = req.file.url;
         updateData.avatarAssetId = String(req.file.assetId || "");
@@ -341,32 +409,10 @@ router.put(
         updateData.avatarOriginalName = String(req.file.originalName || "");
         updateData.avatarSize = Number(req.file.size || 0);
       }
-      if (eloRating) updateData.eloRating = parseInt(eloRating);
-      if (difficulty) updateData.difficulty = difficulty;
-      if (category !== undefined) updateData.category = category;
-      if (title !== undefined) updateData.title = title;
-      if (quote !== undefined) updateData.quote = quote;
-      if (description !== undefined) updateData.description = description;
-      if (personality !== undefined) updateData.personality = personality;
-      if (countryCode !== undefined) updateData.countryCode = countryCode;
-      if (playStyle) updateData.playStyle = playStyle;
-      if (skillLevel !== undefined)
-        updateData.skillLevel = parseInt(skillLevel);
-      if (depth !== undefined) updateData.depth = parseInt(depth);
-      if (thinkTimeMs !== undefined)
-        updateData.thinkTimeMs = parseInt(thinkTimeMs);
-      if (blunderChance !== undefined)
-        updateData.blunderChance = parseFloat(blunderChance);
-      if (aggressiveness !== undefined)
-        updateData.aggressiveness = parseInt(aggressiveness);
-      if (openingBook !== undefined)
-        updateData.openingBook = openingBook === "true" || openingBook === true;
-      if (isActive !== undefined)
-        updateData.isActive = isActive === "true" || isActive === true;
-      if (sortOrder !== undefined) updateData.sortOrder = parseInt(sortOrder);
 
       const bot = await Bot.findByIdAndUpdate(req.params.id, updateData, {
         new: true,
+        runValidators: true,
       });
 
       if (req.file) {
@@ -386,6 +432,9 @@ router.put(
         return res
           .status(400)
           .json({ error: "A bot with this name already exists" });
+      }
+      if (error?.name === "ValidationError") {
+        return res.status(400).json({ error: error.message });
       }
       res.status(500).json({ error: "Failed to update bot" });
     }

@@ -43,6 +43,15 @@ interface PublicUser {
   presenceStatus?: "online" | "offline" | "searching_match" | "in_game" | "away";
   lastSeenAt?: string | null;
   lastActiveAt?: string | null;
+  isWatchableInGame?: boolean;
+  watchableGame?: {
+    gameId: string;
+    kind: "classic" | "fourPlayer";
+    mode: "quick" | "friend" | "tournament" | "fourPlayer";
+    variant?: string;
+    status?: "active" | "temporarily_disconnected";
+    participantCount?: number;
+  } | null;
 }
 
 export default function UserProfile() {
@@ -261,6 +270,17 @@ export default function UserProfile() {
     );
   }, [isBlockedByMe, navigate, profileUser?.fullName, userId]);
 
+  const handleWatch = useCallback(() => {
+    if (isBlockedByMe) {
+      setActionError("Unable to watch this player's game.");
+      return;
+    }
+    if (!profileUser?.isWatchableInGame) return;
+    const gameId = String(profileUser.watchableGame?.gameId || "").trim();
+    const query = gameId ? `?gameId=${encodeURIComponent(gameId)}` : "";
+    navigate(`/watch${query}`);
+  }, [isBlockedByMe, navigate, profileUser?.isWatchableInGame, profileUser?.watchableGame?.gameId]);
+
   const handleToggleBlock = useCallback(async () => {
     if (!userId || blockActionLoading) return;
 
@@ -354,6 +374,7 @@ export default function UserProfile() {
           onAddFriend={canUseFriendActions ? handleAddFriend : undefined}
           onRemoveFriend={canUseFriendActions ? handleRemoveFriend : undefined}
           onChallenge={canUseFriendActions ? handleChallenge : undefined}
+          onWatch={canUseFriendActions ? handleWatch : undefined}
           onMessage={canUseFriendActions ? handleMessage : undefined}
           onAcceptRequest={canUseFriendActions ? handleAcceptRequest : undefined}
           onIgnoreRequest={canUseFriendActions ? handleIgnoreRequest : undefined}

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useId, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Chessboard } from "react-chessboard";
 import { useTranslation } from "react-i18next";
@@ -86,6 +86,7 @@ export default function PlayWithBot() {
 
   // Responsive board width
   const [boardWidth, setBoardWidth] = useState(620);
+  const previewBoardId = useId().replace(/:/g, "");
   const containerRef = useRef<HTMLDivElement>(null);
   const leftRef = useRef<HTMLDivElement>(null);
 
@@ -224,6 +225,7 @@ export default function PlayWithBot() {
             style={{ width: boardWidth }}
           >
             <Chessboard
+              id={`bot-setup-board-${previewBoardId}`}
               boardWidth={boardWidth}
               position="start"
               arePiecesDraggable={false}

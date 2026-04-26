@@ -7,13 +7,16 @@ import {
   shouldPersistHistoryByPlies,
 } from "./gameLifecyclePolicy.js";
 
-test("uses 60s abort threshold for non 1+0 time controls", () => {
+test("uses 60s abort threshold for 3+ minute time controls", () => {
+  assert.equal(getAbortThresholdMs({ initial: 180, increment: 0 }), 60_000);
   assert.equal(getAbortThresholdMs({ initial: 300, increment: 1 }), 60_000);
   assert.equal(getAbortThresholdMs({ initial: 600, increment: 0 }), 60_000);
 });
 
-test("uses 10s abort threshold for 1+0 bullet", () => {
+test("uses 10s abort threshold for under 3 minute time controls", () => {
   assert.equal(getAbortThresholdMs({ initial: 60, increment: 0 }), 10_000);
+  assert.equal(getAbortThresholdMs({ initial: 120, increment: 1 }), 10_000);
+  assert.equal(getAbortThresholdMs({ initial: 179, increment: 5 }), 10_000);
 });
 
 test("keeps early disconnect results unless the game is explicitly aborted", () => {

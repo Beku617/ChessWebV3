@@ -1,5 +1,7 @@
+import { normalizeTimeControl } from "./gameClock.js";
+
 export const ABORT_TIMEOUT_MS_DEFAULT = 60 * 1000;
-export const ABORT_TIMEOUT_MS_BULLET_ONE_ZERO = 10 * 1000;
+export const ABORT_TIMEOUT_MS_BULLET = 10 * 1000;
 export const MIN_REAL_GAME_PLIES = 2;
 
 function normalizeSeconds(value, fallback) {
@@ -9,20 +11,21 @@ function normalizeSeconds(value, fallback) {
 }
 
 export function normalizeTimeControlSeconds(timeControl) {
+  const normalized = normalizeTimeControl(timeControl);
   return {
-    initial: normalizeSeconds(timeControl?.initial, 300),
-    increment: normalizeSeconds(timeControl?.increment, 0),
+    initial: normalizeSeconds(normalized?.initial, 300),
+    increment: normalizeSeconds(normalized?.increment, 0),
   };
 }
 
-export function isOnePlusZeroBullet(timeControl) {
+export function isBulletAbortTimeControl(timeControl) {
   const normalized = normalizeTimeControlSeconds(timeControl);
-  return normalized.initial === 60 && normalized.increment === 0;
+  return normalized.initial > 0 && normalized.initial < 180;
 }
 
 export function getAbortThresholdMs(timeControl) {
-  return isOnePlusZeroBullet(timeControl)
-    ? ABORT_TIMEOUT_MS_BULLET_ONE_ZERO
+  return isBulletAbortTimeControl(timeControl)
+    ? ABORT_TIMEOUT_MS_BULLET
     : ABORT_TIMEOUT_MS_DEFAULT;
 }
 

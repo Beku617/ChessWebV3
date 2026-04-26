@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useId, useRef } from "react";
 import { Chessboard } from "react-chessboard";
 import {
+  Clock,
   ChevronDown,
   ChevronUp,
   ExternalLink,
@@ -172,6 +173,7 @@ export function QuickMatchSetup({
 
   // Responsive board width
   const [boardWidth, setBoardWidth] = useState(640);
+  const previewBoardId = useId().replace(/:/g, "");
   const containerRef = useRef<HTMLDivElement>(null);
   const leftRef = useRef<HTMLDivElement>(null);
   const topBarRef = useRef<HTMLDivElement>(null);
@@ -301,6 +303,7 @@ export function QuickMatchSetup({
             style={{ width: boardWidth, height: boardWidth }}
           >
             <Chessboard
+              id={`quick-match-setup-board-${previewBoardId}`}
               boardWidth={boardWidth}
               position="start"
               arePiecesDraggable={false}

@@ -1,4 +1,5 @@
 import { Gamepad2, Image as ImageIcon, Send, Video } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type {
   CommunityGroup,
   CommunityShareableGameSummary,
@@ -43,6 +44,8 @@ export function ComposerActionBar({
   onToggleGamePicker,
   onSubmit,
 }: ComposerActionBarProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="mt-4 flex items-center justify-between border-t border-white/5 pt-3">
       <div className="flex flex-wrap items-center gap-2">
@@ -50,16 +53,16 @@ export function ComposerActionBar({
           (lockGroupSelection ? (
             <div className="inline-flex items-center gap-2 rounded-lg bg-brand-500/12 px-3.5 py-2 text-sm text-brand-100">
               <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-brand-200/70">
-                Group
+                {t("communityComposer.group")}
               </span>
               <span className="font-medium">
-                {selectedGroup?.name || "Selected group"}
+                {selectedGroup?.name || t("communityComposer.selectedGroup")}
               </span>
             </div>
           ) : (
             <label className="inline-flex items-center gap-2 rounded-lg bg-white/[0.04] px-3 py-2 text-sm text-gray-300 transition-colors hover:bg-white/[0.08]">
               <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500">
-                Group
+                {t("communityComposer.group")}
               </span>
               <select
                 value={selectedGroupId}
@@ -67,7 +70,7 @@ export function ComposerActionBar({
                 className="min-w-[150px] bg-transparent text-sm text-gray-200 focus:outline-none"
               >
                 <option value="" className="bg-[#0d192c] text-white">
-                  General community
+                  {t("communityComposer.generalCommunity")}
                 </option>
                 {availableGroups.map((group) => (
                   <option
@@ -89,7 +92,7 @@ export function ComposerActionBar({
           className="inline-flex items-center gap-2 rounded-lg bg-white/[0.04] px-3.5 py-2 text-sm text-gray-300 transition-colors hover:bg-white/[0.08] hover:text-brand-200 disabled:cursor-not-allowed disabled:opacity-45"
         >
           <ImageIcon className="h-4 w-4" />
-          Image
+          {t("communityComposer.image")}
         </button>
         <button
           type="button"
@@ -98,7 +101,7 @@ export function ComposerActionBar({
           className="inline-flex items-center gap-2 rounded-lg bg-white/[0.04] px-3.5 py-2 text-sm text-gray-300 transition-colors hover:bg-white/[0.08] hover:text-brand-200 disabled:cursor-not-allowed disabled:opacity-45"
         >
           <Video className="h-4 w-4" />
-          Video
+          {t("communityComposer.video")}
         </button>
         <button
           type="button"
@@ -114,7 +117,9 @@ export function ComposerActionBar({
           }`}
         >
           <Gamepad2 className="h-4 w-4" />
-          {selectedGameSummary ? "Change Game" : "Share Game"}
+          {selectedGameSummary
+            ? t("communityComposer.changeGame")
+            : t("communityComposer.shareGame")}
         </button>
       </div>
 
@@ -131,7 +136,11 @@ export function ComposerActionBar({
           }`}
         >
           <Send className="h-4 w-4" />
-          {isSubmitting ? "Submitting..." : isSubmissionBlocked ? "Unavailable" : "Submit"}
+          {isSubmitting
+            ? t("communityComposer.submitting")
+            : isSubmissionBlocked
+              ? t("communityComposer.unavailable")
+              : t("communityComposer.submit")}
         </button>
       </div>
     </div>

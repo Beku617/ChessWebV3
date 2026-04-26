@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { GameHistory } from "../../historyTypes";
 import AdminSidebar from "../../components/AdminSidebar";
 import {
@@ -18,6 +19,7 @@ interface AdminReplayContentProps {
 }
 
 export function AdminReplayContent({ game }: AdminReplayContentProps) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const replay = useGameReplay(game);
 
@@ -38,7 +40,7 @@ export function AdminReplayContent({ game }: AdminReplayContentProps) {
             className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
           >
             <ArrowLeft size={16} />
-            <span>Back</span>
+            <span>{t("analysis.back")}</span>
           </button>
         </div>
 

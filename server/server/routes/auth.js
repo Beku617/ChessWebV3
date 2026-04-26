@@ -6,6 +6,7 @@ import { OAuth2Client } from "google-auth-library";
 import rateLimit from "express-rate-limit";
 import { body, param, validationResult } from "express-validator";
 import {
+  ActiveGameSession,
   User,
   BlockedUser,
   Friend,
@@ -40,6 +41,8 @@ const VALID_PRESENCE = new Set([
   "in_game",
   "away",
 ]);
+const WATCHABLE_SESSION_STATUSES = ["active", "temporarily_disconnected"];
+const WATCHABLE_SESSION_MODES = ["quick", "friend", "tournament", "fourPlayer"];
 const googleClientCache = new Map();
 
 function getGoogleAuthConfig() {
@@ -68,6 +71,61 @@ function normalizePresenceStatus(value) {
     .trim()
     .toLowerCase();
   return VALID_PRESENCE.has(status) ? status : "offline";
+}
+
+function normalizeWatchKind(kind) {
+  return kind === "fourPlayer" ? "fourPlayer" : "classic";
+}
+
+function normalizeWatchMode(mode) {
+  if (mode === "friend" || mode === "tournament" || mode === "fourPlayer") {
+    return mode;
+  }
+  return "quick";
+}
+
+async function buildWatchableSessionForUser(userId) {
+  const normalizedUserId = String(userId || "").trim();
+  if (!normalizedUserId) return null;
+
+  const sessions = await ActiveGameSession.find({
+    participantUserIds: normalizedUserId,
+    status: { $in: WATCHABLE_SESSION_STATUSES },
+    mode: { $in: WATCHABLE_SESSION_MODES },
+  })
+    .select("gameId kind mode status variant participantUserIds updatedAt")
+    .sort({ updatedAt: -1 })
+    .lean();
+
+  for (const session of sessions) {
+    const participants = Array.from(
+      new Set(
+        (Array.isArray(session?.participantUserIds) ? session.participantUserIds : [])
+          .map((id) => String(id || "").trim())
+          .filter(Boolean),
+      ),
+    );
+
+    // "Watch" should only show for real multiplayer games.
+    if (participants.length < 2) continue;
+
+    const gameId = String(session?.gameId || "").trim();
+    if (!gameId) continue;
+
+    return {
+      gameId,
+      kind: normalizeWatchKind(session?.kind),
+      mode: normalizeWatchMode(session?.mode),
+      variant: String(session?.variant || "standard"),
+      status:
+        String(session?.status || "") === "temporarily_disconnected"
+          ? "temporarily_disconnected"
+          : "active",
+      participantCount: participants.length,
+    };
+  }
+
+  return null;
 }
 
 async function fetchGoogleProfileFromAccessToken(token, googleClientId) {
@@ -1384,22 +1442,30 @@ router.get("/users/:userId", authMiddleware, async (req, res) => {
       }
     }
 
-    // Fetch game history count
-    const { default: HistoryModel } = await import("../models/History.js");
-    const totalGames = await HistoryModel.countDocuments({ userId: user._id });
-    const totalWins = await HistoryModel.countDocuments({
-      userId: user._id,
-      $or: [
-        { result: "1-0", playAs: "white" },
-        { result: "0-1", playAs: "black" },
-      ],
-    });
+    // Fetch profile activity + game history count
+    const [{ default: HistoryModel }, watchableGame] = await Promise.all([
+      import("../models/History.js"),
+      buildWatchableSessionForUser(user._id),
+    ]);
+
+    const [totalGames, totalWins] = await Promise.all([
+      HistoryModel.countDocuments({ userId: user._id }),
+      HistoryModel.countDocuments({
+        userId: user._id,
+        $or: [
+          { result: "1-0", playAs: "white" },
+          { result: "0-1", playAs: "black" },
+        ],
+      }),
+    ]);
 
     res.json({
       user: {
         ...toPublicUser(user),
         gamesPlayed: Math.max(user.gamesPlayed ?? 0, totalGames),
         gamesWon: Math.max(user.gamesWon ?? 0, totalWins),
+        isWatchableInGame: !!watchableGame,
+        watchableGame,
       },
       relationship,
       relationshipRequestId,

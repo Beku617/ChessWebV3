@@ -4,11 +4,10 @@ import {
   Eye,
   ChevronRight,
   ChevronLeft,
-  ExternalLink,
   RefreshCw,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { TransformedLiveGame } from "../../utils/lichessApi";
+import type { WatchLiveGame } from "./types";
 
 const GAMES_PER_PAGE = 12;
 
@@ -25,7 +24,7 @@ function getPageNumbers(current: number, total: number): (number | "...")[] {
 }
 
 interface LiveGameCardProps {
-  game: TransformedLiveGame;
+  game: WatchLiveGame;
 }
 
 export function LiveGameCard({ game }: LiveGameCardProps) {
@@ -95,11 +94,7 @@ export function LiveGameCard({ game }: LiveGameCardProps) {
         </div>
       </div>
 
-      <div className="pt-4 border-t border-gray-200 dark:border-gray-800 flex justify-between items-center">
-        <span className="text-xs text-gray-400 flex items-center gap-1">
-          <ExternalLink className="w-3 h-3" />
-          Lichess
-        </span>
+      <div className="pt-4 border-t border-gray-200 dark:border-gray-800 flex justify-end items-center">
         <span className="text-brand-600 dark:text-brand-500 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity flex items-center">
           {t("Watch")} <ChevronRight className="w-4 h-4 ml-1" />
         </span>
@@ -136,7 +131,7 @@ function GameCardSkeleton() {
 interface LiveGamesGridProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
-  games: TransformedLiveGame[];
+  games: WatchLiveGame[];
   loading?: boolean;
   onRefresh?: () => void;
 }
@@ -151,7 +146,7 @@ export function LiveGamesGrid({
   const { t } = useTranslation();
   const [currentPage, setCurrentPage] = useState(1);
 
-  const getCategory = (game: TransformedLiveGame) => {
+  const getCategory = (game: WatchLiveGame) => {
     if (game.category) return game.category;
     if (game.speed) {
       const speed = game.speed.toLowerCase();
@@ -319,18 +314,6 @@ export function LiveGamesGrid({
         </div>
       )}
 
-      {/* Lichess attribution */}
-      <div className="mt-6 text-center text-xs text-gray-400 dark:text-gray-500">
-        {t("Live games powered by")}{" "}
-        <a
-          href="https://lichess.org"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-brand-600 dark:text-brand-500 hover:underline"
-        >
-          Lichess.org
-        </a>
-      </div>
     </section>
   );
 }

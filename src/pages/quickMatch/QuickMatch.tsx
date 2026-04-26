@@ -157,12 +157,36 @@ function readStoredTimeControl(): { initial: number; increment: number } | null 
 
 function getAutoStartFromState(state: unknown): boolean {
   if (!state || typeof state !== "object") return false;
-  return (state as { autoStart?: unknown }).autoStart === true;
+  const raw = (state as { autoStart?: unknown }).autoStart;
+  if (raw === true || raw === 1) return true;
+  if (typeof raw === "string") {
+    const normalized = raw
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+$/g, "");
+    return (
+      normalized === "1" ||
+      normalized === "true" ||
+      normalized === "yes" ||
+      normalized === "on"
+    );
+  }
+  return false;
 }
 
 function getAutoStartFromSearch(search: string): boolean {
-  const value = new URLSearchParams(search).get("autostart");
-  return value === "1" || value === "true";
+  const rawValue = new URLSearchParams(search).get("autostart");
+  if (!rawValue) return false;
+  const normalized = rawValue
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+$/g, "");
+  return (
+    normalized === "1" ||
+    normalized === "true" ||
+    normalized === "yes" ||
+    normalized === "on"
+  );
 }
 
 function getVariantFromState(state: unknown): MatchVariant | null {

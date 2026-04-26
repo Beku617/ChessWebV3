@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Chess, type Square } from "chess.js";
 import { Chessboard } from "react-chessboard";
@@ -66,6 +66,7 @@ export default function LearnLesson() {
     null,
   );
   const boardViewportRef = useRef<HTMLDivElement | null>(null);
+  const lessonBoardId = useId().replace(/:/g, "");
 
   useEffect(() => {
     const node = boardViewportRef.current;
@@ -445,11 +446,13 @@ export default function LearnLesson() {
           <div ref={boardViewportRef} className="w-full h-full min-h-[380px] xl:min-h-0 flex items-center justify-center xl:justify-start">
             <div className="rounded-xl overflow-hidden shadow-[0_16px_40px_rgba(2,6,23,0.7)] border border-slate-800">
               <Chessboard
-                id="learn-lesson-board"
+                id={`learn-lesson-board-${lessonBoardId}`}
+                allowDragOutsideBoard={false}
                 position={boardFen}
-                onPieceDrop={(sourceSquare, targetSquare) =>
-                  allowDragInput ? onDrop(sourceSquare, targetSquare) : false
-                }
+                onPieceDrop={(sourceSquare, targetSquare) => {
+                  if (!allowDragInput) return false;
+                  return onDrop(sourceSquare, targetSquare);
+                }}
                 onSquareClick={(square) => {
                   if (!allowClickInput) return;
                   onSquareClick(square);
@@ -462,6 +465,7 @@ export default function LearnLesson() {
                 }
                 customBoardStyle={{ borderRadius: "10px" }}
                 customSquareStyles={boardSquareStyles}
+                dropOffBoardAction="snapback"
               />
             </div>
           </div>

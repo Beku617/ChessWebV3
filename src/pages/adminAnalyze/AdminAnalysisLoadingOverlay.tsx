@@ -1,4 +1,5 @@
 import AdminSidebar from "../../components/AdminSidebar";
+import { useTranslation } from "react-i18next";
 
 interface AdminAnalysisLoadingOverlayProps {
   progress: number;
@@ -7,6 +8,8 @@ interface AdminAnalysisLoadingOverlayProps {
 export function AdminAnalysisLoadingOverlay({
   progress,
 }: AdminAnalysisLoadingOverlayProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="h-screen bg-[#f5f5f7] dark:bg-gray-950 text-gray-900 dark:text-white flex">
       <AdminSidebar />
@@ -14,17 +17,16 @@ export function AdminAnalysisLoadingOverlay({
         <div className="text-center">
           {/* Title */}
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            Analyzing Game
+            {t("analysis.adminLoadingTitle")}
           </h2>
           <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-sm mx-auto">
-            Stockfish is evaluating each position to calculate accuracy and move
-            quality
+            {t("analysis.loadingDescription")}
           </p>
 
           {/* Progress bar */}
           <div className="w-80 mx-auto mb-4">
             <div className="flex justify-between text-sm text-gray-500 dark:text-gray-400 mb-2">
-              <span>Progress</span>
+              <span>{t("analysis.progress")}</span>
               <span>{progress}%</span>
             </div>
             <div className="h-3 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
@@ -38,10 +40,10 @@ export function AdminAnalysisLoadingOverlay({
           {/* Analysis steps */}
           <div className="flex items-center justify-center gap-6 text-sm text-gray-500 dark:text-gray-400">
             <div className={progress > 0 ? "text-brand-500" : ""}>
-              <span>Evaluating positions</span>
+              <span>{t("analysis.evaluatingPositions")}</span>
             </div>
             <div className={progress > 50 ? "text-brand-500" : ""}>
-              <span>Calculating accuracy</span>
+              <span>{t("analysis.calculatingAccuracy")}</span>
             </div>
           </div>
         </div>

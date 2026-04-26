@@ -1,2 +1,2 @@
-cd c:\Users\User\OneDrive\Desktop\DesignV1\Design
-npm run dev -- --host localhost --port 5173
+cd C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3
+npm run dev

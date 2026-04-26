@@ -52,7 +52,11 @@
     "orSignup": "Эсвэл дараахаар бүртгүүл",
     "haveAccount": "Өмнө нь бүртгүүлсэн үү?",
     "signInCta": "Нэвтрэх",
-    "registrationFailed": "Бүртгэл амжилтгүй"
+    "registrationFailed": "Бүртгэл амжилтгүй",
+    "facebookLoginFailed": "Facebook-ээр нэвтрэхэд алдаа гарлаа.",
+    "continueWithGoogle": "Google-ээр үргэлжлүүлэх",
+    "continueWithFacebook": "Facebook-ээр үргэлжлүүлэх",
+    "socialNotConfigured": "Сошиал нэвтрэх тохиргоо хийгдээгүй байна."
   },
   "settings": {
     "header": {
@@ -553,6 +557,20 @@
         "description": "{{san}} нүүгдсэн.",
         "details": "Энэ нүүдэлд шинжилгээ алга."
       }
+    },
+    "loadingTitle": "Таны тоглолцоог шинжилж байна",
+    "adminLoadingTitle": "Тоглолцоог шинжилж байна",
+    "loadingDescription": "Stockfish байрлал бүрийг үнэлж, нарийвчлал болон нүүдлийн чанарыг тооцоолж байна",
+    "progress": "Явц",
+    "evaluatingPositions": "Байрлалуудыг үнэлж байна",
+    "calculatingAccuracy": "Нарийвчлалыг тооцоолж байна",
+    "gameNotFound": "Тоглолцоо олдсонгүй",
+    "backToProfile": "Профайл руу буцах",
+    "errors": {
+      "noGameId": "Тоглолцооны ID өгөгдөөгүй байна",
+      "fetchGame": "Тоглолцоог татаж чадсангүй",
+      "loadGame": "Тоглолцоог ачаалж чадсангүй",
+      "unableToLoadGame": "Тоглолцоог ачаалах боломжгүй байна"
     }
   },
   "presence": {
@@ -569,5 +587,131 @@
       "online": "Онлайн",
       "offline": "Оффлайн"
     }
+  },
+  "messages": {
+    "search": "Яриа хайх",
+    "tabConversations": "Ярианууд",
+    "tabArchived": "Архив",
+    "loading": "Яриануудыг ачаалж байна...",
+    "archivedEmpty": "Архивласан чат алга.",
+    "conversationsEmpty": "Одоогоор яриа алга.",
+    "noMessages": "Одоогоор зурвас алга.",
+    "deleteConfirmTitle": "Яриаг устгах уу?",
+    "deleteConfirmBody": "Энэ нь яриаг таны зурвасаас устгана. Нөгөө оролцогчийн талд устгахгүй.",
+    "confirmDelete": "Устгах",
+    "archivedReadOnly": "Энэ яриа архивлагдсан байна. Хариулахын тулд архиваас гаргана уу.",
+    "unarchive": "Архиваас гаргах",
+    "clearAttachments": "Бүгдийг арилгах",
+    "composePlaceholder": "Зурвас бичнэ үү...",
+    "archived": "Яриаг архив руу шилжүүллээ.",
+    "unarchived": "Яриаг архивнаас гаргалаа.",
+    "conversation": "Яриа",
+    "loadingConversation": "Яриануудыг ачаалж байна...",
+    "openingLatest": "Хамгийн сүүлийн яриаг нээж байна...",
+    "emptyTitle": "Яриа алга",
+    "emptySubtitle": "Жагсаалтаасаа тоглогч сонгож, шууд яриагаа эхлүүлнэ үү.",
+    "archive": "Архивлах",
+    "action": "Ажиллаж байна...",
+    "delete": "Устгах",
+    "startConversation": "Одоогоор зурвас алга. Яриагаа эхлүүлнэ үү.",
+    "errors": {
+      "send": "Зурвас илгээж чадсангүй.",
+      "archive": "Энэ яриаг одоогоор архивлаж чадсангүй.",
+      "unarchive": "Энэ яриаг одоогоор архиваас гаргаж чадсангүй.",
+      "delete": "Энэ яриаг одоогоор устгаж чадсангүй."
+    }
+  },
+  "communityComposer": {
+    "group": "Бүлэг",
+    "selectedGroup": "Сонгосон бүлэг",
+    "generalCommunity": "Ерөнхий нийгэмлэг",
+    "image": "Зураг",
+    "video": "Видео",
+    "shareGame": "Тоглолцоо хуваалцах",
+    "changeGame": "Тоглолцоо солих",
+    "submitting": "Илгээж байна...",
+    "unavailable": "Боломжгүй",
+    "submit": "Илгээх",
+    "chooseGame": "Тоглолцоо сонгох",
+    "chooseGameDescription": "Саяхны тоглолтуудаасаа тайлбар болон мини самбартай дахин тоглуулах хэлбэрээр хуваалцаарай.",
+    "closeGamePicker": "Тоглолцоо сонгогчийг хаах",
+    "gameSearchPlaceholder": "Өрсөлдөгч, нээлт, үр дүн эсвэл цагийн хяналтаар хайх...",
+    "noGamesFound": "Тоглолцоо олдсонгүй",
+    "noGamesFoundDescription": "Эхлээд хэдэн тоглолт дуусгаад, эсвэл хайлтаа өргөжүүлээд үзнэ үү.",
+    "vsOpponent": "{{opponent}}-ийн эсрэг",
+    "movesCount_one": "{{count}} нүүдэл",
+    "movesCount_other": "{{count}} нүүдэл",
+    "change": "Солих",
+    "remove": "Устгах",
+    "removeMedia": "Медиа устгах",
+    "selectedPreview": "Сонгосон урьдчилсан харагдац",
+    "imageSet": "Зургийн багц",
+    "imagesSelected_one": "{{count}} зураг сонгогдсон",
+    "imagesSelected_other": "{{count}} зураг сонгогдсон",
+    "clearAll": "Бүгдийг цэвэрлэх",
+    "selectedImageAlt": "Сонгосон зураг {{index}}",
+    "removeImageAria": "{{index}}-р зургийг устгах",
+    "errors": {
+      "supportedImage": "Дэмжигдэх зургийн файл сонгоно уу.",
+      "imageTooLarge": "Зураг хэт том байна. Хамгийн их хэмжээ 8MB.",
+      "supportedVideo": "Дэмжигдэх видео файл сонгоно уу.",
+      "videoTooLarge": "Видео хэт том байна. Хамгийн их хэмжээ 50MB.",
+      "restrictedWithReason": "Модерацийн улмаас нийтлэхийг хязгаарласан. Шалтгаан: {{reason}}",
+      "restricted": "Модерацийн улмаас нийтлэхийг одоогоор хязгаарласан.",
+      "temporarilyRestrictedUntil": "{{until}} хүртэл нийтлэхийг түр хязгаарласан.",
+      "temporarilyRestricted": "Модерацийн улмаас нийтлэхийг түр хязгаарласан.",
+      "temporarilyRestrictedWithReason": "{{base}} Шалтгаан: {{reason}}",
+      "tryAgainIn": " {{duration}} дараа дахин оролдоно уу.",
+      "rateLimited": "Та нийтлэх хязгаарт хүрсэн байна (3 цаг тутамд {{maxPosts}} нийтлэл).{{waitText}}",
+      "unavailable": "Одоогоор нийтлэх боломжгүй байна.",
+      "loadSelectedGame": "Сонгосон тоглолцоог ачаалж чадсангүй."
+    }
+  },
+  "communityGameViewer": {
+    "whiteWon": "Цагаан хожсон",
+    "blackWon": "Хар хожсон",
+    "draw": "Тэнцээ",
+    "resultUnavailable": "Үр дүн алга",
+    "previewUnavailable": "Тоглолцооны урьдчилсан харагдац боломжгүй байна.",
+    "analyzeGame": "Тоглолцоо шинжлэх",
+    "useArrowKeys": "Суман товч ашиглана уу"
+  },
+  "profileGames": {
+    "allGames": "Бүх тоглолт ({{count}})",
+    "tournamentHistory": "Тэмцээний түүх ({{count}})",
+    "noTournamentHistory": "Тэмцээний түүх одоогоор алга.",
+    "range": "{{start}}-{{end}} / {{total}} тоглолт",
+    "noGamesFound": "Тоглолт олдсонгүй",
+    "noGamesFoundDescription": "Шүүлтүүрээ өөрчлөх эсвэл шинэ тоглолт тоглоод үзнэ үү.",
+    "filters": {
+      "all": "Бүгд",
+      "wins": "Хожил",
+      "losses": "Хожигдол",
+      "draws": "Тэнцээ"
+    },
+    "columns": {
+      "tournament": "Тэмцээн",
+      "format": "Формат",
+      "placement": "Байр",
+      "score": "Оноо",
+      "eloChange": "ELO өөрчлөлт",
+      "date": "Огноо"
+    }
+  },
+  "tournamentProfile": {
+    "unavailable": "Тэмцээний профайлын мэдээлэл боломжгүй байна.",
+    "description": "Ерөнхий ELO, тэмцээний амжилт болон байр эзлэлтийг харуулна.",
+    "currentElo": "Одоогийн ELO",
+    "record": "Х / Т / Хг",
+    "allTournaments": "Бүх тэмцээн",
+    "tournamentsCreated": "Үүсгэсэн тэмцээнүүд",
+    "organizerActivity": "Зохион байгуулагчийн идэвх",
+    "eloHistory": "ELO түүх",
+    "noEloEvents": "Тэмцээний ELO өөрчлөлтийн түүх алга.",
+    "elo": "ELO",
+    "delta": "Өөрчлөлт",
+    "dateLabel": "Огноо: {{label}}",
+    "historyTitle": "Тэмцээний түүх",
+    "title": "Тэмцээний профайл"
   }
 }

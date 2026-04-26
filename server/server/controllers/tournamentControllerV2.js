@@ -41,7 +41,7 @@ import { maybeAdvanceTournament } from "../services/tournamentRuntime.js";
 
 const router = Router();
 
-const TOURNAMENT_TYPES = new Set(["swiss"]);
+const TOURNAMENT_TYPES = new Set(["swiss", "arena"]);
 const RESULT_INPUT_MAP = new Map([
   ["1-0", "1-0"],
   ["0-1", "0-1"],
@@ -107,9 +107,42 @@ function parseOptionalRatingValue(value) {
   return Math.floor(parsed);
 }
 
-function normalizeTournamentType(input) {
-  const raw = String(input || "swiss").trim();
-  return raw || "swiss";
+function normalizeTournamentType(input, fallback = "swiss") {
+  const raw = String(input ?? "")
+    .trim()
+    .toLowerCase();
+  return raw || fallback;
+}
+
+function parseBoolean(input, fallback = true) {
+  if (typeof input === "boolean") return input;
+  if (typeof input === "number") return input !== 0;
+  const normalized = String(input || "").trim().toLowerCase();
+  if (!normalized) return fallback;
+  if (["true", "1", "yes", "on"].includes(normalized)) return true;
+  if (["false", "0", "no", "off"].includes(normalized)) return false;
+  return fallback;
+}
+
+function normalizeGameType(input) {
+  const normalized = String(input || "standard")
+    .trim()
+    .toLowerCase();
+  if (normalized === "chess960" || normalized === "960") return "chess960";
+  return "standard";
+}
+
+function normalizeSetupValue(input) {
+  const normalized = String(input || "standard").trim();
+  return normalized || "standard";
+}
+
+function normalizePairingLogic(input, tournamentType) {
+  const normalized = String(input || "").trim();
+  if (tournamentType === "arena") {
+    return normalized || "rating-based";
+  }
+  return normalized || "swiss_pairing";
 }
 
 function normalizeResultValue(input) {
@@ -149,6 +182,7 @@ function normalizeSortMode(value) {
 }
 
 function formatTypeLabel(type) {
+  if (String(type || "").toLowerCase() === "arena") return "Arena";
   return "Swiss";
 }
 
@@ -285,6 +319,15 @@ function buildTournamentSummary(tournament, extras = {}) {
     type: tournament.type,
     format: tournament.type,
     formatLabel: formatTypeLabel(tournament.type),
+    rated: parseBoolean(tournament.rated, true),
+    gameType: normalizeGameType(tournament.gameType),
+    setup: normalizeSetupValue(tournament.setup),
+    pairingLogic: normalizePairingLogic(tournament.pairingLogic, tournament.type),
+    durationMinutes:
+      Number.isFinite(Number(tournament.durationMinutes)) && Number(tournament.durationMinutes) > 0
+        ? Number(tournament.durationMinutes)
+        : null,
+    timezone: String(tournament.timezone || ""),
     timeControl: tournament.timeControl,
     timeControlLabel: formatTimeControlLabel(tournament.timeControl),
     ratingMin: ratingBounds.min,
@@ -742,7 +785,7 @@ async function ensureOrganizerAccess(req, res, tournamentId) {
     res.status(400).json({ error: "Invalid tournament id" });
     return null;
   }
-  const tournament = await Tournament.findOne({ _id: tournamentId, type: "swiss" });
+  const tournament = await Tournament.findOne({ _id: tournamentId });
   if (!tournament) {
     res.status(404).json({ error: "Tournament not found" });
     return null;
@@ -1298,6 +1341,7 @@ async function completeTournament({
 }
 
 async function parseTemplatePayload(body = {}) {
+  const parsedType = normalizeTournamentType(body.type || "swiss");
   const ratingBounds = normalizeRatingBounds({
     ratingFilterMode: body.ratingFilterMode,
     ratingMin: body.ratingMin,
@@ -1305,7 +1349,14 @@ async function parseTemplatePayload(body = {}) {
   });
   const payload = {
     name: String(body.name || "").trim(),
-    type: normalizeTournamentType(body.type || "swiss"),
+    type: parsedType,
+    rated: parseBoolean(body.rated, true),
+    gameType: normalizeGameType(body.gameType),
+    setup: normalizeSetupValue(body.setup),
+    pairingLogic: normalizePairingLogic(body.pairingLogic, parsedType),
+    durationMinutes:
+      parsedType === "arena" ? parsePositiveInt(body.durationMinutes, null) : null,
+    timezone: String(body.timezone || "").trim().slice(0, 120),
     timeControl: parseTimeControl(body.timeControl),
     ratingMin: ratingBounds.min,
     ratingMax: ratingBounds.max,
@@ -1319,7 +1370,8 @@ async function parseTemplatePayload(body = {}) {
     startType: getStartTypeValue(body.startType),
     scheduledStartAt: parseOptionalDate(body.scheduledStartAt),
     description: String(body.description || "").trim().slice(0, 2000),
-    roundsPlanned: parsePositiveInt(body.roundsPlanned, null),
+    roundsPlanned:
+      parsedType === "swiss" ? parsePositiveInt(body.roundsPlanned, null) : null,
   };
 
   if (!payload.name) {
@@ -1352,14 +1404,14 @@ router.get("/", optionalAuthMiddleware, async (req, res) => {
   try {
     const viewerId = req.user?.userId ? String(req.user.userId) : "";
     const search = String(req.query.search || "").trim().toLowerCase();
-    const requestedType = normalizeTournamentType(req.query.format || req.query.type);
+    const requestedType = normalizeTournamentType(req.query.format || req.query.type, "");
     const requestedStatus = normalizeStatusFilter(req.query.status);
     const sortMode = normalizeSortMode(req.query.sort);
     const limit = Math.max(1, Math.min(100, parsePositiveInt(req.query.limit, 50) || 50));
     const page = Math.max(1, parsePositiveInt(req.query.page, 1) || 1);
 
-    const query = { type: "swiss" };
-    if (TOURNAMENT_TYPES.has(requestedType)) {
+    const query = {};
+    if (requestedType && TOURNAMENT_TYPES.has(requestedType)) {
       query.type = requestedType;
     }
 
@@ -1521,11 +1573,18 @@ router.post("/templates", authMiddleware, async (req, res) => {
 router.post("/", authMiddleware, async (req, res) => {
   try {
     const parsed = await parseTemplatePayload(req.body || {});
-    const roundsPlanned = parsePositiveInt(parsed.roundsPlanned, null) || 1;
+    const roundsPlanned =
+      parsed.type === "swiss" ? parsePositiveInt(parsed.roundsPlanned, null) || 1 : 1;
 
     const tournament = await Tournament.create({
       name: parsed.name,
       type: parsed.type,
+      rated: parsed.rated,
+      gameType: parsed.gameType,
+      setup: parsed.setup,
+      pairingLogic: parsed.pairingLogic,
+      durationMinutes: parsed.durationMinutes,
+      timezone: parsed.timezone,
       timeControl: parsed.timeControl,
       ratingMin: parsed.ratingMin,
       ratingMax: parsed.ratingMax,
@@ -1550,6 +1609,12 @@ router.post("/", authMiddleware, async (req, res) => {
       if (templateName) {
         const payload = {
           type: parsed.type,
+          rated: parsed.rated,
+          gameType: parsed.gameType,
+          setup: parsed.setup,
+          pairingLogic: parsed.pairingLogic,
+          durationMinutes: parsed.durationMinutes,
+          timezone: parsed.timezone,
           timeControl: parsed.timeControl,
           ratingMin: parsed.ratingMin,
           ratingMax: parsed.ratingMax,
@@ -1560,7 +1625,7 @@ router.post("/", authMiddleware, async (req, res) => {
           startType: parsed.startType,
           scheduledStartAt: null,
           description: parsed.description,
-          roundsPlanned: roundsPlanned,
+          roundsPlanned: parsed.type === "swiss" ? roundsPlanned : null,
         };
         await TournamentTemplate.findOneAndUpdate(
           { userId: req.user.userId, name: templateName },
@@ -1590,10 +1655,7 @@ router.get("/by-game/:gameId/context", authMiddleware, async (req, res) => {
       return res.status(404).json({ error: "Tournament game not found" });
     }
 
-    const tournament = await Tournament.findOne({
-      _id: game.tournamentId,
-      type: "swiss",
-    });
+    const tournament = await Tournament.findOne({ _id: game.tournamentId });
     if (!tournament) {
       return res.status(404).json({ error: "Tournament not found" });
     }
@@ -1655,7 +1717,7 @@ router.get("/:id", optionalAuthMiddleware, async (req, res) => {
     if (!isValidObjectId(id)) {
       return res.status(400).json({ error: "Invalid tournament id" });
     }
-    const tournament = await Tournament.findOne({ _id: id, type: "swiss" });
+    const tournament = await Tournament.findOne({ _id: id });
     if (!tournament) {
       return res.status(404).json({ error: "Tournament not found" });
     }
@@ -1673,7 +1735,7 @@ router.get("/:id/players", optionalAuthMiddleware, async (req, res) => {
     if (!isValidObjectId(id)) {
       return res.status(400).json({ error: "Invalid tournament id" });
     }
-    const tournament = await Tournament.findOne({ _id: id, type: "swiss" }).lean();
+    const tournament = await Tournament.findOne({ _id: id }).lean();
     if (!tournament) {
       return res.status(404).json({ error: "Tournament not found" });
     }
@@ -1729,7 +1791,7 @@ router.get("/:id/pairings", optionalAuthMiddleware, async (req, res) => {
     if (!isValidObjectId(id)) {
       return res.status(400).json({ error: "Invalid tournament id" });
     }
-    const tournament = await Tournament.findOne({ _id: id, type: "swiss" }).lean();
+    const tournament = await Tournament.findOne({ _id: id }).lean();
     if (!tournament) {
       return res.status(404).json({ error: "Tournament not found" });
     }
@@ -1776,7 +1838,7 @@ router.get("/:id/standings", optionalAuthMiddleware, async (req, res) => {
     if (!isValidObjectId(id)) {
       return res.status(400).json({ error: "Invalid tournament id" });
     }
-    const tournament = await Tournament.findOne({ _id: id, type: "swiss" }).lean();
+    const tournament = await Tournament.findOne({ _id: id }).lean();
     if (!tournament) {
       return res.status(404).json({ error: "Tournament not found" });
     }
@@ -1808,7 +1870,7 @@ router.get("/:id/export/players.csv", authMiddleware, async (req, res) => {
     if (!isValidObjectId(id)) {
       return res.status(400).json({ error: "Invalid tournament id" });
     }
-    const tournament = await Tournament.findOne({ _id: id, type: "swiss" });
+    const tournament = await Tournament.findOne({ _id: id });
     if (!tournament) {
       return res.status(404).json({ error: "Tournament not found" });
     }
@@ -1842,7 +1904,7 @@ router.get("/:id/export/standings.csv", authMiddleware, async (req, res) => {
     if (!isValidObjectId(id)) {
       return res.status(400).json({ error: "Invalid tournament id" });
     }
-    const tournament = await Tournament.findOne({ _id: id, type: "swiss" });
+    const tournament = await Tournament.findOne({ _id: id });
     if (!tournament) {
       return res.status(404).json({ error: "Tournament not found" });
     }
@@ -1892,7 +1954,7 @@ router.get("/:id/export/games.pgn", authMiddleware, async (req, res) => {
     if (!isValidObjectId(id)) {
       return res.status(400).json({ error: "Invalid tournament id" });
     }
-    const tournament = await Tournament.findOne({ _id: id, type: "swiss" }).lean();
+    const tournament = await Tournament.findOne({ _id: id }).lean();
     if (!tournament) {
       return res.status(404).json({ error: "Tournament not found" });
     }
@@ -1949,7 +2011,7 @@ router.post("/:id/register", authMiddleware, async (req, res) => {
     if (!isValidObjectId(id)) {
       return res.status(400).json({ error: "Invalid tournament id" });
     }
-    const tournament = await Tournament.findOne({ _id: id, type: "swiss" });
+    const tournament = await Tournament.findOne({ _id: id });
     if (!tournament) {
       return res.status(404).json({ error: "Tournament not found" });
     }
@@ -2040,7 +2102,7 @@ async function unregisterHandler(req, res) {
     if (!isValidObjectId(id)) {
       return res.status(400).json({ error: "Invalid tournament id" });
     }
-    const tournament = await Tournament.findOne({ _id: id, type: "swiss" });
+    const tournament = await Tournament.findOne({ _id: id });
     if (!tournament) {
       return res.status(404).json({ error: "Tournament not found" });
     }

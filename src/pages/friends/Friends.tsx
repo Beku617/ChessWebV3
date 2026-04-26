@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
+  Eye,
   Hourglass,
   MessageCircle,
   Search,
@@ -528,6 +529,15 @@ export default function Friends() {
                 <span className="w-2 h-2 rounded-full bg-brand-400" />
                 {formatPresence(friend.presenceStatus, friend.lastActiveAt)}
               </span>
+              {friend.isWatchableInGame && (
+                <span
+                  className="inline-flex items-center gap-1 rounded-full border border-cyan-400/35 bg-cyan-500/10 px-2 py-0.5 text-[11px] font-semibold text-cyan-200"
+                  title="Playing a live multiplayer game"
+                >
+                  <Eye className="w-3 h-3" />
+                  Watch
+                </span>
+              )}
               {friend.since && (
                 <span className="text-slate-500">
                   • Friends since {new Date(friend.since).toLocaleDateString()}
@@ -851,4 +861,3 @@ export default function Friends() {
     </div>
   );
 }
-

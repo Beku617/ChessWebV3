@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { Chess } from "chess.js";
 import {
   Puzzle,
   PuzzleAttempt,
@@ -7,6 +8,8 @@ import {
 import { adminAuthMiddleware } from "../middleware/index.js";
 
 const router = Router();
+const VALID_DIFFICULTIES = new Set(["Easy", "Medium", "Hard"]);
+const UCI_MOVE_PATTERN = /^[a-h][1-8][a-h][1-8][qrbn]?$/i;
 
 function resolveIsWhiteToMove(fen, fallback = true) {
   const side = String(fen || "")
@@ -27,10 +30,12 @@ function normalizeFenKey(fen) {
 }
 
 function safeArray(values) {
-  if (!Array.isArray(values)) return [];
-  return values
-    .map((entry) => String(entry || "").trim())
-    .filter(Boolean);
+  const source = Array.isArray(values)
+    ? values
+    : typeof values === "string"
+      ? values.split(/[\n,]+/)
+      : [];
+  return source.map((entry) => String(entry || "").trim()).filter(Boolean);
 }
 
 function parseBoolean(value) {
@@ -60,6 +65,137 @@ function serializePuzzle(puzzle) {
     featured: base.featured === true,
     createdAt: base.createdAt,
     updatedAt: base.updatedAt,
+  };
+}
+
+function parseFiniteNumber(value, fallback, { min, max, integer = false } = {}) {
+  if (value === undefined || value === null || value === "") {
+    return fallback;
+  }
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) {
+    return null;
+  }
+  const normalized = integer ? Math.trunc(parsed) : parsed;
+  if (min !== undefined && normalized < min) return null;
+  if (max !== undefined && normalized > max) return null;
+  return normalized;
+}
+
+function parseBooleanWithDefault(value, fallback) {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === "true") return true;
+    if (normalized === "false") return false;
+  }
+  return fallback;
+}
+
+function applyPuzzleMove(game, rawMove) {
+  const move = String(rawMove || "").trim();
+  if (!move) return null;
+  if (UCI_MOVE_PATTERN.test(move)) {
+    const normalized = move.toLowerCase();
+    return game.move({
+      from: normalized.slice(0, 2),
+      to: normalized.slice(2, 4),
+      promotion: normalized[4] || undefined,
+    });
+  }
+  return game.move(move, { sloppy: true });
+}
+
+function validateSolutionAgainstFen(fen, solution) {
+  let game;
+  try {
+    game = new Chess(fen);
+  } catch {
+    return "FEN position is invalid.";
+  }
+
+  for (const move of solution) {
+    const applied = applyPuzzleMove(game, move);
+    if (!applied) {
+      return `Solution move "${move}" is not legal for the current position.`;
+    }
+  }
+  return "";
+}
+
+function normalizePuzzlePayload(payload = {}) {
+  const title = String(payload.title || "").trim();
+  if (!title) return { error: "Puzzle title is required." };
+  if (title.length > 160) {
+    return { error: "Puzzle title is too long (160 characters max)." };
+  }
+
+  const difficulty = String(payload.difficulty || "").trim();
+  if (!VALID_DIFFICULTIES.has(difficulty)) {
+    return { error: "Difficulty must be Easy, Medium, or Hard." };
+  }
+
+  const fen = String(payload.fen || "").trim();
+  if (!fen) return { error: "FEN position is required." };
+
+  let chess;
+  try {
+    chess = new Chess(fen);
+  } catch {
+    return { error: "FEN position is invalid." };
+  }
+
+  const solution = safeArray(payload.solution);
+  if (solution.length === 0) {
+    return { error: "At least one solution move is required." };
+  }
+
+  const solutionError = validateSolutionAgainstFen(fen, solution);
+  if (solutionError) {
+    return { error: solutionError };
+  }
+
+  const rating = parseFiniteNumber(payload.rating, 1200, {
+    min: 100,
+    max: 4000,
+    integer: true,
+  });
+  if (rating === null) {
+    return { error: "Rating must be a number between 100 and 4000." };
+  }
+
+  const mateIn = parseFiniteNumber(payload.mateIn, 2, {
+    min: 1,
+    max: 20,
+    integer: true,
+  });
+  if (mateIn === null) {
+    return { error: "Move number must be between 1 and 20." };
+  }
+
+  const category = String(payload.category || "tactics").trim() || "tactics";
+  if (category.length > 80) {
+    return { error: "Category is too long (80 characters max)." };
+  }
+
+  const description = String(payload.description || "").trim();
+  if (description.length > 1000) {
+    return { error: "Description is too long (1000 characters max)." };
+  }
+
+  return {
+    data: {
+      title,
+      difficulty,
+      category,
+      description,
+      fen,
+      solution,
+      rating,
+      isActive: parseBooleanWithDefault(payload.isActive, true),
+      isWhiteToMove: resolveIsWhiteToMove(fen, chess.turn() === "w"),
+      mateIn,
+    },
   };
 }
 
@@ -212,37 +348,19 @@ router.get("/", adminAuthMiddleware, async (req, res) => {
 // Create puzzle
 router.post("/", adminAuthMiddleware, async (req, res) => {
   try {
-    const {
-      title,
-      difficulty,
-      category,
-      description,
-      fen,
-      solution,
-      rating,
-      isActive,
-      isWhiteToMove,
-      mateIn,
-    } = req.body;
-    const normalizedIsWhiteToMove = resolveIsWhiteToMove(fen, isWhiteToMove);
+    const { data, error } = normalizePuzzlePayload(req.body || {});
+    if (error) {
+      return res.status(400).json({ error });
+    }
 
-    const puzzle = new Puzzle({
-      title,
-      difficulty,
-      category: String(category || "tactics").trim() || "tactics",
-      description: description || "",
-      fen,
-      solution: safeArray(solution),
-      rating: Number.isFinite(Number(rating)) ? Number(rating) : 1200,
-      isActive: isActive !== false,
-      isWhiteToMove: normalizedIsWhiteToMove,
-      mateIn: Number.isFinite(Number(mateIn)) ? Number(mateIn) : 2,
-    });
-
+    const puzzle = new Puzzle(data);
     await puzzle.save();
     return res.status(201).json(serializePuzzle(puzzle));
   } catch (error) {
     console.error("Admin puzzle create error:", error);
+    if (error?.name === "ValidationError") {
+      return res.status(400).json({ error: error.message });
+    }
     return res.status(500).json({ error: "Failed to create puzzle" });
   }
 });
@@ -289,35 +407,15 @@ router.patch("/:id/state", adminAuthMiddleware, async (req, res) => {
 // Update puzzle
 router.put("/:id", adminAuthMiddleware, async (req, res) => {
   try {
-    const {
-      title,
-      difficulty,
-      category,
-      description,
-      fen,
-      solution,
-      rating,
-      isActive,
-      isWhiteToMove,
-      mateIn,
-    } = req.body;
-    const normalizedIsWhiteToMove = resolveIsWhiteToMove(fen, isWhiteToMove);
+    const { data, error } = normalizePuzzlePayload(req.body || {});
+    if (error) {
+      return res.status(400).json({ error });
+    }
 
     const puzzle = await Puzzle.findByIdAndUpdate(
       req.params.id,
-      {
-        title,
-        difficulty,
-        category: String(category || "tactics").trim() || "tactics",
-        description: description || "",
-        fen,
-        solution: safeArray(solution),
-        rating: Number.isFinite(Number(rating)) ? Number(rating) : 1200,
-        isActive: isActive !== false,
-        isWhiteToMove: normalizedIsWhiteToMove,
-        mateIn: Number.isFinite(Number(mateIn)) ? Number(mateIn) : 2,
-      },
-      { new: true },
+      data,
+      { new: true, runValidators: true },
     );
 
     if (!puzzle) {
@@ -326,6 +424,9 @@ router.put("/:id", adminAuthMiddleware, async (req, res) => {
     return res.json(serializePuzzle(puzzle));
   } catch (error) {
     console.error("Admin puzzle update error:", error);
+    if (error?.name === "ValidationError") {
+      return res.status(400).json({ error: error.message });
+    }
     return res.status(500).json({ error: "Failed to update puzzle" });
   }
 });

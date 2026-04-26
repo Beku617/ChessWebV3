@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Chess, Square } from "chess.js";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ReactElement } from "react";
 import { Chessboard } from "react-chessboard";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -439,6 +439,7 @@ export default function PlayPractice() {
   const [pendingPromotionMove, setPendingPromotionMove] =
     useState<PracticePromotionMove | null>(null);
   const [boardWidth, setBoardWidth] = useState(620);
+  const practiceBoardId = useId().replace(/:/g, "");
   const {
     preMove,
     preMoveSquares,
@@ -1433,7 +1434,7 @@ export default function PlayPractice() {
             >
               <Chessboard
                 key={boardKey}
-                id="PracticeFreeMoveBoard"
+                id={`practice-board-${practiceBoardId}`}
                 boardWidth={boardWidth}
                 position={boardPosition}
                 boardOrientation={boardOrientation}
@@ -1467,8 +1468,14 @@ export default function PlayPractice() {
                   if (promotionState.isOpen) return false;
                   if (!allowDragInput && !isPositionBuilderActive) return false;
                   return isPositionBuilderActive
-                    ? handlePositionBuilderPieceDrop(sourceSquare, targetSquare)
-                    : handleFreeMovePieceDrop(sourceSquare, targetSquare);
+                    ? handlePositionBuilderPieceDrop(
+                        sourceSquare,
+                        targetSquare,
+                      )
+                    : handleFreeMovePieceDrop(
+                        sourceSquare,
+                        targetSquare,
+                      );
                 }}
                 isDraggablePiece={({
                   sourceSquare,
@@ -1508,6 +1515,7 @@ export default function PlayPractice() {
                   borderRadius: "8px",
                   boxShadow: "0 8px 24px rgba(2, 6, 23, 0.45)",
                 }}
+                dropOffBoardAction="snapback"
               />
               <PromotionModal
                 state={promotionState}

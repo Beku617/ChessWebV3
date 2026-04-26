@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useId, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Plus,
@@ -175,6 +175,31 @@ function withFenSideToMove(fen: string, isWhiteToMove: boolean): string {
   return `${board} ${isWhiteToMove ? "w" : "b"} ${castling} ${enPassant} ${halfmove} ${fullmove}`;
 }
 
+function getPuzzleDraftError(formData: PuzzleFormData): string {
+  if (!formData.title.trim()) return "Puzzle title is required.";
+  if (!formData.fen.trim()) return "FEN position is required.";
+  try {
+    new Chess(withFenSideToMove(formData.fen, formData.isWhiteToMove));
+  } catch {
+    return "FEN position is invalid.";
+  }
+
+  const solution = formData.solution
+    .split(",")
+    .map((move) => move.trim())
+    .filter(Boolean);
+  if (solution.length === 0) {
+    return "Record at least one solution move before saving.";
+  }
+  if (!Number.isFinite(Number(formData.rating))) {
+    return "Rating must be a valid number.";
+  }
+  if (!Number.isFinite(Number(formData.mateIn)) || Number(formData.mateIn) < 1) {
+    return "Move number must be at least 1.";
+  }
+  return "";
+}
+
 export default function AdminPuzzles() {
   const navigate = useNavigate();
   const { isAuthenticated, checkAuth } = useAdminStore();
@@ -185,11 +210,13 @@ export default function AdminPuzzles() {
   const [editingPuzzle, setEditingPuzzle] = useState<Puzzle | null>(null);
   const [formData, setFormData] = useState<PuzzleFormData>(defaultFormData);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [selectedPiece, setSelectedPiece] = useState<SelectedTool>(null);
   const [isRecordingSolution, setIsRecordingSolution] = useState(false);
   const [solutionMoves, setSolutionMoves] = useState<string[]>([]);
   const [solutionGame, setSolutionGame] = useState<Chess | null>(null);
+  const adminPuzzleBoardId = useId().replace(/:/g, "");
   const [activeFilter, setActiveFilter] = useState<"all" | "active" | "inactive">(
     "all",
   );
@@ -225,6 +252,7 @@ export default function AdminPuzzles() {
   const handleCreate = () => {
     setEditingPuzzle(null);
     setFormData(defaultFormData);
+    setSaveError("");
     setSelectedPiece(null);
     setIsRecordingSolution(false);
     setSolutionMoves([]);
@@ -391,6 +419,7 @@ export default function AdminPuzzles() {
 
   const handleEdit = (puzzle: Puzzle) => {
     setEditingPuzzle(puzzle);
+    setSaveError("");
     setSelectedPiece(null);
     setIsRecordingSolution(false);
     setSolutionMoves([]);
@@ -430,16 +459,23 @@ export default function AdminPuzzles() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const validationError = getPuzzleDraftError(formData);
+    if (validationError) {
+      setSaveError(validationError);
+      return;
+    }
+
     setSaving(true);
+    setSaveError("");
 
     try {
       const isWhiteToMove = getFenSideToMove(formData.fen, formData.isWhiteToMove);
       const normalizedFen = withFenSideToMove(formData.fen, isWhiteToMove);
       const payload = {
-        title: formData.title,
+        title: formData.title.trim(),
         difficulty: formData.difficulty,
         category: formData.category.trim() || "tactics",
-        description: formData.description,
+        description: formData.description.trim(),
         fen: normalizedFen,
         solution: formData.solution
           .split(",")
@@ -462,12 +498,18 @@ export default function AdminPuzzles() {
         body: JSON.stringify(payload),
       });
 
-      if (res.ok) {
-        setShowModal(false);
-        fetchPuzzles();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to save puzzle.");
       }
+
+      setShowModal(false);
+      fetchPuzzles();
     } catch (error) {
       console.error("Failed to save puzzle:", error);
+      setSaveError(
+        error instanceof Error ? error.message : "Failed to save puzzle.",
+      );
     } finally {
       setSaving(false);
     }
@@ -902,6 +944,11 @@ export default function AdminPuzzles() {
             </div>
 
             <form onSubmit={handleSubmit} className="p-6">
+              {saveError && (
+                <div className="mb-4 rounded-lg border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-200">
+                  {saveError}
+                </div>
+              )}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Left Column - Board Editor */}
                 <div className="space-y-4">
@@ -1017,6 +1064,8 @@ export default function AdminPuzzles() {
                   {/* Chessboard */}
                   <div className="aspect-square max-w-[360px] mx-auto">
                     <Chessboard
+                      id={`admin-puzzle-board-${adminPuzzleBoardId}`}
+                      allowDragOutsideBoard={false}
                       position={
                         isRecordingSolution && solutionGame
                           ? solutionGame.fen()
@@ -1028,6 +1077,7 @@ export default function AdminPuzzles() {
                         formData.isWhiteToMove ? "white" : "black"
                       }
                       arePiecesDraggable={isRecordingSolution}
+                      dropOffBoardAction="snapback"
                     />
                   </div>
 

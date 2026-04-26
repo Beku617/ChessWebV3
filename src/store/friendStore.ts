@@ -38,6 +38,15 @@ export interface FriendListItem {
   rating?: number;
   presenceStatus?: string;
   lastActiveAt?: string | null;
+  isWatchableInGame?: boolean;
+  watchableGame?: {
+    gameId: string;
+    kind: "classic" | "fourPlayer";
+    mode: "quick" | "friend" | "tournament" | "fourPlayer";
+    variant?: string;
+    status?: "active" | "temporarily_disconnected";
+    participantCount?: number;
+  } | null;
   since?: string;
 }
 
@@ -89,6 +98,30 @@ function toRequestItem(dto: any): FriendRequestItem {
 }
 
 function toFriendItem(dto: any): FriendListItem {
+  const watchableGame =
+    dto?.watchableGame && typeof dto.watchableGame === "object"
+      ? {
+          gameId: String(dto.watchableGame.gameId || ""),
+          kind: dto.watchableGame.kind === "fourPlayer" ? "fourPlayer" : "classic",
+          mode:
+            dto.watchableGame.mode === "friend" ||
+            dto.watchableGame.mode === "tournament" ||
+            dto.watchableGame.mode === "fourPlayer"
+              ? dto.watchableGame.mode
+              : "quick",
+          variant: dto.watchableGame.variant
+            ? String(dto.watchableGame.variant)
+            : undefined,
+          status:
+            dto.watchableGame.status === "temporarily_disconnected"
+              ? "temporarily_disconnected"
+              : "active",
+          participantCount: Number.isFinite(Number(dto.watchableGame.participantCount))
+            ? Number(dto.watchableGame.participantCount)
+            : undefined,
+        }
+      : null;
+
   return {
     id: String(dto.id || dto._id || ""),
     name: dto.name || dto.fullName || "Friend",
@@ -97,6 +130,8 @@ function toFriendItem(dto: any): FriendListItem {
     rating: dto.rating,
     presenceStatus: dto.presenceStatus,
     lastActiveAt: dto.lastActiveAt ?? dto.lastSeenAt ?? null,
+    isWatchableInGame: dto.isWatchableInGame === true || !!watchableGame,
+    watchableGame,
     since: dto.since,
   };
 }

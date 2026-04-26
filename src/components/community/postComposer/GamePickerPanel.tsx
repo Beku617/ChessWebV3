@@ -1,4 +1,5 @@
 import { Search, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import {
   formatCommunityPerspectiveResult,
   formatCommunityTimeControl,
@@ -35,15 +36,19 @@ export function GamePickerPanel({
   onGameSearchChange,
   onChooseGame,
 }: GamePickerPanelProps) {
+  const { t } = useTranslation();
+
   if (!isOpen) return null;
 
   return (
     <div className="mt-3 overflow-hidden rounded-2xl border border-gray-200 dark:border-white/[0.08] bg-[#0b1424]/96 shadow-[0_20px_50px_rgba(0,0,0,0.28)]">
       <div className="flex items-center justify-between gap-3 border-b border-white/[0.06] px-4 py-3">
         <div>
-          <div className="text-sm font-semibold text-white">Choose a game</div>
+          <div className="text-sm font-semibold text-white">
+            {t("communityComposer.chooseGame")}
+          </div>
           <div className="mt-1 text-xs text-gray-500">
-            Share one of your recent games with a caption and mini-board replay.
+            {t("communityComposer.chooseGameDescription")}
           </div>
         </div>
         <button
@@ -51,7 +56,7 @@ export function GamePickerPanel({
           onClick={onClose}
           disabled={isSubmitting}
           className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white/[0.06] text-gray-300 hover:bg-white/[0.12] disabled:cursor-not-allowed disabled:opacity-45"
-          aria-label="Close game picker"
+          aria-label={t("communityComposer.closeGamePicker")}
         >
           <X className="h-4 w-4" />
         </button>
@@ -64,7 +69,7 @@ export function GamePickerPanel({
             value={gameSearch}
             disabled={isSubmitting}
             onChange={(event) => onGameSearchChange(event.target.value)}
-            placeholder="Search by opponent, opening, result, or time control..."
+            placeholder={t("communityComposer.gameSearchPlaceholder")}
             className="w-full rounded-xl bg-white/[0.05] py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 disabled:cursor-not-allowed disabled:opacity-45"
           />
         </div>
@@ -86,9 +91,11 @@ export function GamePickerPanel({
           </div>
         ) : availableGames.length === 0 ? (
           <div className="rounded-2xl bg-white/[0.04] px-4 py-8 text-center">
-            <div className="text-sm font-medium text-white">No games found</div>
+            <div className="text-sm font-medium text-white">
+              {t("communityComposer.noGamesFound")}
+            </div>
             <div className="mt-2 text-xs leading-6 text-gray-500">
-              Finish a few games first, or try a broader search.
+              {t("communityComposer.noGamesFoundDescription")}
             </div>
           </div>
         ) : (
@@ -116,7 +123,9 @@ export function GamePickerPanel({
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="truncate text-sm font-semibold text-white">
-                          vs {gameOption.opponent}
+                          {t("communityComposer.vsOpponent", {
+                            opponent: gameOption.opponent,
+                          })}
                         </span>
                         <span
                           className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ${perspectiveTone(
@@ -133,7 +142,11 @@ export function GamePickerPanel({
 
                     <div className="shrink-0 text-right text-xs text-gray-500">
                       <div>{formatGamePlayedAt(gameOption.playedAt)}</div>
-                      <div className="mt-1">{gameOption.totalMoves} moves</div>
+                      <div className="mt-1">
+                        {t("communityComposer.movesCount", {
+                          count: gameOption.totalMoves,
+                        })}
+                      </div>
                     </div>
                   </div>
 
@@ -143,12 +156,12 @@ export function GamePickerPanel({
                     </span>
                     <span className="rounded-full bg-white/[0.05] px-2.5 py-1">
                       {gameOption.variant === "chess960"
-                        ? "Chess960"
+                        ? t("Chess960")
                         : gameOption.variant === "kingOfHill"
-                          ? "King of the Hill"
+                          ? t("King of the Hill")
                         : gameOption.variant === "threeCheck"
-                          ? "Three-Check"
-                          : "Standard"}
+                          ? t("Three-Check")
+                          : t("Standard")}
                     </span>
                     {optionOpening && (
                       <span className="rounded-full bg-white/[0.05] px-2.5 py-1">

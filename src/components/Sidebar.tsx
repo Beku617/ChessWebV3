@@ -28,7 +28,8 @@ export default function Sidebar() {
   const pendingIncomingCount = useFriendStore((state) => state.pendingIncomingCount());
   const refreshUnread = useMessageStore((state) => state.refreshUnread);
   const unreadCount = useMessageStore((state) => state.unreadCount);
-  const isActive = (path: string) => location.pathname === path;
+  const isRouteActive = (path: string) =>
+    location.pathname === path || location.pathname.startsWith(`${path}/`);
   const isCompact =
     location.pathname.startsWith("/play/quick") ||
     location.pathname.startsWith("/play/friend") ||
@@ -137,8 +138,8 @@ export default function Sidebar() {
                 key={item.path}
                 to={item.path}
                 className={`flex items-center justify-center md:justify-start gap-0 md:gap-3 min-h-[44px] ${styleGroup.rowPadding} rounded-xl border border-transparent transition-all duration-200 group ${
-                  isActive(item.path)
-                    ? "bg-brand-500/14 border-brand-400/35 text-brand-700 dark:text-brand-300 shadow-[0_8px_18px_rgba(20,184,166,0.16)]"
+                  isRouteActive(item.path)
+                    ? "bg-gray-300/75 dark:bg-gray-500/40 text-gray-900 dark:text-gray-100"
                     : "text-gray-500 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white"
                 }`}
                 title={item.label}
@@ -167,7 +168,7 @@ export default function Sidebar() {
             <Link
               to="/profile"
               className={`w-full md:flex-1 min-w-0 flex items-center justify-center md:justify-start gap-2.5 rounded-xl border border-transparent transition-colors cursor-pointer group ${styleGroup.profileRowPadding} ${
-                isActive("/profile")
+                isRouteActive("/profile")
                   ? "bg-brand-500/10 border-brand-400/25"
                   : "hover:bg-white/50 dark:hover:bg-white/10"
               }`}
@@ -205,7 +206,7 @@ export default function Sidebar() {
               <Link
                 to="/messages"
                 className={`relative inline-flex items-center justify-center flex-shrink-0 rounded-lg transition-colors ${
-                  isActive("/messages")
+                  isRouteActive("/messages")
                     ? "bg-brand-500/10 text-brand-600 dark:text-brand-300"
                     : "text-gray-400 hover:bg-white/50 dark:hover:bg-white/10 hover:text-gray-600 dark:hover:text-gray-200"
                 } px-2 py-1.5 md:px-3 md:py-2`}
@@ -223,7 +224,7 @@ export default function Sidebar() {
               <Link
                 to="/friends"
                 className={`relative inline-flex items-center justify-center flex-shrink-0 rounded-lg transition-colors ${
-                  isActive("/friends")
+                  isRouteActive("/friends")
                     ? "bg-brand-500/10 text-brand-600 dark:text-brand-300"
                     : "text-gray-400 hover:bg-white/50 dark:hover:bg-white/10 hover:text-gray-600 dark:hover:text-gray-200"
                 } px-2 py-1.5 md:px-3 md:py-2`}
@@ -241,7 +242,7 @@ export default function Sidebar() {
               <Link
                 to="/settings"
                 className={`inline-flex items-center justify-center flex-shrink-0 rounded-lg transition-colors ${
-                  isActive("/settings")
+                  isRouteActive("/settings")
                     ? "bg-brand-500/10 text-brand-600 dark:text-brand-300"
                     : "text-gray-400 hover:bg-white/50 dark:hover:bg-white/10 hover:text-gray-600 dark:hover:text-gray-200"
                 } px-2 py-1.5 md:px-3 md:py-2`}

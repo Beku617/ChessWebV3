@@ -8,6 +8,7 @@ interface ChessTimerProps {
   onTimeOut: () => void;
   onTimeChange: (time: number) => void;
   resetToken?: string | number;
+  managedExternally?: boolean;
   className?: string;
 }
 
@@ -18,47 +19,75 @@ export function ChessTimer({
   onTimeOut,
   onTimeChange,
   resetToken,
+  managedExternally = false,
   className = "",
 }: ChessTimerProps) {
-  if (initialTime <= 0) return null;
-
   const [timeLeft, setTimeLeft] = useState(initialTime);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<ReturnType<typeof window.setInterval> | null>(null);
+  const onTimeOutRef = useRef(onTimeOut);
+  const onTimeChangeRef = useRef(onTimeChange);
   const tenSecondWarningPlayedRef = useRef(false);
-  const wasActiveRef = useRef(isActive);
+  const hasTimedOutRef = useRef(false);
+  void increment;
 
-  // Only reinitialize from base time when a new game/time control is started.
-  // Do not reset on turn switches.
+  useEffect(() => {
+    onTimeOutRef.current = onTimeOut;
+  }, [onTimeOut]);
+
+  useEffect(() => {
+    onTimeChangeRef.current = onTimeChange;
+  }, [onTimeChange]);
+
+  // The server owns the real clock. Re-seed this display only from server data.
   useEffect(() => {
     setTimeLeft(initialTime);
     tenSecondWarningPlayedRef.current = false;
-    wasActiveRef.current = false;
+    hasTimedOutRef.current = false;
   }, [initialTime, resetToken]);
 
   useEffect(() => {
-    onTimeChange(timeLeft);
-  }, [timeLeft, onTimeChange]);
+    onTimeChangeRef.current(timeLeft);
+  }, [timeLeft]);
 
   useEffect(() => {
-    if (isActive && initialTime > 0) {
-      intervalRef.current = setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 0.1) {
-            if (intervalRef.current) clearInterval(intervalRef.current);
-            onTimeOut();
-            return 0;
-          }
-          return prev - 0.1;
-        });
-      }, 100);
-    } else {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+    if (intervalRef.current) {
+      window.clearInterval(intervalRef.current);
+      intervalRef.current = null;
     }
 
+    if (
+      managedExternally ||
+      !isActive ||
+      initialTime <= 0 ||
+      hasTimedOutRef.current
+    ) {
+      return undefined;
+    }
+
+    intervalRef.current = window.setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 0.1) {
+          if (intervalRef.current) {
+            window.clearInterval(intervalRef.current);
+            intervalRef.current = null;
+          }
+          if (!hasTimedOutRef.current) {
+            hasTimedOutRef.current = true;
+            onTimeOutRef.current();
+          }
+          return 0;
+        }
+        return Math.max(0, Math.round((prev - 0.1) * 10) / 10);
+      });
+    }, 100);
+
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (intervalRef.current) {
+        window.clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
     };
-  }, [isActive, onTimeOut]);
+  }, [isActive, initialTime, managedExternally, resetToken]);
 
   useEffect(() => {
     if (!isActive) {
@@ -78,15 +107,6 @@ export function ChessTimer({
     playGameplaySound("tenSeconds");
   }, [isActive, timeLeft]);
 
-  // Apply increment when this timer stops because the player just moved.
-  useEffect(() => {
-    const wasActive = wasActiveRef.current;
-    if (wasActive && !isActive && increment > 0) {
-      setTimeLeft((prev) => (prev > 0 ? prev + increment : prev));
-    }
-    wasActiveRef.current = isActive;
-  }, [isActive, increment]);
-
   const formatTime = (seconds: number): string => {
     if (seconds <= 0) return "0:00";
     if (seconds < 10) {
@@ -98,6 +118,8 @@ export function ChessTimer({
   };
 
   const isLowTime = timeLeft < 30 && timeLeft > 0;
+
+  if (initialTime <= 0) return null;
 
   return (
     <div

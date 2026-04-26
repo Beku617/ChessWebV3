@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useChessStore } from "../store/chessStore";
 
 interface ChessTimerProps {
@@ -18,6 +18,18 @@ const ChessTimer: React.FC<ChessTimerProps> = ({
 }) => {
   const [timeLeft, setTimeLeft] = useState(initialTime);
   const gameOver = useChessStore((state) => state.gameOver);
+  const intervalRef = useRef<ReturnType<typeof window.setInterval> | null>(null);
+  const onTimeOutRef = useRef(onTimeOut);
+  const hasTimedOutRef = useRef(false);
+
+  useEffect(() => {
+    onTimeOutRef.current = onTimeOut;
+  }, [onTimeOut]);
+
+  useEffect(() => {
+    setTimeLeft(initialTime);
+    hasTimedOutRef.current = false;
+  }, [initialTime]);
 
   // Format time as MM:SS or M:SS.d for under 10 seconds
   const formatTime = (seconds: number): string => {
@@ -34,22 +46,40 @@ const ChessTimer: React.FC<ChessTimerProps> = ({
 
   // Timer logic
   useEffect(() => {
-    if (!isActive || gameOver || initialTime === 0) return;
+    if (intervalRef.current) {
+      window.clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
 
-    const interval = setInterval(() => {
+    if (!isActive || gameOver || initialTime === 0 || hasTimedOutRef.current) {
+      return undefined;
+    }
+
+    intervalRef.current = window.setInterval(() => {
       setTimeLeft((prev) => {
         const newTime = prev - 0.1;
         if (newTime <= 0) {
-          clearInterval(interval);
-          onTimeOut();
+          if (intervalRef.current) {
+            window.clearInterval(intervalRef.current);
+            intervalRef.current = null;
+          }
+          if (!hasTimedOutRef.current) {
+            hasTimedOutRef.current = true;
+            onTimeOutRef.current();
+          }
           return 0;
         }
-        return newTime;
+        return Math.round(newTime * 10) / 10;
       });
     }, 100);
 
-    return () => clearInterval(interval);
-  }, [isActive, gameOver, onTimeOut, initialTime]);
+    return () => {
+      if (intervalRef.current) {
+        window.clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [isActive, gameOver, initialTime]);
 
   // Add increment after move
   const addIncrement = useCallback(() => {

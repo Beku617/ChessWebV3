@@ -142,7 +142,7 @@ export function BotGameView({
 
           {/* Chess Board */}
           <div
-            className="theme-glass-panel-strong rounded-2xl overflow-hidden"
+            className="theme-board-panel rounded-2xl overflow-hidden"
             style={{ width: boardWidth }}
           >
             <GameBoard

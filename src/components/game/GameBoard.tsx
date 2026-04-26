@@ -1,6 +1,6 @@
 import { Chessboard } from "react-chessboard";
 import { Square } from "chess.js";
-import { useEffect } from "react";
+import { useEffect, useId } from "react";
 import type { CSSProperties } from "react";
 import { PromotionModal } from "./PromotionModal";
 import type { PromotionState } from "./types";
@@ -53,6 +53,7 @@ export function GameBoard({
 }: GameBoardProps) {
   const { colors } = useBoardTheme();
   const { allowClickInput, allowDragInput } = useGameplayPreferences();
+  const boardInstanceId = useId().replace(/:/g, "");
   const isPromotionOpen = Boolean(
     promotionState.isOpen &&
       promotionState.from &&
@@ -109,7 +110,7 @@ export function GameBoard({
   return (
     <div className="relative">
       <Chessboard
-        id="PlayVsStockfish"
+        id={`game-board-${boardInstanceId}`}
         animationDuration={200}
         arePiecesDraggable={
           allowDragInput && !!onPieceDrop && !isPromotionOpen

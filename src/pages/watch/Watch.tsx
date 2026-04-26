@@ -3,7 +3,6 @@ import { Search } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import Sidebar from "../../components/Sidebar";
 import { LiveGamesGrid } from "./LiveGamesGrid";
-import { StreamersSection } from "./StreamersSection";
 import { useWatchPageData } from "../../hooks/useWatchPage";
 import { WatchFeaturedCarousel } from "./WatchFeaturedCarousel";
 
@@ -12,9 +11,8 @@ export default function Watch() {
   const [activeTab, setActiveTab] = useState("Top Rated");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { liveGames, streamers, featured } = useWatchPageData();
+  const { liveGames, featured } = useWatchPageData();
   const liveError = liveGames.error;
-  const streamError = streamers.error;
 
   const filteredGames = liveGames.games.filter((game) => {
     if (!searchQuery) return true;
@@ -65,17 +63,11 @@ export default function Watch() {
           onRefresh={liveGames.refetch}
         />
 
-        {(liveError || streamError) && (
+        {liveError && (
           <div className="mt-4 text-sm text-amber-600 dark:text-amber-400">
-            {liveError || streamError}
+            {liveError}
           </div>
         )}
-
-        <StreamersSection
-          streamers={streamers.streamers}
-          loading={streamers.loading}
-          onRefresh={streamers.refetch}
-        />
       </main>
     </div>
   );

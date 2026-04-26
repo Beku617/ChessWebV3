@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Chessboard } from "react-chessboard";
 import {
   ChevronDown,
@@ -163,6 +163,7 @@ export function FriendGameSetup({
 
   // Responsive board width
   const [boardWidth, setBoardWidth] = useState(620);
+  const previewBoardId = useId().replace(/:/g, "");
   const containerRef = useRef<HTMLDivElement>(null);
   const leftRef = useRef<HTMLDivElement>(null);
   const topBarRef = useRef<HTMLDivElement>(null);
@@ -388,6 +389,7 @@ export function FriendGameSetup({
             style={{ width: boardWidth, height: boardWidth }}
           >
             <Chessboard
+              id={`friend-game-setup-board-${previewBoardId}`}
               boardWidth={boardWidth}
               position="start"
               arePiecesDraggable={false}

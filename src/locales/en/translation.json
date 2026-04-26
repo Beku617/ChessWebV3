@@ -52,7 +52,11 @@
     "orSignup": "Or sign up with",
     "haveAccount": "Already have an account?",
     "signInCta": "Sign in",
-    "registrationFailed": "Registration failed"
+    "registrationFailed": "Registration failed",
+    "facebookLoginFailed": "Facebook login failed",
+    "continueWithGoogle": "Continue with Google",
+    "continueWithFacebook": "Continue with Facebook",
+    "socialNotConfigured": "Social sign-in is not configured yet."
   },
   "settings": {
     "header": {
@@ -553,6 +557,20 @@
         "description": "{{san}} was played.",
         "details": "Analysis not available for this move."
       }
+    },
+    "loadingTitle": "Analyzing Your Game",
+    "adminLoadingTitle": "Analyzing Game",
+    "loadingDescription": "Stockfish is evaluating each position to calculate accuracy and move quality",
+    "progress": "Progress",
+    "evaluatingPositions": "Evaluating positions",
+    "calculatingAccuracy": "Calculating accuracy",
+    "gameNotFound": "Game Not Found",
+    "backToProfile": "Back to Profile",
+    "errors": {
+      "noGameId": "No game ID provided",
+      "fetchGame": "Failed to fetch game",
+      "loadGame": "Failed to load game",
+      "unableToLoadGame": "Unable to load game"
     }
   },
   "presence": {
@@ -569,5 +587,131 @@
       "online": "Online",
       "offline": "Offline"
     }
+  },
+  "messages": {
+    "search": "Search conversations",
+    "tabConversations": "Conversations",
+    "tabArchived": "Archived",
+    "loading": "Loading conversations...",
+    "archivedEmpty": "No archived chats.",
+    "conversationsEmpty": "No conversations yet.",
+    "noMessages": "No messages yet.",
+    "deleteConfirmTitle": "Delete conversation?",
+    "deleteConfirmBody": "This will remove the conversation from your messages. It will not erase it for the other participant.",
+    "confirmDelete": "Delete",
+    "archivedReadOnly": "This conversation is archived. Unarchive to reply.",
+    "unarchive": "Unarchive",
+    "clearAttachments": "Remove all",
+    "composePlaceholder": "Type a message...",
+    "archived": "Conversation moved to Archived.",
+    "unarchived": "Conversation restored to Conversations.",
+    "conversation": "Conversation",
+    "loadingConversation": "Loading conversations...",
+    "openingLatest": "Opening your latest conversation...",
+    "emptyTitle": "No conversations",
+    "emptySubtitle": "Choose a player from your list to start a focused, real-time chat.",
+    "archive": "Archive",
+    "action": "Working...",
+    "delete": "Delete",
+    "startConversation": "No messages yet. Start the conversation.",
+    "errors": {
+      "send": "Failed to send message.",
+      "archive": "Unable to archive this conversation right now.",
+      "unarchive": "Unable to unarchive this conversation right now.",
+      "delete": "Unable to delete this conversation right now."
+    }
+  },
+  "communityComposer": {
+    "group": "Group",
+    "selectedGroup": "Selected group",
+    "generalCommunity": "General community",
+    "image": "Image",
+    "video": "Video",
+    "shareGame": "Share Game",
+    "changeGame": "Change Game",
+    "submitting": "Submitting...",
+    "unavailable": "Unavailable",
+    "submit": "Submit",
+    "chooseGame": "Choose a game",
+    "chooseGameDescription": "Share one of your recent games with a caption and mini-board replay.",
+    "closeGamePicker": "Close game picker",
+    "gameSearchPlaceholder": "Search by opponent, opening, result, or time control...",
+    "noGamesFound": "No games found",
+    "noGamesFoundDescription": "Finish a few games first, or try a broader search.",
+    "vsOpponent": "vs {{opponent}}",
+    "movesCount_one": "{{count}} move",
+    "movesCount_other": "{{count}} moves",
+    "change": "Change",
+    "remove": "Remove",
+    "removeMedia": "Remove media",
+    "selectedPreview": "Selected preview",
+    "imageSet": "Image Set",
+    "imagesSelected_one": "{{count}} image selected",
+    "imagesSelected_other": "{{count}} images selected",
+    "clearAll": "Clear all",
+    "selectedImageAlt": "Selected image {{index}}",
+    "removeImageAria": "Remove image {{index}}",
+    "errors": {
+      "supportedImage": "Please choose a supported image file.",
+      "imageTooLarge": "Image is too large. Maximum size is 8MB.",
+      "supportedVideo": "Please choose a supported video file.",
+      "videoTooLarge": "Video is too large. Maximum size is 50MB.",
+      "restrictedWithReason": "Posting is restricted by moderation. Reason: {{reason}}",
+      "restricted": "Posting is currently restricted by moderation.",
+      "temporarilyRestrictedUntil": "Posting is temporarily restricted until {{until}}.",
+      "temporarilyRestricted": "Posting is temporarily restricted by moderation.",
+      "temporarilyRestrictedWithReason": "{{base}} Reason: {{reason}}",
+      "tryAgainIn": " Try again in {{duration}}.",
+      "rateLimited": "You've reached the posting limit ({{maxPosts}} posts every 3 hours).{{waitText}}",
+      "unavailable": "Posting is unavailable right now.",
+      "loadSelectedGame": "Failed to load the selected game."
+    }
+  },
+  "communityGameViewer": {
+    "whiteWon": "White won",
+    "blackWon": "Black won",
+    "draw": "Draw",
+    "resultUnavailable": "Result unavailable",
+    "previewUnavailable": "Game preview unavailable.",
+    "analyzeGame": "Analyze game",
+    "useArrowKeys": "Use arrow keys"
+  },
+  "profileGames": {
+    "allGames": "All Games ({{count}})",
+    "tournamentHistory": "Tournament History ({{count}})",
+    "noTournamentHistory": "No tournament history yet.",
+    "range": "{{start}}-{{end}} of {{total}} games",
+    "noGamesFound": "No games found",
+    "noGamesFoundDescription": "Try changing your filters or play a new game.",
+    "filters": {
+      "all": "All",
+      "wins": "Wins",
+      "losses": "Losses",
+      "draws": "Draws"
+    },
+    "columns": {
+      "tournament": "Tournament",
+      "format": "Format",
+      "placement": "Placement",
+      "score": "Score",
+      "eloChange": "ELO Change",
+      "date": "Date"
+    }
+  },
+  "tournamentProfile": {
+    "unavailable": "Tournament profile data is unavailable.",
+    "description": "Global ELO, tournament record, and placements.",
+    "currentElo": "Current ELO",
+    "record": "W / D / L",
+    "allTournaments": "All tournaments",
+    "tournamentsCreated": "Tournaments Created",
+    "organizerActivity": "Organizer activity",
+    "eloHistory": "ELO History",
+    "noEloEvents": "No tournament ELO events yet.",
+    "elo": "ELO",
+    "delta": "Delta",
+    "dateLabel": "Date: {{label}}",
+    "historyTitle": "Tournament History",
+    "title": "Tournament Profile"
   }
 }

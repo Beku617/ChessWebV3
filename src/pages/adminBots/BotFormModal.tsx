@@ -76,10 +76,11 @@ export function BotFormModal({
 
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {};
+    const name = formData.name.trim();
 
-    if (!formData.name || formData.name.length < 2) {
+    if (!name || name.length < 2) {
       newErrors.name = "Name must be at least 2 characters";
-    } else if (formData.name.length > 50) {
+    } else if (name.length > 50) {
       newErrors.name = "Name must be less than 50 characters";
     }
 
@@ -98,7 +99,17 @@ export function BotFormModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
-    await onSubmit(formData);
+    await onSubmit({
+      ...formData,
+      name: formData.name.trim(),
+      avatar: formData.avatar.trim(),
+      category: formData.category.trim(),
+      title: formData.title.trim(),
+      quote: formData.quote.trim(),
+      description: formData.description.trim(),
+      personality: formData.personality.trim(),
+      countryCode: formData.countryCode.trim(),
+    });
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -114,6 +114,7 @@ export default function AdminFeaturedEvents() {
   const [backgroundImageFile, setBackgroundImageFile] = useState<File | null>(
     null,
   );
+  const [saveError, setSaveError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
@@ -159,6 +160,11 @@ export default function AdminFeaturedEvents() {
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.title.trim()) {
+      setSaveError("Title is required.");
+      return;
+    }
+    setSaveError("");
 
     const url = editingEvent
       ? `${API_URL}/api/admin/featured-events/${editingEvent._id}`
@@ -166,23 +172,27 @@ export default function AdminFeaturedEvents() {
 
     const method = editingEvent ? "PUT" : "POST";
     const payload = {
-      title: formData.title,
-      description: formData.description,
+      title: formData.title.trim(),
+      description: formData.description.trim(),
       type: formData.type,
       status: formData.status,
       startDate: formData.startDate,
       featured: formData.featured,
       isActive: formData.isActive,
-      primaryButtonLabel: formData.primaryButtonLabel || "Watch Now",
-      primaryButtonUrl: formData.primaryButtonUrl,
-      secondaryButtonUrl: formData.secondaryButtonUrl,
+      primaryButtonLabel: formData.primaryButtonLabel.trim() || "Watch Now",
+      primaryButtonUrl: formData.primaryButtonUrl.trim(),
+      secondaryButtonUrl: formData.secondaryButtonUrl.trim(),
       backgroundType: formData.backgroundType,
       backgroundColor:
-        formData.backgroundType === "color" ? formData.backgroundColor : "",
+        formData.backgroundType === "color" ? formData.backgroundColor.trim() : "",
       backgroundImageUrl:
-        formData.backgroundType === "image" ? formData.backgroundImageUrl : "",
+        formData.backgroundType === "image"
+          ? formData.backgroundImageUrl.trim()
+          : "",
       imageUrl:
-        formData.backgroundType === "image" ? formData.backgroundImageUrl : "",
+        formData.backgroundType === "image"
+          ? formData.backgroundImageUrl.trim()
+          : "",
       // Keep removed advanced fields blanked for a cleaner admin/user flow.
       statusLabel: "",
       categoryLabel: "",
@@ -217,6 +227,9 @@ export default function AdminFeaturedEvents() {
       closeModal();
     } catch (error) {
       console.error("Error saving event:", error);
+      setSaveError(
+        error instanceof Error ? error.message : "Failed to save event.",
+      );
     }
   };
 
@@ -284,6 +297,7 @@ export default function AdminFeaturedEvents() {
     setEditingEvent(null);
     setFormData(initialFormState);
     setBackgroundImageFile(null);
+    setSaveError("");
     setShowModal(true);
   };
 
@@ -313,6 +327,7 @@ export default function AdminFeaturedEvents() {
       isActive: event.isActive,
     });
     setBackgroundImageFile(null);
+    setSaveError("");
     setShowModal(true);
   };
 
@@ -322,6 +337,7 @@ export default function AdminFeaturedEvents() {
     setEditingEvent(null);
     setFormData(initialFormState);
     setBackgroundImageFile(null);
+    setSaveError("");
   };
 
   // Filter events
@@ -621,6 +637,11 @@ export default function AdminFeaturedEvents() {
               </div>
 
               <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                {saveError && (
+                  <div className="rounded-lg border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-200">
+                    {saveError}
+                  </div>
+                )}
                 {/* Title */}
                 <div>
                   <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">

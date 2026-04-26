@@ -43,6 +43,11 @@ export interface FriendGameStartedPayload {
     | "atomic";
   whiteCheckCount?: number;
   blackCheckCount?: number;
+  whiteTimeLeft?: number;
+  blackTimeLeft?: number;
+  playerClock?: number;
+  opponentClock?: number;
+  clockPaused?: boolean;
   rated?: boolean;
 }
 

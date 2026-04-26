@@ -1,3 +1,5 @@
+import { normalizeTimeControl } from "./gameClock.js";
+
 const MIN_RATING = 100;
 const MAX_RATING = 4000;
 const DEFAULT_TIME_CONTROL = { initial: 300, increment: 0 };
@@ -60,12 +62,13 @@ export function normalizeResult(winnerColor) {
 }
 
 export function getRatingPoolForTimeControl(timeControl, variant = "standard") {
+  const normalizedTimeControl = normalizeTimeControl(timeControl);
   const initial = normalizeSeconds(
-    timeControl?.initial,
+    normalizedTimeControl?.initial,
     DEFAULT_TIME_CONTROL.initial,
   );
   const increment = normalizeSeconds(
-    timeControl?.increment,
+    normalizedTimeControl?.increment,
     DEFAULT_TIME_CONTROL.increment,
   );
 
