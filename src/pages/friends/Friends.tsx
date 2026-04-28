@@ -360,6 +360,12 @@ export default function Friends() {
     }
   };
 
+  const handleWatchFriend = (friend: FriendListItem) => {
+    const gameId = String(friend.watchableGame?.gameId || "").trim();
+    if (!gameId) return;
+    navigate(`/watch/${encodeURIComponent(gameId)}`);
+  };
+
   const handleDeny = async (requestId: string) => {
     setActionId(requestId);
     try {
@@ -547,6 +553,17 @@ export default function Friends() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {friend.isWatchableInGame && friend.watchableGame?.gameId && (
+            <button
+              disabled={disabled}
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-500/15 text-cyan-200 border border-cyan-500/30 hover:bg-cyan-500/25"
+              onClick={() => handleWatchFriend(friend)}
+              title="Watch this friend's current game"
+            >
+              <Eye className="w-4 h-4 inline-block mr-1" />
+              Watch
+            </button>
+          )}
           <button
             disabled={disabled}
             className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-500/15 text-brand-200 border border-brand-500/30 hover:bg-brand-500/25"

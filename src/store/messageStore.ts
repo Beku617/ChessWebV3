@@ -1,6 +1,5 @@
 import { create } from "zustand";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+import { API_URL } from "../config/network";
 
 interface MessageStoreState {
   unreadCount: number;

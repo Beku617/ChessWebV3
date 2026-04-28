@@ -59,6 +59,10 @@ export function TournamentFormModal({
       ...formData,
       organizerUserId: formData.organizerUserId.trim(),
       name: formData.name.trim(),
+      setup: formData.setup.trim(),
+      pairingLogic: formData.pairingLogic.trim(),
+      durationMinutes: formData.durationMinutes.trim(),
+      timezone: formData.timezone.trim(),
       roundsPlanned: formData.roundsPlanned.trim(),
       customBaseMinutes: formData.customBaseMinutes.trim(),
       customIncrementSeconds: formData.customIncrementSeconds.trim(),
@@ -170,32 +174,151 @@ export function TournamentFormModal({
                 <option value="swiss">
                   {t("tournamentCommon.formats.swiss", "Swiss")}
                 </option>
+                <option value="arena">
+                  {t("tournamentCommon.formats.arena", "Arena")}
+                </option>
               </select>
             </label>
 
             <label className="space-y-1.5">
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                {t("adminTournaments.modal.fields.roundsPlanned", "Planned Rounds")}
+                {formData.type === "arena"
+                  ? t("adminTournaments.modal.fields.duration", "Duration")
+                  : t("adminTournaments.modal.fields.roundsPlanned", "Planned Rounds")}
               </span>
-              <input
-                type="number"
-                min={1}
-                disabled={formData.type !== "swiss"}
-                value={formData.roundsPlanned}
+              {formData.type === "arena" ? (
+                <select
+                  value={formData.durationMinutes}
+                  onChange={(event) =>
+                    setFormData((current) => ({
+                      ...current,
+                      durationMinutes: event.target.value,
+                    }))
+                  }
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+                >
+                  {[10, 15, 30, 45, 60, 90, 120].map((minutes) => (
+                    <option key={minutes} value={String(minutes)}>
+                      {t("adminTournaments.modal.durationMinutes", {
+                        count: minutes,
+                        defaultValue: `${minutes} min`,
+                      })}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  type="number"
+                  min={1}
+                  value={formData.roundsPlanned}
+                  onChange={(event) =>
+                    setFormData((current) => ({
+                      ...current,
+                      roundsPlanned: event.target.value,
+                    }))
+                  }
+                  placeholder={t(
+                    "adminTournaments.modal.placeholders.roundsRequired",
+                    "7",
+                  )}
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+                />
+              )}
+            </label>
+
+            <label className="space-y-1.5">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                {t("adminTournaments.modal.fields.gameType", "Game Type")}
+              </span>
+              <select
+                value={formData.gameType}
                 onChange={(event) =>
                   setFormData((current) => ({
                     ...current,
-                    roundsPlanned: event.target.value,
+                    gameType: event.target.value as TournamentFormData["gameType"],
                   }))
                 }
-                placeholder={
-                  formData.type === "swiss"
-                    ? t("adminTournaments.modal.placeholders.roundsRequired", "7")
-                    : t("tournamentCommon.generic.auto", "Auto")
-                }
-                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 disabled:opacity-50"
-              />
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+              >
+                <option value="standard">
+                  {t("tournamentsPage.create.gameTypes.standard", "Standard")}
+                </option>
+                <option value="chess960">
+                  {t("tournamentsPage.create.gameTypes.chess960", "Chess960")}
+                </option>
+              </select>
             </label>
+
+            <label className="space-y-1.5">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                {t("adminTournaments.modal.fields.setup", "Setup")}
+              </span>
+              <select
+                value={formData.setup}
+                onChange={(event) =>
+                  setFormData((current) => ({
+                    ...current,
+                    setup: event.target.value,
+                  }))
+                }
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+              >
+                <option value="standard">
+                  {t("tournamentsPage.create.setup.standard", "Standard")}
+                </option>
+              </select>
+            </label>
+
+            {formData.type === "arena" && (
+              <label className="space-y-1.5">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {t("adminTournaments.modal.fields.pairingLogic", "Pairing Logic")}
+                </span>
+                <select
+                  value={formData.pairingLogic}
+                  onChange={(event) =>
+                    setFormData((current) => ({
+                      ...current,
+                      pairingLogic: event.target.value,
+                    }))
+                  }
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+                >
+                  <option value="rating-based">
+                    {t("tournamentsPage.create.pairing.ratingBased", "Rating-based")}
+                  </option>
+                  <option value="point-based">
+                    {t("tournamentsPage.create.pairing.pointBased", "Point-based")}
+                  </option>
+                </select>
+              </label>
+            )}
+
+            <div className="flex items-center justify-between rounded-lg border border-gray-300 bg-white px-3 py-2 dark:border-gray-700 dark:bg-slate-800">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                {t("adminTournaments.modal.fields.rated", "Rated")}
+              </span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={formData.rated}
+                onClick={() =>
+                  setFormData((current) => ({
+                    ...current,
+                    rated: !current.rated,
+                  }))
+                }
+                className={`relative inline-flex h-7 w-12 items-center rounded-full border border-gray-300 transition-colors dark:border-gray-700 ${
+                  formData.rated ? "bg-brand-500" : "bg-gray-300 dark:bg-slate-700"
+                }`}
+              >
+                <span
+                  className={`inline-block h-5 w-5 rounded-full bg-white transition-transform ${
+                    formData.rated ? "translate-x-6" : "translate-x-1"
+                  }`}
+                />
+              </button>
+            </div>
 
             <label className="space-y-1.5 md:col-span-2">
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">

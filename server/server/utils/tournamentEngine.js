@@ -1,13 +1,5 @@
 import crypto from "crypto";
 
-const RESULT_POINTS = {
-  "1-0": { white: 1, black: 0 },
-  "0-1": { white: 0, black: 1 },
-  "1/2-1/2": { white: 0.5, black: 0.5 },
-  "1-0F": { white: 1, black: 0 },
-  "0-1F": { white: 0, black: 1 },
-};
-
 const SUPPORTED_RESULTS = new Set([
   "1-0",
   "0-1",
@@ -606,7 +598,11 @@ export function getWinnerFromResult(result, whiteId, blackId) {
   return "";
 }
 
-export function createPlayerStatsMap(players, games) {
+export function createPlayerStatsMap(players, games, tournamentType = "swiss") {
+  const normalizedTournamentType = String(tournamentType || "swiss")
+    .trim()
+    .toLowerCase();
+  const isArena = normalizedTournamentType === "arena";
   const statsMap = new Map();
 
   for (const player of players) {
@@ -616,11 +612,53 @@ export function createPlayerStatsMap(players, games) {
       buchholz: 0,
       gamesPlayed: 0,
       hadBye: false,
+      wins: 0,
+      draws: 0,
+      losses: 0,
+      whiteGames: 0,
+      blackGames: 0,
+      consecutiveWins: 0,
       opponents: [],
     });
   }
 
-  for (const game of games) {
+  const orderedGames = [...(games || [])].sort((a, b) => {
+    const byRound = Number(a.roundNumber || 0) - Number(b.roundNumber || 0);
+    if (byRound !== 0) return byRound;
+    const byMatch = Number(a.matchIndex || 0) - Number(b.matchIndex || 0);
+    if (byMatch !== 0) return byMatch;
+    const byFinishedAt =
+      new Date(a.finishedAt || 0).getTime() - new Date(b.finishedAt || 0).getTime();
+    if (byFinishedAt !== 0) return byFinishedAt;
+    return new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime();
+  });
+
+  const applyWin = (stats) => {
+    const earned = isArena
+      ? stats.consecutiveWins >= 2
+        ? 4
+        : 2
+      : 1;
+    stats.score += earned;
+    stats.gamesPlayed += 1;
+    stats.wins += 1;
+    stats.consecutiveWins += 1;
+  };
+
+  const applyDraw = (stats) => {
+    stats.score += isArena ? 1 : 0.5;
+    stats.gamesPlayed += 1;
+    stats.draws += 1;
+    stats.consecutiveWins = 0;
+  };
+
+  const applyLoss = (stats) => {
+    stats.gamesPlayed += 1;
+    stats.losses += 1;
+    stats.consecutiveWins = 0;
+  };
+
+  for (const game of orderedGames) {
     const result = String(game.result || "*");
     if (!SUPPORTED_RESULTS.has(result) || result === "*") continue;
 
@@ -631,25 +669,34 @@ export function createPlayerStatsMap(players, games) {
       const byeWinner = resolveWinnerId(game) || whiteId || blackId;
       if (!byeWinner || !statsMap.has(byeWinner)) continue;
       const stats = statsMap.get(byeWinner);
-      stats.score += 1;
-      stats.gamesPlayed += 1;
+      applyWin(stats);
       stats.hadBye = true;
       continue;
     }
 
     if (!statsMap.has(whiteId) || !statsMap.has(blackId)) continue;
-    const points = RESULT_POINTS[result];
-    if (!points) continue;
 
     const whiteStats = statsMap.get(whiteId);
     const blackStats = statsMap.get(blackId);
-
-    whiteStats.score += points.white;
-    blackStats.score += points.black;
-    whiteStats.gamesPlayed += 1;
-    blackStats.gamesPlayed += 1;
+    whiteStats.whiteGames += 1;
+    blackStats.blackGames += 1;
     whiteStats.opponents.push(blackId);
     blackStats.opponents.push(whiteId);
+
+    if (result === "1-0" || result === "1-0F") {
+      applyWin(whiteStats);
+      applyLoss(blackStats);
+      continue;
+    }
+    if (result === "0-1" || result === "0-1F") {
+      applyLoss(whiteStats);
+      applyWin(blackStats);
+      continue;
+    }
+    if (result === "1/2-1/2") {
+      applyDraw(whiteStats);
+      applyDraw(blackStats);
+    }
   }
 
   for (const [userId, stats] of statsMap.entries()) {
@@ -670,6 +717,13 @@ export function createPlayerStatsMap(players, games) {
       buchholz: toRoundNumber(stats.buchholz),
       gamesPlayed: stats.gamesPlayed,
       hadBye: !!stats.hadBye,
+      wins: Number(stats.wins || 0),
+      draws: Number(stats.draws || 0),
+      losses: Number(stats.losses || 0),
+      whiteGames: Number(stats.whiteGames || 0),
+      blackGames: Number(stats.blackGames || 0),
+      colorBalance:
+        Number(stats.whiteGames || 0) - Number(stats.blackGames || 0),
     });
   }
 

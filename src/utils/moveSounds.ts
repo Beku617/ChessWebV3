@@ -38,6 +38,8 @@ let lastTerminalSoundAt = 0;
 let lastMoveSoundKey = "";
 let lastMoveSoundAt = 0;
 const MOVE_SOUND_DEDUPE_MS = 120;
+const playedOnceKeys = new Set<string>();
+const ONCE_STORAGE_PREFIX = "neongambit:sound-once:";
 
 function getAudio(name: keyof typeof SOUND_PATHS): HTMLAudioElement | null {
   if (typeof window === "undefined" || typeof Audio === "undefined") {
@@ -100,6 +102,32 @@ function playSound(name: keyof typeof SOUND_PATHS) {
     }
   } catch {
     // Ignore playback errors to keep gameplay smooth.
+  }
+}
+
+function hasPlayedOnce(key: string) {
+  if (!key) return false;
+  if (playedOnceKeys.has(key)) return true;
+  if (typeof window === "undefined") return false;
+  try {
+    if (window.localStorage.getItem(`${ONCE_STORAGE_PREFIX}${key}`) === "1") {
+      playedOnceKeys.add(key);
+      return true;
+    }
+  } catch {
+    // Ignore storage failures; in-memory dedupe still prevents local spam.
+  }
+  return false;
+}
+
+function markPlayedOnce(key: string) {
+  if (!key) return;
+  playedOnceKeys.add(key);
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(`${ONCE_STORAGE_PREFIX}${key}`, "1");
+  } catch {
+    // Ignore storage failures.
   }
 }
 
@@ -254,6 +282,15 @@ type GameplaySoundName =
   | "gameEnd"
   | "tenSeconds";
 
-export function playGameplaySound(name: GameplaySoundName) {
+export function playGameplaySound(
+  name: GameplaySoundName,
+  options: { onceKey?: string | null } = {},
+) {
+  const onceKey = String(options.onceKey || "").trim();
+  if (onceKey) {
+    const dedupeKey = `${name}:${onceKey}`;
+    if (hasPlayedOnce(dedupeKey)) return;
+    markPlayedOnce(dedupeKey);
+  }
   playSound(name);
 }

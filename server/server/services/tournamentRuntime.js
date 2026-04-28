@@ -107,6 +107,12 @@ export async function refreshTournamentStats(tournamentId, tournamentType) {
             buchholz: stats.buchholz,
             gamesPlayed: stats.gamesPlayed,
             hadBye: stats.hadBye,
+            wins: Number(stats.wins || 0),
+            draws: Number(stats.draws || 0),
+            losses: Number(stats.losses || 0),
+            whiteGames: Number(stats.whiteGames || 0),
+            blackGames: Number(stats.blackGames || 0),
+            colorBalance: Number(stats.colorBalance || 0),
           },
         },
       },
@@ -128,6 +134,10 @@ export async function maybeAdvanceTournament(tournamentId, options = {}) {
     tournament: tournament || null,
   };
   if (!tournament) {
+    return options.returnMeta ? progression : tournament;
+  }
+  if (String(tournament.type || "").toLowerCase() === "arena") {
+    progression.tournament = tournament;
     return options.returnMeta ? progression : tournament;
   }
   if (normalizeTournamentState(tournament.status) !== TOURNAMENT_STATES.LIVE_ROUND) {

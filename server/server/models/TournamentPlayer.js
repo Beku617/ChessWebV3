@@ -30,6 +30,9 @@ const TournamentPlayerSchema = new mongoose.Schema(
     losses: { type: Number, default: 0, min: 0 },
     whiteGames: { type: Number, default: 0, min: 0 },
     blackGames: { type: Number, default: 0, min: 0 },
+    arenaReady: { type: Boolean, default: false, index: true },
+    arenaReadyAt: { type: Date, default: null },
+    waitTicks: { type: Number, default: 0, min: 0 },
     status: {
       type: String,
       enum: ["active", "withdrawn"],
@@ -49,6 +52,7 @@ const TournamentPlayerSchema = new mongoose.Schema(
 
 TournamentPlayerSchema.index({ tournamentId: 1, userId: 1 }, { unique: true });
 TournamentPlayerSchema.index({ tournamentId: 1, score: -1, buchholz: -1, seed: 1 });
+TournamentPlayerSchema.index({ tournamentId: 1, arenaReady: 1, waitTicks: -1 });
 
 const TournamentPlayer =
   mongoose.models.TournamentPlayer ||

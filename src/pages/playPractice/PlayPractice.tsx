@@ -1885,6 +1885,17 @@ export default function PlayPractice() {
                           </div>
                         </div>
                       )}
+                      {!opening && !openingLoading && sanMoves.length > 0 && (
+                        <div
+                          style={{
+                            fontSize: 11,
+                            color: "#64748b",
+                            padding: "0 2px",
+                          }}
+                        >
+                          Opening data unavailable
+                        </div>
+                      )}
 
                       <div
                         style={{

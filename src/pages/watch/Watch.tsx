@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { Search } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useParams } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import { LiveGamesGrid } from "./LiveGamesGrid";
 import { useWatchPageData } from "../../hooks/useWatchPage";
 import { WatchFeaturedCarousel } from "./WatchFeaturedCarousel";
+import { WatchSpectatorGame } from "./WatchSpectatorGame";
 
-export default function Watch() {
+function WatchLanding() {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("Top Rated");
   const [searchQuery, setSearchQuery] = useState("");
@@ -71,4 +73,14 @@ export default function Watch() {
       </main>
     </div>
   );
+}
+
+export default function Watch() {
+  const { gameId } = useParams<{ gameId?: string }>();
+
+  if (gameId) {
+    return <WatchSpectatorGame gameId={gameId} />;
+  }
+
+  return <WatchLanding />;
 }

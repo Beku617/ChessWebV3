@@ -52,8 +52,10 @@ const ActiveGameSessionSchema = new mongoose.Schema(
     playersByColor: { type: mongoose.Schema.Types.Mixed, default: undefined },
 
     fen: { type: String, default: "start" },
+    initialFen: { type: String, default: "start" },
     pgn: { type: String, default: "" },
     moves: { type: [String], default: [] },
+    fenHistory: { type: [String], default: [] },
     moveCount: { type: Number, default: 0 },
     turn: { type: String, default: "w" },
     whoseTurn: {

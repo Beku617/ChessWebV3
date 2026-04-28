@@ -1,11 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import {
-  Eye,
-  ChevronRight,
-  ChevronLeft,
-  RefreshCw,
-} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Eye, ChevronRight, ChevronLeft, RefreshCw } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { WatchLiveGame } from "./types";
 
@@ -29,20 +25,20 @@ interface LiveGameCardProps {
 
 export function LiveGameCard({ game }: LiveGameCardProps) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const label = game.category || game.type;
   return (
-    <motion.a
-      href={game.gameUrl}
-      target="_blank"
-      rel="noopener noreferrer"
+    <motion.button
+      type="button"
+      onClick={() => navigate(`/watch/${encodeURIComponent(game.id)}`)}
       whileHover={{ y: -4 }}
-      className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4 hover:border-gray-300 dark:hover:border-gray-700 transition-colors cursor-pointer group shadow-sm hover:shadow-md block"
+      className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4 hover:border-gray-300 dark:hover:border-gray-700 transition-colors cursor-pointer group shadow-sm hover:shadow-md block text-left w-full"
     >
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center space-x-2 text-xs font-medium text-gray-500 dark:text-gray-400">
           <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
           <span>
-            {label} • {game.time}
+            {label} - {game.time}
           </span>
         </div>
         <div className="flex items-center space-x-1 text-xs text-gray-500">
@@ -54,9 +50,7 @@ export function LiveGameCard({ game }: LiveGameCardProps) {
       <div className="space-y-3 mb-4">
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-2">
-            <div className="w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-xs">
-
-            </div>
+            <div className="w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-xs"></div>
             <div className="flex items-center gap-1">
               {game.whiteTitle && (
                 <span className="text-amber-500 text-xs font-bold">
@@ -74,9 +68,7 @@ export function LiveGameCard({ game }: LiveGameCardProps) {
         </div>
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-2">
-            <div className="w-6 h-6 rounded bg-gray-100 dark:bg-gray-100 flex items-center justify-center text-xs text-black">
-
-            </div>
+            <div className="w-6 h-6 rounded bg-gray-100 dark:bg-gray-100 flex items-center justify-center text-xs text-black"></div>
             <div className="flex items-center gap-1">
               {game.blackTitle && (
                 <span className="text-amber-500 text-xs font-bold">
@@ -99,11 +91,10 @@ export function LiveGameCard({ game }: LiveGameCardProps) {
           {t("Watch")} <ChevronRight className="w-4 h-4 ml-1" />
         </span>
       </div>
-    </motion.a>
+    </motion.button>
   );
 }
 
-// Skeleton loader
 function GameCardSkeleton() {
   return (
     <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4 animate-pulse">
@@ -167,7 +158,6 @@ export function LiveGamesGrid({
     return game.type || "Blitz";
   };
 
-  // Filter games based on tab - now uses both speed and type fields
   const filteredGames = games.filter((game) => {
     const category = getCategory(game);
     if (activeTab === "Top Rated") return true;
@@ -183,7 +173,6 @@ export function LiveGamesGrid({
     return true;
   });
 
-  // Reset to page 1 when tab or game list changes
   useEffect(() => {
     setCurrentPage(1);
   }, [activeTab, games.length]);
@@ -213,7 +202,6 @@ export function LiveGamesGrid({
 
   return (
     <section>
-      {/* Tabs */}
       <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 mb-6">
         <div className="flex space-x-6">
           {["Top Rated", "Blitz", "Rapid", "Classical"].map((tab) => (
@@ -248,10 +236,9 @@ export function LiveGamesGrid({
         )}
       </div>
 
-      {/* Count info */}
       {!loading && filteredGames.length > 0 && (
         <div className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-          {rangeStart}–{rangeEnd} {t("of")} {filteredGames.length} {t("games")}
+          {rangeStart}-{rangeEnd} {t("of")} {filteredGames.length} {t("games")}
         </div>
       )}
 
@@ -276,7 +263,6 @@ export function LiveGamesGrid({
         </div>
       )}
 
-      {/* Pagination */}
       {!loading && totalPages > 1 && (
         <div className="flex items-center justify-center gap-1.5 pt-4">
           <button
@@ -292,7 +278,7 @@ export function LiveGamesGrid({
                 key={`dots-${i}`}
                 className="w-9 h-9 flex items-center justify-center text-gray-400 dark:text-gray-600 text-sm select-none"
               >
-                …
+                ...
               </span>
             ) : (
               <button
@@ -313,8 +299,6 @@ export function LiveGamesGrid({
           </button>
         </div>
       )}
-
     </section>
   );
 }
-

@@ -11,6 +11,7 @@ import {
 import type { GameHistory } from "../../historyTypes";
 import { useGameplayPreferences } from "../../hooks/useGameplayPreferences";
 import { resolveQuickMatchDefaultTimeControl } from "../../utils/gameplaySettings";
+import { API_URL } from "../../config/network";
 
 type MatchVariant =
   | "standard"
@@ -19,8 +20,9 @@ type MatchVariant =
   | "kingOfHill"
   | "atomic";
 const LAST_QUICK_TIME_CONTROL_KEY = "quickMatch:lastTimeControl";
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 const DEFAULT_TIME_CONTROL = resolveQuickMatchDefaultTimeControl("rapid");
+const REGISTRATION_WINDOW_MS = 60 * 60 * 1000;
+const ARENA_PAIRING_INTERVAL_SECONDS = 5;
 
 function normalizeVariant(value: unknown): MatchVariant {
   if (typeof value !== "string") return "standard";
@@ -217,6 +219,254 @@ function getTournamentGameIdFromSearch(search: string): string | null {
   return trimmed || null;
 }
 
+function getTournamentIdFromState(state: unknown): string | null {
+  if (!state || typeof state !== "object") return null;
+  const raw = (state as { tournamentId?: unknown }).tournamentId;
+  if (typeof raw !== "string") return null;
+  const trimmed = raw.trim();
+  return trimmed || null;
+}
+
+function getTournamentIdFromSearch(search: string): string | null {
+  const params = new URLSearchParams(search);
+  const raw = params.get("tournamentId");
+  if (!raw) return null;
+  const trimmed = raw.trim();
+  return trimmed || null;
+}
+
+function parseOptionalDate(value?: string | null): Date | null {
+  if (!value) return null;
+  const parsed = new Date(value);
+  if (!Number.isFinite(parsed.getTime())) return null;
+  return parsed;
+}
+
+function formatLobbyResult(result: string, isBye: boolean): string {
+  if (isBye) return "BYE";
+  const normalized = String(result || "*");
+  if (normalized === "*") return "Live";
+  if (normalized === "1/2-1/2") return "1/2";
+  return normalized.replace(/F$/i, "");
+}
+
+interface TournamentLobbyRoundGame {
+  id?: string;
+  gameId?: string;
+  roundNumber?: number;
+  board?: number;
+  white?: string;
+  black?: string;
+  whiteId?: string;
+  blackId?: string;
+  result?: string;
+  isBye?: boolean;
+  status?: "in_progress" | "completed";
+  whiteEloDelta?: number;
+  blackEloDelta?: number;
+}
+
+interface TournamentLobbyRound {
+  roundNumber?: number;
+  games?: TournamentLobbyRoundGame[];
+}
+
+interface TournamentLobbyDetailResponse {
+  tournament?: {
+    id?: string;
+    name?: string;
+    status?: string;
+    type?: string;
+    formatLabel?: string;
+    currentRound?: number;
+    roundsPlanned?: number;
+    durationMinutes?: number | null;
+    timeControlLabel?: string;
+    isRegistered?: boolean;
+    scheduledStartAt?: string | null;
+    startedAt?: string | null;
+    finishedAt?: string | null;
+    arenaReady?: boolean;
+    arenaWaitTicks?: number;
+    arenaReadyPoolSize?: number;
+    arenaPairingIntervalSeconds?: number;
+  };
+  standings?: Array<{
+    rank?: number;
+    userId?: string;
+    username?: string;
+    elo?: number;
+    avatar?: string;
+    points?: number;
+    games?: number;
+    gamesPlayed?: number;
+    wins?: number;
+    draws?: number;
+    losses?: number;
+    status?: string;
+  }>;
+  rounds?: TournamentLobbyRound[];
+}
+
+function buildTournamentLobbyPanelData(
+  detail: TournamentLobbyDetailResponse,
+  viewerUserId: string,
+): { panelData: TournamentGamePanelData; statusMessage: string | null } {
+  const tournament = detail?.tournament || {};
+  const status = String(tournament.status || "").toUpperCase();
+  const nowMs = Date.now();
+  const startedAt = parseOptionalDate(tournament.startedAt);
+  const scheduledStartAt = parseOptionalDate(tournament.scheduledStartAt);
+  const finishedAt = parseOptionalDate(tournament.finishedAt);
+  const startAt = startedAt || scheduledStartAt;
+  const durationMinutes = Number(tournament.durationMinutes || 0);
+  const hasDurationEnded =
+    !!startAt &&
+    Number.isFinite(durationMinutes) &&
+    durationMinutes > 0 &&
+    nowMs >= startAt.getTime() + durationMinutes * 60_000;
+  const hasEnded =
+    status === "FINISHED" || (!!finishedAt && nowMs >= finishedAt.getTime());
+  const isRunning =
+    !hasEnded &&
+    (status === "LIVE_ROUND" ||
+      status === "ROUND_CLOSED" ||
+      (!!startAt && nowMs >= startAt.getTime()));
+  const isRegistered = !!tournament.isRegistered;
+  const isArena = String(tournament.type || "").toLowerCase() === "arena";
+  const isInReadyPool = !!tournament.arenaReady;
+  const isArenaTimerElapsed = isArena && hasDurationEnded && !hasEnded;
+
+  const history = (detail?.rounds || [])
+    .flatMap((round) =>
+      (round.games || []).map((game) => ({
+        id: String(game.id || game.gameId || ""),
+        gameId: String(game.gameId || ""),
+        roundNumber: Number(round.roundNumber || game.roundNumber || 0),
+        board: Number(game.board || 0),
+        white: String(game.white || "Player"),
+        black: String(game.black || "Player"),
+        whiteId: String(game.whiteId || ""),
+        blackId: String(game.blackId || ""),
+        result: formatLobbyResult(String(game.result || "*"), !!game.isBye),
+        rawResult: String(game.result || "*"),
+        isBye: !!game.isBye,
+        status:
+          game.status || (String(game.result || "*") === "*" ? "in_progress" : "completed"),
+        whiteEloDelta: Number(game.whiteEloDelta || 0),
+        blackEloDelta: Number(game.blackEloDelta || 0),
+      })),
+    )
+    .sort((a, b) => {
+      const byRound = Number(a.roundNumber || 0) - Number(b.roundNumber || 0);
+      if (byRound !== 0) return byRound;
+      return Number(a.board || 0) - Number(b.board || 0);
+    });
+
+  const pendingViewerGame =
+    history.find(
+      (game) =>
+        !game.isBye &&
+        game.rawResult === "*" &&
+        (game.whiteId === viewerUserId || game.blackId === viewerUserId),
+    ) || null;
+
+  let statusMessage: string | null = null;
+  let gameAction: NonNullable<TournamentGamePanelData["gameAction"]> = {
+    gameId: null,
+    label: "Join",
+    disabled: false,
+  };
+
+  if (!isRegistered) {
+    if (hasEnded || (startAt && nowMs >= startAt.getTime())) {
+      gameAction = { gameId: null, label: "Join", disabled: true };
+      statusMessage = "Registration is closed.";
+    } else if (startAt && nowMs < startAt.getTime() - REGISTRATION_WINDOW_MS) {
+      gameAction = { gameId: null, label: "Join", disabled: true };
+      statusMessage = "Registration begins 1 hour before the event starts.";
+    } else {
+      gameAction = { gameId: null, label: "Join", disabled: false };
+    }
+  } else if (pendingViewerGame) {
+    gameAction = {
+      gameId: pendingViewerGame.gameId,
+      label: Number(pendingViewerGame.roundNumber || 0) > 1 ? "Next Game" : "Start Game",
+      disabled: !String(pendingViewerGame.gameId || "").trim(),
+    };
+  } else if (isRunning) {
+    if (isArena) {
+      if (isArenaTimerElapsed) {
+        gameAction = { gameId: null, label: "Time ended", disabled: true };
+      } else if (isInReadyPool) {
+        gameAction = { gameId: null, label: "Waiting for pairing", disabled: true };
+      } else {
+        gameAction = { gameId: null, label: "Ready", disabled: false };
+      }
+    } else {
+      gameAction = { gameId: null, label: "Waiting for pairing", disabled: true };
+    }
+  } else {
+    gameAction = { gameId: null, label: hasEnded ? "Final standings" : "Joined", disabled: true };
+  }
+
+  return {
+    panelData: {
+      tournament: {
+        id: String(tournament.id || ""),
+        name: String(tournament.name || "Tournament"),
+        status: String(tournament.status || ""),
+        type: String(tournament.type || "swiss"),
+        formatLabel: String(tournament.formatLabel || ""),
+        currentRound: Number(tournament.currentRound || 0),
+        roundsPlanned: Number(tournament.roundsPlanned || 1),
+        timeControlLabel: String(tournament.timeControlLabel || ""),
+        durationMinutes:
+          tournament.durationMinutes === null ||
+          tournament.durationMinutes === undefined
+            ? null
+            : Number(tournament.durationMinutes),
+        scheduledStartAt:
+          typeof tournament.scheduledStartAt === "string"
+            ? tournament.scheduledStartAt
+            : null,
+        startedAt:
+          typeof tournament.startedAt === "string"
+            ? tournament.startedAt
+            : null,
+        finishedAt:
+          typeof tournament.finishedAt === "string"
+            ? tournament.finishedAt
+            : null,
+        arenaReady: !!tournament.arenaReady,
+        arenaWaitTicks: Number(tournament.arenaWaitTicks || 0),
+        arenaReadyPoolSize: Number(tournament.arenaReadyPoolSize || 0),
+        arenaPairingIntervalSeconds: Number(
+          tournament.arenaPairingIntervalSeconds || ARENA_PAIRING_INTERVAL_SECONDS,
+        ),
+      },
+      opponent: null,
+      standings: (detail.standings || []).map((row) => ({
+        rank: Number(row.rank || 0),
+        userId: String(row.userId || ""),
+        username: String(row.username || "Player"),
+        elo: Number(row.elo || 1200),
+        avatar: String(row.avatar || ""),
+        points: Number(row.points || 0),
+        games: Number(row.games ?? row.gamesPlayed ?? 0),
+        wins: Number(row.wins || 0),
+        draws: Number(row.draws || 0),
+        losses: Number(row.losses || 0),
+        status: String(row.status || "active"),
+      })),
+      history,
+      gameAction,
+      chatMessages: [],
+    },
+    statusMessage,
+  };
+}
+
 export default function QuickMatch() {
   const { user } = useAuthStore();
   const { defaultTimeControl } = useGameplayPreferences();
@@ -232,6 +482,7 @@ export default function QuickMatch() {
     gameResult,
     isPlayerTurn,
     playerColor,
+    activeGameId,
     savedGameId,
     historyPersistenceStatus,
     showGameOverModal,
@@ -259,11 +510,14 @@ export default function QuickMatch() {
     leaveTournamentJoin,
     cancelMatch,
     resign,
+    offerDraw,
+    respondDrawOffer,
     timeOut,
     rematch,
     leaveGame,
     matchVariant,
     threeCheckState,
+    drawOfferState,
     promotionState,
     onPromotionPieceSelect,
     lastGameOver,
@@ -292,8 +546,16 @@ export default function QuickMatch() {
       getTournamentGameIdFromSearch(location.search)
     );
   });
+  const [tournamentId, setTournamentId] = useState<string | null>(() => {
+    return (
+      getTournamentIdFromState(location.state) ||
+      getTournamentIdFromSearch(location.search)
+    );
+  });
   const [tournamentPanelData, setTournamentPanelData] =
     useState<TournamentGamePanelData | null>(null);
+  const [tournamentLobbyStatusMessage, setTournamentLobbyStatusMessage] =
+    useState<string | null>(null);
 
   useEffect(() => {
     const selectedTimeControl =
@@ -360,8 +622,20 @@ export default function QuickMatch() {
   }, [location.state, location.search]);
 
   useEffect(() => {
+    setTournamentId(
+      getTournamentIdFromState(location.state) ||
+        getTournamentIdFromSearch(location.search),
+    );
+  }, [location.state, location.search]);
+
+  const isTournamentLobbyMode = !!tournamentId && !tournamentGameId;
+
+  useEffect(() => {
     if (!tournamentGameId) {
-      setTournamentPanelData(null);
+      if (!isTournamentLobbyMode) {
+        setTournamentPanelData(null);
+        setTournamentLobbyStatusMessage(null);
+      }
       return;
     }
 
@@ -396,17 +670,73 @@ export default function QuickMatch() {
     void loadTournamentPanelData();
     const pollId = window.setInterval(
       () => void loadTournamentPanelData(),
-      gameStarted ? 6000 : 12000,
+      5000,
     );
 
     return () => {
       cancelled = true;
       window.clearInterval(pollId);
     };
-  }, [gameStarted, tournamentGameId]);
+  }, [gameStarted, isTournamentLobbyMode, tournamentGameId]);
+
+  useEffect(() => {
+    if (!isTournamentLobbyMode || !tournamentId) {
+      if (!tournamentGameId) {
+        setTournamentLobbyStatusMessage(null);
+      }
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadTournamentLobbyData = async () => {
+      try {
+        const res = await fetch(
+          `${API_URL}/api/tournaments/${encodeURIComponent(tournamentId)}`,
+          {
+            credentials: "include",
+          },
+        );
+        const payload = (await res.json().catch(() => ({}))) as
+          | TournamentLobbyDetailResponse
+          | { error?: string };
+
+        if (cancelled) return;
+        if (!res.ok) {
+          const message = String(
+            (payload as { error?: string })?.error || "Failed to load tournament.",
+          );
+          setTournamentLobbyStatusMessage(message);
+          return;
+        }
+
+        const mapped = buildTournamentLobbyPanelData(
+          payload as TournamentLobbyDetailResponse,
+          String(user?.id || ""),
+        );
+        setTournamentPanelData(mapped.panelData);
+        setTournamentLobbyStatusMessage(mapped.statusMessage);
+      } catch {
+        if (!cancelled) {
+          setTournamentLobbyStatusMessage("Failed to load tournament.");
+        }
+      }
+    };
+
+    void loadTournamentLobbyData();
+    const pollId = window.setInterval(() => {
+      void loadTournamentLobbyData();
+    }, 5000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(pollId);
+    };
+  }, [isTournamentLobbyMode, tournamentGameId, tournamentId, user?.id]);
 
   const autoStartRequested =
     !tournamentGameId &&
+    !tournamentId &&
     (getAutoStartFromState(location.state) ||
       getAutoStartFromSearch(location.search));
   const autoStartHandledRef = useRef(false);
@@ -451,7 +781,7 @@ export default function QuickMatch() {
 
   useEffect(() => {
     if (!pendingTournamentJoin || !tournamentGameId) return;
-    if (gameStarted) {
+    if (gameStarted && activeGameId === tournamentGameId) {
       setPendingTournamentJoin(false);
       return;
     }
@@ -464,6 +794,7 @@ export default function QuickMatch() {
     joinTournamentGame(tournamentGameId, user?.fullName || "Player");
   }, [
     gameStarted,
+    activeGameId,
     isConnected,
     joinTournamentGame,
     location.key,
@@ -488,7 +819,7 @@ export default function QuickMatch() {
 
   useEffect(() => {
     if (!pendingTournamentJoin) return;
-    if (gameStarted) {
+    if (gameStarted && activeGameId === tournamentGameId) {
       setPendingTournamentJoin(false);
       return;
     }
@@ -501,7 +832,14 @@ export default function QuickMatch() {
     ) {
       setPendingTournamentJoin(false);
     }
-  }, [gameStarted, isSearching, pendingTournamentJoin, queueStatus]);
+  }, [
+    activeGameId,
+    gameStarted,
+    isSearching,
+    pendingTournamentJoin,
+    queueStatus,
+    tournamentGameId,
+  ]);
 
   const handleCancelMatch = () => {
     if (tournamentGameId) {
@@ -510,12 +848,16 @@ export default function QuickMatch() {
       navigate("/tournaments");
       return;
     }
+    if (isTournamentLobbyMode) {
+      navigate("/tournaments");
+      return;
+    }
     setPendingAutoStart(false);
     cancelMatch();
   };
 
   const handleStartMatch = () => {
-    if (tournamentGameId) return;
+    if (tournamentGameId || isTournamentLobbyMode) return;
     storeTimeControl(timeControl);
 
     const params = new URLSearchParams({
@@ -582,7 +924,116 @@ export default function QuickMatch() {
     });
   }, [leaveGame, navigate, matchVariant, gameSettings.timeControl]);
 
-  if (gameStarted) {
+  const handleTournamentAction = useCallback(
+    async (action: { gameId: string | null; label: string; disabled: boolean } | null) => {
+      if (!action || action.disabled) return;
+
+      const nextGameId = String(action.gameId || "").trim();
+      if (nextGameId) {
+        navigate(`/play/quick?tournamentGameId=${encodeURIComponent(nextGameId)}`, {
+          state: { tournamentGameId: nextGameId, autoStart: true },
+        });
+        return;
+      }
+
+      const targetTournamentId = String(
+        tournamentId || tournamentPanelData?.tournament?.id || "",
+      ).trim();
+      if (!targetTournamentId) return;
+      const actionLabel = String(action.label || "").trim();
+      const isArenaLobby =
+        String(tournamentPanelData?.tournament?.type || "").toLowerCase() === "arena";
+
+      if (isArenaLobby && /^(start game|ready for next game|ready)$/i.test(actionLabel)) {
+        setTournamentLobbyStatusMessage("Joining ready pool...");
+        try {
+          const res = await fetch(
+            `${API_URL}/api/tournaments/${encodeURIComponent(targetTournamentId)}/arena/ready`,
+            {
+              method: "POST",
+              credentials: "include",
+            },
+          );
+          const payload = (await res.json().catch(() => ({}))) as
+            | TournamentLobbyDetailResponse
+            | { error?: string; message?: string };
+
+          if (!res.ok) {
+            setTournamentLobbyStatusMessage(
+              String((payload as { error?: string })?.error || "Failed to join ready pool."),
+            );
+            return;
+          }
+
+          const mapped = buildTournamentLobbyPanelData(
+            payload as TournamentLobbyDetailResponse,
+            String(user?.id || ""),
+          );
+          setTournamentPanelData(mapped.panelData);
+          setTournamentLobbyStatusMessage(
+            (payload as { message?: string })?.message ||
+              mapped.statusMessage,
+          );
+          const pairedGameId = String(mapped.panelData.gameAction?.gameId || "").trim();
+          if (pairedGameId && pairedGameId !== tournamentGameId) {
+            navigate(`/play/quick?tournamentGameId=${encodeURIComponent(pairedGameId)}`, {
+              state: { tournamentGameId: pairedGameId, autoStart: true },
+            });
+          }
+        } catch {
+          setTournamentLobbyStatusMessage("Failed to join ready pool.");
+        }
+        return;
+      }
+
+      if (!isTournamentLobbyMode || !/^join$/i.test(actionLabel)) return;
+
+      setTournamentLobbyStatusMessage("Joining...");
+      try {
+        const res = await fetch(
+          `${API_URL}/api/tournaments/${encodeURIComponent(targetTournamentId)}/register`,
+          {
+            method: "POST",
+            credentials: "include",
+          },
+        );
+        const payload = (await res.json().catch(() => ({}))) as
+          | TournamentLobbyDetailResponse
+          | { error?: string };
+
+        if (!res.ok) {
+          setTournamentLobbyStatusMessage(
+            String((payload as { error?: string })?.error || "Failed to join tournament."),
+          );
+          return;
+        }
+
+        const mapped = buildTournamentLobbyPanelData(
+          payload as TournamentLobbyDetailResponse,
+          String(user?.id || ""),
+        );
+        setTournamentPanelData(mapped.panelData);
+        setTournamentLobbyStatusMessage(mapped.statusMessage);
+      } catch {
+        setTournamentLobbyStatusMessage("Failed to join tournament.");
+      }
+    },
+    [
+      isTournamentLobbyMode,
+      navigate,
+      tournamentGameId,
+      tournamentId,
+      tournamentPanelData,
+      user?.id,
+    ],
+  );
+
+  const showTournamentBoard = !!tournamentGameId || isTournamentLobbyMode;
+  const boardStatusMessage = isTournamentLobbyMode
+    ? tournamentLobbyStatusMessage
+    : tournamentLobbyStatusMessage || queueStatus;
+
+  if (gameStarted || showTournamentBoard) {
     return (
       <QuickMatchGameView
         game={game}
@@ -594,6 +1045,7 @@ export default function QuickMatch() {
         gameResult={gameResult}
         isPlayerTurn={isPlayerTurn}
         playerColor={playerColor}
+        activeGameId={activeGameId}
         savedGameId={savedGameId}
         historyPersistenceStatus={historyPersistenceStatus}
         showGameOverModal={showGameOverModal}
@@ -602,7 +1054,7 @@ export default function QuickMatch() {
         playerRating={isRatedMatch ? playerRating : null}
         opponentRating={isRatedMatch ? opponentRating : null}
         gameOverElo={isRatedMatch ? lastGameOver?.elo ?? null : null}
-        statusMessage={queueStatus}
+        statusMessage={boardStatusMessage}
         onSquareClick={onSquareClick}
         onPieceDrop={onPieceDrop}
         onCancelSelection={onCancelSelection}
@@ -610,7 +1062,7 @@ export default function QuickMatch() {
         opponentName={opponentName}
         promotionState={promotionState}
         onPromotionPieceSelect={onPromotionPieceSelect}
-        tournamentMode={!!tournamentGameId}
+        tournamentMode={showTournamentBoard}
         setOpponentTime={setOpponentTime}
         setPlayerTime={setPlayerTime}
         playerClockSeed={playerClockSeed}
@@ -619,13 +1071,17 @@ export default function QuickMatch() {
         isClockPaused={isClockPaused}
         onTimeOut={timeOut}
         onResign={resign}
+        onOfferDraw={offerDraw}
+        onRespondDrawOffer={respondDrawOffer}
         onRematch={rematch}
         onNewGame={handleNewGameFromModal}
         onLeave={leaveGame}
         variant={matchVariant}
         threeCheckState={threeCheckState}
+        drawOfferState={drawOfferState}
         tournamentPanelData={tournamentPanelData}
         activeTournamentGameId={tournamentGameId}
+        onTournamentAction={showTournamentBoard ? handleTournamentAction : undefined}
       />
     );
   }
@@ -650,7 +1106,7 @@ export default function QuickMatch() {
       }
       isConnected={isConnected}
       onCancel={handleCancelMatch}
-      tournamentMode={!!tournamentGameId}
+      tournamentMode={showTournamentBoard}
     />
   );
 }

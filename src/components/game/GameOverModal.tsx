@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
 import {
   BarChart3,
   RotateCcw,
@@ -10,6 +9,7 @@ import {
   getHistoryStatusNote,
   type HistoryPersistenceStatus,
 } from "../../hooks/gameHistorySaver/historyPersistence";
+import { openAnalyzeWindow } from "../../utils/analyzeNavigation";
 
 type ModalTone = "win" | "loss" | "draw" | "neutral";
 
@@ -215,8 +215,6 @@ export function GameOverModal({
   historyStatus = "idle",
   elo = null,
 }: GameOverModalProps) {
-  const navigate = useNavigate();
-
   if (!isOpen) return null;
 
   const parsed = parseGameResult(result, opponentName);
@@ -231,7 +229,7 @@ export function GameOverModal({
 
   const handleAnalyze = () => {
     if (!savedGameId) return;
-    navigate(`${analyzeBasePath}/${savedGameId}`);
+    openAnalyzeWindow(`${analyzeBasePath}/${savedGameId}`);
   };
 
   return (

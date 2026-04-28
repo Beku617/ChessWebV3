@@ -264,6 +264,12 @@ export function buildActiveOnlineGamePath(
   if (normalized.mode === "friend") {
     return `/play/friend?${params.toString()}`;
   }
+  if (normalized.mode === "tournament") {
+    const tournamentParams = new URLSearchParams(params);
+    tournamentParams.delete("reconnectGameId");
+    tournamentParams.set("tournamentGameId", normalized.gameId);
+    return `/play/quick?${tournamentParams.toString()}`;
+  }
   return `/play/quick?${params.toString()}`;
 }
 

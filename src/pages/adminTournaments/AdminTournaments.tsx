@@ -31,6 +31,7 @@ type ConfirmDialogState = {
 
 type DetailActionId =
   | "open_registration"
+  | "close_registration"
   | "next_round"
   | "finish_tournament"
   | "close_round";
@@ -70,6 +71,9 @@ function statusBadgeClass(status: TournamentStatus) {
   if (status === "FINISHED") {
     return "border border-slate-400/20 bg-slate-400/10 text-slate-700 dark:text-slate-300";
   }
+  if (status === "CANCELLED") {
+    return "border border-red-400/30 bg-red-500/12 text-red-700 dark:text-red-300";
+  }
   return "border border-[#a855f7]/25 bg-[#a855f7]/10 text-[#7e22ce] dark:text-[#d8b4fe]";
 }
 
@@ -100,20 +104,27 @@ function getDetailActions(
 ): DetailAction[] {
   if (!detail) return [];
   const status = detail.tournament.status;
+  const isArena = detail.tournament.type === "arena";
 
   if (status === "DRAFT") {
     return [{ id: "open_registration", tone: "brand" }];
   }
   if (status === "REGISTRATION_OPEN") {
-    return [];
+    return [{ id: "close_registration", tone: "success" }];
   }
   if (status === "LIVE_ROUND") {
+    if (isArena) {
+      return [{ id: "finish_tournament", tone: "danger" }];
+    }
     return [
       { id: "close_round", tone: "warning" },
       { id: "finish_tournament", tone: "danger" },
     ];
   }
   if (status === "ROUND_CLOSED") {
+    if (isArena) {
+      return [{ id: "finish_tournament", tone: "danger" }];
+    }
     return [
       { id: "next_round", tone: "brand" },
       { id: "finish_tournament", tone: "danger" },
@@ -125,10 +136,16 @@ function getDetailActions(
 export default function AdminTournaments() {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { isAuthenticated, isLoading: authLoading, checkAuth } = useAdminStore();
+  const {
+    isAuthenticated,
+    isLoading: authLoading,
+    error: authError,
+    checkAuth,
+  } = useAdminStore();
 
   const {
     tournaments,
+    stats,
     users,
     pagination,
     selectedId,
@@ -171,16 +188,30 @@ export default function AdminTournaments() {
   }, [checkAuth]);
 
   useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
+    if (!authLoading && !isAuthenticated && !authError) {
       navigate("/login");
     }
-  }, [authLoading, isAuthenticated, navigate]);
+  }, [authError, authLoading, isAuthenticated, navigate]);
 
   const selectedSummary = useMemo(
     () => tournaments.find((tournament) => tournament.id === selectedId) || null,
     [selectedId, tournaments],
   );
   const detailActions = useMemo(() => getDetailActions(detail), [detail]);
+  const statusFilterOptions = useMemo(() => {
+    const counts: Record<TournamentStatus, number> = {
+      DRAFT: stats?.draft ?? 0,
+      REGISTRATION_OPEN: stats?.registrationOpen ?? 0,
+      LIVE_ROUND: stats?.live ?? 0,
+      ROUND_CLOSED: stats?.roundClosed ?? 0,
+      CANCELLED: stats?.cancelled ?? 0,
+      FINISHED: stats?.finished ?? 0,
+    };
+
+    return (Object.keys(counts) as TournamentStatus[]).filter(
+      (status) => counts[status] > 0 || status === statusFilter,
+    );
+  }, [stats, statusFilter]);
   const formatStatusLabel = (status: TournamentStatus) => {
     if (status === "REGISTRATION_OPEN") {
       return t("tournamentCommon.status.registrationOpen", "Registration Open");
@@ -194,10 +225,15 @@ export default function AdminTournaments() {
     if (status === "FINISHED") {
       return t("tournamentCommon.status.finished", "Finished");
     }
+    if (status === "CANCELLED") {
+      return t("tournamentCommon.status.cancelled", "Cancelled");
+    }
     return t("tournamentCommon.status.draft", "Draft");
   };
   const formatTypeLabel = (type: AdminTournamentSummary["type"]) => {
-    void type;
+    if (type === "arena") {
+      return t("tournamentCommon.formats.arena", "Arena");
+    }
     return t("tournamentCommon.formats.swiss", "Swiss");
   };
   const formatPlayerStatus = (status: "active" | "withdrawn") =>
@@ -233,6 +269,9 @@ export default function AdminTournaments() {
     if (actionId === "open_registration") {
       return t("adminTournaments.actions.openRegistration", "Open Registration");
     }
+    if (actionId === "close_registration") {
+      return t("adminTournaments.actions.startTournament", "Start Tournament");
+    }
     if (actionId === "next_round") {
       return t("adminTournaments.actions.startNextRound", "Start Next Round");
     }
@@ -260,7 +299,12 @@ export default function AdminTournaments() {
           label: t("adminTournaments.detailCards.schedule", "Schedule"),
           value: detail.tournament.timeControlLabel,
           meta:
-            detail.tournament.startType === "scheduled"
+            detail.tournament.type === "arena" && detail.tournament.durationMinutes
+              ? t("adminTournaments.values.duration", {
+                  count: detail.tournament.durationMinutes,
+                  defaultValue: `${detail.tournament.durationMinutes} min duration`,
+                })
+              : detail.tournament.startType === "scheduled"
               ? t("adminTournaments.values.startsAt", {
                   value: formatDateTime(detail.tournament.scheduledStartAt),
                   defaultValue: `Starts ${formatDateTime(detail.tournament.scheduledStartAt)}`,
@@ -272,12 +316,24 @@ export default function AdminTournaments() {
         },
         {
           key: "rounds",
-          label: t("adminTournaments.detailCards.rounds", "Rounds"),
-          value: `${detail.tournament.currentRound}/${detail.tournament.roundsPlanned}`,
-          meta: t("adminTournaments.values.roundRecords", {
-            count: detail.rounds.length,
-            defaultValue: `${detail.rounds.length} round records`,
-          }),
+          label:
+            detail.tournament.type === "arena"
+              ? t("adminTournaments.detailCards.arena", "Arena")
+              : t("adminTournaments.detailCards.rounds", "Rounds"),
+          value:
+            detail.tournament.type === "arena"
+              ? detail.tournament.pairingLogic || "-"
+              : `${detail.tournament.currentRound}/${detail.tournament.roundsPlanned}`,
+          meta:
+            detail.tournament.type === "arena"
+              ? t("adminTournaments.values.readyPool", {
+                  count: detail.tournament.arenaReadyPoolSize || 0,
+                  defaultValue: `${detail.tournament.arenaReadyPoolSize || 0} ready`,
+                })
+              : t("adminTournaments.values.roundRecords", {
+                  count: detail.rounds.length,
+                  defaultValue: `${detail.rounds.length} round records`,
+                }),
         },
         {
           key: "rating",
@@ -387,6 +443,11 @@ export default function AdminTournaments() {
         const successMessage =
           action.id === "open_registration"
             ? t("adminTournaments.notifications.registrationOpened", "Registration opened")
+            : action.id === "close_registration"
+              ? t(
+                  "adminTournaments.notifications.tournamentStarted",
+                  "Tournament started",
+                )
             : action.id === "next_round"
               ? t(
                   "adminTournaments.notifications.nextRoundStarted",
@@ -437,6 +498,40 @@ export default function AdminTournaments() {
     return (
       <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-950 flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-[#a855f7]" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated && authError) {
+    return (
+      <div className="min-h-screen bg-[#f5f5f7] px-6 py-10 text-gray-900 dark:bg-gray-950 dark:text-white">
+        <div className="mx-auto flex min-h-[70vh] max-w-xl flex-col items-center justify-center text-center">
+          <div className="rounded-xl border border-red-200 bg-white p-6 shadow-sm dark:border-red-500/20 dark:bg-slate-900">
+            <h1 className="text-xl font-semibold">
+              {t("adminTournaments.errors.adminUnavailableTitle", "Admin backend unavailable")}
+            </h1>
+            <p className="mt-3 text-sm leading-6 text-gray-600 dark:text-slate-300">
+              {authError}
+            </p>
+            <div className="mt-5 flex flex-wrap justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => void checkAuth()}
+                className="inline-flex items-center gap-2 rounded-lg bg-[#a855f7] px-4 py-2 text-sm font-medium text-white hover:bg-[#9333ea]"
+              >
+                <Loader2 className="h-4 w-4" />
+                {t("common.retry", "Retry")}
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate("/login")}
+                className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:border-white/10 dark:text-slate-200 dark:hover:bg-slate-800"
+              >
+                {t("auth.signIn", "Sign In")}
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -504,6 +599,7 @@ export default function AdminTournaments() {
                 {t("adminTournaments.filters.allFormats", "All Formats")}
               </option>
               <option value="swiss">{t("tournamentCommon.formats.swiss", "Swiss")}</option>
+              <option value="arena">{t("tournamentCommon.formats.arena", "Arena")}</option>
             </select>
 
             <select
@@ -515,19 +611,11 @@ export default function AdminTournaments() {
               className={`${inputClassName} min-w-[164px]`}
             >
               <option value="">{t("adminTournaments.filters.allStatus", "All Status")}</option>
-              <option value="DRAFT">{t("tournamentCommon.status.draft", "Draft")}</option>
-              <option value="REGISTRATION_OPEN">
-                {t("tournamentCommon.status.registrationOpen", "Registration Open")}
-              </option>
-              <option value="LIVE_ROUND">
-                {t("tournamentCommon.status.liveRound", "Live Round")}
-              </option>
-              <option value="ROUND_CLOSED">
-                {t("tournamentCommon.status.roundClosed", "Round Closed")}
-              </option>
-              <option value="FINISHED">
-                {t("tournamentCommon.status.finished", "Finished")}
-              </option>
+              {statusFilterOptions.map((status) => (
+                <option key={status} value={status}>
+                  {formatStatusLabel(status)}
+                </option>
+              ))}
             </select>
 
             <select
@@ -628,8 +716,6 @@ export default function AdminTournaments() {
                   <tbody className="divide-y divide-gray-200/70 dark:divide-white/10">
                     {tournaments.map((tournament, index) => {
                       const isSelected = tournament.id === selectedId;
-                      const canEdit = tournament.status === "DRAFT";
-                      const canDelete = canDeleteTournamentStatus(tournament.status);
 
                       return (
                         <tr
@@ -683,12 +769,6 @@ export default function AdminTournaments() {
                           </td>
                           <td className="px-3 py-3 text-sm text-gray-700 dark:text-slate-200">
                             <div className="font-medium">
-                              {t("adminTournaments.values.activeCount", {
-                                count: tournament.activeCount,
-                                defaultValue: `${tournament.activeCount} active`,
-                              })}
-                            </div>
-                            <div className="text-xs text-gray-500 dark:text-slate-400">
                               {t("adminTournaments.values.registeredCount", {
                                 count: tournament.registeredCount,
                                 defaultValue: `${tournament.registeredCount} registered`,
@@ -696,7 +776,9 @@ export default function AdminTournaments() {
                             </div>
                           </td>
                           <td className="px-3 py-3 text-sm font-medium text-gray-700 dark:text-slate-200">
-                            {tournament.currentRound}/{tournament.roundsPlanned}
+                            {tournament.type === "arena"
+                              ? t("adminTournaments.table.arenaDash", "Arena")
+                              : `${tournament.currentRound}/${tournament.roundsPlanned}`}
                           </td>
                           <td className="px-3 py-3">
                             <div className="flex items-center justify-end gap-1">
@@ -710,46 +792,6 @@ export default function AdminTournaments() {
                                 title={t("adminTournaments.table.inspect", "Inspect")}
                               >
                                 <Eye className="h-4 w-4" />
-                              </button>
-                              <button
-                                type="button"
-                                disabled={!canEdit}
-                                onClick={(event) => {
-                                  event.stopPropagation();
-                                  if (!canEdit) return;
-                                  handleEditClick(tournament);
-                                }}
-                                className="shrink-0 rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-sky-500/10 hover:text-sky-500 disabled:cursor-not-allowed disabled:opacity-35 dark:text-slate-400"
-                                title={
-                                  canEdit
-                                    ? t("adminTournaments.table.edit", "Edit")
-                                    : t(
-                                        "adminTournaments.table.onlyDraftsEditable",
-                                        "Only drafts can be edited",
-                                      )
-                                }
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </button>
-                              <button
-                                type="button"
-                                disabled={!canDelete}
-                                onClick={(event) => {
-                                  event.stopPropagation();
-                                  if (!canDelete) return;
-                                  handleDeleteClick(tournament);
-                                }}
-                                className="shrink-0 rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-red-500/10 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-35 dark:text-slate-400"
-                                title={
-                                  canDelete
-                                    ? t("adminTournaments.table.delete", "Delete")
-                                    : t(
-                                        "adminTournaments.table.onlyPreLiveDeletable",
-                                        "Only pre-live tournaments can be deleted",
-                                      )
-                                }
-                              >
-                                <Trash2 className="h-4 w-4" />
                               </button>
                             </div>
                           </td>
@@ -877,7 +919,9 @@ export default function AdminTournaments() {
                         onClick={() => void handleRunAction(action)}
                         disabled={busyAction === action.id}
                         className={`inline-flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors disabled:opacity-60 ${
-                          action.id === "next_round" || detailActions.length === 1
+                          action.id === "next_round" ||
+                          action.id === "close_registration" ||
+                          detailActions.length === 1
                             ? "sm:col-span-2"
                             : ""
                         } ${buttonToneClass(action.tone)}`}
@@ -1041,142 +1085,6 @@ export default function AdminTournaments() {
                     </div>
                   </div>
 
-                  {detail.winners.length > 0 && (
-                    <div>
-                      <div className="mb-3 flex items-center justify-between">
-                        <h3 className={labelClassName}>
-                          {t("adminTournaments.podium.title", "Podium")}
-                        </h3>
-                        <span className="text-xs text-gray-500 dark:text-slate-400">
-                          {t("adminTournaments.podium.finalPlacements", "Final placements")}
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                        {detail.winners.slice(0, 3).map((winner) => (
-                          <div
-                            key={winner.userId}
-                            className="rounded-xl border border-gray-200/80 bg-gray-50/70 p-4 dark:border-white/10 dark:bg-slate-950/30"
-                          >
-                            <div className={labelClassName}>
-                              {t("adminTournaments.podium.place", {
-                                place: winner.placement,
-                                defaultValue: `Place ${winner.placement}`,
-                              })}
-                            </div>
-                            <div className="mt-2 font-semibold text-gray-900 dark:text-white">
-                              {winner.username}
-                            </div>
-                            <div className="mt-1 text-sm text-gray-500 dark:text-slate-400">
-                              {t("adminTournaments.podium.scoreAndElo", {
-                                score: winner.score,
-                                delta: `${winner.eloDelta >= 0 ? "+" : ""}${winner.eloDelta}`,
-                                defaultValue: `${winner.score} pts / ${winner.eloDelta >= 0 ? "+" : ""}${winner.eloDelta} Elo`,
-                              })}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <div>
-                    <div className="mb-3 flex items-center justify-between">
-                      <h3 className={labelClassName}>
-                        {t("adminTournaments.roundLedger.title", "Round Ledger")}
-                      </h3>
-                      <span className="text-xs text-gray-500 dark:text-slate-400">
-                        {t("adminTournaments.roundLedger.recordedRounds", {
-                          count: detail.rounds.length,
-                          defaultValue: `${detail.rounds.length} recorded rounds`,
-                        })}
-                      </span>
-                    </div>
-                    <div className="space-y-3">
-                      {detail.rounds.length === 0 ? (
-                        <div className="rounded-xl border border-dashed border-gray-300 px-4 py-6 text-sm text-gray-500 dark:border-gray-700 dark:text-slate-400">
-                          {t(
-                            "adminTournaments.roundLedger.empty",
-                            "No rounds have been generated yet.",
-                          )}
-                        </div>
-                      ) : (
-                        detail.rounds.map((round) => (
-                          <details
-                            key={round.roundNumber}
-                            className="overflow-hidden rounded-xl border border-gray-200/80 dark:border-white/10"
-                          >
-                            <summary className="flex list-none cursor-pointer items-center justify-between gap-3 bg-gray-50/80 px-4 py-3 dark:bg-slate-950/40">
-                              <span className="font-medium text-gray-900 dark:text-white">
-                                {t("adminTournaments.roundLedger.roundLabel", {
-                                  round: round.roundNumber,
-                                  defaultValue: `Round ${round.roundNumber}`,
-                                })}
-                              </span>
-                              <span className="text-xs text-gray-500 dark:text-slate-400">
-                                {t("adminTournaments.values.boardsCount", {
-                                  count: round.games.length,
-                                  defaultValue: `${round.games.length} boards`,
-                                })}
-                              </span>
-                            </summary>
-                            <div className="divide-y divide-gray-200/70 dark:divide-white/10">
-                              {round.games.map((game) => (
-                                <div
-                                  key={game.id}
-                                  className="flex items-center justify-between gap-3 px-4 py-3"
-                                >
-                                  <div>
-                                    <div className="font-medium text-gray-900 dark:text-white">
-                                      {t("adminTournaments.preview.boardMatch", {
-                                        board: game.board,
-                                        white: game.white,
-                                        black:
-                                          game.black ||
-                                          t("tournamentCommon.generic.bye", "BYE"),
-                                        defaultValue: `Board ${game.board}: ${game.white} vs ${
-                                          game.black || t("tournamentCommon.generic.bye", "BYE")
-                                        }`,
-                                      })}
-                                    </div>
-                                    <div className="mt-1 text-xs text-gray-500 dark:text-slate-400">
-                                      {game.whiteRatingAtPairing}
-                                      {game.blackRatingAtPairing !== null
-                                        ? ` / ${game.blackRatingAtPairing}`
-                                        : ""}{" / "}
-                                      {game.isPublished
-                                        ? t("adminTournaments.roundLedger.published", "Published")
-                                        : t("adminTournaments.roundLedger.preview", "Preview")}
-                                    </div>
-                                  </div>
-                                  <div className="text-right">
-                                    <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                      {game.result === "*"
-                                        ? t(
-                                            "tournamentCommon.result.inProgress",
-                                            "In Progress",
-                                          )
-                                        : game.result}
-                                    </div>
-                                    <div className="text-xs text-gray-500 dark:text-slate-400">
-                                      {game.status === "completed"
-                                        ? t(
-                                            "tournamentCommon.roundStatus.completed",
-                                            "Completed",
-                                          )
-                                        : t(
-                                            "tournamentCommon.roundStatus.inProgress",
-                                            "In Progress",
-                                          )}
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </details>
-                        ))
-                      )}
-                    </div>
-                  </div>
                 </div>
               </div>
             ) : null}

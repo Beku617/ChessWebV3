@@ -42,6 +42,30 @@ export function UserRow({
       ? Math.round((user.gamesWon / user.gamesPlayed) * 100)
       : 0;
 
+  const accountStatus: "offline" | "active" | "playing" =
+    user.accountStatus === "offline" ||
+    user.accountStatus === "active" ||
+    user.accountStatus === "playing"
+      ? user.accountStatus
+      : user.presenceStatus === "in_game"
+        ? "playing"
+        : user.presenceStatus === "offline"
+          ? "offline"
+          : "active";
+
+  const statusBadgeClass =
+    accountStatus === "playing"
+      ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+      : accountStatus === "active"
+        ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+        : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300";
+  const statusLabel =
+    accountStatus === "playing"
+      ? "Playing"
+      : accountStatus === "active"
+        ? "Active"
+        : "Offline";
+
   return (
     <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
       <td className="px-4 py-4">
@@ -91,18 +115,18 @@ export function UserRow({
         </div>
       </td>
       <td className="px-4 py-4">
-        {user.banned ? (
-          <div className="flex items-center gap-1.5">
-            <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full text-xs font-medium">
-              <Ban className="w-3 h-3" />
-              Banned
-            </span>
-          </div>
-        ) : (
-          <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full text-xs font-medium">
-            Active
+        <div className="flex items-center gap-1.5">
+          <span
+            className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${statusBadgeClass}`}
+          >
+            {statusLabel}
           </span>
-        )}
+          {user.pendingDeletion ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-700 dark:bg-red-900/30 dark:text-red-400">
+              Pending deletion
+            </span>
+          ) : null}
+        </div>
       </td>
       <td className="px-4 py-4">
         <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">

@@ -1,12 +1,7 @@
 import { create } from "zustand";
 import { io, Socket } from "socket.io-client";
 import type { User } from "./authStore";
-
-const socketBaseUrl =
-  import.meta.env.VITE_SOCKET_URL ||
-  import.meta.env.VITE_API_URL ||
-  "http://localhost:3001";
-const SOCKET_URL = socketBaseUrl.replace(/\/api\/?$/, "");
+import { SOCKET_URL } from "../config/network";
 
 export type FriendColorChoice = "white" | "black" | "random";
 

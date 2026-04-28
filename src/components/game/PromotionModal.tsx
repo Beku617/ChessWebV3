@@ -1,4 +1,8 @@
 import type { PromotionPiece, PromotionState } from "./types";
+import bishopIcon from "../../assets/pieces/cburnett/bishop.svg";
+import knightIcon from "../../assets/pieces/cburnett/knight.svg";
+import queenIcon from "../../assets/pieces/cburnett/queen.svg";
+import rookIcon from "../../assets/pieces/cburnett/rook.svg";
 
 interface PromotionModalProps {
   state: PromotionState;
@@ -12,6 +16,13 @@ const PIECE_LABELS: Record<PromotionPiece, string> = {
   r: "Rook",
   b: "Bishop",
   n: "Knight",
+};
+
+const PIECE_ICONS: Record<PromotionPiece, string> = {
+  q: queenIcon,
+  r: rookIcon,
+  b: bishopIcon,
+  n: knightIcon,
 };
 
 export function PromotionModal({ state, onSelect }: PromotionModalProps) {
@@ -39,9 +50,12 @@ export function PromotionModal({ state, onSelect }: PromotionModalProps) {
               className="group flex h-20 flex-col items-center justify-center rounded-xl border border-white/15 bg-slate-900/80 transition hover:-translate-y-0.5 hover:border-brand-300/70 hover:bg-slate-800"
               aria-label={`Promote to ${PIECE_LABELS[piece]}`}
             >
-              <span className="text-sm font-semibold uppercase tracking-wide text-slate-200 group-hover:text-brand-200">
-                {PIECE_LABELS[piece]}
-              </span>
+              <img
+                src={PIECE_ICONS[piece]}
+                alt=""
+                className="h-11 w-11 object-contain drop-shadow-[0_3px_8px_rgba(0,0,0,0.45)]"
+                draggable={false}
+              />
             </button>
           ))}
         </div>

@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Clock, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
 import type { GameHistory } from "../../historyTypes";
+import { openAnalyzeWindow } from "../../utils/analyzeNavigation";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
@@ -83,7 +83,6 @@ export function RecentMatchesCard() {
   const { t } = useTranslation();
   const [matches, setMatches] = useState<RecentMatch[]>([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
   useEffect(() => {
     async function fetchRecentGames() {
@@ -140,7 +139,7 @@ export function RecentMatchesCard() {
               initial={{ opacity: 0, x: 15 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.35, delay: index * 0.1 }}
-              onClick={() => navigate(match.analyzePath)}
+              onClick={() => openAnalyzeWindow(match.analyzePath)}
               className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800/30 border border-gray-200 dark:border-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-800/50 transition-colors cursor-pointer"
             >
               <div className="flex items-center space-x-3">

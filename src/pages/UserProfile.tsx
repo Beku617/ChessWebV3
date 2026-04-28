@@ -277,8 +277,7 @@ export default function UserProfile() {
     }
     if (!profileUser?.isWatchableInGame) return;
     const gameId = String(profileUser.watchableGame?.gameId || "").trim();
-    const query = gameId ? `?gameId=${encodeURIComponent(gameId)}` : "";
-    navigate(`/watch${query}`);
+    navigate(gameId ? `/watch/${encodeURIComponent(gameId)}` : "/watch");
   }, [isBlockedByMe, navigate, profileUser?.isWatchableInGame, profileUser?.watchableGame?.gameId]);
 
   const handleToggleBlock = useCallback(async () => {

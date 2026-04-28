@@ -1,10 +1,15 @@
 import { Router } from "express";
-import { User, History, History960 } from "../models/index.js";
+import { User } from "../models/index.js";
 import { adminAuthMiddleware } from "../middleware/index.js";
 import {
   countGameHistories,
   getGameHistoryStatsByUserIds,
 } from "../utils/gameHistoryStats.js";
+import {
+  deleteUserAccountById,
+  isUserCurrentlyPlaying,
+  markUserPendingDeletion,
+} from "../services/userDeletion.js";
 
 const router = Router();
 const ALLOWED_SORT_FIELDS = new Set(["createdAt", "rating", "gamesPlayed"]);
@@ -175,15 +180,41 @@ router.get("/:id/games", adminAuthMiddleware, async (req, res) => {
 // Delete user
 router.delete("/:id", adminAuthMiddleware, async (req, res) => {
   try {
-    const user = await User.findByIdAndDelete(req.params.id);
+    const user = await User.findById(req.params.id);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-    await Promise.all([
-      History.deleteMany({ userId: req.params.id }),
-      History960.deleteMany({ userId: req.params.id }),
-    ]);
-    res.json({ success: true, message: "User deleted" });
+
+    const playing = await isUserCurrentlyPlaying(user._id);
+    if (playing) {
+      const queuedUser = await markUserPendingDeletion(user, {
+        reason: "Account scheduled for deletion after active game.",
+      });
+      return res.json({
+        success: true,
+        pendingDeletion: true,
+        deleted: false,
+        message:
+          "User is in an active game and was scheduled for deletion after the match ends.",
+        user: queuedUser
+          ? {
+              _id: queuedUser._id,
+              banned: queuedUser.banned,
+              bannedAt: queuedUser.bannedAt,
+              banReason: queuedUser.banReason,
+              pendingDeletion: queuedUser.pendingDeletion,
+            }
+          : null,
+      });
+    }
+
+    await deleteUserAccountById(user._id);
+    res.json({
+      success: true,
+      deleted: true,
+      pendingDeletion: false,
+      message: "User deleted",
+    });
   } catch (err) {
     console.error("Admin delete user error:", err);
     res.status(500).json({ error: "Server error" });
@@ -200,21 +231,56 @@ router.patch("/:id/ban", adminAuthMiddleware, async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    user.banned = banned;
-    user.bannedAt = banned ? new Date() : null;
-    user.banReason = banned ? reason || "No reason provided" : "";
+    if (banned) {
+      const playing = await isUserCurrentlyPlaying(user._id);
+      if (playing) {
+        const queuedUser = await markUserPendingDeletion(user, {
+          reason: reason || "Scheduled for deletion after active game.",
+        });
+        return res.json({
+          success: true,
+          deleted: false,
+          pendingDeletion: true,
+          message:
+            "User is in an active game and will be deleted automatically when the game ends.",
+          user: queuedUser
+            ? {
+                _id: queuedUser._id,
+                banned: queuedUser.banned,
+                bannedAt: queuedUser.bannedAt,
+                banReason: queuedUser.banReason,
+                pendingDeletion: queuedUser.pendingDeletion,
+              }
+            : null,
+        });
+      }
+
+      await deleteUserAccountById(user._id);
+      return res.json({
+        success: true,
+        deleted: true,
+        pendingDeletion: false,
+        message: "User deleted",
+      });
+    }
+
+    user.banned = false;
+    user.bannedAt = null;
+    user.banReason = "";
+    user.pendingDeletion = false;
     await user.save();
 
     res.json({
       success: true,
-      message: banned
-        ? "User banned successfully"
-        : "User unbanned successfully",
+      deleted: false,
+      pendingDeletion: false,
+      message: "User unbanned successfully",
       user: {
         _id: user._id,
         banned: user.banned,
         bannedAt: user.bannedAt,
         banReason: user.banReason,
+        pendingDeletion: user.pendingDeletion,
       },
     });
   } catch (err) {

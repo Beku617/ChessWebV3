@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import AdminSidebar from "../../components/AdminSidebar";
 import { useAdminStore } from "../../store/adminStore";
+import { openAnalyzeWindow } from "../../utils/analyzeNavigation";
 import { DeleteGameModal } from "./DeleteGameModal";
 import { GameFormModal } from "./GameFormModal";
 import { useAdminGames } from "./useAdminGames";
@@ -411,7 +412,7 @@ export default function AdminGames() {
                         <div className="flex items-center justify-center gap-1.5">
                           <button
                             type="button"
-                            onClick={() => navigate(`/admin/analyze/${game._id}`)}
+                            onClick={() => openAnalyzeWindow(`/admin/analyze/${game._id}`)}
                             className="p-2 rounded-lg text-gray-500 hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"
                             title="Analyze"
                           >

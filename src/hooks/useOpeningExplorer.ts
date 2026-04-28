@@ -26,7 +26,7 @@ export function useOpeningExplorer(
       setOpening(null);
       return;
     }
-    setOpening((prev) => (local ? local : prev));
+    setOpening(local || null);
   }, [local, moves.length]);
 
   // Optional remote lookup (Lichess Masters explorer) for full coverage
@@ -49,6 +49,8 @@ export function useOpeningExplorer(
           (!local || remote.matchedMoves >= (local?.matchedMoves || 0))
         ) {
           setOpening(remote);
+        } else if (!local) {
+          setOpening(null);
         }
       } catch (err) {
         setError("Opening lookup failed");

@@ -564,7 +564,7 @@ export default function AdminLearnOverview() {
 
         {modalOpen && (
           <div className="fixed inset-0 z-[100] bg-black/55 backdrop-blur-sm px-4 py-8 overflow-y-auto">
-            <div className="mx-auto w-full max-w-3xl rounded-2xl border border-gray-200 bg-white p-6 shadow-[0_24px_60px_rgba(15,23,42,0.25)] dark:border-slate-700 dark:bg-slate-900">
+            <div className="mx-auto w-full max-w-2xl rounded-2xl border border-gray-200 bg-white p-6 shadow-[0_24px_60px_rgba(15,23,42,0.25)] dark:border-slate-700 dark:bg-slate-900">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                   {modalTitle}
@@ -637,47 +637,6 @@ export default function AdminLearnOverview() {
                 </label>
                 <label className="space-y-1">
                   <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                    Teacher
-                  </span>
-                  <input
-                    value={draft.instructorName}
-                    onChange={(event) =>
-                      setDraft((current) => ({
-                        ...current,
-                        instructorName: event.target.value,
-                      }))
-                    }
-                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                  />
-                </label>
-                <label className="space-y-1">
-                  <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                    Short label
-                  </span>
-                  <input
-                    value={draft.badge}
-                    onChange={(event) =>
-                      setDraft((current) => ({ ...current, badge: event.target.value }))
-                    }
-                    placeholder="Example: Beginner guide"
-                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                  />
-                </label>
-                <label className="space-y-1">
-                  <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                    Tags
-                  </span>
-                  <input
-                    value={draft.tags}
-                    onChange={(event) =>
-                      setDraft((current) => ({ ...current, tags: event.target.value }))
-                    }
-                    placeholder="opening, strategy"
-                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                  />
-                </label>
-                <label className="space-y-1">
-                  <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
                     Cover image
                   </span>
                   <input
@@ -720,22 +679,6 @@ export default function AdminLearnOverview() {
                     setDraft((current) => ({ ...current, subtitle: event.target.value }))
                   }
                   className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                />
-              </label>
-
-              <label className="mt-4 block space-y-1">
-                <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                  Details
-                </span>
-                <textarea
-                  value={draft.description}
-                  onChange={(event) =>
-                    setDraft((current) => ({
-                      ...current,
-                      description: event.target.value,
-                    }))
-                  }
-                  className="min-h-[110px] w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                 />
               </label>
 

@@ -34,12 +34,7 @@ import {
   getUserRatingForPool,
 } from "../utils/ratingPool";
 import { useGameplayPreferences } from "./useGameplayPreferences";
-
-const socketBaseUrl =
-  import.meta.env.VITE_SOCKET_URL ||
-  import.meta.env.VITE_API_URL ||
-  "http://localhost:3001";
-const SOCKET_URL = socketBaseUrl.replace(/\/api\/?$/, "");
+import { SOCKET_URL } from "../config/network";
 const ACTIVE_GAME_STORAGE_KEY = "neongambit:activeGameId";
 const BOARD_FILES = ["a", "b", "c", "d", "e", "f", "g", "h"] as const;
 
@@ -268,6 +263,43 @@ interface GameStateRestoredPayload {
   clockPaused?: boolean;
 }
 
+interface RejoinGameResponse {
+  success?: boolean;
+  status?: string;
+  gameId?: string;
+  error?: string;
+}
+
+type DrawOfferStatus = "idle" | "sent" | "received";
+
+interface DrawOfferState {
+  status: DrawOfferStatus;
+  offeredBy: PlayerColor | null;
+  expiresAt: number | null;
+}
+
+interface DrawOfferPayload {
+  gameId?: string;
+  offeredBy?: PlayerColor;
+  acceptedBy?: PlayerColor;
+  declinedBy?: PlayerColor;
+  expiresAt?: number;
+  reason?: string;
+}
+
+interface SocketAckResponse {
+  success?: boolean;
+  status?: string;
+  error?: string;
+  expiresAt?: number;
+}
+
+const idleDrawOfferState: DrawOfferState = {
+  status: "idle",
+  offeredBy: null,
+  expiresAt: null,
+};
+
 function storeActiveGameId(gameId: string | null) {
   if (!gameId) {
     clearActiveOnlineGame();
@@ -373,10 +405,13 @@ export function useOnlineQuickMatch() {
   const startTimeRef = useRef<number | null>(null);
   const startingFenRef = useRef<string>("");
   const clockDisplayIntervalRef = useRef<number | null>(null);
+  const lastClockTickAtRef = useRef<number>(Date.now());
   const historySavedRef = useRef(false);
   const [lastGameOver, setLastGameOver] = useState<GameOverPayload | null>(
     null,
   );
+  const [drawOfferState, setDrawOfferState] =
+    useState<DrawOfferState>(idleDrawOfferState);
   const saveGameHistory = useSaveGameHistory();
 
   const isMoveAllowedForVariant = useCallback((move: any) => {
@@ -549,6 +584,7 @@ export function useOnlineQuickMatch() {
     startingFenRef.current = "";
     historySavedRef.current = false;
     setLastGameOver(null);
+    setDrawOfferState(idleDrawOfferState);
     clearTournamentJoinRetry();
   }, [clearTournamentJoinRetry, resetStoredMoves]);
 
@@ -570,6 +606,51 @@ export function useOnlineQuickMatch() {
         socket.emit(eventName, payload);
       }
       return true;
+    },
+    [],
+  );
+
+  const requestClockResync = useCallback(
+    (
+      targetGameId?: string | null,
+      options: { allowEmpty?: boolean } = {},
+    ) => {
+      const socket = socketRef.current;
+      if (!socket || !socket.connected) return;
+
+      const explicitGameId = String(
+        targetGameId || gameIdRef.current || readActiveGameId() || "",
+      ).trim();
+      if (!explicitGameId && options.allowEmpty !== true) return;
+
+      const payload = explicitGameId ? { gameId: explicitGameId } : {};
+      socket.emit(
+        "rejoinGame",
+        payload,
+        (response?: RejoinGameResponse) => {
+          if (response?.success === true) {
+            if (response.gameId) {
+              storeActiveGameId(String(response.gameId));
+            } else if (explicitGameId) {
+              storeActiveGameId(explicitGameId);
+            }
+            setQueueStatus("Game state restored.");
+            setIsSearching(false);
+            return;
+          }
+
+          if (response?.error) {
+            const normalizedError = String(response.error).toLowerCase();
+            if (
+              normalizedError.includes("not found") ||
+              normalizedError.includes("no active game") ||
+              normalizedError.includes("not a participant")
+            ) {
+              storeActiveGameId(null);
+            }
+          }
+        },
+      );
     },
     [],
   );
@@ -645,38 +726,6 @@ export function useOnlineQuickMatch() {
         }
       }, 1500);
     };
-    const attemptRestore = (targetGameId?: string | null) => {
-      const explicitGameId = String(
-        targetGameId || gameIdRef.current || readActiveGameId() || "",
-      ).trim();
-      const payload = explicitGameId ? { gameId: explicitGameId } : {};
-      socket.emit(
-        "rejoinGame",
-        payload,
-        (response?: { success?: boolean; status?: string; gameId?: string; error?: string }) => {
-          if (response?.success === true) {
-            if (response.gameId) {
-              storeActiveGameId(String(response.gameId));
-            } else if (explicitGameId) {
-              storeActiveGameId(explicitGameId);
-            }
-            setQueueStatus("Game state restored.");
-            setIsSearching(false);
-            return;
-          }
-          if (response?.error) {
-            const normalizedError = String(response.error).toLowerCase();
-            if (
-              normalizedError.includes("not found") ||
-              normalizedError.includes("no active game") ||
-              normalizedError.includes("not a participant")
-            ) {
-              storeActiveGameId(null);
-            }
-          }
-        },
-      );
-    };
     socketRef.current = socket;
 
     socket.on("connect", () => {
@@ -686,7 +735,7 @@ export function useOnlineQuickMatch() {
         setIsClockPaused(false);
       }
       setQueueStatus(null);
-      attemptRestore();
+      requestClockResync(null, { allowEmpty: true });
     });
 
     socket.on("disconnect", () => {
@@ -798,7 +847,8 @@ export function useOnlineQuickMatch() {
       historySavedRef.current = false;
       startTimeRef.current = Date.now();
       setLastGameOver(null);
-      playGameplaySound("gameStart");
+      setDrawOfferState(idleDrawOfferState);
+      playGameplaySound("gameStart", { onceKey: payload.gameId });
 
       const timeControl =
         payload.timeControl || defaultGameSettings.timeControl;
@@ -1055,8 +1105,13 @@ export function useOnlineQuickMatch() {
 
     socket.on(
       "opponent_disconnected",
-      (payload?: { gameId?: string; graceMs?: number }) => {
+      (payload?: {
+        gameId?: string;
+        graceMs?: number;
+        opponentColor?: PlayerColor;
+      }) => {
         if (payload?.gameId && payload.gameId !== gameIdRef.current) return;
+        if (payload?.opponentColor === playerColorRef.current) return;
         setIsClockPaused(false);
         setQueueStatus("Opponent disconnected. Their clock is still running.");
       },
@@ -1064,8 +1119,9 @@ export function useOnlineQuickMatch() {
 
     socket.on(
       "opponent_reconnected",
-      (payload?: { gameId?: string }) => {
+      (payload?: { gameId?: string; color?: PlayerColor }) => {
         if (payload?.gameId && payload.gameId !== gameIdRef.current) return;
+        if (payload?.color === playerColorRef.current) return;
         setIsClockPaused(false);
         setQueueStatus("Opponent reconnected.");
       },
@@ -1098,6 +1154,48 @@ export function useOnlineQuickMatch() {
       }
     });
 
+    socket.on("drawOfferPending", (payload: DrawOfferPayload) => {
+      if (payload.gameId !== gameIdRef.current) return;
+      setDrawOfferState({
+        status: "sent",
+        offeredBy: payload.offeredBy || playerColorRef.current,
+        expiresAt: Number(payload.expiresAt || 0) || null,
+      });
+      setQueueStatus("Draw offer sent.");
+    });
+
+    socket.on("drawOfferReceived", (payload: DrawOfferPayload) => {
+      if (payload.gameId !== gameIdRef.current) return;
+      setDrawOfferState({
+        status: "received",
+        offeredBy: payload.offeredBy || null,
+        expiresAt: Number(payload.expiresAt || 0) || null,
+      });
+      setQueueStatus("Opponent offered a draw.");
+    });
+
+    socket.on("drawOfferAccepted", (payload: DrawOfferPayload) => {
+      if (payload.gameId !== gameIdRef.current) return;
+      setDrawOfferState(idleDrawOfferState);
+      setQueueStatus("Draw offer accepted.");
+    });
+
+    socket.on("drawOfferDeclined", (payload: DrawOfferPayload) => {
+      if (payload.gameId !== gameIdRef.current) return;
+      setDrawOfferState(idleDrawOfferState);
+      setQueueStatus(
+        payload.reason === "move"
+          ? "Draw offer declined by move."
+          : "Draw offer declined.",
+      );
+    });
+
+    socket.on("drawOfferExpired", (payload: DrawOfferPayload) => {
+      if (payload.gameId !== gameIdRef.current) return;
+      setDrawOfferState(idleDrawOfferState);
+      setQueueStatus("Draw offer expired.");
+    });
+
     socket.on("gameOver", (payload: GameOverPayload) => {
       if (payload.gameId !== gameIdRef.current) return;
       storeActiveGameId(null);
@@ -1111,6 +1209,7 @@ export function useOnlineQuickMatch() {
       setPendingPromoFrom(null);
       setPendingPreMove(null);
       pendingPreMoveRef.current = null;
+      setDrawOfferState(idleDrawOfferState);
       playGameplaySound("gameEnd");
 
       const currentUser = userRef.current;
@@ -1201,6 +1300,7 @@ export function useOnlineQuickMatch() {
       setShowGameOverModal(true);
       setGameResult("Opponent left. You win.");
       setHistoryPersistenceStatus("failed");
+      setDrawOfferState(idleDrawOfferState);
       playGameplaySound("gameEnd");
     });
 
@@ -1215,6 +1315,7 @@ export function useOnlineQuickMatch() {
   }, [
     appendStoredMove,
     clearTournamentJoinRetry,
+    requestClockResync,
     resetStoredMoves,
     setUser,
     trySubmitQueuedPreMove,
@@ -1429,6 +1530,7 @@ export function useOnlineQuickMatch() {
               : "Live Chess",
       variant: matchVariant,
       site: "NeonGambit",
+      link: gameIdRef.current || undefined,
       date: formatDate(startDate),
       round: "-",
       white: whiteName,
@@ -1570,8 +1672,8 @@ export function useOnlineQuickMatch() {
       if (existing?.gameId) {
         setQueueStatus("You already have an active game in progress.");
         setIsSearching(false);
-        if (existing.kind === "classic" && socketRef.current?.connected) {
-          socketRef.current.emit("rejoinGame", { gameId: existing.gameId });
+        if (existing.kind === "classic") {
+          requestClockResync(existing.gameId);
         }
         return;
       }
@@ -1604,7 +1706,7 @@ export function useOnlineQuickMatch() {
         variant: normalizedVariant,
       });
     },
-    [emitIfConnected, resetGameState],
+    [emitIfConnected, requestClockResync, resetGameState],
   );
 
   const joinTournamentGame = useCallback(
@@ -1631,6 +1733,7 @@ export function useOnlineQuickMatch() {
       playerNameRef.current = name || playerNameRef.current || "Player";
       if (gameIdRef.current !== normalizedGameId) {
         resetGameState();
+        activeTournamentJoinGameIdRef.current = normalizedGameId;
       }
       setIsSearching(true);
       tournamentJoinAttemptsRef.current += 1;
@@ -1671,6 +1774,9 @@ export function useOnlineQuickMatch() {
               errorText.includes("failed") ||
               errorText.includes("unable") ||
               errorText.includes("not running") ||
+              errorText.includes("leave your current game") ||
+              errorText.includes("another active game") ||
+              errorText.includes("rejoining") ||
               errorText.includes("waiting");
             if (retryable && tournamentJoinAttemptsRef.current < 5) {
               setIsSearching(true);
@@ -1747,6 +1853,43 @@ export function useOnlineQuickMatch() {
     if (!gameId) return;
     emitIfConnected("resign", { gameId });
   }, [emitIfConnected, gameId]);
+
+  const offerDraw = useCallback(() => {
+    if (!gameId || gameOver) return;
+    emitIfConnected("offerDraw", { gameId }, (response) => {
+      const ack = response as SocketAckResponse | undefined;
+      if (ack?.success === false) {
+        setQueueStatus(ack.error || "Unable to offer draw.");
+        return;
+      }
+      setDrawOfferState({
+        status: "sent",
+        offeredBy: playerColorRef.current,
+        expiresAt: Number(ack?.expiresAt || 0) || null,
+      });
+    });
+  }, [emitIfConnected, gameId, gameOver]);
+
+  const respondDrawOffer = useCallback(
+    (accept: boolean) => {
+      if (!gameId || gameOver) return;
+      emitIfConnected(
+        "respondDrawOffer",
+        { gameId, accept },
+        (response) => {
+          const ack = response as SocketAckResponse | undefined;
+          if (ack?.success === false) {
+            setQueueStatus(ack.error || "Unable to respond to draw offer.");
+            return;
+          }
+          if (!accept) {
+            setDrawOfferState(idleDrawOfferState);
+          }
+        },
+      );
+    },
+    [emitIfConnected, gameId, gameOver],
+  );
 
   const timeOut = useCallback(
     (isPlayer: boolean) => {
@@ -2292,10 +2435,27 @@ export function useOnlineQuickMatch() {
       return undefined;
     }
 
+    lastClockTickAtRef.current = Date.now();
     clockDisplayIntervalRef.current = window.setInterval(() => {
+      const now = Date.now();
+      const elapsedMs = Math.max(0, now - lastClockTickAtRef.current);
+      lastClockTickAtRef.current = now;
+      const elapsedSeconds = Math.max(
+        0.1,
+        Math.round((elapsedMs / 1000) * 10) / 10,
+      );
+
+      // JS can be paused by browser dialogs/sleep; force a server resync after long gaps.
+      if (elapsedMs > 1500) {
+        requestClockResync();
+      }
+
       if (isPlayerTurn) {
         setPlayerTime((previous) => {
-          const next = Math.max(0, Math.round((previous - 0.1) * 10) / 10);
+          const next = Math.max(
+            0,
+            Math.round((previous - elapsedSeconds) * 10) / 10,
+          );
           setPlayerClockSeed(next);
           return next;
         });
@@ -2303,7 +2463,10 @@ export function useOnlineQuickMatch() {
       }
 
       setOpponentTime((previous) => {
-        const next = Math.max(0, Math.round((previous - 0.1) * 10) / 10);
+        const next = Math.max(
+          0,
+          Math.round((previous - elapsedSeconds) * 10) / 10,
+        );
         setOpponentClockSeed(next);
         return next;
       });
@@ -2321,24 +2484,32 @@ export function useOnlineQuickMatch() {
     gameStarted,
     isClockPaused,
     isPlayerTurn,
+    requestClockResync,
   ]);
 
   useEffect(() => {
-    if (typeof document === "undefined") return undefined;
+    if (typeof window === "undefined" || typeof document === "undefined") {
+      return undefined;
+    }
+
+    const handleClockResync = () => {
+      requestClockResync();
+    };
 
     const handleVisibilityChange = () => {
       if (document.visibilityState !== "visible") return;
-      const socket = socketRef.current;
-      const activeGameId = gameIdRef.current;
-      if (!socket || !socket.connected || !activeGameId) return;
-      socket.emit("rejoinGame", { gameId: activeGameId });
+      handleClockResync();
     };
 
+    window.addEventListener("focus", handleClockResync);
+    window.addEventListener("pageshow", handleClockResync);
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => {
+      window.removeEventListener("focus", handleClockResync);
+      window.removeEventListener("pageshow", handleClockResync);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, []);
+  }, [requestClockResync]);
 
   const rematch = useCallback(() => {
     startMatch(gameSettings.timeControl, playerNameRef.current, matchVariant);
@@ -2354,6 +2525,7 @@ export function useOnlineQuickMatch() {
     gameResult,
     isPlayerTurn,
     playerColor,
+    activeGameId: gameId,
     savedGameId,
     historyPersistenceStatus,
     lastMove,
@@ -2380,6 +2552,7 @@ export function useOnlineQuickMatch() {
     isConnected,
     matchVariant,
     threeCheckState,
+    drawOfferState,
 
     // Handlers
     onSquareClick,
@@ -2393,6 +2566,8 @@ export function useOnlineQuickMatch() {
     leaveTournamentJoin,
     cancelMatch,
     resign,
+    offerDraw,
+    respondDrawOffer,
     timeOut,
     rematch,
     leaveGame,

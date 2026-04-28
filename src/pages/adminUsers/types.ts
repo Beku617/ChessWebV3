@@ -13,6 +13,9 @@ export interface User {
   banned?: boolean;
   bannedAt?: string;
   banReason?: string;
+  pendingDeletion?: boolean;
+  presenceStatus?: "online" | "offline" | "searching_match" | "in_game" | "away";
+  accountStatus?: "offline" | "active" | "playing";
 }
 
 export interface UserStats {

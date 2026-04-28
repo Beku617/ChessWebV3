@@ -18,6 +18,15 @@ const EMPTY_STATS: UserStats = {
   topRating: 0,
 };
 
+function resolveAccountStatus(user: User): "offline" | "active" | "playing" {
+  if (user.accountStatus === "offline" || user.accountStatus === "active" || user.accountStatus === "playing") {
+    return user.accountStatus;
+  }
+  if (user.presenceStatus === "in_game") return "playing";
+  if (user.presenceStatus === "offline") return "offline";
+  return "active";
+}
+
 export function useAdminUsers() {
   const navigate = useNavigate();
   const { isAuthenticated, isLoading, checkAuth } = useAdminStore();
@@ -78,28 +87,62 @@ export function useAdminUsers() {
 
   const handleDeleteUser = useCallback(
     async (userId: string) => {
+      const userToDelete = users.find((user) => user._id === userId);
+      const isPlaying = userToDelete && resolveAccountStatus(userToDelete) === "playing";
+      if (
+        isPlaying &&
+        !window.confirm(
+          "This user is currently in an active game. Their account will be deleted automatically when the match ends. Continue?",
+        )
+      ) {
+        return;
+      }
+
       setDeleting(true);
       try {
-        const userToDelete = users.find((user) => user._id === userId);
         const res = await fetch(`${API_URL}/api/admin/users/${userId}`, {
           method: "DELETE",
           credentials: "include",
         });
+        const data = await res.json().catch(() => ({}));
 
         if (res.ok) {
-          setUsers((prev) => prev.filter((u) => u._id !== userId));
-          setTotalUsers((prev) => Math.max(0, prev - 1));
-          setStats((prev) => ({
-            ...prev,
-            totalUsers: Math.max(0, prev.totalUsers - 1),
-            totalGames: Math.max(
-              0,
-              prev.totalGames - Number(userToDelete?.gamesPlayed || 0),
-            ),
-            bannedUsers: userToDelete?.banned
-              ? Math.max(0, prev.bannedUsers - 1)
-              : prev.bannedUsers,
-          }));
+          if (data?.pendingDeletion) {
+            const nextBanned = Boolean(data?.user?.banned);
+            setUsers((prev) =>
+              prev.map((u) =>
+                u._id === userId
+                  ? {
+                    ...u,
+                    banned: nextBanned,
+                    bannedAt: data?.user?.bannedAt ?? u.bannedAt,
+                    banReason: data?.user?.banReason ?? u.banReason,
+                    pendingDeletion: true,
+                  }
+                  : u,
+              ),
+            );
+            setStats((prev) => ({
+              ...prev,
+              bannedUsers: nextBanned
+                ? userToDelete?.banned
+                  ? prev.bannedUsers
+                  : prev.bannedUsers + 1
+                : userToDelete?.banned
+                  ? Math.max(0, prev.bannedUsers - 1)
+                  : prev.bannedUsers,
+            }));
+          } else {
+            setUsers((prev) => prev.filter((u) => u._id !== userId));
+            setTotalUsers((prev) => Math.max(0, prev - 1));
+            setStats((prev) => ({
+              ...prev,
+              totalUsers: Math.max(0, prev.totalUsers - 1),
+              bannedUsers: userToDelete?.banned
+                ? Math.max(0, prev.bannedUsers - 1)
+                : prev.bannedUsers,
+            }));
+          }
         }
       } catch (err) {
         console.error("Delete error:", err);
@@ -113,6 +156,18 @@ export function useAdminUsers() {
 
   const handleBanUser = useCallback(
     async (userId: string, shouldBan: boolean, reason: string) => {
+      const userToBan = users.find((user) => user._id === userId);
+      const isPlaying = userToBan && resolveAccountStatus(userToBan) === "playing";
+      if (
+        shouldBan &&
+        isPlaying &&
+        !window.confirm(
+          "This user is currently in an active game. Their account will be deleted automatically when the match ends. Continue?",
+        )
+      ) {
+        return;
+      }
+
       setBanning(true);
       try {
         const res = await fetch(`${API_URL}/api/admin/users/${userId}/ban`, {
@@ -121,21 +176,45 @@ export function useAdminUsers() {
           credentials: "include",
           body: JSON.stringify({ banned: shouldBan, reason }),
         });
+        const data = await res.json().catch(() => ({}));
 
         if (res.ok) {
-          const data = await res.json();
-          setUsers((prev) =>
-            prev.map((u) =>
-              u._id === userId
-                ? {
+          if (data?.deleted) {
+            setUsers((prev) => prev.filter((u) => u._id !== userId));
+            setTotalUsers((prev) => Math.max(0, prev - 1));
+            setStats((prev) => ({
+              ...prev,
+              totalUsers: Math.max(0, prev.totalUsers - 1),
+              bannedUsers: userToBan?.banned
+                ? Math.max(0, prev.bannedUsers - 1)
+                : prev.bannedUsers,
+            }));
+          } else {
+            const nextBanned = Boolean(data?.user?.banned ?? shouldBan);
+            setUsers((prev) =>
+              prev.map((u) =>
+                u._id === userId
+                  ? {
                     ...u,
-                    banned: data.user.banned,
-                    bannedAt: data.user.bannedAt,
-                    banReason: data.user.banReason,
+                    banned: nextBanned,
+                    bannedAt: data?.user?.bannedAt ?? (shouldBan ? new Date().toISOString() : undefined),
+                    banReason: data?.user?.banReason ?? (shouldBan ? reason : ""),
+                    pendingDeletion: data?.user?.pendingDeletion ?? false,
                   }
-                : u,
-            ),
-          );
+                  : u,
+              ),
+            );
+            setStats((prev) => ({
+              ...prev,
+              bannedUsers: nextBanned
+                ? userToBan?.banned
+                  ? prev.bannedUsers
+                  : prev.bannedUsers + 1
+                : userToBan?.banned
+                  ? Math.max(0, prev.bannedUsers - 1)
+                  : prev.bannedUsers,
+            }));
+          }
         }
       } catch (err) {
         console.error("Ban error:", err);

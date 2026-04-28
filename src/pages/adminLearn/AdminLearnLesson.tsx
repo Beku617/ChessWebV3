@@ -83,6 +83,9 @@ const EMPTY_STEP_DRAFT: StepDraft = {
   isPublished: true,
 };
 
+const DEFAULT_SUCCESS_MESSAGE = "Correct move.";
+const DEFAULT_WRONG_MOVE_MESSAGE = "Try another move.";
+
 function toLessonMetaDraft(lesson: AdminLearnLesson): LessonMetaDraft {
   return {
     title: lesson.title,
@@ -292,8 +295,10 @@ export default function AdminLearnLesson() {
         boardOrientation: stepDraft.boardOrientation,
         validationMode: stepDraft.validationMode,
         correctMoves: stepDraft.acceptedMoves,
-        successMessage: stepDraft.successMessage,
-        wrongMoveMessage: stepDraft.wrongMoveMessage,
+        successMessage:
+          stepDraft.successMessage.trim() || DEFAULT_SUCCESS_MESSAGE,
+        wrongMoveMessage:
+          stepDraft.wrongMoveMessage.trim() || DEFAULT_WRONG_MOVE_MESSAGE,
         hintText: stepDraft.hintText,
         allowRetry: stepDraft.allowRetry,
         autoAdvance: stepDraft.autoAdvance,
@@ -377,8 +382,9 @@ export default function AdminLearnLesson() {
         boardOrientation: draft.boardOrientation,
         validationMode: draft.validationMode,
         correctMoves: draft.acceptedMoves,
-        successMessage: draft.successMessage,
-        wrongMoveMessage: draft.wrongMoveMessage,
+        successMessage: draft.successMessage.trim() || DEFAULT_SUCCESS_MESSAGE,
+        wrongMoveMessage:
+          draft.wrongMoveMessage.trim() || DEFAULT_WRONG_MOVE_MESSAGE,
         hintText: draft.hintText,
         allowRetry: draft.allowRetry,
         autoAdvance: draft.autoAdvance,
@@ -695,7 +701,7 @@ export default function AdminLearnLesson() {
                               {step.title || "Untitled Step"}
                             </div>
                             <div className="mt-1 text-xs text-gray-500 line-clamp-2">
-                              {step.instructionText || "No instruction text."}
+                              {step.instructionText || "No instructions yet."}
                             </div>
                           </button>
                           <div className="mt-2 flex flex-wrap gap-1.5">
@@ -768,56 +774,6 @@ export default function AdminLearnLesson() {
                           }
                           placeholder="Pawn structure basics"
                           className={fullInputClass}
-                        />
-                      </label>
-                      <label className="space-y-1">
-                        <span className={fieldLabelClass}>Time</span>
-                        <input
-                          type="number"
-                          min={1}
-                          value={lessonDraft.estimatedMinutes}
-                          onChange={(event) =>
-                            setLessonDraft((current) =>
-                              current
-                                ? {
-                                    ...current,
-                                    estimatedMinutes: Number(event.target.value || 1),
-                                  }
-                                : current,
-                            )
-                          }
-                          placeholder="10 min"
-                          className={fullInputClass}
-                        />
-                      </label>
-                      <label className="space-y-1 sm:col-span-2">
-                        <span className={fieldLabelClass}>Short label</span>
-                        <input
-                          value={lessonDraft.subtitle}
-                          onChange={(event) =>
-                            setLessonDraft((current) =>
-                              current
-                                ? { ...current, subtitle: event.target.value }
-                                : current,
-                            )
-                          }
-                          placeholder="Quick lesson summary"
-                          className={fullInputClass}
-                        />
-                      </label>
-                      <label className="space-y-1 sm:col-span-2">
-                        <span className={fieldLabelClass}>Details</span>
-                        <textarea
-                          value={lessonDraft.description}
-                          onChange={(event) =>
-                            setLessonDraft((current) =>
-                              current
-                                ? { ...current, description: event.target.value }
-                                : current,
-                            )
-                          }
-                          placeholder="What students will learn"
-                          className={`min-h-[85px] ${textareaClass}`}
                         />
                       </label>
                       <label className={checkboxLabelClass}>
@@ -910,6 +866,8 @@ export default function AdminLearnLesson() {
                                   setStepDraft((current) => ({
                                     ...current,
                                     sideToMove: event.target.value as "white" | "black",
+                                    boardOrientation:
+                                      event.target.value as "white" | "black",
                                   }))
                                 }
                                 className={fullInputClass}
@@ -918,34 +876,18 @@ export default function AdminLearnLesson() {
                                 <option value="black">Black to move</option>
                               </select>
                             </label>
-                            <label className="space-y-1">
-                              <span className={fieldLabelClass}>Board view</span>
-                              <select
-                                value={stepDraft.boardOrientation}
-                                onChange={(event) =>
-                                  setStepDraft((current) => ({
-                                    ...current,
-                                    boardOrientation: event.target.value as "white" | "black",
-                                  }))
-                                }
-                                className={fullInputClass}
-                              >
-                                <option value="white">White at bottom</option>
-                                <option value="black">Black at bottom</option>
-                              </select>
-                            </label>
                           </div>
                         </div>
                       </div>
 
                       <div>
                         <h3 className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                          Teaching Text
+                          Instructions
                         </h3>
                         <div className="mt-2 space-y-3">
-                          <label className="block space-y-1">
-                            <span className={fieldLabelClass}>Instruction</span>
+                          <div className="block">
                             <textarea
+                              aria-label="Student instructions"
                               value={stepDraft.instructionText}
                               onChange={(event) =>
                                 setStepDraft((current) => ({
@@ -956,35 +898,7 @@ export default function AdminLearnLesson() {
                               placeholder="Ask the student what to play"
                               className={`min-h-[82px] ${textareaClass}`}
                             />
-                          </label>
-                          <label className="block space-y-1">
-                            <span className={fieldLabelClass}>Before move note</span>
-                            <textarea
-                              value={stepDraft.explanationBeforeMove}
-                              onChange={(event) =>
-                                setStepDraft((current) => ({
-                                  ...current,
-                                  explanationBeforeMove: event.target.value,
-                                }))
-                              }
-                              placeholder="Optional context before the move"
-                              className={`min-h-[72px] ${textareaClass}`}
-                            />
-                          </label>
-                          <label className="block space-y-1">
-                            <span className={fieldLabelClass}>Hint</span>
-                            <textarea
-                              value={stepDraft.hintText}
-                              onChange={(event) =>
-                                setStepDraft((current) => ({
-                                  ...current,
-                                  hintText: event.target.value,
-                                }))
-                              }
-                              placeholder="Optional hint"
-                              className={`min-h-[62px] ${textareaClass}`}
-                            />
-                          </label>
+                          </div>
                         </div>
                       </div>
 
@@ -1064,49 +978,7 @@ export default function AdminLearnLesson() {
                               ))}
                             </div>
                           )}
-                          <label className="block space-y-1">
-                            <span className={fieldLabelClass}>Good move message</span>
-                            <textarea
-                              value={stepDraft.successMessage}
-                              onChange={(event) =>
-                                setStepDraft((current) => ({
-                                  ...current,
-                                  successMessage: event.target.value,
-                                }))
-                              }
-                              placeholder="Shown after a correct move"
-                              className={`min-h-[62px] ${textareaClass}`}
-                            />
-                          </label>
-                          <label className="block space-y-1">
-                            <span className={fieldLabelClass}>Wrong move message</span>
-                            <textarea
-                              value={stepDraft.wrongMoveMessage}
-                              onChange={(event) =>
-                                setStepDraft((current) => ({
-                                  ...current,
-                                  wrongMoveMessage: event.target.value,
-                                }))
-                              }
-                              placeholder="Shown after an incorrect move"
-                              className={`min-h-[62px] ${textareaClass}`}
-                            />
-                          </label>
                           <div className="flex flex-wrap gap-4">
-                            <label className={checkboxLabelClass}>
-                              <input
-                                type="checkbox"
-                                checked={stepDraft.allowRetry}
-                                onChange={(event) =>
-                                  setStepDraft((current) => ({
-                                    ...current,
-                                    allowRetry: event.target.checked,
-                                  }))
-                                }
-                                className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-400/40"
-                              />
-                              Let students retry
-                            </label>
                             <label className={checkboxLabelClass}>
                               <input
                                 type="checkbox"

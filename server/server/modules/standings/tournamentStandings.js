@@ -56,6 +56,10 @@ function buildBaseRows(players, usersById = new Map()) {
     const userId = toId(player.userId);
     const user = usersById.get(userId);
     const score = Number(player.score || 0);
+    const gamesPlayed = Number(
+      player.gamesPlayed ??
+        Number(player.wins || 0) + Number(player.draws || 0) + Number(player.losses || 0),
+    );
     return {
       userId,
       name: user?.fullName || "Player",
@@ -64,6 +68,8 @@ function buildBaseRows(players, usersById = new Map()) {
       seed: player.seed,
       score,
       points: score,
+      gamesPlayed,
+      games: gamesPlayed,
       wins: Number(player.wins || 0),
       draws: Number(player.draws || 0),
       losses: Number(player.losses || 0),

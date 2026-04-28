@@ -3,6 +3,10 @@ import { History, History960 } from "../models/index.js";
 import { adminAuthMiddleware } from "../middleware/index.js";
 import mongoose from "mongoose";
 import { MIN_REAL_GAME_PLIES } from "../utils/gameLifecyclePolicy.js";
+import {
+  applyDeletedUserAliasesToGame,
+  applyDeletedUserAliasesToGames,
+} from "../utils/historyPlayers.js";
 
 const router = Router();
 const { ObjectId } = mongoose.Types;
@@ -152,7 +156,8 @@ async function fetchCombinedGames({ query, sortBy, sortOrder, skip, limit }) {
     deduped.push(game);
   }
 
-  return deduped.slice(skip, skip + limit);
+  const paged = deduped.slice(skip, skip + limit);
+  return applyDeletedUserAliasesToGames(paged);
 }
 
 async function findAdminGameById(gameId) {
@@ -160,13 +165,18 @@ async function findAdminGameById(gameId) {
     .populate("userId", "fullName email")
     .lean();
   if (game) {
-    return { game: { ...game, source: "history" }, source: "history" };
+    const normalizedGame = await applyDeletedUserAliasesToGame(game);
+    return { game: { ...normalizedGame, source: "history" }, source: "history" };
   }
   const chess960Game = await History960.findById(gameId)
     .populate("userId", "fullName email")
     .lean();
   if (chess960Game) {
-    return { game: { ...chess960Game, source: "history960" }, source: "history960" };
+    const normalizedGame = await applyDeletedUserAliasesToGame(chess960Game);
+    return {
+      game: { ...normalizedGame, source: "history960" },
+      source: "history960",
+    };
   }
   return { game: null, source: null };
 }

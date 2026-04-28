@@ -19,6 +19,25 @@ interface UseAdminTournamentsOptions {
   enabled: boolean;
 }
 
+const ADMIN_TOURNAMENT_REQUEST_TIMEOUT_MS = 10000;
+
+function createTimeoutSignal(timeoutMs: number) {
+  if (typeof AbortSignal !== "undefined" && "timeout" in AbortSignal) {
+    return AbortSignal.timeout(timeoutMs);
+  }
+
+  const controller = new AbortController();
+  window.setTimeout(() => controller.abort(), timeoutMs);
+  return controller.signal;
+}
+
+function adminFetch(input: RequestInfo | URL, init: RequestInit = {}) {
+  return fetch(input, {
+    ...init,
+    signal: init.signal || createTimeoutSignal(ADMIN_TOURNAMENT_REQUEST_TIMEOUT_MS),
+  });
+}
+
 async function readJson(response: Response) {
   return response.json().catch(() => ({}));
 }
@@ -64,7 +83,7 @@ export function useAdminTournaments({
       params.set("page", String(pagination.page));
       params.set("limit", String(pagination.limit));
 
-      const response = await fetch(
+      const response = await adminFetch(
         `${API_URL}/api/admin/tournaments?${params.toString()}`,
         {
           credentials: "include",
@@ -139,7 +158,7 @@ export function useAdminTournaments({
         sortBy: "createdAt",
         sortOrder: "desc",
       });
-      const response = await fetch(`${API_URL}/api/admin/users?${params.toString()}`, {
+      const response = await adminFetch(`${API_URL}/api/admin/users?${params.toString()}`, {
         credentials: "include",
       });
       const data = (await readJson(response)) as {
@@ -168,7 +187,7 @@ export function useAdminTournaments({
       setLoadingDetail(true);
 
       try {
-        const response = await fetch(
+        const response = await adminFetch(
           `${API_URL}/api/admin/tournaments/${tournamentId}`,
           {
             credentials: "include",
@@ -246,7 +265,7 @@ export function useAdminTournaments({
 
   const createTournament = useCallback(
     async (formData: TournamentFormData) => {
-      const response = await fetch(`${API_URL}/api/admin/tournaments`, {
+      const response = await adminFetch(`${API_URL}/api/admin/tournaments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -277,7 +296,7 @@ export function useAdminTournaments({
 
   const updateTournament = useCallback(
     async (tournamentId: string, formData: TournamentFormData) => {
-      const response = await fetch(`${API_URL}/api/admin/tournaments/${tournamentId}`, {
+      const response = await adminFetch(`${API_URL}/api/admin/tournaments/${tournamentId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -308,7 +327,7 @@ export function useAdminTournaments({
 
   const deleteTournament = useCallback(
     async (tournamentId: string) => {
-      const response = await fetch(`${API_URL}/api/admin/tournaments/${tournamentId}`, {
+      const response = await adminFetch(`${API_URL}/api/admin/tournaments/${tournamentId}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -335,7 +354,7 @@ export function useAdminTournaments({
 
   const runTournamentAction = useCallback(
     async (tournamentId: string, action: string) => {
-      const response = await fetch(
+      const response = await adminFetch(
         `${API_URL}/api/admin/tournaments/${tournamentId}/state`,
         {
           method: "PATCH",
@@ -369,7 +388,7 @@ export function useAdminTournaments({
 
   const closeCurrentRound = useCallback(
     async (tournamentId: string, roundNumber: number) => {
-      const response = await fetch(
+      const response = await adminFetch(
         `${API_URL}/api/admin/tournaments/${tournamentId}/rounds/${roundNumber}/close`,
         {
           method: "POST",

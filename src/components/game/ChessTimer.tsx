@@ -90,17 +90,7 @@ export function ChessTimer({
   }, [isActive, initialTime, managedExternally, resetToken]);
 
   useEffect(() => {
-    if (!isActive) {
-      tenSecondWarningPlayedRef.current = false;
-      return;
-    }
-
-    if (timeLeft > 10) {
-      tenSecondWarningPlayedRef.current = false;
-      return;
-    }
-
-    if (timeLeft <= 0) return;
+    if (!isActive || timeLeft > 10 || timeLeft <= 0) return;
     if (tenSecondWarningPlayedRef.current) return;
 
     tenSecondWarningPlayedRef.current = true;

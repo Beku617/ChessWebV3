@@ -21,12 +21,7 @@ import {
   readActiveOnlineGame,
   storeActiveOnlineGame,
 } from "../../utils/activeOnlineGame";
-
-const socketBaseUrl =
-  import.meta.env.VITE_SOCKET_URL ||
-  import.meta.env.VITE_API_URL ||
-  "http://localhost:3001";
-const SOCKET_URL = socketBaseUrl.replace(/\/api\/?$/, "");
+import { SOCKET_URL } from "../../config/network";
 const ACTIVE_FOUR_PLAYER_GAME_STORAGE_KEY =
   "neongambit:activeFourPlayerGameId";
 
@@ -309,7 +304,7 @@ export function useOnlineFourPlayerMatch() {
       setForfeitedColor(null);
       lastSoundMoveKeyRef.current = "";
       setGameStarted(true);
-      playGameplaySound("gameStart");
+      playGameplaySound("gameStart", { onceKey: payload.gameId });
     });
 
     socket.on("fourPlayerState", (payload: StatePayload) => {

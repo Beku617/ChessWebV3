@@ -135,9 +135,17 @@ export async function fetchLichessOpening(
   const url = `https://explorer.lichess.ovh/masters?play=${play}`;
 
   try {
-    const res = await fetch(url, { signal });
+    const res = await fetch(url, {
+      signal,
+      credentials: "omit",
+      mode: "cors",
+      headers: {
+        Accept: "application/json",
+      },
+    });
+    if (res.status === 401) return null;
     if (!res.ok) return null;
-    const data = await res.json();
+    const data = await res.json().catch(() => null);
     if (!data?.opening) return null;
 
     const openingName: string = data.opening.name || "Opening";

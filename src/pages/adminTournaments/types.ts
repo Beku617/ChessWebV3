@@ -1,11 +1,12 @@
-export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+export { API_URL } from "../../config/network";
 
-export type TournamentType = "swiss";
+export type TournamentType = "swiss" | "arena";
 export type TournamentStatus =
   | "DRAFT"
   | "REGISTRATION_OPEN"
   | "LIVE_ROUND"
   | "ROUND_CLOSED"
+  | "CANCELLED"
   | "FINISHED";
 export type RatingFilterMode = "none" | "min" | "max" | "range";
 export type TournamentSortMode =
@@ -32,7 +33,14 @@ export interface AdminTournamentSummary {
   id: string;
   name: string;
   type: TournamentType;
+  format?: TournamentType;
   formatLabel: string;
+  rated: boolean;
+  gameType: "standard" | "chess960";
+  setup: string;
+  pairingLogic: string;
+  durationMinutes: number | null;
+  timezone: string;
   timeControl: TimeControl;
   timeControlLabel: string;
   ratingMin: number | null;
@@ -42,6 +50,7 @@ export interface AdminTournamentSummary {
   status: TournamentStatus;
   roundsPlanned: number;
   currentRound: number;
+  latestPublishedRound: number;
   minPlayers: number;
   maxPlayers: number | null;
   registeredCount: number;
@@ -55,6 +64,8 @@ export interface AdminTournamentSummary {
   startType: "manual" | "scheduled";
   scheduledStartAt: string | null;
   description: string;
+  startedAt: string | null;
+  finishedAt: string | null;
   createdAt: string | null;
   updatedAt: string | null;
   championUserId?: string;
@@ -66,6 +77,7 @@ export interface AdminTournamentStats {
   registrationOpen: number;
   live: number;
   roundClosed: number;
+  cancelled: number;
   finished: number;
   active: number;
   totalPlayers: number;
@@ -167,6 +179,10 @@ export interface AdminTournamentDetailResponse {
     totalPlayers: number;
     canManage: boolean;
     myTournament?: boolean;
+    arenaReadyPoolSize?: number;
+    arenaReady?: boolean;
+    arenaWaitTicks?: number;
+    arenaPairingIntervalSeconds?: number;
   };
   players: AdminTournamentPlayerRow[];
   rounds: AdminTournamentRound[];
@@ -188,6 +204,12 @@ export interface TournamentFormData {
   organizerUserId: string;
   name: string;
   type: TournamentType;
+  rated: boolean;
+  gameType: "standard" | "chess960";
+  setup: string;
+  pairingLogic: string;
+  durationMinutes: string;
+  timezone: string;
   roundsPlanned: string;
   timePreset: string;
   customBaseMinutes: string;
@@ -218,11 +240,20 @@ export const DEFAULT_TOURNAMENT_FORM: TournamentFormData = {
   organizerUserId: "",
   name: "",
   type: "swiss",
+  rated: true,
+  gameType: "standard",
+  setup: "standard",
+  pairingLogic: "rating-based",
+  durationMinutes: "30",
+  timezone:
+    typeof Intl !== "undefined"
+      ? Intl.DateTimeFormat().resolvedOptions().timeZone || "Local"
+      : "Local",
   roundsPlanned: "7",
   timePreset: "blitz_3_2",
   customBaseMinutes: "10",
   customIncrementSeconds: "0",
-  minPlayers: "4",
+  minPlayers: "2",
   maxPlayers: "",
   ratingFilterMode: "none",
   ratingMin: "",
@@ -293,12 +324,21 @@ export function tournamentToForm(
   return {
     organizerUserId: String(tournament.organizer?._id || ""),
     name: String(tournament.name || ""),
-    type: tournament.type || "swiss",
+    type: tournament.type === "arena" ? "arena" : "swiss",
+    rated: tournament.rated !== false,
+    gameType: tournament.gameType === "chess960" ? "chess960" : "standard",
+    setup: String(tournament.setup || "standard"),
+    pairingLogic: String(
+      tournament.pairingLogic ||
+        (tournament.type === "arena" ? "rating-based" : "swiss_pairing"),
+    ),
+    durationMinutes: String(tournament.durationMinutes || 30),
+    timezone: String(tournament.timezone || DEFAULT_TOURNAMENT_FORM.timezone),
     roundsPlanned: String(tournament.roundsPlanned || 1),
     timePreset,
     customBaseMinutes: String(baseMinutes),
     customIncrementSeconds: String(incrementSeconds),
-    minPlayers: String(tournament.minPlayers || 4),
+    minPlayers: String(tournament.minPlayers || 2),
     maxPlayers:
       tournament.maxPlayers === null || tournament.maxPlayers === undefined
         ? ""
@@ -343,13 +383,26 @@ export function buildTournamentPayload(form: TournamentFormData) {
     organizerUserId: form.organizerUserId.trim(),
     name: form.name.trim(),
     type: form.type,
-    roundsPlanned: Math.max(1, Number(form.roundsPlanned) || 1),
+    rated: form.rated,
+    gameType: form.gameType,
+    setup: form.setup.trim() || "standard",
+    pairingLogic:
+      form.type === "arena"
+        ? form.pairingLogic.trim() || "rating-based"
+        : "swiss_pairing",
+    durationMinutes:
+      form.type === "arena"
+        ? Math.max(1, Number(form.durationMinutes) || 30)
+        : null,
+    timezone: form.timezone.trim() || DEFAULT_TOURNAMENT_FORM.timezone,
+    roundsPlanned:
+      form.type === "swiss" ? Math.max(1, Number(form.roundsPlanned) || 1) : null,
     timeControl: {
       baseMs: Math.round(baseMinutes * 60000),
       incMs: Math.round(incrementSeconds * 1000),
       label: `${baseMinutes}+${incrementSeconds}`,
     },
-    minPlayers: Math.max(2, Number(form.minPlayers) || 4),
+    minPlayers: Math.max(2, Number(form.minPlayers) || 2),
     maxPlayers:
       maxPlayers !== null && maxPlayers > 1 ? Math.floor(maxPlayers) : null,
     ratingFilterMode: form.ratingFilterMode,

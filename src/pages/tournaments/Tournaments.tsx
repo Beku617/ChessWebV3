@@ -1,6 +1,6 @@
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   CalendarDays,
@@ -11,17 +11,14 @@ import {
   Rocket,
   Search,
   Trophy,
+  Users,
+  X,
   Zap,
 } from "lucide-react";
 import { FeedPagination } from "../../components/community/FeedPagination";
 import { useAuthStore } from "../../store/authStore";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
-const SOCKET_URL = (
-  import.meta.env.VITE_SOCKET_URL ||
-  import.meta.env.VITE_API_URL ||
-  "http://localhost:3001"
-).replace(/\/api\/?$/, "");
+import { getRatingPoolForMatch } from "../../utils/ratingPool";
+import { API_URL, SOCKET_URL } from "../../config/network";
 
 type TournamentType = "swiss" | "arena" | "chess960";
 type TournamentStatus =
@@ -29,12 +26,13 @@ type TournamentStatus =
   | "REGISTRATION_OPEN"
   | "LIVE_ROUND"
   | "ROUND_CLOSED"
+  | "CANCELLED"
   | "FINISHED";
 
 type DetailTabKey = "standings" | "rounds";
-type TournamentPageTab = "current" | "schedule" | "watch" | "create";
-type SortMode = "newest" | "most_players" | "my_tournaments";
-type StatusFilter = "all" | "DRAFT" | "REGISTRATION_OPEN" | "LIVE_ROUND" | "FINISHED";
+type TournamentPageTab = "current" | "schedule" | "create";
+type CurrentFormatFilter = "all" | "arena";
+type StatusFilter = "all" | "REGISTRATION_OPEN" | "LIVE_ROUND" | "FINISHED";
 type TournamentSpeed = "bullet" | "blitz" | "rapid" | "chess960";
 type CreateTournamentView = "choice" | "form";
 
@@ -69,9 +67,20 @@ interface TournamentSummary {
   createdAt?: string | null;
   durationMinutes?: number | null;
   durationLabel?: string | null;
+  startAt?: string | null;
+  startDate?: string | null;
+  startHour?: number | string | null;
+  startMinute?: number | string | null;
+  timezone?: string | null;
+  gameType?: "standard" | "chess960";
+  rated?: boolean;
+  pairingLogic?: string;
+  setup?: string;
   description?: string;
   organizer?: { id: string; username: string; avatar?: string };
   championUserId?: string;
+  myPendingGameId?: string | null;
+  myPendingGameRound?: number | null;
 }
 
 interface PlayerRow {
@@ -133,6 +142,8 @@ interface StandingRow {
   avatar: string;
   elo: number;
   points: number;
+  games?: number;
+  gamesPlayed?: number;
   buchholz: number;
   buchholzCut1: number;
   wins: number;
@@ -206,10 +217,15 @@ const CREATE_DURATION_OPTIONS = [15, 20, 30, 45, 60, 90, 120];
 const CREATE_HOUR_OPTIONS = Array.from({ length: 24 }, (_, hour) =>
   String(hour).padStart(2, "0"),
 );
-const CREATE_MINUTE_OPTIONS = ["00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55"];
+const CREATE_MINUTE_OPTIONS = Array.from({ length: 60 }, (_, minute) =>
+  String(minute).padStart(2, "0"),
+);
 
 const STANDINGS_PAGE_SIZE = 50;
 const LIST_PAGE_SIZE = 20;
+const REQUEST_TIMEOUT_MS = 15000;
+const HEALTH_CHECK_TIMEOUT_MS = 5000;
+const REGISTRATION_WINDOW_MS = 60 * 60 * 1000;
 const SCHEDULE_PIXELS_PER_MINUTE = 3.75;
 const SCHEDULE_LOOKAHEAD_DAYS = 7;
 const SCHEDULE_CONTEXT_BEFORE_NOW_MINUTES = 60;
@@ -221,6 +237,20 @@ const SCHEDULE_TRACK_PADDING_Y = 10;
 
 function classNames(...parts: Array<string | false | null | undefined>) {
   return parts.filter(Boolean).join(" ");
+}
+
+async function fetchWithTimeout(
+  input: RequestInfo | URL,
+  init: RequestInit = {},
+  timeoutMs = REQUEST_TIMEOUT_MS,
+) {
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
 }
 
 function statusForFilter(status: StatusFilter) {
@@ -248,7 +278,6 @@ const PAGE_TAB_OPTIONS: Array<{
 }> = [
   { key: "current", label: "Current" },
   { key: "schedule", label: "Schedule" },
-  { key: "watch", label: "Watch" },
   { key: "create", label: "Create" },
 ];
 
@@ -283,21 +312,21 @@ function getIncrementSeconds(timeControl?: TimeControl) {
 }
 
 function getTournamentSpeed(item: TournamentSummary): TournamentSpeed {
-  const haystack = `${item.name} ${item.type} ${item.format || ""} ${item.formatLabel} ${
-    item.timeControlLabel || ""
-  }`.toLowerCase();
-  if (haystack.includes("960")) return "chess960";
+  const looksChess960 =
+    String(item.gameType || "").toLowerCase() === "chess960" ||
+    /960/.test(`${item.name} ${item.timeControlLabel || ""} ${item.formatLabel || ""}`);
+  if (looksChess960) return "chess960";
 
-  if (/\bbullet\b/.test(haystack)) return "bullet";
-  if (/\bblitz\b/.test(haystack)) return "blitz";
-  if (/\brapid\b/.test(haystack)) return "rapid";
+  const ratingPool = getRatingPoolForMatch(
+    {
+      initial: Math.max(0, Math.round(Number(item.timeControl?.baseMs || 300000) / 1000)),
+      increment: getIncrementSeconds(item.timeControl),
+    },
+    "standard",
+  );
 
-  const estimatedSeconds =
-    Math.max(0, Math.round(Number(item.timeControl?.baseMs || 300000) / 1000)) +
-    getIncrementSeconds(item.timeControl) * 40;
-
-  if (estimatedSeconds < 180) return "bullet";
-  if (estimatedSeconds < 600) return "blitz";
+  if (ratingPool === "bullet") return "bullet";
+  if (ratingPool === "blitz") return "blitz";
   return "rapid";
 }
 
@@ -330,19 +359,85 @@ function formatShortTime(date: Date) {
   }).format(date);
 }
 
-function formatStartsIn(target: Date, now: Date) {
-  const diffMinutes = Math.ceil((target.getTime() - now.getTime()) / 60000);
-  if (diffMinutes <= 0) return "Starts soon";
-  if (diffMinutes < 60) return `Starts in ${diffMinutes} min`;
-  const hours = Math.floor(diffMinutes / 60);
-  const minutes = diffMinutes % 60;
-  if (hours < 24) return minutes > 0 ? `Starts in ${hours}h ${minutes}m` : `Starts in ${hours}h`;
+function formatRelativeCountdown(totalMinutes: number) {
+  const safeMinutes = Math.max(0, Math.ceil(totalMinutes));
+  if (safeMinutes < 60) return `${safeMinutes} ${safeMinutes === 1 ? "min" : "mins"}`;
+  const hours = Math.floor(safeMinutes / 60);
+  const minutes = safeMinutes % 60;
+  if (hours < 24) {
+    if (minutes === 0) return `${hours} ${hours === 1 ? "hr" : "hrs"}`;
+    return `${hours} ${hours === 1 ? "hr" : "hrs"} ${minutes} ${minutes === 1 ? "min" : "mins"}`;
+  }
   const days = Math.floor(hours / 24);
-  return `Starts in ${days}d`;
+  return `${days} ${days === 1 ? "day" : "days"}`;
+}
+
+function formatStartsIn(target: Date, now: Date) {
+  const diffMinutes = (target.getTime() - now.getTime()) / 60000;
+  if (diffMinutes <= 0) return "Starts soon";
+  return `Starts in ${formatRelativeCountdown(diffMinutes)}`;
+}
+
+function parseStartDateParts(item: TournamentSummary) {
+  const datePart = String(item.startDate || "").trim();
+  const dateMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(datePart);
+  if (!dateMatch) return null;
+
+  const hour = Number.parseInt(String(item.startHour ?? "0"), 10);
+  const minute = Number.parseInt(String(item.startMinute ?? "0"), 10);
+  if (!Number.isInteger(hour) || hour < 0 || hour > 23) return null;
+  if (!Number.isInteger(minute) || minute < 0 || minute > 59) return null;
+
+  const fromParts = new Date(
+    Number(dateMatch[1]),
+    Number(dateMatch[2]) - 1,
+    Number(dateMatch[3]),
+    hour,
+    minute,
+    0,
+    0,
+  );
+  return Number.isNaN(fromParts.getTime()) ? null : fromParts;
+}
+
+function getScheduledTournamentStart(item: TournamentSummary) {
+  return (
+    parseDateValue(item.scheduledStartAt) ||
+    parseDateValue(item.startAt) ||
+    parseStartDateParts(item)
+  );
+}
+
+function getKnownTournamentDurationMinutes(item: TournamentSummary) {
+  const explicitMinutes = Number(item.durationMinutes || 0);
+  if (Number.isFinite(explicitMinutes) && explicitMinutes > 0) {
+    return Math.max(1, Math.round(explicitMinutes));
+  }
+
+  const startedAt = parseDateValue(item.startedAt) || getScheduledTournamentStart(item);
+  const finishedAt = parseDateValue(item.finishedAt);
+  if (startedAt && finishedAt && finishedAt.getTime() > startedAt.getTime()) {
+    return Math.max(1, Math.round((finishedAt.getTime() - startedAt.getTime()) / 60000));
+  }
+
+  return null;
+}
+
+function getTournamentEndAt(item: TournamentSummary) {
+  const start = parseDateValue(item.startedAt) || getScheduledTournamentStart(item);
+  const durationMinutes = getKnownTournamentDurationMinutes(item);
+  if (!start || !durationMinutes) return null;
+  return new Date(start.getTime() + durationMinutes * 60000);
+}
+
+function isTournamentEnded(item: TournamentSummary, now: Date) {
+  if (item.status === "FINISHED") return true;
+  const endAt = getTournamentEndAt(item);
+  return !!endAt && now.getTime() >= endAt.getTime();
 }
 
 function getTournamentTimeLabel(item: TournamentSummary) {
-  const scheduledStart = parseDateValue(item.scheduledStartAt);
+  const scheduledStart = getScheduledTournamentStart(item);
   if (scheduledStart) return formatShortTime(scheduledStart);
 
   const registrationDeadline = parseDateValue(item.registrationDeadline);
@@ -354,22 +449,78 @@ function getTournamentTimeLabel(item: TournamentSummary) {
   const createdAt = parseDateValue(item.createdAt);
   if (createdAt) return formatShortTime(createdAt);
 
-  return item.status === "DRAFT" ? "Draft" : "Manual";
+  return "--";
 }
 
 function getTournamentStatusText(item: TournamentSummary, now: Date) {
-  if (item.status === "REGISTRATION_OPEN") {
-    const scheduledStart = parseDateValue(item.scheduledStartAt);
-    return scheduledStart ? formatStartsIn(scheduledStart, now) : "Registration open";
+  const startAt = parseDateValue(item.startedAt) || getScheduledTournamentStart(item);
+  const endAt = getTournamentEndAt(item);
+
+  if (isTournamentEnded(item, now)) {
+    return item.status === "FINISHED" ? "Results available" : "Ended";
   }
-  if (item.status === "LIVE_ROUND") return "Active";
-  if (item.status === "ROUND_CLOSED") return "Round closed";
-  if (item.status === "FINISHED") return "Finished";
-  return "Draft";
+
+  if (startAt && now.getTime() < startAt.getTime()) {
+    return formatStartsIn(startAt, now);
+  }
+
+  if (endAt && now.getTime() < endAt.getTime()) {
+    const leftMinutes = (endAt.getTime() - now.getTime()) / 60000;
+    return `${formatRelativeCountdown(leftMinutes)} left`;
+  }
+
+  if (item.status === "LIVE_ROUND" || item.status === "ROUND_CLOSED") {
+    return "In progress";
+  }
+
+  return "Starts soon";
+}
+
+function isRegistrationLocked(item: TournamentSummary, now: Date) {
+  if (item.status === "REGISTRATION_OPEN") return false;
+  const startAt = getScheduledTournamentStart(item);
+  if (!startAt) return false;
+  return now.getTime() < startAt.getTime() - REGISTRATION_WINDOW_MS;
+}
+
+function isRegistrationOpenBySchedule(item: TournamentSummary, now: Date) {
+  const startAt = getScheduledTournamentStart(item);
+  if (!startAt) {
+    return item.status === "REGISTRATION_OPEN";
+  }
+  const nowMs = now.getTime();
+  const registrationOpenMs = startAt.getTime() - REGISTRATION_WINDOW_MS;
+  return nowMs >= registrationOpenMs && nowMs < startAt.getTime();
+}
+
+function canJoinTournament(item: TournamentSummary, now: Date) {
+  return (
+    !item.isRegistered &&
+    !isTournamentEnded(item, now) &&
+    (item.status === "REGISTRATION_OPEN" ||
+      isRegistrationOpenBySchedule(item, now) ||
+      isTournamentRunning(item, now))
+  );
+}
+
+function isTournamentRunning(item: TournamentSummary, now: Date) {
+  if (isTournamentEnded(item, now)) return false;
+  if (item.status === "LIVE_ROUND" || item.status === "ROUND_CLOSED") return true;
+  const startAt = parseDateValue(item.startedAt) || getScheduledTournamentStart(item);
+  if (!startAt) return false;
+  return now.getTime() >= startAt.getTime();
+}
+
+function getTournamentGameActionLabel(item: TournamentSummary) {
+  const roundNumber = Number(item.myPendingGameRound || item.currentRound || 0);
+  return roundNumber > 1 ? "Next Game" : "Start Game";
 }
 
 function getTournamentDisplayName(item: TournamentSummary) {
-  return formatTimeCategory(item);
+  const timeCategory = formatTimeCategory(item);
+  const tournamentName = String(item.name || "").trim();
+  if (!tournamentName) return timeCategory;
+  return `${timeCategory} - ${tournamentName}`;
 }
 
 function getTournamentSummaryLine(item: TournamentSummary) {
@@ -415,6 +566,135 @@ function formatPlayersCount(item: TournamentSummary) {
   return Intl.NumberFormat().format(Math.max(0, Number(item.registeredCount || 0)));
 }
 
+function getGameTimeParts(timeControl?: TimeControl) {
+  const baseMinutes = getBaseMinutes(timeControl);
+  const incrementSeconds = getIncrementSeconds(timeControl);
+  return {
+    main: `${baseMinutes} min`,
+    detail: incrementSeconds > 0 ? `+${incrementSeconds}s increment` : "",
+  };
+}
+
+function getTournamentMetaLine(item: TournamentSummary) {
+  const typeLabel = getTournamentSummaryLine(item);
+  const timeLabel = getTournamentTimeLabel(item);
+  if (!timeLabel || timeLabel === "--") return typeLabel;
+  return `${typeLabel} \u00b7 ${timeLabel}`;
+}
+
+function getInitials(name: string) {
+  const letters = String(name || "")
+    .replace(/[^a-zA-Z]/g, "")
+    .slice(0, 2)
+    .toUpperCase();
+  return letters || "??";
+}
+
+function formatArenaScore(value: number) {
+  return Number.isInteger(value) ? String(value) : value.toFixed(1);
+}
+
+function getStandingGames(row: StandingRow) {
+  const explicitGames = Number(row.games ?? row.gamesPlayed);
+  if (Number.isFinite(explicitGames) && explicitGames >= 0) return explicitGames;
+  return Number(row.wins || 0) + Number(row.draws || 0) + Number(row.losses || 0);
+}
+
+function ArenaResultsModal({
+  detail,
+  currentUserId,
+  onClose,
+}: {
+  detail: DetailResponse;
+  currentUserId: string;
+  onClose: () => void;
+}) {
+  const tournament = detail.tournament;
+  const topRows = [...(detail.standings || [])]
+    .sort((a, b) => Number(a.rank || 9999) - Number(b.rank || 9999))
+    .slice(0, 3);
+  const viewerRow =
+    tournament.isRegistered && currentUserId
+      ? (detail.standings || []).find((row) => String(row.userId) === currentUserId) || null
+      : null;
+
+  return (
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4">
+      <div className="w-full max-w-[430px] overflow-hidden rounded-2xl border border-brand-400/30 bg-slate-950/95 text-white shadow-[0_28px_80px_rgba(0,0,0,0.65)]">
+        <div className="relative border-b border-brand-400/20 bg-brand-500/10 px-6 pb-8 pt-7 text-center">
+          <button
+            type="button"
+            onClick={onClose}
+            className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-md text-white/60 transition hover:bg-white/10 hover:text-white"
+            aria-label="Close tournament results"
+          >
+            <X size={18} />
+          </button>
+          <h3 className="text-2xl font-semibold leading-tight">Arena Over</h3>
+          <p className="mt-1 text-sm text-white/80">{tournament.name || "Tournament"}</p>
+          <p className="mt-0.5 text-xs text-white/55">
+            {tournament.timeControlLabel || formatTimeCategory(tournament)}
+          </p>
+        </div>
+
+        <div className="space-y-4 px-6 py-5">
+          {topRows.map((row, index) => (
+            <div key={row.userId || `${row.rank}-${row.username}`} className="flex items-center gap-3">
+              <div
+                className={classNames(
+                  "flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 text-2xl font-black shadow-lg",
+                  index === 0
+                    ? "border-amber-300 bg-gradient-to-br from-amber-200 to-amber-600 text-amber-950"
+                    : index === 1
+                      ? "border-slate-200 bg-gradient-to-br from-slate-100 to-slate-500 text-slate-950"
+                      : "border-orange-300 bg-gradient-to-br from-orange-200 to-orange-700 text-orange-950",
+                )}
+              >
+                {index + 1}
+              </div>
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-md border-2 border-brand-400/70 bg-slate-800 text-base font-semibold text-white/80">
+                {row.avatar ? (
+                  <img src={row.avatar} alt={row.username} className="h-full w-full object-cover" />
+                ) : (
+                  getInitials(row.username)
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-semibold text-white">{row.username}</div>
+                <div className="mt-0.5 flex items-baseline gap-1">
+                  <span className="text-2xl font-black">{formatArenaScore(Number(row.points || 0))}</span>
+                  <span className="text-sm font-semibold text-white/55">/ {getStandingGames(row)}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {viewerRow ? (
+          <div className="flex items-center gap-3 border-t border-brand-400/20 bg-brand-500/10 px-4 py-3">
+            <div className="w-12 shrink-0 text-right text-sm font-semibold text-white/70">
+              {viewerRow.rank}
+            </div>
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-md bg-slate-800 text-xs font-semibold">
+              {viewerRow.avatar ? (
+                <img src={viewerRow.avatar} alt={viewerRow.username} className="h-full w-full object-cover" />
+              ) : (
+                getInitials(viewerRow.username)
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-sm font-semibold">{viewerRow.username}</div>
+              <div className="text-xs text-white/55">({viewerRow.elo})</div>
+            </div>
+            <div className="text-lg font-black">{formatArenaScore(Number(viewerRow.points || 0))}</div>
+            <div className="text-sm font-semibold text-white/60">/ {getStandingGames(viewerRow)}</div>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 function TournamentTypeIcon({ speed }: { speed: TournamentSpeed }) {
   const commonClass = "h-4 w-4";
 
@@ -456,25 +736,42 @@ function TournamentStatusBadge({
   status: TournamentStatus;
   label: string;
 }) {
-  const tone =
-    status === "REGISTRATION_OPEN"
-      ? "border-emerald-500/35 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
-      : status === "LIVE_ROUND"
-        ? "border-amber-500/35 bg-amber-500/10 text-amber-700 dark:text-amber-300"
-        : status === "ROUND_CLOSED"
-          ? "border-indigo-500/35 bg-indigo-500/10 text-indigo-700 dark:text-indigo-300"
-          : status === "FINISHED"
-            ? "border-slate-400/35 bg-slate-500/10 text-slate-600 dark:text-slate-300"
-            : "border-gray-400/35 bg-gray-500/10 text-gray-600 dark:text-gray-300";
+  const normalizedLabel = label.toLowerCase();
+  const isResults = normalizedLabel.includes("results");
+  const isEnded = normalizedLabel === "ended";
+  const isLive =
+    status === "LIVE_ROUND" ||
+    status === "ROUND_CLOSED" ||
+    normalizedLabel.includes("left") ||
+    normalizedLabel.includes("progress");
+  const showDot = isResults || isEnded || isLive || status === "REGISTRATION_OPEN";
+  const dotClass = isEnded
+    ? "bg-rose-400"
+    : isLive
+      ? "bg-amber-400"
+      : "bg-emerald-400";
+  const tone = isResults || status === "REGISTRATION_OPEN"
+    ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-300"
+    : isEnded || status === "CANCELLED"
+      ? "border-rose-500/30 bg-rose-500/10 text-rose-700 dark:border-rose-400/25 dark:bg-rose-500/10 dark:text-rose-300"
+      : isLive
+        ? "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:border-amber-400/25 dark:bg-amber-400/10 dark:text-amber-300"
+        : status === "FINISHED"
+          ? "border-slate-400/35 bg-slate-500/10 text-slate-600 dark:text-slate-300"
+          : "border-gray-400/35 bg-gray-500/10 text-gray-600 dark:text-gray-300";
 
   return (
     <span
       className={classNames(
-        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold leading-none",
+        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold leading-none",
         tone,
       )}
     >
-      {status === "LIVE_ROUND" && <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />}
+      {showDot && (
+        <span
+          className={classNames("h-1.5 w-1.5 rounded-full", dotClass, isLive && "animate-pulse")}
+        />
+      )}
       {label}
     </span>
   );
@@ -518,7 +815,8 @@ function TournamentRow({
   busyAction,
   onSelect,
   onRegister,
-  onUnregister,
+  onOpenGame,
+  onOpenResult,
 }: {
   item: TournamentSummary;
   selected: boolean;
@@ -526,86 +824,145 @@ function TournamentRow({
   busyAction: string;
   onSelect: (id: string) => void;
   onRegister: (id: string) => void;
-  onUnregister: (id: string) => void;
+  onOpenGame: (gameId: string) => void;
+  onOpenResult: (id: string) => void;
 }) {
   const speed = getTournamentSpeed(item);
   const statusText = getTournamentStatusText(item, now);
+  const gameTime = getGameTimeParts(item.timeControl);
   const durationText = getTournamentDurationLabel(item, now);
   const isBusy = busyAction.includes(item.id);
-  const canRegister = item.status === "REGISTRATION_OPEN" && !item.isRegistered;
-  const canUnregister =
-    item.isRegistered && (item.status === "REGISTRATION_OPEN" || item.status === "DRAFT");
-  const actionLabel = item.status === "FINISHED" ? "Results" : item.status === "LIVE_ROUND" ? "Watch" : "View";
+  const hasEnded = isTournamentEnded(item, now);
+  const registrationOpen = canJoinTournament(item, now);
+  const registrationLocked = !registrationOpen && !item.isRegistered && isRegistrationLocked(item, now);
+  const runningAndJoined = item.isRegistered && isTournamentRunning(item, now);
+  const hasPendingGame = runningAndJoined && !!String(item.myPendingGameId || "").trim();
+  const actionLabel = hasEnded ? "Result" : "Open";
+  const actionButtonClass =
+    "inline-flex h-7 min-w-[72px] items-center justify-center rounded-md px-3 text-[12px] font-semibold transition-colors disabled:opacity-60";
+  const registrationHint = registrationLocked
+    ? "Registration begins 1 hour before the event starts"
+    : "";
 
   return (
     <tr
       className={classNames(
-        "border-t border-theme-glass transition-colors",
+        "border-t border-theme-glass transition-colors duration-200 ease-out",
         selected
-          ? "bg-brand-500/10"
-          : "hover:bg-gray-900/[0.03] dark:hover:bg-white/[0.04]",
+          ? "bg-brand-500/15 dark:bg-brand-500/20"
+          : "hover:bg-gray-900/[0.025] dark:hover:bg-white/[0.035]",
       )}
     >
-      <td className="px-4 py-4">
+      <td className="align-middle px-5 py-3">
         <button
           type="button"
           onClick={() => onSelect(item.id)}
-          className="group flex min-w-[260px] items-center gap-3 text-left"
+          className="group flex min-w-0 items-center gap-3 text-left"
         >
           <TournamentTypeIcon speed={speed} />
           <span className="min-w-0">
-            <span className="block truncate text-sm font-semibold text-gray-900 group-hover:text-brand-700 dark:text-white dark:group-hover:text-brand-300">
+            <span className="block truncate text-[13px] font-semibold text-gray-900 group-hover:text-brand-700 dark:text-white dark:group-hover:text-brand-300">
               {getTournamentDisplayName(item)}
             </span>
-            <span className="mt-0.5 block text-xs text-gray-500 dark:text-gray-400">
-              {getTournamentSummaryLine(item)}
-            </span>
-            <span className="mt-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400 dark:text-gray-500">
-              {getTournamentTimeLabel(item)}
+            <span className="mt-1 block truncate text-[11px] text-gray-500/85 dark:text-gray-400/85">
+              {getTournamentMetaLine(item)}
             </span>
           </span>
         </button>
       </td>
-      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-200">
-        {formatGameTime(item.timeControl)}
+      <td className="align-middle px-5 py-3 text-left whitespace-nowrap">
+        <span className="block text-[12px] font-semibold text-gray-800 dark:text-gray-100">
+          {gameTime.main}
+        </span>
+        {gameTime.detail && (
+          <span className="mt-0.5 block text-[10.5px] text-gray-500 dark:text-gray-400">
+            {gameTime.detail}
+          </span>
+        )}
       </td>
-      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-200">
-        {durationText}
+      <td className="align-middle px-5 py-3 text-left whitespace-nowrap">
+        <span className="inline-flex rounded-full border border-theme-glass bg-gray-900/[0.04] px-2.5 py-1 text-[11px] font-medium text-gray-700 dark:bg-white/[0.06] dark:text-gray-200">
+          {durationText}
+        </span>
       </td>
-      <td className="px-4 py-4 whitespace-nowrap">
+      <td className="align-middle px-5 py-3 text-left whitespace-nowrap">
         <TournamentStatusBadge status={item.status} label={statusText} />
       </td>
-      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-200">
-        {formatPlayersCount(item)}
+      <td className="align-middle px-5 py-3 text-left whitespace-nowrap">
+        <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-gray-700 dark:text-gray-200">
+          <Users className="h-3.5 w-3.5 text-gray-400 dark:text-gray-500" aria-hidden="true" />
+          {formatPlayersCount(item)}
+        </span>
       </td>
-      <td className="px-4 py-4 text-right">
-        {canRegister ? (
-          <button
-            type="button"
-            onClick={() => onRegister(item.id)}
-            disabled={!!busyAction}
-            className="inline-flex min-h-9 items-center justify-center rounded-lg bg-brand-500 px-3 text-sm font-semibold text-white transition-colors hover:bg-brand-400 disabled:opacity-60 dark:text-gray-950"
-          >
-            {isBusy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : "Join"}
-          </button>
-        ) : canUnregister ? (
-          <button
-            type="button"
-            onClick={() => onUnregister(item.id)}
-            disabled={!!busyAction}
-            className="inline-flex min-h-9 items-center justify-center rounded-lg border border-theme-glass px-3 text-sm font-semibold text-gray-700 transition-colors hover:bg-white/70 disabled:opacity-60 dark:text-gray-200 dark:hover:bg-white/10"
-          >
-            {isBusy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : "Leave"}
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={() => onSelect(item.id)}
-            className="inline-flex min-h-9 items-center justify-center rounded-lg border border-theme-glass px-3 text-sm font-semibold text-gray-700 transition-colors hover:bg-white/70 dark:text-gray-200 dark:hover:bg-white/10"
-          >
-            {actionLabel}
-          </button>
-        )}
+      <td className="align-middle px-5 py-3 text-right">
+        <div className="flex flex-col items-end gap-1.5">
+          {hasPendingGame ? (
+            <button
+              type="button"
+              onClick={() => onOpenGame(String(item.myPendingGameId || ""))}
+              disabled={!!busyAction || !item.myPendingGameId}
+              className={classNames(
+                actionButtonClass,
+                "min-w-[92px] bg-emerald-500 text-white hover:bg-emerald-400",
+              )}
+            >
+              Continue
+            </button>
+          ) : registrationOpen ? (
+            <button
+              type="button"
+              onClick={() => onRegister(item.id)}
+              disabled={!!busyAction}
+              className={classNames(
+                actionButtonClass,
+                "bg-brand-500 text-white hover:bg-brand-400 dark:text-gray-950",
+              )}
+            >
+              {isBusy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : "Join"}
+            </button>
+          ) : item.isRegistered && !hasEnded ? (
+            <button
+              type="button"
+              onClick={() => onRegister(item.id)}
+              disabled={!!busyAction}
+              className={classNames(
+                actionButtonClass,
+                "bg-emerald-500 text-white hover:bg-emerald-400",
+              )}
+            >
+              Continue
+            </button>
+          ) : registrationLocked ? (
+            <button
+              type="button"
+              disabled
+              className={classNames(
+                actionButtonClass,
+                "bg-gray-300 text-gray-600 dark:bg-gray-700 dark:text-gray-300",
+              )}
+            >
+              Join
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => (hasEnded ? onOpenResult(item.id) : onSelect(item.id))}
+              className={classNames(
+                actionButtonClass,
+                hasEnded
+                  ? "bg-brand-500 text-white hover:bg-brand-400 dark:text-gray-950"
+                  : "bg-brand-500 text-white hover:bg-brand-400 dark:text-gray-950",
+              )}
+            >
+              {actionLabel}
+            </button>
+          )}
+          {registrationHint && (
+            <span className="max-w-[220px] text-right text-[11px] leading-tight text-gray-500 dark:text-gray-400">
+              {registrationHint}
+            </span>
+          )}
+        </div>
       </td>
     </tr>
   );
@@ -619,7 +976,8 @@ function TournamentTable({
   busyAction,
   onSelect,
   onRegister,
-  onUnregister,
+  onOpenGame,
+  onOpenResult,
   embedded = false,
 }: {
   tournaments: TournamentSummary[];
@@ -629,17 +987,24 @@ function TournamentTable({
   busyAction: string;
   onSelect: (id: string) => void;
   onRegister: (id: string) => void;
-  onUnregister: (id: string) => void;
+  onOpenGame: (gameId: string) => void;
+  onOpenResult: (id: string) => void;
   embedded?: boolean;
 }) {
   if (loading) {
     return (
-      <div className={embedded ? "p-4" : "theme-glass-panel rounded-xl p-4"}>
-        <div className="space-y-3">
+      <div
+        className={
+          embedded
+            ? "theme-glass-panel-soft mt-3 overflow-hidden rounded-xl p-4"
+            : "theme-glass-panel overflow-hidden rounded-xl p-4"
+        }
+      >
+        <div className="space-y-2">
           {Array.from({ length: 6 }).map((_, index) => (
             <div
               key={index}
-              className="h-16 animate-pulse rounded-lg border border-theme-glass bg-gray-100/70 dark:bg-white/5"
+              className="h-14 animate-pulse rounded-lg border border-theme-glass bg-gray-100/70 dark:bg-white/5"
             />
           ))}
         </div>
@@ -649,7 +1014,13 @@ function TournamentTable({
 
   if (tournaments.length === 0) {
     return (
-      <div className={embedded ? "px-6 py-12 text-center" : "theme-glass-panel rounded-xl px-6 py-12 text-center"}>
+      <div
+        className={
+          embedded
+            ? "theme-glass-panel-soft mt-3 rounded-xl px-6 py-12 text-center"
+            : "theme-glass-panel rounded-xl px-6 py-12 text-center"
+        }
+      >
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl border border-theme-glass bg-white/60 text-brand-500 dark:bg-white/5">
           <Trophy className="h-6 w-6" aria-hidden="true" />
         </div>
@@ -663,16 +1034,30 @@ function TournamentTable({
 
   const tableContent = (
     <>
-      <div className="hidden overflow-x-auto lg:block">
-        <table className="w-full min-w-[960px] text-left">
-          <thead className="bg-white/45 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:bg-white/[0.04] dark:text-gray-400">
+      <div
+        className={classNames(
+          "hidden overflow-hidden rounded-xl border border-theme-glass bg-white/60 shadow-[0_14px_40px_rgba(15,23,42,0.08)] dark:bg-gray-950/45 dark:shadow-[0_18px_50px_rgba(0,0,0,0.24)] lg:block",
+          embedded ? "mt-3" : "",
+        )}
+      >
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[880px] table-fixed text-left">
+          <colgroup>
+            <col className="w-[29%]" />
+            <col className="w-[16%]" />
+            <col className="w-[13%]" />
+            <col className="w-[20%]" />
+            <col className="w-[12%]" />
+            <col className="w-[10%]" />
+          </colgroup>
+          <thead className="bg-gray-900/[0.04] text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500 dark:bg-white/[0.035] dark:text-gray-400">
             <tr>
-              <th className="px-4 py-3">Tournament</th>
-              <th className="px-4 py-3">Game Time</th>
-              <th className="px-4 py-3">Duration</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Players</th>
-              <th className="px-4 py-3 text-right">Action</th>
+              <th className="px-5 py-3 text-left">Type</th>
+              <th className="px-5 py-3 text-left">Game Time</th>
+              <th className="px-5 py-3 text-left">Duration</th>
+              <th className="px-5 py-3 text-left">Status</th>
+              <th className="px-5 py-3 text-left">Players</th>
+              <th className="px-5 py-3 text-right">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -685,25 +1070,39 @@ function TournamentTable({
                 busyAction={busyAction}
                 onSelect={onSelect}
                 onRegister={onRegister}
-                onUnregister={onUnregister}
+                onOpenGame={onOpenGame}
+                onOpenResult={onOpenResult}
               />
             ))}
           </tbody>
         </table>
+        </div>
       </div>
 
-      <div className="divide-y divide-theme-glass lg:hidden">
+      <div
+        className={classNames(
+          "overflow-hidden rounded-xl border border-theme-glass bg-white/60 dark:bg-gray-950/45 lg:hidden",
+          embedded ? "mt-3" : "",
+        )}
+      >
         {tournaments.map((item) => {
           const speed = getTournamentSpeed(item);
           const statusText = getTournamentStatusText(item, now);
+          const gameTime = getGameTimeParts(item.timeControl);
           const durationText = getTournamentDurationLabel(item, now);
-          const canRegister = item.status === "REGISTRATION_OPEN" && !item.isRegistered;
+          const hasEnded = isTournamentEnded(item, now);
+          const registrationOpen = canJoinTournament(item, now);
+          const registrationLocked =
+            !registrationOpen && !item.isRegistered && isRegistrationLocked(item, now);
+          const runningAndJoined = item.isRegistered && isTournamentRunning(item, now);
+          const hasPendingGame = runningAndJoined && !!String(item.myPendingGameId || "").trim();
+          const isBusy = busyAction.includes(item.id);
           return (
             <article
               key={item.id}
               className={classNames(
-                "p-4 transition-colors",
-                selectedId === item.id ? "bg-brand-500/10" : "",
+                "border-t border-theme-glass p-4 transition-colors duration-200 ease-out first:border-t-0",
+                selectedId === item.id ? "bg-brand-500/15 dark:bg-brand-500/20" : "",
               )}
             >
               <div className="flex items-start gap-3">
@@ -717,7 +1116,7 @@ function TournamentTable({
                     {getTournamentDisplayName(item)}
                   </button>
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    {getTournamentSummaryLine(item)}
+                    {getTournamentMetaLine(item)}
                   </p>
                 </div>
                 <TournamentStatusBadge status={item.status} label={statusText} />
@@ -728,7 +1127,7 @@ function TournamentTable({
                     Game Time
                   </p>
                   <p className="mt-1 text-sm font-medium text-gray-800 dark:text-gray-100">
-                    {formatGameTime(item.timeControl)}
+                    {gameTime.detail ? `${gameTime.main} ${gameTime.detail}` : gameTime.main}
                   </p>
                 </div>
                 <div>
@@ -744,27 +1143,70 @@ function TournamentTable({
                     Players
                   </p>
                   <p className="mt-1 text-sm font-medium text-gray-800 dark:text-gray-100">
-                    {formatPlayersCount(item)}
+                    <span className="inline-flex items-center gap-1.5">
+                      <Users className="h-3.5 w-3.5 text-gray-400" aria-hidden="true" />
+                      {formatPlayersCount(item)}
+                    </span>
                   </p>
                 </div>
               </div>
-              <p className="mt-3 text-[11px] font-medium uppercase tracking-wide text-gray-400 dark:text-gray-500">
-                {getTournamentTimeLabel(item)}
-              </p>
+              {registrationLocked && (
+                <p className="mt-2 text-[11px] text-gray-500 dark:text-gray-400">
+                  Registration begins 1 hour before the event starts
+                </p>
+              )}
               <div className="mt-4 flex items-center justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => (canRegister ? onRegister(item.id) : onSelect(item.id))}
-                  disabled={!!busyAction}
-                  className={classNames(
-                    "inline-flex min-h-9 items-center justify-center rounded-lg px-3 text-sm font-semibold transition-colors disabled:opacity-60",
-                    canRegister
-                      ? "bg-brand-500 text-white hover:bg-brand-400 dark:text-gray-950"
-                      : "border border-theme-glass text-gray-700 hover:bg-white/70 dark:text-gray-200 dark:hover:bg-white/10",
-                  )}
-                >
-                  {canRegister ? "Join" : item.status === "FINISHED" ? "Results" : "View"}
-                </button>
+                {hasPendingGame ? (
+                  <button
+                    type="button"
+                    onClick={() => onOpenGame(String(item.myPendingGameId || ""))}
+                    disabled={!!busyAction || !item.myPendingGameId}
+                    className="inline-flex h-8 min-w-[104px] items-center justify-center rounded-md bg-emerald-500 px-3 text-[12px] font-semibold text-white transition-colors hover:bg-emerald-400 disabled:opacity-60"
+                  >
+                    Continue
+                  </button>
+                ) : registrationOpen ? (
+                  <button
+                    type="button"
+                    onClick={() => onRegister(item.id)}
+                    disabled={!!busyAction}
+                    className="inline-flex h-8 min-w-[76px] items-center justify-center rounded-md bg-brand-500 px-3 text-[12px] font-semibold text-white transition-colors hover:bg-brand-400 disabled:opacity-60 dark:text-gray-950"
+                  >
+                    {isBusy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : "Join"}
+                  </button>
+                ) : item.isRegistered && !hasEnded ? (
+                  <button
+                    type="button"
+                    onClick={() => onRegister(item.id)}
+                    disabled={!!busyAction}
+                    className="inline-flex h-8 min-w-[104px] items-center justify-center rounded-md bg-emerald-500 px-3 text-[12px] font-semibold text-white transition-colors hover:bg-emerald-400 disabled:opacity-60"
+                  >
+                    Continue
+                  </button>
+                ) : registrationLocked ? (
+                  <button
+                    type="button"
+                    disabled
+                    className="inline-flex h-8 min-w-[76px] items-center justify-center rounded-md bg-gray-300 px-3 text-[12px] font-semibold text-gray-600 transition-colors disabled:opacity-70 dark:bg-gray-700 dark:text-gray-300"
+                  >
+                    Join
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => (hasEnded ? onOpenResult(item.id) : onSelect(item.id))}
+                    disabled={!!busyAction}
+                    className="inline-flex h-8 min-w-[76px] items-center justify-center rounded-md bg-brand-500 px-3 text-[12px] font-semibold text-white transition-colors hover:bg-brand-400 disabled:opacity-60 dark:text-gray-950"
+                  >
+                    {isBusy ? (
+                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                    ) : hasEnded ? (
+                      "Result"
+                    ) : (
+                      "Open"
+                    )}
+                  </button>
+                )}
               </div>
             </article>
           );
@@ -773,12 +1215,10 @@ function TournamentTable({
     </>
   );
 
-  if (embedded) return tableContent;
-
-  return <div className="theme-glass-panel overflow-hidden rounded-xl">{tableContent}</div>;
+  return tableContent;
 }
 
-type ScheduleFormatFilter = "all" | TournamentSpeed;
+type ScheduleFormatFilter = "all" | "arena";
 
 interface TimelineTournament {
   item: TournamentSummary;
@@ -806,10 +1246,7 @@ interface TimelineDayBoundary {
 
 const SCHEDULE_FORMAT_OPTIONS: Array<{ value: ScheduleFormatFilter; label: string }> = [
   { value: "all", label: "All Formats" },
-  { value: "blitz", label: "Blitz" },
-  { value: "rapid", label: "Rapid" },
-  { value: "bullet", label: "Bullet" },
-  { value: "chess960", label: "Chess960" },
+  { value: "arena", label: "Arena" },
 ];
 
 const SCHEDULE_BAR_STYLES: Record<TournamentSpeed, string> = {
@@ -851,11 +1288,11 @@ function parseDateInputValueOnly(value?: string | null) {
 }
 
 function getDefaultStartMinuteValue(value: number) {
-  const rounded = Math.floor(Math.max(0, Math.min(59, value)) / 5) * 5;
-  return String(rounded).padStart(2, "0");
+  const normalized = Math.floor(Math.max(0, Math.min(59, value)));
+  return String(normalized).padStart(2, "0");
 }
 
-function buildScheduledStartIso(dateValue: string, hourValue: string, minuteValue: string) {
+function buildScheduledStartDate(dateValue: string, hourValue: string, minuteValue: string) {
   const date = parseDateInputValueOnly(dateValue);
   if (!date) return null;
 
@@ -866,6 +1303,12 @@ function buildScheduledStartIso(dateValue: string, hourValue: string, minuteValu
 
   date.setHours(hours, minutes, 0, 0);
   if (Number.isNaN(date.getTime())) return null;
+  return date;
+}
+
+function buildScheduledStartIso(dateValue: string, hourValue: string, minuteValue: string) {
+  const date = buildScheduledStartDate(dateValue, hourValue, minuteValue);
+  if (!date) return null;
   return date.toISOString();
 }
 
@@ -907,7 +1350,7 @@ function formatScheduleDayLabel(date: Date) {
 
 function getTournamentStartDate(item: TournamentSummary) {
   return (
-    parseDateValue(item.scheduledStartAt) ||
+    getScheduledTournamentStart(item) ||
     parseDateValue(item.startedAt) ||
     parseDateValue(item.registrationDeadline) ||
     parseDateValue(item.createdAt)
@@ -934,6 +1377,7 @@ function buildTimelineItems(
   tournaments: TournamentSummary[],
   scheduleDateValue: string,
   formatFilter: ScheduleFormatFilter,
+  statusFilter: StatusFilter,
   now: Date,
 ) {
   const scheduleDay = parseDateInputValueOnly(scheduleDateValue) || startOfLocalDay(now);
@@ -958,8 +1402,15 @@ function buildTimelineItems(
     }>((item) => {
       const start = getTournamentStartDate(item);
       if (!start) return [];
+      if (String(item.type || "").toLowerCase() !== "arena") return [];
+      if (item.status === "CANCELLED" || item.status === "DRAFT") return [];
       const speed = getTournamentSpeed(item);
-      if (formatFilter !== "all" && speed !== formatFilter) return [];
+      if (formatFilter !== "all" && String(item.type || "").toLowerCase() !== formatFilter) {
+        return [];
+      }
+      if (statusFilter !== "all" && item.status !== statusFilter) {
+        return [];
+      }
 
       const durationMinutes = getTournamentDurationMinutes(item);
       const startMs = start.getTime();
@@ -1093,7 +1544,7 @@ function TournamentScheduleTimeline({
   onStatusFilterChange,
   onSelect,
   onRegister,
-  onUnregister,
+  onOpenGame,
 }: {
   tournaments: TournamentSummary[];
   loading: boolean;
@@ -1108,7 +1559,7 @@ function TournamentScheduleTimeline({
   onStatusFilterChange: (value: StatusFilter) => void;
   onSelect: (id: string) => void;
   onRegister: (id: string) => void;
-  onUnregister: (id: string) => void;
+  onOpenGame: (gameId: string) => void;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const controlsRef = useRef<HTMLDivElement | null>(null);
@@ -1123,8 +1574,8 @@ function TournamentScheduleTimeline({
     [scheduleDay],
   );
   const timelineData = useMemo(
-    () => buildTimelineItems(tournaments, scheduleDayValue, formatFilter, now),
-    [formatFilter, now, scheduleDayValue, tournaments],
+    () => buildTimelineItems(tournaments, scheduleDayValue, formatFilter, statusFilter, now),
+    [formatFilter, now, scheduleDayValue, statusFilter, tournaments],
   );
   const timelineItems = timelineData.items;
   const timelineMinutes = Math.max(
@@ -1225,7 +1676,6 @@ function TournamentScheduleTimeline({
             <option value="REGISTRATION_OPEN">Registration Open</option>
             <option value="LIVE_ROUND">Live</option>
             <option value="FINISHED">Finished</option>
-            <option value="DRAFT">Draft</option>
           </select>
         </div>
 
@@ -1341,10 +1791,11 @@ function TournamentScheduleTimeline({
 
               {timelineItems.map((timelineItem) => {
                 const { item, speed, left, width, clippedStart, clippedEnd, lane } = timelineItem;
-                const canRegister = item.status === "REGISTRATION_OPEN" && !item.isRegistered;
-                const canUnregister =
-                  item.isRegistered &&
-                  (item.status === "REGISTRATION_OPEN" || item.status === "DRAFT");
+                const hasEnded = isTournamentEnded(item, now);
+                const canRegister = canJoinTournament(item, now);
+                const runningAndJoined = item.isRegistered && isTournamentRunning(item, now);
+                const hasPendingGame =
+                  runningAndJoined && !!String(item.myPendingGameId || "").trim();
                 const isBusy = busyAction.includes(item.id);
                 const top =
                   SCHEDULE_TIMELINE_HEADER_HEIGHT +
@@ -1356,12 +1807,12 @@ function TournamentScheduleTimeline({
                     key={item.id}
                     type="button"
                     onClick={() => {
-                      if (canRegister) {
-                        onRegister(item.id);
+                      if (hasPendingGame) {
+                        onOpenGame(String(item.myPendingGameId || ""));
                         return;
                       }
-                      if (canUnregister) {
-                        onUnregister(item.id);
+                      if (canRegister) {
+                        onRegister(item.id);
                         return;
                       }
                       onSelect(item.id);
@@ -1407,21 +1858,22 @@ function TournamentScheduleTimeline({
 }
 
 export default function Tournaments() {
+  const location = useLocation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { t } = useTranslation();
   const user = useAuthStore((state) => state.user);
+  const isTournamentRoute = location.pathname.startsWith("/tournaments");
   const selectedFromUrl = String(searchParams.get("selected") || "").trim();
   const initialTab = parsePageTab(searchParams.get("tab")) || "current";
 
   const [pageTab, setPageTab] = useState<TournamentPageTab>(initialTab);
   const [now, setNow] = useState(() => new Date());
   const [search, setSearch] = useState("");
-  const [formatFilter, setFormatFilter] = useState<"all" | TournamentType>("all");
+  const [formatFilter, setFormatFilter] = useState<CurrentFormatFilter>("all");
   const [scheduleFormatFilter, setScheduleFormatFilter] =
     useState<ScheduleFormatFilter>("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
-  const [sort, setSort] = useState<SortMode>("newest");
   const [scheduleDate, setScheduleDate] = useState(() =>
     toDateInputValueOnly(parseDateInputValueOnly(searchParams.get("date")) || new Date()),
   );
@@ -1439,11 +1891,12 @@ export default function Tournaments() {
   const [error, setError] = useState<string | null>(null);
   const [busyAction, setBusyAction] = useState<string>("");
   const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogState | null>(null);
+  const [resultModalDetail, setResultModalDetail] = useState<DetailResponse | null>(null);
   const [standingsPage, setStandingsPage] = useState(1);
 
-  const [createView, setCreateView] = useState<CreateTournamentView>("choice");
+  const [createView, setCreateView] = useState<CreateTournamentView>("form");
   const [createName, setCreateName] = useState("");
-  const [createType, setCreateType] = useState<TournamentType>("swiss");
+  const [createType, setCreateType] = useState<TournamentType>("arena");
   const [createRounds, setCreateRounds] = useState<string>("5");
   const [timePreset, setTimePreset] = useState<string>("rapid_10_0");
   const [createDurationMinutes, setCreateDurationMinutes] = useState<string>("30");
@@ -1462,61 +1915,131 @@ export default function Tournaments() {
     getDefaultStartMinuteValue(now.getMinutes()),
   );
   const [description, setDescription] = useState("");
+  const [createStartTimeError, setCreateStartTimeError] = useState<string | null>(null);
+  const [pendingCreateId, setPendingCreateId] = useState<string | null>(null);
 
   const currentUserId = String(user?.id || "");
-  const autoJoinGameIdRef = useRef<string>("");
+  const createTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "Local";
+  const isMountedRef = useRef(true);
+  const routeActiveRef = useRef(isTournamentRoute);
+  const selectedIdRef = useRef(selectedId);
+  const selectedFromUrlRef = useRef(selectedFromUrl);
 
   useEffect(() => {
-    const clock = window.setInterval(() => setNow(new Date()), 60000);
-    return () => window.clearInterval(clock);
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
   }, []);
 
   useEffect(() => {
-    if (selectedFromUrl) {
-      setSelectedId(selectedFromUrl);
+    routeActiveRef.current = isTournamentRoute;
+    if (!isTournamentRoute) {
+      setSelectedId("");
+      setDetail(null);
+      setBusyAction("");
     }
+  }, [isTournamentRoute]);
+
+  useEffect(() => {
+    selectedIdRef.current = selectedId;
+  }, [selectedId]);
+
+  useEffect(() => {
+    selectedFromUrlRef.current = selectedFromUrl;
   }, [selectedFromUrl]);
 
   useEffect(() => {
+    if (!pendingCreateId) return;
+    if (!selectedId || selectedId === pendingCreateId) return;
+    setPendingCreateId(null);
+  }, [pendingCreateId, selectedId]);
+
+  useEffect(() => {
+    if (!isTournamentRoute) return;
+    const clock = window.setInterval(() => setNow(new Date()), 60000);
+    return () => window.clearInterval(clock);
+  }, [isTournamentRoute]);
+
+  useEffect(() => {
+    if (!isTournamentRoute) return;
+    setSelectedId((previous) => (previous === selectedFromUrl ? previous : selectedFromUrl));
+  }, [isTournamentRoute, selectedFromUrl]);
+
+  useEffect(() => {
+    if (!isTournamentRoute) return;
     const urlTab = parsePageTab(searchParams.get("tab")) || "current";
-    setPageTab(urlTab);
+    setPageTab((previous) => (previous === urlTab ? previous : urlTab));
     if (urlTab !== "create") {
-      setCreateView("choice");
+      setCreateView("form");
     }
 
     const urlDate = parseDateInputValueOnly(searchParams.get("date"));
     if (urlDate) {
-      setScheduleDate(toDateInputValueOnly(urlDate));
+      const normalized = toDateInputValueOnly(urlDate);
+      setScheduleDate((previous) => (previous === normalized ? previous : normalized));
     }
-  }, [searchParams]);
+  }, [isTournamentRoute, searchParams]);
 
-  function writeTabToUrl(tabKey: TournamentPageTab, nextDate = scheduleDate) {
-    const nextParams = new URLSearchParams(searchParams);
-    nextParams.set("tab", tabKey);
-    if (tabKey === "schedule") {
-      nextParams.set("date", nextDate);
-    } else {
-      nextParams.delete("date");
-    }
+  function updateTournamentSearchParams(
+    mutate: (params: URLSearchParams) => void,
+  ) {
+    if (!routeActiveRef.current) return;
+    const nextParams = new URLSearchParams(window.location.search);
+    const previousSerialized = nextParams.toString();
+    mutate(nextParams);
+    if (nextParams.toString() === previousSerialized) return;
     setSearchParams(nextParams, { replace: true });
   }
 
+  function writeTabToUrl(tabKey: TournamentPageTab, nextDate = scheduleDate) {
+    updateTournamentSearchParams((nextParams) => {
+      nextParams.set("tab", tabKey);
+      if (tabKey === "schedule") {
+        nextParams.set("date", nextDate);
+      } else {
+        nextParams.delete("date");
+      }
+    });
+  }
+
+  function switchToCurrentTabWithSelection(tournamentId: string) {
+    const normalizedTournamentId = String(tournamentId || "").trim();
+    setPageTab("current");
+    setListPage(1);
+    setSelectedId((previous) =>
+      previous === normalizedTournamentId ? previous : normalizedTournamentId,
+    );
+    updateTournamentSearchParams((nextParams) => {
+      nextParams.set("tab", "current");
+      nextParams.delete("date");
+      if (normalizedTournamentId) {
+        nextParams.set("selected", normalizedTournamentId);
+      } else {
+        nextParams.delete("selected");
+      }
+    });
+  }
+
   function selectTournament(tournamentId: string) {
-    setSelectedId(tournamentId);
-    const nextParams = new URLSearchParams(searchParams);
-    if (tournamentId) {
-      nextParams.set("selected", tournamentId);
-    } else {
-      nextParams.delete("selected");
-    }
-    setSearchParams(nextParams, { replace: true });
+    const normalizedTournamentId = String(tournamentId || "").trim();
+    setSelectedId((previous) =>
+      previous === normalizedTournamentId ? previous : normalizedTournamentId,
+    );
+    updateTournamentSearchParams((nextParams) => {
+      if (normalizedTournamentId) {
+        nextParams.set("selected", normalizedTournamentId);
+      } else {
+        nextParams.delete("selected");
+      }
+    });
   }
 
   function resetCreateForm(options?: { keepType?: boolean }) {
     const nowDate = new Date();
     setCreateName("");
     if (!options?.keepType) {
-      setCreateType("swiss");
+      setCreateType("arena");
     }
     setCreateRounds("5");
     setTimePreset("rapid_10_0");
@@ -1530,25 +2053,22 @@ export default function Tournaments() {
     setCreateStartHour(String(nowDate.getHours()).padStart(2, "0"));
     setCreateStartMinute(getDefaultStartMinuteValue(nowDate.getMinutes()));
     setDescription("");
+    setCreateStartTimeError(null);
   }
 
   function beginCreateFlow(type: TournamentType) {
-    const normalizedType = type === "arena" ? "arena" : "swiss";
+    const normalizedType = "arena";
     resetCreateForm({ keepType: true });
     setCreateType(normalizedType);
-    if (normalizedType === "arena") {
-      setTimePreset("blitz_3_2");
-      setCreateDurationMinutes("30");
-    } else {
-      setTimePreset("rapid_10_0");
-      setCreateRounds("5");
-    }
+    setTimePreset("blitz_3_2");
+    setCreateDurationMinutes("30");
     setCreateView("form");
   }
 
   function backToCreateChoices() {
-    setCreateView("choice");
     resetCreateForm();
+    setPageTab("current");
+    writeTabToUrl("current");
   }
 
   function handleScheduleDateChange(value: string) {
@@ -1558,14 +2078,13 @@ export default function Tournaments() {
   }
 
   function handlePageTabChange(nextTab: TournamentPageTab) {
-    if (nextTab === "watch") {
-      navigate("/watch");
-      return;
-    }
     if (nextTab === "create") {
       setPageTab("create");
-      setCreateView("choice");
+      setCreateView("form");
       resetCreateForm();
+      setCreateType("arena");
+      setTimePreset("blitz_3_2");
+      setCreateDurationMinutes("30");
       writeTabToUrl("create");
       return;
     }
@@ -1595,6 +2114,9 @@ export default function Tournaments() {
     if (status === "ROUND_CLOSED") {
       return t("tournamentCommon.badges.roundClosed", "Round closed");
     }
+    if (status === "CANCELLED") {
+      return t("tournamentCommon.status.cancelled", "Cancelled");
+    }
     if (status === "FINISHED") {
       return t("tournamentCommon.status.finished", "Finished");
     }
@@ -1615,7 +2137,62 @@ export default function Tournaments() {
     [list, selectedId],
   );
 
-  const visibleTournaments = useMemo(() => list, [list]);
+  const visibleTournaments = useMemo(() => {
+    const nowMs = now.getTime();
+    return list
+      .filter((item) => {
+        if (String(item.type || "").toLowerCase() !== "arena") return false;
+        if (item.status === "CANCELLED" || item.status === "DRAFT") return false;
+        const joinable = canJoinTournament(item, now);
+        const registeredOpen = item.isRegistered && item.status === "REGISTRATION_OPEN";
+        const joinedRunning = item.isRegistered && isTournamentRunning(item, now);
+        const ended = isTournamentEnded(item, now);
+        return joinable || registeredOpen || joinedRunning || ended;
+      })
+      .sort((a, b) => {
+        const aJoinable = canJoinTournament(a, now);
+        const bJoinable = canJoinTournament(b, now);
+        if (aJoinable !== bJoinable) return aJoinable ? -1 : 1;
+
+        const aRegisteredOpen = a.isRegistered && a.status === "REGISTRATION_OPEN";
+        const bRegisteredOpen = b.isRegistered && b.status === "REGISTRATION_OPEN";
+        if (aRegisteredOpen !== bRegisteredOpen) return aRegisteredOpen ? -1 : 1;
+
+        const aJoinedRunning = a.isRegistered && isTournamentRunning(a, now);
+        const bJoinedRunning = b.isRegistered && isTournamentRunning(b, now);
+        if (aJoinedRunning !== bJoinedRunning) return aJoinedRunning ? -1 : 1;
+
+        const aEnded = isTournamentEnded(a, now);
+        const bEnded = isTournamentEnded(b, now);
+        if (aEnded !== bEnded) return aEnded ? 1 : -1;
+
+        const aFinished = parseDateValue(a.finishedAt)?.getTime() || 0;
+        const bFinished = parseDateValue(b.finishedAt)?.getTime() || 0;
+        if (aFinished !== bFinished) return bFinished - aFinished;
+
+        const aStart = getScheduledTournamentStart(a)?.getTime() || 0;
+        const bStart = getScheduledTournamentStart(b)?.getTime() || 0;
+        if (aStart !== bStart) return aStart - bStart;
+
+        const aCreated = parseDateValue(a.createdAt)?.getTime() || nowMs;
+        const bCreated = parseDateValue(b.createdAt)?.getTime() || nowMs;
+        return aCreated - bCreated;
+      });
+  }, [list, now]);
+
+  useEffect(() => {
+    if (!isTournamentRoute || pageTab !== "current") return;
+    if (visibleTournaments.length === 0) {
+      if (selectedId) {
+        selectTournament("");
+      }
+      return;
+    }
+    const hasVisibleSelection = visibleTournaments.some((item) => item.id === selectedId);
+    if (!hasVisibleSelection) {
+      selectTournament(visibleTournaments[0].id);
+    }
+  }, [isTournamentRoute, pageTab, selectedId, visibleTournaments]);
 
   const currentRoundGames = useMemo(() => {
     if (!detail) return [];
@@ -1660,8 +2237,13 @@ export default function Tournaments() {
   }, [standingsPageCount]);
 
   async function isServerReachable() {
+    if (!routeActiveRef.current || !isMountedRef.current) return false;
     try {
-      const response = await fetch(`${API_URL}/healthz`, { credentials: "include" });
+      const response = await fetchWithTimeout(
+        `${API_URL}/healthz`,
+        { credentials: "include" },
+        HEALTH_CHECK_TIMEOUT_MS,
+      );
       return response.ok;
     } catch {
       return false;
@@ -1669,9 +2251,11 @@ export default function Tournaments() {
   }
 
   async function loadList(options?: { silent?: boolean }) {
+    if (!routeActiveRef.current || !isMountedRef.current) return;
     try {
       if (!options?.silent) setLoadingList(true);
       const reachable = await isServerReachable();
+      if (!routeActiveRef.current || !isMountedRef.current) return;
       if (!reachable) {
         setError(serverReconnectMessage);
         return;
@@ -1681,15 +2265,19 @@ export default function Tournaments() {
       if (!isScheduleView && search.trim()) params.set("search", search.trim());
       if (!isScheduleView && formatFilter !== "all") params.set("format", formatFilter);
       if (statusForFilter(statusFilter)) params.set("status", statusForFilter(statusFilter));
-      params.set("sort", isScheduleView ? "starting_soon" : sort);
+      params.set("sort", "starting_soon");
       params.set("page", String(isScheduleView ? 1 : listPage));
       params.set("limit", String(isScheduleView ? 100 : LIST_PAGE_SIZE));
-      const response = await fetch(`${API_URL}/api/tournaments?${params.toString()}`, {
-        credentials: "include",
-      });
+      const response = await fetchWithTimeout(
+        `${API_URL}/api/tournaments?${params.toString()}`,
+        {
+          credentials: "include",
+        },
+      );
       const payload = (await response.json().catch(() => ({}))) as Partial<TournamentListResponse> & {
         error?: string;
       };
+      if (!routeActiveRef.current || !isMountedRef.current) return;
       if (!response.ok) {
         throw new Error(
           payload?.error ||
@@ -1707,17 +2295,20 @@ export default function Tournaments() {
       setListPageSize(pageSize);
       setListTotalPages(totalPages);
       setListPage(Math.max(1, Number(payload.pagination?.page || 1)));
-      if (!selectedId && !selectedFromUrl && tournaments.length > 0) {
+      const currentSelectedId = selectedIdRef.current;
+      const currentSelectedFromUrl = selectedFromUrlRef.current;
+      if (!currentSelectedId && !currentSelectedFromUrl && tournaments.length > 0) {
         selectTournament(tournaments[0].id);
       } else if (
-        selectedId &&
-        !selectedFromUrl &&
-        !tournaments.some((tournament) => tournament.id === selectedId)
+        currentSelectedId &&
+        !currentSelectedFromUrl &&
+        !tournaments.some((tournament) => tournament.id === currentSelectedId)
       ) {
         selectTournament(tournaments[0]?.id || "");
       }
       setError(null);
     } catch (err) {
+      if (!routeActiveRef.current || !isMountedRef.current) return;
       const message =
         err instanceof Error
           ? err.message
@@ -1728,11 +2319,14 @@ export default function Tournaments() {
         setError(message);
       }
     } finally {
-      if (!options?.silent) setLoadingList(false);
+      if (routeActiveRef.current && isMountedRef.current && !options?.silent) {
+        setLoadingList(false);
+      }
     }
   }
 
   async function loadDetail(tournamentId: string, options?: { silent?: boolean }) {
+    if (!routeActiveRef.current || !isMountedRef.current) return;
     if (!tournamentId) {
       setDetail(null);
       return;
@@ -1740,14 +2334,25 @@ export default function Tournaments() {
     try {
       if (!options?.silent) setLoadingDetail(true);
       const reachable = await isServerReachable();
+      if (!routeActiveRef.current || !isMountedRef.current) return;
       if (!reachable) {
         setError(serverReconnectMessage);
         return;
       }
-      const response = await fetch(`${API_URL}/api/tournaments/${tournamentId}`, {
+      const response = await fetchWithTimeout(`${API_URL}/api/tournaments/${tournamentId}`, {
         credentials: "include",
       });
       const payload = await response.json().catch(() => ({}));
+      if (!routeActiveRef.current || !isMountedRef.current) return;
+      if (response.status === 404) {
+        setDetail(null);
+        setError(null);
+        if (selectedIdRef.current === tournamentId) {
+          const fallbackId = list.find((item) => item.id !== tournamentId)?.id || "";
+          selectTournament(fallbackId);
+        }
+        return;
+      }
       if (!response.ok) {
         throw new Error(
           payload?.error ||
@@ -1757,6 +2362,7 @@ export default function Tournaments() {
       setDetail(payload as DetailResponse);
       setError(null);
     } catch (err) {
+      if (!routeActiveRef.current || !isMountedRef.current) return;
       const message =
         err instanceof Error
           ? err.message
@@ -1768,46 +2374,57 @@ export default function Tournaments() {
       }
       setDetail(null);
     } finally {
-      if (!options?.silent) setLoadingDetail(false);
+      if (routeActiveRef.current && isMountedRef.current && !options?.silent) {
+        setLoadingDetail(false);
+      }
     }
   }
 
   useEffect(() => {
+    if (!isTournamentRoute || pageTab === "create") return;
     void loadList();
-  }, []);
+  }, [isTournamentRoute, pageTab]);
 
   useEffect(() => {
+    if (!isTournamentRoute) return;
     if (!selectedId) return;
+    if (pendingCreateId && selectedId === pendingCreateId) return;
     void loadDetail(selectedId);
-  }, [selectedId]);
+  }, [isTournamentRoute, pendingCreateId, selectedId]);
 
   useEffect(() => {
+    if (!isTournamentRoute || pageTab === "create") return;
     const timeout = window.setTimeout(() => {
       void loadList({ silent: false });
     }, 250);
     return () => window.clearTimeout(timeout);
-  }, [listPage, search, formatFilter, statusFilter, sort, pageTab]);
+  }, [isTournamentRoute, listPage, search, formatFilter, statusFilter, pageTab]);
 
   useEffect(() => {
+    if (!isTournamentRoute) return;
     setListPage(1);
-  }, [search, formatFilter, statusFilter, sort, pageTab]);
+  }, [isTournamentRoute, search, formatFilter, statusFilter, pageTab]);
 
   useEffect(() => {
+    if (!isTournamentRoute || pageTab === "create") return;
     const listTimer = window.setInterval(() => {
       void loadList({ silent: true });
     }, 20000);
     return () => window.clearInterval(listTimer);
-  }, [listPage, search, formatFilter, statusFilter, sort, pageTab]);
+  }, [isTournamentRoute, listPage, search, formatFilter, statusFilter, pageTab]);
 
   useEffect(() => {
+    if (!isTournamentRoute) return;
     if (!selectedId) return;
+    if (pendingCreateId && selectedId === pendingCreateId) return;
     const detailTimer = window.setInterval(() => {
       void loadDetail(selectedId, { silent: true });
     }, 8000);
     return () => window.clearInterval(detailTimer);
-  }, [selectedId]);
+  }, [isTournamentRoute, pendingCreateId, selectedId]);
 
   useEffect(() => {
+    if (!isTournamentRoute) return;
     const socket: Socket = io(SOCKET_URL, {
       withCredentials: true,
       reconnection: true,
@@ -1859,6 +2476,7 @@ export default function Tournaments() {
             socket.connect();
           }
         } catch {
+          if (!routeActiveRef.current || !isMountedRef.current) return;
           setError(serverReconnectMessage);
           scheduleConnectProbe();
         }
@@ -1866,16 +2484,19 @@ export default function Tournaments() {
     };
 
     const handleConnect = () => {
+      if (!routeActiveRef.current || !isMountedRef.current) return;
       setError(null);
       if (selectedId) {
         joinRoom(selectedId);
       }
     };
     const handleConnectError = () => {
+      if (!routeActiveRef.current || !isMountedRef.current) return;
       setError(realtimeFailedMessage);
       scheduleConnectProbe();
     };
     const handleReconnectAttempt = () => {
+      if (!routeActiveRef.current || !isMountedRef.current) return;
       setError(realtimeReconnectMessage);
     };
     const handleDisconnect = () => {
@@ -1913,20 +2534,7 @@ export default function Tournaments() {
       socket.io.off("reconnect_attempt", handleReconnectAttempt);
       socket.disconnect();
     };
-  }, [selectedId]);
-
-  useEffect(() => {
-    if (!detail || !currentUserId) return;
-    if (detail.tournament.status !== "LIVE_ROUND") return;
-    if (!myPendingGame?.gameId) return;
-    if (autoJoinGameIdRef.current === myPendingGame.gameId) return;
-
-    autoJoinGameIdRef.current = myPendingGame.gameId;
-    const encodedGameId = encodeURIComponent(myPendingGame.gameId);
-    navigate(`/play/quick?tournamentGameId=${encodedGameId}`, {
-      state: { tournamentGameId: myPendingGame.gameId, autoStart: true },
-    });
-  }, [currentUserId, detail, myPendingGame, navigate]);
+  }, [isTournamentRoute, selectedId]);
 
   const canManage = !!detail?.tournament?.canManage;
   const tournamentStatus = detail?.tournament?.status;
@@ -1948,21 +2556,30 @@ export default function Tournaments() {
     "rounded-lg border border-theme-glass bg-white/70 px-3 py-2 text-sm text-gray-900 outline-none focus:border-brand-400 dark:bg-gray-950/35 dark:text-gray-100";
   const secondaryButtonClass =
     "rounded-lg border border-theme-glass px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200";
+  const tournamentListSurfaceClass =
+    pageTab === "create" || pageTab === "schedule"
+      ? "theme-glass-panel-soft mt-3 mx-3 min-h-[calc(100vh-8rem)] overflow-hidden rounded-xl"
+      : "mt-3 mx-3 min-h-[calc(100vh-8rem)] overflow-visible";
+  const filterControlClass =
+    "h-[34px] rounded-lg border border-theme-glass bg-white/75 px-3 text-[13px] font-medium text-gray-900 outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-400/15 dark:bg-gray-950/45 dark:text-gray-100";
 
   async function runAction(
     key: string,
     call: () => Promise<Response>,
     options?: { refreshList?: boolean; refreshDetail?: boolean },
   ) {
+    if (!routeActiveRef.current || !isMountedRef.current) return null;
     try {
       setBusyAction(key);
       const reachable = await isServerReachable();
+      if (!routeActiveRef.current || !isMountedRef.current) return null;
       if (!reachable) {
         setError(serverReconnectMessage);
         return null;
       }
       const response = await call();
       const payload = await response.json().catch(() => ({}));
+      if (!routeActiveRef.current || !isMountedRef.current) return null;
       if (!response.ok) {
         throw new Error(
           payload?.error || t("tournamentsPage.errors.requestFailed", "Request failed"),
@@ -1970,15 +2587,15 @@ export default function Tournaments() {
       }
       if (payload?.tournament && payload?.players && payload?.standings) {
         setDetail(payload as DetailResponse);
-        if ((payload as DetailResponse).tournament.id !== selectedId) {
+        if ((payload as DetailResponse).tournament.id !== selectedIdRef.current) {
           selectTournament((payload as DetailResponse).tournament.id);
         }
       }
       if (options?.refreshList !== false) {
         await loadList({ silent: true });
       }
-      if (options?.refreshDetail !== false && selectedId) {
-        await loadDetail(selectedId, { silent: true });
+      if (options?.refreshDetail !== false && selectedIdRef.current) {
+        await loadDetail(selectedIdRef.current, { silent: true });
       }
       setError(null);
       return payload;
@@ -1994,97 +2611,149 @@ export default function Tournaments() {
       }
       return null;
     } finally {
-      setBusyAction("");
+      if (routeActiveRef.current && isMountedRef.current) {
+        setBusyAction("");
+      }
     }
   }
 
   async function onCreateTournament(event: FormEvent) {
     event.preventDefault();
     if (!createName.trim()) return;
-    const normalizedType = createType === "arena" ? "arena" : "swiss";
+    if (busyAction === "create") return;
+    setCreateStartTimeError(null);
+
+    const normalizedType = "arena";
+    const scheduledStartDate = buildScheduledStartDate(
+      createStartDate,
+      createStartHour,
+      createStartMinute,
+    );
     const scheduledStartIso = buildScheduledStartIso(
       createStartDate,
       createStartHour,
       createStartMinute,
     );
-    const roundsPlanned =
-      normalizedType === "swiss" ? parseOptionalNonNegativeNumber(createRounds) : null;
+
+    if (scheduledStartDate) {
+      const minimumStart = new Date(Date.now() + 5 * 60 * 1000);
+      if (scheduledStartDate.getTime() < minimumStart.getTime()) {
+        setCreateStartTimeError("Start time must be at least 5 minutes from now.");
+        return;
+      }
+    }
+
+    const roundsPlanned = null;
     const durationMinutes =
       normalizedType === "arena"
         ? Math.max(1, parseOptionalNonNegativeNumber(createDurationMinutes) || 30)
         : null;
+    const fallbackSelectedId = selectedIdRef.current;
+    const optimisticId = `pending-${Date.now().toString(36)}-${Math.random()
+      .toString(36)
+      .slice(2, 8)}`;
 
-    const payload = await runAction(
-      "create",
-      () =>
-        fetch(`${API_URL}/api/tournaments`, {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: createName.trim(),
-            type: normalizedType,
-            roundsPlanned:
-              normalizedType === "swiss" ? Math.max(1, Number(roundsPlanned) || 5) : null,
-            timeControl: createTimeControl,
-            minPlayers: 4,
-            maxPlayers: Number(maxPlayers) > 1 ? Number(maxPlayers) : null,
-            ratingFilterMode: "none",
-            ratingMin: null,
-            ratingMax: null,
-            registrationDeadline: null,
-            startType: scheduledStartIso ? "scheduled" : "manual",
-            scheduledStartAt: scheduledStartIso,
-            rated: createRated,
-            gameType: createGameType,
-            setup: createSetup,
-            pairingLogic: normalizedType === "arena" ? createPairingLogic : "swiss_pairing",
-            durationMinutes,
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "",
-            description: description.trim(),
-          }),
+    setPendingCreateId(optimisticId);
+
+    try {
+      setBusyAction("create");
+
+      const response = await fetchWithTimeout(`${API_URL}/api/tournaments`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: createName.trim(),
+          type: normalizedType,
+          roundsPlanned: null,
+          timeControl: createTimeControl,
+          minPlayers: 2,
+          maxPlayers: Number(maxPlayers) > 1 ? Number(maxPlayers) : null,
+          ratingFilterMode: "none",
+          ratingMin: null,
+          ratingMax: null,
+          registrationDeadline: null,
+          startType: scheduledStartIso ? "scheduled" : "manual",
+          scheduledStartAt: scheduledStartIso,
+          rated: createRated,
+          gameType: createGameType,
+          setup: createSetup,
+          pairingLogic: createPairingLogic,
+          durationMinutes,
+          timezone: createTimezone,
+          description: description.trim(),
         }),
-      { refreshDetail: false },
-    );
+      });
 
-    if (!payload) return;
-    const createdId = (payload as DetailResponse)?.tournament?.id;
-    if (createdId) {
-      selectTournament(createdId);
-      await loadDetail(createdId);
+      const payload = (await response.json().catch(() => ({}))) as Partial<DetailResponse> & {
+        error?: string;
+      };
+      if (!response.ok) {
+        throw new Error(
+          payload?.error || t("tournamentsPage.errors.requestFailed", "Request failed"),
+        );
+      }
+
+      const createdId = String(payload?.tournament?.id || "").trim();
+      if (!createdId) {
+        throw new Error(t("tournamentsPage.errors.requestFailed", "Request failed"));
+      }
+
+      setPendingCreateId(null);
+      setSearch("");
+      setFormatFilter("all");
+      setStatusFilter("all");
+      if (payload.tournament) {
+        setList((previous) => [
+          payload.tournament as TournamentSummary,
+          ...previous.filter((item) => item.id !== createdId),
+        ]);
+        setDetail(payload as DetailResponse);
+      }
+      switchToCurrentTabWithSelection(createdId);
+      resetCreateForm();
+      setError(null);
+      void loadDetail(createdId, { silent: true });
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : t("tournamentsPage.errors.requestFailed", "Request failed");
+      if (/failed to fetch|networkerror|fetch|connection refused/i.test(message)) {
+        setError(serverReconnectMessage);
+      } else {
+        setError(message);
+      }
+
+      setPendingCreateId(null);
+      setCreateView("form");
+      setPageTab("create");
+      updateTournamentSearchParams((nextParams) => {
+        nextParams.set("tab", "create");
+        nextParams.delete("date");
+        if (fallbackSelectedId) {
+          nextParams.set("selected", fallbackSelectedId);
+        } else {
+          nextParams.delete("selected");
+        }
+      });
+      setSelectedId((previous) =>
+        previous === fallbackSelectedId ? previous : fallbackSelectedId,
+      );
+    } finally {
+      if (routeActiveRef.current && isMountedRef.current) {
+        setBusyAction("");
+      }
     }
-    resetCreateForm();
-    setCreateView("choice");
-    setPageTab("current");
-    writeTabToUrl("current");
   }
 
   async function doRegister(tournamentId = selectedId) {
     const targetId = String(tournamentId || "").trim();
     if (!targetId) return;
     selectTournament(targetId);
-    await runAction(`register:${targetId}`, () =>
-      fetch(`${API_URL}/api/tournaments/${targetId}/register`, {
-        method: "POST",
-        credentials: "include",
-      }),
-      { refreshDetail: false },
-    );
-    await loadDetail(targetId, { silent: true });
-  }
-
-  async function doUnregister(tournamentId = selectedId) {
-    const targetId = String(tournamentId || "").trim();
-    if (!targetId) return;
-    selectTournament(targetId);
-    await runAction(`unregister:${targetId}`, () =>
-      fetch(`${API_URL}/api/tournaments/${targetId}/register`, {
-        method: "DELETE",
-        credentials: "include",
-      }),
-      { refreshDetail: false },
-    );
-    await loadDetail(targetId, { silent: true });
+    navigate(`/play/quick?tournamentId=${encodeURIComponent(targetId)}`, {
+      state: { tournamentId: targetId },
+    });
   }
 
   async function organizerStateAction(action: string, confirmMessage?: string) {
@@ -2118,8 +2787,37 @@ export default function Tournaments() {
     if (!trimmed) return;
     const encodedGameId = encodeURIComponent(trimmed);
     navigate(`/play/quick?tournamentGameId=${encodedGameId}`, {
-      state: { tournamentGameId: trimmed, autoStart: true },
+      state: { tournamentGameId: trimmed },
     });
+  }
+
+  async function openTournamentResult(tournamentId: string) {
+    const targetId = String(tournamentId || "").trim();
+    if (!targetId) return;
+    selectTournament(targetId);
+    try {
+      setBusyAction(`result:${targetId}`);
+      const response = await fetchWithTimeout(`${API_URL}/api/tournaments/${targetId}`, {
+        credentials: "include",
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(
+          payload?.error || t("tournamentsPage.errors.fetchTournament", "Failed to fetch tournament"),
+        );
+      }
+      setResultModalDetail(payload as DetailResponse);
+      setDetail(payload as DetailResponse);
+      setError(null);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : t("tournamentsPage.errors.fetchTournament", "Failed to fetch tournament"),
+      );
+    } finally {
+      setBusyAction("");
+    }
   }
 
   async function deleteTournament() {
@@ -2152,7 +2850,7 @@ export default function Tournaments() {
   }
 
   return (
-    <div className="w-full min-w-0">
+    <div className="w-full min-w-0 min-h-screen bg-theme-primary">
       <section className="theme-glass-panel-soft overflow-hidden">
         <TournamentTabs activeTab={pageTab} onTabChange={handlePageTabChange} />
       </section>
@@ -2163,10 +2861,10 @@ export default function Tournaments() {
         </div>
       )}
 
-      <section className="theme-glass-panel-soft mt-3 mx-3 overflow-hidden rounded-xl">
+      <section className={tournamentListSurfaceClass}>
         {pageTab === "create" ? (
           <div className="px-4 py-6 md:px-6">
-            {createView === "choice" ? (
+            {false ? (
               <div className="mx-auto max-w-4xl">
                 <p className="text-center text-xl font-semibold text-gray-900 dark:text-gray-100">
                   {t(
@@ -2175,7 +2873,7 @@ export default function Tournaments() {
                   )}
                 </p>
                 <p className="mt-8 text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
-                  {t("tournamentsPage.createChoice.shareable", "Shareable Tournaments")}
+                  {t("tournamentsPage.createChoice.shareable", "Tournaments")}
                 </p>
 
                 <div className="mt-4 grid grid-cols-1 gap-3">
@@ -2238,11 +2936,11 @@ export default function Tournaments() {
                     {createType === "arena"
                       ? t(
                           "tournamentsPage.create.arenaTitle",
-                          "New Shareable Arena Tournament",
+                          "New Arena Tournament",
                         )
                       : t(
                           "tournamentsPage.create.swissTitle",
-                          "New Shareable Swiss Tournament",
+                          "New Swiss Tournament",
                         )}
                   </h3>
                 </div>
@@ -2305,8 +3003,8 @@ export default function Tournaments() {
                         <option value="rating-based">
                           {t("tournamentsPage.create.pairing.ratingBased", "Rating-based")}
                         </option>
-                        <option value="random">
-                          {t("tournamentsPage.create.pairing.random", "Random")}
+                        <option value="point-based">
+                          {t("tournamentsPage.create.pairing.pointBased", "Point-based")}
                         </option>
                       </select>
                     </div>
@@ -2410,7 +3108,10 @@ export default function Tournaments() {
                       type="date"
                       value={createStartDate}
                       min={toDateInputValueOnly(new Date())}
-                      onChange={(event) => setCreateStartDate(event.target.value)}
+                      onChange={(event) => {
+                        setCreateStartDate(event.target.value);
+                        setCreateStartTimeError(null);
+                      }}
                       className={formInputClass}
                     />
                   </div>
@@ -2424,7 +3125,7 @@ export default function Tournaments() {
                         "tournamentsPage.create.fields.timezonePrefix",
                         "Timezone:",
                       )}{" "}
-                      {Intl.DateTimeFormat().resolvedOptions().timeZone || "Local"}
+                      {createTimezone}
                     </p>
                     <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
                       <div className="space-y-1">
@@ -2433,7 +3134,10 @@ export default function Tournaments() {
                         </label>
                         <select
                           value={createStartHour}
-                          onChange={(event) => setCreateStartHour(event.target.value)}
+                          onChange={(event) => {
+                            setCreateStartHour(event.target.value);
+                            setCreateStartTimeError(null);
+                          }}
                           className={formInputClass}
                         >
                           {CREATE_HOUR_OPTIONS.map((hour) => (
@@ -2449,7 +3153,10 @@ export default function Tournaments() {
                         </label>
                         <select
                           value={createStartMinute}
-                          onChange={(event) => setCreateStartMinute(event.target.value)}
+                          onChange={(event) => {
+                            setCreateStartMinute(event.target.value);
+                            setCreateStartTimeError(null);
+                          }}
                           className={formInputClass}
                         >
                           {CREATE_MINUTE_OPTIONS.map((minute) => (
@@ -2460,6 +3167,11 @@ export default function Tournaments() {
                         </select>
                       </div>
                     </div>
+                    {createStartTimeError && (
+                      <p className="mt-2 text-sm font-medium text-red-600 dark:text-red-300">
+                        {createStartTimeError}
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-1 md:col-span-2">
@@ -2518,13 +3230,22 @@ export default function Tournaments() {
             }}
             onSelect={selectTournament}
             onRegister={(id) => void doRegister(id)}
-            onUnregister={(id) => void doUnregister(id)}
+            onOpenGame={openGame}
           />
         ) : (
           <>
-            <div className="border-b border-theme-glass px-4 py-3">
-              <div className="grid grid-cols-1 gap-2 md:grid-cols-4 xl:grid-cols-6">
-                <label className="relative md:col-span-2">
+            {pendingCreateId && (
+              <div className="mx-4 mt-4 inline-flex items-center gap-2 rounded-lg border border-brand-400/25 bg-brand-500/10 px-3 py-2 text-sm font-medium text-brand-700 dark:text-brand-300">
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                {t(
+                  "tournamentsPage.create.pendingMessage",
+                  "Creating tournament. You will be redirected to the real tournament ID once it is ready.",
+                )}
+              </div>
+            )}
+            <div className="py-1">
+              <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+                <label className="relative sm:w-[300px]">
                   <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" aria-hidden="true" />
                   <input
                     value={search}
@@ -2533,21 +3254,20 @@ export default function Tournaments() {
                       setListPage(1);
                     }}
                     placeholder={t("tournamentsPage.filters.searchPlaceholder", "Search by name")}
-                    className="w-full rounded-lg border border-theme-glass bg-white/70 py-2 pl-9 pr-3 text-sm text-gray-900 outline-none transition-colors focus:border-brand-400 dark:bg-gray-950/35 dark:text-gray-100"
+                    className={classNames(filterControlClass, "w-full pl-9")}
                   />
                 </label>
                 <select
                   value={formatFilter}
                   onChange={(event) => {
-                    setFormatFilter(event.target.value as "all" | TournamentType);
+                    setFormatFilter(event.target.value as CurrentFormatFilter);
                     setListPage(1);
                   }}
-                  className="rounded-lg border border-theme-glass bg-white/70 px-3 py-2 text-sm text-gray-900 outline-none transition-colors focus:border-brand-400 dark:bg-gray-950/35 dark:text-gray-100"
+                  className={classNames(filterControlClass, "sm:w-[106px]")}
                 >
                   <option value="all">
                     {t("tournamentsPage.filters.allFormats", "All Formats")}
                   </option>
-                  <option value="swiss">{t("tournamentCommon.formats.swiss", "Swiss")}</option>
                   <option value="arena">{t("tournamentCommon.formats.arena", "Arena")}</option>
                 </select>
                 <select
@@ -2556,7 +3276,7 @@ export default function Tournaments() {
                     setStatusFilter(event.target.value as StatusFilter);
                     setListPage(1);
                   }}
-                  className="rounded-lg border border-theme-glass bg-white/70 px-3 py-2 text-sm text-gray-900 outline-none transition-colors focus:border-brand-400 dark:bg-gray-950/35 dark:text-gray-100"
+                  className={classNames(filterControlClass, "sm:w-[140px]")}
                 >
                   <option value="all">
                     {t("tournamentsPage.filters.allStatuses", "All Statuses")}
@@ -2570,23 +3290,6 @@ export default function Tournaments() {
                   <option value="FINISHED">
                     {t("tournamentCommon.status.finished", "Finished")}
                   </option>
-                  <option value="DRAFT">{t("tournamentCommon.status.draft", "Draft")}</option>
-                </select>
-                <select
-                  value={sort}
-                  onChange={(event) => {
-                    setSort(event.target.value as SortMode);
-                    setListPage(1);
-                  }}
-                  className="rounded-lg border border-theme-glass bg-white/70 px-3 py-2 text-sm text-gray-900 outline-none transition-colors focus:border-brand-400 dark:bg-gray-950/35 dark:text-gray-100"
-                >
-                  <option value="newest">{t("tournamentsPage.sort.newest", "Newest")}</option>
-                  <option value="most_players">
-                    {t("tournamentsPage.sort.mostPlayers", "Most Players")}
-                  </option>
-                  <option value="my_tournaments">
-                    {t("tournamentsPage.sort.myTournaments", "My Tournaments")}
-                  </option>
                 </select>
               </div>
             </div>
@@ -2598,7 +3301,8 @@ export default function Tournaments() {
               busyAction={busyAction}
               onSelect={selectTournament}
               onRegister={(id) => void doRegister(id)}
-              onUnregister={(id) => void doUnregister(id)}
+              onOpenGame={openGame}
+              onOpenResult={(id) => void openTournamentResult(id)}
               embedded
             />
 
@@ -2660,6 +3364,14 @@ export default function Tournaments() {
             </div>
           </div>
         </div>
+      )}
+
+      {resultModalDetail && (
+        <ArenaResultsModal
+          detail={resultModalDetail}
+          currentUserId={currentUserId}
+          onClose={() => setResultModalDetail(null)}
+        />
       )}
     </div>
   );

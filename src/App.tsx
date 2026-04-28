@@ -5,6 +5,7 @@ import {
   useEffect,
   useLayoutEffect,
   useRef,
+  useState,
 } from "react";
 import {
   Routes,
@@ -33,6 +34,8 @@ import {
   storeActiveOnlineGame,
   type ActiveOnlineGameSessionResponse,
 } from "./utils/activeOnlineGame";
+import { isAnalyzePath, openAnalyzeWindow } from "./utils/analyzeNavigation";
+import { API_URL } from "./config/network";
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Game = lazy(() => import("./pages/game"));
@@ -94,8 +97,6 @@ const Messages = lazy(async () => {
   const module = await import("./pages/messages");
   return { default: module.Messages };
 });
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
-
 // Auth check component
 function AuthChecker() {
   const location = useLocation();
@@ -242,7 +243,9 @@ function RealtimeBridge() {
         return;
       }
 
+      clearActiveOnlineGame();
       navigate(`/play/quick?tournamentGameId=${encodeURIComponent(gameId)}`, {
+        replace: true,
         state: { tournamentGameId: gameId, autoStart: true },
       });
     };
@@ -252,6 +255,46 @@ function RealtimeBridge() {
       socket.off("tournament:boardAssigned", handleTournamentBoardAssigned);
     };
   }, [isAuthenticated, location.pathname, location.search, navigate, socket, user]);
+
+  return null;
+}
+
+function AnalyzeNavigationBridge() {
+  useEffect(() => {
+    if (typeof document === "undefined" || typeof window === "undefined") {
+      return undefined;
+    }
+
+    const onDocumentClick = (event: MouseEvent) => {
+      if (event.defaultPrevented) return;
+      if (event.button !== 0) return;
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+      const target = event.target as HTMLElement | null;
+      const anchor = target?.closest("a[href]") as HTMLAnchorElement | null;
+      if (!anchor) return;
+      if (anchor.target && anchor.target.toLowerCase() !== "_self") return;
+
+      const href = String(anchor.getAttribute("href") || "").trim();
+      if (!href) return;
+
+      let parsed: URL;
+      try {
+        parsed = new URL(href, window.location.origin);
+      } catch {
+        return;
+      }
+
+      if (!isAnalyzePath(parsed.pathname)) return;
+      event.preventDefault();
+      openAnalyzeWindow(`${parsed.pathname}${parsed.search}${parsed.hash}`);
+    };
+
+    document.addEventListener("click", onDocumentClick, true);
+    return () => {
+      document.removeEventListener("click", onDocumentClick, true);
+    };
+  }, []);
 
   return null;
 }
@@ -272,8 +315,9 @@ function ActiveGameGuard() {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, isLoading } = useAuthStore();
-  const handlingBlockedNavigationRef = useRef(false);
   const allowGuardRedirectRef = useRef(false);
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+  const [isLeaving, setIsLeaving] = useState(false);
 
   useEffect(() => {
     allowGuardRedirectRef.current = false;
@@ -296,6 +340,20 @@ function ActiveGameGuard() {
         const activeGame = readActiveOnlineGame();
         if (!activeGame?.gameId) return false;
         if (!isOnlineGameRoute(currentLocation.pathname)) return false;
+        const currentTournamentGameId = new URLSearchParams(
+          currentLocation.search,
+        ).get("tournamentGameId");
+        const nextTournamentGameId = new URLSearchParams(
+          nextLocation.search,
+        ).get("tournamentGameId");
+        if (
+          currentLocation.pathname === "/play/quick" &&
+          nextLocation.pathname === "/play/quick" &&
+          nextTournamentGameId &&
+          nextTournamentGameId !== currentTournamentGameId
+        ) {
+          return false;
+        }
         const currentUrl = `${currentLocation.pathname}${currentLocation.search}${currentLocation.hash}`;
         const nextUrl = `${nextLocation.pathname}${nextLocation.search}${nextLocation.hash}`;
         return currentUrl !== nextUrl;
@@ -305,21 +363,26 @@ function ActiveGameGuard() {
   );
 
   useEffect(() => {
-    if (blocker.state !== "blocked" || handlingBlockedNavigationRef.current) {
+    if (blocker.state === "blocked") {
+      setShowLeaveConfirm(true);
       return;
     }
-    handlingBlockedNavigationRef.current = true;
+    if (!isLeaving) {
+      setShowLeaveConfirm(false);
+    }
+  }, [blocker.state, isLeaving]);
 
-    const shouldLeave = window.confirm(
-      "You are currently in a game. If you leave, you may forfeit. Do you want to resign and leave?",
-    );
-
-    if (!shouldLeave) {
+  const handleCancelLeave = useCallback(() => {
+    if (isLeaving) return;
+    setShowLeaveConfirm(false);
+    if (blocker.state === "blocked") {
       blocker.reset();
-      handlingBlockedNavigationRef.current = false;
-      return;
     }
+  }, [blocker, isLeaving]);
 
+  const handleConfirmLeave = useCallback(() => {
+    if (isLeaving || blocker.state !== "blocked") return;
+    setIsLeaving(true);
     const activeGame = readActiveOnlineGame();
 
     void (async () => {
@@ -336,11 +399,14 @@ function ActiveGameGuard() {
         // Navigation should continue even if the resign request fails client-side.
       } finally {
         clearActiveOnlineGame();
-        blocker.proceed();
-        handlingBlockedNavigationRef.current = false;
+        setShowLeaveConfirm(false);
+        if (blocker.state === "blocked") {
+          blocker.proceed();
+        }
+        setIsLeaving(false);
       }
     })();
-  }, [blocker]);
+  }, [blocker, isLeaving]);
 
   useEffect(() => {
     if (isLoading) return;
@@ -399,7 +465,55 @@ function ActiveGameGuard() {
     };
   }, [isAuthenticated, isLoading, location.pathname, navigate]);
 
-  return null;
+  return (
+    <>
+      {showLeaveConfirm && (
+        <div className="fixed inset-0 z-[160] flex items-center justify-center bg-black/65 p-4 backdrop-blur-[2px]">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="leave-game-dialog-title"
+            aria-describedby="leave-game-dialog-description"
+            className="theme-glass-panel-strong w-full max-w-[520px] overflow-hidden rounded-2xl border border-theme-glass shadow-[0_28px_90px_rgba(0,0,0,0.35)]"
+          >
+            <div className="px-6 pt-6 pb-5">
+              <h2
+                id="leave-game-dialog-title"
+                className="text-lg font-semibold text-gray-900 dark:text-white"
+              >
+                Leave Current Game?
+              </h2>
+              <p
+                id="leave-game-dialog-description"
+                className="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300"
+              >
+                You are currently in a game. Leaving now may forfeit the match.
+                Do you want to resign and leave?
+              </p>
+            </div>
+            <div className="flex items-center justify-end gap-2.5 border-t border-theme-glass px-6 py-4">
+              <button
+                type="button"
+                onClick={handleCancelLeave}
+                disabled={isLeaving}
+                className="rounded-lg border border-theme-glass bg-white/70 px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-white/80 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white/5 dark:text-gray-200 dark:hover:bg-white/10"
+              >
+                Stay
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmLeave}
+                disabled={isLeaving}
+                className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-500 disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {isLeaving ? "Leaving..." : "Resign & Leave"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
 }
 
 function Layout({ children }: { children: React.ReactNode }) {
@@ -408,6 +522,7 @@ function Layout({ children }: { children: React.ReactNode }) {
   const isDashboardPage = location.pathname === "/";
   const isTournamentPage = location.pathname.startsWith("/tournaments");
   const isLearnLessonPage = /^\/learn\/[^/]+\/[^/]+$/.test(location.pathname);
+  const isWatchGamePage = /^\/watch\/[^/]+$/.test(location.pathname);
   const isGamePage =
     location.pathname === "/play" ||
     location.pathname === "/play/bot" ||
@@ -415,7 +530,8 @@ function Layout({ children }: { children: React.ReactNode }) {
     location.pathname === "/play/friend" ||
     location.pathname === "/play/variants" ||
     location.pathname === "/play/four-player" ||
-    location.pathname.startsWith("/play/practice");
+    location.pathname.startsWith("/play/practice") ||
+    isWatchGamePage;
   const isWorkspacePage = isGamePage || isLearnLessonPage;
   const sidebarOffsetClass = "ml-[60px] md:ml-72";
 
@@ -424,7 +540,6 @@ function Layout({ children }: { children: React.ReactNode }) {
   // Pages that have their own sidebar or are auth pages
   const hasOwnLayout =
     [
-      "/watch",
       "/friends",
       "/messages",
       "/settings",
@@ -432,6 +547,7 @@ function Layout({ children }: { children: React.ReactNode }) {
       "/register",
       "/profile",
     ].includes(location.pathname) ||
+    location.pathname === "/watch" ||
     location.pathname.startsWith("/community") ||
     location.pathname.startsWith("/u/") ||
     location.pathname.startsWith("/puzzles/train") ||
@@ -495,6 +611,7 @@ function App() {
       <ThemeController />
       <AuthChecker />
       <RealtimeBridge />
+      <AnalyzeNavigationBridge />
       <ActiveGameGuard />
       <Layout>
         <Suspense fallback={<RouteFallback />}>
@@ -688,6 +805,14 @@ function App() {
             />
             <Route
               path="/watch"
+              element={
+                <ProtectedRoute>
+                  <Watch />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/watch/:gameId"
               element={
                 <ProtectedRoute>
                   <Watch />

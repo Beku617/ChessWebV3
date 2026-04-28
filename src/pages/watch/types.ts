@@ -6,10 +6,10 @@ export interface WatchLiveGame {
   black: string;
   blackRating: number;
   blackTitle?: string;
-  viewers: string;
+  viewers: number;
   time: string;
   type: string;
   category?: string;
   speed: string;
-  gameUrl: string;
+  gameUrl?: string;
 }

@@ -133,6 +133,7 @@ export function GameBoard({
             piece,
           );
         }}
+        onPromotionCheck={() => false}
         isDraggablePiece={({ sourceSquare }) => {
           if (!onPieceDrop || isPromotionOpen || !allowDragInput) return false;
           if (!isDraggablePiece) return true;

@@ -1,12 +1,16 @@
 import { Router } from "express";
 import mongoose from "mongoose";
-import { History, History960, User } from "../models/index.js";
+import { ActiveGameSession, History, History960, User } from "../models/index.js";
 import { authMiddleware, optionalAuthMiddleware } from "../middleware/index.js";
 import { canViewerAccessUser } from "../utils/visibility.js";
 import {
   MIN_REAL_GAME_PLIES,
   shouldPersistHistoryByPlies,
 } from "../utils/gameLifecyclePolicy.js";
+import {
+  applyDeletedUserAliasesToGame,
+  applyDeletedUserAliasesToGames,
+} from "../utils/historyPlayers.js";
 
 const router = Router();
 const MIN_STORED_MOVES = MIN_REAL_GAME_PLIES;
@@ -95,6 +99,30 @@ function normalizeMoves(moves) {
 function normalizeObjectId(value) {
   const text = String(value || "").trim();
   return ObjectId.isValid(text) ? text : null;
+}
+
+async function resolveHistoryPlayerLinks(requestUserId, playAs, link) {
+  let whiteUserId = playAs === "white" ? requestUserId : null;
+  let blackUserId = playAs === "black" ? requestUserId : null;
+  const gameId = String(link || "").trim();
+  if (!gameId) {
+    return { whiteUserId, blackUserId };
+  }
+
+  const session = await ActiveGameSession.findOne({ gameId })
+    .select("whitePlayerId blackPlayerId white.userId black.userId")
+    .lean()
+    .catch(() => null);
+  if (!session) {
+    return { whiteUserId, blackUserId };
+  }
+
+  whiteUserId =
+    normalizeObjectId(session.whitePlayerId || session.white?.userId) || whiteUserId;
+  blackUserId =
+    normalizeObjectId(session.blackPlayerId || session.black?.userId) || blackUserId;
+
+  return { whiteUserId, blackUserId };
 }
 
 function normalizeHistoryDocForVariant(historyDoc) {
@@ -214,8 +242,18 @@ router.post("/", authMiddleware, async (req, res) => {
     const preferredModel =
       resolvedVariant === "chess960" ? History960 : History;
 
+    const { whiteUserId, blackUserId } = await resolveHistoryPlayerLinks(
+      requestUserId,
+      playAs,
+      link,
+    );
+
     const historyDoc = {
       userId: requestUserId,
+      whiteUserId,
+      blackUserId,
+      whiteNameSnapshot: white,
+      blackNameSnapshot: black,
       event,
       site,
       date,
@@ -338,10 +376,11 @@ router.get("/user/:userId", optionalAuthMiddleware, async (req, res) => {
     const allGames = [...standardGames, ...chess960Games]
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
       .slice(Number(skip), Number(skip) + Number(limit));
+    const normalizedGames = await applyDeletedUserAliasesToGames(allGames);
 
     const total = standardGames.length + chess960Games.length;
 
-    res.json({ games: allGames, total });
+    res.json({ games: normalizedGames, total });
   } catch (err) {
     console.error("Get user history error:", err);
     res.status(500).json({ error: "Server error" });
@@ -365,10 +404,11 @@ router.get("/", authMiddleware, async (req, res) => {
     const allGames = [...standardGames, ...chess960Games]
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
       .slice(Number(skip), Number(skip) + Number(limit));
+    const normalizedGames = await applyDeletedUserAliasesToGames(allGames);
 
     const total = standardGames.length + chess960Games.length;
 
-    res.json({ games: allGames, total });
+    res.json({ games: normalizedGames, total });
   } catch (err) {
     console.error("Get history error:", err);
     res.status(500).json({ error: "Server error" });
@@ -379,10 +419,10 @@ router.get("/", authMiddleware, async (req, res) => {
 router.get("/:id", optionalAuthMiddleware, async (req, res) => {
   try {
     const gameId = normalizeObjectId(req.params.id);
+    const viewerId = normalizeObjectId(req.user?.userId);
     if (!gameId) {
       return res.status(400).json({ error: "Invalid game id" });
     }
-    const viewerId = normalizeObjectId(req.user?.userId);
 
     let game = await History.findById(gameId).lean();
     if (!game) {
@@ -393,16 +433,20 @@ router.get("/:id", optionalAuthMiddleware, async (req, res) => {
       return res.status(404).json({ error: "Game not found" });
     }
 
-    const owner = await User.findById(game.userId).select("_id banned").lean();
-    if (!owner || owner.banned) {
-      return res.status(404).json({ error: "Game not found" });
-    }
-    const canAccess = await canViewerAccessUser(viewerId, owner._id);
-    if (!canAccess) {
-      return res.status(404).json({ error: "Game not found" });
+    const ownerId = normalizeObjectId(game.userId);
+    if (ownerId) {
+      const owner = await User.findById(ownerId).select("_id banned").lean();
+      if (!owner || owner.banned) {
+        return res.status(404).json({ error: "Game not found" });
+      }
+      const canAccess = await canViewerAccessUser(viewerId, owner._id);
+      if (!canAccess) {
+        return res.status(404).json({ error: "Game not found" });
+      }
     }
 
-    res.json({ game });
+    const normalizedGame = await applyDeletedUserAliasesToGame(game);
+    res.json({ game: normalizedGame });
   } catch (err) {
     console.error("Get game error:", err);
     res.status(500).json({ error: "Server error" });

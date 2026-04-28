@@ -36,15 +36,22 @@ import {
   emitTournamentFinished,
   emitTournamentStateChanged,
 } from "../modules/realtime/tournamentRealtime.js";
+import {
+  checkTournamentStartCondition,
+  processArenaStartOutcomeEvents,
+  resolveTournamentFinal,
+} from "../services/arenaPairingRuntime.js";
 
 const router = Router();
 const { ObjectId } = mongoose.Types;
+const TOURNAMENT_TYPES = new Set(["swiss", "arena"]);
 
 const STATUS_SORT_WEIGHT = Object.freeze({
   LIVE_ROUND: 0,
   REGISTRATION_OPEN: 1,
   ROUND_CLOSED: 2,
   DRAFT: 3,
+  CANCELLED: 4,
   FINISHED: 5,
 });
 
@@ -62,9 +69,9 @@ function isValidObjectId(value) {
 }
 
 function normalizeTournamentType(value) {
-  const raw = String(value || "").trim();
+  const raw = String(value || "").trim().toLowerCase();
   if (!raw || raw === "all") return "";
-  return raw;
+  return TOURNAMENT_TYPES.has(raw) ? raw : "";
 }
 
 function normalizeStatusFilter(value) {
@@ -77,6 +84,7 @@ function normalizeStatusFilter(value) {
   if (raw === "pairing_preview") return TOURNAMENT_STATES.LIVE_ROUND;
   if (raw === "round_closed") return TOURNAMENT_STATES.ROUND_CLOSED;
   if (raw === "draft") return TOURNAMENT_STATES.DRAFT;
+  if (raw === "cancelled") return TOURNAMENT_STATES.CANCELLED;
   if (raw === "finished") return TOURNAMENT_STATES.FINISHED;
   return "";
 }
@@ -111,7 +119,29 @@ function canAdminDeleteTournament(state) {
 }
 
 function formatTypeLabel(type) {
+  if (String(type || "").toLowerCase() === "arena") return "Arena";
   return "Swiss";
+}
+
+function parseBoolean(input, fallback = true) {
+  if (typeof input === "boolean") return input;
+  if (typeof input === "number") return input !== 0;
+  const normalized = String(input || "").trim().toLowerCase();
+  if (!normalized) return fallback;
+  if (["true", "1", "yes", "on"].includes(normalized)) return true;
+  if (["false", "0", "no", "off"].includes(normalized)) return false;
+  return fallback;
+}
+
+function normalizeGameType(input) {
+  const normalized = String(input || "standard").trim().toLowerCase();
+  if (normalized === "chess960" || normalized === "960") return "chess960";
+  return "standard";
+}
+
+function normalizeSetupValue(input) {
+  const normalized = String(input || "standard").trim();
+  return normalized || "standard";
 }
 
 function formatTimeControlLabel(timeControl) {
@@ -160,9 +190,13 @@ function getActionActorUserId(tournament) {
   return toId(tournament?.createdBy);
 }
 
+function isArenaTournament(tournament) {
+  return String(tournament?.type || "").toLowerCase() === "arena";
+}
+
 async function getTournamentOrNull(tournamentId) {
   if (!isValidObjectId(tournamentId)) return null;
-  return Tournament.findOne({ _id: tournamentId, type: "swiss" });
+  return Tournament.findOne({ _id: tournamentId });
 }
 
 async function getTournamentOr404(req, res, tournamentId) {
@@ -170,7 +204,7 @@ async function getTournamentOr404(req, res, tournamentId) {
     res.status(400).json({ error: "Invalid tournament id" });
     return null;
   }
-  const tournament = await Tournament.findOne({ _id: tournamentId, type: "swiss" });
+  const tournament = await Tournament.findOne({ _id: tournamentId });
   if (!tournament) {
     res.status(404).json({ error: "Tournament not found" });
     return null;
@@ -221,7 +255,18 @@ function summarizeTournaments(tournaments, playerMap, gameMap) {
       id,
       name: String(tournament.name || ""),
       type: tournament.type || "swiss",
+      format: tournament.type || "swiss",
       formatLabel: formatTypeLabel(tournament.type),
+      rated: parseBoolean(tournament.rated, true),
+      gameType: normalizeGameType(tournament.gameType),
+      setup: normalizeSetupValue(tournament.setup),
+      pairingLogic: String(tournament.pairingLogic || ""),
+      durationMinutes:
+        Number.isFinite(Number(tournament.durationMinutes)) &&
+        Number(tournament.durationMinutes) > 0
+          ? Number(tournament.durationMinutes)
+          : null,
+      timezone: String(tournament.timezone || ""),
       timeControl: tournament.timeControl || {
         baseMs: 300000,
         incMs: 0,
@@ -243,7 +288,8 @@ function summarizeTournaments(tournaments, playerMap, gameMap) {
       status: normalizedStatus,
       roundsPlanned: Number(tournament.roundsPlanned || 1),
       currentRound: Number(tournament.currentRound || 0),
-      minPlayers: Number(tournament.minPlayers || 4),
+      latestPublishedRound: Number(tournament.latestPublishedRound || 0),
+      minPlayers: Number(tournament.minPlayers || 2),
       maxPlayers:
         Number.isFinite(Number(tournament.maxPlayers)) &&
         Number(tournament.maxPlayers) > 0
@@ -260,6 +306,8 @@ function summarizeTournaments(tournaments, playerMap, gameMap) {
       startType: String(tournament.startType || "manual"),
       scheduledStartAt: tournament.scheduledStartAt || null,
       description: String(tournament.description || ""),
+      startedAt: tournament.startedAt || null,
+      finishedAt: tournament.finishedAt || null,
       createdAt: tournament.createdAt || null,
       updatedAt: tournament.updatedAt || null,
       championUserId: toId(tournament.championUserId),
@@ -335,7 +383,10 @@ router.get("/", adminAuthMiddleware, async (req, res) => {
     const limit = Math.min(24, Math.max(1, parsePositiveInt(req.query.limit, 12)));
     const requestedPage = Math.max(1, parsePositiveInt(req.query.page, 1));
 
-    const tournaments = await Tournament.find({ type: "swiss" })
+    const query = {};
+    if (typeFilter) query.type = typeFilter;
+
+    const tournaments = await Tournament.find(query)
       .populate("createdBy", "fullName email avatar")
       .sort({ createdAt: -1 })
       .lean();
@@ -443,6 +494,9 @@ router.get("/", adminAuthMiddleware, async (req, res) => {
         if (tournament.status === TOURNAMENT_STATES.ROUND_CLOSED) {
           accumulator.roundClosed += 1;
         }
+        if (tournament.status === TOURNAMENT_STATES.CANCELLED) {
+          accumulator.cancelled += 1;
+        }
         if (tournament.status === TOURNAMENT_STATES.FINISHED) {
           accumulator.finished += 1;
         }
@@ -454,6 +508,7 @@ router.get("/", adminAuthMiddleware, async (req, res) => {
         registrationOpen: 0,
         live: 0,
         roundClosed: 0,
+        cancelled: 0,
         finished: 0,
         totalPlayers: 0,
         totalGames: 0,
@@ -500,11 +555,18 @@ router.post("/", adminAuthMiddleware, async (req, res) => {
   try {
     const organizerUserId = await ensureOrganizerUser(req.body?.organizerUserId);
     const parsed = await parseTemplatePayload(req.body || {});
-    const roundsPlanned = Number(parsed.roundsPlanned || 1);
+    const roundsPlanned =
+      parsed.type === "swiss" ? Number(parsed.roundsPlanned || 1) : 1;
 
     const tournament = await Tournament.create({
       name: parsed.name,
       type: parsed.type,
+      rated: parsed.rated,
+      gameType: parsed.gameType,
+      setup: parsed.setup,
+      pairingLogic: parsed.pairingLogic,
+      durationMinutes: parsed.durationMinutes,
+      timezone: parsed.timezone,
       timeControl: parsed.timeControl,
       ratingMin: parsed.ratingMin,
       ratingMax: parsed.ratingMax,
@@ -549,7 +611,8 @@ router.put("/:id", adminAuthMiddleware, async (req, res) => {
       req.body?.organizerUserId || tournament.createdBy,
     );
     const parsed = await parseTemplatePayload(req.body || {});
-    const roundsPlanned = Number(parsed.roundsPlanned || 1);
+    const roundsPlanned =
+      parsed.type === "swiss" ? Number(parsed.roundsPlanned || 1) : 1;
 
     await Tournament.updateOne(
       { _id: tournament._id },
@@ -557,6 +620,12 @@ router.put("/:id", adminAuthMiddleware, async (req, res) => {
         $set: {
           name: parsed.name,
           type: parsed.type,
+          rated: parsed.rated,
+          gameType: parsed.gameType,
+          setup: parsed.setup,
+          pairingLogic: parsed.pairingLogic,
+          durationMinutes: parsed.durationMinutes,
+          timezone: parsed.timezone,
           timeControl: parsed.timeControl,
           ratingMin: parsed.ratingMin,
           ratingMax: parsed.ratingMax,
@@ -628,6 +697,24 @@ router.patch("/:id/state", adminAuthMiddleware, async (req, res) => {
       return res.json({ success: true, ...withAdminDetail(detail) });
     }
 
+    if (
+      isArenaTournament(tournament) &&
+      (action === "close_registration" || action === "next_round")
+    ) {
+      const outcome = await withMongoTransaction((session) =>
+        checkTournamentStartCondition(tournament._id, {
+          session,
+          actorUserId,
+          now: new Date(),
+        }),
+      );
+
+      await processArenaStartOutcomeEvents(req.app, outcome);
+      const refreshed = await getTournamentOrNull(tournament._id);
+      const detail = await buildTournamentDetail(refreshed, actorUserId);
+      return res.json({ success: true, ...withAdminDetail(detail) });
+    }
+
     if (action === "close_registration" || action === "next_round") {
       const out = await withMongoTransaction(async (session) => {
         const doc = await Tournament.findById(tournament._id).session(session);
@@ -694,6 +781,29 @@ router.patch("/:id/state", adminAuthMiddleware, async (req, res) => {
         publishedPairings,
       );
       emitStandingsUpdated(req.app, out.refreshed, out.detail.standings || []);
+      return res.json({ success: true, ...withAdminDetail(out.detail) });
+    }
+
+    if (action === "finish_tournament" && isArenaTournament(tournament)) {
+      const out = await withMongoTransaction(async (session) => {
+        await resolveTournamentFinal(tournament._id, {
+          actorUserId,
+          session,
+          now: new Date(),
+        });
+        const refreshed = await Tournament.findById(tournament._id).session(session);
+        const detail = await buildTournamentDetail(refreshed, actorUserId);
+        return { detail, refreshed };
+      });
+
+      emitTournamentStateChanged(req.app, out.refreshed, TOURNAMENT_STATES.FINISHED);
+      emitTournamentFinished(
+        req.app,
+        out.refreshed,
+        out.detail.winners?.[0] || null,
+        out.detail.winners || [],
+        out.detail.standings || [],
+      );
       return res.json({ success: true, ...withAdminDetail(out.detail) });
     }
 

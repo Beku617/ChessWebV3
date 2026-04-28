@@ -10,6 +10,8 @@ import {
   TournamentEloEvent,
   TournamentStandingSnapshot,
   TournamentTransitionLog,
+  History,
+  History960,
   User,
 } from "../models/index.js";
 import {
@@ -38,8 +40,20 @@ import {
 } from "../modules/realtime/tournamentRealtime.js";
 import { computeTournamentStandings } from "../modules/standings/tournamentStandings.js";
 import { maybeAdvanceTournament } from "../services/tournamentRuntime.js";
+import { notifyUsers } from "../services/notify.js";
+import {
+  checkTournamentStartCondition,
+  getActiveArenaGameCount,
+  isArenaTournamentStillActive,
+  processArenaStartOutcomeEvents,
+  resolveTournamentFinal,
+  runPairingTick,
+} from "../services/arenaPairingRuntime.js";
 
 const router = Router();
+const REGISTRATION_WINDOW_LEAD_MS = 60 * 60 * 1000;
+const TOURNAMENT_MIN_START_PLAYERS = 2;
+const ARENA_PAIRING_INTERVAL_SECONDS = 5;
 
 const TOURNAMENT_TYPES = new Set(["swiss", "arena"]);
 const RESULT_INPUT_MAP = new Map([
@@ -138,9 +152,27 @@ function normalizeSetupValue(input) {
 }
 
 function normalizePairingLogic(input, tournamentType) {
-  const normalized = String(input || "").trim();
+  const normalized = String(input || "")
+    .trim()
+    .toLowerCase();
   if (tournamentType === "arena") {
-    return normalized || "rating-based";
+    if (
+      normalized === "rating-based" ||
+      normalized === "rating_based" ||
+      normalized === "rating"
+    ) {
+      return "rating-based";
+    }
+    if (
+      normalized === "point-based" ||
+      normalized === "point_based" ||
+      normalized === "points" ||
+      normalized === "point" ||
+      normalized === "random"
+    ) {
+      return "point-based";
+    }
+    return "rating-based";
   }
   return normalized || "swiss_pairing";
 }
@@ -171,14 +203,79 @@ function normalizeStatusFilter(status) {
 }
 
 function normalizeSortMode(value) {
-  const raw = String(value || "newest").trim().toLowerCase();
+  const raw = String(value || "starting_soon").trim().toLowerCase();
   if (["newest", "starting_soon", "most_players", "my_tournaments"].includes(raw)) {
     return raw;
   }
   if (raw === "starting soon") return "starting_soon";
   if (raw === "most players") return "most_players";
   if (raw === "my tournaments") return "my_tournaments";
-  return "newest";
+  return "starting_soon";
+}
+
+function parseTournamentDate(input) {
+  if (!input) return null;
+  const parsed = new Date(input);
+  return Number.isFinite(parsed.getTime()) ? parsed : null;
+}
+
+function getTournamentStartAtForSchedule(tournament) {
+  return (
+    parseTournamentDate(tournament?.scheduledStartAt) ||
+    parseTournamentDate(tournament?.startedAt) ||
+    parseTournamentDate(tournament?.registrationDeadline) ||
+    parseTournamentDate(tournament?.createdAt)
+  );
+}
+
+function getTournamentDurationMinutesForSchedule(tournament) {
+  const explicitMinutes = Number(tournament?.durationMinutes || 0);
+  if (Number.isFinite(explicitMinutes) && explicitMinutes > 0) {
+    return Math.max(1, Math.round(explicitMinutes));
+  }
+  const startedAt = parseTournamentDate(tournament?.startedAt);
+  const finishedAt = parseTournamentDate(tournament?.finishedAt);
+  if (startedAt && finishedAt && finishedAt.getTime() > startedAt.getTime()) {
+    return Math.max(
+      1,
+      Math.round((finishedAt.getTime() - startedAt.getTime()) / 60000),
+    );
+  }
+  return null;
+}
+
+function getTournamentEndAtForSchedule(tournament) {
+  const startAt = getTournamentStartAtForSchedule(tournament);
+  const durationMinutes = getTournamentDurationMinutesForSchedule(tournament);
+  if (!startAt || !durationMinutes) return null;
+  return new Date(startAt.getTime() + durationMinutes * 60000);
+}
+
+function hasTournamentEndedBySchedule(tournament, nowMs = Date.now()) {
+  const normalizedStatus = normalizeTournamentState(tournament?.status);
+  if (normalizedStatus === TOURNAMENT_STATES.FINISHED) return true;
+  const endAt = getTournamentEndAtForSchedule(tournament);
+  return !!endAt && nowMs >= endAt.getTime();
+}
+
+function isRegistrationWindowOpenBySchedule(tournament, nowMs = Date.now()) {
+  const startAt = getTournamentStartAtForSchedule(tournament);
+  if (!startAt) return false;
+  const registrationOpenMs = startAt.getTime() - REGISTRATION_WINDOW_LEAD_MS;
+  return nowMs >= registrationOpenMs && nowMs < startAt.getTime();
+}
+
+function isRegistrationNotStartedYetBySchedule(tournament, nowMs = Date.now()) {
+  const startAt = getTournamentStartAtForSchedule(tournament);
+  if (!startAt) return false;
+  const registrationOpenMs = startAt.getTime() - REGISTRATION_WINDOW_LEAD_MS;
+  return nowMs < registrationOpenMs;
+}
+
+function getTournamentListSortTimestamp(tournament) {
+  const startAt = getTournamentStartAtForSchedule(tournament);
+  if (startAt) return startAt.getTime();
+  return new Date(tournament?.createdAt || 0).getTime();
 }
 
 function formatTypeLabel(type) {
@@ -207,6 +304,37 @@ function ensureTournamentState(tournament) {
     tournament.status = normalized;
   }
   return normalized;
+}
+
+function buildTournamentLink(tournamentId) {
+  const normalizedTournamentId = toId(tournamentId);
+  if (!normalizedTournamentId) return "/tournaments?tab=current";
+  return `/tournaments?selected=${encodeURIComponent(normalizedTournamentId)}&tab=current`;
+}
+
+async function getTournamentParticipantIds(tournamentId) {
+  const players = await TournamentPlayer.find({
+    tournamentId,
+    status: { $ne: "withdrawn" },
+  })
+    .select("userId")
+    .lean();
+  return [...new Set(players.map((player) => toId(player.userId)).filter(Boolean))];
+}
+
+async function notifyTournamentStarted(app, tournament) {
+  const participantIds = await getTournamentParticipantIds(tournament?._id);
+  if (!participantIds.length) return;
+  await notifyUsers(app, participantIds, {
+    type: "tournament_started",
+    title: "Tournament started",
+    message: `${String(tournament?.name || "Tournament")} has started! Join your game.`,
+    link: buildTournamentLink(tournament?._id),
+    payload: {
+      tournamentId: toId(tournament?._id),
+      roundNumber: Number(tournament?.currentRound || 1),
+    },
+  });
 }
 
 function isOrganizer(tournament, userId) {
@@ -256,6 +384,10 @@ function canTournamentRegister(tournament) {
 function isLiveRoundState(status) {
   const normalized = normalizeTournamentState(status);
   return normalized === TOURNAMENT_STATES.LIVE_ROUND;
+}
+
+function isCancelledState(status) {
+  return normalizeTournamentState(status) === TOURNAMENT_STATES.CANCELLED;
 }
 
 function getStartTypeValue(input) {
@@ -338,7 +470,7 @@ function buildTournamentSummary(tournament, extras = {}) {
     roundsPlanned: Number(tournament.roundsPlanned || 1),
     currentRound: Number(tournament.currentRound || 0),
     latestPublishedRound: Number(tournament.latestPublishedRound || 0),
-    minPlayers: Number(tournament.minPlayers || 4),
+    minPlayers: Number(tournament.minPlayers || TOURNAMENT_MIN_START_PLAYERS),
     maxPlayers:
       Number.isFinite(Number(tournament.maxPlayers)) &&
       Number(tournament.maxPlayers) > 0
@@ -553,11 +685,17 @@ async function buildTournamentDetail(tournamentDoc, viewerId) {
 
   const organizerUser = usersById.get(toId(tournament.createdBy));
   const canManage = isOrganizer(tournament, viewerId);
-  const isRegistered = playerDocs.some(
+  const viewerPlayer = playerDocs.find(
     (player) =>
       toId(player.userId) === toId(viewerId) &&
       String(player.status || "active") !== "withdrawn",
   );
+  const isRegistered = !!viewerPlayer;
+  const arenaReadyPoolSize = playerDocs.filter(
+    (player) =>
+      String(player.status || "active") !== "withdrawn" &&
+      player.arenaReady === true,
+  ).length;
 
   const players = playerDocs.map((player, index) => {
     const user = usersById.get(toId(player.userId));
@@ -609,6 +747,10 @@ async function buildTournamentDetail(tournamentDoc, viewerId) {
   const standings = snapshot && !isLiveRoundState(normalizedState)
     ? (snapshot.rows || []).map((row, index) => {
         const user = usersById.get(toId(row.userId));
+        const gamesPlayed = Number(
+          row.gamesPlayed ??
+            Number(row.wins || 0) + Number(row.draws || 0) + Number(row.losses || 0),
+        );
         return {
           rank: Number(row.rank || index + 1),
           userId: toId(row.userId),
@@ -617,6 +759,8 @@ async function buildTournamentDetail(tournamentDoc, viewerId) {
           elo: Number(user?.rating || 1200),
           points: Number(row.score || 0),
           score: Number(row.score || 0),
+          games: gamesPlayed,
+          gamesPlayed,
           buchholz: Number(row.buchholz || 0),
           buchholzCut1: Number(row.buchholzCut1 || 0),
           wins: Number(row.wins || 0),
@@ -637,6 +781,8 @@ async function buildTournamentDetail(tournamentDoc, viewerId) {
         elo: Number(row.elo || 1200),
         points: Number(row.points || 0),
         score: Number(row.points || 0),
+        games: Number(row.games ?? row.gamesPlayed ?? 0),
+        gamesPlayed: Number(row.gamesPlayed ?? row.games ?? 0),
         buchholz: Number(row.buchholz || 0),
         buchholzCut1: Number(row.buchholzCut1 || 0),
         wins: Number(row.wins || 0),
@@ -758,6 +904,10 @@ async function buildTournamentDetail(tournamentDoc, viewerId) {
       totalPlayers: players.length,
       isRegistered,
       canManage,
+      arenaReadyPoolSize,
+      arenaReady: !!viewerPlayer?.arenaReady,
+      arenaWaitTicks: Number(viewerPlayer?.waitTicks || 0),
+      arenaPairingIntervalSeconds: ARENA_PAIRING_INTERVAL_SECONDS,
     }),
     players,
     rounds,
@@ -1001,7 +1151,7 @@ async function generatePairingsPreview({
   }
   const [players, allGames] = await Promise.all([playerQuery, allGameQuery]);
 
-  const minPlayers = Math.max(2, Number(tournament.minPlayers || 4));
+  const minPlayers = TOURNAMENT_MIN_START_PLAYERS;
   if (players.length < minPlayers) {
     throw new Error(`At least ${minPlayers} registered players are required.`);
   }
@@ -1294,6 +1444,17 @@ async function completeTournament({
     return tournament;
   }
 
+  if (String(tournament.type || "").toLowerCase() === "arena") {
+    const resolved = await resolveTournamentFinal(tournament._id, {
+      session,
+      actorUserId,
+    });
+    return {
+      standings: resolved?.standings || [],
+      top3: resolved?.top3 || [],
+    };
+  }
+
   const standings = await computeAndPersistPlayerStats(tournament, session);
   const playerDocs = await TournamentPlayer.find({ tournamentId: tournament._id })
     .session(session)
@@ -1361,7 +1522,8 @@ async function parseTemplatePayload(body = {}) {
     ratingMin: ratingBounds.min,
     ratingMax: ratingBounds.max,
     ratingFilterMode: ratingBounds.mode,
-    minPlayers: parsePositiveInt(body.minPlayers, 4) || 4,
+    minPlayers: parsePositiveInt(body.minPlayers, TOURNAMENT_MIN_START_PLAYERS) ||
+      TOURNAMENT_MIN_START_PLAYERS,
     maxPlayers:
       Number.isFinite(Number(body.maxPlayers)) && Number(body.maxPlayers) > 1
         ? Number(body.maxPlayers)
@@ -1396,6 +1558,12 @@ async function parseTemplatePayload(body = {}) {
   if (payload.startType === "scheduled" && !payload.scheduledStartAt) {
     throw new Error("scheduledStartAt is required for scheduled tournaments.");
   }
+  if (payload.startType === "scheduled" && payload.scheduledStartAt) {
+    const minStartMs = Date.now() + 5 * 60 * 1000;
+    if (payload.scheduledStartAt.getTime() < minStartMs) {
+      throw new Error("Start time must be at least 5 minutes from now.");
+    }
+  }
 
   return payload;
 }
@@ -1410,7 +1578,9 @@ router.get("/", optionalAuthMiddleware, async (req, res) => {
     const limit = Math.max(1, Math.min(100, parsePositiveInt(req.query.limit, 50) || 50));
     const page = Math.max(1, parsePositiveInt(req.query.page, 1) || 1);
 
-    const query = {};
+    const query = {
+      status: { $nin: [TOURNAMENT_STATES.CANCELLED, "cancelled"] },
+    };
     if (requestedType && TOURNAMENT_TYPES.has(requestedType)) {
       query.type = requestedType;
     }
@@ -1422,7 +1592,7 @@ router.get("/", optionalAuthMiddleware, async (req, res) => {
     }));
 
     const tournamentIds = normalized.map((tournament) => tournament._id);
-    const [countAgg, registrationDocs] = await Promise.all([
+    const [countAgg, registrationDocs, pendingGameDocs] = await Promise.all([
       tournamentIds.length
         ? TournamentPlayer.aggregate([
             {
@@ -1443,14 +1613,38 @@ router.get("/", optionalAuthMiddleware, async (req, res) => {
             .select("tournamentId")
             .lean()
         : [],
+      viewerId && tournamentIds.length
+        ? TournamentGame.find({
+            tournamentId: { $in: tournamentIds },
+            isPublished: true,
+            isBye: { $ne: true },
+            result: "*",
+            $or: [{ whiteId: viewerId }, { blackId: viewerId }],
+          })
+            .select("tournamentId gameId roundNumber")
+            .sort({ roundNumber: -1, boardNumber: 1, matchIndex: 1, createdAt: 1 })
+            .lean()
+        : [],
     ]);
     const countMap = new Map(countAgg.map((item) => [toId(item._id), Number(item.count || 0)]));
     const regSet = new Set(registrationDocs.map((doc) => toId(doc.tournamentId)));
+    const pendingGameByTournamentId = new Map();
+    for (const game of pendingGameDocs || []) {
+      const tournamentId = toId(game.tournamentId);
+      if (!tournamentId || pendingGameByTournamentId.has(tournamentId)) continue;
+      pendingGameByTournamentId.set(tournamentId, {
+        gameId: String(game.gameId || ""),
+        roundNumber: Number(game.roundNumber || 0),
+      });
+    }
 
     const organizerIds = [...new Set(normalized.map((item) => toId(item.createdBy)).filter(Boolean))];
     const organizersById = await fetchUsersMap(organizerIds);
 
     let filtered = normalized.filter((tournament) => {
+      if (isCancelledState(tournament.status)) {
+        return false;
+      }
       if (requestedStatus && normalizeTournamentState(tournament.status) !== requestedStatus) {
         return false;
       }
@@ -1465,11 +1659,14 @@ router.get("/", optionalAuthMiddleware, async (req, res) => {
       const organizer = organizersById.get(toId(tournament.createdBy));
       const registeredCount = Number(countMap.get(id) || 0);
       const myTournament = !!viewerId && toId(tournament.createdBy) === toId(viewerId);
+      const pendingGame = pendingGameByTournamentId.get(id) || null;
       return buildTournamentSummary(tournament, {
         registeredCount,
         isRegistered: viewerId ? regSet.has(id) : false,
         canManage: myTournament,
         myTournament,
+        myPendingGameId: pendingGame?.gameId || null,
+        myPendingGameRound: pendingGame ? Number(pendingGame.roundNumber || 0) : null,
         organizer: {
           id: toId(tournament.createdBy),
           username: organizer?.fullName || "User",
@@ -1478,11 +1675,17 @@ router.get("/", optionalAuthMiddleware, async (req, res) => {
       });
     });
 
+    const sortNowMs = Date.now();
     withSummary.sort((a, b) => {
+      const aEnded = hasTournamentEndedBySchedule(a, sortNowMs);
+      const bEnded = hasTournamentEndedBySchedule(b, sortNowMs);
+      if (aEnded !== bEnded) return aEnded ? 1 : -1;
+
       if (sortMode === "starting_soon") {
-        const aTime = new Date(a.scheduledStartAt || a.registrationDeadline || a.createdAt || 0).getTime();
-        const bTime = new Date(b.scheduledStartAt || b.registrationDeadline || b.createdAt || 0).getTime();
-        return aTime - bTime;
+        const aTime = getTournamentListSortTimestamp(a);
+        const bTime = getTournamentListSortTimestamp(b);
+        if (aTime !== bTime) return aTime - bTime;
+        return new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime();
       }
       if (sortMode === "most_players") {
         const countDiff = Number(b.registeredCount || 0) - Number(a.registeredCount || 0);
@@ -1589,7 +1792,7 @@ router.post("/", authMiddleware, async (req, res) => {
       ratingMin: parsed.ratingMin,
       ratingMax: parsed.ratingMax,
       ratingFilterMode: parsed.ratingFilterMode,
-      status: TOURNAMENT_STATES.DRAFT,
+      status: TOURNAMENT_STATES.REGISTRATION_OPEN,
       roundsPlanned,
       currentRound: 0,
       latestPublishedRound: 0,
@@ -1601,7 +1804,7 @@ router.post("/", authMiddleware, async (req, res) => {
       description: parsed.description,
       createdBy: req.user.userId,
       managerIds: [],
-      stateVersion: 0,
+      stateVersion: 1,
     });
 
     if (req.body?.saveAsTemplate === true) {
@@ -1659,32 +1862,140 @@ router.get("/by-game/:gameId/context", authMiddleware, async (req, res) => {
     if (!tournament) {
       return res.status(404).json({ error: "Tournament not found" });
     }
+    if (isCancelledState(tournament.status)) {
+      return res.status(404).json({ error: "Tournament not found" });
+    }
 
     const detail = await buildTournamentDetail(tournament, req.user.userId);
-    const history = (detail.rounds || [])
-      .flatMap((round) =>
-        (round.games || []).map((entry) => ({
-          id: String(entry.id || ""),
-          gameId: String(entry.gameId || ""),
-          roundNumber: Number(round.roundNumber || entry.roundNumber || 0),
-          board: Number(entry.board || 0),
-          white: String(entry.white || "Player"),
-          black: String(entry.black || "Player"),
-          whiteId: String(entry.whiteId || ""),
-          blackId: String(entry.blackId || ""),
-          result: formatGameResultForUi(entry),
-          rawResult: String(entry.result || "*"),
-          isBye: !!entry.isBye,
-          status: entry.result === "*" ? "in_progress" : "completed",
-          whiteEloDelta: Number(entry.whiteEloDelta || 0),
-          blackEloDelta: Number(entry.blackEloDelta || 0),
-        })),
+    const viewerId = toId(req.user?.userId);
+    const roundGames = (detail.rounds || []).flatMap((round) =>
+      (round.games || []).map((entry) => ({
+        id: String(entry.id || ""),
+        gameId: String(entry.gameId || ""),
+        roundNumber: Number(round.roundNumber || entry.roundNumber || 0),
+        board: Number(entry.board || 0),
+        white: String(entry.white || "Player"),
+        black: String(entry.black || "Player"),
+        whiteId: String(entry.whiteId || ""),
+        blackId: String(entry.blackId || ""),
+        rawResult: String(entry.result || "*"),
+        isBye: !!entry.isBye,
+        status: entry.result === "*" ? "in_progress" : "completed",
+        whiteRatingAtPairing: Number(entry.whiteRatingAtPairing || 1200),
+        blackRatingAtPairing:
+          entry.blackRatingAtPairing === null || entry.blackRatingAtPairing === undefined
+            ? null
+            : Number(entry.blackRatingAtPairing),
+        whiteEloDelta: Number(entry.whiteEloDelta || 0),
+        blackEloDelta: Number(entry.blackEloDelta || 0),
+      })),
+    );
+    const gameIdsForHistory = [
+      ...new Set(roundGames.map((entry) => String(entry.gameId || "")).filter(Boolean)),
+    ];
+    const savedHistoryByGameId = new Map();
+    if (viewerId && gameIdsForHistory.length > 0) {
+      const [standardHistory, chess960History] = await Promise.all([
+        History.find({ userId: viewerId, link: { $in: gameIdsForHistory } })
+          .select("_id link createdAt")
+          .sort({ createdAt: -1 })
+          .lean(),
+        History960.find({ userId: viewerId, link: { $in: gameIdsForHistory } })
+          .select("_id link createdAt")
+          .sort({ createdAt: -1 })
+          .lean(),
+      ]);
+      for (const savedGame of [...standardHistory, ...chess960History]) {
+        const link = String(savedGame?.link || "");
+        if (!link || savedHistoryByGameId.has(link)) continue;
+        savedHistoryByGameId.set(link, toId(savedGame._id));
+      }
+    }
+
+    const history = roundGames
+      .map((entry) => ({
+        ...entry,
+        savedGameId: savedHistoryByGameId.get(entry.gameId) || "",
+        result: formatGameResultForUi({ ...entry, result: entry.rawResult }),
+      }))
+      .sort((a, b) => {
+        const byRound = Number(a.roundNumber || 0) - Number(b.roundNumber || 0);
+        if (byRound !== 0) return byRound;
+        return Number(a.board || 0) - Number(b.board || 0);
+      });
+
+    const viewerGames = roundGames
+      .filter(
+        (entry) =>
+          !entry.isBye &&
+          (entry.whiteId === viewerId || entry.blackId === viewerId),
       )
       .sort((a, b) => {
         const byRound = Number(a.roundNumber || 0) - Number(b.roundNumber || 0);
         if (byRound !== 0) return byRound;
         return Number(a.board || 0) - Number(b.board || 0);
       });
+    const pendingViewerGames = viewerGames.filter((entry) => entry.rawResult === "*");
+    const nextGame = pendingViewerGames[0] || null;
+    const activeGame = roundGames.find((entry) => entry.gameId === externalGameId) || null;
+    const activeOpponentId = activeGame
+      ? activeGame.whiteId === viewerId
+        ? activeGame.blackId
+        : activeGame.whiteId
+      : "";
+    const activeOpponentStanding =
+      activeOpponentId &&
+      (detail.standings || []).find((row) => String(row.userId || "") === activeOpponentId);
+    const tournamentStatus = normalizeTournamentState(detail.tournament?.status);
+    const isArenaTournament =
+      String(detail.tournament?.type || "").toLowerCase() === "arena";
+    const arenaStillActive =
+      !isArenaTournament || isArenaTournamentStillActive(tournament);
+    const isRunning =
+      tournamentStatus === TOURNAMENT_STATES.LIVE_ROUND && arenaStillActive;
+    const viewerIsReady = !!detail.tournament?.arenaReady;
+    const activeGameIsCurrentPending =
+      !!nextGame && String(nextGame.gameId || "") === externalGameId;
+
+    let gameAction = {
+      gameId: null,
+      label: "Waiting for pairing",
+      disabled: true,
+    };
+    if (nextGame && !activeGameIsCurrentPending) {
+      gameAction = {
+        gameId: String(nextGame.gameId || ""),
+        label: Number(nextGame.roundNumber || 0) <= 1 ? "Start Game" : "Next Game",
+        disabled: !String(nextGame.gameId || "").trim(),
+      };
+    } else if (activeGameIsCurrentPending) {
+      gameAction = {
+        gameId: String(nextGame.gameId || ""),
+        label: "Waiting for opponent",
+        disabled: true,
+      };
+    } else if (isArenaTournament && isRunning) {
+      gameAction = viewerIsReady
+        ? {
+            gameId: null,
+            label: "Waiting for pairing",
+            disabled: true,
+          }
+        : {
+            gameId: null,
+            label: "Ready",
+            disabled: false,
+          };
+    } else if (isArenaTournament && !arenaStillActive) {
+      gameAction = {
+        gameId: null,
+        label:
+          tournamentStatus === TOURNAMENT_STATES.FINISHED
+            ? "Final standings"
+            : "Time ended",
+        disabled: true,
+      };
+    }
 
     res.json({
       tournament: {
@@ -1692,18 +2003,64 @@ router.get("/by-game/:gameId/context", authMiddleware, async (req, res) => {
         name: String(detail.tournament?.name || "Tournament"),
         status: String(detail.tournament?.status || ""),
         type: String(detail.tournament?.type || "swiss"),
+        formatLabel: String(detail.tournament?.formatLabel || ""),
         currentRound: Number(detail.tournament?.currentRound || 0),
         roundsPlanned: Number(detail.tournament?.roundsPlanned || 1),
+        timeControlLabel: String(detail.tournament?.timeControlLabel || ""),
+        durationMinutes:
+          detail.tournament?.durationMinutes === null ||
+          detail.tournament?.durationMinutes === undefined
+            ? null
+            : Number(detail.tournament.durationMinutes),
+        scheduledStartAt: detail.tournament?.scheduledStartAt || null,
+        startedAt: detail.tournament?.startedAt || null,
+        finishedAt: detail.tournament?.finishedAt || null,
+        arenaReady: !!detail.tournament?.arenaReady,
+        arenaWaitTicks: Number(detail.tournament?.arenaWaitTicks || 0),
+        arenaReadyPoolSize: Number(detail.tournament?.arenaReadyPoolSize || 0),
+        arenaPairingIntervalSeconds: Number(
+          detail.tournament?.arenaPairingIntervalSeconds || 0,
+        ),
       },
+      opponent: activeOpponentId
+        ? {
+            userId: activeOpponentId,
+            username:
+              activeGame?.whiteId === viewerId
+                ? String(activeGame?.black || "Opponent")
+                : String(activeGame?.white || "Opponent"),
+            elo:
+              activeGame?.whiteId === viewerId
+                ? Number(
+                    activeGame?.blackRatingAtPairing ??
+                      activeOpponentStanding?.elo ??
+                      1200,
+                  )
+                : Number(
+                    activeGame?.whiteRatingAtPairing ??
+                      activeOpponentStanding?.elo ??
+                      1200,
+                  ),
+            avatar: String(activeOpponentStanding?.avatar || ""),
+          }
+        : null,
       standings: (detail.standings || []).map((row) => ({
         rank: Number(row.rank || 0),
         userId: String(row.userId || ""),
         username: String(row.username || "Player"),
         elo: Number(row.elo || 1200),
+        avatar: String(row.avatar || ""),
         points: Number(row.points || 0),
+        games: Number(row.games ?? row.gamesPlayed ?? 0),
+        gamesPlayed: Number(row.gamesPlayed ?? row.games ?? 0),
+        wins: Number(row.wins || 0),
+        draws: Number(row.draws || 0),
+        losses: Number(row.losses || 0),
         status: String(row.status || "active"),
       })),
       history,
+      gameAction,
+      chatMessages: [],
     });
   } catch (error) {
     console.error("Tournament game context error:", error);
@@ -1719,6 +2076,9 @@ router.get("/:id", optionalAuthMiddleware, async (req, res) => {
     }
     const tournament = await Tournament.findOne({ _id: id });
     if (!tournament) {
+      return res.status(404).json({ error: "Tournament not found" });
+    }
+    if (isCancelledState(tournament.status)) {
       return res.status(404).json({ error: "Tournament not found" });
     }
     const detail = await buildTournamentDetail(tournament, req.user?.userId || "");
@@ -1737,6 +2097,9 @@ router.get("/:id/players", optionalAuthMiddleware, async (req, res) => {
     }
     const tournament = await Tournament.findOne({ _id: id }).lean();
     if (!tournament) {
+      return res.status(404).json({ error: "Tournament not found" });
+    }
+    if (isCancelledState(tournament.status)) {
       return res.status(404).json({ error: "Tournament not found" });
     }
 
@@ -1795,6 +2158,9 @@ router.get("/:id/pairings", optionalAuthMiddleware, async (req, res) => {
     if (!tournament) {
       return res.status(404).json({ error: "Tournament not found" });
     }
+    if (isCancelledState(tournament.status)) {
+      return res.status(404).json({ error: "Tournament not found" });
+    }
     const canManage = isOrganizer(tournament, req.user?.userId || "");
     const roundNumber = parsePositiveInt(req.query.round, null);
     const query = {
@@ -1842,6 +2208,9 @@ router.get("/:id/standings", optionalAuthMiddleware, async (req, res) => {
     if (!tournament) {
       return res.status(404).json({ error: "Tournament not found" });
     }
+    if (isCancelledState(tournament.status)) {
+      return res.status(404).json({ error: "Tournament not found" });
+    }
 
     const detail = await buildTournamentDetail(tournament, req.user?.userId || "");
     const page = Math.max(1, parsePositiveInt(req.query.page, 1) || 1);
@@ -1872,6 +2241,9 @@ router.get("/:id/export/players.csv", authMiddleware, async (req, res) => {
     }
     const tournament = await Tournament.findOne({ _id: id });
     if (!tournament) {
+      return res.status(404).json({ error: "Tournament not found" });
+    }
+    if (isCancelledState(tournament.status)) {
       return res.status(404).json({ error: "Tournament not found" });
     }
     const detail = await buildTournamentDetail(tournament, req.user.userId);
@@ -1906,6 +2278,9 @@ router.get("/:id/export/standings.csv", authMiddleware, async (req, res) => {
     }
     const tournament = await Tournament.findOne({ _id: id });
     if (!tournament) {
+      return res.status(404).json({ error: "Tournament not found" });
+    }
+    if (isCancelledState(tournament.status)) {
       return res.status(404).json({ error: "Tournament not found" });
     }
     const detail = await buildTournamentDetail(tournament, req.user.userId);
@@ -2011,21 +2386,10 @@ router.post("/:id/register", authMiddleware, async (req, res) => {
     if (!isValidObjectId(id)) {
       return res.status(400).json({ error: "Invalid tournament id" });
     }
-    const tournament = await Tournament.findOne({ _id: id });
+    let tournament = await Tournament.findOne({ _id: id });
     if (!tournament) {
       return res.status(404).json({ error: "Tournament not found" });
     }
-    const state = ensureTournamentState(tournament);
-    if (!canTournamentRegister(tournament)) {
-      return res.status(400).json({ error: "Registration is closed." });
-    }
-    if (tournament.registrationDeadline) {
-      const deadline = new Date(tournament.registrationDeadline).getTime();
-      if (Number.isFinite(deadline) && Date.now() > deadline) {
-        return res.status(400).json({ error: "Registration deadline has passed." });
-      }
-    }
-
     const existing = await TournamentPlayer.findOne({
       tournamentId: tournament._id,
       userId: req.user.userId,
@@ -2033,6 +2397,90 @@ router.post("/:id/register", authMiddleware, async (req, res) => {
     if (existing && existing.status !== "withdrawn") {
       const detail = await buildTournamentDetail(tournament, req.user.userId);
       return res.json({ success: true, ...detail });
+    }
+
+    const nowMs = Date.now();
+    const isScheduledStart = getStartTypeValue(tournament.startType) === "scheduled";
+    const startAt = isScheduledStart ? getTournamentStartAtForSchedule(tournament) : null;
+    const hasStartedByClock = !!startAt && nowMs >= startAt.getTime();
+
+    if (isScheduledStart && isRegistrationNotStartedYetBySchedule(tournament, nowMs)) {
+      return res.status(400).json({
+        error: "Registration begins 1 hour before the event starts.",
+      });
+    }
+
+    let state = ensureTournamentState(tournament);
+    let canRegisterInGrace = false;
+    if (isScheduledStart && hasStartedByClock) {
+      const graceFromDocMs = tournament.autoStartGraceEndsAt
+        ? new Date(tournament.autoStartGraceEndsAt).getTime()
+        : NaN;
+      const graceEndsAtMs = Number.isFinite(graceFromDocMs)
+        ? graceFromDocMs
+        : startAt.getTime() + 5 * 60 * 1000;
+      canRegisterInGrace =
+        [TOURNAMENT_STATES.DRAFT, TOURNAMENT_STATES.REGISTRATION_OPEN].includes(state) &&
+        nowMs < graceEndsAtMs;
+      if (!Number.isFinite(graceFromDocMs) && canRegisterInGrace) {
+        await Tournament.updateOne(
+          { _id: tournament._id },
+          {
+            $set: { autoStartGraceEndsAt: new Date(graceEndsAtMs) },
+          },
+        );
+        tournament = await Tournament.findById(tournament._id);
+        state = ensureTournamentState(tournament);
+      }
+      if (!canRegisterInGrace) {
+        return res.status(400).json({ error: "Registration is closed." });
+      }
+    }
+
+    const canRegisterByWindow =
+      isScheduledStart && isRegistrationWindowOpenBySchedule(tournament, nowMs);
+    const canRegisterLiveArena =
+      String(tournament.type || "").toLowerCase() === "arena" &&
+      state === TOURNAMENT_STATES.LIVE_ROUND &&
+      isArenaTournamentStillActive(tournament, new Date(nowMs));
+    if (
+      !canTournamentRegister(tournament) &&
+      !canRegisterByWindow &&
+      !canRegisterInGrace &&
+      !canRegisterLiveArena
+    ) {
+      return res.status(400).json({ error: "Registration is closed." });
+    }
+
+    if (
+      canRegisterByWindow &&
+      state === TOURNAMENT_STATES.DRAFT
+    ) {
+      await Tournament.updateOne(
+        { _id: tournament._id },
+        {
+          $set: { status: TOURNAMENT_STATES.REGISTRATION_OPEN },
+          $inc: { stateVersion: 1 },
+        },
+      );
+      await logStateTransition({
+        tournamentId: tournament._id,
+        fromState: state,
+        toState: TOURNAMENT_STATES.REGISTRATION_OPEN,
+        action: "open_registration",
+        actorUserId: req.user.userId,
+        meta: { autoOpened: true, reason: "scheduled_window" },
+      });
+      tournament = await Tournament.findById(tournament._id);
+      state = ensureTournamentState(tournament);
+      emitTournamentStateChanged(req.app, tournament, TOURNAMENT_STATES.REGISTRATION_OPEN);
+    }
+
+    if (tournament.registrationDeadline && !canRegisterLiveArena) {
+      const deadline = new Date(tournament.registrationDeadline).getTime();
+      if (Number.isFinite(deadline) && nowMs > deadline) {
+        return res.status(400).json({ error: "Registration deadline has passed." });
+      }
     }
 
     const activeCount = await TournamentPlayer.countDocuments({
@@ -2093,6 +2541,166 @@ router.post("/:id/register", authMiddleware, async (req, res) => {
   } catch (error) {
     console.error("Tournament register error:", error);
     res.status(500).json({ error: "Failed to register for tournament" });
+  }
+});
+
+router.post("/:id/arena/ready", authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ error: "Invalid tournament id" });
+    }
+
+    const tournament = await Tournament.findOne({ _id: id });
+    if (!tournament) {
+      return res.status(404).json({ error: "Tournament not found" });
+    }
+    if (String(tournament.type || "").toLowerCase() !== "arena") {
+      return res.status(400).json({ error: "Ready pool is only available for arena tournaments." });
+    }
+
+    const state = ensureTournamentState(tournament);
+    if (state === TOURNAMENT_STATES.CANCELLED) {
+      return res.status(404).json({ error: "Tournament not found" });
+    }
+    if (state !== TOURNAMENT_STATES.LIVE_ROUND) {
+      return res.status(400).json({ error: "Tournament is not active yet." });
+    }
+    if (!isArenaTournamentStillActive(tournament)) {
+      const activeGames = await getActiveArenaGameCount(tournament._id);
+      if (activeGames > 0) {
+        const detail = await buildTournamentDetail(tournament, req.user.userId);
+        return res.json({
+          success: false,
+          acceptingPairings: false,
+          activeGames,
+          message: "Tournament time has ended. Waiting for ongoing games to finish.",
+          ...detail,
+        });
+      }
+      const finalResult = await resolveTournamentFinal(tournament._id, {
+        now: new Date(),
+        actorUserId: toId(tournament.createdBy),
+      });
+      if (finalResult?.tournament) {
+        emitTournamentStateChanged(
+          req.app,
+          finalResult.tournament,
+          TOURNAMENT_STATES.FINISHED,
+        );
+        emitTournamentFinished(
+          req.app,
+          finalResult.tournament,
+          finalResult.top3?.[0] || null,
+          finalResult.top3 || [],
+          finalResult.standings || [],
+        );
+      }
+      const finishedTournament =
+        finalResult?.tournament || (await Tournament.findById(tournament._id));
+      const detail = await buildTournamentDetail(finishedTournament, req.user.userId);
+      return res.json({
+        success: false,
+        tournamentEnded: true,
+        message: "Tournament duration has ended.",
+        ...detail,
+      });
+    }
+
+    const player = await TournamentPlayer.findOne({
+      tournamentId: tournament._id,
+      userId: req.user.userId,
+      status: "active",
+    });
+    if (!player) {
+      return res.status(400).json({ error: "Join the tournament before entering the ready pool." });
+    }
+
+      const pendingGame = await TournamentGame.findOne({
+      tournamentId: tournament._id,
+      isPublished: true,
+      isBye: { $ne: true },
+      result: "*",
+      $or: [{ whiteId: req.user.userId }, { blackId: req.user.userId }],
+    })
+      .sort({ createdAt: 1 })
+      .lean();
+    if (pendingGame) {
+      await TournamentPlayer.updateOne(
+        { _id: player._id },
+        {
+          $set: {
+            arenaReady: true,
+            arenaReadyAt: new Date(),
+          },
+        },
+      );
+      const detail = await buildTournamentDetail(tournament, req.user.userId);
+      return res.json({
+        success: true,
+        alreadyPaired: true,
+        queuedForNextPairing: true,
+        ...detail,
+      });
+    }
+
+    await TournamentPlayer.updateOne(
+      { _id: player._id },
+      {
+        $set: {
+          arenaReady: true,
+          arenaReadyAt: new Date(),
+        },
+      },
+    );
+
+    const pairingOutcome = await runPairingTick(tournament._id, {
+      app: req.app,
+      now: new Date(),
+    });
+    if (pairingOutcome?.outcome === "duration_elapsed") {
+      const activeGames = await getActiveArenaGameCount(tournament._id);
+      if (activeGames > 0) {
+        const freshTournament = await Tournament.findById(tournament._id);
+        const detail = await buildTournamentDetail(
+          freshTournament || tournament,
+          req.user.userId,
+        );
+        return res.json({
+          success: false,
+          acceptingPairings: false,
+          activeGames,
+          message: "Tournament time has ended. Waiting for ongoing games to finish.",
+          pairingOutcome,
+          ...detail,
+        });
+      }
+      const finalResult = await resolveTournamentFinal(tournament._id, {
+        now: new Date(),
+        actorUserId: toId(tournament.createdBy),
+      });
+      if (finalResult?.tournament) {
+        emitTournamentStateChanged(
+          req.app,
+          finalResult.tournament,
+          TOURNAMENT_STATES.FINISHED,
+        );
+        emitTournamentFinished(
+          req.app,
+          finalResult.tournament,
+          finalResult.top3?.[0] || null,
+          finalResult.top3 || [],
+          finalResult.standings || [],
+        );
+      }
+    }
+
+    const freshTournament = await Tournament.findById(tournament._id);
+    const detail = await buildTournamentDetail(freshTournament || tournament, req.user.userId);
+    return res.json({ success: true, pairingOutcome, ...detail });
+  } catch (error) {
+    console.error("Arena ready pool error:", error);
+    return res.status(500).json({ error: "Failed to join ready pool" });
   }
 });
 
@@ -2163,8 +2771,28 @@ router.patch("/:id/state", authMiddleware, async (req, res) => {
     }
 
     if (action === "close_registration" || action === "next_round") {
+      if (String(tournament.type || "").toLowerCase() === "arena") {
+        const arenaOutcome = await withMongoTransaction(async (session) =>
+          checkTournamentStartCondition(tournament._id, {
+            session,
+            now: new Date(),
+            actorUserId: req.user.userId,
+          }),
+        );
+        await processArenaStartOutcomeEvents(req.app, arenaOutcome);
+        const refreshed = await Tournament.findById(tournament._id);
+        if (!refreshed) {
+          return res.status(404).json({ error: "Tournament not found" });
+        }
+        const detail = await buildTournamentDetail(refreshed, req.user.userId);
+        return res.json({ success: true, ...detail });
+      }
+
       const out = await withMongoTransaction(async (session) => {
         const doc = await Tournament.findById(tournament._id).session(session);
+        const wasAlreadyStarted =
+          !!doc?.startedAt ||
+          normalizeTournamentState(doc?.status) === TOURNAMENT_STATES.LIVE_ROUND;
         const result = await generateAndPublishPairings({
           tournament: doc,
           actorUserId: req.user.userId,
@@ -2174,7 +2802,14 @@ router.patch("/:id/state", authMiddleware, async (req, res) => {
         const refreshed = await Tournament.findById(tournament._id).session(session);
         await computeAndPersistPlayerStats(refreshed, session);
         const detail = await buildTournamentDetail(refreshed, req.user.userId);
-        return { detail, refreshed, published: result.published };
+        return {
+          detail,
+          refreshed,
+          published: result.published,
+          notifyStarted:
+            !wasAlreadyStarted &&
+            normalizeTournamentState(refreshed?.status) === TOURNAMENT_STATES.LIVE_ROUND,
+        };
       });
 
       const publishedPairings = (out.published || []).map((game) =>
@@ -2194,12 +2829,18 @@ router.patch("/:id/state", authMiddleware, async (req, res) => {
         publishedPairings,
       );
       emitStandingsUpdated(req.app, out.refreshed, out.detail.standings || []);
+      if (out.notifyStarted) {
+        await notifyTournamentStarted(req.app, out.refreshed);
+      }
       return res.json({ success: true, ...out.detail });
     }
 
     if (action === "start_round" || action === "publish_pairings") {
       const out = await withMongoTransaction(async (session) => {
         const doc = await Tournament.findById(tournament._id).session(session);
+        const wasAlreadyStarted =
+          !!doc?.startedAt ||
+          normalizeTournamentState(doc?.status) === TOURNAMENT_STATES.LIVE_ROUND;
         const result = await publishPairings({
           tournament: doc,
           actorUserId: req.user.userId,
@@ -2208,7 +2849,14 @@ router.patch("/:id/state", authMiddleware, async (req, res) => {
         await computeAndPersistPlayerStats(doc, session);
         const refreshed = await Tournament.findById(tournament._id).session(session);
         const detail = await buildTournamentDetail(refreshed, req.user.userId);
-        return { detail, refreshed, published: result.published };
+        return {
+          detail,
+          refreshed,
+          published: result.published,
+          notifyStarted:
+            !wasAlreadyStarted &&
+            normalizeTournamentState(refreshed?.status) === TOURNAMENT_STATES.LIVE_ROUND,
+        };
       });
 
       const publishedPairings = (out.published || []).map((game) =>
@@ -2228,6 +2876,9 @@ router.patch("/:id/state", authMiddleware, async (req, res) => {
         publishedPairings,
       );
       emitStandingsUpdated(req.app, out.refreshed, out.detail.standings || []);
+      if (out.notifyStarted) {
+        await notifyTournamentStarted(req.app, out.refreshed);
+      }
       return res.json({ success: true, ...out.detail });
     }
 
@@ -2266,12 +2917,21 @@ router.post("/:id/pairings/generate", authMiddleware, async (req, res) => {
   try {
     const tournament = await ensureOrganizerAccess(req, res, req.params.id);
     if (!tournament) return;
+    if (String(tournament.type || "").toLowerCase() === "arena") {
+      return res.status(400).json({
+        error:
+          "Arena tournaments use ready-pool pairing ticks. Use the Start Game action in lobby.",
+      });
+    }
 
     const forceRegenerate =
       req.body?.forceRegenerate === true || req.body?.regenerate === true;
 
     const out = await withMongoTransaction(async (session) => {
       const doc = await Tournament.findById(tournament._id).session(session);
+      const wasAlreadyStarted =
+        !!doc?.startedAt ||
+        normalizeTournamentState(doc?.status) === TOURNAMENT_STATES.LIVE_ROUND;
       const result = await generateAndPublishPairings({
         tournament: doc,
         actorUserId: req.user.userId,
@@ -2281,7 +2941,14 @@ router.post("/:id/pairings/generate", authMiddleware, async (req, res) => {
       const refreshed = await Tournament.findById(tournament._id).session(session);
       await computeAndPersistPlayerStats(refreshed, session);
       const detail = await buildTournamentDetail(refreshed, req.user.userId);
-      return { detail, refreshed, published: result.published };
+      return {
+        detail,
+        refreshed,
+        published: result.published,
+        notifyStarted:
+          !wasAlreadyStarted &&
+          normalizeTournamentState(refreshed?.status) === TOURNAMENT_STATES.LIVE_ROUND,
+      };
     });
 
     const publishedPairings = (out.published || []).map((game) =>
@@ -2301,6 +2968,9 @@ router.post("/:id/pairings/generate", authMiddleware, async (req, res) => {
       publishedPairings,
     );
     emitStandingsUpdated(req.app, out.refreshed, out.detail.standings || []);
+    if (out.notifyStarted) {
+      await notifyTournamentStarted(req.app, out.refreshed);
+    }
     res.json({ success: true, ...out.detail });
   } catch (error) {
     console.error("Generate pairings error:", error);
@@ -2312,9 +2982,18 @@ router.post("/:id/pairings/publish", authMiddleware, async (req, res) => {
   try {
     const tournament = await ensureOrganizerAccess(req, res, req.params.id);
     if (!tournament) return;
+    if (String(tournament.type || "").toLowerCase() === "arena") {
+      return res.status(400).json({
+        error:
+          "Arena tournaments use ready-pool pairing ticks. Use the Start Game action in lobby.",
+      });
+    }
 
     const out = await withMongoTransaction(async (session) => {
       const doc = await Tournament.findById(tournament._id).session(session);
+      const wasAlreadyStarted =
+        !!doc?.startedAt ||
+        normalizeTournamentState(doc?.status) === TOURNAMENT_STATES.LIVE_ROUND;
       const result = await publishPairings({
         tournament: doc,
         actorUserId: req.user.userId,
@@ -2323,7 +3002,14 @@ router.post("/:id/pairings/publish", authMiddleware, async (req, res) => {
       await computeAndPersistPlayerStats(doc, session);
       const refreshed = await Tournament.findById(tournament._id).session(session);
       const detail = await buildTournamentDetail(refreshed, req.user.userId);
-      return { detail, published: result.published, refreshed };
+      return {
+        detail,
+        published: result.published,
+        refreshed,
+        notifyStarted:
+          !wasAlreadyStarted &&
+          normalizeTournamentState(refreshed?.status) === TOURNAMENT_STATES.LIVE_ROUND,
+      };
     });
 
     emitTournamentStateChanged(req.app, out.refreshed, TOURNAMENT_STATES.LIVE_ROUND);
@@ -2340,6 +3026,9 @@ router.post("/:id/pairings/publish", authMiddleware, async (req, res) => {
       (out.published || []).map((game) => toRoundPairingPayload(game)),
     );
     emitStandingsUpdated(req.app, out.refreshed, out.detail.standings || []);
+    if (out.notifyStarted) {
+      await notifyTournamentStarted(req.app, out.refreshed);
+    }
     res.json({ success: true, ...out.detail });
   } catch (error) {
     console.error("Publish pairings error:", error);
@@ -2582,8 +3271,28 @@ router.post("/:id/start", authMiddleware, async (req, res) => {
     const tournament = await ensureOrganizerAccess(req, res, req.params.id);
     if (!tournament) return;
 
+    if (String(tournament.type || "").toLowerCase() === "arena") {
+      const arenaOutcome = await withMongoTransaction(async (session) =>
+        checkTournamentStartCondition(tournament._id, {
+          session,
+          now: new Date(),
+          actorUserId: req.user.userId,
+        }),
+      );
+      await processArenaStartOutcomeEvents(req.app, arenaOutcome);
+      const refreshed = await Tournament.findById(tournament._id);
+      if (!refreshed) {
+        return res.status(404).json({ error: "Tournament not found" });
+      }
+      const detail = await buildTournamentDetail(refreshed, req.user.userId);
+      return res.json({ success: true, ...detail });
+    }
+
     const out = await withMongoTransaction(async (session) => {
       const doc = await Tournament.findById(tournament._id).session(session);
+      const wasAlreadyStarted =
+        !!doc?.startedAt ||
+        normalizeTournamentState(doc?.status) === TOURNAMENT_STATES.LIVE_ROUND;
       const state = normalizeTournamentState(doc.status);
       if (state === TOURNAMENT_STATES.DRAFT) {
         await Tournament.updateOne(
@@ -2616,7 +3325,14 @@ router.post("/:id/start", authMiddleware, async (req, res) => {
       await computeAndPersistPlayerStats(latest, session);
       const finalDoc = await Tournament.findById(doc._id).session(session);
       const detail = await buildTournamentDetail(finalDoc, req.user.userId);
-      return { detail, finalDoc, publishOut };
+      return {
+        detail,
+        finalDoc,
+        publishOut,
+        notifyStarted:
+          !wasAlreadyStarted &&
+          normalizeTournamentState(finalDoc?.status) === TOURNAMENT_STATES.LIVE_ROUND,
+      };
     });
 
     emitTournamentStateChanged(req.app, out.finalDoc, TOURNAMENT_STATES.LIVE_ROUND);
@@ -2633,6 +3349,9 @@ router.post("/:id/start", authMiddleware, async (req, res) => {
       (out.publishOut.published || []).map((game) => toRoundPairingPayload(game)),
     );
     emitStandingsUpdated(req.app, out.finalDoc, out.detail.standings || []);
+    if (out.notifyStarted) {
+      await notifyTournamentStarted(req.app, out.finalDoc);
+    }
     res.json({ success: true, ...out.detail });
   } catch (error) {
     console.error("Legacy start error:", error);
@@ -2646,6 +3365,9 @@ router.post("/:id/rounds/:round/pair", authMiddleware, async (req, res) => {
     if (!tournament) return;
     const out = await withMongoTransaction(async (session) => {
       const doc = await Tournament.findById(tournament._id).session(session);
+      const wasAlreadyStarted =
+        !!doc?.startedAt ||
+        normalizeTournamentState(doc?.status) === TOURNAMENT_STATES.LIVE_ROUND;
       await generatePairingsPreview({
         tournament: doc,
         actorUserId: req.user.userId,
@@ -2661,7 +3383,14 @@ router.post("/:id/rounds/:round/pair", authMiddleware, async (req, res) => {
       await computeAndPersistPlayerStats(fresh, session);
       const latest = await Tournament.findById(tournament._id).session(session);
       const detail = await buildTournamentDetail(latest, req.user.userId);
-      return { detail, latest, publishOut };
+      return {
+        detail,
+        latest,
+        publishOut,
+        notifyStarted:
+          !wasAlreadyStarted &&
+          normalizeTournamentState(latest?.status) === TOURNAMENT_STATES.LIVE_ROUND,
+      };
     });
     emitTournamentStateChanged(req.app, out.latest, TOURNAMENT_STATES.LIVE_ROUND);
     emitPairingsPublished(
@@ -2677,6 +3406,9 @@ router.post("/:id/rounds/:round/pair", authMiddleware, async (req, res) => {
       (out.publishOut.published || []).map((game) => toRoundPairingPayload(game)),
     );
     emitStandingsUpdated(req.app, out.latest, out.detail.standings || []);
+    if (out.notifyStarted) {
+      await notifyTournamentStarted(req.app, out.latest);
+    }
     res.json({ success: true, ...out.detail });
   } catch (error) {
     console.error("Legacy pair round error:", error);

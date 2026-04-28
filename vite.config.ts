@@ -8,6 +8,25 @@ export default defineConfig({
   server: {
     host: "localhost",
     port: 5173,
+    proxy: {
+      "/api": {
+        target: "http://localhost:3001",
+        changeOrigin: true,
+      },
+      "/healthz": {
+        target: "http://localhost:3001",
+        changeOrigin: true,
+      },
+      "/socket.io": {
+        target: "http://localhost:3001",
+        changeOrigin: true,
+        ws: true,
+      },
+      "/uploads": {
+        target: "http://localhost:3001",
+        changeOrigin: true,
+      },
+    },
   },
   build: {
     sourcemap: true,

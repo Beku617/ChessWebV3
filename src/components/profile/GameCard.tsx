@@ -1,11 +1,11 @@
 import { useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { GameHistory } from "../../historyTypes";
 import { GameCardHeader } from "./GameCardHeader";
 import { GameCardDetails } from "./GameCardDetails";
 import { GameCardMoveHistory } from "./GameCardMoveHistory";
 import { GameCardActions } from "./GameCardActions";
+import { openAnalyzeWindow } from "../../utils/analyzeNavigation";
 
 interface GameCardProps {
   game: GameHistory;
@@ -37,7 +37,6 @@ export function GameCard({
   gameIndex,
   onShare,
 }: GameCardProps) {
-  const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
 
   const playerIsWhite = game.playAs === "white";
@@ -102,9 +101,9 @@ export function GameCard({
         analyzeBaseUrl === "/analyze" && isChess960Game(game)
           ? "/analyze960"
           : analyzeBaseUrl;
-      navigate(`${resolvedAnalyzeBase}/${game._id}`);
+      openAnalyzeWindow(`${resolvedAnalyzeBase}/${game._id}`);
     },
-    [navigate, game, analyzeBaseUrl],
+    [game, analyzeBaseUrl],
   );
 
   const formattedMoves = game.moves.reduce((acc: string[], move, idx) => {

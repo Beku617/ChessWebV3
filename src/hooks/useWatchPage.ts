@@ -2,11 +2,10 @@ import { useState, useEffect, useCallback } from "react";
 import { TransformedLiveGame } from "../utils/lichessApi";
 import { liveGames as mockLiveGames } from "../data/mockData";
 import type { WatchLiveGame } from "../pages/watch/types";
+import { useFriendChallengeStore } from "../store/friendChallengeStore";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
-const WATCH_LIVE_GAMES_ENDPOINT = String(
-  import.meta.env.VITE_WATCH_LIVE_GAMES_ENDPOINT || "",
-).trim();
+const WATCH_LIVE_GAMES_ENDPOINT = `${API_URL}/api/watch/live-games`;
 
 // Types for featured events from our backend
 export interface FeaturedEvent {
@@ -108,71 +107,66 @@ export function useLichessLiveGames() {
   return { games, loading, error, refetch: fetchGames };
 }
 
-function toCategoryFromTime(time: string): "Blitz" | "Rapid" | "Classical" {
-  const match = time.match(/^([0-9.]+)\+(\d+)/);
-  if (!match) return "Blitz";
-  const minutes = parseFloat(match[1]);
-  if (minutes <= 8) return "Blitz";
-  if (minutes <= 25) return "Rapid";
-  return "Classical";
-}
-
-function buildWatchFallbackGames(): WatchLiveGame[] {
-  return mockLiveGames.map((game, index) => {
-    const category = toCategoryFromTime(game.timeControl);
-    return {
-      id: `${game.id}-${index}`,
-      white: game.players.white,
-      whiteRating: 1500,
-      black: game.players.black,
-      blackRating: 1500,
-      viewers: `${game.viewers}`,
-      time: game.timeControl,
-      type: category,
-      category,
-      speed: category.toLowerCase(),
-      gameUrl: "#",
-    };
-  });
+function normalizeWatchLiveGame(raw: any): WatchLiveGame {
+  const viewers = Number(raw?.viewers);
+  return {
+    id: String(raw?.id || ""),
+    white: String(raw?.white || "White"),
+    whiteRating: Number.isFinite(Number(raw?.whiteRating))
+      ? Number(raw.whiteRating)
+      : 1200,
+    whiteTitle: raw?.whiteTitle ? String(raw.whiteTitle) : undefined,
+    black: String(raw?.black || "Black"),
+    blackRating: Number.isFinite(Number(raw?.blackRating))
+      ? Number(raw.blackRating)
+      : 1200,
+    blackTitle: raw?.blackTitle ? String(raw.blackTitle) : undefined,
+    viewers: Number.isFinite(viewers) ? viewers : 0,
+    time: String(raw?.time || "0+0"),
+    type: String(raw?.type || "Blitz"),
+    category: raw?.category ? String(raw.category) : undefined,
+    speed: String(raw?.speed || "blitz"),
+    gameUrl: raw?.gameUrl ? String(raw.gameUrl) : undefined,
+  };
 }
 
 function extractGamesFromPayload(payload: unknown): WatchLiveGame[] {
-  if (Array.isArray(payload)) {
-    return payload as WatchLiveGame[];
-  }
-  if (payload && typeof payload === "object" && Array.isArray((payload as any).games)) {
-    return (payload as any).games as WatchLiveGame[];
-  }
-  return [];
+  const rawList =
+    Array.isArray(payload)
+      ? payload
+      : payload &&
+          typeof payload === "object" &&
+          Array.isArray((payload as any).games)
+        ? (payload as any).games
+        : [];
+
+  return rawList
+    .map((entry: any) => normalizeWatchLiveGame(entry))
+    .filter((game) => game.id.length > 0);
 }
 
 export function useWatchLiveGames() {
   const [games, setGames] = useState<WatchLiveGame[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const socket = useFriendChallengeStore((state) => state.socket);
+  const isConnected = useFriendChallengeStore((state) => state.isConnected);
 
   const fetchGames = useCallback(async () => {
-    if (!WATCH_LIVE_GAMES_ENDPOINT) {
-      setGames(buildWatchFallbackGames());
-      setError(null);
-      setLoading(false);
-      return;
-    }
-
     try {
       setLoading(true);
-      const response = await fetch(WATCH_LIVE_GAMES_ENDPOINT);
+      const response = await fetch(WATCH_LIVE_GAMES_ENDPOINT, {
+        credentials: "include",
+      });
       if (!response.ok) throw new Error("Failed to fetch watch live games");
       const data = await response.json();
       const nextGames = extractGamesFromPayload(data);
-      setGames(nextGames.length > 0 ? nextGames : buildWatchFallbackGames());
+      setGames(nextGames);
       setError(null);
-    } catch (err: any) {
-      if (err?.name !== "AbortError") {
-        console.warn("Watch live games fetch failed, using fallback:", err);
-      }
-      setGames(buildWatchFallbackGames());
-      setError("Using local sample live games.");
+    } catch (err: unknown) {
+      console.error("Watch live games fetch failed:", err);
+      setGames([]);
+      setError("Unable to load live games right now.");
     } finally {
       setLoading(false);
     }
@@ -180,7 +174,27 @@ export function useWatchLiveGames() {
 
   useEffect(() => {
     fetchGames();
+    const intervalId = window.setInterval(() => {
+      void fetchGames();
+    }, 10000);
+    return () => window.clearInterval(intervalId);
   }, [fetchGames]);
+
+  useEffect(() => {
+    if (!socket || !isConnected) return;
+
+    const handleWatchLiveGamesUpdated = (payload: unknown) => {
+      const nextGames = extractGamesFromPayload(payload);
+      setGames(nextGames);
+      setLoading(false);
+      setError(null);
+    };
+
+    socket.on("watchLiveGamesUpdated", handleWatchLiveGamesUpdated);
+    return () => {
+      socket.off("watchLiveGamesUpdated", handleWatchLiveGamesUpdated);
+    };
+  }, [isConnected, socket]);
 
   return { games, loading, error, refetch: fetchGames };
 }

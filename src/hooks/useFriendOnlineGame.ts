@@ -232,6 +232,12 @@ interface GameOverPayload {
   };
 }
 
+interface RejoinGameResponse {
+  success?: boolean;
+  gameId?: string;
+  error?: string;
+}
+
 interface GameSystemMessagePayload {
   gameId: string;
   message?: string;
@@ -377,6 +383,7 @@ export function useFriendOnlineGame() {
   const startTimeRef = useRef<number | null>(null);
   const startingFenRef = useRef<string>("");
   const clockDisplayIntervalRef = useRef<number | null>(null);
+  const lastClockTickAtRef = useRef<number>(Date.now());
   const historySavedRef = useRef(false);
   const [lastGameOver, setLastGameOver] = useState<GameOverPayload | null>(
     null,
@@ -629,7 +636,7 @@ export function useFriendOnlineGame() {
       startTimeRef.current = Date.now();
       setLastGameOver(null);
       setThreeCheckState(normalizeThreeCheckCounts(payload));
-      playGameplaySound("gameStart");
+      playGameplaySound("gameStart", { onceKey: payload.gameId });
 
       setGameSettings({
         ...defaultGameSettings,
@@ -667,6 +674,50 @@ export function useFriendOnlineGame() {
     [resetStoredMoves],
   );
 
+  const requestClockResync = useCallback(
+    (
+      targetGameId?: string | null,
+      options: { allowEmpty?: boolean } = {},
+    ) => {
+      if (!socket || !socket.connected) return;
+
+      const explicitGameId = String(
+        targetGameId || gameIdRef.current || readActiveFriendGameId() || "",
+      ).trim();
+      if (!explicitGameId && options.allowEmpty !== true) return;
+
+      const payload = explicitGameId ? { gameId: explicitGameId } : {};
+      socket.emit(
+        "rejoinGame",
+        payload,
+        (response?: RejoinGameResponse) => {
+          if (response?.success === true) {
+            const restoredGameId = String(
+              response.gameId || explicitGameId || "",
+            ).trim();
+            if (restoredGameId) {
+              storeActiveFriendGameId(restoredGameId);
+              setStatusMessage("Game restored after reconnect.");
+            }
+            return;
+          }
+
+          if (response?.error) {
+            const normalizedError = String(response.error).toLowerCase();
+            if (
+              normalizedError.includes("not found") ||
+              normalizedError.includes("no active game") ||
+              normalizedError.includes("not a participant")
+            ) {
+              storeActiveFriendGameId(null);
+            }
+          }
+        },
+      );
+    },
+    [socket],
+  );
+
   useEffect(() => {
     if (!activeGame) return;
     applyFriendGameStart(activeGame);
@@ -681,45 +732,11 @@ export function useFriendOnlineGame() {
       clearActiveGame();
     };
 
-    const restoreActiveGame = (targetGameId?: string | null) => {
-      if (!socket.connected) return;
-      const explicitGameId = String(
-        targetGameId || gameIdRef.current || readActiveFriendGameId() || "",
-      ).trim();
-      const payload = explicitGameId ? { gameId: explicitGameId } : {};
-      socket.emit(
-        "rejoinGame",
-        payload,
-        (response?: { success?: boolean; error?: string; gameId?: string }) => {
-          if (response?.success === true) {
-            const restoredGameId = String(
-              response.gameId || explicitGameId || "",
-            ).trim();
-            if (restoredGameId) {
-              storeActiveFriendGameId(restoredGameId);
-              setStatusMessage("Game restored after reconnect.");
-            }
-            return;
-          }
-          if (response?.error) {
-            const normalizedError = String(response.error).toLowerCase();
-            if (
-              normalizedError.includes("not found") ||
-              normalizedError.includes("no active game") ||
-              normalizedError.includes("not a participant")
-            ) {
-              storeActiveFriendGameId(null);
-            }
-          }
-        },
-      );
-    };
-
     const handleConnect = () => {
       if (!gameIdRef.current && !readActiveFriendGameId()) {
         setIsClockPaused(false);
       }
-      restoreActiveGame();
+      requestClockResync(null, { allowEmpty: true });
     };
 
     const handleDisconnect = () => {
@@ -1105,14 +1122,20 @@ export function useFriendOnlineGame() {
     const handleOpponentDisconnected = (payload?: {
       gameId?: string;
       graceMs?: number;
+      opponentColor?: PlayerColor;
     }) => {
       if (payload?.gameId && payload.gameId !== gameIdRef.current) return;
+      if (payload?.opponentColor === playerColorRef.current) return;
       setIsClockPaused(false);
       setStatusMessage("Opponent disconnected. Their clock is still running.");
     };
 
-    const handleOpponentReconnected = (payload?: { gameId?: string }) => {
+    const handleOpponentReconnected = (payload?: {
+      gameId?: string;
+      color?: PlayerColor;
+    }) => {
       if (payload?.gameId && payload.gameId !== gameIdRef.current) return;
+      if (payload?.color === playerColorRef.current) return;
       setIsClockPaused(false);
       setStatusMessage("Opponent reconnected.");
     };
@@ -1138,7 +1161,9 @@ export function useFriendOnlineGame() {
     socket.on("opponent_abandoned", handleOpponentAbandoned);
 
     if (socket.connected) {
-      restoreActiveGame(readActiveFriendGameId() || gameIdRef.current);
+      requestClockResync(readActiveFriendGameId() || gameIdRef.current, {
+        allowEmpty: true,
+      });
     } else if (readActiveFriendGameId()) {
       setIsClockPaused(false);
       setStatusMessage("Reconnecting to realtime server. Clock continues server-side...");
@@ -1164,6 +1189,7 @@ export function useFriendOnlineGame() {
     applyFriendGameStart,
     appendStoredMove,
     clearActiveGame,
+    requestClockResync,
     setUser,
     trySubmitQueuedPreMove,
   ]);
@@ -1192,10 +1218,27 @@ export function useFriendOnlineGame() {
       return undefined;
     }
 
+    lastClockTickAtRef.current = Date.now();
     clockDisplayIntervalRef.current = window.setInterval(() => {
+      const now = Date.now();
+      const elapsedMs = Math.max(0, now - lastClockTickAtRef.current);
+      lastClockTickAtRef.current = now;
+      const elapsedSeconds = Math.max(
+        0.1,
+        Math.round((elapsedMs / 1000) * 10) / 10,
+      );
+
+      // JS can be paused by browser dialogs/sleep; force a server resync after long gaps.
+      if (elapsedMs > 1500) {
+        requestClockResync();
+      }
+
       if (isPlayerTurn) {
         setPlayerTime((previous) => {
-          const next = Math.max(0, Math.round((previous - 0.1) * 10) / 10);
+          const next = Math.max(
+            0,
+            Math.round((previous - elapsedSeconds) * 10) / 10,
+          );
           setPlayerClockSeed(next);
           return next;
         });
@@ -1203,7 +1246,10 @@ export function useFriendOnlineGame() {
       }
 
       setOpponentTime((previous) => {
-        const next = Math.max(0, Math.round((previous - 0.1) * 10) / 10);
+        const next = Math.max(
+          0,
+          Math.round((previous - elapsedSeconds) * 10) / 10,
+        );
         setOpponentClockSeed(next);
         return next;
       });
@@ -1221,22 +1267,32 @@ export function useFriendOnlineGame() {
     gameStarted,
     isClockPaused,
     isPlayerTurn,
+    requestClockResync,
   ]);
 
   useEffect(() => {
-    if (typeof document === "undefined") return undefined;
+    if (typeof window === "undefined" || typeof document === "undefined") {
+      return undefined;
+    }
+
+    const handleClockResync = () => {
+      requestClockResync();
+    };
 
     const handleVisibilityChange = () => {
       if (document.visibilityState !== "visible") return;
-      if (!socket || !socket.connected || !gameIdRef.current) return;
-      socket.emit("rejoinGame", { gameId: gameIdRef.current });
+      handleClockResync();
     };
 
+    window.addEventListener("focus", handleClockResync);
+    window.addEventListener("pageshow", handleClockResync);
     document.addEventListener("visibilitychange", handleVisibilityChange);
     return () => {
+      window.removeEventListener("focus", handleClockResync);
+      window.removeEventListener("pageshow", handleClockResync);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [socket]);
+  }, [requestClockResync]);
 
   useEffect(() => {
     if (!gameOver || !lastGameOver || historySavedRef.current) return;
@@ -1418,6 +1474,7 @@ export function useFriendOnlineGame() {
               : "Friend Challenge",
       variant: matchVariant,
       site: "NeonGambit",
+      link: gameIdRef.current || undefined,
       date: formatDate(startDate),
       round: "-",
       white: whiteName,

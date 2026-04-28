@@ -6,8 +6,22 @@ const HistorySchema = new mongoose.Schema(
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      default: null,
     },
+    whiteUserId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+      index: true,
+    },
+    blackUserId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+      index: true,
+    },
+    whiteNameSnapshot: { type: String, default: "", trim: true },
+    blackNameSnapshot: { type: String, default: "", trim: true },
 
     // PGN Headers
     event: { type: String, default: "NeonGambit Game" },

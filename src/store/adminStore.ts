@@ -1,7 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { API_URL } from "../config/network";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const AUTH_REQUEST_TIMEOUT_MS = 8000;
 
 interface Admin {
   id: string;
@@ -23,6 +24,16 @@ interface AdminState {
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
   clearError: () => void;
+}
+
+function createTimeoutSignal(timeoutMs: number) {
+  if (typeof AbortSignal !== "undefined" && "timeout" in AbortSignal) {
+    return AbortSignal.timeout(timeoutMs);
+  }
+
+  const controller = new AbortController();
+  window.setTimeout(() => controller.abort(), timeoutMs);
+  return controller.signal;
 }
 
 export const useAdminStore = create<AdminState>()(
@@ -87,10 +98,20 @@ export const useAdminStore = create<AdminState>()(
         try {
           const res = await fetch(`${API_URL}/api/admin/me`, {
             credentials: "include",
+            signal: createTimeoutSignal(AUTH_REQUEST_TIMEOUT_MS),
           });
 
           if (!res.ok) {
-            set({ admin: null, isAuthenticated: false, isLoading: false });
+            const data = await res.json().catch(() => ({}));
+            set({
+              admin: null,
+              isAuthenticated: false,
+              isLoading: false,
+              error:
+                res.status === 503
+                  ? String(data?.error || "Backend database is unavailable")
+                  : null,
+            });
             return;
           }
 
@@ -99,9 +120,18 @@ export const useAdminStore = create<AdminState>()(
             admin: data.admin,
             isAuthenticated: true,
             isLoading: false,
+            error: null,
           });
-        } catch {
-          set({ admin: null, isAuthenticated: false, isLoading: false });
+        } catch (err) {
+          set({
+            admin: null,
+            isAuthenticated: false,
+            isLoading: false,
+            error:
+              err instanceof DOMException && err.name === "AbortError"
+                ? "Admin auth request timed out"
+                : "Network error",
+          });
         }
       },
 

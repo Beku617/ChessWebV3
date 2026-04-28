@@ -286,18 +286,10 @@ export default function AdminLearnCourse() {
                 </button>
               </div>
 
-              <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                <div className={`rounded-2xl border px-4 py-4 ${statCardClass}`}>
-                  <div className="text-[11px] uppercase tracking-[0.2em] text-gray-500">
-                    Course Link
-                  </div>
-                  <div className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
-                    {course?.slug ? `/learn/${course.slug}` : "-"}
-                  </div>
-                </div>
-                <div className={`rounded-2xl border px-4 py-4 ${statCardClass}`}>
-                  <div className="text-[11px] uppercase tracking-[0.2em] text-gray-500">
-                    Topic / Level
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        <div className={`rounded-2xl border px-4 py-4 ${statCardClass}`}>
+          <div className="text-[11px] uppercase tracking-[0.2em] text-gray-500">
+            Topic / Level
                   </div>
                   <div className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
                     {course?.category || "-"} / {course?.difficulty || "-"}
@@ -492,23 +484,6 @@ export default function AdminLearnCourse() {
                     className={inputClass}
                   />
                 </label>
-                <label className="space-y-1">
-                  <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                    Time
-                  </span>
-                  <input
-                    type="number"
-                    min={1}
-                    value={draft.estimatedMinutes}
-                    onChange={(event) =>
-                      setDraft((current) => ({
-                        ...current,
-                        estimatedMinutes: Number(event.target.value || 1),
-                      }))
-                    }
-                    className={inputClass}
-                  />
-                </label>
                 <label className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
                   <input
                     type="checkbox"
@@ -524,35 +499,6 @@ export default function AdminLearnCourse() {
                   Show lesson
                 </label>
               </div>
-
-              <label className="mt-4 block space-y-1">
-                <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                  Short label
-                </span>
-                <input
-                  value={draft.subtitle}
-                  onChange={(event) =>
-                    setDraft((current) => ({ ...current, subtitle: event.target.value }))
-                  }
-                  className={inputClass}
-                />
-              </label>
-
-              <label className="mt-4 block space-y-1">
-                <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                  Details
-                </span>
-                <textarea
-                  value={draft.description}
-                  onChange={(event) =>
-                    setDraft((current) => ({
-                      ...current,
-                      description: event.target.value,
-                    }))
-                  }
-                  className="min-h-[110px] w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                />
-              </label>
 
               <div className="mt-6 flex justify-end gap-3">
                 <button

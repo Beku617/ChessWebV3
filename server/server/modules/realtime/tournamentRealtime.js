@@ -102,6 +102,18 @@ export function emitTournamentFinished(app, tournament, champion, top3, finalSta
   );
 }
 
+export function emitTournamentCancelled(app, tournament, reason = "") {
+  emitTournamentEvent(
+    app,
+    tournament?._id,
+    "tournament:cancelled",
+    {
+      tournamentId: toId(tournament?._id),
+      reason: String(reason || "").trim() || "insufficient_participants",
+    },
+  );
+}
+
 export function emitRoundBoardAssignments(
   app,
   tournament,
