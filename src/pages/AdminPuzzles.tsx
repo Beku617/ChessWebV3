@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 const PUZZLES_PER_PAGE = 10;
+const MAX_FEATURED_PUZZLES = 3;
 
 function getPageNumbers(current: number, total: number): (number | "...")[] {
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
@@ -725,7 +726,7 @@ export default function AdminPuzzles() {
                     <th className="text-center px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400">
                       <div className="flex items-center justify-center gap-1">
                         <Star size={14} />
-                        Dashboard ({featuredCount}/6)
+                        Dashboard ({featuredCount}/{MAX_FEATURED_PUZZLES})
                       </div>
                     </th>
                     <th className="text-right px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -808,19 +809,22 @@ export default function AdminPuzzles() {
                           onClick={() =>
                             toggleFeatured(puzzle._id, puzzle.featured)
                           }
-                          disabled={!puzzle.featured && featuredCount >= 6}
+                          disabled={
+                            !puzzle.featured &&
+                            featuredCount >= MAX_FEATURED_PUZZLES
+                          }
                           className={`p-2 rounded-lg transition-colors ${
                             puzzle.featured
                               ? "text-amber-500 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30"
-                              : featuredCount >= 6
+                            : featuredCount >= MAX_FEATURED_PUZZLES
                                 ? "text-gray-300 dark:text-gray-600 cursor-not-allowed"
                                 : "text-gray-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20"
                           }`}
                           title={
                             puzzle.featured
                               ? "Remove from dashboard"
-                              : featuredCount >= 6
-                                ? "Max 6 featured"
+                              : featuredCount >= MAX_FEATURED_PUZZLES
+                                ? `Max ${MAX_FEATURED_PUZZLES} featured`
                                 : "Show on dashboard"
                           }
                         >

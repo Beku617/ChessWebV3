@@ -94,6 +94,7 @@ import {
   messagesRoutes,
   learnRoutes,
   adminLearnRoutes,
+  analysisAiRoutes,
 } from "./routes/index.js";
 import {
   authMiddleware,
@@ -156,6 +157,8 @@ const PUBLIC_API_ROUTES = new Set([
   "GET:/oauth/config",
   "GET:/lichess/tv",
   "GET:/lichess/streamers",
+  "GET:/ai/status",
+  "POST:/ai/explanations",
   "POST:/admin/login",
   "POST:/admin/logout",
 ]);
@@ -357,6 +360,7 @@ app.use("/api/ratings", ratingsRoutes);
 app.use("/api/tournaments", tournamentRoutes);
 app.use("/api/messages", messagesRoutes);
 app.use("/api/learn", learnRoutes);
+app.use("/api/ai", analysisAiRoutes);
 app.use("/api/admin/learn", adminLearnRoutes);
 
 app.get("/api/active-game", async (req, res) => {
@@ -5788,6 +5792,7 @@ server.on("error", (error) => {
     console.error(
       `[server] port ${PORT} is already in use. Stop the other process and restart.`,
     );
+    process.exit(1);
     return;
   }
   console.error("[server] HTTP server error:", error);

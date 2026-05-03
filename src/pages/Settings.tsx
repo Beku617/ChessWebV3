@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import { useSettingsStore } from "../store/settingsStore";
 import { useAuthStore } from "../store/authStore";
@@ -23,6 +23,7 @@ import {
   unblockUser,
   useBlockedUsers,
 } from "../features/blocking/api";
+import { fetchAiProviderStatus, getAiProviderStatus } from "../utils/groqApi";
 
 function getLinkedProviders(user: ReturnType<typeof useAuthStore.getState>["user"], t: (key: string, fallback: string) => string) {
   const providers: string[] = [];
@@ -61,6 +62,41 @@ export default function Settings() {
   const { user } = useAuthStore();
   const { t, i18n } = useTranslation();
   const dirty = useMemo(() => isDirty(), [isDirty, settings]);
+  const [aiProviderStatus, setAiProviderStatus] = useState(() =>
+    getAiProviderStatus(settings.analysisAiModelId),
+  );
+  useEffect(() => {
+    let cancelled = false;
+    fetchAiProviderStatus(settings.analysisAiModelId)
+      .then((status) => {
+        if (!cancelled) setAiProviderStatus(status);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setAiProviderStatus(getAiProviderStatus(settings.analysisAiModelId));
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [settings.analysisAiModelId]);
+  const hasConfiguredAiProvider =
+    aiProviderStatus.anthropicConfigured ||
+    aiProviderStatus.groqConfigured;
+  const aiStatusLabel = hasConfiguredAiProvider
+    ? t("settings.ai.providerConnected", "AI provider configured")
+    : t("settings.ai.providerMissing", "No AI provider configured");
+  const aiProviderHelper = hasConfiguredAiProvider
+    ? t("settings.ai.providerHelperSelected", {
+        defaultValue:
+          "Selected model: {{model}}. Change model from Admin > Bots.",
+        model: aiProviderStatus.selectedModelName,
+      })
+    : t(
+        "settings.ai.providerHelperSetup",
+        "Add AWS_BEARER_TOKEN_BEDROCK or GROQ_API_KEY in the backend environment and restart the app.",
+      );
 
   const [passwordModal, setPasswordModal] = useState(false);
   const [blockedUsersModal, setBlockedUsersModal] = useState(false);
@@ -444,6 +480,97 @@ export default function Settings() {
                     onChange={(value) => update("premoves", value)}
                     ariaLabel="Premoves"
                   />
+                </SettingRow>
+              </SettingsCard>
+
+              <SettingsCard
+                title={t("settings.ai.title", "AI & Analysis")}
+                subtitle={t(
+                  "settings.ai.subtitle",
+                  "Configure AI-powered replay explanations",
+                )}
+                accent="bg-emerald-500"
+              >
+                <SettingRow
+                  label={t("settings.ai.explanations", "AI Move Explanations")}
+                  helper={t(
+                    "settings.ai.explanationsHelper",
+                    "Use the admin-selected model. If that provider fails and Groq is configured, Groq is used as fallback.",
+                  )}
+                >
+                  <Toggle
+                    enabled={settings.enableAiExplanations}
+                    onChange={(value) => update("enableAiExplanations", value)}
+                    ariaLabel={t(
+                      "settings.ai.explanations",
+                      "AI Move Explanations",
+                    )}
+                  />
+                </SettingRow>
+
+                <SettingRow
+                  label={t("settings.ai.explanationLevel", "Explanation Level")}
+                  helper={t(
+                    "settings.ai.explanationLevelHelper",
+                    "How detailed AI commentary should be",
+                  )}
+                >
+                  <SegmentedControl
+                    options={[
+                      {
+                        label: t("settings.ai.levels.brief", "Brief"),
+                        value: "brief",
+                      },
+                      {
+                        label: t("settings.ai.levels.normal", "Normal"),
+                        value: "normal",
+                      },
+                      {
+                        label: t("settings.ai.levels.deep", "Deep"),
+                        value: "deep",
+                      },
+                    ]}
+                    value={settings.explanationLevel}
+                    onChange={(value) =>
+                      update(
+                        "explanationLevel",
+                        value as "brief" | "normal" | "deep",
+                      )
+                    }
+                  />
+                </SettingRow>
+
+                <SettingRow
+                  label={t("settings.ai.postGame", "Post-Game Analysis")}
+                  helper={t(
+                    "settings.ai.postGameHelper",
+                    "Allow engine analysis after games",
+                  )}
+                >
+                  <Toggle
+                    enabled={settings.postGameAnalysis}
+                    onChange={(value) => update("postGameAnalysis", value)}
+                    ariaLabel={t(
+                      "settings.ai.postGame",
+                      "Post-Game Analysis",
+                    )}
+                  />
+                </SettingRow>
+
+                <SettingRow
+                  label={t("settings.ai.providerStatus", "AI Provider Status")}
+                  helper={aiProviderHelper}
+                  last
+                >
+                  <span
+                    className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
+                      hasConfiguredAiProvider
+                        ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/35 dark:text-emerald-300"
+                        : "bg-amber-100 text-amber-700 dark:bg-amber-900/35 dark:text-amber-300"
+                    }`}
+                  >
+                    {aiStatusLabel}
+                  </span>
                 </SettingRow>
               </SettingsCard>
 

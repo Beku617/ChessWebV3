@@ -11,6 +11,7 @@ interface ExplanationHeaderProps {
   qualityInfo?: MoveQualityInfo;
   evalTrend: EvalTrend;
   evalChange: string;
+  showAiBadge: boolean;
 }
 
 export function ExplanationHeader({
@@ -18,6 +19,7 @@ export function ExplanationHeader({
   qualityInfo,
   evalTrend,
   evalChange,
+  showAiBadge,
 }: ExplanationHeaderProps) {
   return (
     <div className="flex items-center justify-between mb-3">
@@ -26,11 +28,18 @@ export function ExplanationHeader({
           {currentMoveSan}
         </span>
         {qualityInfo && (
-          <span
-            className={`text-sm font-semibold ${getQualityColor(qualityInfo.label)}`}
-          >
-            {getQualityLabel(qualityInfo.label)}
-          </span>
+          <div className="flex items-center gap-1.5">
+            <span
+              className={`text-sm font-semibold ${getQualityColor(qualityInfo.label)}`}
+            >
+              {getQualityLabel(qualityInfo.label)}
+            </span>
+            {showAiBadge && (
+              <span className="inline-flex items-center rounded-full border border-violet-400/50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-violet-600 dark:text-violet-300">
+                AI
+              </span>
+            )}
+          </div>
         )}
       </div>
       <div className="flex items-center gap-1">

@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useMemo } from "react";
 import { GameHistory } from "../../historyTypes";
 import {
   ReplayBoard,
@@ -14,6 +15,7 @@ import { useGameReplay960 } from "../../hooks/useGameReplay960";
 import { useAuthStore } from "../../store/authStore";
 import { AnalysisLoadingOverlay } from "../analyze/AnalysisLoadingOverlay";
 import { getAnalyzeActivePlayerSide } from "../analyze/activePlayer";
+import { useAiExplanations } from "../../components/replay/explanation/useAiExplanations";
 
 interface ReplayContent960Props {
   game: GameHistory;
@@ -23,6 +25,18 @@ export function ReplayContent960({ game }: ReplayContent960Props) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const replay = useGameReplay960(game);
+  const ai = useAiExplanations({
+    moveQualities: replay.moveQualities,
+    analysisByPly: replay.analysisByPly,
+    positions: replay.positions,
+    sanMoves: replay.sanMoves,
+    gameId: game._id,
+    analysisReady: !replay.isAnalyzing,
+  });
+  const aiExplainedPlies = useMemo(
+    () => new Set(ai.explanationsByPly.keys()),
+    [ai.explanationsByPly],
+  );
   const viewerUserId = useAuthStore((state) => state.user?.id ?? null);
   const activePlayerSide = getAnalyzeActivePlayerSide({
     viewerUserId,
@@ -37,13 +51,18 @@ export function ReplayContent960({ game }: ReplayContent960Props) {
   return (
     <div className="h-[100dvh] bg-[#f5f5f7] dark:bg-gray-950 text-gray-900 dark:text-white flex flex-col overflow-hidden">
       <div className="flex-shrink-0 px-4 sm:px-6 pt-4 mb-2">
-        <button
-          onClick={() => navigate("/profile")}
-          className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-        >
-          <ArrowLeft size={16} />
-          <span>{t("analysis.back")}</span>
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => navigate("/profile")}
+            className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+          >
+            <ArrowLeft size={16} />
+            <span>{t("analysis.back")}</span>
+          </button>
+          <h1 className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+            {t("analysis.title", "Analysis")}
+          </h1>
+        </div>
       </div>
 
       <div className="flex-1 min-h-0 w-full px-4 sm:px-6 pb-3">
@@ -107,6 +126,12 @@ export function ReplayContent960({ game }: ReplayContent960Props) {
                 positions={replay.positions}
                 sanMoves={replay.sanMoves}
                 gameId={game._id}
+                aiExplanationsByPly={ai.explanationsByPly}
+                aiLoading={ai.aiLoading}
+                aiError={ai.aiError}
+                aiModel={ai.modelUsed}
+                aiEnabled={ai.enableAiExplanations}
+                isAiConfigured={ai.isAiConfigured}
               />
             </div>
 
@@ -116,6 +141,7 @@ export function ReplayContent960({ game }: ReplayContent960Props) {
                   moveRows={replay.moveRows}
                   currentPly={replay.ply}
                   onJumpTo={replay.jumpTo}
+                  aiExplainedPlies={aiExplainedPlies}
                 />
               </div>
             </div>

@@ -4,6 +4,7 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ReactElement } from "react";
 import { Chessboard } from "react-chessboard";
 import { useLocation, useNavigate } from "react-router-dom";
+import { ChessMoveList, buildChessMoveRows } from "../../components/game";
 import { PromotionModal } from "../../components/game/PromotionModal";
 import type { PromotionPiece, PromotionState } from "../../components/game";
 import { usePreMove } from "../../chess/usePreMove";
@@ -293,20 +294,6 @@ function evaluateGame(game: Chess) {
   return { score: roundedScore, label, percent };
 }
 
-function buildMoveRows(moves: string[]) {
-  const rows: Array<{ moveNumber: number; white?: string; black?: string }> = [];
-
-  for (let index = 0; index < moves.length; index += 2) {
-    rows.push({
-      moveNumber: Math.floor(index / 2) + 1,
-      white: moves[index],
-      black: moves[index + 1],
-    });
-  }
-
-  return rows;
-}
-
 function createGameFromFen(fen: string) {
   const game = new Chess();
   if (fen !== "start") {
@@ -474,7 +461,7 @@ export default function PlayPractice() {
     multiPv: 5,
     depth: 14,
   });
-  const moveRows = useMemo(() => buildMoveRows(sanMoves), [sanMoves]);
+  const moveRows = useMemo(() => buildChessMoveRows(sanMoves), [sanMoves]);
   const activeMode = useMemo(
     () => PRACTICE_MODES.find((mode) => mode.id === selectedModeId) ?? PRACTICE_MODES[0],
     [selectedModeId],
@@ -488,8 +475,14 @@ export default function PlayPractice() {
   const lastMoveSquares = useMemo<Record<string, CSSProperties>>(() => {
     if (!lastMove) return {};
     return {
-      [lastMove.from]: { backgroundColor: "rgba(250, 204, 21, 0.5)" },
-      [lastMove.to]: { backgroundColor: "rgba(74, 222, 128, 0.55)" },
+      [lastMove.from]: {
+        boxShadow: "inset 0 0 0 3px rgba(250, 204, 21, 0.95)",
+        borderRadius: "0",
+      },
+      [lastMove.to]: {
+        boxShadow: "inset 0 0 0 3px rgba(250, 204, 21, 0.95)",
+        borderRadius: "0",
+      },
     };
   }, [lastMove]);
   const boardSquareStyles = useMemo(
@@ -1686,125 +1679,19 @@ export default function PlayPractice() {
                         fontFamily: '"Roboto Mono", monospace',
                       }}
                     >
-                      {moveRows.length === 0 ? (
-                        <div
-                          style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            gap: 10,
-                            height: "100%",
-                            minHeight: 260,
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: 44,
-                              height: 44,
-                              borderRadius: 12,
-                              background: "#1a2540",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}
-                          >
-                            <svg
-                              width="20"
-                              height="20"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="#334155"
-                              strokeWidth="1.8"
-                            >
-                              <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
-                              <rect x="9" y="3" width="6" height="4" rx="1" />
-                              <path d="M9 12h6M9 16h4" />
-                            </svg>
-                          </div>
-                          <p
-                            style={{
-                              fontSize: 12.5,
-                              color: "#3d4f6b",
-                              textAlign: "center",
-                              lineHeight: 1.7,
-                            }}
-                          >
-                            Make a legal move to start
-                            <br />
-                            your PGN list.
-                          </p>
-                        </div>
-                      ) : (
-                        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                          {moveRows.map((row, rowIndex) => {
-                            const latestMoveIndex = sanMoves.length - 1;
-                            const latestRowIndex = Math.floor(latestMoveIndex / 2);
-                            const latestIsWhiteMove = latestMoveIndex % 2 === 0;
-                            const whiteIsActive =
-                              rowIndex === latestRowIndex && latestIsWhiteMove;
-                            const blackIsActive =
-                              rowIndex === latestRowIndex && !latestIsWhiteMove;
-
-                            return (
-                            <div
-                              key={row.moveNumber}
-                              style={{
-                                display: "grid",
-                                gridTemplateColumns: "30px minmax(0,1fr) minmax(0,1fr)",
-                                gap: 6,
-                                fontSize: 12,
-                                alignItems: "center",
-                              }}
-                            >
-                              <span style={{ color: "#334155" }}>{row.moveNumber}.</span>
-                              <span
-                                style={{
-                                  fontSize: 12,
-                                  fontWeight: 500,
-                                  color: whiteIsActive ? "#fff" : "#94a3b8",
-                                  background: whiteIsActive
-                                    ? "linear-gradient(135deg, rgb(var(--color-brand-500-rgb)), rgb(var(--color-brand-600-rgb)))"
-                                    : "#1a2640",
-                                  borderRadius: 5,
-                                  padding: "4px 8px",
-                                  whiteSpace: "nowrap",
-                                  overflow: "hidden",
-                                  textOverflow: "ellipsis",
-                                  boxShadow: whiteIsActive
-                                    ? "0 2px 8px rgb(var(--color-brand-500-rgb) / 0.28)"
-                                    : "none",
-                                }}
-                              >
-                                {row.white ?? ""}
-                              </span>
-                              <span
-                                style={{
-                                  fontSize: 12,
-                                  fontWeight: 500,
-                                  color: blackIsActive ? "#fff" : "#94a3b8",
-                                  background: blackIsActive
-                                    ? "linear-gradient(135deg, rgb(var(--color-brand-500-rgb)), rgb(var(--color-brand-600-rgb)))"
-                                    : "#1a2640",
-                                  borderRadius: 5,
-                                  padding: "4px 8px",
-                                  whiteSpace: "nowrap",
-                                  overflow: "hidden",
-                                  textOverflow: "ellipsis",
-                                  opacity: row.black ? 1 : 0.52,
-                                  boxShadow: blackIsActive
-                                    ? "0 2px 8px rgb(var(--color-brand-500-rgb) / 0.28)"
-                                    : "none",
-                                }}
-                              >
-                                {row.black ?? "--"}
-                              </span>
-                            </div>
-                            );
-                          })}
-                          <div ref={movesEndRef} />
-                        </div>
-                      )}
+                      <ChessMoveList
+                        rows={moveRows}
+                        emptyMessage="Make a legal move to start your PGN list."
+                        activePly={sanMoves.length || null}
+                        rowClassName="grid grid-cols-[30px_minmax(0,1fr)_minmax(0,1fr)] gap-1.5 items-center text-sm"
+                        moveNumberClassName="text-[#334155]"
+                        moveCellClassName="font-medium rounded-[5px] px-2 py-1 bg-[#1a2640] text-[#94a3b8]"
+                        activeMoveClassName="bg-[linear-gradient(135deg,rgb(var(--color-brand-500-rgb)),rgb(var(--color-brand-600-rgb)))] text-white shadow-[0_2px_8px_rgb(var(--color-brand-500-rgb)/0.28)]"
+                        inactiveMoveClassName="text-[#94a3b8]"
+                        showMissingMoveCell
+                        missingMoveText="--"
+                        footer={<div ref={movesEndRef} />}
+                      />
                     </div>
                   </div>
 

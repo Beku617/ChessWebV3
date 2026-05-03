@@ -127,6 +127,11 @@ const getMessagePreview = (content, attachments, sharedGame) => {
 };
 
 const toObjectId = (value) => new mongoose.Types.ObjectId(String(value));
+const toObjectIdSafe = (value) => {
+  const text = String(value || "").trim();
+  if (!mongoose.Types.ObjectId.isValid(text)) return null;
+  return new mongoose.Types.ObjectId(text);
+};
 const toId = (value) => (value ? String(value) : "");
 const isValidObjectId = (value) =>
   mongoose.Types.ObjectId.isValid(String(value || ""));
@@ -141,8 +146,11 @@ router.use(authMiddleware);
 // GET /api/messages/conversations — list conversations with latest visible message
 router.get("/conversations", async (req, res) => {
   try {
-    const userId = toObjectId(req.user.userId);
-    const userIdStr = String(req.user.userId);
+    const userId = toObjectIdSafe(req.user?.userId);
+    if (!userId) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
+    const userIdStr = toId(userId);
 
     const conversations = await Message.aggregate([
       {
@@ -293,15 +301,28 @@ router.get("/conversations", async (req, res) => {
 // GET /api/messages/unread-count — total unread count for visible messages
 router.get("/unread-count", async (req, res) => {
   try {
-    const userId = toObjectId(req.user.userId);
+    const userId = toObjectIdSafe(req.user?.userId);
+    if (!userId) {
+      return res.status(401).json({ error: "Not authenticated" });
+    }
     const states = await UserConversationState.find({
-      userId: req.user.userId,
+      userId,
     })
       .select("partnerId clearedAt")
       .lean();
 
-    const clearedStates = states.filter((s) => s.clearedAt);
-    const clearedPartners = clearedStates.map((s) => toObjectId(s.partnerId));
+    const clearedStates = states
+      .filter((state) => state?.clearedAt)
+      .map((state) => ({
+        partnerId: toObjectIdSafe(state?.partnerId),
+        clearedAt: new Date(state.clearedAt),
+      }))
+      .filter(
+        (state) =>
+          !!state.partnerId &&
+          Number.isFinite(state.clearedAt.getTime()),
+      );
+    const clearedPartners = clearedStates.map((state) => state.partnerId);
 
     const query = {
       receiver: userId,
@@ -314,7 +335,7 @@ router.get("/unread-count", async (req, res) => {
         { sender: { $nin: clearedPartners } },
         ...clearedStates.map((s) => ({
           $and: [
-            { sender: toObjectId(s.partnerId) },
+            { sender: s.partnerId },
             { createdAt: { $gt: s.clearedAt } },
           ],
         })),

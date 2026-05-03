@@ -6,6 +6,10 @@ import {
   resolveBoardThemeId,
   writeBoardThemeToStorage,
 } from "../config/boardThemes";
+import {
+  getAnalysisAiModelById,
+  getDefaultAnalysisAiModelId,
+} from "../utils/analysisAiModels";
 
 /* ─── Settings values shape ─── */
 export interface SettingsValues {
@@ -39,6 +43,7 @@ export interface SettingsValues {
 
   // AI / Analysis
   enableAiExplanations: boolean;
+  analysisAiModelId: string;
   explanationLevel: "brief" | "normal" | "deep";
   postGameAnalysis: boolean;
   engineStrength: number;
@@ -72,6 +77,7 @@ export const defaultSettings: SettingsValues = {
   showLastSeen: true,
 
   enableAiExplanations: true,
+  analysisAiModelId: getDefaultAnalysisAiModelId(),
   explanationLevel: "normal",
   postGameAnalysis: true,
   engineStrength: 10,
@@ -184,6 +190,13 @@ export const useSettingsStore = create<SettingsState>()(
           ...currentState.savedSettings,
           ...(persisted.savedSettings || {}),
         };
+        const normalizedAiModelId = getAnalysisAiModelById(
+          mergedSettings.analysisAiModelId ||
+            mergedSavedSettings.analysisAiModelId ||
+            currentState.settings.analysisAiModelId,
+        ).id;
+        mergedSettings.analysisAiModelId = normalizedAiModelId;
+        mergedSavedSettings.analysisAiModelId = normalizedAiModelId;
 
         let storageThemeRaw: string | null = null;
         if (typeof window !== "undefined") {

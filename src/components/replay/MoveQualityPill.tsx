@@ -26,14 +26,29 @@ const colorMap: Record<MoveQuality, string> = {
     "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-200",
 };
 
-export function MoveQualityPill({ quality }: { quality: MoveQuality }) {
+export function MoveQualityPill({
+  quality,
+  showAiBadge = false,
+}: {
+  quality: MoveQuality;
+  showAiBadge?: boolean;
+}) {
   useTranslation();
   const label = getQualityLabel(quality);
   const styles = colorMap[quality] || colorMap.Unknown;
 
   return (
-    <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${styles}`}>
-      {label}
+    <span className="inline-flex items-center gap-1.5">
+      <span
+        className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${styles}`}
+      >
+        {label}
+      </span>
+      {showAiBadge && (
+        <span className="inline-flex items-center rounded-full border border-violet-400/50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-violet-600 dark:text-violet-300">
+          AI
+        </span>
+      )}
     </span>
   );
 }

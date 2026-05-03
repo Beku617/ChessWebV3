@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Chessboard } from "react-chessboard";
+import { useTranslation } from "react-i18next";
+import { createCburnettCustomPieces } from "./chessPieceIcons";
 
 interface ReplayBoardProps {
   position: string;
@@ -10,6 +12,8 @@ interface ReplayBoardProps {
   isStalemate: boolean;
 }
 
+const CBURNETT_CUSTOM_PIECES = createCburnettCustomPieces();
+
 export function ReplayBoard({
   position,
   orientation,
@@ -18,6 +22,7 @@ export function ReplayBoard({
   isCheckmate,
   isStalemate,
 }: ReplayBoardProps) {
+  const { t } = useTranslation();
   const getViewport = () => ({
     width: typeof window !== "undefined" ? window.innerWidth : 1280,
     height: typeof window !== "undefined" ? window.innerHeight : 800,
@@ -40,8 +45,14 @@ export function ReplayBoard({
 
   const squareStyles = lastMove
     ? {
-        [lastMove.from]: { background: "rgba(59, 130, 246, 0.4)" },
-        [lastMove.to]: { background: "rgba(16, 185, 129, 0.5)" },
+        [lastMove.from]: {
+          boxShadow:
+            "inset 0 0 0 3px rgba(250, 204, 21, 0.95), inset 0 0 0 1px rgba(120, 53, 15, 0.45)",
+        },
+        [lastMove.to]: {
+          boxShadow:
+            "inset 0 0 0 3px rgba(250, 204, 21, 0.95), inset 0 0 0 1px rgba(120, 53, 15, 0.45)",
+        },
       }
     : {};
 
@@ -52,6 +63,7 @@ export function ReplayBoard({
           id="replay-board"
           position={position}
           boardOrientation={orientation}
+          customPieces={CBURNETT_CUSTOM_PIECES}
           animationDuration={0}
           boardWidth={boardWidth}
           customSquareStyles={squareStyles}
@@ -74,7 +86,11 @@ export function ReplayBoard({
                 : "bg-amber-500"
           }`}
         >
-          {isCheckmate ? "Checkmate!" : isStalemate ? "Stalemate" : "Check!"}
+          {isCheckmate
+            ? t("analysis.checkmate", "Checkmate!")
+            : isStalemate
+              ? t("analysis.stalemate", "Stalemate")
+              : t("analysis.check", "Check!")}
         </div>
       )}
     </div>

@@ -14,6 +14,10 @@ export type OpeningMatch = {
   source: OpeningSource;
 };
 
+const REMOTE_EXPLORER_ENABLED =
+  String(import.meta.env.VITE_ENABLE_REMOTE_OPENING_EXPLORER || "").toLowerCase() ===
+  "true";
+
 type BookLine = OpeningLine & { uci: string[]; line: string };
 
 // Precompute UCI move strings for every book line for fast matching
@@ -130,7 +134,7 @@ export async function fetchLichessOpening(
   uciMoves: string[],
   signal?: AbortSignal,
 ): Promise<OpeningMatch | null> {
-  if (!uciMoves.length) return null;
+  if (!REMOTE_EXPLORER_ENABLED || !uciMoves.length) return null;
   const play = lichessPlayParam(uciMoves);
   const url = `https://explorer.lichess.ovh/masters?play=${play}`;
 

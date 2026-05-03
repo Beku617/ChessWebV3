@@ -245,9 +245,16 @@
       "title": "Хиймэл оюун ба шинжилгээ",
       "subtitle": "Хиймэл оюуны тохиргоо",
       "explanations": "AI нүүдлийн тайлбар",
-      "explanationsHelper": "Llama 3 загварт суурилсан нүүдлийн дэлгэрэнгүй тайлбар",
+      "explanationsHelper": "Админаас сонгосон AI загварыг ашиглана. Тэр загвар ажиллахгүй, Groq тохируулагдсан бол Groq-г нөөцөөр ашиглана.",
       "groqConnected": "Groq API холбогдсон",
       "groqMissing": "VITE_GROQ_API_KEY байхгүй байна — .env файлд нэмнэ үү",
+      "providerStatus": "AI үйлчилгээний төлөв",
+      "providerConnected": "AI үйлчилгээ тохируулагдсан",
+      "providerMissing": "AI үйлчилгээ тохируулагдаагүй",
+      "providerHelperPrimary": "Primary: Claude Haiku 4.5 (Bedrock). Fallback: Groq Llama 3.3 70B.",
+      "providerHelperFallbackOnly": "Bedrock token missing. Using Groq fallback only.",
+      "providerHelperSetup": ".env файлд VITE_AWS_BEARER_TOKEN_BEDROCK, VITE_OPENAI_API_KEY, VITE_XAI_API_KEY, VITE_DEEPSEEK_API_KEY эсвэл VITE_GROQ_API_KEY нэмээд app-аа дахин асаана уу.",
+      "providerHelperSelected": "Сонгосон загвар: {{model}}. Загварыг Admin > Bots хэсгээс солино.",
       "explanationLevel": "Тайлбарын дэлгэрэнгүй байдал",
       "explanationLevelHelper": "AI тайлбарын нарийвчлалын түвшин",
       "levels": {
@@ -463,6 +470,9 @@
     "moveAnalysisUnavailable": "Энэ нүүдэлд шинжилгээний мэдээлэл байхгүй байна.",
     "aiLoading": "AI тайлбар авч байна...",
     "aiLoadFailed": "AI тайлбар авч чадсангүй",
+    "aiLoadTimedOut": "AI тайлбар хэт удаан хүлээлээ. Оронд нь суурь шинжилгээний тайлбарыг харуулж байна.",
+    "aiProviderMissingForModel": "Сонгосон AI загвар тохируулагдаагүй байна. Шаардлагатай provider key-г нэмээд дахин оролдоно уу.",
+    "aiNoExplanationsReturned": "AI загвар энэ тоглолтын тайлбарыг зөв бүтэцтэй буцаасангүй. Өөр загвар сонгоод үзнэ үү.",
     "bestMove": "Оновчтой нүүдэл:",
     "bestMovePlayed": "Та энэ нүүдлийг хийсэн байна!",
     "tip": "Зөвлөгөө:",
@@ -489,7 +499,7 @@
       "Mistake": "Алдаа",
       "Miss": "Боломж алдсан",
       "Blunder": "Ноцтой алдаа",
-      "Unknown": "—"
+      "Unknown": "?"
     },
     "colors": {
       "white": "цагаан",
@@ -571,7 +581,16 @@
       "fetchGame": "Тоглолцоог татаж чадсангүй",
       "loadGame": "Тоглолцоог ачаалж чадсангүй",
       "unableToLoadGame": "Тоглолцоог ачаалах боломжгүй байна"
-    }
+    },
+    "title": "Шинжилгээ",
+    "summary": "Дүгнэлт",
+    "accuracy": "Нарийвчлал",
+    "analyzedBy": "Шинжилсэн хөдөлгүүр:",
+    "engineEvaluation": "Хөдөлгүүрийн үнэлгээ",
+    "noMovesYet": "Одоогоор нүүдэл байхгүй",
+    "check": "Шах!",
+    "checkmate": "Мат!",
+    "stalemate": "Пат"
   },
   "presence": {
     "unknown": "тодорхойгүй",

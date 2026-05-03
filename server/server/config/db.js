@@ -1,20 +1,7 @@
 import mongoose from "mongoose";
-import dotenv from "dotenv";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
-import { existsSync } from "fs";
+import { envCandidates, loadServerEnv } from "./env.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const envCandidates = [
-  join(__dirname, "..", "..", "..", ".env"),
-  join(__dirname, "..", "..", ".env"),
-  join(process.cwd(), ".env"),
-];
-
-const envPath = envCandidates.find((candidate) => existsSync(candidate));
-dotenv.config(envPath ? { path: envPath } : undefined);
+loadServerEnv();
 
 const MONGODB_URL = process.env.MONGODB_URL;
 

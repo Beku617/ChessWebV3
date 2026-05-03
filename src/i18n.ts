@@ -13,7 +13,7 @@ const resources = {
 };
 
 export const supportedLanguages = [
-  { code: "mn", name: "Монгол" },
+  { code: "mn", name: "\u041c\u043e\u043d\u0433\u043e\u043b" },
   { code: "en", name: "English" },
 ];
 

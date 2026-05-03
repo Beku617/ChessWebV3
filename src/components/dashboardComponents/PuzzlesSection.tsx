@@ -20,6 +20,7 @@ interface Puzzle {
 }
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const FEATURED_PUZZLE_COUNT = 3;
 
 interface PuzzlesSectionProps {
   showTopDivider?: boolean;
@@ -106,12 +107,17 @@ export function PuzzlesSection({ showTopDivider = true }: PuzzlesSectionProps) {
   useEffect(() => {
     const fetchPuzzles = async () => {
       try {
-        const res = await fetch(`${API_URL}/api/puzzles/featured?limit=6`, {
-          credentials: "include",
-        });
+        const res = await fetch(
+          `${API_URL}/api/puzzles/featured?limit=${FEATURED_PUZZLE_COUNT}`,
+          {
+            credentials: "include",
+          },
+        );
         if (res.ok) {
           const data = await res.json();
-          setPuzzles(data);
+          setPuzzles(
+            Array.isArray(data) ? data.slice(0, FEATURED_PUZZLE_COUNT) : [],
+          );
         }
       } catch (err) {
         console.error("Failed to fetch puzzles:", err);

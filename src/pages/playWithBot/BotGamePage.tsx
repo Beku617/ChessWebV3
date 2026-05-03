@@ -1,8 +1,14 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import { useStockfishGame } from "../../hooks/useStockfishGame";
-import { GameOverModal, GameBoard } from "../../components/game";
+import {
+  GameOverModal,
+  GameBoard,
+  ChessMoveList,
+  MoveListTabs,
+  buildChessMoveRows,
+} from "../../components/game";
 import { navigateToNewGameRoute } from "../../components/game/newGameRouting";
 import { ChessTimer } from "../../components/game/ChessTimer";
 import type { GameSettings } from "../../components/game";
@@ -10,8 +16,7 @@ import { defaultGameSettings } from "../../hooks/useStockfishGameTypes";
 import type { BotPersonality } from "../../data/botPersonalities";
 import Sidebar from "../../components/Sidebar";
 import { BOARD_FRAME } from "./types";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+import { API_URL } from "../../config/network";
 
 function resolveBotAvatarUrl(input: unknown): string {
   const avatarUrl = String(input || "").trim();
@@ -101,7 +106,7 @@ export default function BotGamePage() {
   const [boardWidth, setBoardWidth] = useState(620);
   const containerRef = useRef<HTMLDivElement>(null);
   const leftRef = useRef<HTMLDivElement>(null);
-  const moveListRef = useRef<HTMLDivElement>(null);
+  const moveRows = useMemo(() => buildChessMoveRows(moves), [moves]);
 
   // Fetch bot from API
   useEffect(() => {
@@ -180,13 +185,6 @@ export default function BotGamePage() {
     handleNewGame();
     navigateToNewGameRoute(navigate, { mode: "bot" });
   }, [handleNewGame, navigate]);
-
-  // Auto-scroll move list to bottom when new moves are added
-  useEffect(() => {
-    if (moveListRef.current) {
-      moveListRef.current.scrollTop = moveListRef.current.scrollHeight;
-    }
-  }, [moves]);
 
   // Loading state
   if (loading) {
@@ -382,41 +380,18 @@ export default function BotGamePage() {
                 </div>
 
                 {/* Move List - Scrollable */}
-                <div
-                  ref={moveListRef}
-                  className="flex-1 overflow-y-auto min-h-0"
-                >
-                  <div className="p-3">
-                    {moves.length === 0 ? (
-                      <div className="text-center text-gray-400 dark:text-gray-500 text-sm py-8">
-                        Game in progress...
-                      </div>
-                    ) : (
-                      <div className="space-y-1">
-                        {Array.from(
-                          { length: Math.ceil(moves.length / 2) },
-                          (_, i) => (
-                            <div
-                              key={i}
-                              className="flex items-center text-sm font-mono"
-                            >
-                              <span className="w-8 text-gray-400 dark:text-gray-500">
-                                {i + 1}.
-                              </span>
-                              <span className="flex-1 px-2 text-gray-800 dark:text-gray-200">
-                                {moves[i * 2]}
-                              </span>
-                              {moves[i * 2 + 1] && (
-                                <span className="flex-1 px-2 text-gray-800 dark:text-gray-200">
-                                  {moves[i * 2 + 1]}
-                                </span>
-                              )}
-                            </div>
-                          ),
-                        )}
-                      </div>
-                    )}
-                  </div>
+                <div className="flex-1 min-h-0 overflow-hidden">
+                  <MoveListTabs
+                    movesContent={
+                      <ChessMoveList
+                        rows={moveRows}
+                        emptyMessage="No moves yet"
+                        rowClassName="text-sm"
+                        inactiveMoveClassName="text-gray-800 dark:text-gray-200"
+                      />
+                    }
+                    showMessagesTab={false}
+                  />
                 </div>
 
                 {/* Action Buttons - Fixed */}
@@ -443,3 +418,4 @@ export default function BotGamePage() {
     </div>
   );
 }
+

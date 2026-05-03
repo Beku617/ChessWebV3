@@ -1,24 +1,10 @@
 import { useTranslation } from "react-i18next";
+import { ChessPieceIcon } from "./chessPieceIcons";
 
 interface CapturedPiecesProps {
   capturedByWhite: string[];
   capturedByBlack: string[];
 }
-
-const pieceGlyph: Record<string, string> = {
-  p: "P",
-  n: "N",
-  b: "B",
-  r: "R",
-  q: "Q",
-  k: "K",
-  P: "P",
-  N: "N",
-  B: "B",
-  R: "R",
-  Q: "Q",
-  K: "K",
-};
 
 function PieceList({ pieces, label }: { pieces: string[]; label: string }) {
   const { t } = useTranslation();
@@ -27,15 +13,18 @@ function PieceList({ pieces, label }: { pieces: string[]; label: string }) {
       <div className="text-xs font-semibold text-gray-500 flex items-center gap-2 mb-1">
         {label}
       </div>
-      <div className="flex flex-wrap gap-1 text-xl min-h-[28px]">
+      <div className="flex flex-wrap items-center gap-1.5 min-h-[28px]">
         {pieces.length === 0 ? (
           <span className="text-gray-400 text-sm">
             {t("analysis.none", "None")}
           </span>
         ) : (
           pieces.map((p, i) => (
-            <span key={i} className="text-gray-700 dark:text-gray-300">
-              {pieceGlyph[p] || pieceGlyph[p.toLowerCase()] || p}
+            <span
+              key={`${p}-${i}`}
+              className="inline-flex h-6 w-6 items-center justify-center rounded-sm bg-white/80 dark:bg-gray-800/80"
+            >
+              <ChessPieceIcon piece={p} className="h-5 w-5" />
             </span>
           ))
         )}

@@ -9,6 +9,7 @@
     "dev:server": "npm --prefix server run dev",
     "build": "vite build",
     "preview": "vite preview",
+    "ai:check": "node scripts/check-ai-models.mjs",
     "migrate:ratings:pools": "npm --prefix server run migrate:ratings:pools --",
     "migrate:ratings:pools:dry": "npm --prefix server run migrate:ratings:pools -- --dry-run",
     "seed:leaderboard": "npm --prefix server run seed:leaderboard --",

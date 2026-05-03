@@ -13,7 +13,7 @@ export function BestMoveDisplay({ bestMoveInfo }: BestMoveDisplayProps) {
       <div className="flex items-center gap-2">
         <div className="flex-1">
           <span className="text-xs text-gray-500 dark:text-gray-400">
-            {t("analysis.bestMove", "Best move:")}{" "}
+            {t("analysis.bestMove", "Best move")}{" "}
           </span>
           <span
             className={`font-mono font-semibold ${

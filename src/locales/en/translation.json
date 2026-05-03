@@ -245,9 +245,16 @@
       "title": "AI & Analysis",
       "subtitle": "Configure AI-powered features",
       "explanations": "AI Move Explanations",
-      "explanationsHelper": "Get detailed move analysis powered by Llama 3",
+      "explanationsHelper": "Use the admin-selected model. If that provider fails and Groq is configured, Groq is used as fallback.",
       "groqConnected": "Groq API connected",
       "groqMissing": "VITE_GROQ_API_KEY missing — add it to .env",
+      "providerStatus": "AI Provider Status",
+      "providerConnected": "AI provider configured",
+      "providerMissing": "No AI provider configured",
+      "providerHelperPrimary": "Primary: Claude Haiku 4.5 (Bedrock). Fallback: Groq Llama 3.3 70B.",
+      "providerHelperFallbackOnly": "Bedrock token missing. Using Groq fallback only.",
+      "providerHelperSetup": "Add provider keys (for example VITE_AWS_BEARER_TOKEN_BEDROCK, VITE_OPENAI_API_KEY, VITE_XAI_API_KEY, VITE_DEEPSEEK_API_KEY, or VITE_GROQ_API_KEY) in .env and restart the app.",
+      "providerHelperSelected": "Selected model: {{model}}. Change model from Admin > Bots.",
       "explanationLevel": "Explanation Level",
       "explanationLevelHelper": "How detailed AI commentary should be",
       "levels": {
@@ -463,7 +470,10 @@
     "moveAnalysisUnavailable": "No analysis data available for this move.",
     "aiLoading": "Getting AI explanation...",
     "aiLoadFailed": "Failed to get AI explanations",
-    "bestMove": "Best move:",
+    "aiLoadTimedOut": "AI explanation timed out. Showing the built-in analysis instead.",
+    "aiProviderMissingForModel": "Selected AI model is not configured. Add the required provider key and try again.",
+    "aiNoExplanationsReturned": "AI model returned no structured explanations for this game. Try another model.",
+    "bestMove": "Best move",
     "bestMovePlayed": "You played this!",
     "tip": "Tip:",
     "none": "None",
@@ -472,7 +482,7 @@
     "moves": "Moves",
     "moveListWhite": "White",
     "moveListBlack": "Black",
-    "noMovesRecorded": "No moves recorded",
+    "noMovesRecorded": "No moves yet",
     "moveListHints": "← → Navigate • Space Play • F Flip",
     "qualityBreakdown": {
       "white": "White",
@@ -481,15 +491,15 @@
     "qualityLabels": {
       "Brilliant": "Brilliant",
       "Great": "Great",
-      "Best": "Best",
+      "Best": "Best move",
       "Excellent": "Excellent",
-      "Good": "Good",
+      "Good": "Good move",
       "Book": "Book",
       "Inaccuracy": "Inaccuracy",
       "Mistake": "Mistake",
       "Miss": "Miss",
       "Blunder": "Blunder",
-      "Unknown": "—"
+      "Unknown": "?"
     },
     "colors": {
       "white": "White",
@@ -558,8 +568,8 @@
         "details": "Analysis not available for this move."
       }
     },
-    "loadingTitle": "Analyzing Your Game",
-    "adminLoadingTitle": "Analyzing Game",
+    "loadingTitle": "Loading analysis...",
+    "adminLoadingTitle": "Loading analysis...",
     "loadingDescription": "Stockfish is evaluating each position to calculate accuracy and move quality",
     "progress": "Progress",
     "evaluatingPositions": "Evaluating positions",
@@ -571,7 +581,16 @@
       "fetchGame": "Failed to fetch game",
       "loadGame": "Failed to load game",
       "unableToLoadGame": "Unable to load game"
-    }
+    },
+    "title": "Analysis",
+    "summary": "Summary",
+    "accuracy": "Accuracy",
+    "analyzedBy": "Analyzed by",
+    "engineEvaluation": "Engine evaluation",
+    "noMovesYet": "No moves yet",
+    "check": "Check!",
+    "checkmate": "Checkmate!",
+    "stalemate": "Stalemate"
   },
   "presence": {
     "unknown": "unknown",

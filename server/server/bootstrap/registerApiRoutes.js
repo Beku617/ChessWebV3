@@ -7,6 +7,7 @@ import {
   adminPuzzlesRoutes,
   adminRoutes,
   adminUsersRoutes,
+  analysisAiRoutes,
   authRoutes,
   botsRoutes,
   communityRoutes,
@@ -46,6 +47,7 @@ function registerApiRoutes(app) {
   app.use("/api/tournaments", tournamentRoutes);
   app.use("/api/messages", messagesRoutes);
   app.use("/api/learn", learnRoutes);
+  app.use("/api/ai", analysisAiRoutes);
 }
 
 export { registerApiRoutes };

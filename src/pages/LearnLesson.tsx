@@ -173,8 +173,12 @@ export default function LearnLesson() {
   const boardSquareStyles = useMemo(() => {
     const styles: Record<string, React.CSSProperties> = { ...moveSquares };
     if (lastMove) {
-      styles[lastMove.from] = { backgroundColor: "rgba(250, 204, 21, 0.45)" };
-      styles[lastMove.to] = { backgroundColor: "rgba(16, 185, 129, 0.35)" };
+      styles[lastMove.from] = {
+        boxShadow: "inset 0 0 0 3px rgba(250, 204, 21, 0.95)",
+      };
+      styles[lastMove.to] = {
+        boxShadow: "inset 0 0 0 3px rgba(250, 204, 21, 0.95)",
+      };
     }
     return styles;
   }, [lastMove, moveSquares]);

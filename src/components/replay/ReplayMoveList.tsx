@@ -1,6 +1,8 @@
-import { useEffect, useRef } from "react";
+﻿import { useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { MoveRow } from "../../hooks/useGameReplay";
+import { ChessMoveList } from "../../components/game";
+import type { ChessMoveRow } from "../../components/game";
 import { MoveQualityPill } from "./MoveQualityPill";
 
 interface ReplayMoveListProps {
@@ -8,6 +10,7 @@ interface ReplayMoveListProps {
   currentPly: number;
   onJumpTo: (ply: number) => void;
   opening?: string;
+  aiExplainedPlies?: Set<number>;
 }
 
 export function ReplayMoveList({
@@ -15,20 +18,52 @@ export function ReplayMoveList({
   currentPly,
   onJumpTo,
   opening,
+  aiExplainedPlies,
 }: ReplayMoveListProps) {
   const { t } = useTranslation();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const rowRefs = useRef<Map<number, HTMLDivElement>>(new Map());
 
-  const setRowRef =
-    (whitePly: number, blackPly?: number) => (el: HTMLDivElement | null) => {
-      if (!el) {
-        rowRefs.current.delete(whitePly);
-        if (blackPly) rowRefs.current.delete(blackPly);
-      } else {
-        rowRefs.current.set(whitePly, el);
-        if (blackPly) rowRefs.current.set(blackPly, el);
+  const sharedRows = useMemo<ChessMoveRow[]>(
+    () =>
+      moveRows.map((row) => ({
+        key: row.moveNumber,
+        moveNumber: row.moveNumber,
+        white: row.white || null,
+        black: row.black || null,
+        whitePly: row.plyWhite,
+        blackPly: row.plyBlack ?? null,
+        whiteAccessory: row.whiteQuality ? (
+          <MoveQualityPill
+            quality={row.whiteQuality}
+            showAiBadge={Boolean(aiExplainedPlies?.has(row.plyWhite))}
+          />
+        ) : null,
+        blackAccessory: row.blackQuality ? (
+          <MoveQualityPill
+            quality={row.blackQuality}
+            showAiBadge={Boolean(
+              row.plyBlack && aiExplainedPlies?.has(row.plyBlack),
+            )}
+          />
+        ) : null,
+      })),
+    [aiExplainedPlies, moveRows],
+  );
+
+  const getRowRef =
+    (row: ChessMoveRow) => (element: HTMLDivElement | null) => {
+      const whitePly = Number(row.whitePly || 0);
+      const blackPly = Number(row.blackPly || 0);
+
+      if (!element) {
+        if (whitePly > 0) rowRefs.current.delete(whitePly);
+        if (blackPly > 0) rowRefs.current.delete(blackPly);
+        return;
       }
+
+      if (whitePly > 0) rowRefs.current.set(whitePly, element);
+      if (blackPly > 0) rowRefs.current.set(blackPly, element);
     };
 
   useEffect(() => {
@@ -46,7 +81,7 @@ export function ReplayMoveList({
         });
       });
     }
-  }, [currentPly, moveRows]);
+  }, [currentPly, sharedRows]);
 
   return (
     <div className="h-full flex flex-col bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
@@ -64,85 +99,24 @@ export function ReplayMoveList({
 
       {opening && (
         <div className="flex-shrink-0 px-4 py-2 border-b border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/20">
-          <span className="text-xs text-gray-600 dark:text-gray-400">
-            {opening}
-          </span>
+          <span className="text-xs text-gray-600 dark:text-gray-400">{opening}</span>
         </div>
       )}
 
-      <div
-        ref={scrollContainerRef}
-        className="flex-1 overflow-y-auto no-scrollbar"
-      >
-        {moveRows.length === 0 ? (
-          <div className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
-            {t("analysis.noMovesRecorded", "No moves recorded")}
-          </div>
-        ) : (
-          <div className="divide-y divide-gray-100 dark:divide-gray-800/50">
-            {moveRows.map((row) => (
-              <div
-                key={row.moveNumber}
-                ref={setRowRef(row.plyWhite, row.plyBlack)}
-                className="grid grid-cols-[40px_1fr_1fr] hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors"
-              >
-                <div className="px-3 py-2.5 text-sm font-mono text-gray-400 dark:text-gray-500">
-                  {row.moveNumber}.
-                </div>
-
-                <div
-                  className={`px-3 py-2.5 cursor-pointer transition-all ${
-                    currentPly === row.plyWhite
-                      ? "bg-brand-500/20 dark:bg-brand-500/20"
-                      : "hover:bg-gray-100 dark:hover:bg-gray-700/50"
-                  }`}
-                  onClick={() => onJumpTo(row.plyWhite)}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <span
-                      className={`font-mono text-sm ${
-                        currentPly === row.plyWhite
-                          ? "text-brand-700 dark:text-brand-300 font-semibold"
-                          : "text-gray-800 dark:text-gray-200"
-                      }`}
-                    >
-                      {row.white || "—"}
-                    </span>
-                    {row.whiteQuality && (
-                      <MoveQualityPill quality={row.whiteQuality} />
-                    )}
-                  </div>
-                </div>
-
-                <div
-                  className={`px-3 py-2.5 cursor-pointer transition-all ${
-                    row.plyBlack && currentPly === row.plyBlack
-                      ? "bg-brand-500/20 dark:bg-brand-500/20"
-                      : row.black
-                        ? "hover:bg-gray-100 dark:hover:bg-gray-700/50"
-                        : ""
-                  }`}
-                  onClick={() => row.plyBlack && onJumpTo(row.plyBlack)}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <span
-                      className={`font-mono text-sm ${
-                        row.plyBlack && currentPly === row.plyBlack
-                          ? "text-brand-700 dark:text-brand-300 font-semibold"
-                          : "text-gray-800 dark:text-gray-200"
-                      }`}
-                    >
-                      {row.black || "—"}
-                    </span>
-                    {row.blackQuality && (
-                      <MoveQualityPill quality={row.blackQuality} />
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto no-scrollbar px-1 py-1">
+        <ChessMoveList
+          rows={sharedRows}
+          emptyMessage={t("analysis.noMovesYet", "No moves yet")}
+          activePly={currentPly}
+          onSelectPly={onJumpTo}
+          rowClassName="rounded-sm py-0.5 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors"
+          moveNumberClassName="w-10 px-3 py-2 text-sm"
+          moveCellClassName="rounded-md px-3 py-2 text-sm"
+          activeMoveClassName="bg-brand-500/20 text-brand-700 dark:text-brand-300"
+          inactiveMoveClassName="text-gray-800 dark:text-gray-200"
+          showMissingMoveCell
+          getRowRef={getRowRef}
+        />
       </div>
 
       <div className="flex-shrink-0 px-4 py-2 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/30">

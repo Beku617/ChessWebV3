@@ -299,6 +299,7 @@ const idleDrawOfferState: DrawOfferState = {
   offeredBy: null,
   expiresAt: null,
 };
+const CONNECT_PROBE_DELAYS_MS = [1500, 3000, 5000, 8000, 12000, 20000];
 
 function storeActiveGameId(gameId: string | null) {
   if (!gameId) {
@@ -685,18 +686,21 @@ export function useOnlineQuickMatch() {
   useEffect(() => {
     const socket = io(SOCKET_URL, {
       withCredentials: true,
-      reconnection: true,
-      reconnectionAttempts: 10,
-      reconnectionDelay: 2000,
+      reconnection: false,
       autoConnect: false,
     });
     let connectProbeTimer: number | null = null;
+    let connectProbeAttempt = 0;
     const clearConnectProbeTimer = () => {
       if (connectProbeTimer !== null) {
         window.clearTimeout(connectProbeTimer);
         connectProbeTimer = null;
       }
     };
+    const nextConnectProbeDelay = () =>
+      CONNECT_PROBE_DELAYS_MS[
+        Math.min(connectProbeAttempt, CONNECT_PROBE_DELAYS_MS.length - 1)
+      ];
     const scheduleConnectProbe = () => {
       clearConnectProbeTimer();
       connectProbeTimer = window.setTimeout(async () => {
@@ -708,9 +712,11 @@ export function useOnlineQuickMatch() {
           });
           if (!response.ok) throw new Error("Server unavailable");
           if (!socket.connected) {
+            connectProbeAttempt = 0;
             socket.connect();
           }
         } catch {
+          connectProbeAttempt += 1;
           setIsConnected(false);
           if (activeTournamentJoinGameIdRef.current) {
             setIsSearching(true);
@@ -724,12 +730,13 @@ export function useOnlineQuickMatch() {
           }
           scheduleConnectProbe();
         }
-      }, 1500);
+      }, nextConnectProbeDelay());
     };
     socketRef.current = socket;
 
     socket.on("connect", () => {
       clearConnectProbeTimer();
+      connectProbeAttempt = 0;
       setIsConnected(true);
       if (!gameIdRef.current && !readActiveGameId()) {
         setIsClockPaused(false);
@@ -768,17 +775,6 @@ export function useOnlineQuickMatch() {
         setQueueStatus("Unable to connect to matchmaking server. Reconnecting...");
       }
       scheduleConnectProbe();
-    });
-
-    socket.io.on("reconnect_attempt", () => {
-      setQueueStatus("Reconnecting to matchmaking server...");
-    });
-
-    socket.io.on("reconnect_failed", () => {
-      if (!activeTournamentJoinGameIdRef.current) {
-        setIsSearching(false);
-      }
-      setQueueStatus("Unable to reconnect to matchmaking server.");
     });
 
     socket.on(

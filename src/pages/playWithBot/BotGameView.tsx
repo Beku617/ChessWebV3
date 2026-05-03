@@ -1,8 +1,15 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useRef } from "react";
+import { useMemo } from "react";
 import { Square } from "chess.js";
 import { useAuthStore } from "../../store/authStore";
-import { GameOverModal, PlayerInfo, GameBoard } from "../../components/game";
+import {
+  GameOverModal,
+  PlayerInfo,
+  GameBoard,
+  ChessMoveList,
+  MoveListTabs,
+  buildChessMoveRows,
+} from "../../components/game";
 import type { GameSettings, PromotionState } from "../../components/game";
 import type { HistoryPersistenceStatus } from "../../hooks/gameHistorySaver/historyPersistence";
 import { BOARD_FRAME } from "./types";
@@ -79,7 +86,7 @@ export function BotGameView({
 }: BotGameViewProps) {
   const { user } = useAuthStore();
   const navigate = useNavigate();
-  const movesEndRef = useRef<HTMLDivElement | null>(null);
+  const moveRows = useMemo(() => buildChessMoveRows(moves), [moves]);
   const timerInitialTime = 0;
   const timerIncrement = 0;
   const opponentInitials =
@@ -89,13 +96,6 @@ export function BotGameView({
       .map((part) => part[0])
       .join("")
       .toUpperCase() || "AI";
-
-  // Auto-scroll moves list to the latest move
-  useEffect(() => {
-    if (movesEndRef.current) {
-      movesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [moves]);
 
   return (
     <div
@@ -209,41 +209,18 @@ export function BotGameView({
           </div>
 
           {/* Move List */}
-          <div className="flex-1 overflow-y-auto min-h-0">
-            <div className="p-3">
-              {moves.length === 0 ? (
-                <div className="text-center text-gray-400 dark:text-gray-500 text-sm py-8">
-                  Game in progress...
-                </div>
-              ) : (
-                <>
-                  <div className="space-y-1">
-                    {Array.from(
-                      { length: Math.ceil(moves.length / 2) },
-                      (_, i) => (
-                        <div
-                          key={i}
-                          className="flex items-center text-sm font-mono"
-                        >
-                          <span className="w-8 text-gray-400 dark:text-gray-500">
-                            {i + 1}.
-                          </span>
-                          <span className="flex-1 px-2 text-gray-800 dark:text-gray-200">
-                            {moves[i * 2]}
-                          </span>
-                          {moves[i * 2 + 1] && (
-                            <span className="flex-1 px-2 text-gray-800 dark:text-gray-200">
-                              {moves[i * 2 + 1]}
-                            </span>
-                          )}
-                        </div>
-                      ),
-                    )}
-                  </div>
-                  <div ref={movesEndRef} />
-                </>
-              )}
-            </div>
+          <div className="flex-1 min-h-0 overflow-hidden">
+            <MoveListTabs
+              movesContent={
+                <ChessMoveList
+                  rows={moveRows}
+                  emptyMessage="No moves yet"
+                  rowClassName="text-sm"
+                  inactiveMoveClassName="text-gray-800 dark:text-gray-200"
+                />
+              }
+              showMessagesTab={false}
+            />
           </div>
 
           {/* Action Buttons */}
@@ -267,3 +244,4 @@ export function BotGameView({
     </div>
   );
 }
+

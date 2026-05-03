@@ -9,6 +9,12 @@ export interface MoveExplanationPanelProps {
   positions: string[]; // FEN positions to convert UCI to SAN
   sanMoves: string[];
   gameId?: string;
+  aiExplanationsByPly: Map<number, string>;
+  aiLoading: boolean;
+  aiError: string | null;
+  aiModel: string | null;
+  aiEnabled: boolean;
+  isAiConfigured: boolean;
 }
 
 export interface BestMoveInfo {

@@ -14,6 +14,9 @@ import {
 
 const router = Router();
 const MIN_STORED_MOVES = MIN_REAL_GAME_PLIES;
+const DEFAULT_HISTORY_LIMIT = 50;
+const MAX_HISTORY_LIMIT = 100;
+const MAX_HISTORY_SKIP = 5000;
 const { ObjectId } = mongoose.Types;
 const CHESS960_STRIPPED_FIELDS = [
   "ratingBefore",
@@ -99,6 +102,42 @@ function normalizeMoves(moves) {
 function normalizeObjectId(value) {
   const text = String(value || "").trim();
   return ObjectId.isValid(text) ? text : null;
+}
+
+function normalizeSaveKey(value) {
+  return String(value || "")
+    .trim()
+    .slice(0, 120);
+}
+
+function normalizePagination(query) {
+  const parsedLimit = Number.parseInt(String(query?.limit ?? ""), 10);
+  const parsedSkip = Number.parseInt(String(query?.skip ?? ""), 10);
+
+  const limit = Number.isFinite(parsedLimit)
+    ? Math.min(Math.max(parsedLimit, 1), MAX_HISTORY_LIMIT)
+    : DEFAULT_HISTORY_LIMIT;
+  const skip = Number.isFinite(parsedSkip) ? Math.max(parsedSkip, 0) : 0;
+
+  return { limit, skip };
+}
+
+async function loadMergedHistoryPage(userId, limit, skip) {
+  const fetchWindow = skip + limit;
+  const [standardGames, chess960Games, standardTotal, chess960Total] =
+    await Promise.all([
+      History.find({ userId }).sort({ createdAt: -1 }).limit(fetchWindow).lean(),
+      History960.find({ userId }).sort({ createdAt: -1 }).limit(fetchWindow).lean(),
+      History.countDocuments({ userId }),
+      History960.countDocuments({ userId }),
+    ]);
+
+  const games = [...standardGames, ...chess960Games]
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(skip, skip + limit);
+  const total = standardTotal + chess960Total;
+
+  return { games, total };
 }
 
 async function resolveHistoryPlayerLinks(requestUserId, playAs, link) {
@@ -215,9 +254,12 @@ router.post("/", authMiddleware, async (req, res) => {
       blackCheckCount = 0,
       analysis = [],
       moveTimes = [],
+      clientSaveKey,
     } = req.body;
 
     const normalizedMoves = normalizeMoves(moves);
+    const normalizedLink = String(link || "").trim();
+    const normalizedClientSaveKey = normalizeSaveKey(clientSaveKey);
 
     if (!result || !playAs || !white || !black) {
       return res
@@ -242,10 +284,33 @@ router.post("/", authMiddleware, async (req, res) => {
     const preferredModel =
       resolvedVariant === "chess960" ? History960 : History;
 
+    if (normalizedClientSaveKey || normalizedLink) {
+      const dedupeQuery = { userId: requestUserId };
+      if (normalizedClientSaveKey) dedupeQuery.clientSaveKey = normalizedClientSaveKey;
+      if (!normalizedClientSaveKey) dedupeQuery.link = normalizedLink;
+
+      let existing = await preferredModel
+        .findOne(dedupeQuery)
+        .select("_id")
+        .sort({ createdAt: -1 })
+        .lean();
+
+      if (!existing && resolvedVariant === "chess960") {
+        existing = await History.findOne(dedupeQuery)
+          .select("_id")
+          .sort({ createdAt: -1 })
+          .lean();
+      }
+
+      if (existing?._id) {
+        return res.json({ success: true, historyId: existing._id, deduplicated: true });
+      }
+    }
+
     const { whiteUserId, blackUserId } = await resolveHistoryPlayerLinks(
       requestUserId,
       playAs,
-      link,
+      normalizedLink,
     );
 
     const historyDoc = {
@@ -297,7 +362,7 @@ router.post("/", authMiddleware, async (req, res) => {
       timezone,
       eco,
       ecoUrl,
-      link,
+      link: normalizedLink,
       termination,
       whiteUrl,
       whiteCountry,
@@ -316,6 +381,7 @@ router.post("/", authMiddleware, async (req, res) => {
       blackCheckCount,
       analysis,
       moveTimes,
+      clientSaveKey: normalizedClientSaveKey,
     };
     normalizeHistoryDocForVariant(historyDoc);
 
@@ -366,19 +432,13 @@ router.get("/user/:userId", optionalAuthMiddleware, async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    const { limit = 50, skip = 0 } = req.query;
+    const { limit, skip } = normalizePagination(req.query);
+    if (skip > MAX_HISTORY_SKIP) {
+      return res.status(400).json({ error: `skip cannot exceed ${MAX_HISTORY_SKIP}` });
+    }
 
-    const [standardGames, chess960Games] = await Promise.all([
-      History.find({ userId }).sort({ createdAt: -1 }).lean(),
-      History960.find({ userId }).sort({ createdAt: -1 }).lean(),
-    ]);
-
-    const allGames = [...standardGames, ...chess960Games]
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-      .slice(Number(skip), Number(skip) + Number(limit));
-    const normalizedGames = await applyDeletedUserAliasesToGames(allGames);
-
-    const total = standardGames.length + chess960Games.length;
+    const { games, total } = await loadMergedHistoryPage(userId, limit, skip);
+    const normalizedGames = await applyDeletedUserAliasesToGames(games);
 
     res.json({ games: normalizedGames, total });
   } catch (err) {
@@ -390,23 +450,17 @@ router.get("/user/:userId", optionalAuthMiddleware, async (req, res) => {
 // Get game history for current user
 router.get("/", authMiddleware, async (req, res) => {
   try {
-    const { limit = 50, skip = 0 } = req.query;
+    const { limit, skip } = normalizePagination(req.query);
     const userId = normalizeObjectId(req.user?.userId);
     if (!userId) {
       return res.status(401).json({ error: "Not authenticated" });
     }
+    if (skip > MAX_HISTORY_SKIP) {
+      return res.status(400).json({ error: `skip cannot exceed ${MAX_HISTORY_SKIP}` });
+    }
 
-    const [standardGames, chess960Games] = await Promise.all([
-      History.find({ userId }).sort({ createdAt: -1 }).lean(),
-      History960.find({ userId }).sort({ createdAt: -1 }).lean(),
-    ]);
-
-    const allGames = [...standardGames, ...chess960Games]
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-      .slice(Number(skip), Number(skip) + Number(limit));
-    const normalizedGames = await applyDeletedUserAliasesToGames(allGames);
-
-    const total = standardGames.length + chess960Games.length;
+    const { games, total } = await loadMergedHistoryPage(userId, limit, skip);
+    const normalizedGames = await applyDeletedUserAliasesToGames(games);
 
     res.json({ games: normalizedGames, total });
   } catch (err) {

@@ -105,6 +105,8 @@ interface FriendChallengeState {
   ) => Promise<FriendChallengeAck>;
 }
 
+const CONNECT_PROBE_DELAYS_MS = [1500, 3000, 5000, 8000, 12000, 20000];
+
 function emitWithAck<TResponse>(
   socket: Socket,
   eventName: string,
@@ -185,25 +187,27 @@ export const useFriendChallengeStore = create<FriendChallengeState>(
           window.clearTimeout(previousSocket.__probeTimer);
           previousSocket.__probeTimer = undefined;
         }
-        currentSocket.io.off("reconnect_attempt");
         currentSocket.removeAllListeners();
         currentSocket.disconnect();
       }
 
       const socket = io(SOCKET_URL, {
         withCredentials: true,
-        reconnection: true,
-        reconnectionAttempts: 10,
-        reconnectionDelay: 2000,
+        reconnection: false,
         autoConnect: false,
       });
       const socketWithProbe = socket as Socket & { __probeTimer?: number };
+      let connectProbeAttempt = 0;
       const clearProbeTimer = () => {
         if (socketWithProbe.__probeTimer !== undefined) {
           window.clearTimeout(socketWithProbe.__probeTimer);
           socketWithProbe.__probeTimer = undefined;
         }
       };
+      const nextProbeDelay = () =>
+        CONNECT_PROBE_DELAYS_MS[
+          Math.min(connectProbeAttempt, CONNECT_PROBE_DELAYS_MS.length - 1)
+        ];
       const scheduleConnectProbe = () => {
         clearProbeTimer();
         socketWithProbe.__probeTimer = window.setTimeout(async () => {
@@ -215,10 +219,12 @@ export const useFriendChallengeStore = create<FriendChallengeState>(
             });
             if (!response.ok) throw new Error("Server unavailable");
             if (get().socket === socket && !socket.connected) {
+              connectProbeAttempt = 0;
               socket.connect();
             }
           } catch {
             if (get().socket !== socket) return;
+            connectProbeAttempt += 1;
             set({
               isConnected: false,
               presenceStatus: "offline",
@@ -226,11 +232,12 @@ export const useFriendChallengeStore = create<FriendChallengeState>(
             });
             scheduleConnectProbe();
           }
-        }, 1500);
+        }, nextProbeDelay());
       };
 
       socket.on("connect", () => {
         clearProbeTimer();
+        connectProbeAttempt = 0;
         startHeartbeat(socket);
         set({ isConnected: true, lastError: null });
       });
@@ -249,14 +256,6 @@ export const useFriendChallengeStore = create<FriendChallengeState>(
           lastError: "Unable to connect to realtime server. Reconnecting...",
         });
         scheduleConnectProbe();
-      });
-
-      socket.io.on("reconnect_attempt", () => {
-        set({
-          isConnected: false,
-          presenceStatus: "offline",
-          lastError: "Realtime disconnected. Reconnecting...",
-        });
       });
 
       socket.on("presenceState", (payload: PresenceStatePayload) => {
@@ -343,7 +342,6 @@ export const useFriendChallengeStore = create<FriendChallengeState>(
           window.clearTimeout(activeSocket.__probeTimer);
           activeSocket.__probeTimer = undefined;
         }
-        socket.io.off("reconnect_attempt");
         socket.removeAllListeners();
         socket.disconnect();
       }

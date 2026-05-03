@@ -7,8 +7,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, "..");
 const nodeExecutable = process.execPath;
+const npmExecutable = process.platform === "win32" ? "npm.cmd" : "npm";
 const viteEntry = path.join(repoRoot, "node_modules", "vite", "bin", "vite.js");
-const serverEntry = path.join(repoRoot, "server", "index.js");
 const healthUrl = "http://localhost:3001/healthz";
 const clientArgs = process.argv.slice(2);
 const children = new Set();
@@ -88,15 +88,12 @@ function shutdown(exitCode = 0) {
 process.on("SIGINT", () => shutdown(0));
 process.on("SIGTERM", () => shutdown(0));
 
-async function ensureBackend() {
-  const existingHealth = await getBackendHealth();
-  if (existingHealth?.service === "neongambit-server") {
-    console.log("[dev] Reusing backend on http://localhost:3001.");
-    return null;
-  }
-
+function spawnBackend() {
   console.log("[dev] Starting backend on http://localhost:3001...");
-  const serverProcess = spawnProcess("backend", nodeExecutable, ["--watch", serverEntry]);
+  return spawnProcess("backend", npmExecutable, ["--prefix", "server", "run", "dev"]);
+}
+
+async function waitForBackendHealth(serverProcess) {
   const deadline = Date.now() + 30000;
 
   while (Date.now() < deadline) {
@@ -116,9 +113,60 @@ async function ensureBackend() {
   throw new Error("Timed out waiting for the backend health check on port 3001.");
 }
 
+async function ensureBackend() {
+  const existingHealth = await getBackendHealth();
+  if (existingHealth?.service === "neongambit-server") {
+    console.log("[dev] Reusing backend on http://localhost:3001.");
+    return { reused: true };
+  }
+
+  const serverProcess = spawnBackend();
+  await waitForBackendHealth(serverProcess);
+  return { reused: false };
+}
+
+function monitorReusedBackend() {
+  let misses = 0;
+  let recovering = false;
+
+  const interval = setInterval(async () => {
+    if (shuttingDown || recovering) return;
+
+    const health = await getBackendHealth();
+    if (health?.service === "neongambit-server") {
+      misses = 0;
+      return;
+    }
+
+    misses += 1;
+    if (misses < 5) return;
+
+    recovering = true;
+    console.warn(
+      "[dev] Reused backend stopped responding; starting a nodemon backend.",
+    );
+
+    try {
+      const serverProcess = spawnBackend();
+      await waitForBackendHealth(serverProcess);
+      console.log("[dev] Backend recovered.");
+      clearInterval(interval);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`[dev] ${message}`);
+      shutdown(1);
+    }
+  }, 2000);
+
+  interval.unref?.();
+}
+
 async function main() {
   try {
-    await ensureBackend();
+    const backend = await ensureBackend();
+    if (backend.reused) {
+      monitorReusedBackend();
+    }
 
     console.log("[dev] Starting frontend...");
     spawnProcess("frontend", nodeExecutable, [viteEntry, ...clientArgs]);

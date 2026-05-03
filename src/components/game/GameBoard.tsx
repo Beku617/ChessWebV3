@@ -85,10 +85,14 @@ export function GameBoard({
   const lastMoveStyles = lastMove
     ? {
         [lastMove.from]: {
-          backgroundColor: "rgba(250, 204, 21, 0.55)",
+          boxShadow:
+            "inset 0 0 0 3px rgba(250, 204, 21, 0.95), inset 0 0 0 1px rgba(120, 53, 15, 0.45)",
+          borderRadius: "0",
         },
         [lastMove.to]: {
-          backgroundColor: "rgba(74, 222, 128, 0.55)",
+          boxShadow:
+            "inset 0 0 0 3px rgba(250, 204, 21, 0.95), inset 0 0 0 1px rgba(120, 53, 15, 0.45)",
+          borderRadius: "0",
         },
       }
     : {};

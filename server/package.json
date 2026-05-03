@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node index.js",
-    "dev": "node --watch index.js",
+    "dev": "nodemon --watch index.js --watch server --ext js,json index.js",
     "test": "npm --prefix server test",
     "seed:admin": "node server/seedAdmin.js",
     "migrate:ratings:pools": "node server/migrateRatingsToPools.js",
@@ -27,5 +27,8 @@
     "multer": "^2.0.2",
     "nodemailer": "^8.0.5",
     "socket.io": "^4.7.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
   }
 }

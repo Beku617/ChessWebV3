@@ -48,6 +48,12 @@ export function GameSummary({
 
   return (
     <div className="bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-2xl p-3 shadow-sm space-y-3 h-full min-h-0 overflow-y-auto no-scrollbar">
+      <div className="px-1">
+        <h3 className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-500 dark:text-gray-400">
+          {t("analysis.summary", "Summary")}
+        </h3>
+      </div>
+
       <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 dark:border-white/10 bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-[#0b1324] dark:via-[#0a1426] dark:to-[#090f1c] p-4 sm:p-5 shadow-[0_10px_30px_rgba(15,23,42,0.08)] dark:shadow-[0_16px_40px_rgba(2,6,23,0.5)]">
         <div className="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-brand-300/20 dark:bg-brand-400/10 blur-2xl" />
         <div className="pointer-events-none absolute -left-10 -bottom-10 h-24 w-24 rounded-full bg-amber-300/20 dark:bg-amber-200/10 blur-2xl" />
@@ -86,6 +92,12 @@ export function GameSummary({
       </div>
 
       <AdvantageGraph cps={cpSeries} />
+
+      <div className="px-1">
+        <h4 className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-gray-500 dark:text-gray-400">
+          {t("analysis.accuracy", "Accuracy")}
+        </h4>
+      </div>
 
       <div className="mx-auto grid w-full max-w-[420px] grid-cols-2 items-stretch gap-2">
         <AccuracyBadge

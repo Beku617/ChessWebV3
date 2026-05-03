@@ -1,3 +1,5 @@
+import { MoveNotation } from "../game";
+
 interface GameCardMoveHistoryProps {
   formattedMoves: string[];
   result: string;
@@ -19,7 +21,7 @@ export function GameCardMoveHistory({
               key={i}
               className="mr-2 hover:bg-yellow-100 dark:hover:bg-yellow-900/30 rounded px-1 cursor-pointer transition-colors"
             >
-              {m}
+              <MoveNotation notation={m} />
             </span>
           ))}
           <span className="font-bold text-brand-600 dark:text-brand-400 ml-2">

@@ -22,6 +22,7 @@ import tournamentRoutes from "./tournamentRoutes.js";
 import messagesRoutes from "./messages.js";
 import learnRoutes from "./learn.js";
 import adminLearnRoutes from "./adminLearn.js";
+import analysisAiRoutes from "./analysisAi.js";
 // streamers route included inside lichessRoutes
 
 export {
@@ -49,4 +50,5 @@ export {
   messagesRoutes,
   learnRoutes,
   adminLearnRoutes,
+  analysisAiRoutes,
 };

@@ -119,9 +119,18 @@ const HistorySchema = new mongoose.Schema(
     opponent: { type: String, default: "Stockfish" },
     opponentLevel: { type: Number },
     durationMs: { type: Number },
+    clientSaveKey: {
+      type: String,
+      default: "",
+      trim: true,
+      maxlength: 120,
+      index: true,
+    },
   },
   { timestamps: true },
 );
+
+HistorySchema.index({ userId: 1, clientSaveKey: 1 });
 
 const History =
   mongoose.models.History || mongoose.model("History", HistorySchema);

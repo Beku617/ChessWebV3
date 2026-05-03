@@ -1,9 +1,16 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Square } from "chess.js";
 import { useAuthStore } from "../../store/authStore";
-import { GameOverModal, PlayerInfo, GameBoard } from "../../components/game";
+import {
+  GameOverModal,
+  PlayerInfo,
+  GameBoard,
+  ChessMoveList,
+  MoveListTabs,
+  buildChessMoveRows,
+} from "../../components/game";
 import type { GameSettings, PromotionState } from "../../components/game";
 import type { HistoryPersistenceStatus } from "../../hooks/gameHistorySaver/historyPersistence";
 import { BOARD_FRAME } from "./types";
@@ -147,6 +154,26 @@ export function FriendGameView({
     ? `${user?.fullName || "You"} (Checks ${playerCheckedCount}/3)`
     : user?.fullName || "You";
   const displayMoves = moves.slice(-8);
+  const moveNumberOffset = Math.floor((moves.length - displayMoves.length) / 2);
+  const moveRows = useMemo(
+    () =>
+      buildChessMoveRows(displayMoves, {
+        startMoveNumber: moveNumberOffset + 1,
+        startPly: moveNumberOffset * 2 + 1,
+      }),
+    [displayMoves, moveNumberOffset],
+  );
+  const sidebarMessages = useMemo(() => {
+    const safeStatus = String(statusMessage || "").trim();
+    if (!safeStatus) return [];
+    return [
+      {
+        id: `status-${safeStatus}`,
+        sender: "System",
+        content: safeStatus,
+      },
+    ];
+  }, [statusMessage]);
   const persistentSquareStyles =
     variant === "kingOfHill" ? KING_OF_HILL_SQUARE_STYLES : {};
   const [boardWidth, setBoardWidth] = useState(620);
@@ -324,37 +351,16 @@ export function FriendGameView({
 
             {/* Move List */}
             <div className="theme-glass-panel-soft flex-1 mb-3 rounded-xl overflow-hidden">
-              <div className="p-2.5">
-                {moves.length === 0 ? (
-                  <div className="text-center text-gray-400 dark:text-gray-500 text-xs py-6">
-                    Game in progress...
-                  </div>
-                ) : (
-                  <div className="space-y-1">
-                    {Array.from(
-                      { length: Math.ceil(displayMoves.length / 2) },
-                      (_, i) => (
-                        <div
-                          key={i}
-                          className="flex items-center text-xs font-mono"
-                        >
-                          <span className="w-8 text-gray-400 dark:text-gray-500">
-                            {moves.length - displayMoves.length + i + 1}.
-                          </span>
-                          <span className="flex-1 px-2 text-gray-800 dark:text-gray-200">
-                            {displayMoves[i * 2]}
-                          </span>
-                          {displayMoves[i * 2 + 1] && (
-                            <span className="flex-1 px-2 text-gray-800 dark:text-gray-200">
-                              {displayMoves[i * 2 + 1]}
-                            </span>
-                          )}
-                        </div>
-                      ),
-                    )}
-                  </div>
-                )}
-              </div>
+              <MoveListTabs
+                movesContent={
+                  <ChessMoveList
+                    rows={moveRows}
+                    emptyMessage="No moves yet"
+                    inactiveMoveClassName="text-gray-800 dark:text-gray-200"
+                  />
+                }
+                messages={sidebarMessages}
+              />
             </div>
 
             {/* Actions */}

@@ -4,6 +4,12 @@ import { ArrowLeft, Clock, Timer, Users } from "lucide-react";
 import { useAuthStore } from "../../store/authStore";
 import { TIME_OPTIONS } from "../quickMatch/types";
 import {
+  ChessMoveList,
+  MoveListTabs,
+  type ChessMoveRow,
+  type SidebarMessageItem,
+} from "../../components/game";
+import {
   createInitialFourPlayerState,
   formatMoveText,
   FOUR_PLAYER_BOARD_SIZE,
@@ -413,11 +419,9 @@ function FourPlayerBoard({
                 className={`relative aspect-square flex items-center justify-center transition-colors touch-none ${
                   isDark ? "bg-[#a6a7ab]" : "bg-[#d6d7d9]"
                 } ${
-                  isLastFrom
-                    ? "ring-2 ring-yellow-300/70 ring-inset"
-                    : isLastTo
-                      ? "ring-2 ring-brand-300/70 ring-inset"
-                      : ""
+                  isLastFrom || isLastTo
+                    ? "ring-2 ring-yellow-300/80 ring-inset"
+                    : ""
                 } ${isSelected ? "ring-2 ring-cyan-400 ring-inset" : ""}`}
               >
                 {isLegal && (
@@ -636,6 +640,37 @@ export default function FourPlayerChess() {
     () => (showLegalMoves ? legalMoveSet : new Set<string>()),
     [legalMoveSet, showLegalMoves],
   );
+  const moveRows = useMemo<ChessMoveRow[]>(
+    () =>
+      gameState.moves.map((move, index) => ({
+        key: `${move.from.row}-${move.from.col}-${move.to.row}-${move.to.col}-${index}`,
+        moveNumber: index + 1,
+        white: formatMoveText(move),
+        whitePly: index + 1,
+      })),
+    [gameState.moves],
+  );
+  const sidebarMessages = useMemo<SidebarMessageItem[]>(() => {
+    const messages: SidebarMessageItem[] = [];
+
+    if (systemMessage) {
+      messages.push({
+        id: "system-message",
+        sender: "System",
+        content: systemMessage,
+      });
+    }
+
+    if (queueStatus && queueStatus !== systemMessage) {
+      messages.push({
+        id: "queue-status",
+        sender: "Matchmaking",
+        content: queueStatus,
+      });
+    }
+
+    return messages;
+  }, [queueStatus, systemMessage]);
 
   const selectedTimeOption = TIME_OPTIONS.find(
     (opt) =>
@@ -911,25 +946,22 @@ export default function FourPlayerChess() {
             <div className="px-3 py-2 border-b border-gray-200 dark:border-slate-700 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide">
               Move Log
             </div>
-            <div className="h-full max-h-[48vh] overflow-y-auto p-2 space-y-1 text-xs font-mono text-gray-700 dark:text-gray-200">
-              {gameState.moves.length === 0 ? (
-                <p className="text-gray-500 dark:text-gray-400">
-                  No moves yet.
-                </p>
-              ) : (
-                gameState.moves
-                  .slice()
-                  .reverse()
-                  .map((move, index) => (
-                    <div
-                      key={`${move.from.row}-${move.from.col}-${move.to.row}-${move.to.col}-${index}`}
-                      className="px-2 py-1 rounded-lg bg-gray-100 dark:bg-slate-800/70"
-                    >
-                      {gameState.moves.length - index}. {formatMoveText(move)}
-                    </div>
-                  ))
-              )}
-            </div>
+            <MoveListTabs
+              className="h-full max-h-[48vh]"
+              messages={sidebarMessages}
+              movesContent={
+                <ChessMoveList
+                  rows={moveRows}
+                  emptyMessage="No moves yet"
+                  activePly={moveRows.length || null}
+                  rowClassName="rounded-lg bg-gray-100 dark:bg-slate-800/70 py-1"
+                  moveNumberClassName="w-10 px-2 text-gray-500 dark:text-gray-400"
+                  moveCellClassName="px-2 text-sm font-mono"
+                  activeMoveClassName="text-brand-700 dark:text-brand-300 font-semibold"
+                  inactiveMoveClassName="text-gray-700 dark:text-gray-200"
+                />
+              }
+            />
           </div>
 
           <div className="mt-3 grid grid-cols-2 gap-2">
@@ -956,5 +988,4 @@ export default function FourPlayerChess() {
     </div>
   );
 }
-
 

@@ -1,10 +1,18 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Square } from "chess.js";
 import { BarChart3, Check, Flag, Handshake, X, Zap } from "lucide-react";
 import { useAuthStore } from "../../store/authStore";
-import { GameOverModal, PlayerInfo, GameBoard } from "../../components/game";
+import {
+  GameOverModal,
+  PlayerInfo,
+  GameBoard,
+  ChessMoveList,
+  MoveListTabs,
+  buildChessMoveRows,
+} from "../../components/game";
 import type { GameSettings, PromotionState } from "../../components/game";
+import type { SidebarMessageItem } from "../../components/game";
 import type { HistoryPersistenceStatus } from "../../hooks/gameHistorySaver/historyPersistence";
 import { BOARD_FRAME } from "./types";
 import type { CSSProperties, ReactNode } from "react";
@@ -301,6 +309,35 @@ function getArenaFormatLabel(
   return [timeControl, format].filter(Boolean).join(" ");
 }
 
+function buildSidebarMessages(
+  chatMessages: TournamentGamePanelData["chatMessages"] | undefined,
+  statusMessage: string | null | undefined,
+): SidebarMessageItem[] {
+  const mappedChat = Array.isArray(chatMessages)
+    ? chatMessages.map((message, index) => ({
+        id: String(message?.id || `chat-${index}`),
+        sender: String(message?.sender || "Player"),
+        content: String(message?.content || "").trim(),
+        createdAt: String(message?.createdAt || ""),
+      }))
+    : [];
+
+  const safeStatus = String(statusMessage || "").trim();
+  if (!safeStatus) {
+    return mappedChat;
+  }
+
+  return [
+    {
+      id: `status-${safeStatus}`,
+      sender: "System",
+      content: safeStatus,
+      createdAt: "",
+    },
+    ...mappedChat,
+  ];
+}
+
 export function QuickMatchGameView({
   game,
   lastMove,
@@ -364,9 +401,18 @@ export function QuickMatchGameView({
   const { user } = useAuthStore();
   const navigate = useNavigate();
   const [tournamentTab, setTournamentTab] = useState<
-    "standings" | "games" | "moves"
+    "standings" | "games" | "moves" | "messages"
   >(tournamentMode ? "standings" : "games");
   const displayMoves = moves;
+  const moveNumberOffset = Math.floor((moves.length - displayMoves.length) / 2);
+  const moveRows = useMemo(
+    () =>
+      buildChessMoveRows(displayMoves, {
+        startMoveNumber: moveNumberOffset + 1,
+        startPly: moveNumberOffset * 2 + 1,
+      }),
+    [displayMoves, moveNumberOffset],
+  );
   const isThreeCheck = variant === "threeCheck";
   const whiteCheckCount = Number(threeCheckState?.whiteCheckCount || 0);
   const blackCheckCount = Number(threeCheckState?.blackCheckCount || 0);
@@ -420,6 +466,10 @@ export function QuickMatchGameView({
   const opponentTimerAllowed = !tournamentMode || colorHasMoved(opponentColor);
   const tournamentStandings = tournamentPanelData?.standings || [];
   const tournamentHistory = tournamentPanelData?.history || [];
+  const sidebarMessages = useMemo(
+    () => buildSidebarMessages(tournamentPanelData?.chatMessages, statusMessage),
+    [statusMessage, tournamentPanelData?.chatMessages],
+  );
   const tournamentGameAction = tournamentPanelData?.gameAction || null;
   const tournamentType = String(tournamentPanelData?.tournament?.type || "").toLowerCase();
   const isArenaTournament = tournamentType === "arena";
@@ -822,6 +872,16 @@ export function QuickMatchGameView({
                 >
                   Moves
                 </button>
+                <button
+                  onClick={() => setTournamentTab("messages")}
+                  className={`flex-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors ${
+                    tournamentTab === "messages"
+                      ? "bg-emerald-500/20 text-emerald-300"
+                      : "text-gray-600 hover:bg-gray-200/70 dark:text-gray-300 dark:hover:bg-slate-700/60"
+                  }`}
+                >
+                  Messages
+                </button>
               </div>
             )}
 
@@ -834,59 +894,25 @@ export function QuickMatchGameView({
             {/* Content */}
             <div className="theme-glass-panel-soft flex-1 mb-3 rounded-xl overflow-hidden">
               {!tournamentMode && (
-                <div className="h-full overflow-auto p-2.5">
-                  {moves.length === 0 ? (
-                    <div className="text-center text-gray-400 dark:text-gray-500 text-xs py-6">
-                      Game in progress...
-                    </div>
-                  ) : (
-                    <div className="space-y-1">
-                      {Array.from(
-                        { length: Math.ceil(displayMoves.length / 2) },
-                        (_, i) => (
-                          <div
-                            key={i}
-                            className="flex items-center text-xs font-mono"
-                          >
-                              <span className="w-8 text-gray-400 dark:text-gray-500">
-                                {Math.floor(
-                                  (moves.length - displayMoves.length) / 2,
-                                ) +
-                                i +
-                                1}
-                              .
-                            </span>
-                            <span
-                              className={`flex-1 px-2 ${
-                                activeMovePly === i * 2 + 1
-                                  ? "text-emerald-500"
-                                  : "text-gray-800 dark:text-gray-200"
-                              }`}
-                            >
-                              {displayMoves[i * 2]}
-                            </span>
-                            {displayMoves[i * 2 + 1] && (
-                              <span
-                                className={`flex-1 px-2 ${
-                                  activeMovePly === i * 2 + 2
-                                    ? "text-emerald-500"
-                                    : "text-gray-800 dark:text-gray-200"
-                                }`}
-                              >
-                                {displayMoves[i * 2 + 1]}
-                              </span>
-                            )}
+                <MoveListTabs
+                  movesContent={
+                    <ChessMoveList
+                      rows={moveRows}
+                      activePly={activeMovePly}
+                      emptyMessage="No moves yet"
+                      activeMoveClassName="text-emerald-500"
+                      inactiveMoveClassName="text-gray-800 dark:text-gray-200"
+                      footer={
+                        moveLogFooterMessage ? (
+                          <div className="mt-3 pt-3 border-t border-gray-200/70 dark:border-white/10 text-xs font-semibold text-emerald-600 dark:text-emerald-300">
+                            {moveLogFooterMessage}
                           </div>
-                        ),
-                      )}
-                      {moveLogFooterMessage ? (
-                        <div className="mt-3 pt-3 border-t border-gray-200/70 dark:border-white/10 text-xs font-semibold text-emerald-600 dark:text-emerald-300">
-                          {moveLogFooterMessage}
-                        </div>
-                      ) : null}
-                    </div>
-                  )}
-                </div>
+                        ) : null
+                      }
+                    />
+                  }
+                  messages={sidebarMessages}
+                />
               )}
 
               {tournamentMode && tournamentTab === "standings" && (
@@ -1019,51 +1045,43 @@ export function QuickMatchGameView({
 
               {tournamentMode && tournamentTab === "moves" && (
                 <div className="h-full overflow-auto p-2">
-                  {moves.length === 0 ? (
-                    <div className="text-center text-gray-400 dark:text-gray-500 text-xs py-6">
-                      Game in progress...
-                    </div>
-                  ) : (
-                    <div className="space-y-1">
-                      {Array.from(
-                        { length: Math.ceil(displayMoves.length / 2) },
-                        (_, i) => (
-                        <div
-                            key={i}
-                            className="flex items-center text-xs font-mono"
-                        >
-                            <span className="w-8 text-gray-400 dark:text-gray-500">
-                              {i + 1}.
-                            </span>
-                            <span
-                              className={`flex-1 px-2 ${
-                                activeMovePly === i * 2 + 1
-                                  ? "text-emerald-500"
-                                  : "text-gray-800 dark:text-gray-200"
-                              }`}
-                            >
-                              {displayMoves[i * 2]}
-                            </span>
-                            {displayMoves[i * 2 + 1] && (
-                              <span
-                                className={`flex-1 px-2 ${
-                                  activeMovePly === i * 2 + 2
-                                    ? "text-emerald-500"
-                                    : "text-gray-800 dark:text-gray-200"
-                                }`}
-                              >
-                                {displayMoves[i * 2 + 1]}
-                              </span>
-                            )}
-                        </div>
-                        ),
-                      )}
-                      {moveLogFooterMessage ? (
+                  <ChessMoveList
+                    rows={moveRows}
+                    activePly={activeMovePly}
+                    emptyMessage="No moves yet"
+                    activeMoveClassName="text-emerald-500"
+                    inactiveMoveClassName="text-gray-800 dark:text-gray-200"
+                    footer={
+                      moveLogFooterMessage ? (
                         <div className="mt-3 pt-3 border-t border-gray-200/70 dark:border-white/10 text-xs font-semibold text-emerald-600 dark:text-emerald-300">
                           {moveLogFooterMessage}
                         </div>
-                      ) : null}
+                      ) : null
+                    }
+                  />
+                </div>
+              )}
+
+              {tournamentMode && tournamentTab === "messages" && (
+                <div className="h-full overflow-auto p-2 space-y-1.5">
+                  {sidebarMessages.length === 0 ? (
+                    <div className="text-center text-gray-400 dark:text-gray-500 text-xs py-6">
+                      No messages yet.
                     </div>
+                  ) : (
+                    sidebarMessages.map((message) => (
+                      <div
+                        key={message.id}
+                        className="rounded-lg border border-gray-200/70 bg-white/60 px-2.5 py-2 dark:border-white/10 dark:bg-slate-900/70"
+                      >
+                        <div className="text-[11px] font-semibold text-gray-700 dark:text-gray-200">
+                          {message.sender || "System"}
+                        </div>
+                        <p className="mt-1 text-xs text-gray-700 dark:text-gray-200 whitespace-pre-wrap break-words">
+                          {message.content}
+                        </p>
+                      </div>
+                    ))
                   )}
                 </div>
               )}

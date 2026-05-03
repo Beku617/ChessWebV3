@@ -283,8 +283,14 @@ function CommunityGameViewerComponent({
   const squareStyles =
     currentMove?.from && currentMove?.to
       ? {
-          [currentMove.from]: { background: "rgba(96, 165, 250, 0.26)" },
-          [currentMove.to]: { background: "rgba(45, 212, 191, 0.28)" },
+          [currentMove.from]: {
+            boxShadow:
+              "inset 0 0 0 3px rgba(250, 204, 21, 0.95), inset 0 0 0 1px rgba(120, 53, 15, 0.45)",
+          },
+          [currentMove.to]: {
+            boxShadow:
+              "inset 0 0 0 3px rgba(250, 204, 21, 0.95), inset 0 0 0 1px rgba(120, 53, 15, 0.45)",
+          },
         }
       : {};
 

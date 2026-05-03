@@ -662,8 +662,12 @@ export function usePuzzleTrainer() {
     const styles: Record<string, React.CSSProperties> = { ...moveSquares };
 
     if (lastMove) {
-      styles[lastMove.from] = { backgroundColor: "rgba(255, 255, 0, 0.4)" };
-      styles[lastMove.to] = { backgroundColor: "rgba(255, 255, 0, 0.4)" };
+      styles[lastMove.from] = {
+        boxShadow: "inset 0 0 0 3px rgba(250, 204, 21, 0.95)",
+      };
+      styles[lastMove.to] = {
+        boxShadow: "inset 0 0 0 3px rgba(250, 204, 21, 0.95)",
+      };
     }
 
     if (hintMove?.from && hintLevel >= 1) {

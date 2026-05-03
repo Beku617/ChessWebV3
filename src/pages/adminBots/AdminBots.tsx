@@ -5,6 +5,7 @@ import { useAdminStore } from "../../store/adminStore";
 import { useAdminBots } from "./useAdminBots";
 import { BotFormModal } from "./BotFormModal";
 import { DeleteConfirmModal } from "./DeleteConfirmModal";
+import { AnalysisAiModelSelector } from "./AnalysisAiModelSelector";
 import type { BotData, BotFormData } from "./types";
 import { DIFFICULTY_OPTIONS } from "./types";
 
@@ -183,6 +184,7 @@ export default function AdminBots() {
             </h1>
           </div>
           <div className="flex items-center gap-3">
+            <AnalysisAiModelSelector />
             <button
               onClick={handleExport}
               className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center gap-2"
