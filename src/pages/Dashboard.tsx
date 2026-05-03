@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { QUICK_ACTIONS, iconMap } from "./game/types";
-import { useLichessLiveGames } from "../hooks/useWatchPage";
+import { useDashboardLiveGames } from "../hooks/useWatchPage";
 import {
   LiveGamesSection,
   TournamentsSection,
@@ -40,7 +40,7 @@ const fontSizeGroup = {
 export default function Dashboard() {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
-  const { games, loading: apiLoading, error, refetch } = useLichessLiveGames();
+  const { games, loading: apiLoading, error, refetch } = useDashboardLiveGames();
 
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 650);

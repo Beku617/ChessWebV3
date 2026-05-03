@@ -2,11 +2,11 @@ import { motion } from "framer-motion";
 import { Users, Clock, RefreshCw, Radio } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import type { TransformedLiveGame } from "../../utils/lichessApi";
+import type { WatchLiveGame } from "../../pages/watch/types";
 
 interface LiveGamesSectionProps {
   loading: boolean;
-  games: TransformedLiveGame[];
+  games: WatchLiveGame[];
   apiLoading: boolean;
   error: string | null;
   refetch: () => void | Promise<void>;
@@ -137,14 +137,18 @@ export function LiveGamesSection({
                       <Users className="w-3 h-3" />
                       <span className="text-xs">{game.viewers}</span>
                     </div>
-                    <a
-                      href={game.gameUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      type="button"
+                      onClick={() =>
+                        navigate(
+                          game.gameUrl ||
+                            `/watch/${encodeURIComponent(game.id)}`,
+                        )
+                      }
                       className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded-lg transition-all opacity-0 group-hover:opacity-100 shadow-sm"
                     >
                       {t("Watch")}
-                    </a>
+                    </button>
                   </div>
                 </div>
               </motion.div>

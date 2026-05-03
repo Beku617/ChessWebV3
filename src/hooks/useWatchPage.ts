@@ -1,6 +1,4 @@
 import { useState, useEffect, useCallback } from "react";
-import { TransformedLiveGame } from "../utils/lichessApi";
-import { liveGames as mockLiveGames } from "../data/mockData";
 import type { WatchLiveGame } from "../pages/watch/types";
 import { useFriendChallengeStore } from "../store/friendChallengeStore";
 
@@ -44,69 +42,6 @@ export interface FeaturedEvent {
   tags?: string[];
 }
 
-// Hook for fetching live games from Lichess
-export function useLichessLiveGames() {
-  const [games, setGames] = useState<TransformedLiveGame[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const buildFallbackGames = () => {
-    const toCategory = (time: string) => {
-      const match = time.match(/^([0-9.]+)\+(\d+)/);
-      if (!match) return "Blitz";
-      const minutes = parseFloat(match[1]);
-      if (minutes <= 8) return "Blitz";
-      if (minutes <= 25) return "Rapid";
-      return "Classical";
-    };
-
-    return mockLiveGames.map((game, index) => {
-      const category = toCategory(game.timeControl);
-      return {
-        id: `${game.id}-${index}`,
-        white: game.players.white,
-        whiteRating: 1500,
-        whiteTitle: undefined,
-        black: game.players.black,
-        blackRating: 1500,
-        blackTitle: undefined,
-        viewers: `${game.viewers}`,
-        time: game.timeControl,
-        type: category,
-        category,
-        speed: category.toLowerCase(),
-        gameUrl: "https://lichess.org",
-      };
-    });
-  };
-
-  const fetchGames = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(`${API_URL}/api/lichess/tv`);
-      if (!response.ok) throw new Error("Failed to fetch live games");
-      const data = await response.json();
-      setGames(data.games || buildFallbackGames());
-      setError(null);
-    } catch (err: any) {
-      if (err?.name !== "AbortError") {
-        console.warn("Live games fetch failed, using fallback:", err);
-      }
-      setError("Offline mode — showing sample games.");
-      setGames(buildFallbackGames());
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchGames();
-    // No polling to avoid repeated errors when offline.
-  }, [fetchGames]);
-
-  return { games, loading, error, refetch: fetchGames };
-}
-
 function normalizeWatchLiveGame(raw: any): WatchLiveGame {
   const viewers = Number(raw?.viewers);
   return {
@@ -145,6 +80,61 @@ function extractGamesFromPayload(payload: unknown): WatchLiveGame[] {
     .filter((game) => game.id.length > 0);
 }
 
+function isUnauthorizedError(error: unknown): boolean {
+  return (error as { status?: number } | undefined)?.status === 401;
+}
+
+async function fetchWatchLiveGamesFromApi(): Promise<WatchLiveGame[]> {
+  const response = await fetch(WATCH_LIVE_GAMES_ENDPOINT, {
+    credentials: "include",
+  });
+
+  if (response.status === 401) {
+    const unauthorizedError = new Error("UNAUTHORIZED");
+    (unauthorizedError as Error & { status?: number }).status = 401;
+    throw unauthorizedError;
+  }
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch watch live games");
+  }
+
+  const data = await response.json();
+  return extractGamesFromPayload(data);
+}
+
+// Dashboard live games: same source as /watch
+export function useDashboardLiveGames() {
+  const [games, setGames] = useState<WatchLiveGame[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchGames = useCallback(async () => {
+    try {
+      setLoading(true);
+      const nextGames = await fetchWatchLiveGamesFromApi();
+      setGames(nextGames);
+      setError(null);
+    } catch (err: unknown) {
+      if (isUnauthorizedError(err)) {
+        setError("Unauthorized (401): please log in again.");
+      } else {
+        console.error("Dashboard live games fetch failed:", err);
+        setError("Unable to load live games right now.");
+      }
+      setGames([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void fetchGames();
+  }, [fetchGames]);
+
+  return { games, loading, error, refetch: fetchGames };
+}
+
 export function useWatchLiveGames() {
   const [games, setGames] = useState<WatchLiveGame[]>([]);
   const [loading, setLoading] = useState(true);
@@ -155,30 +145,32 @@ export function useWatchLiveGames() {
   const fetchGames = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(WATCH_LIVE_GAMES_ENDPOINT, {
-        credentials: "include",
-      });
-      if (!response.ok) throw new Error("Failed to fetch watch live games");
-      const data = await response.json();
-      const nextGames = extractGamesFromPayload(data);
+      const nextGames = await fetchWatchLiveGamesFromApi();
       setGames(nextGames);
       setError(null);
     } catch (err: unknown) {
-      console.error("Watch live games fetch failed:", err);
+      if (isUnauthorizedError(err)) {
+        setError("Unauthorized (401): please log in again.");
+      } else {
+        console.error("Watch live games fetch failed:", err);
+        setError("Unable to load live games right now.");
+      }
       setGames([]);
-      setError("Unable to load live games right now.");
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchGames();
+    void fetchGames();
+    if (error && error.startsWith("Unauthorized (401)")) {
+      return undefined;
+    }
     const intervalId = window.setInterval(() => {
       void fetchGames();
     }, 10000);
     return () => window.clearInterval(intervalId);
-  }, [fetchGames]);
+  }, [error, fetchGames]);
 
   useEffect(() => {
     if (!socket || !isConnected) return;
@@ -235,7 +227,7 @@ export function useFeaturedEvents() {
   }, []);
 
   useEffect(() => {
-    fetchEvents();
+    void fetchEvents();
   }, [fetchEvents]);
 
   return { events, featuredEvent, loading, error, refetch: fetchEvents };

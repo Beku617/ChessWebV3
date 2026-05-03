@@ -21,18 +21,18 @@
   "Bughouse": "Bughouse",
   "Bullet": "Буллет",
   "Cancel": "Цуцлах",
-  "Check back later!": "Дараа дахин шалгана уу!",
-  "Check back soon or try another category": "Удалгүй дахин шалгах эсвэл өөр ангилал сонгоно уу",
+  "Check back later!": "Дараа дахин шалгаарай!",
+  "Check back soon or try another category": "Удалгүй дахин шалгах эсвэл өөр ангилал туршиж үзнэ үү",
   "Chess Variants": "Шатрын хувилбарууд",
   "Chess960": "Chess960",
-  "Choose a focus and session length.": "Төвлөрөх чиглэл болон сессийн хугацаагаа сонгоно уу.",
+  "Choose a focus and session length.": "Чиглэл болон дасгалын хугацаагаа сонгоно уу.",
   "Choose setup": "Тохиргоо сонгох",
   "Complete": "дууссан",
-  "Consecutive solve days": "Дараалсан бодсон өдрүүд",
+  "Consecutive solve days": "Дараалан бодсон өдрүүд",
   "Continue": "Үргэлжлүүлэх",
   "Conversation": "Яриа",
   "Conversations": "Ярианууд",
-  "Custom": "Тохируулга",
+  "Custom": "Тусгай",
   "Custom Position / Odds": "Тусгай байрлал / Фора",
   "Daily": "Өдрийн",
   "Daily Challenge": "Өдрийн сорилт",
@@ -58,8 +58,8 @@
   "Featured Courses": "Онцлох курсууд",
   "Featured Match": "Онцлох тоглолт",
   "Filtered": "Шүүсэн",
-  "Find an opponent and start playing instantly.": "Өрсөлдөгч олж шууд тоглож эхлээрэй.",
-  "Focus": "Төвлөрөх зүйл",
+  "Find an opponent and start playing instantly.": "Өрсөлдөгч олоод шууд тоглолтоо эхлүүлээрэй.",
+  "Focus": "Чиглэл",
   "Follow": "Дагах",
   "Follow the best games happening right now": "Яг одоо өрнөж буй шилдэг тоглолтуудыг дага",
   "Following": "Дагаж байна",
@@ -72,7 +72,7 @@
   "Games": "Тоглолт",
   "games in play": "тоглолт явагдаж байна",
   "Game Type": "Тоглолтын төрөл",
-  "Get your king to the center.": "Хаанаа төвд хүргээрэй.",
+  "Get your king to the center.": "Хаанаа төв рүү хөдлүүл.",
   "Help": "Тусламж",
   "Hard": "Хэцүү",
   "hours ago": "цагийн өмнө",
@@ -80,14 +80,14 @@
   "I play as": "Би дараах өнгөөр тоглоно",
   "Image": "Зураг",
   "Incoming Requests": "Ирсэн хүсэлтүүд",
-  "Interactive lessons, video courses, and personalized training plans designed by Grandmasters.": "Их мастеруудаас бэлтгэсэн интерактив хичээл, видео курс, хувьчилсан бэлтгэлийн төлөвлөгөө.",
+  "Interactive lessons, video courses, and personalized training plans designed by Grandmasters.": "Их мастеруудаас боловсруулсан интерактив хичээл, видео курс болон хувийн бэлтгэлийн төлөвлөгөө.",
   "Intermediate": "Дунд",
   "Join": "Нэгдэх",
-  "Just now": "Саяхан",
+  "Just now": "Дөнгөж сая",
   "King and Pawn": "Хаан ба пион",
   "King of the Hill": "King of the Hill",
   "Lessons": "Хичээл",
-  "Live games powered by": "Шууд тоглолтуудыг",
+  "Live games powered by": "Шууд тоглолтыг дэмжигч:",
   "Live Games": "Шууд тоглолтууд",
   "Live Now": "Одоо шууд",
   "Live Streamers": "Шууд стримерүүд",
@@ -95,7 +95,7 @@
   "Loading...": "Ачаалж байна...",
   "Loading bots...": "Ботуудыг ачаалж байна...",
   "Loading friends...": "Найзуудыг ачаалж байна...",
-  "Manage your friends and stay connected.": "Найзуудаа удирдаж, холбоотой байгаарай.",
+  "Manage your friends and stay connected.": "Найзуудаа нэмж, холбоогоо хадгалаарай.",
   "Match": "Тоглолт",
   "Mate": "Мат",
   "Mate in {{count}}": "{{count}} нүүдлийн мат",
@@ -110,22 +110,22 @@
   "Message request declined.": "Зурвасын хүсэлтийг татгалзлаа.",
   "Message request sent.": "Зурвасын хүсэлтийг илгээлээ.",
   "Messages": "Зурвасууд",
-  "Middlegame": "Миддлгейм",
+  "Middlegame": "Дунд үе",
   "min ago": "минутын өмнө",
   "No conversations.": "Яриа алга.",
-  "No courses available at the moment.": "Одоогоор курс алга.",
+  "No courses available at the moment.": "Одоогоор курс байхгүй байна.",
   "No email": "Имэйл алга",
-  "No featured events at the moment": "Одоогоор онцлох үйл явдал алга",
+  "No featured events at the moment": "Одоогоор онцлох үйл явдал байхгүй байна",
   "No friends found.": "Найз олдсонгүй.",
   "No incoming requests.": "Ирсэн хүсэлт алга.",
-  "No live games in this category right now": "Энэ ангилалд одоогоор шууд тоглолт алга",
-  "No messages yet.": "Одоогоор зурвас алга.",
+  "No live games in this category right now": "Энэ ангилалд одоогоор шууд тоглолт байхгүй байна",
+  "No messages yet.": "Одоогоор зурвас байхгүй байна.",
   "No outgoing requests.": "Явсан хүсэлт алга.",
   "No posts found": "Пост олдсонгүй",
-  "No puzzles available": "Бодолт алга",
-  "No puzzles available yet.": "Одоогоор бодолт алга.",
-  "No streamers live right now": "Одоогоор шууд стример алга",
-  "No games played yet": "Одоогоор тоглосон тоглолт алга",
+  "No puzzles available": "Бодолт байхгүй байна",
+  "No puzzles available yet.": "Одоогоор бодолт байхгүй байна.",
+  "No streamers live right now": "Одоогоор шууд нэвтрүүлж буй стример алга",
+  "No games played yet": "Одоогоор тоглосон тоглолт байхгүй байна",
   "of": "/",
   "One Move at a Time": "Нүүдэл бүрээр",
   "Open daily puzzle": "Өдрийн бодолтыг нээх",
@@ -136,8 +136,8 @@
   "Opposition": "Эсрэгцэл",
   "Outgoing Requests": "Явсан хүсэлтүүд",
   "Pawn Endgame": "Пионы эндшпиль",
-  "Pattern training.": "Хээний бэлтгэл.",
-  "Pending approval": "Зөвшөөрөл хүлээж байна",
+  "Pattern training.": "Загварын бэлтгэл.",
+  "Pending approval": "Зөвшөөрөл хүлээгдэж байна",
   "PGN": "PGN",
   "Pick a ruleset and jump into a match.": "Дүрмийн хувилбараа сонгоод тоглолтод ор.",
   "Pin": "Уях",
@@ -171,29 +171,29 @@
   "Rook Endgame": "Тэрэгний эндшпиль",
   "Search": "Хайх",
   "Search...": "Хайх...",
-  "Search by username or email.": "Хэрэглэгчийн нэр эсвэл имэйлээр хай.",
+  "Search by username or email.": "Хэрэглэгчийн нэр эсвэл имэйлээр хайх.",
   "Search by username": "Хэрэглэгчийн нэрээр хайх",
   "Search friends...": "Найз хайх...",
   "Search players or events...": "Тоглогч эсвэл үйл явдал хайх...",
-  "Search puzzle title, theme, or motif...": "Бодолтын нэр, сэдэв эсвэл мотивоор хайх...",
+  "Search puzzle title, theme, or motif...": "Бодолтын нэр, сэдэв эсвэл загвараар хайх...",
   "Searching": "Хайж байна",
   "Searching...": "Хайж байна...",
   "See all": "Бүгдийг үзэх",
   "Select a conversation": "Яриа сонгоно уу",
   "Select Bot": "Бот сонгох",
-  "Session Length": "Сессийн хугацаа",
-  "Share a game, puzzle, or thought...": "Тоглолт, бодолт эсвэл бодлоо хуваалцаарай...",
-  "Sharpen tactics, endgames, and openings.": "Тактик, эндшпиль, нээлтээ сайжруул.",
+  "Session Length": "Дасгалын хугацаа",
+  "Share a game, puzzle, or thought...": "Тоглолт, бодолт эсвэл санаагаа хуваалцаарай...",
+  "Sharpen tactics, endgames, and openings.": "Тактик, эндшпиль, нээлтээ улам сайжруул.",
   "shown": "үзүүлсэн",
   "Skewer": "Шорлох",
   "Solve": "Бодох",
-  "Solve Puzzle": "Бодолт бодох",
+  "Solve Puzzle": "Бодолт шийдэх",
   "Solve Today's Puzzle →": "Өнөөдрийн бодолтыг бодох →",
-  "Solve tactical puzzles.": "Тактикийн бодолтууд бод.",
+  "Solve tactical puzzles.": "Тактикийн бодолтуудыг шийд.",
   "Solved Today": "Өнөөдөр бодсон",
   "solved": "бодсон",
   "solved overall": "нийт бодсон",
-  "Start a game to see your history here": "Түүхээ энд харахын тулд тоглолт эхлүүлнэ үү",
+  "Start a game to see your history here": "Энд түүхээ харахын тулд тоглолт эхлүүлнэ үү",
   "Start Course": "Курс эхлүүлэх",
   "Start Learning": "Сурч эхлэх",
   "Start Practice": "Бэлтгэл эхлүүлэх",
@@ -203,10 +203,10 @@
   "Standard": "Стандарт",
   "Strategy": "Стратеги",
   "Streak": "Цуврал",
-  "Streamers powered by": "Стримерүүдийг",
+  "Streamers powered by": "Стримерүүдийг дэмжигч:",
   "Terms": "Нөхцөл",
   "The Immortal Zugzwang": "Мөнхийн цугцванг",
-  "This is a tournament pairing. The game will start automatically once both players join this link. You can keep this tab open; no extra matchmaking is needed.": "Энэ бол тэмцээний тааруулалт. Хоёр тоглогч хоёулаа энэ холбоосоор ормогц тоглолт автоматаар эхэлнэ. Энэ табыг нээлттэй байлгахад хангалттай.",
+  "This is a tournament pairing. The game will start automatically once both players join this link. You can keep this tab open; no extra matchmaking is needed.": "Энэ бол тэмцээний тааруулалт. Хоёр тоглогч хоёулаа энэ холбоосоор ормогц тоглолт автоматаар эхэлнэ. Энэ табыг нээлттэй байлгахад хангалттай; нэмэлт тааруулалт шаардлагагүй.",
   "Time Control": "Цагийн хяналт",
   "Top Players": "Шилдэг тоглогчид",
   "Top Rated": "Өндөр рейтингтэй",
@@ -215,9 +215,9 @@
   "Tournament Banner": "Тэмцээний баннер",
   "Tournament Game": "Тэмцээний тоглолт",
   "Tournaments": "Тэмцээнүүд",
-  "Train by motif and track your puzzle strength.": "Мотивоор бэлтгэл хийж бодолтын чадвараа хянаарай.",
+  "Train by motif and track your puzzle strength.": "Сэдвээр бэлтгэж бодолтын чадвараа хянаарай.",
   "Training Themes": "Бэлтгэлийн сэдвүүд",
-  "Try a different tab or search term": "Өөр таб эсвэл хайлтын үг оролдоно уу",
+  "Try a different tab or search term": "Өөр таб эсвэл хайлтын үгийг туршиж үзнэ үү",
   "Unfriend": "Найзаас хасах",
   "UPCOMING": "УДАХГҮЙ",
   "Username or email": "Хэрэглэгчийн нэр эсвэл имэйл",
@@ -282,7 +282,7 @@
     "next": "Дараах"
   },
   "pagination": {
-    "showingRange": "{{total}} {{itemLabel}}-ийн {{start}} - {{end}}-ийг харуулж байна",
+    "showingRange": "Нийт {{total}} {{itemLabel}}-ийн {{start}}–{{end}}-ийг харуулж байна",
     "first": "Эхний",
     "last": "Сүүлийн",
     "pageOf": "{{page}} / {{totalPages}} хуудас",
@@ -313,7 +313,7 @@
     },
     "generic": {
       "auto": "Автомат",
-      "bye": "Өрсөлдөгчгүй",
+      "bye": "Чөлөө үе",
       "noMax": "Дээд хязгааргүй",
       "optional": "Сонголттой",
       "tbd": "Тодорхойгүй",
@@ -345,7 +345,7 @@
     "standingsMeta": {
       "official": "Албан ёсны",
       "livePreview": "Шууд урьдчилсан харагдац",
-      "roundComplete": "Албан ёсны - {{round}}-р үе дууссан"
+      "roundComplete": "Албан ёсны — {{round}}-р үе дууссан"
     },
     "startType": {
       "manual": "Гараар",
@@ -359,7 +359,7 @@
       "rapid_10_1": "Рапид 10+1",
       "rapid_15_10": "Рапид 15+10",
       "classical_30_0": "Классик 30+0",
-      "custom": "Тохируулга"
+      "custom": "Тусгай"
     }
   },
   "adminTournaments": {
@@ -374,7 +374,7 @@
       "oldest": "Хуучин эхэндээ",
       "mostPlayers": "Хамгийн олон тоглогчтой",
       "liveFirst": "Шууд эхэндээ",
-      "nameAZ": "Нэр А-Я"
+      "nameAZ": "Нэрийн дарааллаар"
     },
     "stats": {
       "totalEvents": "Нийт тэмцээн",
@@ -384,7 +384,7 @@
     "queue": {
       "title": "Тэмцээний жагсаалт",
       "subtitle": "Үе шат, хүснэгт, боломжит үйлдлүүдийг шалгах тэмцээнээ сонгоно уу.",
-      "totalCount": "{{count}} нийт",
+      "totalCount": "Нийт {{count}}",
       "empty": "Одоогийн шүүлтүүрт тохирох тэмцээн олдсонгүй."
     },
     "table": {
@@ -397,8 +397,8 @@
       "inspect": "Шалгах",
       "edit": "Засах",
       "delete": "Устгах",
-      "onlyDraftsEditable": "Зөвхөн ноорог төлөвтэйг засна",
-      "onlyPreLiveDeletable": "Зөвхөн шууд эхлээгүй тэмцээнийг устгана"
+      "onlyDraftsEditable": "Зөвхөн ноорог төлөвтэйг засах боломжтой",
+      "onlyPreLiveDeletable": "Зөвхөн шууд эхлээгүй тэмцээнийг устгах боломжтой"
     },
     "paginationItemLabel": "тэмцээн",
     "detail": {
@@ -413,12 +413,12 @@
       "ratingGate": "Рейтингийн босго"
     },
     "values": {
-      "totalCount": "{{count}} нийт",
+      "totalCount": "Нийт {{count}}",
       "activeCount": "{{count}} идэвхтэй",
       "startsAt": "{{value}}-д эхэлнэ",
       "registrationAt": "Бүртгэл {{value}}",
       "roundRecords": "{{count}} үе шатны бүртгэл",
-      "minMaxPlayers": "{{min}} доод / {{max}} дээд",
+      "minMaxPlayers": "Доод {{min}} / Дээд {{max}}",
       "registeredCount": "{{count}} бүртгэгдсэн",
       "boardsCount": "{{count}} ширээ",
       "elo": "{{value}} Эло",
@@ -433,14 +433,14 @@
       "pairingPreviewGenerated": "Тааруулалтын урьдчилсан харагдацыг үүсгэлээ",
       "pairingsPublished": "Тааруулалтыг нийтэллээ",
       "roundClosed": "Үе шатыг хаалаа",
-      "tournamentFinished": "Тэмцээн дууслаа",
+      "tournamentFinished": "Тэмцээн дуусгавар боллоо",
       "actionFailed": "Тэмцээний үйлдэл амжилтгүй боллоо",
       "nextRoundStarted": "Дараагийн үе шат эхэллээ"
     },
     "confirm": {
-      "deleteMessage": "\"{{name}}\" тэмцээнийг устгах уу? Зөвхөн шууд эхлээгүй тэмцээнийг устгаж болно.",
+      "deleteMessage": "\"{{name}}\" тэмцээнийг устгах уу? Зөвхөн шууд эхлээгүй тэмцээнийг устгах боломжтой.",
       "deleteTournament": "Тэмцээн устгах",
-      "finishMessage": "Энэ тэмцээнийг одоо дуусгах уу? Энэ нь эцсийн хүснэгтийг түгжинэ.",
+      "finishMessage": "Энэ тэмцээнийг одоо дуусгах уу? Эцсийн хүснэгт түгжигдэх болно.",
       "finishTournament": "Тэмцээнийг дуусгах",
       "title": "Үйлдлийг батлах"
     },
@@ -456,7 +456,7 @@
     },
     "preview": {
       "title": "Тааруулалтын урьдчилсан харагдац",
-      "boardMatch": "{{board}}-р ширээ: {{white}} - {{black}}",
+      "boardMatch": "{{board}}-р ширээ: {{white}} — {{black}}",
       "autoPaired": "Автоматаар тааруулсан"
     },
     "standings": {
@@ -489,7 +489,7 @@
     "modal": {
       "titleEdit": "Тэмцээн засах",
       "titleCreate": "Тэмцээн үүсгэх",
-      "subtitle": "Зохион байгуулагч, цагийн хяналт, тоглогчийн хязгаар, явцын тохиргоог хийнэ үү.",
+      "subtitle": "Зохион байгуулагч, цагийн хяналт, тоглогчийн хязгаар болон явцын тохиргоог хийнэ үү.",
       "fields": {
         "organizerUserId": "Зохион байгуулагчийн хэрэглэгчийн ID",
         "name": "Тэмцээний нэр",
@@ -541,13 +541,13 @@
       "myTournaments": "Миний тэмцээнүүд"
     },
     "list": {
-      "empty": "Одоогоор тэмцээн алга. Эхлэхийн тулд нэгийг үүсгэнэ үү."
+      "empty": "Одоогоор тэмцээн байхгүй байна. Шинэ тэмцээн үүсгэнэ үү."
     },
     "pagination": {
-      "showingRange": "{{total}} тэмцээний {{start}} - {{end}}-ийг харуулж байна"
+      "showingRange": "Нийт {{total}} тэмцээний {{start}}–{{end}}-ийг харуулж байна"
     },
     "detail": {
-      "selectPrompt": "Дэлгэрэнгүй харахын тулд тэмцээн сонгоно уу.",
+      "selectPrompt": "Дэлгэрэнгүйг харахын тулд тэмцээн сонгоно уу.",
       "roundOf": "{{current}} / {{total}} үе",
       "playersCount": "{{count}} тоглогч",
       "organizer": "Зохион байгуулагч",
@@ -582,7 +582,7 @@
     },
     "manage": {
       "registeredPlayers": "Бүртгүүлсэн тоглогчид: {{count}}",
-      "liveRoundInfo": "Дууссан ширээний тоглолтоос үр дүн автоматаар бичигдэнэ. Дараагийн үе шат руу шилжилт бүрэн автомат байна.",
+      "liveRoundInfo": "Дууссан ширээний тоглолтын үр дүн автоматаар бүртгэгдэнэ. Дараагийн үе шат руу шилжих нь бүрэн автомат байна.",
       "roundProgressionAutomatic": "Бүх ширээний тоглолт дуусмагц үе шатны шилжилт автоматаар явагдана.",
       "nextRoundAutomatic": "Шууд үе шат дуусмагц дараагийн үе автоматаар үүснэ."
     },
@@ -594,7 +594,7 @@
       "scoreGroup": "Онооны бүлэг",
       "result": "Үр дүн",
       "elo": "ЭЛО",
-      "playerPairing": "{{white}} ({{whiteElo}}) - {{black}} ({{blackElo}})",
+      "playerPairing": "{{white}} ({{whiteElo}}) — {{black}} ({{blackElo}})",
       "eloDelta": "Цагаан {{whiteDelta}} / Хар {{blackDelta}}"
     },
     "finalStandings": {
@@ -605,7 +605,7 @@
       "standings": "Хүснэгт"
     },
     "rounds": {
-      "empty": "Одоогоор үе шат алга."
+      "empty": "Одоогоор үе шат байхгүй байна."
     },
     "standings": {
       "title": "Хүснэгт",
@@ -613,7 +613,7 @@
       "player": "Тоглогч",
       "elo": "ЭЛО",
       "points": "Оноо",
-      "showingRange": "{{total}}-оос {{start}}-{{end}}-ийг харуулж байна",
+      "showingRange": "Нийт {{total}}-аас {{start}}–{{end}}-ийг харуулж байна",
       "pageOf": "{{page}} / {{totalPages}} хуудас"
     },
     "modal": {
@@ -662,10 +662,10 @@
   "Results pending": "Үр дүн хүлээгдэж байна",
   "players": "тоглогч",
   "View Results": "Үр дүн харах",
-  "No tournaments available": "Тэмцээн алга",
+  "No tournaments available": "Тэмцээн байхгүй байна",
   "Create a tournament or check back for the next event.": "Тэмцээн үүсгэх эсвэл дараагийн тэмцээнийг дараа шалгана уу.",
   "Three-Check": "Гурван шах",
   "Atomic Chess": "Атомик шатар",
   "Searching for opponent...": "Өрсөлдөгч хайж байна...",
-  "Server Offline": "Сервер офлайн"
+  "Server Offline": "Сервер офлайн байна"
 }

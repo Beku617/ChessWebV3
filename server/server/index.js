@@ -135,6 +135,10 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: corsOptions,
+  transports: ["websocket", "polling"],
+  pingInterval: 25000,
+  pingTimeout: 60000,
+  maxHttpBufferSize: 1e6,
 });
 const LEGACY_UPLOAD_DIRS = [
   path.resolve(__dirname, "./uploads"),
@@ -169,6 +173,15 @@ const DB_STATE_LABELS = Object.freeze({
 
 // expose socket.io instance for notification helpers
 app.set("io", io);
+
+// Add Socket.IO error handlers
+io.engine.on("connection_error", (err) => {
+  console.error("[socket.io] engine connection error:", err?.message || err);
+});
+
+io.on("error", (err) => {
+  console.error("[socket.io] server error:", err?.message || err);
+});
 
 const waitingQueues = new Map(); // key -> [{ socketId, rating, joinedAt, pool }]
 const games = new Map(); // gameId -> { room, chess, players, playerUsers, timeControl, variant, chess960, isRated }
@@ -3769,6 +3782,17 @@ io.on("connection", (socket) => {
     }
   }
 
+  // Add error handling to prevent connection aborts from crashing
+  socket.on("error", (err) => {
+    console.error("[socket.io] socket error:", err?.message || err);
+  });
+
+  socket.on("disconnect", (reason) => {
+    if (socket.data.userId) {
+      syncUserPresenceFromSockets(socket.data.userId);
+    }
+  });
+
   const safeAck = (ack, payload) => {
     if (typeof ack === "function") {
       ack(payload);
@@ -5745,23 +5769,13 @@ function startHttpServer() {
 }
 
 async function bootstrapServer() {
-  if (process.env.NODE_ENV === "production") {
-    await connectDB();
-    runPostConnectTasks();
-    startHttpServer();
-    return;
-  }
+  await connectDB();
+  runPostConnectTasks();
 
-  startHttpServer();
-  const connection = await connectDB({ exitOnFailure: false });
-  if (connection) {
-    runPostConnectTasks();
-    return;
-  }
-
-  console.warn(
-    "[server] started without a database connection. DB-backed API routes will return 503 until the backend is restarted with a reachable MONGODB_URL.",
-  );
+  server.listen(PORT, () => {
+    console.log(`[server] running on port ${PORT}`);
+    console.log(`[server] allowed origins: ${allowedOrigins.join(", ")}`);
+  });
 }
 
 bootstrapServer().catch((error) => {
