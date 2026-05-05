@@ -172,15 +172,32 @@ function normalizeTournamentSummary(
 }
 
 function getCardClasses(status: TournamentStatus) {
+  const base =
+    "theme-glass-panel-soft border border-theme-glass transition-colors";
+
   if (status === "running") {
-    return "bg-gradient-to-br from-amber-50 via-white to-orange-50 dark:from-[#17120f] dark:via-[#1d1714] dark:to-[#140f0d] border-amber-200/80 dark:border-amber-800/35";
+    return `${base} hover:border-amber-400/45`;
   }
 
   if (status === "registering") {
-    return "bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-[#101721] dark:via-[#111b2b] dark:to-[#0d1520] border-slate-200 dark:border-blue-900/30";
+    return `${base} hover:border-teal-400/45`;
   }
 
-  return "bg-gradient-to-br from-stone-50 via-white to-amber-50 dark:from-[#151515] dark:via-[#191919] dark:to-[#15120f] border-stone-200 dark:border-stone-700/40";
+  return `${base} hover:border-brand-400/35`;
+}
+
+function getStatusTone(status: TournamentStatus) {
+  if (status === "running") {
+    return {
+      badge: "text-amber-600 dark:text-amber-300",
+      button: "bg-amber-500 hover:bg-amber-400",
+    };
+  }
+
+  return {
+    badge: "text-teal-600 dark:text-teal-300",
+    button: "bg-teal-600 hover:bg-teal-500",
+  };
 }
 
 function getStatusLabel(item: TournamentSummary) {
@@ -382,60 +399,63 @@ export function TournamentsSection() {
   }
 
   if (prioritizedTournaments.length > 0) {
+    const isMultiColumn = prioritizedTournaments.length > 1;
+
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {prioritizedTournaments.map((tournament) => (
-          <div
-            key={tournament.id}
-            className={`min-w-0 rounded-xl border dark:border-gray-700/50 p-4 sm:p-5 shadow-sm ${getCardClasses(
-              tournament.status,
-            )}`}
-          >
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-600 dark:text-amber-300">
-                  <span>
-                    {tournament.status === "running" ? t("Active") : t("Upcoming")}
+      <div className={`grid grid-cols-1 gap-4 ${isMultiColumn ? "md:grid-cols-2" : ""}`}>
+        {prioritizedTournaments.map((tournament) => {
+          const tone = getStatusTone(tournament.status);
+
+          return (
+            <div
+              key={tournament.id}
+              className={`min-w-0 rounded-xl border dark:border-gray-700/50 p-4 sm:p-5 shadow-sm ${getCardClasses(
+                tournament.status,
+              )}`}
+            >
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0 flex-1">
+                  <div
+                    className={`flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] ${tone.badge}`}
+                  >
+                    <span>
+                      {tournament.status === "running" ? t("Active") : t("Upcoming")}
+                    </span>
+                  </div>
+                  <h3 className="mt-2 text-lg font-semibold leading-tight text-gray-900 dark:text-white break-words">
+                    {tournament.name}
+                  </h3>
+                  <p className="mt-2 text-sm text-gray-600 dark:text-gray-300 break-words">
+                    {timeControlLabel(tournament.timeControl)}
+                  </p>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 break-words">
+                    {tournament.status === "running"
+                      ? `Round ${Math.max(1, tournament.currentRound)} of ${Math.max(
+                          1,
+                          tournament.roundsPlanned,
+                        )}`
+                      : "Registration open"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="inline-flex min-w-0 items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                  <span className="truncate">
+                    {tournament.registeredCount} {t("players joined")}
                   </span>
                 </div>
-                <h3 className="mt-2 text-lg font-semibold leading-tight text-gray-900 dark:text-white break-words">
-                  {tournament.name}
-                </h3>
-                <p className="mt-2 text-sm text-gray-600 dark:text-gray-300 break-words">
-                  {timeControlLabel(tournament.timeControl)}
-                </p>
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 break-words">
-                  {tournament.status === "running"
-                    ? `Round ${Math.max(1, tournament.currentRound)} of ${Math.max(
-                        1,
-                        tournament.roundsPlanned,
-                      )}`
-                    : "Registration open"}
-                </p>
+
+                <button
+                  onClick={() => navigate(buildTournamentUrl(tournament.id))}
+                  className={`inline-flex items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium text-white transition-colors ${tone.button}`}
+                >
+                  {t(getActionLabel(tournament))}
+                </button>
               </div>
-
             </div>
-
-            <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="inline-flex min-w-0 items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                <span className="truncate">
-                  {tournament.registeredCount} {t("players joined")}
-                </span>
-              </div>
-
-              <button
-                onClick={() => navigate(buildTournamentUrl(tournament.id))}
-                className={`inline-flex items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium text-white transition-colors ${
-                  tournament.status === "running"
-                    ? "bg-amber-500 hover:bg-amber-400"
-                    : "bg-emerald-600 hover:bg-emerald-500"
-                }`}
-              >
-                {t(getActionLabel(tournament))}
-              </button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     );
   }

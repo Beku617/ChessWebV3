@@ -13,8 +13,10 @@ import {
 } from "../../components/game";
 import type { GameSettings, PromotionState } from "../../components/game";
 import type { HistoryPersistenceStatus } from "../../hooks/gameHistorySaver/historyPersistence";
+import { useOpeningExplorer } from "../../hooks/useOpeningExplorer";
 import { BOARD_FRAME } from "./types";
 import type { CSSProperties } from "react";
+import { buildFenByPly, formatOpeningLabel } from "../../utils/liveGameReview";
 
 type MatchVariant =
   | "standard"
@@ -141,6 +143,7 @@ export function FriendGameView({
   const { user } = useAuthStore();
   const playerAvatarUrl = resolveAvatarUrl(user?.avatar);
   const navigate = useNavigate();
+  const [selectedPly, setSelectedPly] = useState<number | null>(null);
   const isThreeCheck = variant === "threeCheck";
   const whiteCheckCount = Number(threeCheckState?.whiteCheckCount || 0);
   const blackCheckCount = Number(threeCheckState?.blackCheckCount || 0);
@@ -153,7 +156,8 @@ export function FriendGameView({
   const playerDisplayName = isThreeCheck
     ? `${user?.fullName || "You"} (Checks ${playerCheckedCount}/3)`
     : user?.fullName || "You";
-  const displayMoves = moves.slice(-8);
+  const displayMoves = moves;
+  const latestPly = moves.length;
   const moveNumberOffset = Math.floor((moves.length - displayMoves.length) / 2);
   const moveRows = useMemo(
     () =>
@@ -163,6 +167,25 @@ export function FriendGameView({
       }),
     [displayMoves, moveNumberOffset],
   );
+  const canShowOpening = variant !== "chess960";
+  const { opening, isLoading: openingLoading } = useOpeningExplorer(
+    canShowOpening ? moves : [],
+    { enableRemote: true },
+  );
+  const openingDisplayLabel = useMemo(() => {
+    if (!canShowOpening) return "";
+    if (moves.length === 0) return "Starting Position";
+    const formatted = formatOpeningLabel(opening);
+    if (formatted) return formatted;
+    return openingLoading ? "Detecting opening..." : "";
+  }, [canShowOpening, moves.length, opening, openingLoading]);
+  const fenByPly = useMemo(() => buildFenByPly(moves), [moves]);
+  const activePly = selectedPly ?? (latestPly > 0 ? latestPly : null);
+  const isReviewingPastMove =
+    selectedPly !== null && selectedPly >= 0 && selectedPly < latestPly;
+  const displayedFen = isReviewingPastMove
+    ? fenByPly.get(selectedPly) || game.fen()
+    : game.fen();
   const sidebarMessages = useMemo(() => {
     const safeStatus = String(statusMessage || "").trim();
     if (!safeStatus) return [];
@@ -180,6 +203,16 @@ export function FriendGameView({
   const leftRef = useRef<HTMLDivElement>(null);
   const topRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (latestPly === 0) {
+      setSelectedPly(null);
+      return;
+    }
+    if (selectedPly !== null && selectedPly > latestPly) {
+      setSelectedPly(latestPly);
+    }
+  }, [latestPly, selectedPly]);
 
   useEffect(() => {
     const container = leftRef.current;
@@ -266,13 +299,15 @@ export function FriendGameView({
             style={{ width: boardWidth + BOARD_FRAME }}
           >
             <GameBoard
-              fen={game.fen()}
+              fen={displayedFen}
               boardWidth={boardWidth}
               boardOrientation={gameSettings.playAs}
-              onSquareClick={onSquareClick}
-              onPieceDrop={onPieceDrop}
-              onCancelSelection={onCancelSelection}
-              isDraggablePiece={isDraggablePiece}
+              onSquareClick={isReviewingPastMove ? () => {} : onSquareClick}
+              onPieceDrop={isReviewingPastMove ? () => false : onPieceDrop}
+              onCancelSelection={isReviewingPastMove ? () => {} : onCancelSelection}
+              isDraggablePiece={
+                isReviewingPastMove ? () => false : isDraggablePiece
+              }
               persistentSquareStyles={persistentSquareStyles}
               customSquareStyles={
                 { ...optionSquares, ...preMoveSquares } as unknown as Record<
@@ -353,11 +388,29 @@ export function FriendGameView({
             <div className="theme-glass-panel-soft flex-1 mb-3 rounded-xl overflow-hidden">
               <MoveListTabs
                 movesContent={
-                  <ChessMoveList
-                    rows={moveRows}
-                    emptyMessage="No moves yet"
-                    inactiveMoveClassName="text-gray-800 dark:text-gray-200"
-                  />
+                  <div className="space-y-2">
+                    {openingDisplayLabel ? (
+                      <div className="px-2 text-xs text-gray-500 dark:text-gray-400">
+                        {openingDisplayLabel}
+                      </div>
+                    ) : null}
+                    <ChessMoveList
+                      rows={moveRows}
+                      activePly={activePly}
+                      onSelectPly={(ply) => {
+                        const boundedPly = Math.max(1, Math.min(Math.floor(ply), latestPly));
+                        if (boundedPly >= latestPly) {
+                          setSelectedPly(null);
+                          return;
+                        }
+                        setSelectedPly(boundedPly);
+                      }}
+                      emptyMessage="No moves yet"
+                      moveCellClassName="rounded px-2 py-1 transition-colors"
+                      activeMoveClassName="bg-[#00e5a0]/20 text-[#00e5a0] font-semibold"
+                      inactiveMoveClassName="text-gray-800 dark:text-gray-200"
+                    />
+                  </div>
                 }
                 messages={sidebarMessages}
               />

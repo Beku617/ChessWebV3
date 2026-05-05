@@ -25,7 +25,10 @@ export function useStockfishEngine(
           skillLevel: selectedBot.skillLevel,
           playStyle: selectedBot.playStyle,
           depth: selectedBot.depth,
-          thinkTimeMs: selectedBot.thinkTimeMs,
+          thinkTimeMs: Math.max(
+            250,
+            Math.round(selectedBot.thinkTimeMs * 0.5),
+          ),
           blunderChance: selectedBot.blunderChance,
           aggressiveness: selectedBot.aggressiveness,
         });

@@ -10,6 +10,7 @@ import {
   type SidebarMessageItem,
 } from "../../components/game";
 import {
+  applyMove,
   createInitialFourPlayerState,
   formatMoveText,
   FOUR_PLAYER_BOARD_SIZE,
@@ -529,7 +530,6 @@ export default function FourPlayerChess() {
     queueStatus,
     selected,
     legalMoveSet,
-    lastMove,
     systemMessage,
     gameOverReason,
     startMatch,
@@ -607,6 +607,7 @@ export default function FourPlayerChess() {
   ]);
 
   const [boardWidth, setBoardWidth] = useState(760);
+  const [selectedPly, setSelectedPly] = useState<number | null>(null);
   const setupBoardAreaRef = useRef<HTMLDivElement>(null);
   const gameBoardAreaRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -631,15 +632,45 @@ export default function FourPlayerChess() {
   }, [gameStarted]);
 
   const previewState = useMemo(() => createInitialFourPlayerState(), []);
-  const selectedKey = selected ? `${selected.row},${selected.col}` : null;
-  const lastMoveFrom = lastMove
-    ? `${lastMove.from.row},${lastMove.from.col}`
+  const latestPly = gameState.moves.length;
+  const isReviewingPastMove =
+    selectedPly !== null && selectedPly >= 0 && selectedPly < latestPly;
+  const displayedState = useMemo(() => {
+    if (!isReviewingPastMove || selectedPly === null) {
+      return gameState;
+    }
+
+    let replayState = createInitialFourPlayerState();
+    for (let index = 0; index < selectedPly; index += 1) {
+      const move = gameState.moves[index];
+      if (!move) break;
+      replayState = applyMove(replayState, move.from, move.to);
+    }
+
+    return replayState;
+  }, [gameState, isReviewingPastMove, selectedPly]);
+  const selectedKey =
+    !isReviewingPastMove && selected
+      ? `${selected.row},${selected.col}`
+      : null;
+  const displayedLastMove =
+    displayedState.moves.length > 0
+      ? displayedState.moves[displayedState.moves.length - 1]
+      : null;
+  const lastMoveFrom = displayedLastMove
+    ? `${displayedLastMove.from.row},${displayedLastMove.from.col}`
     : null;
-  const lastMoveTo = lastMove ? `${lastMove.to.row},${lastMove.to.col}` : null;
+  const lastMoveTo = displayedLastMove
+    ? `${displayedLastMove.to.row},${displayedLastMove.to.col}`
+    : null;
   const visibleLegalMoveSet = useMemo(
-    () => (showLegalMoves ? legalMoveSet : new Set<string>()),
-    [legalMoveSet, showLegalMoves],
+    () =>
+      isReviewingPastMove || !showLegalMoves
+        ? new Set<string>()
+        : legalMoveSet,
+    [isReviewingPastMove, legalMoveSet, showLegalMoves],
   );
+  const activePly = selectedPly ?? (latestPly > 0 ? latestPly : null);
   const moveRows = useMemo<ChessMoveRow[]>(
     () =>
       gameState.moves.map((move, index) => ({
@@ -707,6 +738,17 @@ export default function FourPlayerChess() {
     leaveGame();
     resetLocalState();
   };
+
+  useEffect(() => {
+    if (!gameStarted || latestPly === 0) {
+      setSelectedPly(null);
+      return;
+    }
+
+    if (selectedPly !== null && selectedPly > latestPly) {
+      setSelectedPly(null);
+    }
+  }, [gameStarted, latestPly, selectedPly]);
 
   if (!gameStarted) {
     return (
@@ -830,7 +872,7 @@ export default function FourPlayerChess() {
     );
   }
 
-  const isMyTurn = gameState.turn === playerColor && !gameState.winner;
+  const isMyTurn = displayedState.turn === playerColor && !displayedState.winner;
   const youWin = gameState.winner === playerColor;
 
   return (
@@ -885,14 +927,18 @@ export default function FourPlayerChess() {
             </div>
             <div
               className={`px-3 py-2 rounded-lg text-xs font-semibold ${
-                isMyTurn
+                isReviewingPastMove
+                  ? "bg-amber-500/15 text-amber-700 dark:text-amber-300"
+                  : isMyTurn
                   ? "bg-brand-500/15 text-brand-700 dark:text-brand-300"
                   : "bg-slate-500/15 text-slate-700 dark:text-slate-300"
               }`}
             >
-              {isMyTurn
-                ? "Your Turn"
-                : `${gameState.turn.toUpperCase()} to move`}
+              {isReviewingPastMove
+                ? `Review: ${displayedState.turn.toUpperCase()} to move`
+                : isMyTurn
+                  ? "Your Turn"
+                  : `${displayedState.turn.toUpperCase()} to move`}
             </div>
           </div>
 
@@ -901,17 +947,19 @@ export default function FourPlayerChess() {
             className="flex-1 min-h-0 flex items-center justify-center px-1 pb-1"
           >
             <FourPlayerBoard
-              state={gameState}
+              state={displayedState}
               selected={selectedKey}
               legalMoveSet={visibleLegalMoveSet}
               lastMoveFrom={lastMoveFrom}
               lastMoveTo={lastMoveTo}
-              onSquareClick={onSquareClick}
-              onPieceDrop={onPieceDrop}
-              onCancelSelection={onCancelSelection}
-              canDragFrom={canDragFrom}
+              onSquareClick={isReviewingPastMove ? () => {} : onSquareClick}
+              onPieceDrop={isReviewingPastMove ? () => false : onPieceDrop}
+              onCancelSelection={
+                isReviewingPastMove ? () => {} : onCancelSelection
+              }
+              canDragFrom={isReviewingPastMove ? () => false : canDragFrom}
               boardWidth={boardWidth}
-              interactive
+              interactive={!isReviewingPastMove}
               allowClick={allowClickInput}
               allowDrag={allowDragInput}
             />
@@ -925,14 +973,16 @@ export default function FourPlayerChess() {
             </h2>
             <p className="text-xs text-gray-500 dark:text-gray-400">
               Playing as {players[playerColor]?.name || user?.fullName || "You"}
-              .
+              {isReviewingPastMove
+                ? `. Reviewing move ${selectedPly} of ${latestPly}.`
+                : "."}
             </p>
           </div>
 
           <PlayersGrid
             players={players}
-            turn={gameState.turn}
-            eliminated={gameState.eliminated}
+            turn={displayedState.turn}
+            eliminated={displayedState.eliminated}
             you={playerColor}
           />
 
@@ -953,11 +1003,23 @@ export default function FourPlayerChess() {
                 <ChessMoveList
                   rows={moveRows}
                   emptyMessage="No moves yet"
-                  activePly={moveRows.length || null}
+                  activePly={activePly}
+                  onSelectPly={(ply) => {
+                    if (!Number.isFinite(ply)) return;
+                    const boundedPly = Math.max(
+                      1,
+                      Math.min(Math.floor(ply), latestPly),
+                    );
+                    if (boundedPly >= latestPly) {
+                      setSelectedPly(null);
+                      return;
+                    }
+                    setSelectedPly(boundedPly);
+                  }}
                   rowClassName="rounded-lg bg-gray-100 dark:bg-slate-800/70 py-1"
                   moveNumberClassName="w-10 px-2 text-gray-500 dark:text-gray-400"
-                  moveCellClassName="px-2 text-sm font-mono"
-                  activeMoveClassName="text-brand-700 dark:text-brand-300 font-semibold"
+                  moveCellClassName="rounded px-2 py-1 text-sm font-mono transition-colors"
+                  activeMoveClassName="bg-[#00e5a0]/20 text-[#00e5a0] font-semibold"
                   inactiveMoveClassName="text-gray-700 dark:text-gray-200"
                 />
               }

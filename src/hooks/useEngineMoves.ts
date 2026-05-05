@@ -81,7 +81,7 @@ export function useEngineMoves(
           tryApplyPreMove();
           isEngineThinking.current = false;
         },
-        3000 + Math.random() * 800,
+        120 + Math.random() * 180,
       );
     },
     [gameRef, playerColor, setGame, setMoves, tryApplyPreMove],

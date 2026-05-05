@@ -14,9 +14,11 @@ import {
 import type { GameSettings, PromotionState } from "../../components/game";
 import type { SidebarMessageItem } from "../../components/game";
 import type { HistoryPersistenceStatus } from "../../hooks/gameHistorySaver/historyPersistence";
+import { useOpeningExplorer } from "../../hooks/useOpeningExplorer";
 import { BOARD_FRAME } from "./types";
 import type { CSSProperties, ReactNode } from "react";
 import { openAnalyzeWindow } from "../../utils/analyzeNavigation";
+import { buildFenByPly, formatOpeningLabel } from "../../utils/liveGameReview";
 
 type MatchVariant =
   | "standard"
@@ -400,10 +402,12 @@ export function QuickMatchGameView({
 }: QuickMatchGameViewProps) {
   const { user } = useAuthStore();
   const navigate = useNavigate();
+  const [selectedPly, setSelectedPly] = useState<number | null>(null);
   const [tournamentTab, setTournamentTab] = useState<
     "standings" | "games" | "moves" | "messages"
   >(tournamentMode ? "standings" : "games");
   const displayMoves = moves;
+  const latestPly = moves.length;
   const moveNumberOffset = Math.floor((moves.length - displayMoves.length) / 2);
   const moveRows = useMemo(
     () =>
@@ -413,6 +417,45 @@ export function QuickMatchGameView({
       }),
     [displayMoves, moveNumberOffset],
   );
+  const externalBoardFenProvided =
+    typeof boardFenOverride === "string" && boardFenOverride.trim().length > 0;
+  const isExternallyControlled =
+    externalBoardFenProvided || typeof activeMovePly === "number";
+  const canShowOpening = variant !== "chess960";
+  const { opening, isLoading: openingLoading } = useOpeningExplorer(
+    canShowOpening ? moves : [],
+    { enableRemote: true },
+  );
+  const openingDisplayLabel = useMemo(() => {
+    if (!canShowOpening) return "";
+    if (moves.length === 0) return "Starting Position";
+    const formatted = formatOpeningLabel(opening);
+    if (formatted) return formatted;
+    return openingLoading ? "Detecting opening..." : "";
+  }, [canShowOpening, moves.length, opening, openingLoading]);
+  const fenByPly = useMemo(() => buildFenByPly(moves), [moves]);
+  const resolvedActivePly = isExternallyControlled
+    ? activeMovePly ?? null
+    : selectedPly ?? (latestPly > 0 ? latestPly : null);
+  const isReviewingPastMove =
+    !isExternallyControlled &&
+    selectedPly !== null &&
+    selectedPly >= 0 &&
+    selectedPly < latestPly;
+  const reviewFen = isReviewingPastMove
+    ? fenByPly.get(selectedPly) || game.fen()
+    : null;
+  const handleSelectPly = isExternallyControlled
+    ? undefined
+    : (ply: number) => {
+        if (!Number.isFinite(ply)) return;
+        const boundedPly = Math.max(1, Math.min(Math.floor(ply), latestPly));
+        if (boundedPly >= latestPly) {
+          setSelectedPly(null);
+          return;
+        }
+        setSelectedPly(boundedPly);
+      };
   const isThreeCheck = variant === "threeCheck";
   const whiteCheckCount = Number(threeCheckState?.whiteCheckCount || 0);
   const blackCheckCount = Number(threeCheckState?.blackCheckCount || 0);
@@ -431,10 +474,9 @@ export function QuickMatchGameView({
     topPlayerRatingOverride !== undefined ? topPlayerRatingOverride : opponentRating;
   const playerRatingForInfo =
     bottomPlayerRatingOverride !== undefined ? bottomPlayerRatingOverride : playerRating;
-  const boardFen =
-    typeof boardFenOverride === "string" && boardFenOverride.trim().length > 0
-      ? boardFenOverride
-      : game.fen();
+  const boardFen = externalBoardFenProvided
+    ? boardFenOverride
+    : reviewFen || game.fen();
   const boardOrientation = boardOrientationOverride || gameSettings.playAs;
   const variantLabel =
     variant === "chess960"
@@ -505,6 +547,16 @@ export function QuickMatchGameView({
     tournamentPanelData?.tournament,
     countdownNowMs,
   );
+
+  useEffect(() => {
+    if (latestPly === 0) {
+      setSelectedPly(null);
+      return;
+    }
+    if (selectedPly !== null && selectedPly > latestPly) {
+      setSelectedPly(latestPly);
+    }
+  }, [latestPly, selectedPly]);
   const viewerUserId = String(user?.id || "");
   const viewerStanding =
     tournamentStandings.find((row) => String(row.userId || "") === viewerUserId) ||
@@ -745,10 +797,12 @@ export function QuickMatchGameView({
               fen={boardFen}
               boardWidth={boardWidth}
               boardOrientation={boardOrientation}
-              onSquareClick={onSquareClick}
-              onPieceDrop={onPieceDrop}
-              onCancelSelection={onCancelSelection}
-              isDraggablePiece={isDraggablePiece}
+              onSquareClick={isReviewingPastMove ? () => {} : onSquareClick}
+              onPieceDrop={isReviewingPastMove ? () => false : onPieceDrop}
+              onCancelSelection={isReviewingPastMove ? () => {} : onCancelSelection}
+              isDraggablePiece={
+                isReviewingPastMove ? () => false : isDraggablePiece
+              }
               persistentSquareStyles={persistentSquareStyles}
               customSquareStyles={
                 { ...optionSquares, ...preMoveSquares } as Record<
@@ -896,20 +950,29 @@ export function QuickMatchGameView({
               {!tournamentMode && (
                 <MoveListTabs
                   movesContent={
-                    <ChessMoveList
-                      rows={moveRows}
-                      activePly={activeMovePly}
-                      emptyMessage="No moves yet"
-                      activeMoveClassName="text-emerald-500"
-                      inactiveMoveClassName="text-gray-800 dark:text-gray-200"
-                      footer={
-                        moveLogFooterMessage ? (
-                          <div className="mt-3 pt-3 border-t border-gray-200/70 dark:border-white/10 text-xs font-semibold text-emerald-600 dark:text-emerald-300">
-                            {moveLogFooterMessage}
-                          </div>
-                        ) : null
-                      }
-                    />
+                    <div className="space-y-2">
+                      {openingDisplayLabel ? (
+                        <div className="px-2 text-xs text-gray-500 dark:text-gray-400">
+                          {openingDisplayLabel}
+                        </div>
+                      ) : null}
+                      <ChessMoveList
+                        rows={moveRows}
+                        activePly={resolvedActivePly}
+                        onSelectPly={handleSelectPly}
+                        emptyMessage="No moves yet"
+                        moveCellClassName="rounded px-2 py-1 transition-colors"
+                        activeMoveClassName="bg-[#00e5a0]/20 text-[#00e5a0] font-semibold"
+                        inactiveMoveClassName="text-gray-800 dark:text-gray-200"
+                        footer={
+                          moveLogFooterMessage ? (
+                            <div className="mt-3 pt-3 border-t border-gray-200/70 dark:border-white/10 text-xs font-semibold text-emerald-600 dark:text-emerald-300">
+                              {moveLogFooterMessage}
+                            </div>
+                          ) : null
+                        }
+                      />
+                    </div>
                   }
                   messages={sidebarMessages}
                 />
@@ -1045,20 +1108,29 @@ export function QuickMatchGameView({
 
               {tournamentMode && tournamentTab === "moves" && (
                 <div className="h-full overflow-auto p-2">
-                  <ChessMoveList
-                    rows={moveRows}
-                    activePly={activeMovePly}
-                    emptyMessage="No moves yet"
-                    activeMoveClassName="text-emerald-500"
-                    inactiveMoveClassName="text-gray-800 dark:text-gray-200"
-                    footer={
-                      moveLogFooterMessage ? (
-                        <div className="mt-3 pt-3 border-t border-gray-200/70 dark:border-white/10 text-xs font-semibold text-emerald-600 dark:text-emerald-300">
-                          {moveLogFooterMessage}
-                        </div>
-                      ) : null
-                    }
-                  />
+                  <div className="space-y-2">
+                    {openingDisplayLabel ? (
+                      <div className="px-2 text-xs text-gray-500 dark:text-gray-400">
+                        {openingDisplayLabel}
+                      </div>
+                    ) : null}
+                    <ChessMoveList
+                      rows={moveRows}
+                      activePly={resolvedActivePly}
+                      onSelectPly={handleSelectPly}
+                      emptyMessage="No moves yet"
+                      moveCellClassName="rounded px-2 py-1 transition-colors"
+                      activeMoveClassName="bg-[#00e5a0]/20 text-[#00e5a0] font-semibold"
+                      inactiveMoveClassName="text-gray-800 dark:text-gray-200"
+                      footer={
+                        moveLogFooterMessage ? (
+                          <div className="mt-3 pt-3 border-t border-gray-200/70 dark:border-white/10 text-xs font-semibold text-emerald-600 dark:text-emerald-300">
+                            {moveLogFooterMessage}
+                          </div>
+                        ) : null
+                      }
+                    />
+                  </div>
                 </div>
               )}
 

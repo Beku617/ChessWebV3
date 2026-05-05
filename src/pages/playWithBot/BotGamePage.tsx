@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { Chess } from "chess.js";
 import { useAuthStore } from "../../store/authStore";
 import { useStockfishGame } from "../../hooks/useStockfishGame";
 import {
@@ -63,10 +64,30 @@ function mapDbBotToPersonality(dbBot: any): BotPersonality {
   };
 }
 
+function resolveRequestedPlayAs(rawPlayAs: string | null): "white" | "black" {
+  const normalized = String(rawPlayAs || "").trim().toLowerCase();
+  if (normalized === "black") return "black";
+  if (normalized === "random") {
+    return Math.random() < 0.5 ? "white" : "black";
+  }
+  return "white";
+}
+
+function formatOpeningLabel(
+  opening: { name: string; variation?: string } | null,
+): string {
+  if (!opening) return "";
+  return opening.variation ? `${opening.name}: ${opening.variation}` : opening.name;
+}
+
 export default function BotGamePage() {
   const { botId } = useParams<{ botId: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuthStore();
+  const [resolvedPlayAs] = useState<"white" | "black">(() =>
+    resolveRequestedPlayAs(searchParams.get("playAs")),
+  );
 
   // Bot state
   const [bot, setBot] = useState<BotPersonality | null>(null);
@@ -84,6 +105,8 @@ export default function BotGamePage() {
     isPlayerTurn,
     savedGameId,
     historyPersistenceStatus,
+    opening,
+    openingLoading,
     showGameOverModal,
     clockSessionId,
     optionSquares,
@@ -104,9 +127,58 @@ export default function BotGamePage() {
 
   // Responsive board width
   const [boardWidth, setBoardWidth] = useState(620);
+  const [selectedPly, setSelectedPly] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const leftRef = useRef<HTMLDivElement>(null);
   const moveRows = useMemo(() => buildChessMoveRows(moves), [moves]);
+  const latestPly = moves.length;
+  const activePly = selectedPly ?? (latestPly > 0 ? latestPly : null);
+  const openingLabel = useMemo(() => {
+    if (moves.length === 0) return "Starting Position";
+    const formatted = formatOpeningLabel(opening);
+    if (formatted) return formatted;
+    return openingLoading ? "Detecting opening..." : "";
+  }, [moves.length, opening, openingLoading]);
+  const fenByPly = useMemo(() => {
+    const chess = new Chess();
+    const map = new Map<number, string>();
+    map.set(0, chess.fen());
+    for (let index = 0; index < moves.length; index += 1) {
+      const san = moves[index];
+      const appliedMove = chess.move(san, { sloppy: true });
+      if (!appliedMove) break;
+      map.set(index + 1, chess.fen());
+    }
+    return map;
+  }, [moves]);
+  const isReviewingPastMove =
+    selectedPly !== null && selectedPly < latestPly && selectedPly >= 0;
+  const displayedFen = isReviewingPastMove
+    ? fenByPly.get(selectedPly) || game.fen()
+    : game.fen();
+
+  useEffect(() => {
+    if (latestPly === 0) {
+      setSelectedPly(null);
+      return;
+    }
+    if (selectedPly !== null && selectedPly > latestPly) {
+      setSelectedPly(latestPly);
+    }
+  }, [latestPly, selectedPly]);
+
+  const handleSelectPly = useCallback(
+    (ply: number) => {
+      if (!Number.isFinite(ply)) return;
+      const boundedPly = Math.max(1, Math.min(Math.floor(ply), latestPly));
+      if (boundedPly >= latestPly) {
+        setSelectedPly(null);
+        return;
+      }
+      setSelectedPly(boundedPly);
+    },
+    [latestPly],
+  );
 
   // Fetch bot from API
   useEffect(() => {
@@ -169,13 +241,13 @@ export default function BotGamePage() {
       const settings: GameSettings = {
         ...defaultGameSettings,
         timeControl: { initial: 0, increment: 0 },
-        playAs: "white",
+        playAs: resolvedPlayAs,
         difficulty: bot.skillLevel,
         selectedBot: bot,
       };
       handleStartGame(settings);
     }
-  }, [bot]);
+  }, [bot, gameStarted, handleStartGame, resolvedPlayAs]);
 
   const handleRematch = () => {
     handleStartGame({ ...gameSettings });
@@ -292,13 +364,15 @@ export default function BotGamePage() {
                   style={{ width: boardWidth }}
                 >
                   <GameBoard
-                    fen={game.fen()}
+                    fen={displayedFen}
                     boardWidth={boardWidth}
                     boardOrientation={gameSettings.playAs}
-                    onSquareClick={onSquareClick}
-                    onPieceDrop={onPieceDrop}
-                    onCancelSelection={onCancelSelection}
-                    isDraggablePiece={isDraggablePiece}
+                    onSquareClick={isReviewingPastMove ? () => {} : onSquareClick}
+                    onPieceDrop={isReviewingPastMove ? () => false : onPieceDrop}
+                    onCancelSelection={isReviewingPastMove ? () => {} : onCancelSelection}
+                    isDraggablePiece={
+                      isReviewingPastMove ? () => false : isDraggablePiece
+                    }
                     customSquareStyles={{ ...optionSquares, ...preMoveSquares }}
                     lastMove={lastMove}
                     promotionState={promotionState}
@@ -383,12 +457,23 @@ export default function BotGamePage() {
                 <div className="flex-1 min-h-0 overflow-hidden">
                   <MoveListTabs
                     movesContent={
-                      <ChessMoveList
-                        rows={moveRows}
-                        emptyMessage="No moves yet"
-                        rowClassName="text-sm"
-                        inactiveMoveClassName="text-gray-800 dark:text-gray-200"
-                      />
+                      <div className="space-y-2">
+                        {openingLabel ? (
+                          <div className="px-2 text-xs text-gray-500 dark:text-gray-400">
+                            {openingLabel}
+                          </div>
+                        ) : null}
+                        <ChessMoveList
+                          rows={moveRows}
+                          activePly={activePly}
+                          onSelectPly={handleSelectPly}
+                          emptyMessage="No moves yet"
+                          rowClassName="text-sm"
+                          moveCellClassName="rounded px-2 py-1 transition-colors"
+                          activeMoveClassName="bg-[#00e5a0]/20 text-[#00e5a0] font-semibold"
+                          inactiveMoveClassName="text-gray-800 dark:text-gray-200"
+                        />
+                      </div>
                     }
                     showMessagesTab={false}
                   />

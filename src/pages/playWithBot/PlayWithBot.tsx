@@ -20,6 +20,18 @@ const CATEGORY_INFO: {
   { key: "master", label: "Master" },
 ];
 
+type PlayAsSelection = "white" | "black" | "random";
+
+const PLAY_AS_OPTIONS: Array<{
+  value: PlayAsSelection;
+  label: string;
+  icon: string;
+}> = [
+  { value: "white", label: "Play as White", icon: "♔" },
+  { value: "random", label: "Random side", icon: "?" },
+  { value: "black", label: "Play as Black", icon: "♚" },
+];
+
 function resolveBotAvatarUrl(input: unknown): string {
   const avatarUrl = String(input || "").trim();
   if (!avatarUrl) return "";
@@ -80,6 +92,8 @@ export default function PlayWithBot() {
   const [error, setError] = useState<string | null>(null);
 
   const [selectedBot, setSelectedBot] = useState<BotPersonality | null>(null);
+  const [playAsSelection, setPlayAsSelection] =
+    useState<PlayAsSelection>("random");
   const [expandedCategory, setExpandedCategory] = useState<
     BotPersonality["category"] | null
   >("beginner");
@@ -165,8 +179,14 @@ export default function PlayWithBot() {
 
   const handleStartMatch = () => {
     if (!selectedBot) return;
+    const resolvedPlayAs =
+      playAsSelection === "random"
+        ? Math.random() < 0.5
+          ? "white"
+          : "black"
+        : playAsSelection;
     // Navigate to the bot game page
-    navigate(`/play/bot/${selectedBot.id}`);
+    navigate(`/play/bot/${selectedBot.id}?playAs=${resolvedPlayAs}`);
   };
 
   const toggleCategory = (cat: BotPersonality["category"]) => {
@@ -422,6 +442,27 @@ export default function PlayWithBot() {
 
           {/* Play Button */}
           <div className="p-3 border-t border-gray-200/60 dark:border-white/10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm">
+            <div className="mb-2.5 grid grid-cols-3 gap-2">
+              {PLAY_AS_OPTIONS.map((option) => {
+                const isActive = playAsSelection === option.value;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setPlayAsSelection(option.value)}
+                    aria-label={option.label}
+                    title={option.label}
+                    className={`h-11 rounded-xl border text-xl leading-none transition-all ${
+                      isActive
+                        ? "border-brand-400 bg-brand-500/15 text-brand-700 shadow-[0_0_0_1px_rgba(16,185,129,0.35)_inset] dark:text-brand-300"
+                        : "border-gray-200 bg-gray-50 text-gray-500 hover:border-gray-300 dark:border-white/15 dark:bg-slate-800/70 dark:text-gray-300 dark:hover:border-white/30"
+                    }`}
+                  >
+                    <span aria-hidden>{option.icon}</span>
+                  </button>
+                );
+              })}
+            </div>
             <button
               onClick={handleStartMatch}
               disabled={!selectedBot}
