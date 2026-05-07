@@ -248,7 +248,10 @@ export function QuickMatchSetup({
     ? `${selectedTimeOption.label} (${t(selectedTimeOption.groupLabel)})`
     : `${timeOptionLabel} (${timeGroupLabel})`;
   const isUnratedVariant =
-    variant === "threeCheck" || variant === "kingOfHill" || variant === "atomic";
+    variant === "chess960" ||
+    variant === "threeCheck" ||
+    variant === "kingOfHill" ||
+    variant === "atomic";
   const searchingGameText = tournamentMode
     ? queueStatus ||
       t("Waiting for your tournament opponent to open the game link...")
@@ -353,7 +356,7 @@ export function QuickMatchSetup({
           >
             <PlayerInfo
               name={user?.fullName || t("You")}
-              rating={user?.rating ?? null}
+              rating={isUnratedVariant ? null : (user?.rating ?? null)}
               avatarLetter={user?.fullName?.substring(0, 2).toUpperCase() || "Y"}
               avatarImage={user?.avatar}
               avatarStyle="player"

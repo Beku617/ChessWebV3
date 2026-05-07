@@ -117,6 +117,7 @@ export function usePuzzleTrainer() {
   const [solutionLineVisible, setSolutionLineVisible] = useState(false);
   const [isSolutionAnimating, setIsSolutionAnimating] = useState(false);
   const [solutionRevealSubmitted, setSolutionRevealSubmitted] = useState(false);
+  const [solveStreak, setSolveStreak] = useState(0);
   const solutionAnimationRunIdRef = useRef(0);
 
   const waitFor = useCallback(
@@ -151,8 +152,11 @@ export function usePuzzleTrainer() {
   );
 
   const puzzleElo = stats?.rating ?? user?.puzzleElo ?? 1200;
-  const streak = stats?.streak ?? 0;
   const reviewDueCount = stats?.reviewDueCount ?? 0;
+
+  useEffect(() => {
+    setSolveStreak(0);
+  }, [activeMode]);
 
   useEffect(() => {
     if (status !== "solving") return;
@@ -294,6 +298,12 @@ export function usePuzzleTrainer() {
         });
 
         setStats((previous) => toPublicStatsFromAttempt(previous, response));
+
+        if (result === "SOLVED") {
+          setSolveStreak((previous) => previous + 1);
+        } else {
+          setSolveStreak(0);
+        }
 
         setAttemptFeedback({
           xpAwarded: response.attempt.xpAwarded,
@@ -707,7 +717,7 @@ export function usePuzzleTrainer() {
     currentPuzzle,
     solutionMoves,
     puzzleElo,
-    streak,
+    streak: solveStreak,
     stats,
     reviewDueCount,
     selectionReason,

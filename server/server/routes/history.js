@@ -62,8 +62,11 @@ function normalizeVariant(value) {
   }
   if (
     normalized === "kingofhill" ||
+    normalized === "kingofthehill" ||
     normalized === "king-of-hill" ||
-    normalized === "king_of_hill"
+    normalized === "king_of_hill" ||
+    normalized === "king-of-the-hill" ||
+    normalized === "king_of_the_hill"
   ) {
     return "kingOfHill";
   }
@@ -146,25 +149,27 @@ async function loadMergedHistoryPage(userId, limit, skip) {
 async function resolveHistoryPlayerLinks(requestUserId, playAs, link) {
   let whiteUserId = playAs === "white" ? requestUserId : null;
   let blackUserId = playAs === "black" ? requestUserId : null;
+  let sessionInitialFen = "";
   const gameId = String(link || "").trim();
   if (!gameId) {
-    return { whiteUserId, blackUserId };
+    return { whiteUserId, blackUserId, sessionInitialFen };
   }
 
   const session = await ActiveGameSession.findOne({ gameId })
-    .select("whitePlayerId blackPlayerId white.userId black.userId")
+    .select("whitePlayerId blackPlayerId white.userId black.userId initialFen")
     .lean()
     .catch(() => null);
   if (!session) {
-    return { whiteUserId, blackUserId };
+    return { whiteUserId, blackUserId, sessionInitialFen };
   }
 
   whiteUserId =
     normalizeObjectId(session.whitePlayerId || session.white?.userId) || whiteUserId;
   blackUserId =
     normalizeObjectId(session.blackPlayerId || session.black?.userId) || blackUserId;
+  sessionInitialFen = String(session.initialFen || "").trim();
 
-  return { whiteUserId, blackUserId };
+  return { whiteUserId, blackUserId, sessionInitialFen };
 }
 
 function normalizeHistoryDocForVariant(historyDoc) {
@@ -310,11 +315,17 @@ router.post("/", authMiddleware, async (req, res) => {
       }
     }
 
-    const { whiteUserId, blackUserId } = await resolveHistoryPlayerLinks(
+    const { whiteUserId, blackUserId, sessionInitialFen } =
+      await resolveHistoryPlayerLinks(
       requestUserId,
       playAs,
       normalizedLink,
     );
+    const normalizedStartingFen = String(startingFen || "").trim();
+    const effectiveStartingFen =
+      resolvedVariant === "chess960"
+        ? sessionInitialFen || normalizedStartingFen
+        : normalizedStartingFen || sessionInitialFen;
 
     const historyDoc = {
       userId: requestUserId,
@@ -331,7 +342,7 @@ router.post("/", authMiddleware, async (req, res) => {
       result,
       variant: resolvedVariant,
       currentPosition,
-      startingFen,
+      startingFen: effectiveStartingFen,
       timeControl,
       utcDate,
       utcTime,

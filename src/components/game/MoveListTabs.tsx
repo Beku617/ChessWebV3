@@ -45,6 +45,19 @@ function formatMessageTime(rawDate?: string) {
   });
 }
 
+function buildMessageTrackingKey(message: SidebarMessageItem) {
+  const senderId = String(message.senderId || "").trim();
+  const senderName = String(
+    message.senderUsername || message.sender || "",
+  ).trim();
+  const createdAt = String(message.createdAt || "").trim();
+  const content = String(message.content || "").trim();
+  const type = String(message.type || "").trim();
+  const isSystem = message.isSystem === true ? "1" : "0";
+
+  return [senderId, senderName, createdAt, type, isSystem, content].join("::");
+}
+
 export function MoveListTabs({
   movesContent,
   messages,
@@ -72,7 +85,7 @@ export function MoveListTabs({
   const safeMessages = useMemo(() => messages || [], [messages]);
   const activeTab = canShowMessages ? tab : "moves";
   const messagesScrollRef = useRef<HTMLDivElement | null>(null);
-  const knownMessageIdsRef = useRef<Set<string>>(new Set());
+  const knownMessageKeysRef = useRef<Set<string>>(new Set());
   const initializedKnownMessagesRef = useRef(false);
   const canShowComposer = Boolean(onSendMessage) && !hideMessageInput;
 
@@ -102,18 +115,18 @@ export function MoveListTabs({
 
   useEffect(() => {
     if (safeMessages.length === 0) {
-      knownMessageIdsRef.current.clear();
+      knownMessageKeysRef.current.clear();
       initializedKnownMessagesRef.current = false;
       setUnreadMessageCount(0);
       return;
     }
 
-    const knownIds = knownMessageIdsRef.current;
+    const knownKeys = knownMessageKeysRef.current;
 
     // Do not treat the initial batch as unread; we only badge truly new arrivals.
     if (!initializedKnownMessagesRef.current) {
       safeMessages.forEach((message) => {
-        knownIds.add(message.id);
+        knownKeys.add(buildMessageTrackingKey(message));
       });
       initializedKnownMessagesRef.current = true;
       return;
@@ -122,8 +135,9 @@ export function MoveListTabs({
     let unreadIncrement = 0;
 
     safeMessages.forEach((message) => {
-      if (knownIds.has(message.id)) return;
-      knownIds.add(message.id);
+      const messageKey = buildMessageTrackingKey(message);
+      if (knownKeys.has(messageKey)) return;
+      knownKeys.add(messageKey);
 
       if (activeTab === "messages") return;
 

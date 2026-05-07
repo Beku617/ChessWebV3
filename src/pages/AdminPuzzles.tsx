@@ -32,6 +32,7 @@ function getPageNumbers(current: number, total: number): (number | "...")[] {
 import { Chessboard } from "react-chessboard";
 import type {
   BoardPosition,
+  CustomSquareStyles,
   Piece,
   Square,
 } from "react-chessboard/dist/chessboard/types";
@@ -137,6 +138,13 @@ const PIECE_LABELS: Record<Piece, string> = {
 const WHITE_PIECES: Piece[] = ["wK", "wQ", "wR", "wB", "wN", "wP"];
 const BLACK_PIECES: Piece[] = ["bK", "bQ", "bR", "bB", "bN", "bP"];
 
+type VerboseMove = {
+  from: Square;
+  to: Square;
+  san: string;
+};
+
+
 function PiecePaletteIcon({ piece }: { piece: Piece }) {
   const isBlackPiece = piece.startsWith("b");
 
@@ -198,6 +206,63 @@ function getPuzzleDraftError(formData: PuzzleFormData): string {
   return "";
 }
 
+function getExpectedSolutionPlyCount(mateIn: number): number {
+  const parsed = Number.isFinite(Number(mateIn)) ? Math.trunc(Number(mateIn)) : 1;
+  return Math.max(1, parsed * 2 - 1);
+}
+
+function getSideToMoveLabel(game: Chess): string {
+  return game.turn() === "w" ? "White" : "Black";
+}
+
+function getTerminalGameMessage(game: Chess): string {
+  if (game.in_checkmate()) {
+    return "Checkmate reached. The line is complete; undo the mating move if you need to record more moves.";
+  }
+  if (game.in_stalemate()) {
+    return "Stalemate reached. The line is complete; undo if you need to record more moves.";
+  }
+  if (game.in_draw()) {
+    return "Draw reached. The line is complete; undo if you need to record more moves.";
+  }
+  if (game.moves().length === 0) {
+    return "No legal moves remain. Undo if you need to continue the line.";
+  }
+  return "";
+}
+
+function getRecordingProgressMessage(
+  game: Chess,
+  recordedPlyCount: number,
+  targetPlyCount: number,
+): string {
+  const terminalMessage = getTerminalGameMessage(game);
+  if (terminalMessage) return terminalMessage;
+
+  if (recordedPlyCount >= targetPlyCount) {
+    return `Target reached (${recordedPlyCount}/${targetPlyCount} plies). Stop recording, or continue if this puzzle needs a longer forced line.`;
+  }
+
+  return `Recorded ${recordedPlyCount}/${targetPlyCount} plies. Next: ${getSideToMoveLabel(game)} to move.`;
+}
+
+function rebuildGameFromSolutionMoves(startFen: string, moves: string[]): Chess {
+  const game = new Chess(startFen);
+  for (const move of moves) {
+    game.move(move, { sloppy: true });
+  }
+  return game;
+}
+
+function getLegalMoveTargets(game: Chess, sourceSquare: Square): Square[] {
+  const moves = game.moves({
+    square: sourceSquare,
+    verbose: true,
+  }) as VerboseMove[];
+
+  return Array.from(new Set(moves.map((move) => move.to)));
+}
+
 export default function AdminPuzzles() {
   const navigate = useNavigate();
   const { isAuthenticated, checkAuth } = useAdminStore();
@@ -214,6 +279,11 @@ export default function AdminPuzzles() {
   const [isRecordingSolution, setIsRecordingSolution] = useState(false);
   const [solutionMoves, setSolutionMoves] = useState<string[]>([]);
   const [solutionGame, setSolutionGame] = useState<Chess | null>(null);
+  const [recordingStartFen, setRecordingStartFen] = useState("");
+  const [recordingMessage, setRecordingMessage] = useState("");
+  const [selectedMoveSquare, setSelectedMoveSquare] = useState<Square | null>(
+    null,
+  );
   const adminPuzzleBoardId = useId().replace(/:/g, "");
   const [activeFilter, setActiveFilter] = useState<"all" | "active" | "inactive">(
     "all",
@@ -255,6 +325,9 @@ export default function AdminPuzzles() {
     setIsRecordingSolution(false);
     setSolutionMoves([]);
     setSolutionGame(null);
+    setRecordingStartFen("");
+    setRecordingMessage("");
+    setSelectedMoveSquare(null);
     setShowModal(true);
   };
 
@@ -313,9 +386,134 @@ export default function AdminPuzzles() {
     return position;
   };
 
-  // Handle clicking on board square to place/remove piece
+  // Handle recording solution moves
+  const recordSolutionMove = useCallback(
+    (sourceSquare: Square, targetSquare: Square) => {
+      if (!isRecordingSolution || !solutionGame) return false;
+
+      if (solutionGame.moves().length === 0) {
+        setRecordingMessage(getTerminalGameMessage(solutionGame));
+        setSelectedMoveSquare(null);
+        return false;
+      }
+
+      try {
+        const nextGame = new Chess(solutionGame.fen());
+        const move = nextGame.move({
+          from: sourceSquare,
+          to: targetSquare,
+          promotion: "q",
+        });
+
+        if (move) {
+          setSolutionGame(nextGame);
+          setSelectedMoveSquare(null);
+          setSolutionMoves((previousMoves) => {
+            const newMoves = [...previousMoves, move.san];
+            setFormData((prev) => ({
+              ...prev,
+              solution: newMoves.join(", "),
+            }));
+            setRecordingMessage(
+              getRecordingProgressMessage(
+                nextGame,
+                newMoves.length,
+                getExpectedSolutionPlyCount(formData.mateIn),
+              ),
+            );
+            return newMoves;
+          });
+          return true;
+        }
+        setRecordingMessage(
+          `Illegal move for the current position. Next: ${getSideToMoveLabel(
+            solutionGame,
+          )} to move.`,
+        );
+      } catch {
+        setRecordingMessage(
+          `Illegal move for the current position. Next: ${getSideToMoveLabel(
+            solutionGame,
+          )} to move.`,
+        );
+        return false;
+      }
+      return false;
+    },
+    [formData.mateIn, isRecordingSolution, solutionGame],
+  );
+
+  // Handle clicking on board square to place/remove pieces or record moves.
   const handleSquareClick = (square: Square) => {
-    if (isRecordingSolution || !selectedPiece) return;
+    if (isRecordingSolution) {
+      if (!solutionGame) return;
+
+      if (solutionGame.moves().length === 0) {
+        setRecordingMessage(getTerminalGameMessage(solutionGame));
+        setSelectedMoveSquare(null);
+        return;
+      }
+
+      const piece = solutionGame.get(square);
+      const isOwnPiece = piece?.color === solutionGame.turn();
+
+      if (!selectedMoveSquare) {
+        if (!isOwnPiece) {
+          setRecordingMessage(
+            `Select a ${getSideToMoveLabel(solutionGame)} piece to see legal moves.`,
+          );
+          return;
+        }
+
+        const legalTargets = getLegalMoveTargets(solutionGame, square);
+        if (legalTargets.length === 0) {
+          setRecordingMessage(`${square} has no legal moves.`);
+          return;
+        }
+
+        setSelectedMoveSquare(square);
+        setRecordingMessage(
+          `Selected ${square}. Legal targets: ${legalTargets.join(", ")}.`,
+        );
+        return;
+      }
+
+      if (selectedMoveSquare === square) {
+        setSelectedMoveSquare(null);
+        setRecordingMessage(
+          `Selection cleared. Select a ${getSideToMoveLabel(
+            solutionGame,
+          )} piece to see legal moves.`,
+        );
+        return;
+      }
+
+      if (isOwnPiece) {
+        const legalTargets = getLegalMoveTargets(solutionGame, square);
+        if (legalTargets.length > 0) {
+          setSelectedMoveSquare(square);
+          setRecordingMessage(
+            `Selected ${square}. Legal targets: ${legalTargets.join(", ")}.`,
+          );
+          return;
+        }
+      }
+
+      const selectedTargets = getLegalMoveTargets(solutionGame, selectedMoveSquare);
+      if (!selectedTargets.includes(square)) {
+        setRecordingMessage(
+          `${square} is not a legal target for ${selectedMoveSquare}. Click a highlighted square, or select another ${getSideToMoveLabel(
+            solutionGame,
+          )} piece.`,
+        );
+        return;
+      }
+
+      recordSolutionMove(selectedMoveSquare, square);
+      return;
+    }
+
+    if (!selectedPiece) return;
 
     setFormData((prevForm) => {
       const nextPosition = fenToPosition(prevForm.fen);
@@ -333,31 +531,37 @@ export default function AdminPuzzles() {
     });
   };
 
-  // Handle recording solution moves
   const onDrop = useCallback(
-    (sourceSquare: string, targetSquare: string) => {
-      if (!isRecordingSolution || !solutionGame) return false;
-
-      try {
-        const move = solutionGame.move({
-          from: sourceSquare,
-          to: targetSquare,
-          promotion: "q",
-        });
-
-        if (move) {
-          const newMoves = [...solutionMoves, move.san];
-          setSolutionMoves(newMoves);
-          setFormData((prev) => ({ ...prev, solution: newMoves.join(", ") }));
-          return true;
-        }
-      } catch {
-        return false;
-      }
-      return false;
+    (sourceSquare: Square, targetSquare: Square) => {
+      setSelectedMoveSquare(null);
+      return recordSolutionMove(sourceSquare, targetSquare);
     },
-    [isRecordingSolution, solutionGame, solutionMoves],
+    [recordSolutionMove],
   );
+
+  const recordingSquareStyles = useMemo<CustomSquareStyles>(() => {
+    if (!isRecordingSolution || !solutionGame || !selectedMoveSquare) {
+      return {};
+    }
+
+    const legalTargets = getLegalMoveTargets(solutionGame, selectedMoveSquare);
+    const styles: CustomSquareStyles = {
+      [selectedMoveSquare]: {
+        background:
+          "linear-gradient(135deg, rgba(20,184,166,0.72), rgba(14,165,233,0.58))",
+        boxShadow: "inset 0 0 0 4px rgba(255,255,255,0.7)",
+      },
+    };
+
+    for (const target of legalTargets) {
+      styles[target] = {
+        background:
+          "radial-gradient(circle, rgba(34,197,94,0.95) 18%, rgba(34,197,94,0.25) 20%, transparent 24%)",
+      };
+    }
+
+    return styles;
+  }, [isRecordingSolution, selectedMoveSquare, solutionGame]);
 
   // Start recording solution
   const startRecordingSolution = () => {
@@ -365,9 +569,18 @@ export default function AdminPuzzles() {
       const fenWithSide = withFenSideToMove(formData.fen, formData.isWhiteToMove);
       const game = new Chess(fenWithSide);
       setSolutionGame(game);
+      setRecordingStartFen(fenWithSide);
       setSolutionMoves([]);
+      setRecordingMessage(
+        `Recording started. Target ${getExpectedSolutionPlyCount(
+          formData.mateIn,
+        )} plies for mate in ${formData.mateIn}. First move: ${getSideToMoveLabel(
+          game,
+        )}.`,
+      );
       setIsRecordingSolution(true);
       setSelectedPiece(null);
+      setSelectedMoveSquare(null);
     } catch (e) {
       alert("Invalid FEN position. Please set up a valid position first.");
     }
@@ -377,15 +590,31 @@ export default function AdminPuzzles() {
   const stopRecordingSolution = () => {
     setIsRecordingSolution(false);
     setSolutionGame(null);
+    setRecordingStartFen("");
+    setRecordingMessage("");
+    setSelectedMoveSquare(null);
   };
 
   // Undo last solution move
   const undoSolutionMove = () => {
-    if (solutionGame && solutionMoves.length > 0) {
-      solutionGame.undo();
+    if (recordingStartFen && solutionMoves.length > 0) {
       const newMoves = solutionMoves.slice(0, -1);
+      const rebuiltGame = rebuildGameFromSolutionMoves(recordingStartFen, newMoves);
+      setSolutionGame(rebuiltGame);
       setSolutionMoves(newMoves);
+      setSelectedMoveSquare(null);
       setFormData((prev) => ({ ...prev, solution: newMoves.join(", ") }));
+      setRecordingMessage(
+        newMoves.length > 0
+          ? getRecordingProgressMessage(
+              rebuiltGame,
+              newMoves.length,
+              getExpectedSolutionPlyCount(formData.mateIn),
+            )
+          : `Back at the starting position. First move: ${getSideToMoveLabel(
+              rebuiltGame,
+            )}.`,
+      );
     }
   };
 
@@ -422,6 +651,9 @@ export default function AdminPuzzles() {
     setIsRecordingSolution(false);
     setSolutionMoves([]);
     setSolutionGame(null);
+    setRecordingStartFen("");
+    setRecordingMessage("");
+    setSelectedMoveSquare(null);
     const isWhiteToMove = getFenSideToMove(puzzle.fen, puzzle.isWhiteToMove);
     const normalizedFen = withFenSideToMove(puzzle.fen, isWhiteToMove);
 
@@ -1023,6 +1255,7 @@ export default function AdminPuzzles() {
                         formData.isWhiteToMove ? "white" : "black"
                       }
                       arePiecesDraggable={isRecordingSolution}
+                      customSquareStyles={recordingSquareStyles}
                       dropOffBoardAction="snapback"
                     />
                   </div>
@@ -1060,6 +1293,18 @@ export default function AdminPuzzles() {
                       </>
                     )}
                   </div>
+                  {isRecordingSolution && (
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Click a piece to highlight its legal moves, then click a
+                      highlighted square to record. Dragging still works.
+                    </p>
+                  )}
+
+                  {recordingMessage && (
+                    <div className="p-3 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 rounded-lg text-sm text-blue-800 dark:text-blue-200">
+                      {recordingMessage}
+                    </div>
+                  )}
 
                   {/* Recorded Moves Display */}
                   {solutionMoves.length > 0 && (
@@ -1292,5 +1537,6 @@ export default function AdminPuzzles() {
     </div>
   );
 }
+
 
 

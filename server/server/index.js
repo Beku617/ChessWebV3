@@ -173,6 +173,7 @@ const DB_STATE_LABELS = Object.freeze({
   2: "connecting",
   3: "disconnecting",
 });
+const DB_READY_STATES = new Set([1, 2]);
 
 // expose socket.io instance for notification helpers
 app.set("io", io);
@@ -260,7 +261,9 @@ app.use("/api", requestSecurityMiddleware);
 app.use("/api", (req, res, next) => {
   if (req.method === "OPTIONS") return next();
 
-  if (mongoose.connection.readyState === 1) {
+  // Treat "connecting" as available: Mongoose can buffer operations while
+  // reconnecting, which avoids transient 503s during short network blips.
+  if (DB_READY_STATES.has(mongoose.connection.readyState)) {
     return next();
   }
 
@@ -1337,13 +1340,7 @@ function toTimestamp(value, fallback = Date.now()) {
 
 function getClassicGamePgn(game, moves = getClassicGameMoves(game)) {
   try {
-    let historyMoves = Array.isArray(moves) ? moves : getClassicGameMoves(game);
-    if (typeof game?.chess?.history === "function") {
-      const liveHistoryMoves = game.chess.history();
-      if (Array.isArray(liveHistoryMoves)) {
-        historyMoves = liveHistoryMoves;
-      }
-    }
+    const historyMoves = Array.isArray(moves) ? moves : getClassicGameMoves(game);
     const normalizedMoves = historyMoves
       .map((move) => String(move || "").trim())
       .filter(Boolean);
@@ -1359,8 +1356,9 @@ function getClassicGamePgn(game, moves = getClassicGameMoves(game)) {
 
     return String(pgnChess.pgn() || "").trim();
   } catch (error) {
-    console.warn("Failed to build classic PGN from isolated history:", error);
-    return "";
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn("Failed to build classic PGN from isolated history:", message);
+    return null;
   }
 }
 
@@ -1422,10 +1420,11 @@ function buildClassicSessionUpdate(game, overrides = {}) {
   if (hasPgnOverride) {
     sessionPgn = String(overrides.pgn || "");
   } else {
-    try {
-      sessionPgn = String(getClassicGamePgn(game, moves) || "");
-    } catch (error) {
-      console.warn("Failed to generate classic session PGN. Persisting empty PGN.", error);
+    const rebuiltPgn = getClassicGamePgn(game, moves);
+    if (typeof rebuiltPgn === "string") {
+      sessionPgn = rebuiltPgn;
+    } else {
+      console.warn("Failed to generate classic session PGN. Persisting empty PGN.");
       sessionPgn = "";
     }
   }
@@ -1786,8 +1785,11 @@ function normalizeVariant(variant) {
   }
   if (
     normalized === "kingofhill" ||
+    normalized === "kingofthehill" ||
     normalized === "king-of-hill" ||
-    normalized === "king_of_hill"
+    normalized === "king_of_hill" ||
+    normalized === "king-of-the-hill" ||
+    normalized === "king_of_the_hill"
   ) {
     return "kingOfHill";
   }
@@ -1879,7 +1881,7 @@ function createRealtimeGameRoom({
     chess960: initialPosition.chess960,
     mode:
       mode === "friend" || mode === "tournament" ? mode : "quick",
-    isRated,
+    isRated: ratedForDisplay,
     tournamentId: tournamentId ? normalizeId(tournamentId) : null,
     tournamentGameId: tournamentGameId ? normalizeId(tournamentGameId) : null,
     firstTurnMoves: isTournamentGame ? { w: false, b: false } : null,
@@ -1947,6 +1949,9 @@ function createRealtimeGameRoom({
     gameId: safeGameId,
     color: "w",
     fen: createdGame.chess.fen(),
+    initialFen:
+      String(createdGame?.initialFen || createdGame?.chess?.fen?.() || "start").trim() ||
+      "start",
     moves: getClassicGameMoves(createdGame),
     chatMessages: getClassicChatMessages(createdGame),
     ...initialClockSnapshot,
@@ -1960,6 +1965,9 @@ function createRealtimeGameRoom({
     gameId: safeGameId,
     color: "b",
     fen: createdGame.chess.fen(),
+    initialFen:
+      String(createdGame?.initialFen || createdGame?.chess?.fen?.() || "start").trim() ||
+      "start",
     moves: getClassicGameMoves(createdGame),
     chatMessages: getClassicChatMessages(createdGame),
     ...initialClockSnapshot,
@@ -3263,6 +3271,12 @@ async function hydrateClassicGameFromSession(gameId) {
     chess = new Chess();
   }
 
+  const hydratedVariant = normalizeVariant(session.variant);
+  const hydratedRatingPool = getRatingPoolForTimeControl(
+    normalizedTimeControl,
+    hydratedVariant,
+  );
+
   const hydratedGame = {
     id: normalizedGameId,
     room: `game:${normalizedGameId}`,
@@ -3286,7 +3300,7 @@ async function hydrateClassicGameFromSession(gameId) {
       black: String(session.black?.name || "Player"),
     },
     timeControl: normalizedTimeControl,
-    variant: normalizeVariant(session.variant),
+    variant: hydratedVariant,
     whiteCheckCount: Number(session.whiteCheckCount || 0),
     blackCheckCount: Number(session.blackCheckCount || 0),
     chess960: session.chess960 || undefined,
@@ -3294,7 +3308,7 @@ async function hydrateClassicGameFromSession(gameId) {
       session.mode === "friend" || session.mode === "tournament"
         ? session.mode
         : "quick",
-    isRated: session.rated === true,
+    isRated: session.rated === true && !!hydratedRatingPool,
     tournamentId: null,
     tournamentGameId: null,
     firstTurnMoves: null,
@@ -3911,31 +3925,105 @@ function findKingSquare(chess, color) {
   return null;
 }
 
-function applyKingOfHillAfterMove(game, moverColor) {
+function applyKingOfHillAfterMove(game, moverColor, move) {
   if (!game || normalizeVariant(game.variant) !== "kingOfHill") {
     return { isKingOfHillWin: false };
   }
 
-  const whiteKingSquare = findKingSquare(game.chess, "w");
-  const blackKingSquare = findKingSquare(game.chess, "b");
-  const whiteInCenter = KING_OF_HILL_CENTER_SQUARES.has(whiteKingSquare || "");
-  const blackInCenter = KING_OF_HILL_CENTER_SQUARES.has(blackKingSquare || "");
-
-  if (!whiteInCenter && !blackInCenter) {
+  if (moverColor !== "w" && moverColor !== "b") {
     return { isKingOfHillWin: false };
   }
 
-  const winner =
-    whiteInCenter && blackInCenter
-      ? moverColor
-      : whiteInCenter
-        ? "w"
-        : "b";
+  if (!move || move.piece !== "k" || move.color !== moverColor) {
+    return { isKingOfHillWin: false };
+  }
+
+  const destinationSquare =
+    typeof move.to === "string" ? move.to.trim().toLowerCase() : "";
+  if (!KING_OF_HILL_CENTER_SQUARES.has(destinationSquare)) {
+    return { isKingOfHillWin: false };
+  }
 
   return {
     isKingOfHillWin: true,
-    winner,
+    winner: moverColor,
   };
+}
+
+function tryApplyKingOfHillArrivalMove(game, moverColor, from, to) {
+  if (!game || normalizeVariant(game.variant) !== "kingOfHill") {
+    return { success: false };
+  }
+  if (moverColor !== "w" && moverColor !== "b") {
+    return { success: false };
+  }
+
+  const sourceSquare = String(from || "").trim().toLowerCase();
+  const destinationSquare = String(to || "").trim().toLowerCase();
+  if (!KING_OF_HILL_CENTER_SQUARES.has(destinationSquare)) {
+    return { success: false };
+  }
+
+  const sourceCoords = squareToCoords(sourceSquare);
+  const destinationCoords = squareToCoords(destinationSquare);
+  if (!sourceCoords || !destinationCoords) {
+    return { success: false };
+  }
+
+  const fileDelta = Math.abs(sourceCoords.file - destinationCoords.file);
+  const rankDelta = Math.abs(sourceCoords.rank - destinationCoords.rank);
+  if (Math.max(fileDelta, rankDelta) !== 1) {
+    return { success: false };
+  }
+
+  const movingPiece = game.chess.get(sourceSquare);
+  if (!movingPiece || movingPiece.color !== moverColor || movingPiece.type !== "k") {
+    return { success: false };
+  }
+
+  const targetPiece = game.chess.get(destinationSquare);
+  if (
+    targetPiece &&
+    (targetPiece.color === moverColor || targetPiece.type === "k")
+  ) {
+    return { success: false };
+  }
+
+  const parsed = parseFenPosition(game.chess.fen());
+  if (!parsed) {
+    return { success: false };
+  }
+
+  const board = cloneBoard(parsed.board);
+  const kingPiece = moverColor === "w" ? "K" : "k";
+  setPiece(board, sourceSquare, null);
+  setPiece(board, destinationSquare, kingPiece);
+
+  const nextTurn = moverColor === "w" ? "b" : "w";
+  const nextHalfmove = targetPiece ? 0 : parsed.halfmove + 1;
+  const nextFullmove = parsed.fullmove + (moverColor === "b" ? 1 : 0);
+  const nextFen = `${serializeFenBoard(board)} ${nextTurn} - - ${nextHalfmove} ${nextFullmove}`;
+  let nextChess;
+  try {
+    nextChess = new Chess(nextFen);
+  } catch {
+    return { success: false };
+  }
+
+  const move = {
+    color: moverColor,
+    from: sourceSquare,
+    to: destinationSquare,
+    flags: targetPiece ? "c" : "n",
+    piece: "k",
+    san: `${targetPiece ? "Kx" : "K"}${destinationSquare}`,
+  };
+  if (targetPiece) {
+    move.captured = targetPiece.type;
+  }
+
+  game.chess = nextChess;
+  return { success: true, chess: nextChess, move };
 }
 
 function isAtomicKingCaptureAttempt(chess, from, to, moverColor) {
@@ -4324,6 +4412,9 @@ io.on("connection", (socket) => {
           gameId,
           color: userColor,
           fen: activeGame.chess.fen(),
+          initialFen:
+            String(activeGame?.initialFen || activeGame?.chess?.fen?.() || "start").trim() ||
+            "start",
           moves: getClassicGameMoves(activeGame),
           chatMessages: getClassicChatMessages(activeGame),
           ...clockSnapshot,
@@ -4405,13 +4496,15 @@ io.on("connection", (socket) => {
         const socketTimeControl = tournamentTimeControlToSocketTimeControl(
           tournament.timeControl,
         );
+        const tournamentVariant = normalizeVariant(tournament.gameType);
         const ratingPool = getRatingPoolForTimeControl(
           socketTimeControl,
-          "standard",
+          tournamentVariant,
         );
+        const isRatedTournamentGame = tournament?.rated === true && !!ratingPool;
         let whiteRating = null;
         let blackRating = null;
-        if (ratingPool) {
+        if (isRatedTournamentGame && ratingPool) {
           const ratingField = ratingFieldForPool(ratingPool);
           const [whiteUser, blackUser] = await Promise.all([
             User.findById(whiteUserId).select(`${ratingField} rating`).lean(),
@@ -4425,9 +4518,9 @@ io.on("connection", (socket) => {
           whiteSocket,
           blackSocket,
           timeControl: socketTimeControl,
-          variant: "standard",
+          variant: tournamentVariant,
           mode: "tournament",
-          isRated: true,
+          isRated: isRatedTournamentGame,
           whiteRating,
           blackRating,
           tournamentId: normalizeId(tournamentGame.tournamentId),
@@ -4554,6 +4647,8 @@ io.on("connection", (socket) => {
         gameId,
         color: userColor,
         fen: game.chess.fen(),
+        initialFen:
+          String(game?.initialFen || game?.chess?.fen?.() || "start").trim() || "start",
         moves: getClassicGameMoves(game),
         chatMessages: getClassicChatMessages(game),
         ...clockSnapshot,
@@ -5645,6 +5740,7 @@ io.on("connection", (socket) => {
         gameId,
         color: challengerColor,
         fen: chess.fen(),
+        initialFen: chess.fen(),
         opponentUserId: challenge.toUserId,
         opponentName: challenge.toName || receiverSocket.data.name || "Friend",
         timeControl: normalizedTimeControl,
@@ -5667,6 +5763,7 @@ io.on("connection", (socket) => {
         gameId,
         color: receiverColor,
         fen: chess.fen(),
+        initialFen: chess.fen(),
         opponentUserId: challenge.fromUserId,
         opponentName:
           challenge.fromName || challengerSocket.data.name || "Friend",
@@ -5713,7 +5810,7 @@ io.on("connection", (socket) => {
     if (!game) return;
 
     const { room, players } = game;
-    const chess = game.chess;
+    let chess = game.chess;
     const isAtomic = game.variant === "atomic";
     const moverColor =
       socket.id === players.white
@@ -5775,7 +5872,11 @@ io.on("connection", (socket) => {
       declineDrawOfferForMove(gameId, moverColor);
       void persistClassicGameSession(gameId, { status: "active" });
       const threeCheckResult = applyThreeCheckAfterMove(game, moverColor);
-      const kingOfHillResult = applyKingOfHillAfterMove(game, moverColor);
+      const kingOfHillResult = applyKingOfHillAfterMove(
+        game,
+        moverColor,
+        castlingResult.move,
+      );
       io.to(room).emit("moveApplied", {
         gameId,
         move: castlingResult.move,
@@ -5814,14 +5915,24 @@ io.on("connection", (socket) => {
       return;
     }
 
-    const move = chess.move({
+    let move = chess.move({
       from,
       to,
       promotion: promotion || "q",
     });
 
     if (!move) {
-      return socket.emit("moveRejected", { reason: "Illegal move" });
+      const kingOfHillArrival = tryApplyKingOfHillArrivalMove(
+        game,
+        moverColor,
+        from,
+        to,
+      );
+      if (!kingOfHillArrival.success) {
+        return socket.emit("moveRejected", { reason: "Illegal move" });
+      }
+      chess = kingOfHillArrival.chess;
+      move = kingOfHillArrival.move;
     }
 
     if (pliesBeforeMove === 0) {
@@ -5846,7 +5957,9 @@ io.on("connection", (socket) => {
     updateChess960RightsForNormalMove(game, move, moverColor);
 
     if (isAtomic) {
-      const atomicResult = move.captured ? applyAtomicExplosion(chess, move) : null;
+      if (move.captured) {
+        applyAtomicExplosion(chess, move);
+      }
       const atomicWinner = getAtomicExplosionWinner(chess, moverColor);
 
       io.to(room).emit("moveApplied", {
@@ -5871,7 +5984,7 @@ io.on("connection", (socket) => {
     }
 
     const threeCheckResult = applyThreeCheckAfterMove(game, moverColor);
-    const kingOfHillResult = applyKingOfHillAfterMove(game, moverColor);
+    const kingOfHillResult = applyKingOfHillAfterMove(game, moverColor, move);
 
     io.to(room).emit("moveApplied", {
       gameId,
@@ -6044,6 +6157,8 @@ io.on("connection", (socket) => {
         gameId: normalizedGameId,
         color: requesterColor,
         fen: game.chess.fen(),
+        initialFen:
+          String(game?.initialFen || game?.chess?.fen?.() || "start").trim() || "start",
         moves: getClassicGameMoves(game),
         chatMessages: getClassicChatMessages(game),
         ...clock,

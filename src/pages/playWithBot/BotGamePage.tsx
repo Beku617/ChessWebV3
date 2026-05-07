@@ -236,7 +236,7 @@ export default function BotGamePage() {
       observer.disconnect();
       window.removeEventListener("resize", updateSize);
     };
-  }, []);
+  }, [bot?.id]);
 
   // Auto-start game when bot is loaded
   useEffect(() => {

@@ -229,8 +229,11 @@ export function normalizeMatchVariant(value: unknown): MatchVariant {
   }
   if (
     normalized === "kingofhill" ||
+    normalized === "kingofthehill" ||
     normalized === "king-of-hill" ||
-    normalized === "king_of_hill"
+    normalized === "king_of_hill" ||
+    normalized === "king-of-the-hill" ||
+    normalized === "king_of_the_hill"
   ) {
     return "kingOfHill";
   }
@@ -246,6 +249,7 @@ export function normalizeMatchVariant(value: unknown): MatchVariant {
 
 export function isUnratedVariant(variant: MatchVariant): boolean {
   return (
+    variant === "chess960" ||
     variant === "threeCheck" ||
     variant === "kingOfHill" ||
     variant === "atomic"

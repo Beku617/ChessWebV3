@@ -146,6 +146,15 @@ function normalizeGameType(input) {
   return "standard";
 }
 
+function isUnratedTournamentGameType(gameType) {
+  return normalizeGameType(gameType) === "chess960";
+}
+
+function resolveTournamentRatedFlag(ratedValue, gameType) {
+  if (isUnratedTournamentGameType(gameType)) return false;
+  return parseBoolean(ratedValue, true);
+}
+
 function normalizeSetupValue(input) {
   const normalized = String(input || "standard").trim();
   return normalized || "standard";
@@ -445,14 +454,15 @@ function normalizeRatingBounds(source = {}) {
 function buildTournamentSummary(tournament, extras = {}) {
   const normalizedStatus = normalizeTournamentState(tournament.status);
   const ratingBounds = normalizeRatingBounds(tournament || {});
+  const normalizedGameType = normalizeGameType(tournament.gameType);
   return {
     id: toId(tournament._id),
     name: tournament.name,
     type: tournament.type,
     format: tournament.type,
     formatLabel: formatTypeLabel(tournament.type),
-    rated: parseBoolean(tournament.rated, true),
-    gameType: normalizeGameType(tournament.gameType),
+    rated: resolveTournamentRatedFlag(tournament.rated, normalizedGameType),
+    gameType: normalizedGameType,
     setup: normalizeSetupValue(tournament.setup),
     pairingLogic: normalizePairingLogic(tournament.pairingLogic, tournament.type),
     durationMinutes:
@@ -955,6 +965,11 @@ async function applyGameResultWithElo({
   session,
   source = "organizer",
 }) {
+  const tournamentGameType = normalizeGameType(tournament?.gameType);
+  const isRatedTournamentGame = resolveTournamentRatedFlag(
+    tournament?.rated,
+    tournamentGameType,
+  );
   const winnerId = getWinnerByResult(result, game.whiteId, game.blackId);
   const updatePayload = {
     result,
@@ -963,10 +978,14 @@ async function applyGameResultWithElo({
     liveStatus: "completed",
     resultSource: source,
   };
+  if (!isRatedTournamentGame) {
+    updatePayload.whiteEloDelta = 0;
+    updatePayload.blackEloDelta = 0;
+  }
 
   let eloChanges = null;
 
-  if (!game.isBye && game.blackId) {
+  if (isRatedTournamentGame && !game.isBye && game.blackId) {
     let userQuery = User.find({ _id: { $in: [game.whiteId, game.blackId] } })
       .select("rating")
       .lean();
@@ -1076,12 +1095,15 @@ async function applyGameResultWithElo({
   const updated = await updateQuery;
   if (updated.modifiedCount === 0) {
     const fresh = await TournamentGame.findById(game._id).session(session).lean();
+    const existingEloChanges = isRatedTournamentGame
+      ? {
+          white: Number(fresh?.whiteEloDelta || 0),
+          black: Number(fresh?.blackEloDelta || 0),
+        }
+      : null;
     return {
       game: fresh,
-      eloChanges: {
-        white: Number(fresh?.whiteEloDelta || 0),
-        black: Number(fresh?.blackEloDelta || 0),
-      },
+      eloChanges: existingEloChanges,
       alreadyApplied: true,
     };
   }
@@ -1503,6 +1525,7 @@ async function completeTournament({
 
 async function parseTemplatePayload(body = {}) {
   const parsedType = normalizeTournamentType(body.type || "swiss");
+  const normalizedGameType = normalizeGameType(body.gameType);
   const ratingBounds = normalizeRatingBounds({
     ratingFilterMode: body.ratingFilterMode,
     ratingMin: body.ratingMin,
@@ -1511,8 +1534,8 @@ async function parseTemplatePayload(body = {}) {
   const payload = {
     name: String(body.name || "").trim(),
     type: parsedType,
-    rated: parseBoolean(body.rated, true),
-    gameType: normalizeGameType(body.gameType),
+    rated: resolveTournamentRatedFlag(body.rated, normalizedGameType),
+    gameType: normalizedGameType,
     setup: normalizeSetupValue(body.setup),
     pairingLogic: normalizePairingLogic(body.pairingLogic, parsedType),
     durationMinutes:

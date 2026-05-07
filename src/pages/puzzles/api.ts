@@ -10,6 +10,31 @@ import type {
 
 export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
+const DB_RETRY_DELAYS_MS = [250, 750];
+
+type ApiErrorPayload = {
+  error?: string;
+  message?: string;
+};
+
+class ApiRequestError extends Error {
+  status: number;
+  payload: ApiErrorPayload;
+
+  constructor(status: number, payload: ApiErrorPayload) {
+    super(
+      String(
+        payload.error ||
+          payload.message ||
+          `Request failed with status ${status}`,
+      ),
+    );
+    this.name = "ApiRequestError";
+    this.status = status;
+    this.payload = payload;
+  }
+}
+
 async function parseJson<T>(response: Response): Promise<T> {
   const data = (await response.json().catch(() => ({}))) as T & {
     error?: string;
@@ -17,26 +42,63 @@ async function parseJson<T>(response: Response): Promise<T> {
   };
 
   if (!response.ok) {
-    throw new Error(
-      String((data as { error?: string }).error || "Request failed"),
-    );
+    throw new ApiRequestError(response.status, data);
   }
 
   return data;
 }
 
+function isDbNotReadyError(error: unknown): error is ApiRequestError {
+  if (!(error instanceof ApiRequestError)) return false;
+  if (error.status !== 503) return false;
+  return /database connection is not ready/i.test(String(error.message || ""));
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchJson<T>(
+  input: string,
+  init?: RequestInit,
+  options: { retryDbNotReady?: boolean } = {},
+): Promise<T> {
+  const maxAttempts = options.retryDbNotReady
+    ? DB_RETRY_DELAYS_MS.length + 1
+    : 1;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    const response = await fetch(input, init);
+    try {
+      return await parseJson<T>(response);
+    } catch (error) {
+      const shouldRetry =
+        options.retryDbNotReady &&
+        attempt < maxAttempts - 1 &&
+        isDbNotReadyError(error);
+      if (!shouldRetry) throw error;
+
+      await delay(DB_RETRY_DELAYS_MS[attempt] ?? 500);
+    }
+  }
+
+  throw new Error("Request failed");
+}
+
 export async function fetchPuzzleStats(): Promise<PuzzleUserStats> {
-  const response = await fetch(`${API_URL}/api/puzzles/me/stats`, {
+  return fetchJson<PuzzleUserStats>(`${API_URL}/api/puzzles/me/stats`, {
     credentials: "include",
+  }, {
+    retryDbNotReady: true,
   });
-  return parseJson<PuzzleUserStats>(response);
 }
 
 export async function fetchPuzzleById(puzzleId: string): Promise<PuzzleItem> {
-  const response = await fetch(`${API_URL}/api/puzzles/${puzzleId}`, {
+  return fetchJson<PuzzleItem>(`${API_URL}/api/puzzles/${puzzleId}`, {
     credentials: "include",
+  }, {
+    retryDbNotReady: true,
   });
-  return parseJson<PuzzleItem>(response);
 }
 
 export async function fetchPuzzleSelection(
@@ -51,10 +113,11 @@ export async function fetchPuzzleSelection(
   if (options.includeMastered) params.set("includeMastered", "true");
   if (options.localDateKey) params.set("dateKey", options.localDateKey);
 
-  const response = await fetch(`${API_URL}/api/puzzles/select?${params}`, {
+  return fetchJson<PuzzleSelectionResponse>(`${API_URL}/api/puzzles/select?${params}`, {
     credentials: "include",
+  }, {
+    retryDbNotReady: true,
   });
-  return parseJson<PuzzleSelectionResponse>(response);
 }
 
 export async function fetchPuzzleLibrary(params: {
@@ -82,10 +145,11 @@ export async function fetchPuzzleLibrary(params: {
   if (Number.isFinite(params.maxRating))
     query.set("maxRating", String(params.maxRating));
 
-  const response = await fetch(`${API_URL}/api/puzzles/library?${query}`, {
+  return fetchJson<PuzzleLibraryResponse>(`${API_URL}/api/puzzles/library?${query}`, {
     credentials: "include",
+  }, {
+    retryDbNotReady: true,
   });
-  return parseJson<PuzzleLibraryResponse>(response);
 }
 
 export async function fetchPuzzleReviewQueue(): Promise<{
@@ -93,19 +157,21 @@ export async function fetchPuzzleReviewQueue(): Promise<{
   total: number;
   message?: string | null;
 }> {
-  const response = await fetch(`${API_URL}/api/puzzles/review`, {
+  return fetchJson(`${API_URL}/api/puzzles/review`, {
     credentials: "include",
+  }, {
+    retryDbNotReady: true,
   });
-  return parseJson(response);
 }
 
 export async function fetchPuzzleHistory(
   limit = 50,
 ): Promise<PuzzleHistoryResponse> {
-  const response = await fetch(`${API_URL}/api/puzzles/history?limit=${limit}`, {
+  return fetchJson<PuzzleHistoryResponse>(`${API_URL}/api/puzzles/history?limit=${limit}`, {
     credentials: "include",
+  }, {
+    retryDbNotReady: true,
   });
-  return parseJson<PuzzleHistoryResponse>(response);
 }
 
 export async function submitPuzzleAttempt(
@@ -120,28 +186,30 @@ export async function submitPuzzleAttempt(
     localDateKey?: string;
   },
 ): Promise<PuzzleAttemptResponse> {
-  const response = await fetch(`${API_URL}/api/puzzles/${puzzleId}/attempt`, {
+  return fetchJson<PuzzleAttemptResponse>(`${API_URL}/api/puzzles/${puzzleId}/attempt`, {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
+  }, {
+    retryDbNotReady: true,
   });
-  return parseJson<PuzzleAttemptResponse>(response);
 }
 
 export async function togglePuzzleBookmark(
   puzzleId: string,
   isBookmarked?: boolean,
 ): Promise<{ success: boolean; isBookmarked: boolean }> {
-  const response = await fetch(`${API_URL}/api/puzzles/${puzzleId}/bookmark`, {
+  return fetchJson(`${API_URL}/api/puzzles/${puzzleId}/bookmark`, {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(
       typeof isBookmarked === "boolean" ? { isBookmarked } : {},
     ),
+  }, {
+    retryDbNotReady: true,
   });
-  return parseJson(response);
 }
 
 export function localDateKey(date = new Date()): string {

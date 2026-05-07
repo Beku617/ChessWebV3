@@ -25,6 +25,7 @@ import {
   formatPerspectiveResult,
   isAtomicKingCaptureAttempt,
   isAtomicVerboseMoveAllowed,
+  isUnratedVariant,
 } from "./onlineGameShared";
 import {
   clearActiveOnlineGame,
@@ -115,8 +116,11 @@ function normalizeMatchVariant(value: unknown): MatchVariant {
   }
   if (
     normalized === "kingofhill" ||
+    normalized === "kingofthehill" ||
     normalized === "king-of-hill" ||
-    normalized === "king_of_hill"
+    normalized === "king_of_hill" ||
+    normalized === "king-of-the-hill" ||
+    normalized === "king_of_the_hill"
   ) {
     return "kingOfHill";
   }
@@ -150,6 +154,7 @@ interface MatchFoundPayload {
   gameId: string;
   color: PlayerColor;
   fen: string;
+  initialFen?: string;
   opponentName?: string;
   opponentUserId?: string | null;
   rated?: boolean;
@@ -173,6 +178,7 @@ interface GameStateRestoredPayload {
   gameId: string;
   color?: PlayerColor;
   fen?: string;
+  initialFen?: string;
   moves?: string[];
   whiteTimeLeft?: number;
   blackTimeLeft?: number;
@@ -238,6 +244,34 @@ interface RejoinGameResponse {
   success?: boolean;
   gameId?: string;
   error?: string;
+}
+
+type DrawOfferStatus = "idle" | "sent" | "received";
+
+interface DrawOfferState {
+  status: DrawOfferStatus;
+  offeredBy: PlayerColor | null;
+  expiresAt: number | null;
+}
+
+interface DrawOfferPayload {
+  gameId?: string;
+  offeredBy?: PlayerColor;
+  acceptedBy?: PlayerColor;
+  declinedBy?: PlayerColor;
+  expiresAt?: number;
+  reason?: string;
+}
+
+interface SocketAckResponse {
+  success?: boolean;
+  status?: string;
+  error?: string;
+  matched?: boolean;
+  reason?: string;
+  gameId?: string;
+  expiresAt?: number;
+  delivered?: boolean;
 }
 
 interface GameSystemMessagePayload {
@@ -335,6 +369,12 @@ function createChatMessageId() {
   return `chat-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
+const idleDrawOfferState: DrawOfferState = {
+  status: "idle",
+  offeredBy: null,
+  expiresAt: null,
+};
+
 export function useFriendOnlineGame() {
   const { user, setUser } = useAuthStore();
   const { autoQueen, premoves, showLegalMoves } = useGameplayPreferences();
@@ -412,6 +452,8 @@ export function useFriendOnlineGame() {
   const [lastGameOver, setLastGameOver] = useState<GameOverPayload | null>(
     null,
   );
+  const [drawOfferState, setDrawOfferState] =
+    useState<DrawOfferState>(idleDrawOfferState);
   const saveGameHistory = useSaveGameHistory();
 
   const appendSystemMessage = useCallback((message: string | null | undefined) => {
@@ -447,20 +489,33 @@ export function useFriendOnlineGame() {
     const matchId = String(payload.matchId || "").trim();
     if (!senderId || !senderUsername || !message || !matchId) return;
 
-    setChatMessages((previous) => [
-      ...previous,
-      {
-        id: createChatMessageId(),
-        senderId,
-        senderUsername,
-        content: message,
-        createdAt: String(payload.timestamp || new Date().toISOString()),
-      },
-    ]);
+    const createdAt = String(payload.timestamp || new Date().toISOString());
+    const messageKey = `${senderId}|${createdAt}|${message}`;
+
+    setChatMessages((previous) => {
+      const hasDuplicate = previous.some(
+        (entry) =>
+          `${entry.senderId}|${String(entry.createdAt || "").trim()}|${entry.content}` ===
+          messageKey,
+      );
+      if (hasDuplicate) return previous;
+
+      return [
+        ...previous,
+        {
+          id: createChatMessageId(),
+          senderId,
+          senderUsername,
+          content: message,
+          createdAt,
+        },
+      ];
+    });
   }, []);
 
   const replaceChatMessages = useCallback((messages?: ChatMessagePayload[]) => {
     if (!Array.isArray(messages)) return;
+    const seenMessageKeys = new Set<string>();
     const normalized = messages
       .map((entry) => {
         const senderId = String(entry?.senderId || "").trim();
@@ -468,12 +523,16 @@ export function useFriendOnlineGame() {
         const content = String(entry?.message || "").trim();
         const matchId = String(entry?.matchId || "").trim();
         if (!senderId || !senderUsername || !content || !matchId) return null;
+        const createdAt = String(entry?.timestamp || new Date().toISOString());
+        const messageKey = `${senderId}|${createdAt}|${content}`;
+        if (seenMessageKeys.has(messageKey)) return null;
+        seenMessageKeys.add(messageKey);
         return {
           id: createChatMessageId(),
           senderId,
           senderUsername,
           content,
-          createdAt: String(entry?.timestamp || new Date().toISOString()),
+          createdAt,
         };
       })
       .filter((entry): entry is FriendMatchChatMessage => entry !== null);
@@ -661,6 +720,7 @@ export function useFriendOnlineGame() {
     startingFenRef.current = "";
     historySavedRef.current = false;
     setLastGameOver(null);
+    setDrawOfferState(idleDrawOfferState);
     setThreeCheckState(normalizeThreeCheckCounts());
   }, [resetStoredMoves]);
 
@@ -675,7 +735,8 @@ export function useFriendOnlineGame() {
       const startingTurn = nextGame.turn() as PlayerColor;
       currentTurnRef.current = startingTurn;
       setCurrentTurn(startingTurn);
-      startingFenRef.current = payload.fen || nextGame.fen();
+      const normalizedInitialFen = String(payload.initialFen || "").trim();
+      startingFenRef.current = normalizedInitialFen || payload.fen || nextGame.fen();
       resetStoredMoves();
       setLastMove(null);
       setMoveFrom(null);
@@ -708,7 +769,10 @@ export function useFriendOnlineGame() {
         timeControl,
       });
       const ratingPool = getRatingPoolForMatch(timeControl, normalizedVariant);
-      const canShowRatedInfo = payload.rated === true && ratingPool !== null;
+      const canShowRatedInfo =
+        payload.rated === true &&
+        ratingPool !== null &&
+        !isUnratedVariant(normalizedVariant);
       const fallbackPlayerRating = getUserRatingForPool(
         userRef.current,
         ratingPool,
@@ -724,7 +788,7 @@ export function useFriendOnlineGame() {
       setMatchVariant(normalizedVariant);
       matchVariantRef.current = normalizedVariant;
       setGameType(normalizedVariant);
-      setIsRated(payload.rated === true);
+      setIsRated(canShowRatedInfo);
       setGameStarted(true);
       setGameOver(false);
       setGameResult(null);
@@ -738,6 +802,7 @@ export function useFriendOnlineGame() {
       historySavedRef.current = false;
       startTimeRef.current = Date.now();
       setLastGameOver(null);
+      setDrawOfferState(idleDrawOfferState);
       setThreeCheckState(normalizeThreeCheckCounts(payload));
       playGameplaySound("gameStart", { onceKey: payload.gameId });
 
@@ -871,6 +936,7 @@ export function useFriendOnlineGame() {
         gameId: normalizedGameId,
         color: payload.color === "b" ? "b" : "w",
         fen: payload.fen || gameRef.current.fen(),
+        initialFen: payload.initialFen,
         opponentUserId: payload.opponentUserId
           ? String(payload.opponentUserId)
           : undefined,
@@ -953,10 +1019,15 @@ export function useFriendOnlineGame() {
           const turn = restoredGame.turn() as PlayerColor;
           currentTurnRef.current = turn;
           setCurrentTurn(turn);
-          startingFenRef.current = restoredGame.fen();
         } catch {
           // ignore malformed restore payloads
         }
+      }
+      const restoredInitialFen = String(payload.initialFen || "").trim();
+      if (restoredInitialFen) {
+        startingFenRef.current = restoredInitialFen;
+      } else if (!startingFenRef.current) {
+        startingFenRef.current = restoredFen || gameRef.current.fen();
       }
 
       if (Array.isArray(payload.moves)) {
@@ -1129,6 +1200,7 @@ export function useFriendOnlineGame() {
       setPendingPromoFrom(null);
       setPendingPreMove(null);
       pendingPreMoveRef.current = null;
+      setDrawOfferState(idleDrawOfferState);
       if (
         matchVariantRef.current === "threeCheck" &&
         (payload.whiteCheckCount !== undefined ||
@@ -1139,7 +1211,13 @@ export function useFriendOnlineGame() {
       playGameplaySound("gameEnd");
 
       const currentUser = userRef.current;
-      if (!currentUser?.id || !payload.elo?.applied) return;
+      if (
+        !currentUser?.id ||
+        !payload.elo?.applied ||
+        isUnratedVariant(matchVariantRef.current)
+      ) {
+        return;
+      }
 
       const currentUserId = String(currentUser.id);
       const sideUpdate =
@@ -1241,6 +1319,56 @@ export function useFriendOnlineGame() {
       appendChatMessage(payload);
     };
 
+    const handleDrawOfferPending = (payload: DrawOfferPayload) => {
+      if (payload.gameId !== gameIdRef.current) return;
+      setDrawOfferState({
+        status: "sent",
+        offeredBy: payload.offeredBy || playerColorRef.current,
+        expiresAt: Number(payload.expiresAt || 0) || null,
+      });
+      setStatusMessage("Draw offer sent.");
+    };
+
+    const handleDrawOfferReceived = (payload: DrawOfferPayload) => {
+      if (payload.gameId !== gameIdRef.current) return;
+      if (payload.offeredBy && payload.offeredBy === playerColorRef.current) {
+        setDrawOfferState({
+          status: "sent",
+          offeredBy: payload.offeredBy,
+          expiresAt: Number(payload.expiresAt || 0) || null,
+        });
+        return;
+      }
+      setDrawOfferState({
+        status: "received",
+        offeredBy: payload.offeredBy || null,
+        expiresAt: Number(payload.expiresAt || 0) || null,
+      });
+      setStatusMessage("Opponent offered a draw.");
+    };
+
+    const handleDrawOfferAccepted = (payload: DrawOfferPayload) => {
+      if (payload.gameId !== gameIdRef.current) return;
+      setDrawOfferState(idleDrawOfferState);
+      setStatusMessage("Draw offer accepted.");
+    };
+
+    const handleDrawOfferDeclined = (payload: DrawOfferPayload) => {
+      if (payload.gameId !== gameIdRef.current) return;
+      setDrawOfferState(idleDrawOfferState);
+      setStatusMessage(
+        payload.reason === "move"
+          ? "Draw offer declined by move."
+          : "Draw offer declined.",
+      );
+    };
+
+    const handleDrawOfferExpired = (payload: DrawOfferPayload) => {
+      if (payload.gameId !== gameIdRef.current) return;
+      setDrawOfferState(idleDrawOfferState);
+      setStatusMessage("Draw offer expired.");
+    };
+
     const handleOpponentDisconnected = (payload?: {
       gameId?: string;
       graceMs?: number;
@@ -1279,6 +1407,11 @@ export function useFriendOnlineGame() {
     socket.on("gameOver", handleGameOver);
     socket.on("gameSystemMessage", handleGameSystemMessage);
     socket.on("chatMessage", handleChatMessage);
+    socket.on("drawOfferPending", handleDrawOfferPending);
+    socket.on("drawOfferReceived", handleDrawOfferReceived);
+    socket.on("drawOfferAccepted", handleDrawOfferAccepted);
+    socket.on("drawOfferDeclined", handleDrawOfferDeclined);
+    socket.on("drawOfferExpired", handleDrawOfferExpired);
     socket.on("opponent_disconnected", handleOpponentDisconnected);
     socket.on("opponent_reconnected", handleOpponentReconnected);
     socket.on("opponent_abandoned", handleOpponentAbandoned);
@@ -1304,6 +1437,11 @@ export function useFriendOnlineGame() {
       socket.off("gameOver", handleGameOver);
       socket.off("gameSystemMessage", handleGameSystemMessage);
       socket.off("chatMessage", handleChatMessage);
+      socket.off("drawOfferPending", handleDrawOfferPending);
+      socket.off("drawOfferReceived", handleDrawOfferReceived);
+      socket.off("drawOfferAccepted", handleDrawOfferAccepted);
+      socket.off("drawOfferDeclined", handleDrawOfferDeclined);
+      socket.off("drawOfferExpired", handleDrawOfferExpired);
       socket.off("opponent_disconnected", handleOpponentDisconnected);
       socket.off("opponent_reconnected", handleOpponentReconnected);
       socket.off("opponent_abandoned", handleOpponentAbandoned);
@@ -1587,6 +1725,9 @@ export function useFriendOnlineGame() {
       moves: persistedMoves,
     });
 
+    const includeRatingMetadata =
+      !isUnratedVariant(matchVariant) && isRated && lastGameOver.elo?.rated === true;
+
     saveGameHistory({
       event:
         matchVariant === "chess960"
@@ -1616,68 +1757,81 @@ export function useFriendOnlineGame() {
       endTime: formatTime(now),
       whiteElo,
       blackElo,
-      rated: isRated,
-      ratingBefore: Number.isFinite(playerPreRating)
+      rated: includeRatingMetadata,
+      ratingBefore: includeRatingMetadata && Number.isFinite(playerPreRating)
         ? playerPreRating
         : undefined,
-      ratingAfter: Number.isFinite(playerPostRating)
+      ratingAfter: includeRatingMetadata && Number.isFinite(playerPostRating)
         ? playerPostRating
         : undefined,
-      ratingDelta: Number.isFinite(playerDelta) ? playerDelta : undefined,
-      ratingDeviationBefore: Number.isFinite(playerPreRd)
+      ratingDelta:
+        includeRatingMetadata && Number.isFinite(playerDelta) ? playerDelta : undefined,
+      ratingDeviationBefore: includeRatingMetadata && Number.isFinite(playerPreRd)
         ? playerPreRd
         : undefined,
-      ratingDeviationAfter: Number.isFinite(playerPostRd)
+      ratingDeviationAfter: includeRatingMetadata && Number.isFinite(playerPostRd)
         ? playerPostRd
         : undefined,
       ratingDeviationDelta:
-        Number.isFinite(playerPreRd) && Number.isFinite(playerPostRd)
+        includeRatingMetadata &&
+        Number.isFinite(playerPreRd) &&
+        Number.isFinite(playerPostRd)
           ? playerPostRd - playerPreRd
           : undefined,
-      volatilityBefore: Number.isFinite(playerPreVolatility)
+      volatilityBefore: includeRatingMetadata && Number.isFinite(playerPreVolatility)
         ? playerPreVolatility
         : undefined,
-      volatilityAfter: Number.isFinite(playerPostVolatility)
+      volatilityAfter: includeRatingMetadata && Number.isFinite(playerPostVolatility)
         ? playerPostVolatility
         : undefined,
       volatilityDelta:
+        includeRatingMetadata &&
         Number.isFinite(playerPreVolatility) &&
         Number.isFinite(playerPostVolatility)
           ? playerPostVolatility - playerPreVolatility
           : undefined,
-      isProvisional: playerIsProvisional,
-      opponentRatingBefore: Number.isFinite(opponentPreRating)
+      isProvisional: includeRatingMetadata ? playerIsProvisional : undefined,
+      opponentRatingBefore:
+        includeRatingMetadata && Number.isFinite(opponentPreRating)
         ? opponentPreRating
         : undefined,
-      opponentRatingAfter: Number.isFinite(opponentPostRating)
+      opponentRatingAfter:
+        includeRatingMetadata && Number.isFinite(opponentPostRating)
         ? opponentPostRating
         : undefined,
-      opponentRatingDelta: Number.isFinite(opponentDelta)
+      opponentRatingDelta:
+        includeRatingMetadata && Number.isFinite(opponentDelta)
         ? opponentDelta
         : undefined,
-      opponentRatingDeviationBefore: Number.isFinite(opponentPreRd)
+      opponentRatingDeviationBefore:
+        includeRatingMetadata && Number.isFinite(opponentPreRd)
         ? opponentPreRd
         : undefined,
-      opponentRatingDeviationAfter: Number.isFinite(opponentPostRd)
+      opponentRatingDeviationAfter:
+        includeRatingMetadata && Number.isFinite(opponentPostRd)
         ? opponentPostRd
         : undefined,
       opponentRatingDeviationDelta:
+        includeRatingMetadata &&
         Number.isFinite(opponentPreRd) && Number.isFinite(opponentPostRd)
           ? opponentPostRd - opponentPreRd
           : undefined,
-      opponentVolatilityBefore: Number.isFinite(opponentPreVolatility)
+      opponentVolatilityBefore:
+        includeRatingMetadata && Number.isFinite(opponentPreVolatility)
         ? opponentPreVolatility
         : undefined,
-      opponentVolatilityAfter: Number.isFinite(opponentPostVolatility)
+      opponentVolatilityAfter:
+        includeRatingMetadata && Number.isFinite(opponentPostVolatility)
         ? opponentPostVolatility
         : undefined,
       opponentVolatilityDelta:
+        includeRatingMetadata &&
         Number.isFinite(opponentPreVolatility) &&
         Number.isFinite(opponentPostVolatility)
           ? opponentPostVolatility - opponentPreVolatility
           : undefined,
-      opponentIsProvisional,
-      ratingPool: lastGameOver.elo?.pool,
+      opponentIsProvisional: includeRatingMetadata ? opponentIsProvisional : undefined,
+      ratingPool: includeRatingMetadata ? lastGameOver.elo?.pool : undefined,
       timezone: "UTC",
       eco: ecoCode,
       ecoUrl,
@@ -2245,6 +2399,44 @@ export function useFriendOnlineGame() {
     socket.emit("resign", { gameId: gameIdRef.current });
   }, [socket]);
 
+  const offerDraw = useCallback(() => {
+    if (!socket || !gameIdRef.current || gameOver) return;
+    socket.emit("offerDraw", { gameId: gameIdRef.current }, (response?: SocketAckResponse) => {
+      if (response?.success === false) {
+        setStatusMessage(response.error || "Unable to offer draw.");
+        return;
+      }
+      setDrawOfferState({
+        status: "sent",
+        offeredBy: playerColorRef.current,
+        expiresAt: Number(response?.expiresAt || 0) || null,
+      });
+      if (response?.delivered === false) {
+        setStatusMessage("Draw offer sent. Waiting for opponent to reconnect.");
+      }
+    });
+  }, [gameOver, socket]);
+
+  const respondDrawOffer = useCallback(
+    (accept: boolean) => {
+      if (!socket || !gameIdRef.current || gameOver) return;
+      socket.emit(
+        "respondDrawOffer",
+        { gameId: gameIdRef.current, accept },
+        (response?: SocketAckResponse) => {
+          if (response?.success === false) {
+            setStatusMessage(response.error || "Unable to respond to draw offer.");
+            return;
+          }
+          if (!accept) {
+            setDrawOfferState(idleDrawOfferState);
+          }
+        },
+      );
+    },
+    [gameOver, socket],
+  );
+
   const timeOut = useCallback(
     (isPlayer: boolean) => {
       if (!socket || !gameIdRef.current || !isPlayer) return;
@@ -2310,6 +2502,7 @@ export function useFriendOnlineGame() {
     optionSquares,
     preMoveSquares,
     threeCheckState,
+    drawOfferState,
     playerTime,
     opponentTime,
     playerClockSeed,
@@ -2326,6 +2519,8 @@ export function useFriendOnlineGame() {
     promotionState,
     onPromotionPieceSelect,
     resign,
+    offerDraw,
+    respondDrawOffer,
     timeOut,
     leaveGame,
     resetToSetup,

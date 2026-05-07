@@ -83,7 +83,6 @@ const AdminFeaturedEvents = lazy(async () => {
   const module = await import("./pages/adminFeaturedEvents");
   return { default: module.AdminFeaturedEvents };
 });
-const AdminTournaments = lazy(() => import("./pages/adminTournaments"));
 const AdminGames = lazy(async () => {
   const module = await import("./pages/adminGames");
   return { default: module.AdminGames };
@@ -925,7 +924,6 @@ function App() {
             <Route path="/admin/puzzles" element={<AdminPuzzles />} />
             <Route path="/admin/bots" element={<AdminBots />} />
             <Route path="/admin/events" element={<AdminFeaturedEvents />} />
-            <Route path="/admin/tournaments" element={<AdminTournaments />} />
             <Route path="/admin/games" element={<AdminGames />} />
             <Route path="/admin/community" element={<AdminCommunity />} />
             <Route path="/admin/groups" element={<AdminGroups />} />

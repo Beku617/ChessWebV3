@@ -214,7 +214,7 @@ export default function PuzzleTrainer() {
                             {activeMode === "review"
                               ? t(
                                   "puzzles.trainer.noReviewDescription",
-                                  "You are all caught up. Solve a rated puzzle to generate new reviews.",
+                                  "You are all caught up. Failed or gave-up rated puzzles are added here immediately.",
                                 )
                               : selectionReason ||
                                 t(

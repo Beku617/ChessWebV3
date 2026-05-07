@@ -1920,6 +1920,8 @@ export default function Tournaments() {
 
   const currentUserId = String(user?.id || "");
   const createTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "Local";
+  const isCreateChess960 = createGameType === "chess960";
+  const effectiveCreateRated = isCreateChess960 ? false : createRated;
   const isMountedRef = useRef(true);
   const routeActiveRef = useRef(isTournamentRoute);
   const selectedIdRef = useRef(selectedId);
@@ -1948,6 +1950,11 @@ export default function Tournaments() {
   useEffect(() => {
     selectedFromUrlRef.current = selectedFromUrl;
   }, [selectedFromUrl]);
+
+  useEffect(() => {
+    if (!isCreateChess960) return;
+    setCreateRated(false);
+  }, [isCreateChess960]);
 
   useEffect(() => {
     if (!pendingCreateId) return;
@@ -2675,7 +2682,7 @@ export default function Tournaments() {
           registrationDeadline: null,
           startType: scheduledStartIso ? "scheduled" : "manual",
           scheduledStartAt: scheduledStartIso,
-          rated: createRated,
+          rated: effectiveCreateRated,
           gameType: createGameType,
           setup: createSetup,
           pairingLogic: createPairingLogic,
@@ -2972,11 +2979,15 @@ export default function Tournaments() {
                     <button
                       type="button"
                       role="switch"
-                      aria-checked={createRated}
-                      onClick={() => setCreateRated((value) => !value)}
+                      aria-checked={effectiveCreateRated}
+                      disabled={isCreateChess960}
+                      onClick={() => {
+                        if (isCreateChess960) return;
+                        setCreateRated((value) => !value);
+                      }}
                       className={classNames(
-                        "relative inline-flex h-7 w-12 items-center rounded-full border border-theme-glass transition-colors",
-                        createRated
+                        "relative inline-flex h-7 w-12 items-center rounded-full border border-theme-glass transition-colors disabled:cursor-not-allowed disabled:opacity-60",
+                        effectiveCreateRated
                           ? "bg-brand-500"
                           : "bg-gray-300/70 dark:bg-gray-800/80",
                       )}
@@ -2984,11 +2995,19 @@ export default function Tournaments() {
                       <span
                         className={classNames(
                           "inline-block h-5 w-5 transform rounded-full bg-white transition-transform",
-                          createRated ? "translate-x-6" : "translate-x-1",
+                          effectiveCreateRated ? "translate-x-6" : "translate-x-1",
                         )}
                       />
                     </button>
                   </div>
+                  {isCreateChess960 && (
+                    <p className="md:col-span-2 text-xs text-gray-500 dark:text-gray-400">
+                      {t(
+                        "tournamentsPage.create.chess960UnratedNotice",
+                        "Chess960 tournaments are always unrated.",
+                      )}
+                    </p>
+                  )}
 
                   {createType === "arena" && (
                     <div className="space-y-1">

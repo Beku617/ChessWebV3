@@ -4,6 +4,51 @@ interface GameCardDetailsProps {
   game: GameHistory;
 }
 
+function formatClock(totalSeconds: number): string {
+  const safeSeconds = Math.max(0, Math.round(totalSeconds));
+  const hours = Math.floor(safeSeconds / 3600);
+  const minutes = Math.floor((safeSeconds % 3600) / 60);
+  const seconds = safeSeconds % 60;
+
+  if (hours > 0) {
+    return `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  }
+
+  return `${minutes}:${String(seconds).padStart(2, "0")}`;
+}
+
+function formatTimeControlDisplay(value?: string | null): string {
+  const raw = String(value || "").trim();
+  if (!raw) return "-";
+  if (raw === "-") return "Unlimited";
+
+  const normalized = raw.replace("|", "+");
+  const [initialRaw, incrementRaw] = normalized.split("+");
+  const initialSeconds = Number(initialRaw);
+
+  if (!Number.isFinite(initialSeconds)) {
+    return raw;
+  }
+
+  const treatAsSeconds = !normalized.includes("+") || initialSeconds >= 60;
+  if (!treatAsSeconds) {
+    return raw;
+  }
+
+  const baseLabel = formatClock(initialSeconds);
+  if (incrementRaw == null) {
+    return baseLabel;
+  }
+
+  const incrementSeconds = Number(incrementRaw);
+  if (!Number.isFinite(incrementSeconds)) {
+    return raw;
+  }
+
+  const safeIncrement = Math.max(0, Math.round(incrementSeconds));
+  return safeIncrement > 0 ? `${baseLabel} + ${safeIncrement}s` : baseLabel;
+}
+
 export function GameCardDetails({ game }: GameCardDetailsProps) {
   const isThreeCheckGame =
     game.variant === "threeCheck" ||
@@ -29,7 +74,7 @@ export function GameCardDetails({ game }: GameCardDetailsProps) {
           Time Control
         </span>
         <p className="text-sm font-medium text-gray-900 dark:text-white">
-          {game.timeControl}
+          {formatTimeControlDisplay(game.timeControl)}
         </p>
       </div>
       <div className="space-y-1">

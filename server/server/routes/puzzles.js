@@ -153,24 +153,6 @@ function resolveXpAward({ result, solveCountBefore, hintsUsed, solutionShown }) 
   return xp;
 }
 
-function addHours(date, hours) {
-  const output = new Date(date);
-  output.setHours(output.getHours() + hours);
-  return output;
-}
-
-function addMinutes(date, minutes) {
-  const output = new Date(date);
-  output.setMinutes(output.getMinutes() + minutes);
-  return output;
-}
-
-function addDays(date, days) {
-  const output = new Date(date);
-  output.setDate(output.getDate() + days);
-  return output;
-}
-
 function shouldCountTowardStreak(mode, result) {
   if (result !== "SOLVED") return false;
   return mode === "rated" || mode === "daily" || mode === "review";
@@ -244,26 +226,21 @@ function noveltyScore({ puzzle, state, userRating }) {
 function isStateInReviewFlow(state) {
   if (!state) return false;
   if (state.reviewEnabled === true) return true;
-  if (state.status === "review_due" || state.status === "failed") return true;
+
+  const ratedAttemptCount = Number(state.ratedAttemptCount || 0);
+  if (ratedAttemptCount <= 0) return false;
+  if (Number(state.solveCount || 0) > 0) return false;
+
   if (Number(state.failCount || 0) > 0) return true;
-  if (Number(state.hintCount || 0) > 0) return true;
-  if (state.lastModePlayed === "review") return true;
-  return false;
+  if (Number(state.solutionShownCount || 0) > 0) return true;
+  return state.status === "failed";
 }
 
-function isStateReviewDue(state, now = new Date()) {
-  if (!state) return false;
-  if (!isStateInReviewFlow(state)) return false;
-
-  if (state.nextReviewAt) {
-    return new Date(state.nextReviewAt).getTime() <= now.getTime();
-  }
-
-  // Fallback for older state rows that entered review flow before nextReviewAt existed.
-  return state.status === "review_due" || state.status === "failed";
+function isStateReviewDue(state) {
+  return isStateInReviewFlow(state);
 }
 
-function stateDescriptor(state, now = new Date()) {
+function stateDescriptor(state) {
   const unseen = !state || Number(state.seenCount || 0) === 0;
   const solved = !!state && Number(state.solveCount || 0) > 0;
   const failedBefore = !!state && Number(state.failCount || 0) > 0;
@@ -272,7 +249,7 @@ function stateDescriptor(state, now = new Date()) {
     (state.status === "mastered" ||
       !!state.masteredAt ||
       Number(state.solveCount || 0) >= 3);
-  const reviewDue = isStateReviewDue(state, now);
+  const reviewDue = isStateReviewDue(state);
   const bookmarked = !!state?.isBookmarked;
 
   let badge = "new";
@@ -458,13 +435,12 @@ async function countReviewDue(userId) {
     isHidden: { $ne: true },
   })
     .select(
-      "status nextReviewAt reviewEnabled failCount hintCount lastModePlayed",
+      "status reviewEnabled ratedAttemptCount solveCount failCount solutionShownCount",
     )
     .lean();
 
-  const now = new Date();
   return states.reduce(
-    (count, state) => count + (isStateReviewDue(state, now) ? 1 : 0),
+    (count, state) => count + (isStateReviewDue(state) ? 1 : 0),
     0,
   );
 }
@@ -699,7 +675,7 @@ async function selectPuzzleForMode({
     candidates = candidates.filter((puzzle) => {
       const state = stateMap.get(String(puzzle._id));
       if (!state) return false;
-      return isStateReviewDue(state, reviewNow);
+      return isStateReviewDue(state);
     });
   } else if (mode === "random") {
     const nearRange = candidates.filter((puzzle) => {
@@ -724,11 +700,13 @@ async function selectPuzzleForMode({
     candidates = allPuzzles;
   }
 
-  const withoutLast = candidates.filter(
-    (puzzle) => String(puzzle._id) !== lastPuzzleId,
-  );
-  if (withoutLast.length > 0) {
-    candidates = withoutLast;
+  if (mode !== "review") {
+    const withoutLast = candidates.filter(
+      (puzzle) => String(puzzle._id) !== lastPuzzleId,
+    );
+    if (withoutLast.length > 0) {
+      candidates = withoutLast;
+    }
   }
 
   if (mode === "random") {
@@ -742,7 +720,7 @@ async function selectPuzzleForMode({
 
   const scored = candidates.map((puzzle) => {
     const state = stateMap.get(String(puzzle._id));
-    const descriptor = stateDescriptor(state, reviewNow);
+    const descriptor = stateDescriptor(state);
     let score = noveltyScore({ puzzle, state, userRating });
 
     if (mode === "review" && descriptor.reviewDue) {
@@ -840,7 +818,6 @@ async function recordPuzzleAttempt({
   const puzzleAttemptsBefore = Number(puzzle.timesPlayed ?? 0);
   const solveCountBefore = Number(state.solveCount || 0);
   const solutionShownCountBefore = Number(state.solutionShownCount || 0);
-  const reviewStageBefore = Number(state.reviewStage || 0);
   const wasInReviewFlow = isStateInReviewFlow(state);
   const ratedAttemptCountBefore = Number(state.ratedAttemptCount || 0);
   const hasSeenSolutionBefore = solutionShownCountBefore > 0;
@@ -948,31 +925,32 @@ async function recordPuzzleAttempt({
   let statusAfter = state.status || "seen";
   let nextReviewAt = state.nextReviewAt || null;
   let reviewEnabled = state.reviewEnabled === true || wasInReviewFlow;
-  let reviewStage = reviewStageBefore;
+  let reviewStage = 0;
 
-  const shouldEnterReviewNow =
-    result === "FAILED" || solutionShown || hintsUsed > 0;
+  const isUnsolvedResult = result !== "SOLVED";
+  const shouldAddToReviewQueue = mode === "rated" && isUnsolvedResult;
+  const solvedInReviewMode = mode === "review" && result === "SOLVED";
+  const keepInReviewQueue = mode === "review" && reviewEnabled && isUnsolvedResult;
 
-  if (shouldEnterReviewNow) {
+  if (shouldAddToReviewQueue) {
     statusAfter = "review_due";
     reviewEnabled = true;
     reviewStage = 0;
-    nextReviewAt =
-      result === "FAILED" ? addMinutes(now, 10) : addDays(now, 1);
+    // Rated failures and give-ups should appear in review immediately.
+    nextReviewAt = now;
+  } else if (solvedInReviewMode) {
+    reviewEnabled = false;
+    reviewStage = 0;
+    nextReviewAt = null;
+    statusAfter = solveCountAfter >= 3 ? "mastered" : "solved";
+  } else if (keepInReviewQueue) {
+    statusAfter = "review_due";
+    reviewEnabled = true;
+    reviewStage = 0;
+    // Keep unsolved review puzzles visible until the user solves them.
+    nextReviewAt = now;
   } else if (result === "SOLVED") {
-    if (reviewEnabled) {
-      reviewStage += 1;
-      if (reviewStage >= 4) {
-        statusAfter = "mastered";
-        reviewEnabled = false;
-        nextReviewAt = null;
-      } else {
-        statusAfter = "solved";
-        if (reviewStage === 1) nextReviewAt = addDays(now, 3);
-        else if (reviewStage === 2) nextReviewAt = addDays(now, 7);
-        else nextReviewAt = addDays(now, 21);
-      }
-    } else if (solveCountAfter >= 3) {
+    if (solveCountAfter >= 3) {
       statusAfter = "mastered";
       nextReviewAt = null;
     } else {
@@ -1108,7 +1086,7 @@ async function recordPuzzleAttempt({
   }
 
   if (hintsUsed > 0) {
-    messages.push("Hint used: XP reduced. Puzzle added to review.");
+    messages.push("Hint used: XP reduced.");
   }
 
   if (solutionShown && revealPenaltyAttempt) {
@@ -1426,7 +1404,6 @@ router.get("/library", authMiddleware, async (req, res) => {
 
     const stateMap = new Map(states.map((entry) => [String(entry.puzzleId), entry]));
 
-    const now = new Date();
     const items = filteredByText
       .map((puzzle) => {
         const state = stateMap.get(String(puzzle._id)) || null;
@@ -1437,7 +1414,7 @@ router.get("/library", authMiddleware, async (req, res) => {
         );
       })
       .filter((item) => {
-        const descriptor = stateDescriptor(item.userState, now);
+        const descriptor = stateDescriptor(item.userState);
 
         if (!includeMastered && descriptor.mastered && status !== "mastered")
           return false;
@@ -1524,7 +1501,6 @@ router.get("/select", authMiddleware, async (req, res) => {
 
 router.get("/review", authMiddleware, async (req, res) => {
   try {
-    const now = new Date();
     const candidateStates = await UserPuzzleState.find({
       userId: req.user.userId,
       isHidden: { $ne: true },
@@ -1532,17 +1508,17 @@ router.get("/review", authMiddleware, async (req, res) => {
         { reviewEnabled: true },
         { status: "review_due" },
         { status: "failed" },
-        { failCount: { $gt: 0 } },
-        { hintCount: { $gt: 0 } },
-        { lastModePlayed: "review" },
       ],
     })
       .sort({ nextReviewAt: 1, updatedAt: -1 })
       .limit(200)
+      .select(
+        "puzzleId status nextReviewAt reviewEnabled ratedAttemptCount solveCount failCount solutionShownCount updatedAt",
+      )
       .lean();
 
     const states = candidateStates
-      .filter((state) => isStateReviewDue(state, now))
+      .filter((state) => isStateReviewDue(state))
       .sort((a, b) => {
         const aTime = a.nextReviewAt ? new Date(a.nextReviewAt).getTime() : 0;
         const bTime = b.nextReviewAt ? new Date(b.nextReviewAt).getTime() : 0;

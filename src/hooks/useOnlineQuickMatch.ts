@@ -37,6 +37,7 @@ import { useGameplayPreferences } from "./useGameplayPreferences";
 import { SOCKET_URL } from "../config/network";
 const ACTIVE_GAME_STORAGE_KEY = "neongambit:activeGameId";
 const BOARD_FILES = ["a", "b", "c", "d", "e", "f", "g", "h"] as const;
+const KING_OF_HILL_CENTER_SQUARES = new Set(["d4", "e4", "d5", "e5"]);
 
 type PlayerColor = "w" | "b";
 type MatchVariant =
@@ -205,8 +206,11 @@ function normalizeMatchVariant(value: unknown): MatchVariant {
   }
   if (
     normalized === "kingofhill" ||
+    normalized === "kingofthehill" ||
     normalized === "king-of-hill" ||
-    normalized === "king_of_hill"
+    normalized === "king_of_hill" ||
+    normalized === "king-of-the-hill" ||
+    normalized === "king_of_the_hill"
   ) {
     return "kingOfHill";
   }
@@ -220,8 +224,36 @@ function normalizeMatchVariant(value: unknown): MatchVariant {
   return "standard";
 }
 
+function isKingOfHillArrivalCandidate(
+  currentGame: Chess,
+  sourceSquare: Square,
+  targetSquare: Square,
+  color: PlayerColor,
+  variant: MatchVariant,
+): boolean {
+  if (variant !== "kingOfHill") return false;
+  if (!KING_OF_HILL_CENTER_SQUARES.has(targetSquare)) return false;
+
+  const sourcePiece = currentGame.get(sourceSquare);
+  if (!sourcePiece || sourcePiece.color !== color || sourcePiece.type !== "k") {
+    return false;
+  }
+
+  const targetPiece = currentGame.get(targetSquare);
+  if (targetPiece && (targetPiece.color === color || targetPiece.type === "k")) {
+    return false;
+  }
+
+  const fileDelta = Math.abs(
+    targetSquare.charCodeAt(0) - sourceSquare.charCodeAt(0),
+  );
+  const rankDelta = Math.abs(Number(targetSquare[1]) - Number(sourceSquare[1]));
+  return Math.max(fileDelta, rankDelta) === 1;
+}
+
 function isUnratedMatchVariant(variant: MatchVariant): boolean {
   return (
+    variant === "chess960" ||
     variant === "threeCheck" ||
     variant === "kingOfHill" ||
     variant === "atomic"
@@ -476,20 +508,33 @@ export function useOnlineQuickMatch() {
     const matchId = String(payload.matchId || "").trim();
     if (!senderId || !senderUsername || !message || !matchId) return;
 
-    setChatMessages((previous) => [
-      ...previous,
-      {
-        id: createChatMessageId(),
-        senderId,
-        senderUsername,
-        content: message,
-        createdAt: String(payload.timestamp || new Date().toISOString()),
-      },
-    ]);
+    const createdAt = String(payload.timestamp || new Date().toISOString());
+    const messageKey = `${senderId}|${createdAt}|${message}`;
+
+    setChatMessages((previous) => {
+      const hasDuplicate = previous.some(
+        (entry) =>
+          `${entry.senderId}|${String(entry.createdAt || "").trim()}|${entry.content}` ===
+          messageKey,
+      );
+      if (hasDuplicate) return previous;
+
+      return [
+        ...previous,
+        {
+          id: createChatMessageId(),
+          senderId,
+          senderUsername,
+          content: message,
+          createdAt,
+        },
+      ];
+    });
   }, []);
 
   const replaceChatMessages = useCallback((messages?: ChatMessagePayload[]) => {
     if (!Array.isArray(messages)) return;
+    const seenMessageKeys = new Set<string>();
     const normalized = messages
       .map((entry) => {
         const senderId = String(entry?.senderId || "").trim();
@@ -497,12 +542,16 @@ export function useOnlineQuickMatch() {
         const content = String(entry?.message || "").trim();
         const matchId = String(entry?.matchId || "").trim();
         if (!senderId || !senderUsername || !content || !matchId) return null;
+        const createdAt = String(entry?.timestamp || new Date().toISOString());
+        const messageKey = `${senderId}|${createdAt}|${content}`;
+        if (seenMessageKeys.has(messageKey)) return null;
+        seenMessageKeys.add(messageKey);
         return {
           id: createChatMessageId(),
           senderId,
           senderUsername,
           content,
-          createdAt: String(entry?.timestamp || new Date().toISOString()),
+          createdAt,
         };
       })
       .filter((entry): entry is OnlineMatchChatMessage => entry !== null);
@@ -601,6 +650,13 @@ export function useOnlineQuickMatch() {
       playerColorRef.current,
       matchVariantRef.current,
     );
+    const isKingOfHillArrival = isKingOfHillArrivalCandidate(
+      validationGame,
+      queuedPreMove.from,
+      queuedPreMove.to,
+      playerColorRef.current,
+      matchVariantRef.current,
+    );
     if (
       matchVariantRef.current === "atomic" &&
       isAtomicKingCaptureAttempt(
@@ -617,6 +673,7 @@ export function useOnlineQuickMatch() {
     }
     const preview =
       !isChess960Castle &&
+      !isKingOfHillArrival &&
       validationGame.move({
         from: queuedPreMove.from,
         to: queuedPreMove.to,
@@ -626,7 +683,7 @@ export function useOnlineQuickMatch() {
     pendingPreMoveRef.current = null;
     setPendingPreMove(null);
 
-    if (!isChess960Castle && !preview) return false;
+    if (!isChess960Castle && !isKingOfHillArrival && !preview) return false;
 
     socket.emit("makeMove", {
       gameId: activeGameId,
@@ -969,7 +1026,10 @@ export function useOnlineQuickMatch() {
         timeControl,
       });
       const ratingPool = getRatingPoolForMatch(timeControl, normalizedVariant);
-      const canShowRatedInfo = payload.rated === true && ratingPool !== null;
+      const canShowRatedInfo =
+        payload.rated === true &&
+        ratingPool !== null &&
+        !isUnratedMatchVariant(normalizedVariant);
       const fallbackPlayerRating = getUserRatingForPool(
         userRef.current,
         ratingPool,
@@ -1340,7 +1400,13 @@ export function useOnlineQuickMatch() {
       playGameplaySound("gameEnd");
 
       const currentUser = userRef.current;
-      if (!currentUser?.id || !payload.elo?.applied) return;
+      if (
+        !currentUser?.id ||
+        !payload.elo?.applied ||
+        isUnratedMatchVariant(matchVariantRef.current)
+      ) {
+        return;
+      }
 
       const currentUserId = String(currentUser.id);
       const sideUpdate =
@@ -2331,8 +2397,19 @@ export function useOnlineQuickMatch() {
         moveFrom,
         square,
       );
+      const isKingOfHillArrival = isKingOfHillArrivalCandidate(
+        currentGame,
+        moveFrom,
+        square,
+        playerColor,
+        matchVariantRef.current,
+      );
 
-      if (isLegalStandardMove || isLegalChess960Castle) {
+      if (
+        isLegalStandardMove ||
+        isLegalChess960Castle ||
+        isKingOfHillArrival
+      ) {
         const activeGameId = gameIdRef.current || gameId;
         if (!activeGameId) {
           playGameplaySound("illegal");
@@ -2497,8 +2574,19 @@ export function useOnlineQuickMatch() {
         sourceSquare,
         targetSquare,
       );
+      const isKingOfHillArrival = isKingOfHillArrivalCandidate(
+        currentGame,
+        sourceSquare,
+        targetSquare,
+        playerColor,
+        matchVariantRef.current,
+      );
 
-      if (!isLegalStandardMove && !isLegalChess960Castle) {
+      if (
+        !isLegalStandardMove &&
+        !isLegalChess960Castle &&
+        !isKingOfHillArrival
+      ) {
         playGameplaySound("illegal");
         if (getMoveOptions(sourceSquare)) {
           setMoveFrom(sourceSquare);

@@ -1,4 +1,4 @@
-import { spawn, spawnSync } from "node:child_process";
+import { execSync, spawn, spawnSync } from "node:child_process";
 import path from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
@@ -9,11 +9,64 @@ const repoRoot = path.resolve(__dirname, "..");
 const nodeExecutable = process.execPath;
 const npmExecutable = process.platform === "win32" ? "npm.cmd" : "npm";
 const viteEntry = path.join(repoRoot, "node_modules", "vite", "bin", "vite.js");
-const healthUrl = "http://localhost:3001/healthz";
+const backendPort = 3001;
+const healthUrl = `http://localhost:${backendPort}/healthz`;
 const clientArgs = process.argv.slice(2);
 const children = new Set();
 
 let shuttingDown = false;
+
+function getPidsOnPort(port) {
+  if (!Number.isInteger(port) || port <= 0) return [];
+
+  try {
+    if (process.platform === "win32") {
+      const output = execSync(`netstat -ano -p tcp | findstr :${port}`, {
+        shell: "cmd.exe",
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+      });
+
+      const pids = output
+        .split(/\r?\n/g)
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((line) => line.split(/\s+/).at(-1))
+        .map((pid) => Number(pid))
+        .filter((pid) => Number.isInteger(pid) && pid > 0);
+
+      return [...new Set(pids)];
+    }
+
+    const output = execSync(`lsof -ti:${port}`, {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    });
+    const pids = output
+      .split(/\s+/g)
+      .map((value) => Number(value.trim()))
+      .filter((pid) => Number.isInteger(pid) && pid > 0);
+    return [...new Set(pids)];
+  } catch {
+    return [];
+  }
+}
+
+function freeBackendPort(port) {
+  const pids = getPidsOnPort(port).filter((pid) => pid !== process.pid);
+  for (const pid of pids) {
+    try {
+      if (process.platform === "win32") {
+        spawnSync("taskkill", ["/f", "/pid", String(pid)], { stdio: "ignore" });
+      } else {
+        process.kill(pid, "SIGKILL");
+      }
+      console.log(`[dev] Freed port ${port} by stopping PID ${pid}.`);
+    } catch {
+      // Ignore failures; startup health checks will still validate readiness.
+    }
+  }
+}
 
 async function getBackendHealth() {
   try {
@@ -135,6 +188,7 @@ async function ensureBackend() {
     return { reused: true };
   }
 
+  freeBackendPort(backendPort);
   const serverProcess = spawnBackend();
   await waitForBackendHealth(serverProcess);
   return { reused: false };

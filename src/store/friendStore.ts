@@ -2,6 +2,9 @@ import { create } from "zustand";
 import type { Socket } from "socket.io-client";
 import { API_URL } from "../config/network";
 
+const SERVICE_UNAVAILABLE_COOLDOWN_MS = 30_000;
+let friendsServiceUnavailableUntil = 0;
+
 function resolveAvatarUrl(avatar?: string) {
   if (!avatar) return "";
   if (
@@ -188,12 +191,28 @@ export const useFriendStore = create<FriendStoreState>((set, get) => ({
   },
 
   loadAll: async () => {
+    const now = Date.now();
+    if (now < friendsServiceUnavailableUntil) {
+      return;
+    }
+
     try {
       set({ loading: true, error: null });
       const [friendsRes, requestsRes] = await Promise.all([
         fetch(`${API_URL}/api/friends`, { credentials: "include" }),
         fetch(`${API_URL}/api/friends/requests`, { credentials: "include" }),
       ]);
+      if (friendsRes.status === 503 || requestsRes.status === 503) {
+        friendsServiceUnavailableUntil =
+          Date.now() + SERVICE_UNAVAILABLE_COOLDOWN_MS;
+        set((state) => ({
+          loading: false,
+          error: state.error || "Friends service is temporarily unavailable.",
+        }));
+        return;
+      }
+
+      friendsServiceUnavailableUntil = 0;
       const friendsData = friendsRes.ok ? await friendsRes.json() : { friends: [] };
       const requestsData = requestsRes.ok ? await requestsRes.json() : { incoming: [], outgoing: [] };
 

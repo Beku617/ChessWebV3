@@ -51,8 +51,11 @@ function transformGameHistory(
         : "draw";
 
   const isUnratedVariant =
+    game.variant === "chess960" ||
     game.variant === "threeCheck" ||
     game.variant === "kingOfHill" ||
+    game.variant === "atomic" ||
+    /960|chess960/i.test(String(game.event || "")) ||
     /three[\s_-]?check|3[\s_-]?check|king[\s_-]?of[\s_-]?hill/i.test(
       String(game.event || ""),
     );

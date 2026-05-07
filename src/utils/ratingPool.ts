@@ -28,12 +28,7 @@ export function getRatingPoolForMatch(
 ): RatingPool | null {
   const initial = normalizeNumber(timeControl?.initial, 300);
   const increment = normalizeNumber(timeControl?.increment, 0);
-  const normalizedVariant =
-    variant === "chess960"
-      ? "chess960"
-      : variant === "standard"
-        ? "standard"
-        : null;
+  const normalizedVariant = variant === "standard" ? "standard" : null;
 
   if (!normalizedVariant) return null;
 

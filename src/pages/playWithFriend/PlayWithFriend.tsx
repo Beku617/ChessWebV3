@@ -79,6 +79,9 @@ export default function PlayWithFriend() {
     opponentClockSeed,
     clockResetToken,
     isClockPaused,
+    drawOfferState,
+    offerDraw,
+    respondDrawOffer,
     sendChatMessage,
   } = useFriendOnlineGame();
 
@@ -94,13 +97,19 @@ export default function PlayWithFriend() {
   const [challengeError, setChallengeError] = useState<string | null>(null);
 
   const isUnratedFriendVariant = (value: string) =>
+    value === "chess960" ||
+    value === "960" ||
     value === "threeCheck" ||
     value === "three-check" ||
     value === "three_check" ||
     value === "kingOfHill" ||
     value === "king-of-hill" ||
     value === "king_of_hill" ||
-    value === "kingofhill";
+    value === "kingofhill" ||
+    value === "kingOfTheHill" ||
+    value === "king-of-the-hill" ||
+    value === "king_of_the_hill" ||
+    value === "kingofthehill";
 
   useEffect(() => {
     if (!preselectedFriendName) return;
@@ -190,7 +199,15 @@ export default function PlayWithFriend() {
     navigateToNewGameRoute(navigate, { mode: "friend" });
   }, [navigate, resetToSetup]);
 
-  const isNormalFriendGame = String(matchVariant || "standard") === "standard";
+  const normalizedFriendVariant = String(
+    matchVariant || gameType || "standard",
+  )
+    .trim()
+    .toLowerCase();
+  const isNormalFriendGame =
+    normalizedFriendVariant === "standard" ||
+    normalizedFriendVariant === "normal" ||
+    normalizedFriendVariant === "classic";
 
   // If game started, show the game board
   if (gameStarted) {
@@ -232,6 +249,9 @@ export default function PlayWithFriend() {
           isClockPaused={isClockPaused}
           onTimeOut={timeOut}
           onResign={resign}
+          onOfferDraw={offerDraw}
+          onRespondDrawOffer={respondDrawOffer}
+          drawOfferState={drawOfferState}
           onSendChatMessage={sendChatMessage}
           onRematch={handleTryAgain}
           onNewGame={handleNewGame}

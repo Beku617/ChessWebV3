@@ -326,10 +326,11 @@ export function useOnlineFourPlayerMatch() {
       moveInFlightRef.current = false;
       setGameState(payload.state);
       const localPlayerColor = playerColorRef.current;
-      if (
+      const isLocalPlayerEliminated =
         Array.isArray(payload.state?.eliminated) &&
-        payload.state.eliminated.includes(localPlayerColor)
-      ) {
+        payload.state.eliminated.includes(localPlayerColor);
+      const isTerminalPayload = isLocalPlayerEliminated || !!payload.state?.winner;
+      if (isLocalPlayerEliminated) {
         storeActiveFourPlayerGameId(null);
         if (!gameOverReasonRef.current) {
           const eliminationReason =
@@ -351,7 +352,7 @@ export function useOnlineFourPlayerMatch() {
       if (payload.timeControl) {
         setTimeControl(payload.timeControl);
       }
-      if (payload.gameId) {
+      if (payload.gameId && !isTerminalPayload) {
         const existing = readActiveOnlineGame();
         storeActiveOnlineGame({
           ...existing,
@@ -407,11 +408,11 @@ export function useOnlineFourPlayerMatch() {
         const resolvedReason = payload.reason || "game_over";
         gameOverReasonRef.current = resolvedReason;
         setGameOverReason(resolvedReason);
-      if (payload.forfeitedColor) {
-        setForfeitedColor(payload.forfeitedColor);
-      }
-      storeActiveFourPlayerGameId(null);
-      playGameplaySound("gameEnd");
+        if (payload.forfeitedColor) {
+          setForfeitedColor(payload.forfeitedColor);
+        }
+        storeActiveFourPlayerGameId(null);
+        playGameplaySound("gameEnd");
       },
     );
 

@@ -3,7 +3,7 @@ import { normalizeTimeControl } from "./gameClock.js";
 const MIN_RATING = 100;
 const MAX_RATING = 4000;
 const DEFAULT_TIME_CONTROL = { initial: 300, increment: 0 };
-const SUPPORTED_RATED_VARIANTS = new Set(["standard", "chess960"]);
+const SUPPORTED_RATED_VARIANTS = new Set(["standard"]);
 const BASE_POOLS = new Set(["bullet", "blitz", "rapid", "classical"]);
 
 function normalizeSeconds(value, fallback = 0) {

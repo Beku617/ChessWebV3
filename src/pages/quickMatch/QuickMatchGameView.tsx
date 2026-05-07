@@ -385,19 +385,6 @@ function buildSidebarMessages(
   ];
 }
 
-function buildTournamentSidebarMessages(
-  chatMessages: TournamentGamePanelData["chatMessages"] | undefined,
-): SidebarMessageItem[] {
-  return Array.isArray(chatMessages)
-    ? chatMessages.map((message, index) => ({
-        id: String(message?.id || `chat-${index}`),
-        sender: String(message?.sender || "Player"),
-        content: String(message?.content || "").trim(),
-        createdAt: String(message?.createdAt || ""),
-      }))
-    : [];
-}
-
 export function QuickMatchGameView({
   game,
   lastMove,
@@ -464,7 +451,7 @@ export function QuickMatchGameView({
   const navigate = useNavigate();
   const [selectedPly, setSelectedPly] = useState<number | null>(null);
   const [tournamentTab, setTournamentTab] = useState<
-    "standings" | "games" | "moves" | "messages"
+    "standings" | "games" | "moves"
   >(tournamentMode ? "standings" : "games");
   const displayMoves = moves;
   const latestPly = moves.length;
@@ -558,10 +545,6 @@ export function QuickMatchGameView({
   const sidebarMessages = useMemo(
     () => buildSidebarMessages(chatMessages, statusMessage),
     [chatMessages, statusMessage],
-  );
-  const tournamentSidebarMessages = useMemo(
-    () => buildTournamentSidebarMessages(tournamentPanelData?.chatMessages),
-    [tournamentPanelData?.chatMessages],
   );
   const tournamentGameAction = tournamentPanelData?.gameAction || null;
   const tournamentType = String(tournamentPanelData?.tournament?.type || "").toLowerCase();
@@ -1145,16 +1128,6 @@ export function QuickMatchGameView({
                 >
                   Moves
                 </button>
-                <button
-                  onClick={() => setTournamentTab("messages")}
-                  className={`flex-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors ${
-                    tournamentTab === "messages"
-                      ? "bg-emerald-500/20 text-emerald-300"
-                      : "text-gray-600 hover:bg-gray-200/70 dark:text-gray-300 dark:hover:bg-slate-700/60"
-                  }`}
-                >
-                  Messages
-                </button>
               </div>
             )}
 
@@ -1359,29 +1332,6 @@ export function QuickMatchGameView({
                 </div>
               )}
 
-              {tournamentMode && tournamentTab === "messages" && (
-                <div className="h-full overflow-auto p-2 space-y-1.5">
-                  {tournamentSidebarMessages.length === 0 ? (
-                    <div className="text-center text-gray-400 dark:text-gray-500 text-xs py-6">
-                      No messages yet.
-                    </div>
-                  ) : (
-                    tournamentSidebarMessages.map((message) => (
-                      <div
-                        key={message.id}
-                        className="rounded-lg border border-gray-200/70 bg-white/60 px-2.5 py-2 dark:border-white/10 dark:bg-slate-900/70"
-                      >
-                        <div className="text-[11px] font-semibold text-gray-700 dark:text-gray-200">
-                          {message.sender || "System"}
-                        </div>
-                        <p className="mt-1 text-xs text-gray-700 dark:text-gray-200 whitespace-pre-wrap break-words">
-                          {message.content}
-                        </p>
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
             </div>
 
             {/* Actions */}

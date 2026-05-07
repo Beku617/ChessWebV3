@@ -33,7 +33,6 @@ export default function AdminSidebar() {
     { label: "Puzzles", path: "/admin/puzzles", Icon: ListChecks },
     { label: "Learn", path: "/admin/learn", Icon: BookOpen },
     { label: "Events", path: "/admin/events", Icon: Calendar },
-    { label: "Tournaments", path: "/admin/tournaments", Icon: Calendar },
     { label: "Games", path: "/admin/games", Icon: Gamepad2 },
     { label: "Community", path: "/admin/community", Icon: MessageSquare },
     { label: "Groups", path: "/admin/groups", Icon: Folder },

@@ -34,6 +34,53 @@ function clampIndex(value: number, max: number) {
   return Math.min(max, Math.floor(value));
 }
 
+function resolveRequestedMove(
+  chess: Chess,
+  sourceSquare: string,
+  targetSquare: string,
+) {
+  const from = String(sourceSquare || "").trim().toLowerCase();
+  const to = String(targetSquare || "").trim().toLowerCase();
+  if (!from || !to) return null;
+
+  const directMove = chess.move({
+    from,
+    to,
+    promotion: "q",
+  });
+  if (directMove) {
+    return { move: directMove, from, to };
+  }
+
+  // Accept king->rook drop as castling intent (common UX expectation).
+  const sourcePiece = chess.get(from as Square);
+  const targetPiece = chess.get(to as Square);
+  const sameRank = from.length > 1 && to.length > 1 && from[1] === to[1];
+  if (
+    !sameRank ||
+    !sourcePiece ||
+    sourcePiece.type !== "k" ||
+    !targetPiece ||
+    targetPiece.type !== "r" ||
+    sourcePiece.color !== targetPiece.color
+  ) {
+    return null;
+  }
+
+  const castlingTo = to.charCodeAt(0) > from.charCodeAt(0)
+    ? (`g${from[1]}` as Square)
+    : (`c${from[1]}` as Square);
+
+  const castlingMove = chess.move({
+    from,
+    to: castlingTo,
+    promotion: "q",
+  });
+  if (!castlingMove) return null;
+
+  return { move: castlingMove, from, to: castlingTo };
+}
+
 export default function LearnLesson() {
   const { courseSlug, lessonSlug } = useParams<{
     courseSlug: string;
@@ -56,6 +103,7 @@ export default function LearnLesson() {
   const [boardFen, setBoardFen] = useState("");
   const [boardSize, setBoardSize] = useState(560);
   const [isSubmittingMove, setIsSubmittingMove] = useState(false);
+  const [isAdvancingStep, setIsAdvancingStep] = useState(false);
   const [feedback, setFeedback] = useState<FeedbackState | null>(null);
   const [showHint, setShowHint] = useState(false);
   const [moveFrom, setMoveFrom] = useState<string | null>(null);
@@ -66,7 +114,20 @@ export default function LearnLesson() {
     null,
   );
   const boardViewportRef = useRef<HTMLDivElement | null>(null);
+  const advanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lessonBoardId = useId().replace(/:/g, "");
+
+  const clearAdvanceTimer = () => {
+    if (advanceTimerRef.current == null) return;
+    clearTimeout(advanceTimerRef.current);
+    advanceTimerRef.current = null;
+  };
+
+  useEffect(() => {
+    return () => {
+      clearAdvanceTimer();
+    };
+  }, []);
 
   useEffect(() => {
     const node = boardViewportRef.current;
@@ -112,6 +173,7 @@ export default function LearnLesson() {
         setBoardFen(data.steps[startIndex]?.fen || "");
         setFeedback(null);
         setShowHint(false);
+        setIsAdvancingStep(false);
         setMoveFrom(null);
         setMoveSquares({});
         setLastMove(null);
@@ -147,8 +209,10 @@ export default function LearnLesson() {
 
   useEffect(() => {
     if (!currentStep) return;
+    clearAdvanceTimer();
     setBoardFen(currentStep.fen);
     setShowHint(false);
+    setIsAdvancingStep(false);
     setMoveFrom(null);
     setMoveSquares({});
     setLastMove(null);
@@ -170,6 +234,12 @@ export default function LearnLesson() {
   const lessonCompleted = progress?.lessonCompleted ?? lessonData?.progress.lessonCompleted ?? false;
   const completedStepIndexes =
     progress?.completedStepIndexes || lessonData?.progress.completedStepIndexes || [];
+  const boardOrientation =
+    currentStep?.sideToMove === "black"
+      ? "black"
+      : currentStep?.boardOrientation === "black"
+        ? "black"
+        : "white";
   const boardSquareStyles = useMemo(() => {
     const styles: Record<string, React.CSSProperties> = { ...moveSquares };
     if (lastMove) {
@@ -190,7 +260,8 @@ export default function LearnLesson() {
 
   const highlightMoveOptions = (sourceSquare: string) => {
     if (!currentStep) return false;
-    const chess = new Chess(currentStep.fen);
+    const activeFen = boardFen || currentStep.fen;
+    const chess = new Chess(activeFen);
     const piece = chess.get(sourceSquare as Square);
     if (!piece || piece.color !== chess.turn()) {
       clearMoveSelection();
@@ -236,17 +307,16 @@ export default function LearnLesson() {
   ): Promise<LearnSubmitStepResponse | null> => {
     if (!courseSlug || !lessonSlug || !currentStep) return null;
 
-    const chess = new Chess(currentStep.fen);
-    const move = chess.move({
-      from: sourceSquare,
-      to: targetSquare,
-      promotion: "q",
-    });
+    const activeFen = boardFen || currentStep.fen;
+    const chess = new Chess(activeFen);
+    const resolvedMove = resolveRequestedMove(chess, sourceSquare, targetSquare);
 
-    if (!move) return null;
+    if (!resolvedMove) return null;
+
+    const { move, from, to } = resolvedMove;
 
     setBoardFen(chess.fen());
-    setLastMove({ from: sourceSquare, to: targetSquare });
+    setLastMove({ from, to });
     setIsSubmittingMove(true);
 
     try {
@@ -254,9 +324,9 @@ export default function LearnLesson() {
         stepIndex: currentStepIndex,
         move: move.san,
         san: move.san,
-        uci: `${sourceSquare}${targetSquare}${move.promotion || ""}`,
-        from: sourceSquare,
-        to: targetSquare,
+        uci: `${from}${to}${move.promotion || ""}`,
+        from,
+        to,
         promotion: move.promotion || "",
       });
       return response;
@@ -268,7 +338,7 @@ export default function LearnLesson() {
             ? err.message
             : t("learn.submitMoveFailed", "Failed to submit lesson move."),
       });
-      setBoardFen(currentStep.fen);
+      setBoardFen(activeFen);
       setLastMove(null);
       return null;
     } finally {
@@ -277,19 +347,18 @@ export default function LearnLesson() {
   };
 
   const onDrop = (sourceSquare: string, targetSquare: string) => {
-    if (isSubmittingMove || !currentStep || lessonCompleted) return false;
-    const probe = new Chess(currentStep.fen);
-    const moveResult = probe.move({
-      from: sourceSquare,
-      to: targetSquare,
-      promotion: "q",
-    });
+    if (isSubmittingMove || isAdvancingStep || !currentStep || lessonCompleted) {
+      return false;
+    }
+    const activeFen = boardFen || currentStep.fen;
+    const probe = new Chess(activeFen);
+    const moveResult = resolveRequestedMove(probe, sourceSquare, targetSquare);
     if (!moveResult) {
       playGameplaySound("illegal");
       return false;
     }
 
-    playChessMoveSound(moveResult);
+    playChessMoveSound(moveResult.move);
     clearMoveSelection();
     void (async () => {
       const result = await submitMove(sourceSquare, targetSquare);
@@ -299,7 +368,7 @@ export default function LearnLesson() {
 
       if (result.isCorrect) {
         setFeedback({ kind: "correct", message: result.feedback });
-        setBoardFen(result.boardFenAfterMove || currentStep.fen);
+        setBoardFen(result.boardFenAfterMove || probe.fen());
 
         if (result.lessonCompleted && lessonData) {
           setLessonData({
@@ -316,21 +385,28 @@ export default function LearnLesson() {
           !result.lessonCompleted &&
           result.nextStepIndex > currentStepIndex
         ) {
-          setTimeout(() => {
+          setIsAdvancingStep(true);
+          clearAdvanceTimer();
+          advanceTimerRef.current = setTimeout(() => {
             setCurrentStepIndex(
               clampIndex(result.nextStepIndex, Math.max(0, (lessonData?.steps.length || 1) - 1)),
             );
             setFeedback(null);
+            setIsAdvancingStep(false);
+            advanceTimerRef.current = null;
           }, 650);
+        } else {
+          setIsAdvancingStep(false);
         }
       } else {
         playGameplaySound("illegal");
         setFeedback({ kind: "wrong", message: result.feedback });
+        setIsAdvancingStep(false);
 
         if (result.keepPositionOnWrong) {
-          setBoardFen(result.boardFenAfterMove || currentStep.fen);
+          setBoardFen(result.boardFenAfterMove || probe.fen());
         } else {
-          setBoardFen(result.resetFen || currentStep.fen);
+          setBoardFen(result.resetFen || activeFen);
           setLastMove(null);
         }
       }
@@ -341,7 +417,7 @@ export default function LearnLesson() {
 
   const onSquareClick = (square: string) => {
     if (!allowClickInput) return;
-    if (isSubmittingMove || !currentStep || lessonCompleted) return;
+    if (isSubmittingMove || isAdvancingStep || !currentStep || lessonCompleted) return;
 
     if (!moveFrom) {
       void highlightMoveOptions(square);
@@ -353,7 +429,8 @@ export default function LearnLesson() {
       return;
     }
 
-    const chess = new Chess(currentStep.fen);
+    const activeFen = boardFen || currentStep.fen;
+    const chess = new Chess(activeFen);
     const clickedPiece = chess.get(square as Square);
     if (clickedPiece && clickedPiece.color === chess.turn()) {
       void highlightMoveOptions(square);
@@ -369,6 +446,8 @@ export default function LearnLesson() {
   const retryCurrentStep = () => {
     if (!currentStep) return;
     setBoardFen(currentStep.fen);
+    setIsAdvancingStep(false);
+    clearAdvanceTimer();
     clearMoveSelection();
     setLastMove(null);
     setFeedback(null);
@@ -395,6 +474,8 @@ export default function LearnLesson() {
     if (!lessonData || lessonData.steps.length === 0) return;
     setCurrentStepIndex(0);
     setBoardFen(lessonData.steps[0].fen);
+    setIsAdvancingStep(false);
+    clearAdvanceTimer();
     setFeedback(null);
     setShowHint(false);
     setMoveFrom(null);
@@ -451,10 +532,9 @@ export default function LearnLesson() {
             <div className="rounded-xl overflow-hidden shadow-[0_16px_40px_rgba(2,6,23,0.7)] border border-slate-800">
               <Chessboard
                 id={`learn-lesson-board-${lessonBoardId}`}
-                allowDragOutsideBoard={false}
                 position={boardFen}
                 onPieceDrop={(sourceSquare, targetSquare) => {
-                  if (!allowDragInput) return false;
+                  if (!allowDragInput || isAdvancingStep) return false;
                   return onDrop(sourceSquare, targetSquare);
                 }}
                 onSquareClick={(square) => {
@@ -462,14 +542,16 @@ export default function LearnLesson() {
                   onSquareClick(square);
                 }}
                 onSquareRightClick={clearMoveSelection}
-                boardOrientation={currentStep.boardOrientation || "white"}
+                boardOrientation={boardOrientation}
                 boardWidth={boardSize}
                 arePiecesDraggable={
-                  allowDragInput && !isSubmittingMove && !lessonCompleted
+                  allowDragInput &&
+                  !isSubmittingMove &&
+                  !isAdvancingStep &&
+                  !lessonCompleted
                 }
-                customBoardStyle={{ borderRadius: "10px" }}
+                customBoardStyle={{ borderRadius: "10px", touchAction: "none" }}
                 customSquareStyles={boardSquareStyles}
-                dropOffBoardAction="snapback"
               />
             </div>
           </div>
@@ -555,10 +637,12 @@ export default function LearnLesson() {
                 )}
               </div>
 
-              {isSubmittingMove && (
+              {(isSubmittingMove || isAdvancingStep) && (
                 <div className="inline-flex items-center gap-1.5 text-xs text-slate-400">
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  {t("learn.checkingMove", "Checking move...")}
+                  {isAdvancingStep
+                    ? t("learn.loadingNextStep", "Loading next step...")
+                    : t("learn.checkingMove", "Checking move...")}
                 </div>
               )}
             </div>

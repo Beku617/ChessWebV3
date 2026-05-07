@@ -119,7 +119,14 @@ function normalizeWatchVariant(value: unknown): WatchVariant {
   if (normalized === "threecheck" || normalized === "three-check") {
     return "threeCheck";
   }
-  if (normalized === "kingofhill" || normalized === "king-of-hill") {
+  if (
+    normalized === "kingofhill" ||
+    normalized === "kingofthehill" ||
+    normalized === "king-of-hill" ||
+    normalized === "king_of_hill" ||
+    normalized === "king-of-the-hill" ||
+    normalized === "king_of_the_hill"
+  ) {
     return "kingOfHill";
   }
   if (normalized === "atomic") return "atomic";

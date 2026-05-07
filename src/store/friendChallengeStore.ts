@@ -24,6 +24,7 @@ export interface FriendGameStartedPayload {
   gameId: string;
   color: "w" | "b";
   fen: string;
+  initialFen?: string;
   opponentUserId?: string;
   opponentName: string;
   playerRating?: number;
