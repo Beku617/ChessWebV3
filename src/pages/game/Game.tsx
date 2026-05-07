@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useStockfishGame } from "../../hooks/useStockfishGame";
 import { GameOverModal, PlayerInfo, GameBoard } from "../../components/game";
 import type { GameSettings } from "../../components/game";
@@ -23,8 +23,6 @@ export default function Game() {
     clockSessionId,
     optionSquares,
     preMoveSquares,
-    setPlayerTime,
-    setOpponentTime,
     onSquareClick,
     onPieceDrop,
     onCancelSelection,
@@ -60,9 +58,8 @@ export default function Game() {
     const updateSize = () => {
       const rect = container.getBoundingClientRect();
       const isWide = window.innerWidth >= 1024;
-      const topH = topInfoRef.current?.getBoundingClientRect().height ?? 80;
-      const bottomH =
-        bottomInfoRef.current?.getBoundingClientRect().height ?? 80;
+      const topH = topInfoRef.current?.offsetHeight ?? 80;
+      const bottomH = bottomInfoRef.current?.offsetHeight ?? 80;
       const maxBoardWidth = isWide ? rect.width * 0.55 : rect.width;
       const columnGap = isWide ? 16 : 8;
       const verticalGap = 12;
@@ -71,7 +68,10 @@ export default function Game() {
       const availableHeight =
         rect.height - topH - bottomH - verticalGap * 2 - padding;
       const size = Math.floor(Math.min(availableWidth, availableHeight));
-      setBoardWidth(Math.max(360, Math.min(size, 720)));
+      const nextBoardWidth = Math.max(360, Math.min(size, 720));
+      setBoardWidth((current) =>
+        Math.abs(current - nextBoardWidth) >= 1 ? nextBoardWidth : current,
+      );
     };
 
     updateSize();
@@ -97,6 +97,10 @@ export default function Game() {
       ...gameSettings,
       selectedBot: undefined,
     });
+  const handleTimerTick = useCallback((_time: number) => {
+    // Local timer values are rendered inside ChessTimer itself.
+    // Avoid bubbling 100ms timer ticks up to this page to prevent visual flicker.
+  }, []);
 
   return (
     <div className="relative h-full w-full bg-transparent overflow-hidden">
@@ -120,7 +124,7 @@ export default function Game() {
           {/* Opponent Info */}
           <div
             ref={topInfoRef}
-            className="flex-shrink-0 z-10"
+            className="quickmatch-panel-edge-offset-top flex-shrink-0 z-10"
             style={{ width: boardWidth + BOARD_FRAME }}
           >
             <PlayerInfo
@@ -138,7 +142,7 @@ export default function Game() {
               }
               timerResetToken={clockSessionId}
               onTimeOut={() => handleTimeOut(false)}
-              onTimeChange={setOpponentTime}
+              onTimeChange={handleTimerTick}
             />
           </div>
 
@@ -187,7 +191,7 @@ export default function Game() {
               }
               timerResetToken={clockSessionId}
               onTimeOut={() => handleTimeOut(true)}
-              onTimeChange={setPlayerTime}
+              onTimeChange={handleTimerTick}
             />
           </div>
         </div>

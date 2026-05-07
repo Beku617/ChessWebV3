@@ -92,7 +92,7 @@ export function ReplayContent960({ game }: ReplayContent960Props) {
               />
             </div>
 
-            <div className="flex-1 min-h-0 min-w-0 flex items-center gap-2 overflow-hidden">
+            <div className="flex-1 min-h-0 min-w-0 flex items-center gap-0.5 sm:gap-1 overflow-hidden">
               <div className="flex-1 min-w-0 flex items-center justify-center min-h-0">
                 <ReplayBoard
                   position={replay.currentFen}
@@ -103,11 +103,12 @@ export function ReplayContent960({ game }: ReplayContent960Props) {
                   isStalemate={replay.isStalemate}
                 />
               </div>
-              <div className="w-8 md:w-10 h-full flex items-stretch flex-shrink-0">
+              <div className="w-7 sm:w-8 md:w-10 h-full flex items-stretch flex-shrink-0 -ml-1 sm:ml-0">
                 <ReplayEvalBar
                   orientation="vertical"
                   evalPercent={replay.evalPercent}
                   evalLabel={replay.evalLabel}
+                  boardOrientation={replay.orientation}
                 />
               </div>
             </div>

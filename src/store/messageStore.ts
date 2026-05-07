@@ -1,6 +1,9 @@
 import { create } from "zustand";
 import { API_URL } from "../config/network";
 
+const SERVICE_UNAVAILABLE_COOLDOWN_MS = 30_000;
+let unreadServiceUnavailableUntil = 0;
+
 interface MessageStoreState {
   unreadCount: number;
   setUnreadCount: (count: number) => void;
@@ -13,16 +16,27 @@ export const useMessageStore = create<MessageStoreState>((set, get) => ({
   unreadCount: 0,
   setUnreadCount: (count) => set({ unreadCount: Math.max(0, Number(count) || 0) }),
   refreshUnread: async () => {
+    const now = Date.now();
+    if (now < unreadServiceUnavailableUntil) {
+      return get().unreadCount;
+    }
+
     try {
       const res = await fetch(`${API_URL}/api/messages/unread-count`, {
         credentials: "include",
       });
+      if (res.status === 503) {
+        unreadServiceUnavailableUntil = Date.now() + SERVICE_UNAVAILABLE_COOLDOWN_MS;
+        return get().unreadCount;
+      }
+
+      unreadServiceUnavailableUntil = 0;
       const data = await res.json().catch(() => ({}));
-      const next = res.ok ? Number(data.count) || 0 : 0;
+      const next = res.ok ? Number(data.count) || 0 : get().unreadCount;
       set({ unreadCount: next });
       return next;
     } catch {
-      return 0;
+      return get().unreadCount;
     }
   },
   archiveConversation: async (partnerId: string, archived: boolean = true) => {

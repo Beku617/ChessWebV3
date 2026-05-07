@@ -2,7 +2,10 @@ import { Router } from "express";
 import mongoose from "mongoose";
 import { ActiveGameSession, History, History960, User } from "../models/index.js";
 import { authMiddleware, optionalAuthMiddleware } from "../middleware/index.js";
-import { canViewerAccessUser } from "../utils/visibility.js";
+import {
+  canViewerAccessUser,
+  haveBlockedUsersListRelation,
+} from "../utils/visibility.js";
 import {
   MIN_REAL_GAME_PLIES,
   shouldPersistHistoryByPlies,
@@ -423,11 +426,20 @@ router.get("/user/:userId", optionalAuthMiddleware, async (req, res) => {
       return res.status(400).json({ error: "Invalid userId" });
     }
     const viewerId = normalizeObjectId(req.user?.userId);
-    const owner = await User.findById(userId).select("_id banned").lean();
+    const owner = await User.findById(userId)
+      .select("_id banned blockedUsers")
+      .lean();
     if (!owner || owner.banned) {
       return res.status(404).json({ error: "User not found" });
     }
-    const canAccess = await canViewerAccessUser(viewerId, owner._id);
+    const hasBlockedUsersListRelation = await haveBlockedUsersListRelation(
+      viewerId,
+      owner._id,
+      { userBDoc: owner },
+    );
+    const canAccess =
+      !hasBlockedUsersListRelation &&
+      (await canViewerAccessUser(viewerId, owner._id));
     if (!canAccess) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -489,11 +501,20 @@ router.get("/:id", optionalAuthMiddleware, async (req, res) => {
 
     const ownerId = normalizeObjectId(game.userId);
     if (ownerId) {
-      const owner = await User.findById(ownerId).select("_id banned").lean();
+      const owner = await User.findById(ownerId)
+        .select("_id banned blockedUsers")
+        .lean();
       if (!owner || owner.banned) {
         return res.status(404).json({ error: "Game not found" });
       }
-      const canAccess = await canViewerAccessUser(viewerId, owner._id);
+      const hasBlockedUsersListRelation = await haveBlockedUsersListRelation(
+        viewerId,
+        owner._id,
+        { userBDoc: owner },
+      );
+      const canAccess =
+        !hasBlockedUsersListRelation &&
+        (await canViewerAccessUser(viewerId, owner._id));
       if (!canAccess) {
         return res.status(404).json({ error: "Game not found" });
       }

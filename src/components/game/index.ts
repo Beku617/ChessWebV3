@@ -7,6 +7,7 @@ export { GameSidebar } from "./GameSidebar";
 export { MoveNotation } from "./MoveNotation";
 export { ChessMoveList, buildChessMoveRows } from "./ChessMoveList";
 export { MoveListTabs } from "./MoveListTabs";
+export { ResignConfirmButton } from "./ResignConfirmButton";
 export type { ChessMoveRow } from "./ChessMoveList";
 export type { SidebarMessageItem } from "./MoveListTabs";
 export type { GameSettings, PromotionState, PromotionPiece } from "./types";

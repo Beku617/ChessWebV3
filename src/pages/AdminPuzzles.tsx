@@ -12,13 +12,11 @@ import {
   Play,
   Square as SquareIcon,
   Eraser,
-  Star,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
 
 const PUZZLES_PER_PAGE = 10;
-const MAX_FEATURED_PUZZLES = 3;
 
 function getPageNumbers(current: number, total: number): (number | "...")[] {
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
@@ -63,7 +61,6 @@ interface Puzzle {
   mateIn?: number;
   timesPlayed: number;
   timesSolved: number;
-  featured: boolean;
   duplicateCount?: number;
   quality?: {
     attempts: number;
@@ -576,23 +573,6 @@ export default function AdminPuzzles() {
       ? `${pBtnBase} w-9 h-9 bg-brand-500 text-white shadow-md shadow-brand-500/25`
       : `${pBtnBase} w-9 h-9 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 hover:border-brand-400 dark:hover:border-brand-600 hover:text-brand-600 dark:hover:text-brand-400`;
 
-  const toggleFeatured = async (puzzleId: string, currentFeatured: boolean) => {
-    try {
-      const res = await fetch(`${API_URL}/api/admin/puzzles/${puzzleId}/featured`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ featured: !currentFeatured }),
-      });
-      if (res.ok) {
-        const updated = await res.json();
-        setPuzzles(puzzles.map((p) => (p._id === puzzleId ? updated : p)));
-      }
-    } catch (error) {
-      console.error("Failed to toggle featured:", error);
-    }
-  };
-
   const patchPuzzleState = async (
     puzzleId: string,
     updates: { isActive?: boolean },
@@ -620,8 +600,6 @@ export default function AdminPuzzles() {
       console.error("Failed to patch puzzle state:", error);
     }
   };
-
-  const featuredCount = puzzles.filter((p) => p.featured).length;
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -723,12 +701,6 @@ export default function AdminPuzzles() {
                     <th className="text-left px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400">
                       State
                     </th>
-                    <th className="text-center px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400">
-                      <div className="flex items-center justify-center gap-1">
-                        <Star size={14} />
-                        Dashboard ({featuredCount}/{MAX_FEATURED_PUZZLES})
-                      </div>
-                    </th>
                     <th className="text-right px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400">
                       Actions
                     </th>
@@ -803,36 +775,6 @@ export default function AdminPuzzles() {
                             </span>
                           )}
                         </div>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <button
-                          onClick={() =>
-                            toggleFeatured(puzzle._id, puzzle.featured)
-                          }
-                          disabled={
-                            !puzzle.featured &&
-                            featuredCount >= MAX_FEATURED_PUZZLES
-                          }
-                          className={`p-2 rounded-lg transition-colors ${
-                            puzzle.featured
-                              ? "text-amber-500 bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30"
-                            : featuredCount >= MAX_FEATURED_PUZZLES
-                                ? "text-gray-300 dark:text-gray-600 cursor-not-allowed"
-                                : "text-gray-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20"
-                          }`}
-                          title={
-                            puzzle.featured
-                              ? "Remove from dashboard"
-                              : featuredCount >= MAX_FEATURED_PUZZLES
-                                ? `Max ${MAX_FEATURED_PUZZLES} featured`
-                                : "Show on dashboard"
-                          }
-                        >
-                          <Star
-                            size={18}
-                            fill={puzzle.featured ? "currentColor" : "none"}
-                          />
-                        </button>
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-2">

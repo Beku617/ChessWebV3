@@ -134,6 +134,8 @@ export function useOnlineFourPlayerMatch() {
   const lastSoundMoveKeyRef = useRef<string>("");
   const lastResyncAtRef = useRef(0);
   const moveInFlightRef = useRef(false);
+  const playerColorRef = useRef<FourPlayerColor>("red");
+  const gameOverReasonRef = useRef<string | null>(null);
 
   const requestResync = useCallback(() => {
     const socket = socketRef.current;
@@ -161,6 +163,7 @@ export function useOnlineFourPlayerMatch() {
     gameIdRef.current = null;
     storeActiveFourPlayerGameId(null);
     setPlayerColor("red");
+    playerColorRef.current = "red";
     setPlayers(DEFAULT_PLAYERS);
     setGameStarted(false);
     setIsSearching(false);
@@ -169,10 +172,19 @@ export function useOnlineFourPlayerMatch() {
     setLastMove(null);
     setSystemMessage(null);
     setGameOverReason(null);
+    gameOverReasonRef.current = null;
     setForfeitedColor(null);
     lastSoundMoveKeyRef.current = "";
     moveInFlightRef.current = false;
   }, []);
+
+  useEffect(() => {
+    playerColorRef.current = playerColor;
+  }, [playerColor]);
+
+  useEffect(() => {
+    gameOverReasonRef.current = gameOverReason;
+  }, [gameOverReason]);
 
   useEffect(() => {
     const notice = consumeActiveGameRedirectNotice();
@@ -294,6 +306,7 @@ export function useOnlineFourPlayerMatch() {
         timeControl: payload.timeControl,
       });
       setPlayerColor(payload.color);
+      playerColorRef.current = payload.color;
       setGameState(payload.state);
       setPlayers(payload.players || DEFAULT_PLAYERS);
       setTimeControl(payload.timeControl || { initial: 300, increment: 0 });
@@ -301,6 +314,7 @@ export function useOnlineFourPlayerMatch() {
       setLastMove(null);
       setSystemMessage(null);
       setGameOverReason(null);
+      gameOverReasonRef.current = null;
       setForfeitedColor(null);
       lastSoundMoveKeyRef.current = "";
       setGameStarted(true);
@@ -311,6 +325,26 @@ export function useOnlineFourPlayerMatch() {
       if (!payload?.gameId || payload.gameId !== gameIdRef.current) return;
       moveInFlightRef.current = false;
       setGameState(payload.state);
+      const localPlayerColor = playerColorRef.current;
+      if (
+        Array.isArray(payload.state?.eliminated) &&
+        payload.state.eliminated.includes(localPlayerColor)
+      ) {
+        storeActiveFourPlayerGameId(null);
+        if (!gameOverReasonRef.current) {
+          const eliminationReason =
+            payload.systemMessage || `${localPlayerColor.toUpperCase()} eliminated.`;
+          gameOverReasonRef.current = eliminationReason;
+          setGameOverReason(eliminationReason);
+        }
+      }
+      if (payload.state?.winner) {
+        storeActiveFourPlayerGameId(null);
+        if (!gameOverReasonRef.current) {
+          gameOverReasonRef.current = "game_over";
+          setGameOverReason("game_over");
+        }
+      }
       if (payload.players) {
         setPlayers(payload.players);
       }
@@ -370,7 +404,9 @@ export function useOnlineFourPlayerMatch() {
         if (payload.state) {
           setGameState(payload.state);
         }
-        setGameOverReason(payload.reason || "game_over");
+        const resolvedReason = payload.reason || "game_over";
+        gameOverReasonRef.current = resolvedReason;
+        setGameOverReason(resolvedReason);
       if (payload.forfeitedColor) {
         setForfeitedColor(payload.forfeitedColor);
       }
@@ -445,19 +481,19 @@ export function useOnlineFourPlayerMatch() {
 
   const canDragFrom = useCallback(
     (row: number, col: number) => {
-      if (!gameStarted || gameState.winner) return false;
+      if (!gameStarted || gameState.winner || gameOverReason) return false;
       if (!isPlayableSquare(row, col)) return false;
       if (gameState.turn !== playerColor) return false;
       const piece = gameState.board[row][col];
       return !!piece && piece.color === playerColor;
     },
-    [gameStarted, gameState, playerColor],
+    [gameOverReason, gameStarted, gameState, playerColor],
   );
 
   const tryMove = useCallback(
     (from: Square, to: Square) => {
       if (moveInFlightRef.current) return false;
-      if (!gameStarted || gameState.winner) return false;
+      if (!gameStarted || gameState.winner || gameOverReason) return false;
       if (!isPlayableSquare(from.row, from.col) || !isPlayableSquare(to.row, to.col)) {
         return false;
       }
@@ -487,12 +523,12 @@ export function useOnlineFourPlayerMatch() {
       setSelected(null);
       return true;
     },
-    [gameStarted, gameState, playerColor],
+    [gameOverReason, gameStarted, gameState, playerColor],
   );
 
   const onSquareClick = useCallback(
     (row: number, col: number) => {
-      if (!gameStarted || gameState.winner) return;
+      if (!gameStarted || gameState.winner || gameOverReason) return;
       if (!isPlayableSquare(row, col)) return;
       if (gameState.turn !== playerColor) return;
 
@@ -518,7 +554,7 @@ export function useOnlineFourPlayerMatch() {
       }
       setSelected(null);
     },
-    [gameStarted, gameState, playerColor, selected, tryMove],
+    [gameOverReason, gameStarted, gameState, playerColor, selected, tryMove],
   );
 
   const onPieceDrop = useCallback(

@@ -610,11 +610,24 @@ export default function PlayPractice() {
 
     const updateSize = () => {
       const rect = container.getBoundingClientRect();
-      const padding = 12;
-      const availableWidth = rect.width - padding - BOARD_FRAME;
-      const availableHeight = Math.min(rect.height, window.innerHeight) - padding;
+      const styles = window.getComputedStyle(container);
+      const paddingLeft = parseFloat(styles.paddingLeft || "0") || 0;
+      const paddingRight = parseFloat(styles.paddingRight || "0") || 0;
+      const paddingTop = parseFloat(styles.paddingTop || "0") || 0;
+      const paddingBottom = parseFloat(styles.paddingBottom || "0") || 0;
+      const verticalBreathingRoom = 10;
+      const horizontalBreathingRoom = 6;
+      const availableWidth =
+        rect.width -
+        (paddingLeft + paddingRight) -
+        BOARD_FRAME -
+        horizontalBreathingRoom;
+      const availableHeight =
+        Math.min(rect.height, window.innerHeight) -
+        (paddingTop + paddingBottom) -
+        verticalBreathingRoom;
       const size = Math.floor(Math.min(availableWidth, availableHeight));
-      setBoardWidth(Math.max(300, Math.min(size, 700)));
+      setBoardWidth(Math.max(280, Math.min(size, 700)));
     };
 
     updateSize();
@@ -1405,7 +1418,7 @@ export default function PlayPractice() {
   };
 
   return (
-    <div className="relative h-screen w-full bg-slate-100 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 overflow-hidden">
+    <div className="relative h-full min-h-0 w-full bg-slate-100 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 overflow-hidden">
       <div
         className={`h-full grid ${
           isFreeMoveActive && showEvalBar

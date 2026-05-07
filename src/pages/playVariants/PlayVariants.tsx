@@ -4,6 +4,7 @@ import { Chessboard } from "react-chessboard";
 import { Clock, Shuffle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../../store/authStore";
+import { PlayerInfo } from "../../components/game";
 import { BOARD_FRAME } from "../quickMatch/types";
 import { useBoardTheme } from "../../hooks/useBoardTheme";
 
@@ -228,12 +229,25 @@ export default function PlayVariants() {
 
     const updateSize = () => {
       const rect = container.getBoundingClientRect();
-      const padding = 6;
+      const styles = window.getComputedStyle(container);
+      const paddingLeft = parseFloat(styles.paddingLeft || "0") || 0;
+      const paddingRight = parseFloat(styles.paddingRight || "0") || 0;
+      const paddingTop = parseFloat(styles.paddingTop || "0") || 0;
+      const paddingBottom = parseFloat(styles.paddingBottom || "0") || 0;
+      const rowGap = parseFloat(styles.rowGap || styles.gap || "0") || 0;
       const headerH = topBarRef.current?.offsetHeight ?? 36;
       const footerH = bottomBarRef.current?.offsetHeight ?? 32;
-      const availableWidth = rect.width - padding - BOARD_FRAME;
+      const gapsBetweenSections = rowGap * 2;
+      const verticalBreathingRoom = 8;
+      const availableWidth =
+        rect.width - (paddingLeft + paddingRight) - BOARD_FRAME;
       const availableHeight =
-        Math.min(rect.height, window.innerHeight) - headerH - footerH - padding;
+        Math.min(rect.height, window.innerHeight) -
+        headerH -
+        footerH -
+        (paddingTop + paddingBottom) -
+        gapsBetweenSections -
+        verticalBreathingRoom;
       const size = Math.floor(Math.min(availableWidth, availableHeight));
       setBoardWidth(Math.max(300, Math.min(size, 700)));
     };
@@ -323,9 +337,9 @@ export default function PlayVariants() {
   return (
     <div
       ref={containerRef}
-      className="relative h-screen w-full bg-transparent overflow-hidden"
+      className="relative h-full min-h-0 w-full bg-transparent overflow-hidden"
     >
-      <div className="h-full grid grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)]">
+      <div className="h-full min-h-0 grid grid-cols-1 lg:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)]">
         {/* Left Side - Board Preview */}
         <div
           ref={leftRef}
@@ -334,23 +348,21 @@ export default function PlayVariants() {
           {/* Top Variant Info Bar */}
           <div
             ref={topBarRef}
-            className="w-full max-w-[900px] flex items-center gap-1.5 px-2"
+            className="w-full flex-shrink-0 z-10"
+            style={{ width: boardWidth }}
           >
-            <div className="w-10 h-10 rounded-lg overflow-hidden bg-slate-700 flex-shrink-0">
-              <div className="w-full h-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
-                <span className="text-white font-bold text-sm">V</span>
-              </div>
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-1.5">
-                <span className="font-semibold text-gray-900 dark:text-white text-[13px]">
-                  {selectedVariant.label}
-                </span>
-                <span className="text-[10px] text-gray-500 dark:text-gray-400">
-                  ({t("Variant")})
-                </span>
-              </div>
-            </div>
+            <PlayerInfo
+              name={selectedVariant.label}
+              subtitle={t("Variant")}
+              avatarLetter="V"
+              avatarStyle="opponent"
+              initialTime={0}
+              increment={0}
+              isTimerActive={false}
+              onTimeOut={() => {}}
+              onTimeChange={() => {}}
+              showTimer={false}
+            />
           </div>
 
           {/* Chess Board Preview */}
@@ -403,28 +415,22 @@ export default function PlayVariants() {
           {/* Bottom Player Info Bar */}
           <div
             ref={bottomBarRef}
-            className="w-full max-w-[900px] flex items-center gap-1.5 px-2 justify-start"
+            className="w-full flex-shrink-0 z-10"
+            style={{ width: boardWidth }}
           >
-            <div className="w-10 h-10 rounded-lg overflow-hidden bg-slate-700 flex-shrink-0">
-              {user?.avatar ? (
-                <img
-                  src={user.avatar}
-                  alt={user.fullName || t("You")}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">
-                    {user?.fullName?.substring(0, 1).toUpperCase() || t("Y")}
-                  </span>
-                </div>
-              )}
-            </div>
-            <div className="flex-1">
-              <span className="font-semibold text-gray-900 dark:text-white text-[13px]">
-                {user?.fullName || t("You")}
-              </span>
-            </div>
+            <PlayerInfo
+              name={user?.fullName || t("You")}
+              rating={user?.rating ?? null}
+              avatarLetter={user?.fullName?.substring(0, 2).toUpperCase() || "Y"}
+              avatarImage={user?.avatar}
+              avatarStyle="player"
+              initialTime={0}
+              increment={0}
+              isTimerActive={false}
+              onTimeOut={() => {}}
+              onTimeChange={() => {}}
+              showTimer={false}
+            />
           </div>
         </div>
 

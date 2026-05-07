@@ -724,3 +724,215 @@ body::-webkit-scrollbar-thumb:hover,
 .practice-history-scroll {
   scrollbar-width: thin;
 }
+
+/* Quick Match focus mode */
+.quickmatch-game-layout {
+  transition: grid-template-columns 0.28s ease;
+}
+
+.quickmatch-main-board {
+  transition:
+    padding 0.28s ease,
+    gap 0.28s ease,
+    grid-template-columns 0.28s ease,
+    grid-template-rows 0.28s ease;
+}
+
+.quickmatch-panel-edge-offset-top {
+  transform: translateY(12px);
+}
+
+.quickmatch-panel-edge-offset-bottom {
+  transform: translateY(-12px);
+}
+
+.quickmatch-board-wrap .quickmatch-focus-toggle {
+  right: 4px !important;
+  top: 4px !important;
+  z-index: 10 !important;
+}
+
+.quickmatch-focus-actions {
+  display: none;
+}
+
+.quickmatch-focus-action-button {
+  height: 54px;
+  width: 54px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(6, 10, 28, 0.82);
+  color: #f8fafc;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.quickmatch-focus-action-button:hover {
+  background: rgba(15, 23, 42, 0.94);
+  transform: translateY(-1px);
+}
+
+.quickmatch-focus-action-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.quickmatch-focus-action-danger {
+  border-color: rgba(248, 113, 113, 0.35);
+  color: rgb(252, 165, 165);
+}
+
+.quickmatch-focus-action-alert {
+  border-color: rgba(103, 232, 249, 0.8);
+  background: rgba(14, 59, 86, 0.68);
+  box-shadow:
+    0 0 0 1px rgba(103, 232, 249, 0.45),
+    0 0 22px rgba(6, 182, 212, 0.35);
+}
+
+.quickmatch-focus-action-alert::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-radius: 10px;
+  border: 1px dashed rgba(165, 243, 252, 0.8);
+  pointer-events: none;
+}
+
+.quickmatch-focus-action-alert-dot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  height: 8px;
+  width: 8px;
+  border-radius: 999px;
+  background: rgb(103, 232, 249);
+  box-shadow: 0 0 0 4px rgba(103, 232, 249, 0.26);
+  animation: quickmatch-alert-pulse 1.2s ease-in-out infinite;
+}
+
+.quickmatch-focus-action-button.quickmatch-focus-action-alert:disabled {
+  opacity: 0.95;
+}
+
+.quickmatch-focus-draw-offer {
+  max-width: 240px;
+}
+
+@keyframes quickmatch-alert-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(103, 232, 249, 0.45);
+  }
+  50% {
+    transform: scale(1.12);
+    box-shadow: 0 0 0 7px rgba(103, 232, 249, 0);
+  }
+}
+
+.quickmatch-game-root.focus-mode .quickmatch-game-layout {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.quickmatch-game-root.focus-mode .quickmatch-sidebar {
+  display: none;
+}
+
+.quickmatch-game-root.focus-mode .quickmatch-main-board {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  justify-content: center;
+  column-gap: 16px;
+  row-gap: 12px;
+  padding: 16px 18px;
+}
+
+.quickmatch-game-root.focus-mode .quickmatch-opponent-panel {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: end;
+  justify-self: end;
+  margin: 0;
+}
+
+.quickmatch-game-root.focus-mode .quickmatch-player-panel {
+  grid-column: 1;
+  grid-row: 2;
+  align-self: start;
+  justify-self: end;
+  margin: 0;
+}
+
+.quickmatch-game-root.focus-mode .quickmatch-board-wrap {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  justify-self: center;
+  margin: 0;
+}
+
+.quickmatch-game-root.focus-mode .quickmatch-focus-actions {
+  display: flex;
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+@media (max-width: 1120px) {
+  .quickmatch-game-root.focus-mode .quickmatch-main-board {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto auto;
+    justify-items: center;
+    column-gap: 0;
+    row-gap: 10px;
+    padding: 14px 10px;
+  }
+
+  .quickmatch-game-root.focus-mode .quickmatch-opponent-panel {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: center;
+    justify-self: center;
+  }
+
+  .quickmatch-game-root.focus-mode .quickmatch-board-wrap {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .quickmatch-game-root.focus-mode .quickmatch-player-panel {
+    grid-column: 1;
+    grid-row: 3;
+    align-self: center;
+    justify-self: center;
+  }
+
+  .quickmatch-game-root.focus-mode .quickmatch-focus-actions {
+    grid-column: 1;
+    grid-row: 4;
+    flex-direction: row;
+    flex-wrap: wrap;
+    row-gap: 8px;
+    justify-content: flex-end;
+    width: 100%;
+    max-width: 840px;
+  }
+
+  .quickmatch-game-root.focus-mode .quickmatch-focus-actions .quickmatch-focus-draw-offer {
+    flex-basis: 100%;
+    max-width: 100%;
+  }
+}

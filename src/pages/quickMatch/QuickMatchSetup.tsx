@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../../store/authStore";
+import { PlayerInfo } from "../../components/game";
 import { BOARD_FRAME } from "./types";
 import { useBoardTheme } from "../../hooks/useBoardTheme";
 
@@ -185,13 +186,25 @@ export function QuickMatchSetup({
 
     const updateSize = () => {
       const rect = container.getBoundingClientRect();
-      const padding = 24;
+      const containerStyles = window.getComputedStyle(container);
+      const paddingLeft = parseFloat(containerStyles.paddingLeft || "0") || 0;
+      const paddingRight = parseFloat(containerStyles.paddingRight || "0") || 0;
+      const paddingTop = parseFloat(containerStyles.paddingTop || "0") || 0;
+      const paddingBottom = parseFloat(containerStyles.paddingBottom || "0") || 0;
+      const rowGap = parseFloat(containerStyles.rowGap || containerStyles.gap || "0") || 0;
       const headerH = topBarRef.current?.offsetHeight ?? 60;
       const footerH = bottomBarRef.current?.offsetHeight ?? 48;
-      const availableWidth = rect.width - padding - BOARD_FRAME;
-      const availableHeight = rect.height - headerH - footerH - padding;
+      const gapsBetweenSections = rowGap * 2;
+      const availableWidth =
+        rect.width - (paddingLeft + paddingRight) - BOARD_FRAME;
+      const availableHeight =
+        rect.height -
+        headerH -
+        footerH -
+        (paddingTop + paddingBottom) -
+        gapsBetweenSections;
       const size = Math.floor(Math.min(availableWidth, availableHeight));
-      setBoardWidth(Math.max(400, Math.min(size, 720)));
+      setBoardWidth(Math.max(320, Math.min(size, 720)));
     };
 
     updateSize();
@@ -272,29 +285,21 @@ export function QuickMatchSetup({
           {/* Top Opponent Info Bar */}
           <div
             ref={topBarRef}
-            className="w-full max-w-[900px] flex items-center gap-3 px-2"
+            className="w-full flex-shrink-0 z-10"
+            style={{ width: boardWidth }}
           >
-            <div className="w-10 h-10 rounded-lg overflow-hidden bg-slate-700 flex-shrink-0">
-              <div className="w-full h-full bg-gradient-to-br from-gray-500 to-gray-600 flex items-center justify-center">
-                <span className="text-white font-bold text-sm">?</span>
-              </div>
-            </div>
-            <div className="flex-1">
-              {isSearching ? (
-                  <div className="font-semibold text-gray-900 dark:text-white text-base sm:text-lg">
-                  {t("Searching...")}
-                </div>
-              ) : (
-                <div className="flex items-center gap-1.5">
-                  <span className="font-semibold text-gray-900 dark:text-white text-sm">
-                    {t("Opponent")}
-                  </span>
-                  <span className="text-[11px] text-gray-500 dark:text-gray-400">
-                    ({t("Waiting...")})
-                  </span>
-                </div>
-              )}
-            </div>
+            <PlayerInfo
+              name={isSearching ? t("Searching...") : ""}
+              subtitle={isSearching ? searchingGameText : ""}
+              avatarLetter="?"
+              avatarStyle="opponent"
+              initialTime={0}
+              increment={0}
+              isTimerActive={false}
+              onTimeOut={() => {}}
+              onTimeChange={() => {}}
+              showTimer={false}
+            />
           </div>
 
           {/* Chess Board Preview */}
@@ -343,28 +348,22 @@ export function QuickMatchSetup({
           {/* Bottom Player Info Bar */}
           <div
             ref={bottomBarRef}
-            className="w-full max-w-[900px] flex items-center gap-3 px-2 justify-start"
+            className="w-full flex-shrink-0 z-10"
+            style={{ width: boardWidth }}
           >
-            <div className="w-10 h-10 rounded-lg overflow-hidden bg-slate-700 flex-shrink-0">
-              {user?.avatar ? (
-                <img
-                  src={user.avatar}
-                  alt={user.fullName || t("You")}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">
-                    {user?.fullName?.substring(0, 1).toUpperCase() || t("Y")}
-                  </span>
-                </div>
-              )}
-            </div>
-            <div className="flex-1">
-              <span className="font-semibold text-gray-900 dark:text-white text-sm">
-                {user?.fullName || t("You")}
-              </span>
-            </div>
+            <PlayerInfo
+              name={user?.fullName || t("You")}
+              rating={user?.rating ?? null}
+              avatarLetter={user?.fullName?.substring(0, 2).toUpperCase() || "Y"}
+              avatarImage={user?.avatar}
+              avatarStyle="player"
+              initialTime={0}
+              increment={0}
+              isTimerActive={false}
+              onTimeOut={() => {}}
+              onTimeChange={() => {}}
+              showTimer={false}
+            />
           </div>
         </div>
 

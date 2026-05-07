@@ -55,6 +55,7 @@ export interface User {
   puzzleFailed?: number;
   puzzleSkipped?: number;
   puzzleLastAttemptAt?: string | null;
+  createdAt?: string | null;
 }
 
 interface AuthState {
@@ -224,6 +225,10 @@ export const authApi = {
   async getMe() {
     const res = await fetch(`${API_URL}/api/me`, {
       credentials: "include",
+    }).catch((error) => {
+      const authError = new Error("Auth check failed") as AuthApiError;
+      authError.data = { cause: String(error) };
+      throw authError;
     });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
@@ -233,7 +238,10 @@ export const authApi = {
           banReason: data.banReason || "No reason provided",
         };
       }
-      return null;
+      if (res.status === 401) {
+        return null;
+      }
+      throw makeAuthApiError(res, data, "Auth check failed");
     }
     const data = await res.json();
     return data.user;

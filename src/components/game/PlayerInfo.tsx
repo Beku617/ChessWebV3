@@ -9,6 +9,9 @@ interface PlayerInfoProps {
   flag?: string;
   rating?: number | null;
   avatarStyle: "opponent" | "player";
+  layout?: "default" | "focus" | "match";
+  showConnectionDots?: boolean;
+  connectionStrength?: number;
   initialTime: number;
   increment: number;
   isTimerActive: boolean;
@@ -17,6 +20,9 @@ interface PlayerInfoProps {
   timerResetToken?: string | number;
   timerManagedExternally?: boolean;
   showTimer?: boolean;
+  compactTimer?: boolean;
+  timerVariant?: "default" | "snapshot";
+  className?: string;
 }
 
 export function PlayerInfo({
@@ -27,6 +33,9 @@ export function PlayerInfo({
   flag,
   rating,
   avatarStyle,
+  layout = "default",
+  showConnectionDots = false,
+  connectionStrength = 4,
   initialTime,
   increment,
   isTimerActive,
@@ -35,6 +44,9 @@ export function PlayerInfo({
   timerResetToken,
   timerManagedExternally = false,
   showTimer = true,
+  compactTimer = false,
+  timerVariant = "default",
+  className = "",
 }: PlayerInfoProps) {
   const [hasImageError, setHasImageError] = useState(false);
   const displayRating =
@@ -42,20 +54,38 @@ export function PlayerInfo({
       ? Math.round(Number(rating))
       : null;
   const shouldShowTimer = showTimer && initialTime > 0;
+  const normalizedConnectionStrength = Math.max(0, Math.min(4, Math.floor(connectionStrength)));
+  const isFocusLayout = layout === "focus";
+  const isMatchLayout = layout === "match";
+  const avatarSizeClass = isMatchLayout ? "h-11 w-11" : "h-10 w-10";
+  const avatarToneClass =
+    avatarStyle === "opponent"
+      ? isMatchLayout
+        ? "bg-gradient-to-b from-slate-500 to-slate-800 ring-1 ring-white/12"
+        : "bg-gradient-to-br from-slate-600 to-slate-800 ring-1 ring-white/10"
+      : isMatchLayout
+        ? "bg-gradient-to-b from-cyan-300 to-sky-500 ring-1 ring-cyan-200/75 shadow-cyan-500/25"
+        : "bg-gradient-to-br from-brand-500 to-cyan-400 ring-2 ring-cyan-200/55 dark:ring-cyan-400/40 shadow-cyan-500/25";
 
   useEffect(() => {
     setHasImageError(false);
   }, [avatarImage]);
 
+  const compactRowSpacingClass = compactTimer ? "py-1.5" : "py-1";
+  const nameTextClass = isMatchLayout
+    ? "truncate text-[1.02rem] font-semibold text-slate-100"
+    : "truncate text-sm font-semibold text-gray-900 dark:text-white sm:text-base";
+  const ratingTextClass = isMatchLayout
+    ? "shrink-0 text-xs font-medium text-slate-300"
+    : "shrink-0 text-xs font-medium text-gray-600 dark:text-slate-300 sm:text-sm";
+
   return (
-    <div className="theme-glass-panel-soft w-full rounded-2xl px-3 py-2.5 flex items-center justify-between gap-3">
-      <div className="flex items-center gap-3 min-w-0">
+    <div
+      className={`player-info-root w-full min-w-0 flex items-center gap-3 px-2 ${compactRowSpacingClass} ${className}`}
+    >
+      <div className="flex min-w-0 flex-1 items-center gap-3">
         <div
-          className={`w-12 h-12 rounded-xl flex items-center justify-center text-base font-semibold text-white shadow-sm overflow-hidden flex-shrink-0 ${
-            avatarStyle === "opponent"
-              ? "bg-gradient-to-br from-gray-600 to-gray-700 ring-1 ring-white/10"
-              : "bg-gradient-to-br from-brand-500 to-brand-500 ring-2 ring-brand-200/60 dark:ring-brand-500/50 shadow-brand-500/30"
-          }`}
+          className={`${avatarSizeClass} flex shrink-0 items-center justify-center overflow-hidden rounded-[14px] text-sm font-bold text-white shadow-[0_10px_24px_rgba(2,6,23,0.28)] ${avatarToneClass}`}
         >
           {avatarImage && !hasImageError ? (
             <img
@@ -68,32 +98,50 @@ export function PlayerInfo({
             avatarLetter
           )}
         </div>
-        <div className="leading-tight min-w-0">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base truncate">
+        <div className="min-w-0 leading-tight">
+          <div className="flex min-w-0 items-center gap-2">
+            <div className={nameTextClass}>
               {name}
             </div>
             {displayRating !== null && (
-              <span className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300">
+              <span className={ratingTextClass}>
                 ({displayRating})
               </span>
             )}
           </div>
-          {subtitle ? (
-            <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
+          {subtitle && !shouldShowTimer ? (
+            <div className="mt-0.5 flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400">
               <span className="truncate">{subtitle}</span>
+            </div>
+          ) : null}
+          {isFocusLayout && (showConnectionDots || Boolean(flag)) && !shouldShowTimer ? (
+            <div className="mt-2 flex items-center gap-2 text-[11px] text-gray-500 dark:text-slate-400">
+              {flag ? (
+                <span className="inline-flex h-5 min-w-[30px] items-center justify-center rounded-md border border-white/10 bg-white/5 px-1.5 text-[10px] font-medium tracking-wide text-gray-600 dark:text-gray-200">
+                  {flag}
+                </span>
+              ) : null}
+              {showConnectionDots ? (
+                <span className="inline-flex items-center gap-1">
+                  {[0, 1, 2, 3].map((index) => (
+                    <span
+                      key={`conn-${index}`}
+                      className={`h-1.5 w-1.5 rounded-full ${
+                        index < normalizedConnectionStrength
+                          ? "bg-emerald-400"
+                          : "bg-white/20"
+                      }`}
+                    />
+                  ))}
+                </span>
+              ) : null}
             </div>
           ) : null}
         </div>
       </div>
 
       {shouldShowTimer && (
-        <div className="flex items-center gap-2 flex-shrink-0">
-          {increment > 0 && (
-            <span className="h-8 px-2 rounded-full text-[11px] font-semibold tracking-wide text-brand-700 dark:text-brand-300 bg-brand-50 dark:bg-brand-900/40 border border-brand-100 dark:border-brand-800 inline-flex items-center">
-              +{increment}s
-            </span>
-          )}
+        <div className="ml-auto shrink-0 flex items-center">
           <ChessTimer
             initialTime={initialTime}
             increment={increment}
@@ -102,7 +150,8 @@ export function PlayerInfo({
             onTimeChange={onTimeChange}
             resetToken={timerResetToken}
             managedExternally={timerManagedExternally}
-            className="h-12"
+            variant={timerVariant}
+            className={compactTimer ? "h-9" : "h-12"}
           />
         </div>
       )}

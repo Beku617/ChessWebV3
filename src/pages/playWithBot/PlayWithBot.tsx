@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Chessboard } from "react-chessboard";
 import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../../store/authStore";
+import { PlayerInfo } from "../../components/game";
 import type { BotPersonality } from "../../data/botPersonalities";
 import { BOARD_FRAME } from "./types";
 import { useBoardTheme } from "../../hooks/useBoardTheme";
@@ -103,6 +104,8 @@ export default function PlayWithBot() {
   const previewBoardId = useId().replace(/:/g, "");
   const containerRef = useRef<HTMLDivElement>(null);
   const leftRef = useRef<HTMLDivElement>(null);
+  const topBarRef = useRef<HTMLDivElement>(null);
+  const bottomBarRef = useRef<HTMLDivElement>(null);
 
   // Fetch bots from API
   useEffect(() => {
@@ -158,13 +161,27 @@ export default function PlayWithBot() {
 
     const updateSize = () => {
       const rect = container.getBoundingClientRect();
-      const padding = 24;
-      const headerH = 60;
-      const footerH = 48;
-      const availableWidth = rect.width - padding - BOARD_FRAME;
-      const availableHeight = rect.height - headerH - footerH - padding;
+      const styles = window.getComputedStyle(container);
+      const paddingLeft = parseFloat(styles.paddingLeft || "0") || 0;
+      const paddingRight = parseFloat(styles.paddingRight || "0") || 0;
+      const paddingTop = parseFloat(styles.paddingTop || "0") || 0;
+      const paddingBottom = parseFloat(styles.paddingBottom || "0") || 0;
+      const rowGap = parseFloat(styles.rowGap || styles.gap || "0") || 0;
+      const headerH = topBarRef.current?.offsetHeight ?? 60;
+      const footerH = bottomBarRef.current?.offsetHeight ?? 48;
+      const gapsBetweenSections = rowGap * 2;
+      const verticalBreathingRoom = 8;
+      const availableWidth =
+        rect.width - (paddingLeft + paddingRight) - BOARD_FRAME;
+      const availableHeight =
+        rect.height -
+        headerH -
+        footerH -
+        (paddingTop + paddingBottom) -
+        gapsBetweenSections -
+        verticalBreathingRoom;
       const size = Math.floor(Math.min(availableWidth, availableHeight));
-      setBoardWidth(Math.max(400, Math.min(size, 720)));
+      setBoardWidth(Math.max(320, Math.min(size, 720)));
     };
 
     updateSize();
@@ -197,7 +214,7 @@ export default function PlayWithBot() {
   return (
     <div
       ref={containerRef}
-      className="relative h-screen w-full bg-slate-100 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 overflow-hidden"
+      className="relative h-full min-h-0 w-full bg-slate-100 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 overflow-hidden"
     >
       <div className="h-full min-h-0 grid grid-cols-1 lg:grid-cols-2">
         {/* Left Side - Board Preview with Bot Info */}
@@ -206,37 +223,25 @@ export default function PlayWithBot() {
           className="flex flex-col items-center justify-center p-4 gap-4 h-full min-h-0"
         >
           {/* Top Bot Info Bar */}
-          <div className="w-full max-w-[900px] flex items-center gap-3 px-2">
-            <div className="w-10 h-10 rounded-lg overflow-hidden bg-slate-700 flex-shrink-0">
-              {selectedBot?.avatarUrl ? (
-                <img
-                  src={selectedBot.avatarUrl}
-                  alt={selectedBot.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center">
-                  <span className="text-white text-lg leading-none">
-                    {getBotInitials(selectedBot?.name)}
-                  </span>
-                </div>
-              )}
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-gray-900 dark:text-white">
-                  {selectedBot?.name || t("Select Bot")}
-                </span>
-                {selectedBot?.title && (
-                  <span className="px-1.5 py-0.5 text-[10px] font-bold bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded">
-                    {selectedBot.title}
-                  </span>
-                )}
-                <span className="text-sm text-gray-500 dark:text-gray-400">
-                  ({selectedBot?.rating || "---"})
-                </span>
-              </div>
-            </div>
+          <div
+            ref={topBarRef}
+            className="w-full flex-shrink-0 z-10"
+            style={{ width: boardWidth }}
+          >
+            <PlayerInfo
+              name={selectedBot?.name || t("Select Bot")}
+              subtitle={selectedBot?.title || "AI opponent"}
+              rating={selectedBot?.rating ?? null}
+              avatarLetter={getBotInitials(selectedBot?.name)}
+              avatarImage={selectedBot?.avatarUrl}
+              avatarStyle="opponent"
+              initialTime={0}
+              increment={0}
+              isTimerActive={false}
+              onTimeOut={() => {}}
+              onTimeChange={() => {}}
+              showTimer={false}
+            />
           </div>
 
           {/* Chess Board Preview */}
@@ -261,25 +266,24 @@ export default function PlayWithBot() {
           </div>
 
           {/* Bottom Player Info Bar */}
-          <div className="w-full max-w-[900px] flex items-center gap-3 px-2 justify-start">
-            <div className="w-10 h-10 rounded-lg overflow-hidden bg-slate-700 flex-shrink-0">
-              {user?.avatar ? (
-                <img
-                  src={user.avatar}
-                  alt={user.fullName || t("You")}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">{user?.fullName?.substring(0, 1).toUpperCase() || t("Y")}</span>
-                </div>
-              )}
-            </div>
-            <div className="flex-1">
-              <span className="font-bold text-gray-900 dark:text-white">
-                {user?.fullName || t("You")}
-              </span>
-            </div>
+          <div
+            ref={bottomBarRef}
+            className="w-full flex-shrink-0 z-10"
+            style={{ width: boardWidth }}
+          >
+            <PlayerInfo
+              name={user?.fullName || t("You")}
+              rating={user?.rating ?? null}
+              avatarLetter={user?.fullName?.substring(0, 2).toUpperCase() || "Y"}
+              avatarImage={user?.avatar}
+              avatarStyle="player"
+              initialTime={0}
+              increment={0}
+              isTimerActive={false}
+              onTimeOut={() => {}}
+              onTimeChange={() => {}}
+              showTimer={false}
+            />
           </div>
         </div>
 

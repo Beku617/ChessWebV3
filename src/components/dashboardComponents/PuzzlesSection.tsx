@@ -97,7 +97,6 @@ function PuzzlePreviewBoard({ puzzleId, fen, onClick }: PuzzlePreviewBoardProps)
 export function PuzzlesSection({ showTopDivider = true }: PuzzlesSectionProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const featuredPuzzleTrainPath = "/puzzles/train/697e04834e244759b6123158";
   const [puzzles, setPuzzles] = useState<Puzzle[]>([]);
   const [loading, setLoading] = useState(true);
   const wrapperClass = showTopDivider
@@ -186,7 +185,7 @@ export function PuzzlesSection({ showTopDivider = true }: PuzzlesSectionProps) {
             <PuzzlePreviewBoard
               puzzleId={pz._id}
               fen={pz.fen}
-              onClick={() => navigate(featuredPuzzleTrainPath)}
+              onClick={() => handleSolve(pz)}
             />
 
             <div className="pt-3">

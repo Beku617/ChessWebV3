@@ -21,7 +21,11 @@ import {
   clearAuthCookie,
   resolveAuthMaxAge,
 } from "../utils/cookies.js";
-import { canViewerAccessUser, getBlockStatusBetween } from "../utils/visibility.js";
+import {
+  canViewerAccessUser,
+  getBlockStatusBetween,
+  haveBlockedUsersListRelation,
+} from "../utils/visibility.js";
 import {
   createEmailVerificationCode,
   getEmailVerificationCodeTtlMs,
@@ -248,7 +252,12 @@ function toPublicUser(user) {
     puzzleFailed: user.puzzleFailed ?? 0,
     puzzleSkipped: user.puzzleSkipped ?? 0,
     puzzleLastAttemptAt: user.puzzleLastAttemptAt ?? null,
+    createdAt: user.createdAt ?? null,
   };
+}
+
+function escapeRegExp(value) {
+  return String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function eloTierLabel(elo) {
@@ -1390,6 +1399,103 @@ router.post("/users/:id/unblock", authMiddleware, async (req, res) => {
   }
 });
 
+// Get profile of any user by username/fullName (authenticated)
+router.get("/users/profile/:username", authMiddleware, async (req, res) => {
+  try {
+    const username = String(req.params.username || "").trim();
+    if (!username) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const viewerId = req.user?.userId || null;
+    const user = mongoose.Types.ObjectId.isValid(username)
+      ? await User.findById(username).select("-password")
+      : await User.findOne({
+          fullName: new RegExp(`^${escapeRegExp(username)}$`, "i"),
+        }).select("-password");
+
+    if (!user || user.banned) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const hasBlockedUsersListRelation = await haveBlockedUsersListRelation(
+      viewerId,
+      user._id,
+      { userBDoc: user },
+    );
+    const canAccess =
+      !hasBlockedUsersListRelation &&
+      (await canViewerAccessUser(viewerId, user._id));
+    if (!canAccess) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    let relationship = "none";
+    let relationshipRequestId = null;
+    const viewerIdStr = viewerId ? String(viewerId) : "";
+    if (viewerId && String(user._id) === viewerIdStr) {
+      relationship = "self";
+    } else if (viewerId) {
+      const isFriend = await Friend.findOne({
+        userId: viewerId,
+        friendId: user._id,
+      }).lean();
+      if (isFriend) {
+        relationship = "friends";
+      } else {
+        const pending = await FriendRequest.findOne({
+          status: "pending",
+          $or: [
+            { senderId: viewerId, receiverId: user._id },
+            { senderId: user._id, receiverId: viewerId },
+          ],
+        })
+          .select("_id senderId receiverId status")
+          .lean();
+
+        if (pending) {
+          relationshipRequestId = String(pending._id);
+          relationship =
+            String(pending.senderId) === viewerIdStr
+              ? "outgoing_pending"
+              : "incoming_pending";
+        }
+      }
+    }
+
+    const [{ default: HistoryModel }, watchableGame] = await Promise.all([
+      import("../models/History.js"),
+      buildWatchableSessionForUser(user._id),
+    ]);
+
+    const [totalGames, totalWins] = await Promise.all([
+      HistoryModel.countDocuments({ userId: user._id }),
+      HistoryModel.countDocuments({
+        userId: user._id,
+        $or: [
+          { result: "1-0", playAs: "white" },
+          { result: "0-1", playAs: "black" },
+        ],
+      }),
+    ]);
+
+    return res.json({
+      user: {
+        ...toPublicUser(user),
+        gamesPlayed: Math.max(user.gamesPlayed ?? 0, totalGames),
+        gamesWon: Math.max(user.gamesWon ?? 0, totalWins),
+        isWatchableInGame: !!watchableGame,
+        watchableGame,
+      },
+      relationship,
+      relationshipRequestId,
+    });
+  } catch (err) {
+    console.error("Public username profile error:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
+
 // Get profile of any user by ID (authenticated)
 router.get("/users/:userId", authMiddleware, async (req, res) => {
   try {
@@ -1403,7 +1509,14 @@ router.get("/users/:userId", authMiddleware, async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    const canAccess = await canViewerAccessUser(viewerId, user._id);
+    const hasBlockedUsersListRelation = await haveBlockedUsersListRelation(
+      viewerId,
+      user._id,
+      { userBDoc: user },
+    );
+    const canAccess =
+      !hasBlockedUsersListRelation &&
+      (await canViewerAccessUser(viewerId, user._id));
     if (!canAccess) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -1553,13 +1666,20 @@ router.get("/users/:userId/profile", optionalAuthMiddleware, async (req, res) =>
     const viewerId = req.user?.userId || null;
 
     const user = await User.findById(userId)
-      .select("fullName avatar rating createdAt")
+      .select("fullName avatar rating createdAt blockedUsers")
       .lean();
     if (!user || user.banned) {
       return res.status(404).json({ error: "User not found" });
     }
 
-    const canAccess = await canViewerAccessUser(viewerId, user._id);
+    const hasBlockedUsersListRelation = await haveBlockedUsersListRelation(
+      viewerId,
+      user._id,
+      { userBDoc: user },
+    );
+    const canAccess =
+      !hasBlockedUsersListRelation &&
+      (await canViewerAccessUser(viewerId, user._id));
     if (!canAccess) {
       return res.status(404).json({ error: "User not found" });
     }

@@ -67,6 +67,14 @@ function getAutoStartFromSearch(search: string): boolean {
   return value === "1" || value === "true";
 }
 
+function shouldHideStatusMessage(content: string | null | undefined): boolean {
+  const normalized = String(content || "").trim().toLowerCase();
+  return (
+    normalized === "game state restored." ||
+    normalized === "game restored after reconnect."
+  );
+}
+
 const COLOR_LABEL_CLASS: Record<FourPlayerColor, string> = {
   red: "bg-rose-500/10 text-rose-600 dark:text-rose-300 border-rose-500/30",
   blue: "bg-brand-500/10 text-brand-600 dark:text-brand-300 border-brand-500/30",
@@ -121,6 +129,7 @@ function FourPlayerBoard({
   const gridRef = useRef<HTMLDivElement>(null);
   const suppressClickRef = useRef(false);
   const dragPointerIdRef = useRef<number | null>(null);
+  const dragSelectionSyncedRef = useRef(false);
   const [dragging, setDragging] = useState<{
     fromRow: number;
     fromCol: number;
@@ -229,6 +238,7 @@ function FourPlayerBoard({
   const finalizeDrag = useCallback(
     (clientX: number, clientY: number) => {
       dragPointerIdRef.current = null;
+      dragSelectionSyncedRef.current = false;
       setDragging((current) => {
         if (!current) return null;
         if (!current.moved) return null;
@@ -265,20 +275,32 @@ function FourPlayerBoard({
       )
         return;
       event.preventDefault();
+
+      const currentDrag = dragging;
+      if (
+        currentDrag &&
+        !currentDrag.moved &&
+        !dragSelectionSyncedRef.current
+      ) {
+        const crossedDragThreshold =
+          Math.abs(event.clientX - currentDrag.startX) > 4 ||
+          Math.abs(event.clientY - currentDrag.startY) > 4;
+        if (crossedDragThreshold) {
+          dragSelectionSyncedRef.current = true;
+          if (
+            selected !== `${currentDrag.fromRow},${currentDrag.fromCol}`
+          ) {
+            onSquareClick(currentDrag.fromRow, currentDrag.fromCol);
+          }
+        }
+      }
+
       setDragging((current) => {
         if (!current) return null;
         const moved =
           current.moved ||
           Math.abs(event.clientX - current.startX) > 4 ||
           Math.abs(event.clientY - current.startY) > 4;
-
-        if (
-          moved &&
-          !current.moved &&
-          selected !== `${current.fromRow},${current.fromCol}`
-        ) {
-          onSquareClick(current.fromRow, current.fromCol);
-        }
 
         const nextPoint = getClampedBoardPoint(event.clientX, event.clientY);
 
@@ -302,6 +324,7 @@ function FourPlayerBoard({
 
     const handlePointerCancel = () => {
       dragPointerIdRef.current = null;
+      dragSelectionSyncedRef.current = false;
       setDragging(null);
     };
 
@@ -322,6 +345,7 @@ function FourPlayerBoard({
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
       dragPointerIdRef.current = null;
+      dragSelectionSyncedRef.current = false;
       setDragging(null);
       onCancelSelection();
     };
@@ -336,6 +360,7 @@ function FourPlayerBoard({
       onContextMenu={(event) => {
         event.preventDefault();
         dragPointerIdRef.current = null;
+        dragSelectionSyncedRef.current = false;
         setDragging(null);
         onCancelSelection();
       }}
@@ -397,6 +422,7 @@ function FourPlayerBoard({
                     /* ignore if capture fails */
                   }
                   dragPointerIdRef.current = event.pointerId;
+                  dragSelectionSyncedRef.current = false;
                   const point = getClampedBoardPoint(
                     event.clientX,
                     event.clientY,
@@ -618,8 +644,15 @@ export default function FourPlayerChess() {
 
     const update = () => {
       const rect = container.getBoundingClientRect();
-      const size = Math.floor(Math.min(rect.width - 8, rect.height - 8));
-      setBoardWidth(Math.max(260, Math.min(size, 1120)));
+      const styles = window.getComputedStyle(container);
+      const paddingLeft = parseFloat(styles.paddingLeft || "0") || 0;
+      const paddingRight = parseFloat(styles.paddingRight || "0") || 0;
+      const paddingTop = parseFloat(styles.paddingTop || "0") || 0;
+      const paddingBottom = parseFloat(styles.paddingBottom || "0") || 0;
+      const availableWidth = rect.width - (paddingLeft + paddingRight) - 8;
+      const availableHeight = rect.height - (paddingTop + paddingBottom) - 8;
+      const size = Math.floor(Math.min(availableWidth, availableHeight));
+      setBoardWidth(Math.max(220, Math.min(size, 1120)));
     };
     update();
     const observer = new ResizeObserver(() => update());
@@ -684,7 +717,7 @@ export default function FourPlayerChess() {
   const sidebarMessages = useMemo<SidebarMessageItem[]>(() => {
     const messages: SidebarMessageItem[] = [];
 
-    if (systemMessage) {
+    if (systemMessage && !shouldHideStatusMessage(systemMessage)) {
       messages.push({
         id: "system-message",
         sender: "System",
@@ -692,7 +725,11 @@ export default function FourPlayerChess() {
       });
     }
 
-    if (queueStatus && queueStatus !== systemMessage) {
+    if (
+      queueStatus &&
+      queueStatus !== systemMessage &&
+      !shouldHideStatusMessage(queueStatus)
+    ) {
       messages.push({
         id: "queue-status",
         sender: "Matchmaking",
@@ -752,7 +789,7 @@ export default function FourPlayerChess() {
 
   if (!gameStarted) {
     return (
-      <div className="relative h-screen w-full bg-slate-100 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 overflow-hidden">
+      <div className="relative h-full min-h-0 w-full bg-slate-100 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 overflow-hidden">
         <div className="h-full grid grid-cols-1 xl:grid-cols-[minmax(0,1.38fr)_minmax(320px,0.62fr)] gap-2 p-2">
           <div
             ref={setupBoardAreaRef}
@@ -847,7 +884,7 @@ export default function FourPlayerChess() {
                     </div>
                   </div>
 
-                  {queueStatus && (
+                  {queueStatus && !shouldHideStatusMessage(queueStatus) && (
                     <p className="text-xs text-gray-600 dark:text-gray-300 px-1">
                       {queueStatus}
                     </p>
@@ -872,20 +909,32 @@ export default function FourPlayerChess() {
     );
   }
 
-  const isMyTurn = displayedState.turn === playerColor && !displayedState.winner;
+  const isPlayerEliminated = gameState.eliminated.includes(playerColor);
+  const hasTerminalResult =
+    !!gameState.winner || !!gameOverReason || isPlayerEliminated;
+  const isMyTurn = displayedState.turn === playerColor && !hasTerminalResult;
   const youWin = gameState.winner === playerColor;
+  const gameOverTitle = youWin
+    ? "You Win"
+    : gameState.winner
+      ? `${gameState.winner.toUpperCase()} Wins`
+      : isPlayerEliminated
+        ? "You Were Eliminated"
+        : "Match Over";
+  const gameOverDescription =
+    gameOverReason
+      ? `Reason: ${gameOverReason}`
+      : isPlayerEliminated
+        ? "Your run has ended in this match."
+        : "Match finished.";
 
   return (
-    <div className="relative h-screen w-full bg-slate-100 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 overflow-hidden">
-      {gameState.winner && (
+    <div className="relative h-full min-h-0 w-full bg-slate-100 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 overflow-hidden">
+      {hasTerminalResult && (
         <div className="fixed inset-0 z-[60] bg-black/45 backdrop-blur-[2px] flex items-center justify-center p-4 pointer-events-none">
           <div className="w-full max-w-md rounded-2xl border border-white/15 bg-slate-900/95 text-white p-6 shadow-2xl text-center pointer-events-auto">
-            <h3 className="text-xl font-bold">
-              {youWin ? "You Win" : `${gameState.winner.toUpperCase()} Wins`}
-            </h3>
-            <p className="mt-1 text-sm text-slate-300">
-              {gameOverReason ? `Reason: ${gameOverReason}` : "Match finished."}
-            </p>
+            <h3 className="text-xl font-bold">{gameOverTitle}</h3>
+            <p className="mt-1 text-sm text-slate-300">{gameOverDescription}</p>
             <div className="mt-5 flex gap-2">
               <button
                 type="button"
@@ -959,7 +1008,7 @@ export default function FourPlayerChess() {
               }
               canDragFrom={isReviewingPastMove ? () => false : canDragFrom}
               boardWidth={boardWidth}
-              interactive={!isReviewingPastMove}
+              interactive={!isReviewingPastMove && !hasTerminalResult}
               allowClick={allowClickInput}
               allowDrag={allowDragInput}
             />
@@ -986,9 +1035,12 @@ export default function FourPlayerChess() {
             you={playerColor}
           />
 
-          {(systemMessage || queueStatus) && (
+          {((systemMessage && !shouldHideStatusMessage(systemMessage)) ||
+            (queueStatus && !shouldHideStatusMessage(queueStatus))) && (
             <div className="mt-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900/60 px-3 py-2 text-xs text-gray-600 dark:text-gray-300">
-              {systemMessage || queueStatus}
+              {systemMessage && !shouldHideStatusMessage(systemMessage)
+                ? systemMessage
+                : queueStatus}
             </div>
           )}
 

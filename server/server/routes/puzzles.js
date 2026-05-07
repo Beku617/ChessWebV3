@@ -16,6 +16,7 @@ const ATTEMPT_RESULTS = new Set(["SOLVED", "FAILED", "SKIPPED", "ABANDONED"]);
 const MODE_VALUES = new Set(["rated", "review", "random", "daily", "library"]);
 const DEFAULT_USER_PUZZLE_RATING = 1200;
 const DEFAULT_PUZZLE_RATING = 1200;
+const DASHBOARD_PUZZLE_COUNT = 3;
 const USER_PROVISIONAL_K = 40;
 const USER_STABLE_K = 20;
 const PUZZLE_PROVISIONAL_K = 20;
@@ -1310,17 +1311,76 @@ router.patch("/me/daily-goal", authMiddleware, async (req, res) => {
   }
 });
 
-router.get("/featured", async (req, res) => {
+router.get("/featured", optionalAuthMiddleware, async (req, res) => {
   try {
-    const limit = parseInt(req.query.limit, 10) || 6;
-    const puzzles = await Puzzle.find({
-      featured: true,
-      isActive: { $ne: false },
-    })
-      .sort({ rating: 1 })
-      .limit(limit);
-    return res.json(puzzles);
+    const limit = DASHBOARD_PUZZLE_COUNT;
+    let userRating = DEFAULT_USER_PUZZLE_RATING;
+    let userSeed = stableHash(String(Date.now()));
+
+    if (req.user?.userId) {
+      const user = await User.findById(req.user.userId)
+        .select("_id puzzleElo rating")
+        .lean();
+
+      if (user) {
+        const parsedRating = Number(
+          user.puzzleElo ?? user.rating ?? DEFAULT_USER_PUZZLE_RATING,
+        );
+        if (Number.isFinite(parsedRating)) {
+          userRating = parsedRating;
+        }
+        userSeed = stableHash(String(user._id));
+      }
+    }
+
+    const ratingJitter = (userSeed % 121) - 60;
+    const targetRating = Math.max(
+      MIN_RATING,
+      Math.round(userRating + ratingJitter),
+    );
+    const ratingWindows = [150, 300, 500, 800, 1200];
+
+    let selected = [];
+
+    for (const window of ratingWindows) {
+      const min = Math.max(MIN_RATING, targetRating - window);
+      const max = targetRating + window;
+      const filter = {
+        isActive: { $ne: false },
+        rating: { $gte: min, $lte: max },
+      };
+
+      const count = await Puzzle.countDocuments(filter);
+      if (count <= 0) continue;
+
+      selected = await Puzzle.aggregate([
+        { $match: filter },
+        { $sample: { size: Math.min(limit, count) } },
+      ]);
+
+      if (selected.length >= limit) break;
+    }
+
+    if (selected.length < limit) {
+      const usedIds = selected.map((puzzle) => puzzle._id);
+      const remaining = limit - selected.length;
+
+      const fallback = await Puzzle.aggregate([
+        {
+          $match: {
+            isActive: { $ne: false },
+            ...(usedIds.length > 0 ? { _id: { $nin: usedIds } } : {}),
+          },
+        },
+        { $sample: { size: remaining } },
+      ]);
+
+      selected = [...selected, ...fallback];
+    }
+
+    return res.json(selected.slice(0, limit));
   } catch (error) {
+    console.error("Featured dashboard puzzles error:", error);
     return res.status(500).json({ error: "Failed to fetch featured puzzles" });
   }
 });

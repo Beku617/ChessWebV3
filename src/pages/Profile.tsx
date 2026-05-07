@@ -8,6 +8,7 @@ import {
   GamesTabContent,
   NoGamesPlaceholder,
   API_URL,
+  formatMemberSince,
   calculateStats,
   filterGames,
   type FilterType,
@@ -76,13 +77,21 @@ export default function Profile() {
     [games, filter],
   );
 
-  const memberSince =
-    games.length > 0
-      ? new Date(games[games.length - 1]?.createdAt).toLocaleDateString(
-          "en-US",
-          { month: "long", year: "numeric" },
-        )
-      : "New Player";
+  const oldestGameDate = useMemo(() => {
+    if (games.length === 0) return null;
+    return games.reduce<string | null>((oldest, game) => {
+      const gameDate = new Date(game.createdAt);
+      if (!Number.isFinite(gameDate.getTime())) return oldest;
+      if (!oldest) return game.createdAt;
+      const oldestDate = new Date(oldest);
+      return gameDate.getTime() < oldestDate.getTime() ? game.createdAt : oldest;
+    }, null);
+  }, [games]);
+
+  const memberSince = useMemo(
+    () => formatMemberSince(user?.createdAt ?? null, oldestGameDate),
+    [user?.createdAt, oldestGameDate],
+  );
 
   if (loading) {
     return (

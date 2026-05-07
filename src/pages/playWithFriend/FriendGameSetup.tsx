@@ -9,6 +9,7 @@ import {
   Users,
 } from "lucide-react";
 import { useAuthStore } from "../../store/authStore";
+import { PlayerInfo } from "../../components/game";
 import { BOARD_FRAME } from "./types";
 import { useBoardTheme } from "../../hooks/useBoardTheme";
 
@@ -175,12 +176,25 @@ export function FriendGameSetup({
 
     const updateSize = () => {
       const rect = container.getBoundingClientRect();
-      const padding = 6;
+      const styles = window.getComputedStyle(container);
+      const paddingLeft = parseFloat(styles.paddingLeft || "0") || 0;
+      const paddingRight = parseFloat(styles.paddingRight || "0") || 0;
+      const paddingTop = parseFloat(styles.paddingTop || "0") || 0;
+      const paddingBottom = parseFloat(styles.paddingBottom || "0") || 0;
+      const rowGap = parseFloat(styles.rowGap || styles.gap || "0") || 0;
       const headerH = topBarRef.current?.offsetHeight ?? 36;
       const footerH = bottomBarRef.current?.offsetHeight ?? 32;
-      const availableWidth = rect.width - padding - BOARD_FRAME;
+      const gapsBetweenSections = rowGap * 2;
+      const verticalBreathingRoom = 8;
+      const availableWidth =
+        rect.width - (paddingLeft + paddingRight) - BOARD_FRAME;
       const availableHeight =
-        Math.min(rect.height, window.innerHeight) - headerH - footerH - padding;
+        Math.min(rect.height, window.innerHeight) -
+        headerH -
+        footerH -
+        (paddingTop + paddingBottom) -
+        gapsBetweenSections -
+        verticalBreathingRoom;
       const size = Math.floor(Math.min(availableWidth, availableHeight));
       setBoardWidth(Math.max(300, Math.min(size, 700)));
     };
@@ -346,9 +360,9 @@ export function FriendGameSetup({
   return (
     <div
       ref={containerRef}
-      className="relative h-screen w-full bg-transparent overflow-hidden"
+      className="relative h-full min-h-0 w-full bg-transparent overflow-hidden"
     >
-      <div className="h-full grid grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)]">
+      <div className="h-full min-h-0 grid grid-cols-1 lg:grid-cols-[minmax(0,1.02fr)_minmax(0,0.98fr)]">
         {/* Left Side - Board Preview */}
         <div
           ref={leftRef}
@@ -357,30 +371,23 @@ export function FriendGameSetup({
           {/* Top Opponent Info Bar */}
           <div
             ref={topBarRef}
-            className="w-full max-w-[900px] flex items-center gap-1.5 px-2"
+            className="w-full flex-shrink-0 z-10"
+            style={{ width: boardWidth }}
           >
-            <div className="w-10 h-10 rounded-lg overflow-hidden bg-slate-700 flex-shrink-0">
-              {selectedFriend?.avatar ? (
-                <img
-                  src={selectedFriend.avatar}
-                  alt={opponentLabel}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">
-                    {opponentLabel.substring(0, 1).toUpperCase()}
-                  </span>
-                </div>
-              )}
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-1.5">
-                <span className="font-semibold text-gray-900 dark:text-white text-[13px]">
-                  {opponentLabel}
-                </span>
-              </div>
-            </div>
+            <PlayerInfo
+              name={opponentLabel}
+              subtitle={selectedFriend ? "Friend match" : "Select friend"}
+              rating={selectedFriend?.rating ?? null}
+              avatarLetter={opponentLabel.substring(0, 2).toUpperCase() || "F"}
+              avatarImage={selectedFriend?.avatar}
+              avatarStyle="opponent"
+              initialTime={0}
+              increment={0}
+              isTimerActive={false}
+              onTimeOut={() => {}}
+              onTimeChange={() => {}}
+              showTimer={false}
+            />
           </div>
 
           {/* Chess Board Preview */}
@@ -429,28 +436,22 @@ export function FriendGameSetup({
           {/* Bottom Player Info Bar */}
           <div
             ref={bottomBarRef}
-            className="w-full max-w-[900px] flex items-center gap-1.5 px-2 justify-start"
+            className="w-full flex-shrink-0 z-10"
+            style={{ width: boardWidth }}
           >
-            <div className="w-10 h-10 rounded-lg overflow-hidden bg-slate-700 flex-shrink-0">
-              {playerAvatarUrl ? (
-                <img
-                  src={playerAvatarUrl}
-                  alt={user.fullName || "You"}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">
-                    {user?.fullName?.substring(0, 1).toUpperCase() || "Y"}
-                  </span>
-                </div>
-              )}
-            </div>
-            <div className="flex-1">
-              <span className="font-semibold text-gray-900 dark:text-white text-[13px]">
-                {user?.fullName || "You"}
-              </span>
-            </div>
+            <PlayerInfo
+              name={user?.fullName || "You"}
+              rating={user?.rating ?? null}
+              avatarLetter={user?.fullName?.substring(0, 2).toUpperCase() || "Y"}
+              avatarImage={playerAvatarUrl}
+              avatarStyle="player"
+              initialTime={0}
+              increment={0}
+              isTimerActive={false}
+              onTimeOut={() => {}}
+              onTimeChange={() => {}}
+              showTimer={false}
+            />
           </div>
         </div>
 
@@ -459,9 +460,6 @@ export function FriendGameSetup({
           <div className="flex-1 flex flex-col gap-3 px-3 py-3 overflow-y-auto min-h-0">
             {!hasChosenFriend ? (
               <div className="theme-glass-panel-soft rounded-2xl p-3 flex-shrink-0">
-                <div className="text-[12px] font-semibold text-gray-900 dark:text-white mb-2">
-                  Opponent
-                </div>
                 <div className="relative">
                   <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input

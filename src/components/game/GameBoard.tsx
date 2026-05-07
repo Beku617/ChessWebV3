@@ -6,6 +6,7 @@ import { PromotionModal } from "./PromotionModal";
 import type { PromotionState } from "./types";
 import { useBoardTheme } from "../../hooks/useBoardTheme";
 import { useGameplayPreferences } from "../../hooks/useGameplayPreferences";
+import { createCburnettCustomPieces } from "../replay/chessPieceIcons";
 
 const CLOSED_PROMOTION_STATE: PromotionState = {
   isOpen: false,
@@ -35,7 +36,15 @@ interface GameBoardProps {
     fromSquare?: Square,
     toSquare?: Square,
   ) => boolean;
+  pieceStyle?: "default" | "cburnett";
+  squareColors?: {
+    light: string;
+    dark: string;
+  };
+  customBoardStyle?: CSSProperties;
 }
+
+const CBURNETT_CUSTOM_PIECES = createCburnettCustomPieces();
 
 export function GameBoard({
   fen,
@@ -50,6 +59,9 @@ export function GameBoard({
   lastMove,
   promotionState = CLOSED_PROMOTION_STATE,
   onPromotionPieceSelect,
+  pieceStyle = "default",
+  squareColors,
+  customBoardStyle,
 }: GameBoardProps) {
   const { colors } = useBoardTheme();
   const { allowClickInput, allowDragInput } = useGameplayPreferences();
@@ -147,16 +159,16 @@ export function GameBoard({
         customBoardStyle={{
           borderRadius: "8px",
           boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3)",
+          ...customBoardStyle,
         }}
         customSquareStyles={mergedSquareStyles}
         customDarkSquareStyle={{
-          backgroundColor: colors.dark,
-          transition: "background-color 160ms ease",
+          backgroundColor: squareColors?.dark || colors.dark,
         }}
         customLightSquareStyle={{
-          backgroundColor: colors.light,
-          transition: "background-color 160ms ease",
+          backgroundColor: squareColors?.light || colors.light,
         }}
+        customPieces={pieceStyle === "cburnett" ? CBURNETT_CUSTOM_PIECES : undefined}
       />
 
       <PromotionModal

@@ -292,7 +292,7 @@ export default function Friends() {
     try {
       setActionId(targetId);
       const status = await fetchBlockStatus(targetId);
-      if (status.isBlocked) {
+      if (status.isAnyBlocked || status.isBlocked || status.isBlockedByTarget) {
         setSearchError("You cannot send a friend request to this player.");
         return;
       }
@@ -325,7 +325,7 @@ export default function Friends() {
     try {
       setActionId(friend.id);
       const status = await fetchBlockStatus(friend.id);
-      if (status.isBlocked) {
+      if (status.isAnyBlocked || status.isBlocked || status.isBlockedByTarget) {
         setSearchError("Unable to send message.");
         return;
       }
@@ -343,7 +343,7 @@ export default function Friends() {
     try {
       setActionId(friend.id);
       const status = await fetchBlockStatus(friend.id);
-      if (status.isBlocked) {
+      if (status.isAnyBlocked || status.isBlocked || status.isBlockedByTarget) {
         setSearchError("You cannot challenge this player.");
         return;
       }

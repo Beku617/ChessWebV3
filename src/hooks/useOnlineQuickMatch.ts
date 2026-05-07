@@ -75,6 +75,7 @@ interface MatchFoundPayload {
   playerClock?: number;
   opponentClock?: number;
   clockPaused?: boolean;
+  chatMessages?: ChatMessagePayload[];
 }
 
 interface MoveAppliedPayload {
@@ -261,6 +262,7 @@ interface GameStateRestoredPayload {
   playerClock?: number;
   opponentClock?: number;
   clockPaused?: boolean;
+  chatMessages?: ChatMessagePayload[];
 }
 
 interface RejoinGameResponse {
@@ -291,7 +293,28 @@ interface SocketAckResponse {
   success?: boolean;
   status?: string;
   error?: string;
+  matched?: boolean;
+  reason?: string;
+  gameId?: string;
   expiresAt?: number;
+  delivered?: boolean;
+}
+
+interface ChatMessagePayload {
+  matchId?: string;
+  senderId?: string;
+  senderUsername?: string;
+  message?: string;
+  timestamp?: string;
+}
+
+interface OnlineMatchChatMessage {
+  id: string;
+  senderId: string;
+  senderUsername: string;
+  content: string;
+  createdAt: string;
+  isSystem?: boolean;
 }
 
 const idleDrawOfferState: DrawOfferState = {
@@ -340,6 +363,10 @@ function toFiniteRating(value: unknown): number | null {
   return Number.isFinite(parsed) ? Math.round(parsed) : null;
 }
 
+function createChatMessageId() {
+  return `chat-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
 export function useOnlineQuickMatch() {
   const { user, setUser } = useAuthStore();
   const { autoQueen, premoves, showLegalMoves } = useGameplayPreferences();
@@ -371,6 +398,7 @@ export function useOnlineQuickMatch() {
   const [isRatedMatch, setIsRatedMatch] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [queueStatus, setQueueStatus] = useState<string | null>(null);
+  const [chatMessages, setChatMessages] = useState<OnlineMatchChatMessage[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [matchVariant, setMatchVariant] = useState<MatchVariant>("standard");
   const [moveFrom, setMoveFrom] = useState<Square | null>(null);
@@ -414,6 +442,72 @@ export function useOnlineQuickMatch() {
   const [drawOfferState, setDrawOfferState] =
     useState<DrawOfferState>(idleDrawOfferState);
   const saveGameHistory = useSaveGameHistory();
+
+  const appendSystemMessage = useCallback((message: string | null | undefined) => {
+    const normalizedMessage = String(message || "").trim();
+    if (!normalizedMessage) return;
+    if (normalizedMessage.toLowerCase() === "game state restored.") return;
+    setChatMessages((previous) => {
+      const lastMessage = previous[previous.length - 1];
+      if (
+        lastMessage?.isSystem === true &&
+        String(lastMessage.content || "").trim() === normalizedMessage
+      ) {
+        return previous;
+      }
+      return [
+        ...previous,
+        {
+          id: createChatMessageId(),
+          senderId: "system",
+          senderUsername: "System",
+          content: normalizedMessage,
+          createdAt: new Date().toISOString(),
+          isSystem: true,
+        },
+      ];
+    });
+  }, []);
+
+  const appendChatMessage = useCallback((payload: ChatMessagePayload) => {
+    const senderId = String(payload.senderId || "").trim();
+    const senderUsername = String(payload.senderUsername || "").trim();
+    const message = String(payload.message || "").trim();
+    const matchId = String(payload.matchId || "").trim();
+    if (!senderId || !senderUsername || !message || !matchId) return;
+
+    setChatMessages((previous) => [
+      ...previous,
+      {
+        id: createChatMessageId(),
+        senderId,
+        senderUsername,
+        content: message,
+        createdAt: String(payload.timestamp || new Date().toISOString()),
+      },
+    ]);
+  }, []);
+
+  const replaceChatMessages = useCallback((messages?: ChatMessagePayload[]) => {
+    if (!Array.isArray(messages)) return;
+    const normalized = messages
+      .map((entry) => {
+        const senderId = String(entry?.senderId || "").trim();
+        const senderUsername = String(entry?.senderUsername || "").trim();
+        const content = String(entry?.message || "").trim();
+        const matchId = String(entry?.matchId || "").trim();
+        if (!senderId || !senderUsername || !content || !matchId) return null;
+        return {
+          id: createChatMessageId(),
+          senderId,
+          senderUsername,
+          content,
+          createdAt: String(entry?.timestamp || new Date().toISOString()),
+        };
+      })
+      .filter((entry): entry is OnlineMatchChatMessage => entry !== null);
+    setChatMessages(normalized);
+  }, []);
 
   const isMoveAllowedForVariant = useCallback((move: any) => {
     if (matchVariantRef.current !== "atomic") return true;
@@ -581,6 +675,7 @@ export function useOnlineQuickMatch() {
     setClockResetToken((value) => value + 1);
     setIsClockPaused(false);
     setQueueStatus(null);
+    setChatMessages([]);
     startTimeRef.current = null;
     startingFenRef.current = "";
     historySavedRef.current = false;
@@ -635,7 +730,6 @@ export function useOnlineQuickMatch() {
             } else if (explicitGameId) {
               storeActiveGameId(explicitGameId);
             }
-            setQueueStatus("Game state restored.");
             setIsSearching(false);
             return;
           }
@@ -682,6 +776,12 @@ export function useOnlineQuickMatch() {
       setQueueStatus(notice);
     }
   }, []);
+
+  useEffect(() => {
+    if (!queueStatus) return;
+    if (!gameStarted && !gameIdRef.current) return;
+    appendSystemMessage(queueStatus);
+  }, [appendSystemMessage, gameStarted, queueStatus]);
 
   useEffect(() => {
     const socket = io(SOCKET_URL, {
@@ -800,6 +900,13 @@ export function useOnlineQuickMatch() {
     });
 
     socket.on("matchFound", (payload: MatchFoundPayload) => {
+      const normalizedPayloadGameId = String(payload.gameId || "").trim();
+      const currentGameId = String(gameIdRef.current || "").trim();
+      const isRestoreForSameGame =
+        payload.restored === true &&
+        normalizedPayloadGameId.length > 0 &&
+        normalizedPayloadGameId === currentGameId;
+
       const nextGame = new Chess(payload.fen);
       gameRef.current = nextGame;
       setGame(nextGame);
@@ -835,6 +942,11 @@ export function useOnlineQuickMatch() {
       setGameOver(false);
       setGameResult(null);
       setShowGameOverModal(false);
+      if (Array.isArray(payload.chatMessages)) {
+        replaceChatMessages(payload.chatMessages);
+      } else if (!isRestoreForSameGame) {
+        setChatMessages([]);
+      }
       setIsSearching(false);
       setQueueStatus(null);
       clearTournamentJoinRetry();
@@ -1068,6 +1180,9 @@ export function useOnlineQuickMatch() {
       if (Array.isArray(payload.moves)) {
         setStoredMoves(payload.moves);
       }
+      if (Array.isArray(payload.chatMessages)) {
+        replaceChatMessages(payload.chatMessages);
+      }
       const whiteClock = Number(payload.whiteTimeLeft);
       const blackClock = Number(payload.blackTimeLeft);
       const playerClockRaw =
@@ -1150,6 +1265,14 @@ export function useOnlineQuickMatch() {
       }
     });
 
+    socket.on("chatMessage", (payload: ChatMessagePayload) => {
+      const normalizedMatchId = String(payload.matchId || "").trim();
+      const currentMatchId = String(gameIdRef.current || "").trim();
+      if (!normalizedMatchId || !currentMatchId) return;
+      if (normalizedMatchId !== currentMatchId) return;
+      appendChatMessage(payload);
+    });
+
     socket.on("drawOfferPending", (payload: DrawOfferPayload) => {
       if (payload.gameId !== gameIdRef.current) return;
       setDrawOfferState({
@@ -1162,6 +1285,14 @@ export function useOnlineQuickMatch() {
 
     socket.on("drawOfferReceived", (payload: DrawOfferPayload) => {
       if (payload.gameId !== gameIdRef.current) return;
+      if (payload.offeredBy && payload.offeredBy === playerColorRef.current) {
+        setDrawOfferState({
+          status: "sent",
+          offeredBy: payload.offeredBy,
+          expiresAt: Number(payload.expiresAt || 0) || null,
+        });
+        return;
+      }
       setDrawOfferState({
         status: "received",
         offeredBy: payload.offeredBy || null,
@@ -1309,6 +1440,8 @@ export function useOnlineQuickMatch() {
       socket.disconnect();
     };
   }, [
+    appendChatMessage,
+    replaceChatMessages,
     appendStoredMove,
     clearTournamentJoinRetry,
     requestClockResync,
@@ -1696,11 +1829,33 @@ export function useOnlineQuickMatch() {
       });
       setPlayerTime(timeControl.initial);
       setOpponentTime(timeControl.initial);
-      emitIfConnected("findMatch", {
-        name: playerNameRef.current,
-        timeControl,
-        variant: normalizedVariant,
-      });
+      emitIfConnected(
+        "findMatch",
+        {
+          name: playerNameRef.current,
+          timeControl,
+          variant: normalizedVariant,
+        },
+        (response) => {
+          const ack = response as SocketAckResponse | undefined;
+          if (ack?.success === false) {
+            setIsSearching(false);
+            setQueueStatus(ack.error || "Unable to start matchmaking.");
+            return;
+          }
+          if (
+            ack?.matched === false &&
+            ack.reason === "no_eligible_opponents"
+          ) {
+            setIsSearching(true);
+            setQueueStatus("Searching for opponent...");
+            return;
+          }
+          if (ack?.matched === false && ack?.reason) {
+            setIsSearching(false);
+          }
+        },
+      );
     },
     [emitIfConnected, requestClockResync, resetGameState],
   );
@@ -1863,6 +2018,9 @@ export function useOnlineQuickMatch() {
         offeredBy: playerColorRef.current,
         expiresAt: Number(ack?.expiresAt || 0) || null,
       });
+      if (ack?.delivered === false) {
+        setQueueStatus("Draw offer sent. Waiting for opponent to reconnect.");
+      }
     });
   }, [emitIfConnected, gameId, gameOver]);
 
@@ -1883,6 +2041,27 @@ export function useOnlineQuickMatch() {
           }
         },
       );
+    },
+    [emitIfConnected, gameId, gameOver],
+  );
+
+  const sendChatMessage = useCallback(
+    (message: string) => {
+      const trimmedMessage = String(message || "").trim();
+      if (!trimmedMessage || gameOver) return;
+
+      const matchId = String(gameIdRef.current || gameId || "").trim();
+      const senderId = String(userRef.current?.id || "").trim();
+      const senderUsername = String(userRef.current?.fullName || "Player").trim();
+      if (!matchId || !senderId || !senderUsername) return;
+
+      emitIfConnected("chatMessage", {
+        matchId,
+        senderId,
+        senderUsername,
+        message: trimmedMessage,
+        timestamp: new Date().toISOString(),
+      });
     },
     [emitIfConnected, gameId, gameOver],
   );
@@ -2564,8 +2743,10 @@ export function useOnlineQuickMatch() {
     resign,
     offerDraw,
     respondDrawOffer,
+    sendChatMessage,
     timeOut,
     rematch,
     leaveGame,
+    chatMessages,
   };
 }

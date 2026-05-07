@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useMemo, useState } from "react";
+import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
 function joinClasses(...classes: Array<string | undefined | null | false>) {
   return classes.filter(Boolean).join(" ");
@@ -7,8 +7,13 @@ function joinClasses(...classes: Array<string | undefined | null | false>) {
 export interface SidebarMessageItem {
   id: string;
   sender?: string;
+  senderId?: string;
+  senderUsername?: string;
   content: string;
   createdAt?: string;
+  isSystem?: boolean;
+  isOwn?: boolean;
+  type?: "chat" | "system";
 }
 
 interface MoveListTabsProps {
@@ -20,6 +25,14 @@ interface MoveListTabsProps {
   messagesLabel?: string;
   emptyMessagesText?: string;
   defaultTab?: "moves" | "messages";
+  currentUserId?: string | null;
+  messagesTopContent?: ReactNode;
+  focusMessagesOnTopContent?: boolean;
+  onSendMessage?: (message: string) => void;
+  disableMessageInput?: boolean;
+  hideMessageInput?: boolean;
+  messageInputPlaceholder?: string;
+  sendButtonLabel?: string;
 }
 
 function formatMessageTime(rawDate?: string) {
@@ -41,19 +54,114 @@ export function MoveListTabs({
   messagesLabel = "Messages",
   emptyMessagesText = "No messages yet.",
   defaultTab = "moves",
+  currentUserId,
+  messagesTopContent,
+  focusMessagesOnTopContent = false,
+  onSendMessage,
+  disableMessageInput = false,
+  hideMessageInput = false,
+  messageInputPlaceholder = "Type a message...",
+  sendButtonLabel = "Send",
 }: MoveListTabsProps) {
   const canShowMessages = showMessagesTab ?? messages !== undefined;
   const [tab, setTab] = useState<"moves" | "messages">(
     defaultTab === "messages" && !canShowMessages ? "moves" : defaultTab,
   );
+  const [draftMessage, setDraftMessage] = useState("");
+  const [unreadMessageCount, setUnreadMessageCount] = useState(0);
   const safeMessages = useMemo(() => messages || [], [messages]);
   const activeTab = canShowMessages ? tab : "moves";
+  const messagesScrollRef = useRef<HTMLDivElement | null>(null);
+  const knownMessageIdsRef = useRef<Set<string>>(new Set());
+  const initializedKnownMessagesRef = useRef(false);
+  const canShowComposer = Boolean(onSendMessage) && !hideMessageInput;
+
+  useEffect(() => {
+    if (activeTab !== "messages") return;
+    const container = messagesScrollRef.current;
+    if (!container) return;
+    if (messagesTopContent && focusMessagesOnTopContent) {
+      container.scrollTop = 0;
+      return;
+    }
+    container.scrollTop = container.scrollHeight;
+  }, [activeTab, focusMessagesOnTopContent, safeMessages, messagesTopContent]);
 
   useEffect(() => {
     if (!canShowMessages && tab !== "moves") {
       setTab("moves");
     }
   }, [canShowMessages, tab]);
+
+  useEffect(() => {
+    if (!canShowMessages || !focusMessagesOnTopContent || !messagesTopContent) {
+      return;
+    }
+    setTab("messages");
+  }, [canShowMessages, focusMessagesOnTopContent, messagesTopContent]);
+
+  useEffect(() => {
+    if (safeMessages.length === 0) {
+      knownMessageIdsRef.current.clear();
+      initializedKnownMessagesRef.current = false;
+      setUnreadMessageCount(0);
+      return;
+    }
+
+    const knownIds = knownMessageIdsRef.current;
+
+    // Do not treat the initial batch as unread; we only badge truly new arrivals.
+    if (!initializedKnownMessagesRef.current) {
+      safeMessages.forEach((message) => {
+        knownIds.add(message.id);
+      });
+      initializedKnownMessagesRef.current = true;
+      return;
+    }
+
+    let unreadIncrement = 0;
+
+    safeMessages.forEach((message) => {
+      if (knownIds.has(message.id)) return;
+      knownIds.add(message.id);
+
+      if (activeTab === "messages") return;
+
+      const sender = String(
+        message.senderUsername || message.sender || "System",
+      ).trim() || "System";
+      const isSystemMessage =
+        message.isSystem === true ||
+        message.type === "system" ||
+        sender.toLowerCase() === "system";
+      const isOwnMessage =
+        !isSystemMessage &&
+        (message.isOwn === true ||
+          (!!currentUserId && message.senderId === currentUserId));
+
+      if (!isSystemMessage && !isOwnMessage) {
+        unreadIncrement += 1;
+      }
+    });
+
+    if (unreadIncrement > 0) {
+      setUnreadMessageCount((previous) => previous + unreadIncrement);
+    }
+  }, [activeTab, currentUserId, safeMessages]);
+
+  useEffect(() => {
+    if (activeTab !== "messages") return;
+    if (unreadMessageCount === 0) return;
+    setUnreadMessageCount(0);
+  }, [activeTab, unreadMessageCount]);
+
+  const submitDraftMessage = () => {
+    if (!onSendMessage || disableMessageInput) return;
+    const trimmedMessage = draftMessage.trim();
+    if (!trimmedMessage) return;
+    onSendMessage(trimmedMessage);
+    setDraftMessage("");
+  };
 
   return (
     <div className={joinClasses("h-full flex flex-col min-h-0", className)}>
@@ -75,13 +183,18 @@ export function MoveListTabs({
             type="button"
             onClick={() => setTab("messages")}
             className={joinClasses(
-              "flex-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors",
+              "flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors",
               tab === "messages"
                 ? "bg-emerald-500/20 text-emerald-300"
                 : "text-gray-600 hover:bg-gray-200/70 dark:text-gray-300 dark:hover:bg-slate-700/60",
             )}
           >
-            {messagesLabel}
+            <span>{messagesLabel}</span>
+            {unreadMessageCount > 0 ? (
+              <span className="inline-flex min-w-[1.1rem] items-center justify-center rounded-full bg-emerald-500 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
+                {unreadMessageCount > 99 ? "99+" : unreadMessageCount}
+              </span>
+            ) : null}
           </button>
         </div>
       ) : null}
@@ -90,34 +203,106 @@ export function MoveListTabs({
         {activeTab === "moves" ? (
           <div className="h-full overflow-auto p-2.5">{movesContent}</div>
         ) : (
-          <div className="h-full overflow-auto p-2 space-y-1.5">
-            {safeMessages.length === 0 ? (
-              <div className="text-center text-gray-400 dark:text-gray-500 text-xs py-6">
-                {emptyMessagesText}
-              </div>
-            ) : (
-              safeMessages.map((message) => {
-                const sender = String(message.sender || "System").trim() || "System";
-                const content = String(message.content || "").trim();
-                const timeLabel = formatMessageTime(message.createdAt);
-                return (
-                  <div
-                    key={message.id}
-                    className="rounded-lg border border-gray-200/70 bg-white/60 px-2.5 py-2 dark:border-white/10 dark:bg-slate-900/70"
-                  >
-                    <div className="flex items-center justify-between gap-2 text-[11px] text-gray-500 dark:text-gray-400">
-                      <span className="font-semibold text-gray-700 dark:text-gray-200">
-                        {sender}
-                      </span>
-                      {timeLabel ? <span>{timeLabel}</span> : null}
+          <div className="h-full flex min-h-0 flex-col">
+            <div
+              ref={messagesScrollRef}
+              className="flex-1 min-h-0 overflow-auto p-2 space-y-1.5"
+            >
+              {messagesTopContent ? <div>{messagesTopContent}</div> : null}
+              {safeMessages.length === 0 && !messagesTopContent ? (
+                <div className="text-center text-gray-400 dark:text-gray-500 text-xs py-6">
+                  {emptyMessagesText}
+                </div>
+              ) : (
+                safeMessages.map((message) => {
+                  const sender = String(
+                    message.senderUsername || message.sender || "System",
+                  ).trim() || "System";
+                  const content = String(message.content || "").trim();
+                  const timeLabel = formatMessageTime(message.createdAt);
+                  const isSystemMessage =
+                    message.isSystem === true ||
+                    message.type === "system" ||
+                    sender.toLowerCase() === "system";
+                  const isOwnMessage =
+                    !isSystemMessage &&
+                    (message.isOwn === true ||
+                      (!!currentUserId && message.senderId === currentUserId));
+
+                  if (isSystemMessage) {
+                    return (
+                      <div key={message.id} className="px-2 py-1 text-center">
+                        <p className="text-[11px] text-gray-400 dark:text-gray-500">
+                          {content || "-"}
+                        </p>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div
+                      key={message.id}
+                      aria-label={isOwnMessage ? "Your message" : "Opponent message"}
+                      className={joinClasses(
+                        "flex",
+                        isOwnMessage ? "justify-end" : "justify-start",
+                      )}
+                    >
+                      <div
+                        className={joinClasses(
+                          "max-w-[85%] rounded-xl border px-2.5 py-2",
+                          isOwnMessage
+                            ? "border-emerald-400/25 bg-emerald-500/15 text-emerald-50"
+                            : "border-white/10 bg-slate-900/70 text-gray-100",
+                        )}
+                      >
+                        {timeLabel ? (
+                          <div
+                            className={joinClasses(
+                              "mb-1 text-[10px] opacity-70",
+                              isOwnMessage ? "text-right" : "text-left",
+                            )}
+                          >
+                            {timeLabel}
+                          </div>
+                        ) : null}
+                        <p className="text-xs whitespace-pre-wrap break-words">
+                          {content || "-"}
+                        </p>
+                      </div>
                     </div>
-                    <p className="mt-1 text-xs text-gray-700 dark:text-gray-200 whitespace-pre-wrap break-words">
-                      {content || "-"}
-                    </p>
-                  </div>
-                );
-              })
-            )}
+                  );
+                })
+              )}
+            </div>
+
+            {canShowComposer ? (
+              <div className="border-t border-white/10 p-2">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={draftMessage}
+                    onChange={(event) => setDraftMessage(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key !== "Enter" || event.shiftKey) return;
+                      event.preventDefault();
+                      submitDraftMessage();
+                    }}
+                    disabled={disableMessageInput}
+                    placeholder={messageInputPlaceholder}
+                    className="flex-1 rounded-lg border border-white/10 bg-slate-900/65 px-3 py-2 text-xs text-gray-100 placeholder:text-gray-400 focus:border-emerald-400/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                  />
+                  <button
+                    type="button"
+                    onClick={submitDraftMessage}
+                    disabled={disableMessageInput || !draftMessage.trim()}
+                    className="rounded-lg bg-emerald-500/85 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {sendButtonLabel}
+                  </button>
+                </div>
+              </div>
+            ) : null}
           </div>
         )}
       </div>

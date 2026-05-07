@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
-  Calendar,
   BarChart3,
   History,
   MoreHorizontal,
@@ -220,12 +219,6 @@ export function ProfileHeader({
                     {displayName}
                   </h1>
 
-                  <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-gray-500 dark:text-gray-400">
-                    <span className="flex items-center gap-1.5">
-                      <Calendar size={14} />
-                      Member since {memberSince}
-                    </span>
-                  </div>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">

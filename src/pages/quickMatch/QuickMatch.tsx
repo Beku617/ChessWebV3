@@ -504,6 +504,7 @@ export default function QuickMatch() {
     opponentName,
     isSearching,
     queueStatus,
+    chatMessages,
     isConnected,
     startMatch,
     joinTournamentGame,
@@ -512,6 +513,7 @@ export default function QuickMatch() {
     resign,
     offerDraw,
     respondDrawOffer,
+    sendChatMessage,
     timeOut,
     rematch,
     leaveGame,
@@ -1055,6 +1057,8 @@ export default function QuickMatch() {
         opponentRating={isRatedMatch ? opponentRating : null}
         gameOverElo={isRatedMatch ? lastGameOver?.elo ?? null : null}
         statusMessage={boardStatusMessage}
+        chatMessages={chatMessages}
+        onSendChatMessage={sendChatMessage}
         onSquareClick={onSquareClick}
         onPieceDrop={onPieceDrop}
         onCancelSelection={onCancelSelection}

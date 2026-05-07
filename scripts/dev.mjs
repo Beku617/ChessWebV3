@@ -90,7 +90,22 @@ process.on("SIGTERM", () => shutdown(0));
 
 function spawnBackend() {
   console.log("[dev] Starting backend on http://localhost:3001...");
-  return spawnProcess("backend", npmExecutable, ["--prefix", "server", "run", "dev"]);
+  if (process.platform === "win32") {
+    const command = process.env.ComSpec || "cmd.exe";
+    return spawnProcess("backend", command, [
+      "/d",
+      "/s",
+      "/c",
+      "npm --prefix server run dev",
+    ]);
+  }
+
+  return spawnProcess("backend", npmExecutable, [
+    "--prefix",
+    "server",
+    "run",
+    "dev",
+  ]);
 }
 
 async function waitForBackendHealth(serverProcess) {

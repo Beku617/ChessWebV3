@@ -4,6 +4,7 @@ import {
   RotateCcw,
   Swords,
 } from "lucide-react";
+import { createPortal } from "react-dom";
 import {
   canAnalyzeSavedGame,
   getHistoryStatusNote,
@@ -232,8 +233,8 @@ export function GameOverModal({
     openAnalyzeWindow(`${analyzeBasePath}/${savedGameId}`);
   };
 
-  return (
-    <div className="fixed inset-0 z-[80] bg-black/65 backdrop-blur-[2px] flex items-center justify-center p-4 pointer-events-none">
+  const modal = (
+    <div className="fixed inset-0 z-[170] bg-black/65 backdrop-blur-[2px] flex items-center justify-center p-4 pointer-events-none">
       <motion.div
         initial={{ opacity: 0, scale: 0.97, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -315,6 +316,9 @@ export function GameOverModal({
       </motion.div>
     </div>
   );
+
+  if (typeof document === "undefined") return modal;
+  return createPortal(modal, document.body);
 }
 
 

@@ -68,6 +68,7 @@ const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
 const Profile = lazy(() => import("./pages/Profile"));
 const UserProfile = lazy(() => import("./pages/UserProfile"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 const Analyze = lazy(() => import("./pages/analyze"));
 const Analyze960 = lazy(() => import("./pages/analyze960"));
 const AdminUsers = lazy(() => import("./pages/adminUsers"));
@@ -118,7 +119,15 @@ function AuthChecker() {
           const banErr = err as { banned: boolean; banReason: string };
           setBanned(banErr.banReason);
         } else {
-          setUser(null);
+          const status =
+            err && typeof err === "object" && "status" in err
+              ? Number((err as { status?: unknown }).status)
+              : null;
+          if (status === 401) {
+            setUser(null);
+          } else {
+            setLoading(false);
+          }
         }
       }
     };
@@ -550,6 +559,7 @@ function Layout({ children }: { children: React.ReactNode }) {
     location.pathname === "/watch" ||
     location.pathname.startsWith("/community") ||
     location.pathname.startsWith("/u/") ||
+    location.pathname.startsWith("/profile/") ||
     location.pathname.startsWith("/puzzles/train") ||
     location.pathname.startsWith("/analyze") ||
     location.pathname.startsWith("/admin") ||
@@ -884,6 +894,14 @@ function App() {
               }
             />
             <Route
+              path="/profile/:username"
+              element={
+                <ProtectedRoute>
+                  <UserProfile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/analyze/:gameId"
               element={
                 <ProtectedRoute>
@@ -922,6 +940,7 @@ function App() {
             />
             <Route path="/admin/profile" element={<AdminProfile />} />
             <Route path="/admin/analyze/:gameId" element={<AdminAnalyze />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
       </Layout>

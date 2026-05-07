@@ -58,7 +58,18 @@ function MoveCell({
   missingMoveText: string;
 }) {
   if (!notation) {
-    if (!showMissingMoveCell) return null;
+    if (!showMissingMoveCell) {
+      return (
+        <span
+          aria-hidden="true"
+          className={joinClasses(
+            "flex-1 px-2",
+            moveCellClassName,
+            "opacity-0 pointer-events-none select-none",
+          )}
+        />
+      );
+    }
     return (
       <span
         className={joinClasses(

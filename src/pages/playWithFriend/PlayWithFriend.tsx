@@ -6,6 +6,7 @@ import { useAuthStore } from "../../store/authStore";
 import { useFriendChallengeStore } from "../../store/friendChallengeStore";
 import { FriendGameSetup } from "./FriendGameSetup";
 import { FriendGameView } from "./FriendGameView";
+import { QuickMatchGameView } from "../quickMatch/QuickMatchGameView";
 import { fetchBlockStatus } from "../../features/blocking/api";
 
 export default function PlayWithFriend() {
@@ -73,10 +74,12 @@ export default function PlayWithFriend() {
     lastGameOver,
     isConnected,
     statusMessage,
+    chatMessages,
     playerClockSeed,
     opponentClockSeed,
     clockResetToken,
     isClockPaused,
+    sendChatMessage,
   } = useFriendOnlineGame();
 
   const [playAs, setPlayAs] = useState<"white" | "black" | "random">("white");
@@ -117,7 +120,11 @@ export default function PlayWithFriend() {
     clearInfo();
 
     const blockStatus = await fetchBlockStatus(payload.toUserId);
-    if (blockStatus.isBlocked) {
+    if (
+      blockStatus.isAnyBlocked ||
+      blockStatus.isBlocked ||
+      blockStatus.isBlockedByTarget
+    ) {
       setChallengeError("You cannot challenge this player.");
       setIsSendingChallenge(false);
       return;
@@ -151,7 +158,11 @@ export default function PlayWithFriend() {
     clearInfo();
 
     const blockStatus = await fetchBlockStatus(rematchTargetUserId);
-    if (blockStatus.isBlocked) {
+    if (
+      blockStatus.isAnyBlocked ||
+      blockStatus.isBlocked ||
+      blockStatus.isBlockedByTarget
+    ) {
       setChallengeError("You cannot challenge this player.");
       setIsSendingChallenge(false);
       return;
@@ -179,8 +190,60 @@ export default function PlayWithFriend() {
     navigateToNewGameRoute(navigate, { mode: "friend" });
   }, [navigate, resetToSetup]);
 
+  const isNormalFriendGame = String(matchVariant || "standard") === "standard";
+
   // If game started, show the game board
   if (gameStarted) {
+    if (isNormalFriendGame) {
+      return (
+        <QuickMatchGameView
+          game={game}
+          lastMove={lastMove}
+          moves={moves}
+          gameSettings={gameSettings}
+          gameStarted={gameStarted}
+          gameOver={gameOver}
+          gameResult={gameResult}
+          isPlayerTurn={isPlayerTurn}
+          playerColor={playerColor}
+          savedGameId={savedGameId}
+          historyPersistenceStatus={historyPersistenceStatus}
+          showGameOverModal={showGameOverModal}
+          optionSquares={optionSquares}
+          preMoveSquares={preMoveSquares}
+          playerRating={playerRating}
+          opponentRating={opponentRating}
+          statusMessage={statusMessage}
+          chatMessages={chatMessages}
+          gameOverElo={isRated ? lastGameOver?.elo ?? null : null}
+          onSquareClick={onSquareClick}
+          onPieceDrop={onPieceDrop}
+          onCancelSelection={onCancelSelection}
+          isDraggablePiece={isDraggablePiece}
+          setOpponentTime={setOpponentTime}
+          setPlayerTime={setPlayerTime}
+          playerClockSeed={playerClockSeed}
+          opponentClockSeed={opponentClockSeed}
+          clockResetToken={
+            typeof clockResetToken === "number"
+              ? clockResetToken
+              : Number(clockResetToken) || 0
+          }
+          isClockPaused={isClockPaused}
+          onTimeOut={timeOut}
+          onResign={resign}
+          onSendChatMessage={sendChatMessage}
+          onRematch={handleTryAgain}
+          onNewGame={handleNewGame}
+          onLeave={leaveGame}
+          opponentName={opponentName || friendName}
+          variant="standard"
+          promotionState={promotionState}
+          onPromotionPieceSelect={onPromotionPieceSelect}
+        />
+      );
+    }
+
     return (
       <FriendGameView
         friendName={opponentName || friendName}
@@ -201,6 +264,8 @@ export default function PlayWithFriend() {
         playerRating={playerRating}
         opponentRating={opponentRating}
         statusMessage={statusMessage}
+        chatMessages={chatMessages}
+        onSendChatMessage={sendChatMessage}
         onSquareClick={onSquareClick}
         onPieceDrop={onPieceDrop}
         onCancelSelection={onCancelSelection}

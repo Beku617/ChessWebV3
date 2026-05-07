@@ -9,6 +9,7 @@ import {
   OverviewTabContent,
   GamesTabContent,
   NoGamesPlaceholder,
+  formatMemberSince,
   calculateStats,
   filterGames,
   type FilterType,
@@ -108,12 +109,7 @@ export default function AdminUserProfile() {
     [games, filter],
   );
 
-  const memberSince = user?.createdAt
-    ? new Date(user.createdAt).toLocaleDateString("en-US", {
-        month: "long",
-        year: "numeric",
-      })
-    : "Unknown";
+  const memberSince = formatMemberSince(user?.createdAt ?? null);
 
   if (authLoading || loading) {
     return (

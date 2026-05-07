@@ -21,7 +21,7 @@ import {
   cleanupMessageMedia,
   ensureMessageAttachmentMedia,
 } from "../utils/messageMedia.js";
-import { isBlocked } from "../utils/visibility.js";
+import { areUsersBlocked, buildBlockedUserIdSet } from "../utils/visibility.js";
 
 const ALLOWED_IMAGE_TYPES = new Set([
   "image/jpeg",
@@ -138,7 +138,7 @@ const isValidObjectId = (value) =>
 const getUserRoom = (userId) => `user:${userId}`;
 
 async function hasBlockRelation(userA, userB) {
-  return isBlocked(userA, userB);
+  return areUsersBlocked(userA, userB);
 }
 
 router.use(authMiddleware);
@@ -305,11 +305,32 @@ router.get("/unread-count", async (req, res) => {
     if (!userId) {
       return res.status(401).json({ error: "Not authenticated" });
     }
-    const states = await UserConversationState.find({
-      userId,
-    })
-      .select("partnerId clearedAt")
-      .lean();
+    const userIdStr = toId(userId);
+    const [states, friendEdges, blockedUserIds] = await Promise.all([
+      UserConversationState.find({
+        userId,
+      })
+        .select("partnerId clearedAt")
+        .lean(),
+      Friend.find({ userId: userIdStr }).select("friendId").lean(),
+      buildBlockedUserIdSet(userIdStr),
+    ]);
+
+    const allowedPartnerIdStrings = new Set(
+      friendEdges
+        .map((edge) => toId(edge?.friendId))
+        .filter((id) => !!id && !blockedUserIds.has(id)),
+    );
+    if (allowedPartnerIdStrings.size === 0) {
+      return res.json({ count: 0 });
+    }
+
+    const allowedPartnerIds = Array.from(allowedPartnerIdStrings)
+      .map((id) => toObjectIdSafe(id))
+      .filter(Boolean);
+    if (allowedPartnerIds.length === 0) {
+      return res.json({ count: 0 });
+    }
 
     const clearedStates = states
       .filter((state) => state?.clearedAt)
@@ -320,12 +341,14 @@ router.get("/unread-count", async (req, res) => {
       .filter(
         (state) =>
           !!state.partnerId &&
-          Number.isFinite(state.clearedAt.getTime()),
+          Number.isFinite(state.clearedAt.getTime()) &&
+          allowedPartnerIdStrings.has(toId(state.partnerId)),
       );
     const clearedPartners = clearedStates.map((state) => state.partnerId);
 
     const query = {
       receiver: userId,
+      sender: { $in: allowedPartnerIds },
       read: false,
       ...visibleStatusQuery(),
     };
@@ -500,6 +523,7 @@ router.post(
   "/",
   checkBlocked({
     bodyKeys: ["receiverId"],
+    blockIfTargetBlocked: true,
     message: "Unable to send message.",
   }),
   uploadAttachments,
@@ -721,6 +745,7 @@ router.post(
   "/share-game",
   checkBlocked({
     bodyKeys: ["receiverId"],
+    blockIfTargetBlocked: true,
     message: "Unable to send message.",
   }),
   async (req, res) => {

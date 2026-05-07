@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Gamepad2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { QUICK_ACTIONS, iconMap } from "./types";
 
 interface GameSidebarProps {
@@ -9,6 +10,7 @@ interface GameSidebarProps {
 
 export function GameSidebar({ onStartMatch }: GameSidebarProps) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   // Build quick actions with resolved icons and handlers
   const quickActions = useMemo(() => {
@@ -46,18 +48,18 @@ export function GameSidebar({ onStartMatch }: GameSidebarProps) {
             <button
               key={action.id}
               onClick={action.onClick}
-              className={`w-full text-left rounded-xl border border-white/5 bg-gradient-to-r ${action.accent} p-[1px] shadow-md transition-all duration-200 hover:shadow-lg hover:-translate-y-[1px] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0`}
+              className="w-full text-left rounded-xl theme-glass-panel-soft px-3.5 py-3 shadow-sm transition-all duration-200 hover:-translate-y-[1px] theme-glass-hover disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
             >
-              <div className="theme-glass-panel-soft h-full rounded-[12px] px-3.5 py-3 flex items-center gap-2.5">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-theme-glass bg-white/35 text-gray-700 shadow-sm dark:bg-white/5 dark:text-gray-200">
+              <div className="h-full flex items-center gap-2.5">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-theme-glass bg-white/25 text-gray-700 shadow-sm dark:bg-white/10 dark:text-gray-200">
                   <action.IconComponent className="h-5 w-5" aria-hidden="true" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm sm:text-base font-semibold leading-snug text-gray-800 dark:text-white">
-                    {action.title}
+                    {t(action.title)}
                   </div>
                   <div className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400">
-                    {action.description}
+                    {t(action.description)}
                   </div>
                 </div>
               </div>

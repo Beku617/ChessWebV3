@@ -39,6 +39,29 @@ export function formatDuration(ms?: number): string {
   return `${mins}:${String(secs).padStart(2, "0")}`;
 }
 
+function formatMemberSinceDate(
+  value?: string | Date | null,
+): string | null {
+  if (!value) return null;
+  const parsedDate = value instanceof Date ? value : new Date(value);
+  if (!Number.isFinite(parsedDate.getTime())) return null;
+  return parsedDate.toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+  });
+}
+
+export function formatMemberSince(
+  primaryDate?: string | Date | null,
+  fallbackDate?: string | Date | null,
+): string {
+  return (
+    formatMemberSinceDate(primaryDate) ||
+    formatMemberSinceDate(fallbackDate) ||
+    "Unknown"
+  );
+}
+
 export function calculateStats(games: GameHistory[]): ProfileStats | null {
   const total = games.length;
   if (total === 0) return null;

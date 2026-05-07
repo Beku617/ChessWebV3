@@ -8,6 +8,7 @@ import {
   GameBoard,
   ChessMoveList,
   MoveListTabs,
+  ResignConfirmButton,
   buildChessMoveRows,
 } from "../../components/game";
 import type { GameSettings, PromotionState } from "../../components/game";
@@ -120,7 +121,7 @@ export function BotGameView({
           className="flex flex-col items-center justify-center p-4 gap-4 h-full min-h-0"
         >
           {/* Top Player Info Bar (Opponent) */}
-          <div className="w-full max-w-[900px] flex items-center gap-3 px-2">
+          <div className="flex-shrink-0 z-10" style={{ width: boardWidth }}>
             <PlayerInfo
               name={gameSettings.selectedBot?.name || "Stockfish"}
               subtitle={gameSettings.selectedBot?.title || "AI opponent"}
@@ -161,7 +162,7 @@ export function BotGameView({
           </div>
 
           {/* Bottom Player Info Bar (You) */}
-          <div className="w-full max-w-[900px] flex items-center gap-3 px-2 justify-start">
+          <div className="flex-shrink-0 z-10" style={{ width: boardWidth }}>
             <PlayerInfo
               name={user?.fullName || "You"}
               subtitle=""
@@ -225,13 +226,13 @@ export function BotGameView({
 
           {/* Action Buttons */}
           <div className="p-4 pb-6 border-t border-theme-glass flex flex-col gap-2">
-            <button
-              onClick={onResign}
+            <ResignConfirmButton
+              onConfirm={onResign}
               disabled={gameOver}
               className="w-full py-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 font-medium transition-colors disabled:opacity-50"
             >
               Resign
-            </button>
+            </ResignConfirmButton>
             <button
               onClick={() => navigate("/play/bot")}
               className="w-full py-3 rounded-xl bg-white/10 hover:bg-white/15 text-gray-800 dark:text-gray-200 font-medium transition-colors"

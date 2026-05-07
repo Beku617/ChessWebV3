@@ -166,6 +166,7 @@ interface MatchFoundPayload {
   playerClock?: number;
   opponentClock?: number;
   clockPaused?: boolean;
+  chatMessages?: ChatMessagePayload[];
 }
 
 interface GameStateRestoredPayload {
@@ -178,6 +179,7 @@ interface GameStateRestoredPayload {
   playerClock?: number;
   opponentClock?: number;
   clockPaused?: boolean;
+  chatMessages?: ChatMessagePayload[];
 }
 
 interface GameOverPayload {
@@ -242,6 +244,23 @@ interface GameSystemMessagePayload {
   gameId: string;
   message?: string;
   targetColor?: PlayerColor | null;
+}
+
+interface ChatMessagePayload {
+  matchId?: string;
+  senderId?: string;
+  senderUsername?: string;
+  message?: string;
+  timestamp?: string;
+}
+
+interface FriendMatchChatMessage {
+  id: string;
+  senderId: string;
+  senderUsername: string;
+  content: string;
+  createdAt: string;
+  isSystem?: boolean;
 }
 
 function toFiniteRating(value: unknown): number | null {
@@ -312,6 +331,10 @@ function isChess960CastlingDropForColor(
   );
 }
 
+function createChatMessageId() {
+  return `chat-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
 export function useFriendOnlineGame() {
   const { user, setUser } = useAuthStore();
   const { autoQueen, premoves, showLegalMoves } = useGameplayPreferences();
@@ -353,6 +376,7 @@ export function useFriendOnlineGame() {
   const [matchVariant, setMatchVariant] = useState<MatchVariant>("standard");
   const [isRated, setIsRated] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [chatMessages, setChatMessages] = useState<FriendMatchChatMessage[]>([]);
   const [moveFrom, setMoveFrom] = useState<Square | null>(null);
   const [optionSquares, setOptionSquares] = useState<OptionSquares>({});
   const [pendingPreMove, setPendingPreMove] = useState<PreMove | null>(null);
@@ -389,6 +413,72 @@ export function useFriendOnlineGame() {
     null,
   );
   const saveGameHistory = useSaveGameHistory();
+
+  const appendSystemMessage = useCallback((message: string | null | undefined) => {
+    const normalizedMessage = String(message || "").trim();
+    if (!normalizedMessage) return;
+    if (normalizedMessage.toLowerCase() === "game state restored.") return;
+    setChatMessages((previous) => {
+      const lastMessage = previous[previous.length - 1];
+      if (
+        lastMessage?.isSystem === true &&
+        String(lastMessage.content || "").trim() === normalizedMessage
+      ) {
+        return previous;
+      }
+      return [
+        ...previous,
+        {
+          id: createChatMessageId(),
+          senderId: "system",
+          senderUsername: "System",
+          content: normalizedMessage,
+          createdAt: new Date().toISOString(),
+          isSystem: true,
+        },
+      ];
+    });
+  }, []);
+
+  const appendChatMessage = useCallback((payload: ChatMessagePayload) => {
+    const senderId = String(payload.senderId || "").trim();
+    const senderUsername = String(payload.senderUsername || "").trim();
+    const message = String(payload.message || "").trim();
+    const matchId = String(payload.matchId || "").trim();
+    if (!senderId || !senderUsername || !message || !matchId) return;
+
+    setChatMessages((previous) => [
+      ...previous,
+      {
+        id: createChatMessageId(),
+        senderId,
+        senderUsername,
+        content: message,
+        createdAt: String(payload.timestamp || new Date().toISOString()),
+      },
+    ]);
+  }, []);
+
+  const replaceChatMessages = useCallback((messages?: ChatMessagePayload[]) => {
+    if (!Array.isArray(messages)) return;
+    const normalized = messages
+      .map((entry) => {
+        const senderId = String(entry?.senderId || "").trim();
+        const senderUsername = String(entry?.senderUsername || "").trim();
+        const content = String(entry?.message || "").trim();
+        const matchId = String(entry?.matchId || "").trim();
+        if (!senderId || !senderUsername || !content || !matchId) return null;
+        return {
+          id: createChatMessageId(),
+          senderId,
+          senderUsername,
+          content,
+          createdAt: String(entry?.timestamp || new Date().toISOString()),
+        };
+      })
+      .filter((entry): entry is FriendMatchChatMessage => entry !== null);
+    setChatMessages(normalized);
+  }, []);
 
   const isMoveAllowedForVariant = useCallback((move: any) => {
     if (matchVariantRef.current !== "atomic") return true;
@@ -511,6 +601,12 @@ export function useFriendOnlineGame() {
     }
   }, []);
 
+  useEffect(() => {
+    if (!statusMessage) return;
+    if (!gameStarted && !gameIdRef.current) return;
+    appendSystemMessage(statusMessage);
+  }, [appendSystemMessage, gameStarted, statusMessage]);
+
   const formatResult = (payload: GameOverPayload) => {
     return formatPerspectiveResult(
       payload,
@@ -554,6 +650,7 @@ export function useFriendOnlineGame() {
     setPlayerColor("w");
     playerColorRef.current = "w";
     setStatusMessage(null);
+    setChatMessages([]);
     setPlayerTime(defaultGameSettings.timeControl.initial);
     setOpponentTime(defaultGameSettings.timeControl.initial);
     setPlayerClockSeed(defaultGameSettings.timeControl.initial);
@@ -568,7 +665,10 @@ export function useFriendOnlineGame() {
   }, [resetStoredMoves]);
 
   const applyFriendGameStart = useCallback(
-    (payload: FriendGameStartedPayload) => {
+    (
+      payload: FriendGameStartedPayload,
+      options: { resetChat?: boolean } = {},
+    ) => {
       const nextGame = new Chess(payload.fen);
       gameRef.current = nextGame;
       setGame(nextGame);
@@ -630,6 +730,9 @@ export function useFriendOnlineGame() {
       setGameResult(null);
       setShowGameOverModal(false);
       setStatusMessage(null);
+      if (options.resetChat !== false) {
+        setChatMessages([]);
+      }
       setSavedGameId(null);
       setHistoryPersistenceStatus("idle");
       historySavedRef.current = false;
@@ -756,6 +859,11 @@ export function useFriendOnlineGame() {
     const handleMatchFound = (payload: MatchFoundPayload) => {
       const normalizedGameId = String(payload?.gameId || "").trim();
       if (!normalizedGameId) return;
+      const currentGameId = String(gameIdRef.current || "").trim();
+      const isRestoreForSameGame =
+        payload.restored === true &&
+        currentGameId.length > 0 &&
+        currentGameId === normalizedGameId;
 
       const normalizedVariant = normalizeMatchVariant(payload.variant);
       applyFriendGameStart({
@@ -775,7 +883,7 @@ export function useFriendOnlineGame() {
         whiteCheckCount: payload.whiteCheckCount,
         blackCheckCount: payload.blackCheckCount,
         rated: payload.rated === true,
-      });
+      }, { resetChat: !isRestoreForSameGame });
 
       if (Array.isArray(payload.moves)) {
         const restoredMoves = payload.moves.filter(
@@ -783,6 +891,9 @@ export function useFriendOnlineGame() {
         );
         movesRef.current = restoredMoves;
         setMoves(restoredMoves);
+      }
+      if (Array.isArray(payload.chatMessages)) {
+        replaceChatMessages(payload.chatMessages);
       }
 
       const whiteClock = Number(payload.whiteTimeLeft);
@@ -854,6 +965,9 @@ export function useFriendOnlineGame() {
         );
         movesRef.current = restoredMoves;
         setMoves(restoredMoves);
+      }
+      if (Array.isArray(payload.chatMessages)) {
+        replaceChatMessages(payload.chatMessages);
       }
 
       const whiteClock = Number(payload.whiteTimeLeft);
@@ -1119,6 +1233,14 @@ export function useFriendOnlineGame() {
       }
     };
 
+    const handleChatMessage = (payload: ChatMessagePayload) => {
+      const normalizedMatchId = String(payload.matchId || "").trim();
+      const currentMatchId = String(gameIdRef.current || "").trim();
+      if (!normalizedMatchId || !currentMatchId) return;
+      if (normalizedMatchId !== currentMatchId) return;
+      appendChatMessage(payload);
+    };
+
     const handleOpponentDisconnected = (payload?: {
       gameId?: string;
       graceMs?: number;
@@ -1156,6 +1278,7 @@ export function useFriendOnlineGame() {
     socket.on("moveRejected", handleMoveRejected);
     socket.on("gameOver", handleGameOver);
     socket.on("gameSystemMessage", handleGameSystemMessage);
+    socket.on("chatMessage", handleChatMessage);
     socket.on("opponent_disconnected", handleOpponentDisconnected);
     socket.on("opponent_reconnected", handleOpponentReconnected);
     socket.on("opponent_abandoned", handleOpponentAbandoned);
@@ -1180,6 +1303,7 @@ export function useFriendOnlineGame() {
       socket.off("moveRejected", handleMoveRejected);
       socket.off("gameOver", handleGameOver);
       socket.off("gameSystemMessage", handleGameSystemMessage);
+      socket.off("chatMessage", handleChatMessage);
       socket.off("opponent_disconnected", handleOpponentDisconnected);
       socket.off("opponent_reconnected", handleOpponentReconnected);
       socket.off("opponent_abandoned", handleOpponentAbandoned);
@@ -1187,6 +1311,8 @@ export function useFriendOnlineGame() {
   }, [
     socket,
     applyFriendGameStart,
+    appendChatMessage,
+    replaceChatMessages,
     appendStoredMove,
     clearActiveGame,
     requestClockResync,
@@ -2127,6 +2253,27 @@ export function useFriendOnlineGame() {
     [socket],
   );
 
+  const sendChatMessage = useCallback(
+    (message: string) => {
+      const trimmedMessage = String(message || "").trim();
+      if (!socket || !trimmedMessage || gameOver) return;
+
+      const matchId = String(gameIdRef.current || "").trim();
+      const senderId = String(userRef.current?.id || "").trim();
+      const senderUsername = String(userRef.current?.fullName || "Player").trim();
+      if (!matchId || !senderId || !senderUsername) return;
+
+      socket.emit("chatMessage", {
+        matchId,
+        senderId,
+        senderUsername,
+        message: trimmedMessage,
+        timestamp: new Date().toISOString(),
+      });
+    },
+    [gameOver, socket],
+  );
+
   const leaveGame = useCallback(() => {
     if (socket && gameIdRef.current) {
       socket.emit("leaveGame", { gameId: gameIdRef.current });
@@ -2182,5 +2329,7 @@ export function useFriendOnlineGame() {
     timeOut,
     leaveGame,
     resetToSetup,
+    sendChatMessage,
+    chatMessages,
   };
 }

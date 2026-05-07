@@ -101,7 +101,7 @@ import {
   requestSecurityMiddleware,
 } from "./middleware/index.js";
 import { migrateLegacyRuntimeMedia } from "./utils/runtimeMediaMigration.js";
-import { areUsersBlocked, isBlocked } from "./utils/visibility.js";
+import { areUsersBlocked } from "./utils/visibility.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -777,6 +777,103 @@ function normalizeId(value) {
   return String(value);
 }
 
+function getMatchmakingPairBlockCache(cache) {
+  if (cache instanceof Map) return cache;
+  return cache?.pairs instanceof Map ? cache.pairs : null;
+}
+
+function getMatchmakingProfileBlockCache(cache) {
+  return cache?.profiles instanceof Map ? cache.profiles : null;
+}
+
+function normalizeBlockedUserIdSet(blockedUsers) {
+  const ids = new Set();
+  if (!Array.isArray(blockedUsers)) return ids;
+  for (const blockedUserId of blockedUsers) {
+    const normalizedBlockedUserId = normalizeId(blockedUserId);
+    if (normalizedBlockedUserId) {
+      ids.add(normalizedBlockedUserId);
+    }
+  }
+  return ids;
+}
+
+async function loadMatchmakingBlockProfile(userId, cache = null) {
+  const normalizedUserId = normalizeId(userId);
+  if (!normalizedUserId) return null;
+  if (cache?.has(normalizedUserId)) {
+    return cache.get(normalizedUserId);
+  }
+
+  let profile = null;
+  try {
+    const user = await User.findById(normalizedUserId)
+      .select("_id blockedUsers banned")
+      .lean();
+    if (user && !user.banned) {
+      profile = {
+        id: normalizeId(user._id),
+        blockedUsers: normalizeBlockedUserIdSet(user.blockedUsers),
+        lookupFailed: false,
+      };
+    }
+  } catch (error) {
+    console.error("Matchmaking block profile lookup error:", error);
+    profile = {
+      id: normalizedUserId,
+      blockedUsers: new Set(),
+      lookupFailed: true,
+    };
+  }
+
+  if (cache) {
+    cache.set(normalizedUserId, profile);
+  }
+  return profile;
+}
+
+async function areSocketUsersBlocked(socketA, socketB, cache = null) {
+  const userA = normalizeId(socketA?.data?.userId);
+  const userB = normalizeId(socketB?.data?.userId);
+  if (!userA || !userB || userA === userB) {
+    return false;
+  }
+
+  const key = userA < userB ? `${userA}:${userB}` : `${userB}:${userA}`;
+  const pairCache = getMatchmakingPairBlockCache(cache);
+  if (pairCache?.has(key)) {
+    return pairCache.get(key);
+  }
+
+  const profileCache = getMatchmakingProfileBlockCache(cache);
+  const [profileA, profileB] = await Promise.all([
+    loadMatchmakingBlockProfile(userA, profileCache),
+    loadMatchmakingBlockProfile(userB, profileCache),
+  ]);
+
+  let blocked =
+    !profileA ||
+    !profileB ||
+    profileA.lookupFailed ||
+    profileB.lookupFailed ||
+    profileA.blockedUsers.has(profileB.id) ||
+    profileB.blockedUsers.has(profileA.id);
+
+  if (!blocked) {
+    try {
+      blocked = await areUsersBlocked(userA, userB);
+    } catch (error) {
+      console.error("Block status lookup error:", error);
+      blocked = true;
+    }
+  }
+
+  if (pairCache) {
+    pairCache.set(key, blocked);
+  }
+  return blocked;
+}
+
 function setUserActiveGame(userId, gameId) {
   const normalizedUserId = normalizeId(userId);
   const normalizedGameId = String(gameId || "").trim();
@@ -1135,6 +1232,46 @@ function setClassicGameMoves(game, moves) {
   }
 }
 
+function normalizeClassicChatMessageEntry(game, entry) {
+  const matchId = String(entry?.matchId || game?.id || "").trim();
+  const senderId = normalizeId(entry?.senderId);
+  const senderUsername = String(entry?.senderUsername || "").trim().slice(0, 60);
+  const message = String(entry?.message || "").trim().slice(0, 500);
+  if (!matchId || !senderId || !senderUsername || !message) return null;
+
+  const parsedTimestamp = new Date(entry?.timestamp || "");
+  const timestamp = Number.isFinite(parsedTimestamp.getTime())
+    ? parsedTimestamp.toISOString()
+    : new Date().toISOString();
+
+  return {
+    matchId,
+    senderId,
+    senderUsername,
+    message,
+    timestamp,
+  };
+}
+
+function getClassicChatMessages(game) {
+  if (!Array.isArray(game?.chatMessages)) return [];
+  return game.chatMessages
+    .map((entry) => normalizeClassicChatMessageEntry(game, entry))
+    .filter(Boolean);
+}
+
+function appendClassicChatMessage(game, entry) {
+  if (!game) return null;
+  const normalized = normalizeClassicChatMessageEntry(game, entry);
+  if (!normalized) return null;
+  const nextMessages = [...getClassicChatMessages(game), normalized];
+  if (nextMessages.length > 200) {
+    nextMessages.splice(0, nextMessages.length - 200);
+  }
+  game.chatMessages = nextMessages;
+  return normalized;
+}
+
 function getClassicFenHistory(game) {
   if (Array.isArray(game?.fenHistory)) {
     const normalized = game.fenHistory
@@ -1199,11 +1336,32 @@ function toTimestamp(value, fallback = Date.now()) {
 }
 
 function getClassicGamePgn(game, moves = getClassicGameMoves(game)) {
-  if (typeof game?.chess?.pgn === "function") {
-    const pgn = String(game.chess.pgn() || "").trim();
-    if (pgn) return pgn;
+  try {
+    let historyMoves = Array.isArray(moves) ? moves : getClassicGameMoves(game);
+    if (typeof game?.chess?.history === "function") {
+      const liveHistoryMoves = game.chess.history();
+      if (Array.isArray(liveHistoryMoves)) {
+        historyMoves = liveHistoryMoves;
+      }
+    }
+    const normalizedMoves = historyMoves
+      .map((move) => String(move || "").trim())
+      .filter(Boolean);
+    const initialFen = String(game?.initialFen || "").trim();
+    const pgnChess = initialFen && initialFen !== "start" ? new Chess(initialFen) : new Chess();
+
+    normalizedMoves.forEach((move) => {
+      const replayedMove = pgnChess.move(move);
+      if (!replayedMove) {
+        throw new Error(`Invalid move while rebuilding PGN: ${move}`);
+      }
+    });
+
+    return String(pgnChess.pgn() || "").trim();
+  } catch (error) {
+    console.warn("Failed to build classic PGN from isolated history:", error);
+    return "";
   }
-  return moves.join(" ");
 }
 
 function resultForWinner(winner) {
@@ -1259,6 +1417,18 @@ function buildClassicSessionUpdate(game, overrides = {}) {
     Number(overrides.reconnectGraceMs) ||
     Number(game?.reconnectGraceMs) ||
     getReconnectGraceMsForTimeControl(game?.timeControl);
+  const hasPgnOverride = Object.prototype.hasOwnProperty.call(overrides, "pgn");
+  let sessionPgn = "";
+  if (hasPgnOverride) {
+    sessionPgn = String(overrides.pgn || "");
+  } else {
+    try {
+      sessionPgn = String(getClassicGamePgn(game, moves) || "");
+    } catch (error) {
+      console.warn("Failed to generate classic session PGN. Persisting empty PGN.", error);
+      sessionPgn = "";
+    }
+  }
 
   return {
     gameId: String(game?.id || overrides.gameId || "").trim(),
@@ -1279,7 +1449,7 @@ function buildClassicSessionUpdate(game, overrides = {}) {
     black: buildClassicPlayerConnection(game, "black"),
     fen: String(overrides.fen || game?.chess?.fen?.() || "start"),
     initialFen,
-    pgn: String(overrides.pgn || getClassicGamePgn(game, moves)),
+    pgn: sessionPgn,
     moves,
     fenHistory,
     moveCount: Number.isFinite(Number(overrides.moveCount))
@@ -1371,7 +1541,21 @@ async function persistClassicGameSession(gameId, overrides = {}) {
   if (!normalizedGameId) return null;
   const game = games.get(normalizedGameId);
   if (!game) return null;
-  const update = buildClassicSessionUpdate(game, overrides);
+  let update;
+  try {
+    update = buildClassicSessionUpdate(game, overrides);
+  } catch (error) {
+    console.warn(
+      "Failed to build classic session update. Retrying with empty PGN.",
+      error,
+    );
+    try {
+      update = buildClassicSessionUpdate(game, { ...overrides, pgn: "" });
+    } catch (retryError) {
+      console.error("Active game session sync build error:", retryError);
+      return null;
+    }
+  }
   return ActiveGameSession.findOneAndUpdate(
     { gameId: normalizedGameId },
     { $set: update },
@@ -1712,6 +1896,7 @@ function createRealtimeGameRoom({
     initialFen: chess.fen(),
     persistedMoves: [],
     fenHistory: [chess.fen()],
+    chatMessages: [],
     timeoutTimer: null,
     drawOffer: null,
     drawOfferTimer: null,
@@ -1763,6 +1948,7 @@ function createRealtimeGameRoom({
     color: "w",
     fen: createdGame.chess.fen(),
     moves: getClassicGameMoves(createdGame),
+    chatMessages: getClassicChatMessages(createdGame),
     ...initialClockSnapshot,
     whiteTimeLeft: initialClockSnapshot.white,
     blackTimeLeft: initialClockSnapshot.black,
@@ -1775,6 +1961,7 @@ function createRealtimeGameRoom({
     color: "b",
     fen: createdGame.chess.fen(),
     moves: getClassicGameMoves(createdGame),
+    chatMessages: getClassicChatMessages(createdGame),
     ...initialClockSnapshot,
     whiteTimeLeft: initialClockSnapshot.white,
     blackTimeLeft: initialClockSnapshot.black,
@@ -2711,6 +2898,49 @@ function getClassicSocketIdForColor(game, color) {
   return color === "b" ? game.players?.black : game.players?.white;
 }
 
+function getClassicUserIdForColor(game, color) {
+  if (!game) return "";
+  return color === "b"
+    ? normalizeId(game.playerUsers?.black)
+    : normalizeId(game.playerUsers?.white);
+}
+
+function getClassicColorForUser(game, userId) {
+  const normalizedUserId = normalizeId(userId);
+  if (!game || !normalizedUserId) return null;
+  if (getClassicUserIdForColor(game, "w") === normalizedUserId) return "w";
+  if (getClassicUserIdForColor(game, "b") === normalizedUserId) return "b";
+  return null;
+}
+
+function emitClassicColorEvent(game, color, eventName, payload, options = {}) {
+  const targetSocketIds = new Set();
+  const primarySocketId = getClassicSocketIdForColor(game, color);
+  const excludedSocketId = String(options.excludeSocketId || "").trim();
+
+  if (primarySocketId) {
+    targetSocketIds.add(primarySocketId);
+  }
+
+  const targetUserId = getClassicUserIdForColor(game, color);
+  const userSocketIds = targetUserId ? userSockets.get(targetUserId) : null;
+  if (userSocketIds) {
+    for (const socketId of userSocketIds) {
+      targetSocketIds.add(socketId);
+    }
+  }
+
+  let deliveredCount = 0;
+  for (const socketId of targetSocketIds) {
+    if (!socketId || socketId === excludedSocketId) continue;
+    const targetSocket = io.sockets.sockets.get(socketId);
+    if (!targetSocket) continue;
+    targetSocket.emit(eventName, payload);
+    deliveredCount += 1;
+  }
+  return deliveredCount;
+}
+
 function clearDrawOffer(game) {
   if (!game) return;
   if (game.drawOfferTimer) {
@@ -2736,6 +2966,23 @@ function declineDrawOfferForMove(gameId, moverColor) {
     gameId,
     declinedBy: moverColor,
     reason: "move",
+  });
+}
+
+function emitPendingDrawOfferForSocket(game, color, socketId) {
+  const offer = game?.drawOffer;
+  const normalizedGameId = String(game?.id || "").trim();
+  if (!offer?.by || !normalizedGameId || !socketId) return;
+  const expiresAt = Number(offer.expiresAt || 0);
+  if (expiresAt && expiresAt <= Date.now()) {
+    expireDrawOffer(normalizedGameId);
+    return;
+  }
+
+  io.to(socketId).emit(offer.by === color ? "drawOfferPending" : "drawOfferReceived", {
+    gameId: normalizedGameId,
+    offeredBy: offer.by,
+    expiresAt: Number.isFinite(expiresAt) && expiresAt > 0 ? expiresAt : null,
   });
 }
 
@@ -2872,6 +3119,7 @@ function buildRealtimeStatePayload(game, color, options = {}) {
     blackTimeLeft: clock.black,
     playerClock: ownClock,
     opponentClock: opponentClock,
+    chatMessages: getClassicChatMessages(game),
     viewers: getSpectatorCountForGame(gameId),
     clockPaused: false,
   };
@@ -3069,6 +3317,7 @@ async function hydrateClassicGameFromSession(gameId) {
     initialFen: String(session.initialFen || "start").trim() || "start",
     persistedMoves: Array.isArray(session.moves) ? session.moves : [],
     fenHistory: Array.isArray(session.fenHistory) ? session.fenHistory : [],
+    chatMessages: [],
     timeoutTimer: null,
     drawOffer: null,
     drawOfferTimer: null,
@@ -3663,13 +3912,29 @@ function findKingSquare(chess, color) {
 }
 
 function applyKingOfHillAfterMove(game, moverColor) {
-  if (!game || game.variant !== "kingOfHill") {
+  if (!game || normalizeVariant(game.variant) !== "kingOfHill") {
     return { isKingOfHillWin: false };
   }
 
-  const kingSquare = findKingSquare(game.chess, moverColor);
+  const whiteKingSquare = findKingSquare(game.chess, "w");
+  const blackKingSquare = findKingSquare(game.chess, "b");
+  const whiteInCenter = KING_OF_HILL_CENTER_SQUARES.has(whiteKingSquare || "");
+  const blackInCenter = KING_OF_HILL_CENTER_SQUARES.has(blackKingSquare || "");
+
+  if (!whiteInCenter && !blackInCenter) {
+    return { isKingOfHillWin: false };
+  }
+
+  const winner =
+    whiteInCenter && blackInCenter
+      ? moverColor
+      : whiteInCenter
+        ? "w"
+        : "b";
+
   return {
-    isKingOfHillWin: KING_OF_HILL_CENTER_SQUARES.has(kingSquare || ""),
+    isKingOfHillWin: true,
+    winner,
   };
 }
 
@@ -4060,6 +4325,7 @@ io.on("connection", (socket) => {
           color: userColor,
           fen: activeGame.chess.fen(),
           moves: getClassicGameMoves(activeGame),
+          chatMessages: getClassicChatMessages(activeGame),
           ...clockSnapshot,
           whiteTimeLeft: clockSnapshot.white,
           blackTimeLeft: clockSnapshot.black,
@@ -4075,6 +4341,7 @@ io.on("connection", (socket) => {
             color: userColor,
           });
         }
+        emitPendingDrawOfferForSocket(activeGame, userColor, socket.id);
 
         safeAck(ack, {
           success: true,
@@ -4288,6 +4555,7 @@ io.on("connection", (socket) => {
         color: userColor,
         fen: game.chess.fen(),
         moves: getClassicGameMoves(game),
+        chatMessages: getClassicChatMessages(game),
         ...clockSnapshot,
         whiteTimeLeft: clockSnapshot.white,
         blackTimeLeft: clockSnapshot.black,
@@ -4303,6 +4571,7 @@ io.on("connection", (socket) => {
           color: userColor,
         });
       }
+      emitPendingDrawOfferForSocket(game, userColor, socket.id);
 
       safeAck(ack, {
         success: true,
@@ -4316,9 +4585,25 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("findMatch", async ({ name, timeControl, variant } = {}) => {
-    if (socket.data.gameId || socket.data.fourPlayerGameId) return;
+  socket.on("findMatch", async ({ name, timeControl, variant } = {}, ack) => {
+    if (socket.data.gameId || socket.data.fourPlayerGameId) {
+      safeAck(ack, {
+        success: true,
+        matched: false,
+        reason: "active_game_in_progress",
+      });
+      return;
+    }
     const currentUserId = normalizeId(socket.data.userId);
+    if (!currentUserId) {
+      socket.emit("moveRejected", { reason: "Not authenticated." });
+      safeAck(ack, {
+        success: false,
+        matched: false,
+        reason: "not_authenticated",
+      });
+      return;
+    }
     const persistedSession = await ensurePersistedActiveSessionForUser(
       currentUserId,
     );
@@ -4329,6 +4614,11 @@ io.on("connection", (socket) => {
       socket.emit("moveRejected", {
         reason: "You already have an active game. Rejoin it first.",
       });
+      safeAck(ack, {
+        success: true,
+        matched: false,
+        reason: "active_game_in_progress",
+      });
       return;
     }
     const activeGameId = userActiveGames.get(currentUserId);
@@ -4336,6 +4626,11 @@ io.on("connection", (socket) => {
       if (games.has(activeGameId)) {
         socket.emit("moveRejected", {
           reason: "You already have an active game. Rejoin it first.",
+        });
+        safeAck(ack, {
+          success: true,
+          matched: false,
+          reason: "active_game_in_progress",
         });
         return;
       }
@@ -4345,6 +4640,11 @@ io.on("connection", (socket) => {
     if (activeFourPlayerGameId && fourPlayerGames.has(activeFourPlayerGameId)) {
       socket.emit("moveRejected", {
         reason: "You already have an active 4-player game. Rejoin it first.",
+      });
+      safeAck(ack, {
+        success: true,
+        matched: false,
+        reason: "active_game_in_progress",
       });
       return;
     }
@@ -4401,12 +4701,15 @@ io.on("connection", (socket) => {
 
     let selectedIndex = -1;
     let selectedOpponentRating = null;
+    let selectedEntry = null;
+    const blockCache = { pairs: new Map(), profiles: new Map() };
     if (isRandomQueue) {
       for (let i = 0; i < queue.length; i += 1) {
         const candidateEntry = queue[i];
         if (!candidateEntry || candidateEntry.socketId === socket.id) continue;
         const candidateSocket = io.sockets.sockets.get(candidateEntry.socketId);
         if (!candidateSocket) continue;
+        if (await areSocketUsersBlocked(socket, candidateSocket, blockCache)) continue;
         selectedIndex = i;
         break;
       }
@@ -4418,6 +4721,7 @@ io.on("connection", (socket) => {
 
         const candidateSocket = io.sockets.sockets.get(candidateEntry.socketId);
         if (!candidateSocket) continue;
+        if (await areSocketUsersBlocked(socket, candidateSocket, blockCache)) continue;
 
         const candidateRating = Number(candidateEntry.rating);
         if (!Number.isFinite(candidateRating)) continue;
@@ -4440,9 +4744,24 @@ io.on("connection", (socket) => {
 
     if (selectedIndex !== -1) {
       const [selected] = queue.splice(selectedIndex, 1);
+      selectedEntry = selected || null;
       waitingQueues.set(queueKey, queue);
       opponentSocket = io.sockets.sockets.get(selected.socketId);
       selectedOpponentRating = normalizeLiveRating(selected?.rating);
+    }
+
+    if (opponentSocket) {
+      const finalBlockCache = { pairs: new Map(), profiles: new Map() };
+      if (await areSocketUsersBlocked(socket, opponentSocket, finalBlockCache)) {
+        if (
+          selectedEntry &&
+          !queue.some((entry) => entry.socketId === selectedEntry.socketId)
+        ) {
+          queue.push(selectedEntry);
+          waitingQueues.set(queueKey, queue);
+        }
+        opponentSocket = null;
+      }
     }
 
     if (opponentSocket) {
@@ -4473,6 +4792,7 @@ io.on("connection", (socket) => {
             ? seekerRating
             : selectedOpponentRating ?? opponentSocket?.data?.queueRating,
       });
+      safeAck(ack, { success: true, matched: true, gameId });
     } else {
       if (!queue.some((entry) => entry.socketId === socket.id)) {
         queue.push({
@@ -4480,6 +4800,7 @@ io.on("connection", (socket) => {
           rating: seekerRating,
           joinedAt: now,
           pool,
+          userId: seekerUserId,
         });
       }
       waitingQueues.set(queueKey, queue);
@@ -4490,6 +4811,11 @@ io.on("connection", (socket) => {
         ratingRange: seekerRange,
         playerRating: seekerRating,
       });
+      safeAck(ack, {
+        success: true,
+        matched: false,
+        reason: "no_eligible_opponents",
+      });
     }
   });
 
@@ -4497,6 +4823,10 @@ io.on("connection", (socket) => {
     if (socket.data.gameId || socket.data.fourPlayerGameId) return;
     if (socket.data.inFourPlayerQueue) return;
     const userId = normalizeId(socket.data.userId);
+    if (!userId) {
+      socket.emit("fourPlayerMoveRejected", { reason: "Not authenticated." });
+      return;
+    }
     const persistedSession = await ensurePersistedActiveSessionForUser(userId);
     if (
       persistedSession &&
@@ -4566,8 +4896,41 @@ io.on("connection", (socket) => {
       return;
     }
 
-    const selectedSocketIds = validQueue.slice(0, 4);
-    const remaining = validQueue.slice(4);
+    const selectedSocketIds = [];
+    const blockCache = { pairs: new Map(), profiles: new Map() };
+
+    for (const queuedId of validQueue) {
+      const candidateSocket = io.sockets.sockets.get(queuedId);
+      if (!candidateSocket) continue;
+
+      let canJoinGroup = true;
+      for (const selectedSocketId of selectedSocketIds) {
+        const selectedSocket = io.sockets.sockets.get(selectedSocketId);
+        if (!selectedSocket) {
+          canJoinGroup = false;
+          break;
+        }
+        if (
+          await areSocketUsersBlocked(candidateSocket, selectedSocket, blockCache)
+        ) {
+          canJoinGroup = false;
+          break;
+        }
+      }
+
+      if (!canJoinGroup) continue;
+      selectedSocketIds.push(queuedId);
+      if (selectedSocketIds.length >= 4) break;
+    }
+
+    if (selectedSocketIds.length < 4) {
+      fourPlayerQueues.set(queueKey, validQueue);
+      queueFourPlayerStatus(socket, queueKey);
+      return;
+    }
+
+    const selectedSocketIdSet = new Set(selectedSocketIds);
+    const remaining = validQueue.filter((queuedId) => !selectedSocketIdSet.has(queuedId));
     fourPlayerQueues.set(queueKey, remaining);
 
     const selectedSockets = selectedSocketIds
@@ -4965,7 +5328,7 @@ io.on("connection", (socket) => {
         return;
       }
 
-      if (await isBlocked(fromUserId, toUserId)) {
+      if (await areUsersBlocked(fromUserId, toUserId)) {
         safeAck(ack, {
           success: false,
           error: "You cannot challenge this player.",
@@ -5252,6 +5615,7 @@ io.on("connection", (socket) => {
         reconnectGraceMs: getReconnectGraceMsForTimeControl(normalizedTimeControl),
         startedAt: new Date(),
         persistedMoves: [],
+        chatMessages: [],
         timeoutTimer: null,
         ratingByColor: {
           white: whiteSocketId === challengerSocket.id ? challengerRating : receiverRating,
@@ -5429,7 +5793,11 @@ io.on("connection", (socket) => {
       });
 
       if (kingOfHillResult.isKingOfHillWin) {
-        emitGameOver(gameId, "king_of_the_hill", moverColor);
+        emitGameOver(
+          gameId,
+          "king_of_the_hill",
+          kingOfHillResult.winner || moverColor,
+        );
       } else if (threeCheckResult.isThreeCheckWin) {
         emitGameOver(gameId, "three_check", moverColor);
       } else if (isCheckmate(nextChess)) {
@@ -5479,6 +5847,7 @@ io.on("connection", (socket) => {
 
     if (isAtomic) {
       const atomicResult = move.captured ? applyAtomicExplosion(chess, move) : null;
+      const atomicWinner = getAtomicExplosionWinner(chess, moverColor);
 
       io.to(room).emit("moveApplied", {
         gameId,
@@ -5493,13 +5862,11 @@ io.on("connection", (socket) => {
         blackTimeLeft: postMoveClock.black,
       });
 
-      if (atomicResult) {
-        const atomicWinner = getAtomicExplosionWinner(chess, moverColor);
-        if (atomicWinner) {
-          emitGameOver(gameId, "atomic_explosion", atomicWinner);
-          return;
-        }
+      if (atomicWinner) {
+        emitGameOver(gameId, "atomic_explosion", atomicWinner);
+        return;
       }
+
       return;
     }
 
@@ -5522,7 +5889,11 @@ io.on("connection", (socket) => {
     });
 
     if (kingOfHillResult.isKingOfHillWin) {
-      emitGameOver(gameId, "king_of_the_hill", moverColor);
+      emitGameOver(
+        gameId,
+        "king_of_the_hill",
+        kingOfHillResult.winner || moverColor,
+      );
     } else if (threeCheckResult.isThreeCheckWin) {
       emitGameOver(gameId, "three_check", moverColor);
     } else if (isCheckmate(chess)) {
@@ -5572,20 +5943,28 @@ io.on("connection", (socket) => {
     );
 
     const opponentColor = offeredBy === "w" ? "b" : "w";
-    const opponentSocketId = getClassicSocketIdForColor(game, opponentColor);
     io.to(socket.id).emit("drawOfferPending", {
       gameId: normalizedGameId,
       offeredBy,
       expiresAt,
     });
-    if (opponentSocketId) {
-      io.to(opponentSocketId).emit("drawOfferReceived", {
+    const deliveredCount = emitClassicColorEvent(
+      game,
+      opponentColor,
+      "drawOfferReceived",
+      {
         gameId: normalizedGameId,
         offeredBy,
         expiresAt,
-      });
-    }
-    safeAck(ack, { success: true, status: "pending", expiresAt });
+      },
+      { excludeSocketId: socket.id },
+    );
+    safeAck(ack, {
+      success: true,
+      status: "pending",
+      expiresAt,
+      delivered: deliveredCount > 0,
+    });
   });
 
   socket.on("respondDrawOffer", ({ gameId, accept } = {}, ack) => {
@@ -5639,7 +6018,9 @@ io.on("connection", (socket) => {
           ? "w"
           : null;
     if (!winner) return;
-    emitGameOver(gameId || socket.data.gameId, "resign", winner);
+    emitGameOver(gameId || socket.data.gameId, "resign", winner, {
+      preserveEarlyResult: true,
+    });
   });
 
   socket.on("timeout", ({ gameId } = {}) => {
@@ -5664,6 +6045,7 @@ io.on("connection", (socket) => {
         color: requesterColor,
         fen: game.chess.fen(),
         moves: getClassicGameMoves(game),
+        chatMessages: getClassicChatMessages(game),
         ...clock,
         whiteTimeLeft: clock.white,
         blackTimeLeft: clock.black,
@@ -5692,7 +6074,67 @@ io.on("connection", (socket) => {
           ? "w"
           : null;
     if (!winner) return;
-    emitGameOver(gameId || socket.data.gameId, "resign", winner);
+    emitGameOver(gameId || socket.data.gameId, "resign", winner, {
+      preserveEarlyResult: true,
+    });
+  });
+
+  socket.on("chatMessage", (payload = {}) => {
+    const normalizedMatchId = String(
+      payload.matchId || payload.gameId || socket.data.gameId || "",
+    ).trim();
+    if (!normalizedMatchId) return;
+
+    const game = games.get(normalizedMatchId);
+    if (!game) return;
+
+    const authenticatedSenderId = normalizeId(socket.data.userId);
+    if (!authenticatedSenderId) return;
+
+    const senderColor =
+      getClassicColorForSocket(game, socket.id) ||
+      getClassicColorForUser(game, authenticatedSenderId);
+    if (!senderColor) return;
+
+    const requestedSenderId = normalizeId(payload.senderId);
+    if (requestedSenderId && requestedSenderId !== authenticatedSenderId) {
+      return;
+    }
+
+    const rawMessage = String(payload.message || "").trim();
+    if (!rawMessage) return;
+    const message = rawMessage.slice(0, 500);
+
+    const senderKey = senderColor === "w" ? "white" : "black";
+    const senderUsername = String(
+      payload.senderUsername ||
+        socket.data.name ||
+        game?.playerNames?.[senderKey] ||
+        "Player",
+    )
+      .trim()
+      .slice(0, 60);
+    const parsedTimestamp = new Date(payload.timestamp || "");
+    const timestamp = Number.isFinite(parsedTimestamp.getTime())
+      ? parsedTimestamp.toISOString()
+      : new Date().toISOString();
+
+    const chatPayload = appendClassicChatMessage(game, {
+      matchId: normalizedMatchId,
+      senderId: authenticatedSenderId,
+      senderUsername: senderUsername || "Player",
+      message,
+      timestamp,
+    });
+    if (!chatPayload) return;
+
+    emitClassicColorEvent(game, senderColor, "chatMessage", chatPayload);
+    emitClassicColorEvent(
+      game,
+      senderColor === "w" ? "b" : "w",
+      "chatMessage",
+      chatPayload,
+    );
   });
 
   socket.on("disconnect", () => {

@@ -3,12 +3,14 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { GameHistory } from "../historyTypes";
 import Sidebar from "../components/Sidebar";
+import NotFound from "./NotFound";
 import {
   ProfileHeader,
   OverviewTabContent,
   GamesTabContent,
   NoGamesPlaceholder,
   API_URL,
+  formatMemberSince,
   calculateStats,
   filterGames,
   type FilterType,
@@ -40,6 +42,7 @@ interface PublicUser {
   classicalGames?: number;
   gamesPlayed?: number;
   gamesWon?: number;
+  createdAt?: string | null;
   presenceStatus?: "online" | "offline" | "searching_match" | "in_game" | "away";
   lastSeenAt?: string | null;
   lastActiveAt?: string | null;
@@ -55,7 +58,12 @@ interface PublicUser {
 }
 
 export default function UserProfile() {
-  const { userId } = useParams<{ userId: string }>();
+  const { userId, username } = useParams<{
+    userId?: string;
+    username?: string;
+  }>();
+  const routeProfileKey = userId || username || "";
+  const isUsernameRoute = Boolean(username && !userId);
   const navigate = useNavigate();
   const {
     user: authUser,
@@ -72,6 +80,7 @@ export default function UserProfile() {
   const [pendingRequestId, setPendingRequestId] = useState<string | null>(null);
   const [games, setGames] = useState<GameHistory[]>([]);
   const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [filter, setFilter] = useState<FilterType>("all");
@@ -82,23 +91,35 @@ export default function UserProfile() {
   const [tournamentHistory, setTournamentHistory] = useState<
     TournamentHistoryEntry[]
   >([]);
+  const targetUserId =
+    profileUser?.id || (!isUsernameRoute ? routeProfileKey : "");
   const {
     data: blockStatus,
     mutate: mutateBlockStatus,
-  } = useBlockStatus(userId);
+  } = useBlockStatus(targetUserId);
 
   const isBlockedByMe = Boolean(blockStatus?.isBlocked);
+  const hasAnyBlockRelation = Boolean(
+    blockStatus?.isAnyBlocked ||
+      blockStatus?.isBlocked ||
+      blockStatus?.isBlockedByTarget,
+  );
 
   // If viewing own profile, redirect to /profile
   useEffect(() => {
-    if (!authLoading && isAuthenticated && authUser?.id && userId === authUser.id) {
+    if (
+      !authLoading &&
+      isAuthenticated &&
+      authUser?.id &&
+      targetUserId === authUser.id
+    ) {
       navigate("/profile", { replace: true });
     }
-  }, [authLoading, isAuthenticated, authUser?.id, userId, navigate]);
+  }, [authLoading, isAuthenticated, authUser?.id, targetUserId, navigate]);
 
   // Fetch profile + games in parallel
   useEffect(() => {
-    if (!userId) return;
+    if (!routeProfileKey) return;
 
     let cancelled = false;
 
@@ -106,19 +127,40 @@ export default function UserProfile() {
       try {
         setLoading(true);
         setError(null);
+        setNotFound(false);
 
-        const [profileRes, gamesRes] = await Promise.all([
-          fetch(`${API_URL}/api/users/${userId}`, {
-            credentials: "include",
-          }),
-          fetch(`${API_URL}/api/history/user/${userId}`, {
-            credentials: "include",
-          }),
-        ]);
+        const encodedProfileKey = encodeURIComponent(routeProfileKey);
+        const profileUrl = isUsernameRoute
+          ? `${API_URL}/api/users/profile/${encodedProfileKey}`
+          : `${API_URL}/api/users/${encodedProfileKey}`;
+        const profileRes = await fetch(profileUrl, {
+          credentials: "include",
+        });
 
-        if (!profileRes.ok) throw new Error("User not found");
+        if (profileRes.status === 404) {
+          if (!cancelled) {
+            setNotFound(true);
+            setProfileUser(null);
+            setGames([]);
+          }
+          return;
+        }
+        if (!profileRes.ok) throw new Error("Failed to load profile");
         const profileData = await profileRes.json();
+        const resolvedUserId = String(profileData.user?.id || "").trim();
+        if (!resolvedUserId) throw new Error("User not found");
 
+        const gamesRes = await fetch(`${API_URL}/api/history/user/${resolvedUserId}`, {
+          credentials: "include",
+        });
+        if (gamesRes.status === 404) {
+          if (!cancelled) {
+            setNotFound(true);
+            setProfileUser(null);
+            setGames([]);
+          }
+          return;
+        }
         const gamesData = gamesRes.ok ? await gamesRes.json() : { games: [] };
 
         if (!cancelled) {
@@ -142,15 +184,15 @@ export default function UserProfile() {
     return () => {
       cancelled = true;
     };
-  }, [userId]);
+  }, [isUsernameRoute, routeProfileKey]);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!targetUserId) return;
     let cancelled = false;
 
     async function fetchTournamentHistory() {
       try {
-        const res = await fetch(`${API_URL}/api/users/${userId}/profile`, {
+        const res = await fetch(`${API_URL}/api/users/${targetUserId}/profile`, {
           credentials: "include",
         });
         const data = await res.json().catch(() => ({}));
@@ -167,7 +209,7 @@ export default function UserProfile() {
     return () => {
       cancelled = true;
     };
-  }, [userId]);
+  }, [targetUserId]);
 
   const stats = useMemo(() => calculateStats(games), [games]);
   const filteredGames = useMemo(
@@ -175,26 +217,34 @@ export default function UserProfile() {
     [games, filter],
   );
 
-  const memberSince =
-    games.length > 0
-      ? new Date(games[games.length - 1]?.createdAt).toLocaleDateString(
-          "en-US",
-          { month: "long", year: "numeric" },
-        )
-      : "New Player";
+  const oldestGameDate = useMemo(() => {
+    if (games.length === 0) return null;
+    return games.reduce<string | null>((oldest, game) => {
+      const gameDate = new Date(game.createdAt);
+      if (!Number.isFinite(gameDate.getTime())) return oldest;
+      if (!oldest) return game.createdAt;
+      const oldestDate = new Date(oldest);
+      return gameDate.getTime() < oldestDate.getTime() ? game.createdAt : oldest;
+    }, null);
+  }, [games]);
+
+  const memberSince = useMemo(
+    () => formatMemberSince(profileUser?.createdAt ?? null, oldestGameDate),
+    [profileUser?.createdAt, oldestGameDate],
+  );
   const canUseFriendActions =
     !authLoading && isAuthenticated && Boolean(authUser?.id);
 
   const handleAddFriend = useCallback(async () => {
-    if (!userId || friendLoading) return;
-    if (isBlockedByMe) {
+    if (!targetUserId || friendLoading) return;
+    if (hasAnyBlockRelation) {
       setActionError("You cannot send a friend request to this player.");
       return;
     }
     try {
       setFriendLoading(true);
       setActionError(null);
-      const result = await sendFriendRequest(userId);
+      const result = await sendFriendRequest(targetUserId);
       if (result.status === "accepted") {
         setRelationship("friends");
         setPendingRequestId(null);
@@ -207,14 +257,14 @@ export default function UserProfile() {
     } finally {
       setFriendLoading(false);
     }
-  }, [userId, friendLoading, sendFriendRequest, isBlockedByMe]);
+  }, [targetUserId, friendLoading, sendFriendRequest, hasAnyBlockRelation]);
 
   const handleRemoveFriend = useCallback(async () => {
-    if (!userId || friendLoading) return;
+    if (!targetUserId || friendLoading) return;
     try {
       setFriendLoading(true);
       setActionError(null);
-      await removeFriendship(userId);
+      await removeFriendship(targetUserId);
       setRelationship("none");
       setPendingRequestId(null);
     } catch {
@@ -222,7 +272,7 @@ export default function UserProfile() {
     } finally {
       setFriendLoading(false);
     }
-  }, [userId, friendLoading, removeFriendship]);
+  }, [targetUserId, friendLoading, removeFriendship]);
 
   const handleAcceptRequest = useCallback(async () => {
     if (!pendingRequestId || friendLoading) return;
@@ -251,37 +301,37 @@ export default function UserProfile() {
   }, [pendingRequestId, friendLoading, ignoreFriendRequest]);
 
   const handleChallenge = useCallback(() => {
-    if (isBlockedByMe) {
+    if (hasAnyBlockRelation) {
       setActionError("You cannot challenge this player.");
       return;
     }
     if (relationship !== "friends") return;
     navigate("/play/friend");
-  }, [navigate, relationship, isBlockedByMe]);
+  }, [navigate, relationship, hasAnyBlockRelation]);
 
   const handleMessage = useCallback(() => {
-    if (!userId || !profileUser?.fullName) return;
-    if (isBlockedByMe) {
+    if (!targetUserId || !profileUser?.fullName) return;
+    if (hasAnyBlockRelation) {
       setActionError("Unable to send message.");
       return;
     }
     navigate(
-      `/messages?chat=${encodeURIComponent(userId)}&name=${encodeURIComponent(profileUser.fullName)}`,
+      `/messages?chat=${encodeURIComponent(targetUserId)}&name=${encodeURIComponent(profileUser.fullName)}`,
     );
-  }, [isBlockedByMe, navigate, profileUser?.fullName, userId]);
+  }, [hasAnyBlockRelation, navigate, profileUser?.fullName, targetUserId]);
 
   const handleWatch = useCallback(() => {
-    if (isBlockedByMe) {
+    if (hasAnyBlockRelation) {
       setActionError("Unable to watch this player's game.");
       return;
     }
     if (!profileUser?.isWatchableInGame) return;
     const gameId = String(profileUser.watchableGame?.gameId || "").trim();
     navigate(gameId ? `/watch/${encodeURIComponent(gameId)}` : "/watch");
-  }, [isBlockedByMe, navigate, profileUser?.isWatchableInGame, profileUser?.watchableGame?.gameId]);
+  }, [hasAnyBlockRelation, navigate, profileUser?.isWatchableInGame, profileUser?.watchableGame?.gameId]);
 
   const handleToggleBlock = useCallback(async () => {
-    if (!userId || blockActionLoading) return;
+    if (!targetUserId || blockActionLoading) return;
 
     const previous = blockStatus || {
       isBlocked: false,
@@ -308,12 +358,12 @@ export default function UserProfile() {
 
     try {
       if (nextIsBlocked) {
-        await blockUser(userId);
+        await blockUser(targetUserId);
       } else {
-        await unblockUser(userId);
+        await unblockUser(targetUserId);
       }
       await mutateBlockStatus();
-      await refreshBlockingCaches(userId);
+      await refreshBlockingCaches(targetUserId);
     } catch (error) {
       await mutateBlockStatus(previous, false);
       setActionError(
@@ -322,7 +372,7 @@ export default function UserProfile() {
     } finally {
       setBlockActionLoading(false);
     }
-  }, [blockActionLoading, blockStatus, mutateBlockStatus, userId]);
+  }, [blockActionLoading, blockStatus, mutateBlockStatus, targetUserId]);
 
   if (loading) {
     return (
@@ -333,6 +383,10 @@ export default function UserProfile() {
         </div>
       </div>
     );
+  }
+
+  if (notFound) {
+    return <NotFound withSidebar />;
   }
 
   if (error || !profileUser) {

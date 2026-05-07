@@ -19,6 +19,7 @@ export {
   type TabType,
   API_URL,
   formatDuration,
+  formatMemberSince,
   calculateStats,
   filterGames,
 } from "./types";

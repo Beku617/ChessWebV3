@@ -1,7 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Square } from "chess.js";
-import { BarChart3, Check, Flag, Handshake, X, Zap } from "lucide-react";
+import {
+  BarChart3,
+  Check,
+  Flag,
+  Handshake,
+  Maximize2,
+  Minimize2,
+  X,
+  Zap,
+} from "lucide-react";
 import { useAuthStore } from "../../store/authStore";
 import {
   GameOverModal,
@@ -9,6 +18,7 @@ import {
   GameBoard,
   ChessMoveList,
   MoveListTabs,
+  ResignConfirmButton,
   buildChessMoveRows,
 } from "../../components/game";
 import type { GameSettings, PromotionState } from "../../components/game";
@@ -110,6 +120,14 @@ export interface TournamentGamePanelData {
   }>;
 }
 
+interface MatchChatMessageEntry {
+  senderId: string;
+  senderUsername: string;
+  content: string;
+  createdAt: string;
+  isSystem?: boolean;
+}
+
 interface QuickMatchGameViewProps {
   game: { fen: () => string };
   lastMove?: { from: string; to: string } | null;
@@ -129,6 +147,7 @@ interface QuickMatchGameViewProps {
   playerRating?: number | null;
   opponentRating?: number | null;
   statusMessage?: string | null;
+  chatMessages?: MatchChatMessageEntry[];
   gameOverElo?: {
     rated?: boolean;
     applied?: boolean;
@@ -153,6 +172,7 @@ interface QuickMatchGameViewProps {
   onResign: () => void;
   onOfferDraw?: () => void;
   onRespondDrawOffer?: (accept: boolean) => void;
+  onSendChatMessage?: (message: string) => void;
   drawOfferState?: {
     status: "idle" | "sent" | "received";
     offeredBy: "w" | "b" | null;
@@ -285,6 +305,8 @@ function getWinnerLabel(row: TournamentPanelHistoryRow | null | undefined): stri
 function sanitizeTournamentStatusMessage(message: string | null | undefined): string | null {
   const normalized = String(message || "").trim();
   if (!normalized) return null;
+  if (normalized.toLowerCase() === "game state restored.") return null;
+  if (normalized.toLowerCase() === "game restored after reconnect.") return null;
   if (
     /pairing every/i.test(normalized) ||
     /ready\.\s*searching for next pairing/i.test(normalized) ||
@@ -311,11 +333,62 @@ function getArenaFormatLabel(
   return [timeControl, format].filter(Boolean).join(" ");
 }
 
+function shouldHideSidebarMessage(content: string) {
+  const normalized = content.trim().toLowerCase();
+  return (
+    normalized === "game state restored." ||
+    normalized === "game restored after reconnect."
+  );
+}
+
 function buildSidebarMessages(
-  chatMessages: TournamentGamePanelData["chatMessages"] | undefined,
+  chatMessages: MatchChatMessageEntry[] | undefined,
   statusMessage: string | null | undefined,
 ): SidebarMessageItem[] {
   const mappedChat = Array.isArray(chatMessages)
+    ? chatMessages
+        .map((message, index) => ({
+          id: String(`chat-${index}-${message?.createdAt || ""}`),
+          senderId: String(message?.senderId || ""),
+          senderUsername: String(message?.senderUsername || "Player"),
+          content: String(message?.content || "").trim(),
+          createdAt: String(message?.createdAt || ""),
+          isSystem: message?.isSystem === true,
+        }))
+        .filter((message) => !shouldHideSidebarMessage(message.content))
+    : [];
+
+  const safeStatus = String(statusMessage || "").trim();
+  if (!safeStatus || shouldHideSidebarMessage(safeStatus)) {
+    return mappedChat;
+  }
+
+  const alreadyExists = mappedChat.some(
+    (message) =>
+      message.isSystem === true &&
+      String(message.content || "").trim() === safeStatus,
+  );
+  if (alreadyExists) {
+    return mappedChat;
+  }
+
+  return [
+    ...mappedChat,
+    {
+      id: `status-${safeStatus}`,
+      senderId: "system",
+      senderUsername: "System",
+      content: safeStatus,
+      createdAt: "",
+      isSystem: true,
+    },
+  ];
+}
+
+function buildTournamentSidebarMessages(
+  chatMessages: TournamentGamePanelData["chatMessages"] | undefined,
+): SidebarMessageItem[] {
+  return Array.isArray(chatMessages)
     ? chatMessages.map((message, index) => ({
         id: String(message?.id || `chat-${index}`),
         sender: String(message?.sender || "Player"),
@@ -323,21 +396,6 @@ function buildSidebarMessages(
         createdAt: String(message?.createdAt || ""),
       }))
     : [];
-
-  const safeStatus = String(statusMessage || "").trim();
-  if (!safeStatus) {
-    return mappedChat;
-  }
-
-  return [
-    {
-      id: `status-${safeStatus}`,
-      sender: "System",
-      content: safeStatus,
-      createdAt: "",
-    },
-    ...mappedChat,
-  ];
 }
 
 export function QuickMatchGameView({
@@ -359,6 +417,7 @@ export function QuickMatchGameView({
   playerRating,
   opponentRating,
   statusMessage,
+  chatMessages,
   gameOverElo,
   onSquareClick,
   onPieceDrop,
@@ -374,6 +433,7 @@ export function QuickMatchGameView({
   onResign,
   onOfferDraw,
   onRespondDrawOffer,
+  onSendChatMessage,
   drawOfferState = { status: "idle", offeredBy: null, expiresAt: null },
   onRematch,
   onNewGame,
@@ -478,24 +538,11 @@ export function QuickMatchGameView({
     ? boardFenOverride
     : reviewFen || game.fen();
   const boardOrientation = boardOrientationOverride || gameSettings.playAs;
-  const variantLabel =
-    variant === "chess960"
-      ? "Chess960"
-      : variant === "kingOfHill"
-        ? "King of the Hill"
-      : variant === "threeCheck"
-        ? "Three-Check"
-        : variant === "atomic"
-          ? "Atomic Chess"
-        : "";
-  const sidebarTitle = sidebarTitleOverride
-    ? sidebarTitleOverride
-    : `Quick Match${
-        variantLabel && !hideQuickMatchTitleSuffix ? ` - ${variantLabel}` : ""
-      }`;
+  const sidebarTitle = sidebarTitleOverride ? sidebarTitleOverride : "";
   const persistentSquareStyles =
     variant === "kingOfHill" ? KING_OF_HILL_SQUARE_STYLES : {};
   const [boardWidth, setBoardWidth] = useState(620);
+  const [isFocusMode, setIsFocusMode] = useState(false);
   const leftRef = useRef<HTMLDivElement>(null);
   const topRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -509,8 +556,12 @@ export function QuickMatchGameView({
   const tournamentStandings = tournamentPanelData?.standings || [];
   const tournamentHistory = tournamentPanelData?.history || [];
   const sidebarMessages = useMemo(
-    () => buildSidebarMessages(tournamentPanelData?.chatMessages, statusMessage),
-    [statusMessage, tournamentPanelData?.chatMessages],
+    () => buildSidebarMessages(chatMessages, statusMessage),
+    [chatMessages, statusMessage],
+  );
+  const tournamentSidebarMessages = useMemo(
+    () => buildTournamentSidebarMessages(tournamentPanelData?.chatMessages),
+    [tournamentPanelData?.chatMessages],
   );
   const tournamentGameAction = tournamentPanelData?.gameAction || null;
   const tournamentType = String(tournamentPanelData?.tournament?.type || "").toLowerCase();
@@ -587,8 +638,55 @@ export function QuickMatchGameView({
     !!tournamentGameAction && !tournamentGameAction.disabled;
   const showActiveTournamentControls =
     tournamentMode && gameStarted && !gameOver;
-  const hasIncomingDrawOffer = drawOfferState.status === "received";
-  const drawOfferPending = drawOfferState.status === "sent";
+  const hasIncomingDrawOffer =
+    drawOfferState.status === "received" && drawOfferState.offeredBy !== playerColor;
+  const drawOfferPending =
+    drawOfferState.status === "sent" ||
+    (drawOfferState.status === "received" && drawOfferState.offeredBy === playerColor);
+  const canUseFocusMode = !tournamentMode && !customActionsOverride;
+  const focusPlayerPanelWidth = Math.min(
+    240,
+    Math.max(200, Math.floor(boardWidth * 0.38)),
+  );
+  const drawOfferMessageCard = useMemo(() => {
+    if (!hasIncomingDrawOffer || !gameStarted || gameOver) return null;
+
+    return (
+      <div className="mx-auto mt-2 w-full max-w-sm rounded-2xl border border-brand-400/35 bg-slate-950/95 p-4 text-white shadow-[0_18px_55px_rgba(0,0,0,0.45)]">
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-500/15 text-brand-200">
+            <Handshake size={18} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="text-sm font-semibold">Draw offered</div>
+            <p className="mt-1 text-xs text-slate-300">
+              Your opponent offered a draw.
+            </p>
+          </div>
+        </div>
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => onRespondDrawOffer?.(true)}
+            disabled={!onRespondDrawOffer}
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-brand-600 text-sm font-semibold text-white transition-colors hover:bg-brand-500 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <Check size={15} />
+            Accept
+          </button>
+          <button
+            type="button"
+            onClick={() => onRespondDrawOffer?.(false)}
+            disabled={!onRespondDrawOffer}
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.06] text-sm font-semibold text-slate-100 transition-colors hover:bg-white/[0.1] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <X size={15} />
+            Decline
+          </button>
+        </div>
+      </div>
+    );
+  }, [gameOver, gameStarted, hasIncomingDrawOffer, onRespondDrawOffer]);
 
   const handleTournamentGameAction = () => {
     if (!tournamentGameAction || tournamentGameAction.disabled) return;
@@ -718,10 +816,16 @@ export function QuickMatchGameView({
       const padding = 24;
       const topH = topRef.current?.offsetHeight ?? 60;
       const bottomH = bottomRef.current?.offsetHeight ?? 60;
-      const availableWidth = rect.width - padding - BOARD_FRAME;
-      const availableHeight = rect.height - topH - bottomH - padding;
+      const focusLeftRail = isFocusMode ? 244 : 0;
+      const focusRightRail = isFocusMode ? 88 : 0;
+      const availableWidth =
+        rect.width - padding - BOARD_FRAME - focusLeftRail - focusRightRail;
+      const availableHeight = isFocusMode
+        ? rect.height - padding
+        : rect.height - topH - bottomH - padding;
       const size = Math.floor(Math.min(availableWidth, availableHeight));
-      setBoardWidth(Math.max(400, Math.min(size, 720)));
+      const maxBoardWidth = isFocusMode ? 840 : 720;
+      setBoardWidth(Math.max(400, Math.min(size, maxBoardWidth)));
     };
 
     updateSize();
@@ -732,11 +836,20 @@ export function QuickMatchGameView({
       observer.disconnect();
       window.removeEventListener("resize", updateSize);
     };
-  }, []);
+  }, [isFocusMode]);
+
+  useEffect(() => {
+    if (canUseFocusMode) return;
+    setIsFocusMode(false);
+  }, [canUseFocusMode]);
 
   return (
-    <div className="relative h-screen w-full bg-transparent overflow-hidden">
-      <div className="relative h-full w-full grid grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] overflow-hidden">
+    <div
+      className={`quickmatch-game-root relative h-screen w-full bg-transparent overflow-hidden ${
+        isFocusMode ? "focus-mode" : ""
+      }`}
+    >
+      <div className="quickmatch-game-layout relative h-full w-full grid grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] overflow-hidden">
         {!tournamentMode && (
           <GameOverModal
             isOpen={showGameOverModal}
@@ -755,18 +868,22 @@ export function QuickMatchGameView({
         {/* Main Board Area */}
         <div
           ref={leftRef}
-          className="min-w-0 flex flex-col items-center justify-center p-4 gap-4 h-full overflow-hidden"
+          className="quickmatch-main-board min-w-0 flex flex-col items-center justify-center p-4 gap-4 h-full overflow-hidden"
         >
           {/* Opponent Info */}
           <div
             ref={topRef}
-            className="flex-shrink-0 z-10"
-            style={{ width: boardWidth + BOARD_FRAME }}
+            className="quickmatch-opponent-panel quickmatch-panel-edge-offset-top flex-shrink-0 z-10 transition-[width] duration-300 ease-out"
+            style={{
+              width: isFocusMode
+                ? focusPlayerPanelWidth
+                : boardWidth,
+            }}
           >
             <PlayerInfo
               name={opponentNameForInfo}
               subtitle=""
-              rating={opponentRatingForInfo}
+              rating={isFocusMode ? null : opponentRatingForInfo}
               avatarLetter={
                 opponentNameForInfo.substring(0, 1).toUpperCase() || "O"
               }
@@ -785,14 +902,32 @@ export function QuickMatchGameView({
               onTimeChange={() => {}}
               timerResetToken={`opp:${clockResetToken ?? 0}`}
               timerManagedExternally
+              compactTimer={gameSettings.timeControl.initial > 0}
+              layout={isFocusMode ? "focus" : "default"}
+              showConnectionDots={isFocusMode}
             />
           </div>
 
           {/* Chessboard */}
           <div
-            className="theme-board-panel rounded-2xl"
-            style={{ width: boardWidth + BOARD_FRAME }}
+            className="quickmatch-board-wrap relative flex-shrink-0 transition-[width] duration-300 ease-out"
+            style={{ width: boardWidth }}
           >
+            {canUseFocusMode ? (
+              <button
+                type="button"
+                onClick={() => setIsFocusMode((prev) => !prev)}
+                className={`quickmatch-focus-toggle absolute -right-9 top-1 z-30 inline-flex h-8 w-8 items-center justify-center rounded-lg border text-white shadow-lg transition-colors ${
+                  isFocusMode
+                    ? "border-brand-300/65 bg-brand-500/55"
+                    : "border-white/20 bg-slate-900/35 hover:bg-slate-800/50"
+                }`}
+                aria-label={isFocusMode ? "Exit focus mode" : "Enter focus mode"}
+                title={isFocusMode ? "Exit focus mode" : "Focus mode"}
+              >
+                {isFocusMode ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+              </button>
+            ) : null}
             <GameBoard
               fen={boardFen}
               boardWidth={boardWidth}
@@ -819,13 +954,17 @@ export function QuickMatchGameView({
           {/* Player Info */}
           <div
             ref={bottomRef}
-            className="flex-shrink-0 z-10"
-            style={{ width: boardWidth + BOARD_FRAME }}
+            className="quickmatch-player-panel quickmatch-panel-edge-offset-bottom flex-shrink-0 z-10 transition-[width] duration-300 ease-out"
+            style={{
+              width: isFocusMode
+                ? focusPlayerPanelWidth
+                : boardWidth,
+            }}
           >
             <PlayerInfo
               name={playerNameForInfo}
               subtitle=""
-              rating={playerRatingForInfo}
+              rating={isFocusMode ? null : playerRatingForInfo}
               avatarLetter={
                 playerNameForInfo.substring(0, 2).toUpperCase() || "U"
               }
@@ -845,54 +984,134 @@ export function QuickMatchGameView({
               onTimeChange={() => {}}
               timerResetToken={`self:${clockResetToken ?? 0}`}
               timerManagedExternally
+              compactTimer={gameSettings.timeControl.initial > 0}
+              layout={isFocusMode ? "focus" : "default"}
+              showConnectionDots={isFocusMode}
             />
           </div>
+
+          {canUseFocusMode ? (
+            <div className="quickmatch-focus-actions">
+              {hasIncomingDrawOffer ? (
+                <div
+                  className="quickmatch-focus-draw-offer w-[220px] rounded-xl border border-cyan-300/45 bg-[#0b1f2e]/95 p-2.5 text-white shadow-[0_16px_46px_rgba(8,145,178,0.35)]"
+                  role="alert"
+                  aria-live="assertive"
+                >
+                  <div className="flex items-start gap-2">
+                    <span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-cyan-300 shadow-[0_0_0_3px_rgba(103,232,249,0.24)]" />
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-semibold leading-tight text-cyan-100">
+                        Draw offer received
+                      </p>
+                      <p className="mt-0.5 text-[10px] leading-tight text-cyan-100/75">
+                        Accept or decline now.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => onRespondDrawOffer?.(true)}
+                      disabled={!onRespondDrawOffer}
+                      className="inline-flex h-8 items-center justify-center gap-1 rounded-md bg-emerald-600 text-[11px] font-semibold text-white transition-colors hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-55"
+                    >
+                      <Check size={12} />
+                      Accept
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onRespondDrawOffer?.(false)}
+                      disabled={!onRespondDrawOffer}
+                      className="inline-flex h-8 items-center justify-center gap-1 rounded-md border border-white/20 bg-white/10 text-[11px] font-semibold text-slate-100 transition-colors hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-55"
+                    >
+                      <X size={12} />
+                      Decline
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+              <button
+                type="button"
+                onClick={onOfferDraw}
+                disabled={gameOver || drawOfferPending || hasIncomingDrawOffer}
+                className={`quickmatch-focus-action-button ${
+                  hasIncomingDrawOffer ? "quickmatch-focus-action-alert" : ""
+                }`}
+                title={
+                  drawOfferPending
+                    ? "Draw offer pending"
+                    : hasIncomingDrawOffer
+                      ? "Draw offer received"
+                      : "Offer draw"
+                }
+                aria-label="Offer draw"
+              >
+                {hasIncomingDrawOffer ? (
+                  <span className="quickmatch-focus-action-alert-dot" aria-hidden="true" />
+                ) : null}
+                <span className="text-[1.45rem] font-semibold leading-none">1/2</span>
+              </button>
+              <ResignConfirmButton
+                type="button"
+                onConfirm={onResign}
+                disabled={gameOver}
+                className="quickmatch-focus-action-button quickmatch-focus-action-danger"
+                title="Resign"
+                aria-label="Resign game"
+              >
+                <Flag size={18} />
+              </ResignConfirmButton>
+            </div>
+          ) : null}
         </div>
 
         {/* Sidebar */}
-        <div className="theme-glass-panel-strong w-full rounded-none border-l-0 flex flex-col h-full min-h-0">
-          <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="quickmatch-sidebar min-w-0 w-full lg:flex-1 lg:self-stretch min-h-0 flex flex-col p-3">
+          <div className="theme-glass-panel-strong flex-1 flex flex-col overflow-hidden rounded-3xl">
             {/* Header */}
-            <div className="p-4 border-b border-theme-glass">
-              {tournamentMode ? (
-                <div className="rounded-xl border border-cyan-500/20 bg-[#081a33]/95 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex min-w-0 items-center gap-3">
-                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md border border-cyan-300/25 bg-cyan-400/15 text-cyan-100">
-                        <Zap className="h-5 w-5" />
+            {tournamentMode || sidebarTitle || sidebarHeaderRightOverride ? (
+              <div className="p-4 border-b border-theme-glass">
+                {tournamentMode ? (
+                  <div className="rounded-xl border border-cyan-500/20 bg-[#081a33]/95 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md border border-cyan-300/25 bg-cyan-400/15 text-cyan-100">
+                          <Zap className="h-5 w-5" />
+                        </div>
+                        <div className="min-w-0">
+                          <h2 className="truncate text-base font-semibold text-slate-100">
+                            {tournamentPanelData?.tournament?.name || "Arena Tournament"}
+                          </h2>
+                          <p className="truncate text-xs text-cyan-100/75">
+                            Standard - {tournamentStandings.length} players
+                          </p>
+                          <p className="truncate text-xs text-cyan-100/65">
+                            Pairing: Rating-based
+                          </p>
+                        </div>
                       </div>
-                      <div className="min-w-0">
-                        <h2 className="truncate text-base font-semibold text-slate-100">
-                          {tournamentPanelData?.tournament?.name || "Arena Tournament"}
-                        </h2>
-                        <p className="truncate text-xs text-cyan-100/75">
-                          Standard - {tournamentStandings.length} players
-                        </p>
-                        <p className="truncate text-xs text-cyan-100/65">
-                          Pairing: Rating-based
-                        </p>
-                      </div>
+                      {arenaClockLabel ? (
+                        <div className="rounded-md border border-cyan-200/20 bg-cyan-200/10 px-3 py-2 text-lg font-semibold tracking-wide text-cyan-100">
+                          {arenaClockLabel}
+                        </div>
+                      ) : null}
                     </div>
-                    {arenaClockLabel ? (
-                      <div className="rounded-md border border-cyan-200/20 bg-cyan-200/10 px-3 py-2 text-lg font-semibold tracking-wide text-cyan-100">
-                        {arenaClockLabel}
-                      </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between gap-3">
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                      {sidebarTitle}
+                    </h2>
+                    {sidebarHeaderRightOverride ? (
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        {sidebarHeaderRightOverride}
+                      </span>
                     ) : null}
                   </div>
-                </div>
-              ) : (
-                <div className="flex items-center justify-between gap-3">
-                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                    {sidebarTitle}
-                  </h2>
-                  {sidebarHeaderRightOverride ? (
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                      {sidebarHeaderRightOverride}
-                    </span>
-                  ) : null}
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            ) : null}
 
             {tournamentMode && (
               <div className="theme-glass-panel-soft mx-4 mt-3 flex items-center gap-2 rounded-xl p-1">
@@ -975,6 +1194,12 @@ export function QuickMatchGameView({
                     </div>
                   }
                   messages={sidebarMessages}
+                  currentUserId={String(user?.id || "")}
+                  messagesTopContent={drawOfferMessageCard}
+                  focusMessagesOnTopContent={!!drawOfferMessageCard}
+                  onSendMessage={onSendChatMessage}
+                  disableMessageInput={gameOver}
+                  hideMessageInput={!gameStarted}
                 />
               )}
 
@@ -1136,12 +1361,12 @@ export function QuickMatchGameView({
 
               {tournamentMode && tournamentTab === "messages" && (
                 <div className="h-full overflow-auto p-2 space-y-1.5">
-                  {sidebarMessages.length === 0 ? (
+                  {tournamentSidebarMessages.length === 0 ? (
                     <div className="text-center text-gray-400 dark:text-gray-500 text-xs py-6">
                       No messages yet.
                     </div>
                   ) : (
-                    sidebarMessages.map((message) => (
+                    tournamentSidebarMessages.map((message) => (
                       <div
                         key={message.id}
                         className="rounded-lg border border-gray-200/70 bg-white/60 px-2.5 py-2 dark:border-white/10 dark:bg-slate-900/70"
@@ -1187,14 +1412,14 @@ export function QuickMatchGameView({
                       </div>
                     ) : (
                       <div className="grid grid-cols-2 gap-2">
-                        <button
+                        <ResignConfirmButton
                           type="button"
-                          onClick={onResign}
+                          onConfirm={onResign}
                           className="flex h-11 items-center justify-center gap-2 rounded-xl bg-red-500/10 text-sm font-semibold text-red-600 transition-colors hover:bg-red-500/20 dark:text-red-300"
                         >
                           <Flag size={16} />
                           Resign
-                        </button>
+                        </ResignConfirmButton>
                         <button
                           type="button"
                           onClick={onOfferDraw}
@@ -1229,63 +1454,44 @@ export function QuickMatchGameView({
                 </>
               ) : (
                 <>
-                  <button
-                    onClick={onResign}
-                    disabled={gameOver}
-                    className="w-full py-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 font-medium transition-colors disabled:opacity-50"
-                  >
-                    Resign
-                  </button>
-                  <button
-                    onClick={() => {
-                      onLeave?.();
-                      navigate("/play");
-                    }}
-                    className="w-full py-3 rounded-xl bg-white/10 hover:bg-white/15 text-gray-800 dark:text-gray-200 font-medium transition-colors"
-                  >
-                    Back to Play
-                  </button>
+                  <div className="grid grid-cols-2 gap-2">
+                    <ResignConfirmButton
+                      type="button"
+                      onConfirm={onResign}
+                      disabled={gameOver}
+                      className="flex h-11 items-center justify-center gap-2 rounded-xl bg-red-500/10 text-sm font-semibold text-red-600 transition-colors hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-400"
+                    >
+                      <Flag size={16} />
+                      Resign
+                    </ResignConfirmButton>
+                    <button
+                      type="button"
+                      onClick={onOfferDraw}
+                      disabled={
+                        gameOver ||
+                        drawOfferPending ||
+                        hasIncomingDrawOffer ||
+                        !onOfferDraw
+                      }
+                      className="flex h-11 items-center justify-center gap-2 rounded-xl bg-white/10 text-sm font-semibold text-gray-800 transition-colors hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-100"
+                      title={
+                        drawOfferPending
+                          ? "Draw offer pending"
+                          : hasIncomingDrawOffer
+                            ? "Draw offer received"
+                            : "Offer draw"
+                      }
+                    >
+                      <Handshake size={16} />
+                      {drawOfferPending ? "Offered" : "Offer Draw"}
+                    </button>
+                  </div>
                 </>
               )}
             </div>
           </div>
         </div>
       </div>
-      {hasIncomingDrawOffer && gameStarted && !gameOver ? (
-        <div className="pointer-events-none absolute inset-x-0 top-4 z-[80] flex justify-center px-4">
-          <div className="pointer-events-auto w-full max-w-sm rounded-2xl border border-brand-400/35 bg-slate-950/95 p-4 text-white shadow-[0_18px_55px_rgba(0,0,0,0.45)]">
-            <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-500/15 text-brand-200">
-                <Handshake size={18} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-sm font-semibold">Draw offered</div>
-                <p className="mt-1 text-xs text-slate-300">
-                  Your opponent offered a draw.
-                </p>
-              </div>
-            </div>
-            <div className="mt-4 grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => onRespondDrawOffer?.(true)}
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-brand-600 text-sm font-semibold text-white transition-colors hover:bg-brand-500"
-              >
-                <Check size={15} />
-                Accept
-              </button>
-              <button
-                type="button"
-                onClick={() => onRespondDrawOffer?.(false)}
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.06] text-sm font-semibold text-slate-100 transition-colors hover:bg-white/[0.1]"
-              >
-                <X size={15} />
-                Decline
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
       {tournamentMode && showTournamentResultModal && (
         <div className="pointer-events-none absolute inset-0 z-[85] flex items-center justify-center bg-black/45 px-4 py-6">
           <div className="pointer-events-auto w-full max-w-[560px] rounded-2xl border border-cyan-400/35 bg-[#031829]/95 p-5 shadow-[0_24px_70px_rgba(3,10,26,0.75)]">

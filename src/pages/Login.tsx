@@ -5,13 +5,41 @@ import { useGoogleLogin, type TokenResponse } from "@react-oauth/google";
 import FacebookLogin, {
   type SuccessResponse as FacebookSuccessResponse,
 } from "@greatsumini/react-facebook-login";
-import { useAuthStore, authApi } from "../store/authStore";
+import { useAuthStore, authApi, type AuthApiError } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
 import { useAdminStore } from "../store/adminStore";
 import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "../components/LanguageSwitcher";
 import { useOAuthConfig } from "../hooks/useOAuthConfig";
 import { ThemeWindow } from "../components/settings";
+
+const QUICK_TEST_PASSWORD = "Test1234!";
+const QUICK_TEST_MAX_ATTEMPTS = 8;
+const QUICK_TEST_SUFFIX_LENGTH = 6;
+const QUICK_TEST_ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789";
+
+function createQuickTestSuffix(length = QUICK_TEST_SUFFIX_LENGTH) {
+  const values = new Uint8Array(length);
+  crypto.getRandomValues(values);
+  return Array.from(values, (value) => QUICK_TEST_ALPHABET[value % QUICK_TEST_ALPHABET.length]).join("");
+}
+
+function isDuplicateRegistrationError(err: unknown) {
+  if (!(err instanceof Error)) return false;
+  const authErr = err as Partial<AuthApiError>;
+  if (authErr.status === 409) return true;
+
+  const code = typeof authErr.code === "string" ? authErr.code.toLowerCase() : "";
+  if (code.includes("exists") || code.includes("duplicate")) return true;
+
+  const message = err.message.toLowerCase();
+  return (
+    message.includes("already exists") ||
+    message.includes("already in use") ||
+    message.includes("duplicate") ||
+    message.includes("taken")
+  );
+}
 
 type GoogleTokenSuccess = Omit<
   TokenResponse,
@@ -185,6 +213,46 @@ export default function Login() {
     setError(message);
   };
 
+  const handleQuickTestLogin = async () => {
+    setIsLoading(true);
+    setLocalError("");
+    setBanned("");
+
+    try {
+      for (let attempt = 0; attempt < QUICK_TEST_MAX_ATTEMPTS; attempt += 1) {
+        const username = `testuser_${createQuickTestSuffix()}`;
+        const quickTestEmail = `${username}@test.com`;
+
+        try {
+          await authApi.register(username, quickTestEmail, QUICK_TEST_PASSWORD);
+          const loginData = await authApi.login(quickTestEmail, QUICK_TEST_PASSWORD, rememberMe);
+          setUser(loginData.user);
+          navigate("/");
+          return;
+        } catch (err) {
+          if (isDuplicateRegistrationError(err)) continue;
+
+          const message =
+            err instanceof Error
+              ? err.message
+              : t("auth.quickTestLoginFailed", "Quick test login failed");
+          setLocalError(message);
+          setError(message);
+          return;
+        }
+      }
+
+      const message = t(
+        "auth.quickTestLoginRetry",
+        "Could not create a unique test account. Please try again.",
+      );
+      setLocalError(message);
+      setError(message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-theme-primary flex items-center justify-center p-4 transition-colors duration-300">
       <div
@@ -319,6 +387,17 @@ export default function Login() {
                 </>
               )}
             </button>
+
+            {import.meta.env.DEV === true && (
+              <button
+                type="button"
+                onClick={() => void handleQuickTestLogin()}
+                disabled={isLoading}
+                className="w-full border border-dashed border-gray-400/70 dark:border-gray-500/70 text-gray-600 dark:text-gray-300 bg-gray-100/70 dark:bg-gray-800/50 hover:bg-gray-200/70 dark:hover:bg-gray-700/60 disabled:opacity-50 disabled:cursor-not-allowed font-medium py-3 rounded-xl transition-colors text-sm"
+              >
+                {t("auth.quickTestLogin", "Quick Test Login (Dev Only)")}
+              </button>
+            )}
           </form>
 
           <div className="my-6 relative flex items-center">
