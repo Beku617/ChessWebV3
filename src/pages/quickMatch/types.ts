@@ -27,9 +27,9 @@ export const TIME_OPTIONS: TimeOption[] = [
     category: "Rapid",
   },
   {
-    label: "30+0",
-    initial: 1800,
-    increment: 0,
+    label: "90+30",
+    initial: 5400,
+    increment: 30,
     category: "Classical",
   },
 ];

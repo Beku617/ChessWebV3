@@ -86,7 +86,7 @@ const QUICK_TIME_GROUPS: QuickTimeGroup[] = [
     id: "classical",
     label: "Classical",
     options: [
-      { label: "30 | 20", initial: 1800, increment: 20 },
+      { label: "90 | 30", initial: 5400, increment: 30 },
     ],
   },
 ];

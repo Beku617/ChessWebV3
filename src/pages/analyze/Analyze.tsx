@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { GameHistory } from "../../historyTypes";
 import { API_URL } from "./types";
 import { ReplayContent } from "./ReplayContent";
+import { isLikelyChess960Game } from "../../utils/chessVariantDetection";
 
 export default function Analyze() {
   const { t } = useTranslation();
@@ -28,7 +29,12 @@ export default function Analyze() {
         });
         if (!res.ok) throw new Error(t("analysis.errors.fetchGame"));
         const data = await res.json();
-        setGame(data.game || data);
+        const loadedGame = (data.game || data) as GameHistory;
+        if (isLikelyChess960Game(loadedGame)) {
+          navigate(`/analyze960/${gameId}`, { replace: true });
+          return;
+        }
+        setGame(loadedGame);
       } catch (err) {
         setError(err instanceof Error ? err.message : t("analysis.errors.loadGame"));
       } finally {
@@ -36,7 +42,7 @@ export default function Analyze() {
       }
     }
     fetchGame();
-  }, [gameId, t]);
+  }, [gameId, navigate, t]);
 
   if (loading) {
     return (

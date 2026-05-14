@@ -260,7 +260,7 @@
   "10 | 5": "10 | 5",
   "15 | 10": "15 | 10",
   "30 min": "30 min",
-  "30 | 20": "30 | 20",
+  "90 | 30": "90 | 30",
   "1 day": "1 day",
   "3 days": "3 days",
   "7 days": "7 days",
@@ -358,7 +358,7 @@
       "rapid_10_0": "Rapid 10+0",
       "rapid_10_1": "Rapid 10+1",
       "rapid_15_10": "Rapid 15+10",
-      "classical_30_0": "Classical 30+0",
+      "classical_30_0": "Classical 90+30",
       "custom": "Custom"
     }
   },

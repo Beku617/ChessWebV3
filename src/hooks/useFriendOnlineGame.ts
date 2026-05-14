@@ -134,6 +134,30 @@ function normalizeMatchVariant(value: unknown): MatchVariant {
   return "standard";
 }
 
+function readFriendRouteVariantFromLocation(): MatchVariant | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const rawVariant = new URLSearchParams(window.location.search).get("variant");
+    if (!rawVariant) return null;
+    return normalizeMatchVariant(rawVariant);
+  } catch {
+    return null;
+  }
+}
+
+function resolveFriendHistoryVariant(fallbackVariant: MatchVariant): MatchVariant {
+  const routeVariant = readFriendRouteVariantFromLocation();
+  if (routeVariant) return routeVariant;
+
+  const activeGame = readActiveOnlineGame();
+  const activeVariant = String(activeGame?.variant || "").trim();
+  if (activeVariant) {
+    return normalizeMatchVariant(activeVariant);
+  }
+
+  return fallbackVariant;
+}
+
 interface MoveAppliedPayload {
   gameId: string;
   move: { from: Square; to: Square; san: string };
@@ -1585,6 +1609,7 @@ export function useFriendOnlineGame() {
 
     setHistoryPersistenceStatus("saving");
 
+    const persistedVariant = resolveFriendHistoryVariant(matchVariantRef.current);
     const opening = detectOpeningFromSan(persistedMoves);
     const ecoCode = opening?.eco || "";
     const openingName = opening
@@ -1726,20 +1751,22 @@ export function useFriendOnlineGame() {
     });
 
     const includeRatingMetadata =
-      !isUnratedVariant(matchVariant) && isRated && lastGameOver.elo?.rated === true;
+      !isUnratedVariant(persistedVariant) &&
+      isRated &&
+      lastGameOver.elo?.rated === true;
 
     saveGameHistory({
       event:
-        matchVariant === "chess960"
+        persistedVariant === "chess960"
           ? "Friend Challenge Chess960"
-          : matchVariant === "threeCheck"
+          : persistedVariant === "threeCheck"
             ? "Friend Challenge Three-Check"
-            : matchVariant === "kingOfHill"
+            : persistedVariant === "kingOfHill"
               ? "Friend Challenge King of the Hill"
-              : matchVariant === "atomic"
+              : persistedVariant === "atomic"
                 ? "Friend Challenge Atomic Chess"
               : "Friend Challenge",
-      variant: matchVariant,
+      variant: persistedVariant,
       site: "NeonGambit",
       link: gameIdRef.current || undefined,
       date: formatDate(startDate),
@@ -1843,9 +1870,9 @@ export function useFriendOnlineGame() {
       opponent,
       durationMs,
       whiteCheckCount:
-        matchVariant === "threeCheck" ? whiteThreeChecks : undefined,
+        persistedVariant === "threeCheck" ? whiteThreeChecks : undefined,
       blackCheckCount:
-        matchVariant === "threeCheck" ? blackThreeChecks : undefined,
+        persistedVariant === "threeCheck" ? blackThreeChecks : undefined,
     }).then((id) => {
       if (id) {
         setSavedGameId(id);
@@ -2479,6 +2506,7 @@ export function useFriendOnlineGame() {
 
   return {
     game,
+    gameId,
     moves,
     gameSettings,
     gameStarted,

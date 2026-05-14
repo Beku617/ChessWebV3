@@ -38,6 +38,7 @@ export default function PlayWithFriend() {
 
   const {
     game,
+    gameId,
     lastMove,
     moves,
     gameSettings,
@@ -209,6 +210,32 @@ export default function PlayWithFriend() {
     normalizedFriendVariant === "normal" ||
     normalizedFriendVariant === "classic";
 
+  useEffect(() => {
+    if (!gameStarted) return;
+    const activeGameId = String(gameId || "").trim();
+    if (!activeGameId) return;
+    const variantValue = String(matchVariant || gameType || "standard").trim();
+    if (!variantValue) return;
+
+    const currentSearch =
+      typeof window !== "undefined" ? window.location.search : location.search;
+    const currentParams = new URLSearchParams(currentSearch);
+    const hasGameId = currentParams.get("gameId") === activeGameId;
+    const hasVariant = currentParams.get("variant") === variantValue;
+    if (hasGameId && hasVariant) return;
+
+    currentParams.set("gameId", activeGameId);
+    currentParams.set("variant", variantValue);
+    const nextSearch = `?${currentParams.toString()}`;
+    const nextUrl = `/play/friend${nextSearch}`;
+    if (typeof window !== "undefined") {
+      const currentUrl = `${window.location.pathname}${window.location.search}`;
+      if (currentUrl !== nextUrl) {
+        window.history.replaceState(window.history.state, "", nextUrl);
+      }
+    }
+  }, [gameId, gameStarted, gameType, location.search, matchVariant]);
+
   // If game started, show the game board
   if (gameStarted) {
     if (isNormalFriendGame) {
@@ -300,6 +327,9 @@ export default function PlayWithFriend() {
         isClockPaused={isClockPaused}
         onTimeOut={timeOut}
         onResign={resign}
+        onOfferDraw={offerDraw}
+        onRespondDrawOffer={respondDrawOffer}
+        drawOfferState={drawOfferState}
         onTryAgain={handleTryAgain}
         onNewGame={handleNewGame}
         onLeave={leaveGame}

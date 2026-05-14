@@ -138,6 +138,19 @@ function normalizeTournamentStatus(
   return "draft";
 }
 
+function isCancelledOrEndedStatus(
+  status?: TournamentApiStatus | string | null,
+): boolean {
+  const normalized = String(status || "").trim().toUpperCase();
+  return (
+    normalized === "CANCELLED" ||
+    normalized === "CANCELED" ||
+    normalized === "ENDED" ||
+    normalized === "COMPLETED" ||
+    normalized === "FINISHED"
+  );
+}
+
 function normalizeTournamentSummary(
   item: TournamentApiSummary,
 ): TournamentSummary | null {
@@ -216,7 +229,6 @@ function getStatusLabel(item: TournamentSummary) {
 }
 
 function getActionLabel(item: TournamentSummary) {
-  if (item.status === "finished") return "Results";
   if (item.status === "running") return "View";
   return item.isRegistered ? "View" : "Register";
 }
@@ -254,9 +266,6 @@ export function TournamentsSection() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [tournaments, setTournaments] = useState<TournamentSummary[]>([]);
-  const [finishedDetail, setFinishedDetail] = useState<TournamentDetail | null>(
-    null,
-  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
@@ -280,65 +289,19 @@ export function TournamentsSection() {
 
         const nextTournaments = Array.isArray(data?.tournaments)
           ? (data.tournaments as TournamentApiSummary[])
+              .filter((item) => !isCancelledOrEndedStatus(item?.status))
               .map((item) => normalizeTournamentSummary(item))
               .filter((item): item is TournamentSummary => item !== null)
           : [];
 
         setTournaments(nextTournaments);
         setError(null);
-
-        const running = sortByNewest(
-          nextTournaments.filter((item) => item.status === "running"),
-          "startedAt",
-        );
-        const upcoming = sortByNewest(
-          nextTournaments.filter((item) => item.status === "registering"),
-          "createdAt",
-        );
-
-        if (running.length > 0 || upcoming.length > 0) {
-          setFinishedDetail(null);
-          return;
-        }
-
-        const latestFinished = sortByNewest(
-          nextTournaments.filter((item) => item.status === "finished"),
-          "finishedAt",
-        )[0];
-
-        if (!latestFinished?.id) {
-          setFinishedDetail(null);
-          return;
-        }
-
-        const detailRes = await fetch(
-          `${API_URL}/api/tournaments/${latestFinished.id}`,
-          {
-            credentials: "include",
-          },
-        );
-
-        if (cancelled) return;
-
-        if (!detailRes.ok) {
-          setFinishedDetail({ tournament: latestFinished, winners: [] });
-          return;
-        }
-
-        const detailData = await detailRes.json();
-        if (cancelled) return;
-
-        setFinishedDetail({
-          tournament: detailData?.tournament || latestFinished,
-          winners: Array.isArray(detailData?.winners) ? detailData.winners : [],
-        });
       } catch (err) {
         if (silent || cancelled) return;
         setError(
           err instanceof Error ? err.message : "Failed to load tournaments",
         );
         setTournaments([]);
-        setFinishedDetail(null);
       } finally {
         if (!silent && !cancelled) {
           setLoading(false);
@@ -456,63 +419,6 @@ export function TournamentsSection() {
             </div>
           );
         })}
-      </div>
-    );
-  }
-
-  if (finishedDetail?.tournament) {
-    const winner = finishedDetail.winners?.[0];
-    const finishedTournament = finishedDetail.tournament;
-    const resultSummary =
-      winner && winner.buchholz > 0
-        ? `Score ${winner.score} | Buchholz ${winner.buchholz}`
-        : winner
-          ? `Score ${winner.score}`
-          : `${finishedTournament.registeredCount} players`;
-
-    return (
-      <div
-        className={`rounded-xl border dark:border-gray-700/50 p-4 sm:p-5 shadow-sm ${getCardClasses(
-          "finished",
-        )}`}
-      >
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-600 dark:text-amber-300">
-              <span>{t("Latest Result")}</span>
-            </div>
-            <h3 className="mt-2 text-lg font-semibold leading-tight text-gray-900 dark:text-white break-words">
-              {finishedTournament.name}
-            </h3>
-            <p className="mt-2 text-sm text-gray-600 dark:text-gray-300 break-words">
-              {winner ? `${t("Winner")}: ${winner.name}` : t("Results pending")}
-            </p>
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 break-words">
-              {timeControlLabel(finishedTournament.timeControl)} | {resultSummary}
-            </p>
-          </div>
-
-          <div className="shrink-0">
-            <span className="inline-flex rounded-full border border-white/10 bg-white/60 px-2.5 py-1 text-[11px] font-medium text-gray-700 shadow-sm backdrop-blur dark:border-gray-700 dark:bg-gray-900/60 dark:text-gray-200">
-              {getStatusLabel(finishedTournament)}
-            </span>
-          </div>
-        </div>
-
-        <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="inline-flex min-w-0 items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-            <span className="truncate">
-              {finishedTournament.registeredCount} {t("players")}
-            </span>
-          </div>
-
-          <button
-            onClick={() => navigate(buildTournamentUrl(finishedTournament.id))}
-            className="inline-flex items-center justify-center rounded-md bg-gray-900 dark:bg-gray-700 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-emerald-600 dark:hover:bg-emerald-600"
-          >
-            {t("View Results")}
-          </button>
-        </div>
       </div>
     );
   }

@@ -280,6 +280,7 @@ interface TournamentLobbyDetailResponse {
     name?: string;
     status?: string;
     type?: string;
+    rated?: boolean;
     formatLabel?: string;
     currentRound?: number;
     roundsPlanned?: number;
@@ -420,6 +421,7 @@ function buildTournamentLobbyPanelData(
         name: String(tournament.name || "Tournament"),
         status: String(tournament.status || ""),
         type: String(tournament.type || "swiss"),
+        rated: tournament.rated === true,
         formatLabel: String(tournament.formatLabel || ""),
         currentRound: Number(tournament.currentRound || 0),
         roundsPlanned: Number(tournament.roundsPlanned || 1),

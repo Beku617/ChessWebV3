@@ -22,6 +22,7 @@ import {
   storeActiveOnlineGame,
 } from "../../utils/activeOnlineGame";
 import { SOCKET_URL } from "../../config/network";
+import { useAuthStore } from "../../store/authStore";
 const ACTIVE_FOUR_PLAYER_GAME_STORAGE_KEY =
   "neongambit:activeFourPlayerGameId";
 
@@ -43,6 +44,7 @@ interface MatchFoundPayload {
   state: FourPlayerState;
   players: FourPlayerPlayers;
   timeControl: TimeControl;
+  chatMessages?: FourPlayerChatPayload[];
   restored?: boolean;
 }
 
@@ -53,6 +55,28 @@ interface StatePayload {
   timeControl?: TimeControl;
   lastMove?: FourPlayerMove;
   systemMessage?: string;
+  chatMessages?: FourPlayerChatPayload[];
+}
+
+interface FourPlayerChatPayload {
+  gameId?: string;
+  senderId?: string;
+  senderUsername?: string;
+  message?: string;
+  timestamp?: string;
+}
+
+interface FourPlayerChatMessage {
+  id: string;
+  senderId: string;
+  senderUsername: string;
+  content: string;
+  createdAt: string;
+  isSystem?: boolean;
+}
+
+function createFourPlayerChatMessageId() {
+  return `chat-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
 function storeActiveFourPlayerGameId(gameId: string | null) {
@@ -103,6 +127,7 @@ function readActiveFourPlayerGameId() {
 }
 
 export function useOnlineFourPlayerMatch() {
+  const { user } = useAuthStore();
   const [gameState, setGameState] = useState<FourPlayerState>(() =>
     createInitialFourPlayerState(),
   );
@@ -127,8 +152,10 @@ export function useOnlineFourPlayerMatch() {
   const [forfeitedColor, setForfeitedColor] = useState<FourPlayerColor | null>(
     null,
   );
+  const [chatMessages, setChatMessages] = useState<FourPlayerChatMessage[]>([]);
 
   const socketRef = useRef<Socket | null>(null);
+  const userRef = useRef(user);
   const gameIdRef = useRef<string | null>(readActiveFourPlayerGameId() || null);
   const playerNameRef = useRef("Player");
   const lastSoundMoveKeyRef = useRef<string>("");
@@ -152,6 +179,63 @@ export function useOnlineFourPlayerMatch() {
     return getLegalMoves(gameState, selected);
   }, [gameState, selected]);
 
+  const appendChatMessage = useCallback((payload: FourPlayerChatPayload) => {
+    const gameIdFromPayload = String(payload.gameId || "").trim();
+    const currentGameId = String(gameIdRef.current || "").trim();
+    if (!gameIdFromPayload || !currentGameId || gameIdFromPayload !== currentGameId) {
+      return;
+    }
+    const senderId = String(payload.senderId || "").trim();
+    const senderUsername = String(payload.senderUsername || "").trim();
+    const message = String(payload.message || "").trim();
+    if (!senderId || !senderUsername || !message) return;
+    const createdAt = String(payload.timestamp || new Date().toISOString());
+    const messageKey = `${senderId}|${createdAt}|${message}`;
+    setChatMessages((previous) => {
+      const hasDuplicate = previous.some(
+        (entry) =>
+          `${entry.senderId}|${String(entry.createdAt || "").trim()}|${entry.content}` ===
+          messageKey,
+      );
+      if (hasDuplicate) return previous;
+      return [
+        ...previous,
+        {
+          id: createFourPlayerChatMessageId(),
+          senderId,
+          senderUsername,
+          content: message,
+          createdAt,
+        },
+      ];
+    });
+  }, []);
+
+  const replaceChatMessages = useCallback((messages?: FourPlayerChatPayload[]) => {
+    if (!Array.isArray(messages)) return;
+    const seenMessageKeys = new Set<string>();
+    const normalized = messages
+      .map((entry) => {
+        const senderId = String(entry?.senderId || "").trim();
+        const senderUsername = String(entry?.senderUsername || "").trim();
+        const content = String(entry?.message || "").trim();
+        const createdAt = String(entry?.timestamp || "").trim();
+        if (!senderId || !senderUsername || !content || !createdAt) return null;
+        const messageKey = `${senderId}|${createdAt}|${content}`;
+        if (seenMessageKeys.has(messageKey)) return null;
+        seenMessageKeys.add(messageKey);
+        return {
+          id: createFourPlayerChatMessageId(),
+          senderId,
+          senderUsername,
+          content,
+          createdAt,
+        };
+      })
+      .filter((entry): entry is FourPlayerChatMessage => !!entry);
+    setChatMessages(normalized);
+  }, []);
+
   const legalMoveSet = useMemo(
     () => new Set(legalMoves.map((sq) => `${sq.row},${sq.col}`)),
     [legalMoves],
@@ -174,9 +258,14 @@ export function useOnlineFourPlayerMatch() {
     setGameOverReason(null);
     gameOverReasonRef.current = null;
     setForfeitedColor(null);
+    setChatMessages([]);
     lastSoundMoveKeyRef.current = "";
     moveInFlightRef.current = false;
   }, []);
+
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
 
   useEffect(() => {
     playerColorRef.current = playerColor;
@@ -316,6 +405,11 @@ export function useOnlineFourPlayerMatch() {
       setGameOverReason(null);
       gameOverReasonRef.current = null;
       setForfeitedColor(null);
+      if (Array.isArray(payload.chatMessages)) {
+        replaceChatMessages(payload.chatMessages);
+      } else {
+        setChatMessages([]);
+      }
       lastSoundMoveKeyRef.current = "";
       setGameStarted(true);
       playGameplaySound("gameStart", { onceKey: payload.gameId });
@@ -381,6 +475,9 @@ export function useOnlineFourPlayerMatch() {
       if (payload.systemMessage) {
         setSystemMessage(payload.systemMessage);
       }
+      if (Array.isArray(payload.chatMessages)) {
+        replaceChatMessages(payload.chatMessages);
+      }
       setSelected(null);
     });
 
@@ -415,6 +512,10 @@ export function useOnlineFourPlayerMatch() {
         playGameplaySound("gameEnd");
       },
     );
+
+    socket.on("fourPlayerChatMessage", (payload: FourPlayerChatPayload) => {
+      appendChatMessage(payload);
+    });
 
     const initialStoredGameId = readActiveFourPlayerGameId();
     if (socket.connected) {
@@ -475,10 +576,33 @@ export function useOnlineFourPlayerMatch() {
 
   const leaveGame = useCallback(() => {
     const socket = socketRef.current;
-    if (!socket) return;
-    socket.emit("fourPlayerLeaveGame", { gameId: gameIdRef.current });
+    if (socket) {
+      socket.emit("fourPlayerLeaveGame", { gameId: gameIdRef.current });
+    }
     resetLocalState();
   }, [resetLocalState]);
+
+  const sendChatMessage = useCallback(
+    (message: string) => {
+      const socket = socketRef.current;
+      if (!socket || !socket.connected) return;
+      if (!gameStarted || gameOverReason || gameState.winner) return;
+      const trimmedMessage = String(message || "").trim();
+      if (!trimmedMessage) return;
+      const resolvedGameId = String(gameIdRef.current || gameId || "").trim();
+      const senderId = String(userRef.current?.id || "").trim();
+      const senderUsername = String(userRef.current?.fullName || "Player").trim();
+      if (!resolvedGameId || !senderId || !senderUsername) return;
+      socket.emit("fourPlayerChatMessage", {
+        gameId: resolvedGameId,
+        senderId,
+        senderUsername,
+        message: trimmedMessage,
+        timestamp: new Date().toISOString(),
+      });
+    },
+    [gameId, gameOverReason, gameStarted, gameState.winner],
+  );
 
   const canDragFrom = useCallback(
     (row: number, col: number) => {
@@ -598,6 +722,7 @@ export function useOnlineFourPlayerMatch() {
     systemMessage,
     gameOverReason,
     forfeitedColor,
+    chatMessages,
 
     startMatch,
     cancelMatch,
@@ -608,5 +733,6 @@ export function useOnlineFourPlayerMatch() {
     canDragFrom,
     rematch,
     resetLocalState,
+    sendChatMessage,
   };
 }

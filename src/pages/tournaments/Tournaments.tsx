@@ -207,7 +207,7 @@ const TIME_PRESETS = [
   { key: "rapid_10_0", label: "Rapid 10+0", baseMinutes: 10, incrementSeconds: 0 },
   { key: "rapid_10_1", label: "Rapid 10+1", baseMinutes: 10, incrementSeconds: 1 },
   { key: "rapid_15_10", label: "Rapid 15+10", baseMinutes: 15, incrementSeconds: 10 },
-  { key: "classical_30_0", label: "Classical 30+0", baseMinutes: 30, incrementSeconds: 0 },
+  { key: "classical_30_0", label: "Classical 90+30", baseMinutes: 90, incrementSeconds: 30 },
   { key: "custom", label: "Custom", baseMinutes: 10, incrementSeconds: 0 },
 ] as const;
 
@@ -566,13 +566,10 @@ function formatPlayersCount(item: TournamentSummary) {
   return Intl.NumberFormat().format(Math.max(0, Number(item.registeredCount || 0)));
 }
 
-function getGameTimeParts(timeControl?: TimeControl) {
+function getGameTimeLabel(timeControl?: TimeControl) {
   const baseMinutes = getBaseMinutes(timeControl);
   const incrementSeconds = getIncrementSeconds(timeControl);
-  return {
-    main: `${baseMinutes} min`,
-    detail: incrementSeconds > 0 ? `+${incrementSeconds}s increment` : "",
-  };
+  return `${baseMinutes}+${incrementSeconds}`;
 }
 
 function getTournamentMetaLine(item: TournamentSummary) {
@@ -592,6 +589,17 @@ function getInitials(name: string) {
 
 function formatArenaScore(value: number) {
   return Number.isInteger(value) ? String(value) : value.toFixed(1);
+}
+
+function formatSignedRatingDelta(delta: number) {
+  if (delta > 0) return `+${delta}`;
+  return `${delta}`;
+}
+
+function ratingDeltaTextClass(delta: number) {
+  if (delta > 0) return "text-emerald-300";
+  if (delta < 0) return "text-rose-300";
+  return "text-slate-300";
 }
 
 function getStandingGames(row: StandingRow) {
@@ -617,6 +625,17 @@ function ArenaResultsModal({
     tournament.isRegistered && currentUserId
       ? (detail.standings || []).find((row) => String(row.userId) === currentUserId) || null
       : null;
+  const isRatedTournament = tournament.rated === true;
+  const ratingDeltaByUserId = new Map(
+    (detail.players || []).map((player) => [
+      String(player.userId || ""),
+      Number.isFinite(Number(player.tournamentEloDelta))
+        ? Math.round(Number(player.tournamentEloDelta))
+        : 0,
+    ]),
+  );
+  const getRatingDelta = (userId: string) =>
+    Number(ratingDeltaByUserId.get(String(userId || "")) || 0);
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4">
@@ -664,6 +683,15 @@ function ArenaResultsModal({
                 <div className="mt-0.5 flex items-baseline gap-1">
                   <span className="text-2xl font-black">{formatArenaScore(Number(row.points || 0))}</span>
                   <span className="text-sm font-semibold text-white/55">/ {getStandingGames(row)}</span>
+                  {isRatedTournament ? (
+                    <span
+                      className={`text-sm font-semibold ${ratingDeltaTextClass(
+                        getRatingDelta(String(row.userId || "")),
+                      )}`}
+                    >
+                      {formatSignedRatingDelta(getRatingDelta(String(row.userId || "")))}
+                    </span>
+                  ) : null}
                 </div>
               </div>
             </div>
@@ -688,6 +716,15 @@ function ArenaResultsModal({
             </div>
             <div className="text-lg font-black">{formatArenaScore(Number(viewerRow.points || 0))}</div>
             <div className="text-sm font-semibold text-white/60">/ {getStandingGames(viewerRow)}</div>
+            {isRatedTournament ? (
+              <div
+                className={`text-sm font-semibold ${ratingDeltaTextClass(
+                  getRatingDelta(String(viewerRow.userId || "")),
+                )}`}
+              >
+                {formatSignedRatingDelta(getRatingDelta(String(viewerRow.userId || "")))}
+              </div>
+            ) : null}
           </div>
         ) : null}
       </div>
@@ -829,7 +866,7 @@ function TournamentRow({
 }) {
   const speed = getTournamentSpeed(item);
   const statusText = getTournamentStatusText(item, now);
-  const gameTime = getGameTimeParts(item.timeControl);
+  const gameTimeLabel = getGameTimeLabel(item.timeControl);
   const durationText = getTournamentDurationLabel(item, now);
   const isBusy = busyAction.includes(item.id);
   const hasEnded = isTournamentEnded(item, now);
@@ -871,14 +908,9 @@ function TournamentRow({
         </button>
       </td>
       <td className="align-middle px-5 py-3 text-left whitespace-nowrap">
-        <span className="block text-[12px] font-semibold text-gray-800 dark:text-gray-100">
-          {gameTime.main}
+        <span className="text-[12px] font-semibold text-gray-800 dark:text-gray-100">
+          {gameTimeLabel}
         </span>
-        {gameTime.detail && (
-          <span className="mt-0.5 block text-[10.5px] text-gray-500 dark:text-gray-400">
-            {gameTime.detail}
-          </span>
-        )}
       </td>
       <td className="align-middle px-5 py-3 text-left whitespace-nowrap">
         <span className="inline-flex rounded-full border border-theme-glass bg-gray-900/[0.04] px-2.5 py-1 text-[11px] font-medium text-gray-700 dark:bg-white/[0.06] dark:text-gray-200">
@@ -915,7 +947,7 @@ function TournamentRow({
               disabled={!!busyAction}
               className={classNames(
                 actionButtonClass,
-                "bg-brand-500 text-white hover:bg-brand-400 dark:text-gray-950",
+                "bg-emerald-500 text-white hover:bg-emerald-400",
               )}
             >
               {isBusy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : "Join"}
@@ -1088,7 +1120,7 @@ function TournamentTable({
         {tournaments.map((item) => {
           const speed = getTournamentSpeed(item);
           const statusText = getTournamentStatusText(item, now);
-          const gameTime = getGameTimeParts(item.timeControl);
+          const gameTimeLabel = getGameTimeLabel(item.timeControl);
           const durationText = getTournamentDurationLabel(item, now);
           const hasEnded = isTournamentEnded(item, now);
           const registrationOpen = canJoinTournament(item, now);
@@ -1127,7 +1159,7 @@ function TournamentTable({
                     Game Time
                   </p>
                   <p className="mt-1 text-sm font-medium text-gray-800 dark:text-gray-100">
-                    {gameTime.detail ? `${gameTime.main} ${gameTime.detail}` : gameTime.main}
+                    {gameTimeLabel}
                   </p>
                 </div>
                 <div>
@@ -1170,7 +1202,7 @@ function TournamentTable({
                     type="button"
                     onClick={() => onRegister(item.id)}
                     disabled={!!busyAction}
-                    className="inline-flex h-8 min-w-[76px] items-center justify-center rounded-md bg-brand-500 px-3 text-[12px] font-semibold text-white transition-colors hover:bg-brand-400 disabled:opacity-60 dark:text-gray-950"
+                    className="inline-flex h-8 min-w-[76px] items-center justify-center rounded-md bg-emerald-500 px-3 text-[12px] font-semibold text-white transition-colors hover:bg-emerald-400 disabled:opacity-60"
                   >
                     {isBusy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : "Join"}
                   </button>
@@ -3395,3 +3427,4 @@ export default function Tournaments() {
     </div>
   );
 }
+

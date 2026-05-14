@@ -86,6 +86,7 @@ export interface TournamentGamePanelData {
     name: string;
     status: string;
     type: string;
+    rated?: boolean;
     formatLabel?: string;
     currentRound: number;
     roundsPlanned: number;
@@ -323,6 +324,43 @@ function formatArenaModalScore(value: number | null | undefined): string {
   return Number.isInteger(numeric) ? String(numeric) : String(Math.round(numeric * 10) / 10);
 }
 
+interface PlayerRatingChange {
+  oldRating: number;
+  newRating: number;
+  delta: number;
+}
+
+function toRoundedRating(value: unknown): number | null {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? Math.round(parsed) : null;
+}
+
+function formatSignedRatingDelta(delta: number): string {
+  if (delta > 0) return `+${delta}`;
+  return `${delta}`;
+}
+
+function ratingDeltaTextClass(delta: number): string {
+  if (delta > 0) return "text-emerald-300";
+  if (delta < 0) return "text-rose-300";
+  return "text-slate-300";
+}
+
+function buildPlayerRatingChange(
+  elo: QuickMatchGameViewProps["gameOverElo"],
+  playerColor: "w" | "b",
+): PlayerRatingChange | null {
+  if (!elo || elo.rated !== true) return null;
+  const side = playerColor === "b" ? elo.black || elo.white : elo.white || elo.black;
+
+  const oldRating = toRoundedRating(side?.oldRating);
+  const newRating = toRoundedRating(side?.newRating);
+  const delta = toRoundedRating(side?.delta);
+  if (oldRating === null || newRating === null || delta === null) return null;
+
+  return { oldRating, newRating, delta };
+}
+
 function getArenaFormatLabel(
   tournament: TournamentGamePanelData["tournament"] | undefined,
 ): string {
@@ -468,7 +506,7 @@ export function QuickMatchGameView({
     typeof boardFenOverride === "string" && boardFenOverride.trim().length > 0;
   const isExternallyControlled =
     externalBoardFenProvided || typeof activeMovePly === "number";
-  const canShowOpening = variant !== "chess960";
+  const canShowOpening = variant === "standard";
   const { opening, isLoading: openingLoading } = useOpeningExplorer(
     canShowOpening ? moves : [],
     { enableRemote: true },
@@ -551,6 +589,7 @@ export function QuickMatchGameView({
   const isArenaTournament = tournamentType === "arena";
   const tournamentStatus = String(tournamentPanelData?.tournament?.status || "").toUpperCase();
   const isTournamentFinished = tournamentStatus === "FINISHED";
+  const isRatedTournament = tournamentPanelData?.tournament?.rated === true;
   const tournamentIdForModal = String(tournamentPanelData?.tournament?.id || "");
   const [countdownNowMs, setCountdownNowMs] = useState(() => Date.now());
   const rawTournamentActionLabel = String(
@@ -608,6 +647,20 @@ export function QuickMatchGameView({
           ? "Loss"
           : null;
   const winnerLabel = getWinnerLabel(activeTournamentHistoryRow);
+  const viewerTournamentGameRatingChange = buildPlayerRatingChange(gameOverElo, playerColor);
+  const viewerTournamentHistoryRatingDelta =
+    String(activeTournamentHistoryRow?.whiteId || "") === viewerUserId
+      ? toRoundedRating(activeTournamentHistoryRow?.whiteEloDelta)
+      : String(activeTournamentHistoryRow?.blackId || "") === viewerUserId
+        ? toRoundedRating(activeTournamentHistoryRow?.blackEloDelta)
+        : null;
+  const viewerTournamentRatingDelta =
+    viewerTournamentGameRatingChange?.delta ?? viewerTournamentHistoryRatingDelta;
+  const viewerTournamentRatingLabel = viewerTournamentGameRatingChange
+    ? `${viewerTournamentGameRatingChange.oldRating}->${viewerTournamentGameRatingChange.newRating} (${formatSignedRatingDelta(viewerTournamentGameRatingChange.delta)})`
+    : viewerTournamentRatingDelta !== null
+      ? formatSignedRatingDelta(viewerTournamentRatingDelta)
+      : null;
   const filteredTournamentStatusMessage = sanitizeTournamentStatusMessage(statusMessage);
   const [showTournamentResultModal, setShowTournamentResultModal] = useState(false);
   const shownTournamentResultGameRef = useRef("");
@@ -1462,6 +1515,11 @@ export function QuickMatchGameView({
             <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-cyan-100/75">
               {winnerLabel ? <span>Winner: {winnerLabel}</span> : null}
               {viewerOutcomeLabel ? <span>Result: {viewerOutcomeLabel}</span> : null}
+              {isRatedTournament && viewerTournamentRatingDelta !== null && viewerTournamentRatingLabel ? (
+                <span className={ratingDeltaTextClass(viewerTournamentRatingDelta)}>
+                  Rating: {viewerTournamentRatingLabel}
+                </span>
+              ) : null}
             </div>
 
             <div className="mt-4 flex items-center justify-end gap-2">

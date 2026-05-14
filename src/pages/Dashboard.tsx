@@ -27,8 +27,8 @@ const pairingOptions: PairingOption[] = [
   { label: "10+0", category: "Rapid", initial: 600, increment: 0 },
   { label: "10+5", category: "Rapid", initial: 600, increment: 5 },
   { label: "15+10", category: "Rapid", initial: 900, increment: 10 },
-  { label: "30+0", category: "Classical", initial: 1800, increment: 0 },
-  { label: "30+20", category: "Classical", initial: 1800, increment: 20 },
+  { label: "90+0", category: "Classical", initial: 5400, increment: 0 },
+  { label: "90+30", category: "Classical", initial: 5400, increment: 30 },
   { label: "Custom", category: "Choose setup" },
 ];
 

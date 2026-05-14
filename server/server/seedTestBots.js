@@ -21,6 +21,52 @@ const DIFFICULTIES = [
   "master",
 ];
 
+const DIFFICULTY_TONE = {
+  beginner: {
+    en: "beginner",
+    mn: "эхлэгч",
+    traitEn: "forgives mistakes but snaps up loose pieces",
+    traitMn: "алдаа уучилдаг ч сул хүүг шууд авдаг",
+  },
+  casual: {
+    en: "casual",
+    mn: "сонирхогч",
+    traitEn: "keeps things practical with simple plans",
+    traitMn: "практик тоглож, энгийн төлөвлөгөө барьдаг",
+  },
+  intermediate: {
+    en: "intermediate",
+    mn: "дунд",
+    traitEn: "spots common tactics and improves each move",
+    traitMn: "түгээмэл тактикийг харж, нүүдэл бүрээр сайжирдаг",
+  },
+  advanced: {
+    en: "advanced",
+    mn: "ахисан",
+    traitEn: "coordinates pieces quickly and squeezes small edges",
+    traitMn: "хөлгүүдээ хурдан уялдуулж, жижиг давууг шахдаг",
+  },
+  master: {
+    en: "master",
+    mn: "мастер",
+    traitEn: "calculates deeply and converts advantages precisely",
+    traitMn: "гүн тооцоолж, давууг маш нарийн ялалт болгодог",
+  },
+};
+
+const STYLE_TONE = {
+  aggressive: { en: "aggressive attacker", mn: "довтолгоонд дуртай довтлогч" },
+  defensive: { en: "defensive strategist", mn: "хамгаалалт төвтэй стратегич" },
+  balanced: { en: "balanced all-rounder", mn: "тэнцвэртэй универсал" },
+  random: { en: "unpredictable trickster", mn: "тааварлашгүй зальтан" },
+};
+
+function buildSeedBotDescription(difficulty, style) {
+  const tone = DIFFICULTY_TONE[difficulty] || DIFFICULTY_TONE.beginner;
+  const styleTone = STYLE_TONE[style] || STYLE_TONE.balanced;
+  return `EN: A ${tone.en}-level ${styleTone.en} who ${tone.traitEn}. MN: ${tone.mn} түвшний ${styleTone.mn}; ${tone.traitMn}.`;
+}
+
 function buildBot(index) {
   const difficulty = DIFFICULTIES[(index - 1) % DIFFICULTIES.length];
   const tierConfig = {
@@ -53,7 +99,7 @@ function buildBot(index) {
     category: "test",
     title: "",
     quote: `Test bot #${index} ready for quick matches.`,
-    description: `Auto-generated test bot ${index} for QA and UI testing.`,
+    description: buildSeedBotDescription(difficulty, style),
     personality: `Plays a ${style} style at ${difficulty} difficulty.`,
     countryCode: "US",
     playStyle: style,

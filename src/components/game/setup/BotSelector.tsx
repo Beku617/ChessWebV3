@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import {
   BotPersonality,
   getBotsByCategory,
@@ -9,6 +10,7 @@ import {
   categoryLabels,
   categoryColors,
 } from "./constants";
+import { resolveLocalizedBotDescription } from "../../../utils/botDescriptionLocalization";
 
 interface BotSelectorProps {
   selectedCategory: BotCategory;
@@ -23,6 +25,7 @@ export function BotSelector({
   selectedBot,
   setSelectedBot,
 }: BotSelectorProps) {
+  const { i18n } = useTranslation();
   const botsInCategory = getBotsByCategory(selectedCategory);
 
   return (
@@ -100,12 +103,18 @@ export function BotSelector({
       </div>
 
       {/* Selected Bot Info */}
-      {selectedBot && <BotInfoCard bot={selectedBot} />}
+      {selectedBot && <BotInfoCard bot={selectedBot} language={i18n.language} />}
     </motion.div>
   );
 }
 
-function BotInfoCard({ bot }: { bot: BotPersonality }) {
+function BotInfoCard({
+  bot,
+  language,
+}: {
+  bot: BotPersonality;
+  language: string;
+}) {
   return (
     <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
       <div className="flex items-start gap-3">
@@ -122,7 +131,7 @@ function BotInfoCard({ bot }: { bot: BotPersonality }) {
             "{bot.personality}"
           </p>
           <p className="text-xs text-gray-500 dark:text-gray-500">
-            {bot.description}
+            {resolveLocalizedBotDescription(bot.description, language)}
           </p>
           <div className="flex gap-2 mt-2">
             <span

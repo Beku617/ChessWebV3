@@ -23,98 +23,50 @@ import {
   deleteAdminLearnStep,
   fetchAdminLearnSteps,
   reorderAdminLearnSteps,
-  updateAdminLearnLesson,
   updateAdminLearnStep,
 } from "./api";
 import type {
-  AdminLearnCourse,
   AdminLearnLesson,
   AdminLearnStep,
   StepPayload,
 } from "./types";
 import { useAdminGuard } from "./useAdminGuard";
 
-type LessonMetaDraft = {
-  title: string;
-  slug: string;
-  subtitle: string;
-  description: string;
-  estimatedMinutes: number;
-  isPublished: boolean;
-};
-
 type StepDraft = {
-  title: string;
   instructionText: string;
-  explanationBeforeMove: string;
   fen: string;
   sideToMove: "white" | "black";
   boardOrientation: "white" | "black";
-  validationMode: "exact" | "one_of_many";
   acceptedMoves: string;
   successMessage: string;
   wrongMoveMessage: string;
-  hintText: string;
-  allowRetry: boolean;
-  autoAdvance: boolean;
-  keepPositionOnWrong: boolean;
-  nextFen: string;
-  annotations: string;
   isPublished: boolean;
-};
-
-const EMPTY_STEP_DRAFT: StepDraft = {
-  title: "",
-  instructionText: "",
-  explanationBeforeMove: "",
-  fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-  sideToMove: "white",
-  boardOrientation: "white",
-  validationMode: "one_of_many",
-  acceptedMoves: "",
-  successMessage: "",
-  wrongMoveMessage: "",
-  hintText: "",
-  allowRetry: true,
-  autoAdvance: false,
-  keepPositionOnWrong: false,
-  nextFen: "",
-  annotations: "{}",
-  isPublished: true,
 };
 
 const DEFAULT_SUCCESS_MESSAGE = "Correct move.";
 const DEFAULT_WRONG_MOVE_MESSAGE = "Try another move.";
 
-function toLessonMetaDraft(lesson: AdminLearnLesson): LessonMetaDraft {
-  return {
-    title: lesson.title,
-    slug: lesson.slug,
-    subtitle: lesson.subtitle,
-    description: lesson.description,
-    estimatedMinutes: lesson.estimatedMinutes || 10,
-    isPublished: lesson.isPublished,
-  };
-}
+const EMPTY_STEP_DRAFT: StepDraft = {
+  instructionText: "",
+  fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+  sideToMove: "white",
+  boardOrientation: "white",
+  acceptedMoves: "",
+  successMessage: DEFAULT_SUCCESS_MESSAGE,
+  wrongMoveMessage: DEFAULT_WRONG_MOVE_MESSAGE,
+  isPublished: true,
+};
 
 function toStepDraft(step: AdminLearnStep): StepDraft {
   return {
-    title: step.title || "",
     instructionText: step.instructionText || "",
-    explanationBeforeMove: step.explanationBeforeMove || "",
     fen: step.fen,
     sideToMove: step.sideToMove,
     boardOrientation: step.boardOrientation || "white",
-    validationMode: step.validationMode || "one_of_many",
     acceptedMoves: (step.correctMoves || step.acceptedMoves || []).join(", "),
-    successMessage: step.successMessage || step.feedbackCorrect || "",
-    wrongMoveMessage: step.wrongMoveMessage || step.feedbackWrong || "",
-    hintText: step.hintText || "",
-    allowRetry: step.allowRetry !== false,
-    autoAdvance: !!step.autoAdvance,
-    keepPositionOnWrong: !!step.keepPositionOnWrong,
-    nextFen: step.nextFen || "",
-    annotations: JSON.stringify(step.annotations || {}, null, 2),
+    successMessage: step.successMessage || step.feedbackCorrect || DEFAULT_SUCCESS_MESSAGE,
+    wrongMoveMessage:
+      step.wrongMoveMessage || step.feedbackWrong || DEFAULT_WRONG_MOVE_MESSAGE,
     isPublished: step.isPublished !== false,
   };
 }
@@ -145,16 +97,13 @@ export default function AdminLearnLesson() {
   const { isDarkMode } = useThemeStore();
   const { isAuthenticated, isLoading: authLoading } = useAdminGuard();
 
-  const [course, setCourse] = useState<AdminLearnCourse | null>(null);
   const [lesson, setLesson] = useState<AdminLearnLesson | null>(null);
-  const [lessonDraft, setLessonDraft] = useState<LessonMetaDraft | null>(null);
   const [steps, setSteps] = useState<AdminLearnStep[]>([]);
   const [selectedStepId, setSelectedStepId] = useState<string | null>(null);
   const [stepDraft, setStepDraft] = useState<StepDraft>(EMPTY_STEP_DRAFT);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [savingLesson, setSavingLesson] = useState(false);
   const [savingStep, setSavingStep] = useState(false);
   const [processingStepId, setProcessingStepId] = useState<string | null>(null);
   const [isRecordingAcceptedMoves, setIsRecordingAcceptedMoves] = useState(false);
@@ -189,9 +138,7 @@ export default function AdminLearnLesson() {
       setLoading(true);
       setError("");
       const data = await fetchAdminLearnSteps({ lessonId, search });
-      setCourse(data.course || null);
       setLesson(data.lesson || null);
-      setLessonDraft(data.lesson ? toLessonMetaDraft(data.lesson) : null);
       setSteps(data.steps || []);
 
       if (!data.steps?.length) {
@@ -254,71 +201,37 @@ export default function AdminLearnLesson() {
     setStepDraft(EMPTY_STEP_DRAFT);
   };
 
-  const handleSaveLessonMeta = async () => {
-    if (!lesson || !lessonDraft) return;
-    setSavingLesson(true);
-    setError("");
-    try {
-      const response = await updateAdminLearnLesson(lesson.id, {
-        title: lessonDraft.title,
-        slug: lessonDraft.slug,
-        subtitle: lessonDraft.subtitle,
-        description: lessonDraft.description,
-        estimatedMinutes: Number(lessonDraft.estimatedMinutes || 10),
-        isPublished: lessonDraft.isPublished,
-      });
-      setLesson(response.lesson);
-      setLessonDraft(toLessonMetaDraft(response.lesson));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save lesson metadata.");
-    } finally {
-      setSavingLesson(false);
-    }
-  };
-
   const handleSaveStep = async () => {
     if (!lessonId) return;
     setSavingStep(true);
     setError("");
     try {
-      let parsedAnnotations: Record<string, unknown> = {};
-      if (stepDraft.annotations.trim()) {
-        parsedAnnotations = JSON.parse(stepDraft.annotations);
-      }
+      const normalizedSuccessMessage =
+        stepDraft.successMessage.trim() || DEFAULT_SUCCESS_MESSAGE;
+      const normalizedWrongMoveMessage =
+        stepDraft.wrongMoveMessage.trim() || DEFAULT_WRONG_MOVE_MESSAGE;
 
-      const payload: StepPayload = {
-        title: stepDraft.title,
+      const basePayload: StepPayload = {
         instructionText: stepDraft.instructionText,
-        explanationBeforeMove: stepDraft.explanationBeforeMove,
         fen: stepDraft.fen,
         sideToMove: stepDraft.sideToMove,
         boardOrientation: stepDraft.boardOrientation,
-        validationMode: stepDraft.validationMode,
         correctMoves: stepDraft.acceptedMoves,
-        successMessage:
-          stepDraft.successMessage.trim() || DEFAULT_SUCCESS_MESSAGE,
-        wrongMoveMessage:
-          stepDraft.wrongMoveMessage.trim() || DEFAULT_WRONG_MOVE_MESSAGE,
-        hintText: stepDraft.hintText,
-        allowRetry: stepDraft.allowRetry,
-        autoAdvance: stepDraft.autoAdvance,
-        keepPositionOnWrong: stepDraft.keepPositionOnWrong,
-        nextFen: stepDraft.nextFen,
-        annotations: parsedAnnotations,
+        successMessage: normalizedSuccessMessage,
+        wrongMoveMessage: normalizedWrongMoveMessage,
         isPublished: stepDraft.isPublished,
-        successCondition: "accepted_move",
       };
 
       let savedStepId = selectedStepId;
       if (selectedStepId) {
-        const response = await updateAdminLearnStep(selectedStepId, payload);
+        const response = await updateAdminLearnStep(selectedStepId, basePayload);
         savedStepId = response.step.id;
         setSteps((prev) =>
           prev.map((entry) => (entry.id === selectedStepId ? response.step : entry)),
         );
         setStepDraft(toStepDraft(response.step));
       } else {
-        const response = await createAdminLearnStep(lessonId, payload);
+        const response = await createAdminLearnStep(lessonId, basePayload);
         savedStepId = response.step.id;
         setSteps((prev) =>
           [...prev, response.step].sort((a, b) => a.orderIndex - b.orderIndex),
@@ -336,9 +249,7 @@ export default function AdminLearnLesson() {
   };
 
   const handleDeleteStep = async (step: AdminLearnStep) => {
-    const confirmed = window.confirm(
-      `Delete step "${step.title || step.orderIndex + 1}"?`,
-    );
+    const confirmed = window.confirm(`Delete step ${step.orderIndex + 1}?`);
     if (!confirmed) return;
 
     setProcessingStepId(step.id);
@@ -368,31 +279,29 @@ export default function AdminLearnLesson() {
     setProcessingStepId(step.id);
     setError("");
     try {
-      const draft = toStepDraft(step);
-      let parsedAnnotations: Record<string, unknown> = {};
-      if (draft.annotations.trim()) {
-        parsedAnnotations = JSON.parse(draft.annotations);
-      }
+      const preservedMoves = (step.correctMoves || step.acceptedMoves || []).join(", ");
       const payload: StepPayload = {
-        title: step.title ? `${step.title} (Copy)` : "Step copy",
-        instructionText: draft.instructionText,
-        explanationBeforeMove: draft.explanationBeforeMove,
-        fen: draft.fen,
-        sideToMove: draft.sideToMove,
-        boardOrientation: draft.boardOrientation,
-        validationMode: draft.validationMode,
-        correctMoves: draft.acceptedMoves,
-        successMessage: draft.successMessage.trim() || DEFAULT_SUCCESS_MESSAGE,
+        instructionText: step.instructionText || "",
+        explanationBeforeMove: step.explanationBeforeMove || step.explanationText || "",
+        fen: step.fen,
+        sideToMove: step.sideToMove,
+        boardOrientation: step.boardOrientation,
+        validationMode: step.validationMode,
+        correctMoves: preservedMoves,
+        successMessage:
+          (step.successMessage || step.feedbackCorrect || "").trim() ||
+          DEFAULT_SUCCESS_MESSAGE,
         wrongMoveMessage:
-          draft.wrongMoveMessage.trim() || DEFAULT_WRONG_MOVE_MESSAGE,
-        hintText: draft.hintText,
-        allowRetry: draft.allowRetry,
-        autoAdvance: draft.autoAdvance,
-        keepPositionOnWrong: draft.keepPositionOnWrong,
-        nextFen: draft.nextFen,
-        annotations: parsedAnnotations,
-        isPublished: draft.isPublished,
-        successCondition: "accepted_move",
+          (step.wrongMoveMessage || step.feedbackWrong || "").trim() ||
+          DEFAULT_WRONG_MOVE_MESSAGE,
+        hintText: step.hintText || "",
+        allowRetry: step.allowRetry,
+        autoAdvance: step.autoAdvance,
+        keepPositionOnWrong: step.keepPositionOnWrong,
+        nextFen: step.nextFen || "",
+        annotations: step.annotations || {},
+        isPublished: step.isPublished,
+        successCondition: step.successCondition || "accepted_move",
       };
       const response = await createAdminLearnStep(lessonId, payload);
       setSteps((prev) =>
@@ -439,11 +348,9 @@ export default function AdminLearnLesson() {
   const setAcceptedMoveTokens = (tokens: string[]) => {
     setStepDraft((current) => {
       const next = mergeAcceptedMoves(tokens);
-      const normalized =
-        current.validationMode === "exact" ? next.slice(0, 1) : next;
       return {
         ...current,
-        acceptedMoves: normalized.join(", "),
+        acceptedMoves: next.join(", "),
       };
     });
   };
@@ -512,11 +419,7 @@ export default function AdminLearnLesson() {
       if (!move) return false;
 
       const token = move.san;
-      if (stepDraft.validationMode === "exact") {
-        setAcceptedMoveTokens([token]);
-      } else {
-        setAcceptedMoveTokens([...acceptedMoveTokens, token]);
-      }
+      setAcceptedMoveTokens([...acceptedMoveTokens, token]);
       clearAcceptedMoveSelection();
       return true;
     } catch {
@@ -697,10 +600,7 @@ export default function AdminLearnLesson() {
                             <div className="text-[11px] uppercase tracking-[0.14em] text-gray-500">
                               Step {step.orderIndex + 1}
                             </div>
-                            <div className={`mt-1 text-sm font-medium ${headingTextClass}`}>
-                              {step.title || "Untitled Step"}
-                            </div>
-                            <div className="mt-1 text-xs text-gray-500 line-clamp-2">
+                            <div className={`mt-1 text-sm ${headingTextClass} line-clamp-2`}>
                               {step.instructionText || "No instructions yet."}
                             </div>
                           </button>
@@ -745,59 +645,6 @@ export default function AdminLearnLesson() {
                 <section className={`rounded-[24px] border p-5 ${surfaceClass}`}>
                   <div className="flex items-center justify-between gap-2">
                     <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-gray-500">
-                      Lesson Info
-                    </h2>
-                    <button
-                      disabled={savingLesson || !lessonDraft}
-                      onClick={() => void handleSaveLessonMeta()}
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-500 disabled:opacity-50"
-                    >
-                      {savingLesson ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      ) : (
-                        <Save className="h-3.5 w-3.5" />
-                      )}
-                      Save Info
-                    </button>
-                  </div>
-
-                  {lessonDraft && (
-                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                      <label className="space-y-1">
-                        <span className={fieldLabelClass}>Lesson name</span>
-                        <input
-                          value={lessonDraft.title}
-                          onChange={(event) =>
-                            setLessonDraft((current) =>
-                              current ? { ...current, title: event.target.value } : current,
-                            )
-                          }
-                          placeholder="Pawn structure basics"
-                          className={fullInputClass}
-                        />
-                      </label>
-                      <label className={checkboxLabelClass}>
-                        <input
-                          type="checkbox"
-                          checked={lessonDraft.isPublished}
-                          onChange={(event) =>
-                            setLessonDraft((current) =>
-                              current
-                                ? { ...current, isPublished: event.target.checked }
-                                : current,
-                            )
-                          }
-                          className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-400/40"
-                        />
-                        Show lesson
-                      </label>
-                    </div>
-                  )}
-                </section>
-
-                <section className={`rounded-[24px] border p-5 ${surfaceClass}`}>
-                  <div className="flex items-center justify-between gap-2">
-                    <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-gray-500">
                       {selectedStep ? `Edit Step ${selectedStep.orderIndex + 1}` : "Create Step"}
                     </h2>
                     <button
@@ -820,22 +667,6 @@ export default function AdminLearnLesson() {
                         <h3 className="text-xs uppercase tracking-[0.14em] text-gray-500">
                           Step Info
                         </h3>
-                        <div className="mt-2">
-                          <label className="block space-y-1">
-                            <span className={fieldLabelClass}>Step name</span>
-                            <input
-                              value={stepDraft.title}
-                              onChange={(event) =>
-                                setStepDraft((current) => ({
-                                  ...current,
-                                  title: event.target.value,
-                                }))
-                              }
-                              placeholder="Find the best pawn break"
-                              className={fullInputClass}
-                            />
-                          </label>
-                        </div>
                       </div>
 
                       <div>
@@ -899,6 +730,42 @@ export default function AdminLearnLesson() {
                               className={`min-h-[82px] ${textareaClass}`}
                             />
                           </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <h3 className="text-xs uppercase tracking-[0.14em] text-gray-500">
+                          Feedback
+                        </h3>
+                        <div className="mt-2 grid gap-3 sm:grid-cols-2">
+                          <label className="block space-y-1">
+                            <span className={fieldLabelClass}>Correct feedback</span>
+                            <textarea
+                              value={stepDraft.successMessage}
+                              onChange={(event) =>
+                                setStepDraft((current) => ({
+                                  ...current,
+                                  successMessage: event.target.value,
+                                }))
+                              }
+                              placeholder="Great move."
+                              className={`min-h-[70px] ${textareaClass}`}
+                            />
+                          </label>
+                          <label className="block space-y-1">
+                            <span className={fieldLabelClass}>Wrong feedback</span>
+                            <textarea
+                              value={stepDraft.wrongMoveMessage}
+                              onChange={(event) =>
+                                setStepDraft((current) => ({
+                                  ...current,
+                                  wrongMoveMessage: event.target.value,
+                                }))
+                              }
+                              placeholder="Try again."
+                              className={`min-h-[70px] ${textareaClass}`}
+                            />
+                          </label>
                         </div>
                       </div>
 

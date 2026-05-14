@@ -348,6 +348,7 @@ function ActiveGameGuard() {
         const activeGame = readActiveOnlineGame();
         if (!activeGame?.gameId) return false;
         if (!isOnlineGameRoute(currentLocation.pathname)) return false;
+        if (currentLocation.pathname === nextLocation.pathname) return false;
         const currentTournamentGameId = new URLSearchParams(
           currentLocation.search,
         ).get("tournamentGameId");

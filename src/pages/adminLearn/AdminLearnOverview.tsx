@@ -682,6 +682,23 @@ export default function AdminLearnOverview() {
                 />
               </label>
 
+              <label className="mt-4 block space-y-1">
+                <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
+                  Instructor
+                </span>
+                <input
+                  value={draft.instructorName}
+                  onChange={(event) =>
+                    setDraft((current) => ({
+                      ...current,
+                      instructorName: event.target.value,
+                    }))
+                  }
+                  placeholder="IM Viktor Asanov"
+                  className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                />
+              </label>
+
               <label className="mt-4 inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
                 <input
                   type="checkbox"

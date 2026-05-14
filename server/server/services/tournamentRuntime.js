@@ -297,46 +297,81 @@ export async function syncTournamentGameResultByGameId(
   }
 
   const winnerId = getWinnerFromResult(normalizedResult, game.whiteId, game.blackId);
+  const isRatedTournamentGame = tournament?.rated === true;
+  const ratingHandledByRealtime = options?.ratingHandledByRealtime === true;
 
   const eloChanges = { white: 0, black: 0 };
-  if (!game.isBye && game.blackId) {
-    const [whiteUser, blackUser] = await Promise.all([
-      User.findById(game.whiteId).select("rating").lean(),
-      User.findById(game.blackId).select("rating").lean(),
-    ]);
-    if (whiteUser && blackUser) {
-      const computed = calculateTournamentEloPair({
-        whiteRating: Number(whiteUser.rating || 1200),
-        blackRating: Number(blackUser.rating || 1200),
-        result: normalizedResult,
-      });
-      if (computed) {
-        eloChanges.white = computed.white.delta;
-        eloChanges.black = computed.black.delta;
-        await Promise.all([
-          User.updateOne(
-            { _id: game.whiteId },
-            { $set: { rating: computed.white.after } },
-          ),
-          User.updateOne(
-            { _id: game.blackId },
-            { $set: { rating: computed.black.after } },
-          ),
+  if (isRatedTournamentGame && !game.isBye && game.blackId) {
+    if (ratingHandledByRealtime) {
+      const runtimeElo = options?.elo || null;
+      const whiteBeforeRaw = Number(runtimeElo?.white?.oldRating);
+      const blackBeforeRaw = Number(runtimeElo?.black?.oldRating);
+      const whiteAfterRaw = Number(runtimeElo?.white?.newRating);
+      const blackAfterRaw = Number(runtimeElo?.black?.newRating);
+      const whiteDeltaRaw = Number(runtimeElo?.white?.delta);
+      const blackDeltaRaw = Number(runtimeElo?.black?.delta);
+ 
+      const whiteBefore = Number.isFinite(whiteBeforeRaw)
+        ? Math.round(whiteBeforeRaw)
+        : null;
+      const blackBefore = Number.isFinite(blackBeforeRaw)
+        ? Math.round(blackBeforeRaw)
+        : null;
+      const whiteAfter = Number.isFinite(whiteAfterRaw)
+        ? Math.round(whiteAfterRaw)
+        : null;
+      const blackAfter = Number.isFinite(blackAfterRaw)
+        ? Math.round(blackAfterRaw)
+        : null;
+      if (Number.isFinite(whiteDeltaRaw)) {
+        eloChanges.white = Math.round(whiteDeltaRaw);
+      }
+      if (Number.isFinite(blackDeltaRaw)) {
+        eloChanges.black = Math.round(blackDeltaRaw);
+      }
+ 
+      const whiteUpdate = {};
+      if (whiteAfter !== null) {
+        whiteUpdate.$set = { tournamentEloCurrent: whiteAfter };
+      }
+      if (eloChanges.white !== 0) {
+        whiteUpdate.$inc = { tournamentEloDelta: eloChanges.white };
+      }
+      const blackUpdate = {};
+      if (blackAfter !== null) {
+        blackUpdate.$set = { tournamentEloCurrent: blackAfter };
+      }
+      if (eloChanges.black !== 0) {
+        blackUpdate.$inc = { tournamentEloDelta: eloChanges.black };
+      }
+ 
+      const playerUpdates = [];
+      if (Object.keys(whiteUpdate).length > 0) {
+        playerUpdates.push(
           TournamentPlayer.updateOne(
             { tournamentId: game.tournamentId, userId: game.whiteId },
-            {
-              $set: { tournamentEloCurrent: computed.white.after },
-              $inc: { tournamentEloDelta: computed.white.delta },
-            },
+            whiteUpdate,
           ),
+        );
+      }
+      if (Object.keys(blackUpdate).length > 0) {
+        playerUpdates.push(
           TournamentPlayer.updateOne(
             { tournamentId: game.tournamentId, userId: game.blackId },
-            {
-              $set: { tournamentEloCurrent: computed.black.after },
-              $inc: { tournamentEloDelta: computed.black.delta },
-            },
+            blackUpdate,
           ),
-        ]);
+        );
+      }
+      if (playerUpdates.length > 0) {
+        await Promise.all(playerUpdates);
+      }
+ 
+      if (
+        whiteBefore !== null &&
+        whiteAfter !== null &&
+        blackBefore !== null &&
+        blackAfter !== null
+      ) {
         const reason =
           normalizedResult === "1-0F" || normalizedResult === "0-1F"
             ? "forfeit"
@@ -354,10 +389,10 @@ export async function syncTournamentGameResultByGameId(
                   ? "L"
                   : "D",
             reason,
-            eloBefore: computed.white.before,
-            eloAfter: computed.white.after,
-            delta: computed.white.delta,
-            kFactor: computed.white.kFactor,
+            eloBefore: whiteBefore,
+            eloAfter: whiteAfter,
+            delta: eloChanges.white,
+            kFactor: 0,
             at: new Date(),
           },
           {
@@ -372,13 +407,95 @@ export async function syncTournamentGameResultByGameId(
                   ? "L"
                   : "D",
             reason,
-            eloBefore: computed.black.before,
-            eloAfter: computed.black.after,
-            delta: computed.black.delta,
-            kFactor: computed.black.kFactor,
+            eloBefore: blackBefore,
+            eloAfter: blackAfter,
+            delta: eloChanges.black,
+            kFactor: 0,
             at: new Date(),
           },
         ]);
+      }
+    } else {
+      const [whiteUser, blackUser] = await Promise.all([
+        User.findById(game.whiteId).select("rating").lean(),
+        User.findById(game.blackId).select("rating").lean(),
+      ]);
+      if (whiteUser && blackUser) {
+        const computed = calculateTournamentEloPair({
+          whiteRating: Number(whiteUser.rating || 1200),
+          blackRating: Number(blackUser.rating || 1200),
+          result: normalizedResult,
+        });
+        if (computed) {
+          eloChanges.white = computed.white.delta;
+          eloChanges.black = computed.black.delta;
+          await Promise.all([
+            User.updateOne(
+              { _id: game.whiteId },
+              { $set: { rating: computed.white.after } },
+            ),
+            User.updateOne(
+              { _id: game.blackId },
+              { $set: { rating: computed.black.after } },
+            ),
+            TournamentPlayer.updateOne(
+              { tournamentId: game.tournamentId, userId: game.whiteId },
+              {
+                $set: { tournamentEloCurrent: computed.white.after },
+                $inc: { tournamentEloDelta: computed.white.delta },
+              },
+            ),
+            TournamentPlayer.updateOne(
+              { tournamentId: game.tournamentId, userId: game.blackId },
+              {
+                $set: { tournamentEloCurrent: computed.black.after },
+                $inc: { tournamentEloDelta: computed.black.delta },
+              },
+            ),
+          ]);
+          const reason =
+            normalizedResult === "1-0F" || normalizedResult === "0-1F"
+              ? "forfeit"
+              : "result";
+          await TournamentEloEvent.insertMany([
+            {
+              userId: game.whiteId,
+              opponentId: game.blackId,
+              tournamentId: game.tournamentId,
+              gameId: game.gameId,
+              result:
+                normalizedResult === "1-0" || normalizedResult === "1-0F"
+                  ? "W"
+                  : normalizedResult === "0-1" || normalizedResult === "0-1F"
+                    ? "L"
+                    : "D",
+              reason,
+              eloBefore: computed.white.before,
+              eloAfter: computed.white.after,
+              delta: computed.white.delta,
+              kFactor: computed.white.kFactor,
+              at: new Date(),
+            },
+            {
+              userId: game.blackId,
+              opponentId: game.whiteId,
+              tournamentId: game.tournamentId,
+              gameId: game.gameId,
+              result:
+                normalizedResult === "0-1" || normalizedResult === "0-1F"
+                  ? "W"
+                  : normalizedResult === "1-0" || normalizedResult === "1-0F"
+                    ? "L"
+                    : "D",
+              reason,
+              eloBefore: computed.black.before,
+              eloAfter: computed.black.after,
+              delta: computed.black.delta,
+              kFactor: computed.black.kFactor,
+              at: new Date(),
+            },
+          ]);
+        }
       }
     }
   }

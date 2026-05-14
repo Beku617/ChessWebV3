@@ -65,21 +65,28 @@ export function UserRow({
       : accountStatus === "active"
         ? "Active"
         : "Offline";
+  const fullName = String(user.fullName || "").trim();
+  const email = String(user.email || "").trim();
+  const displayName = fullName || email.split("@")[0] || "Unknown User";
+  const avatarInitial = displayName.charAt(0).toUpperCase();
+  const createdAtLabel = user.createdAt
+    ? new Date(user.createdAt).toLocaleDateString()
+    : "-";
 
   return (
     <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
       <td className="px-4 py-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center text-white font-bold">
-            {user.fullName.charAt(0).toUpperCase()}
+            {avatarInitial}
           </div>
           <div>
             <div className="font-medium text-gray-900 dark:text-white">
-              {user.fullName}
+              {displayName}
             </div>
             <div className="text-sm text-gray-500 flex items-center gap-1">
               <Mail className="w-3 h-3" />
-              {user.email}
+              {email || "-"}
             </div>
           </div>
         </div>
@@ -131,7 +138,7 @@ export function UserRow({
       <td className="px-4 py-4">
         <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
           <Calendar className="w-3 h-3" />
-          {new Date(user.createdAt).toLocaleDateString()}
+          {createdAtLabel}
         </div>
       </td>
       <td className="px-4 py-4 text-right">

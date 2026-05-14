@@ -377,6 +377,31 @@ app.get("/api/active-game", async (req, res) => {
     return res.status(200).json({ active: false, session: null });
   }
 
+  if (session.kind === "fourPlayer") {
+    const sessionPlayers = session.playersByColor || {};
+    const playerColor = FOUR_PLAYER_COLORS.find((color) => {
+      const participantUserId = normalizeId(sessionPlayers?.[color]?.userId);
+      return !!participantUserId && participantUserId === userId;
+    });
+    const isEliminated =
+      !!playerColor &&
+      Array.isArray(session.state?.eliminated) &&
+      session.state.eliminated.includes(playerColor);
+    const hasWinner = !!session.state?.winner;
+    if (isEliminated || hasWinner) {
+      clearUserActiveFourPlayerGame(userId, session.gameId);
+      if (hasWinner) {
+        await completeSessionRecord(session.gameId, {
+          status: "completed",
+          terminalReason: session.terminalReason || "game_over",
+          winner: String(session.state?.winner || session.winner || ""),
+          completedAt: session.completedAt || new Date(),
+        });
+      }
+      return res.status(200).json({ active: false, session: null });
+    }
+  }
+
   if (session.kind === "classic") {
     const activeGame = await hydrateClassicGameFromSession(session.gameId);
     if (activeGame) {
@@ -1488,10 +1513,13 @@ function buildClassicSessionUpdate(game, overrides = {}) {
 function buildFourPlayerSessionUpdate(game, overrides = {}) {
   const participants = [];
   const playersByColor = {};
+  const eliminatedColors = new Set(
+    Array.isArray(game?.state?.eliminated) ? game.state.eliminated : [],
+  );
   FOUR_PLAYER_COLORS.forEach((color) => {
     const player = game?.playersByColor?.[color];
     const userId = normalizeId(player?.userId);
-    if (userId) {
+    if (userId && !eliminatedColors.has(color)) {
       participants.push(userId);
     }
     playersByColor[color] = {
@@ -1523,6 +1551,7 @@ function buildFourPlayerSessionUpdate(game, overrides = {}) {
     rated: false,
     playersByColor,
     state: game?.state || undefined,
+    chatMessages: getFourPlayerChatMessages(game),
     moveCount: Array.isArray(game?.state?.moves) ? game.state.moves.length : 0,
     disconnectedColor,
     disconnectedAt: overrides.disconnectedAt || game?.disconnectedAt?.[disconnectedColor] || null,
@@ -2648,6 +2677,52 @@ function serializeFourPlayerPlayers(playersByColor) {
   return payload;
 }
 
+function normalizeFourPlayerChatEntry(game, entry = {}) {
+  const gameId = String(game?.id || entry?.gameId || "").trim();
+  const senderId = normalizeId(entry?.senderId);
+  const senderUsername = String(entry?.senderUsername || "").trim().slice(0, 60);
+  const message = String(entry?.message || "").trim().slice(0, 500);
+  if (!gameId || !senderId || !senderUsername || !message) return null;
+  const timestamp = new Date(
+    entry?.timestamp || entry?.createdAt || Date.now(),
+  ).toISOString();
+  return {
+    gameId,
+    senderId,
+    senderUsername,
+    message,
+    timestamp,
+  };
+}
+
+function getFourPlayerChatMessages(game) {
+  if (!Array.isArray(game?.chatMessages)) return [];
+  return game.chatMessages
+    .map((entry) => normalizeFourPlayerChatEntry(game, entry))
+    .filter(Boolean);
+}
+
+function appendFourPlayerChatMessage(game, entry = {}) {
+  const normalized = normalizeFourPlayerChatEntry(game, entry);
+  if (!normalized) return null;
+  const nextMessages = [...getFourPlayerChatMessages(game), normalized];
+  if (nextMessages.length > 200) {
+    nextMessages.splice(0, nextMessages.length - 200);
+  }
+  game.chatMessages = nextMessages;
+  return normalized;
+}
+
+function clearEliminatedFourPlayerParticipants(game) {
+  if (!game) return;
+  const eliminated = Array.isArray(game.state?.eliminated) ? game.state.eliminated : [];
+  for (const color of eliminated) {
+    if (!FOUR_PLAYER_COLORS.includes(color)) continue;
+    const participantUserId = normalizeId(game.playersByColor?.[color]?.userId);
+    clearUserActiveFourPlayerGame(participantUserId, game.id);
+  }
+}
+
 function clearFourPlayerReconnectGraceTimer(game, color) {
   if (!game || !color) return;
   if (!game.disconnectGraceTimers || typeof game.disconnectGraceTimers !== "object") {
@@ -3404,6 +3479,7 @@ async function hydrateFourPlayerGameFromSession(gameId) {
     id: normalizedGameId,
     room: `four-player:${normalizedGameId}`,
     state: session.state || createInitialFourPlayerState(),
+    chatMessages: Array.isArray(session.chatMessages) ? session.chatMessages : [],
     playersByColor,
     socketToColor,
     timeControl: normalizeTimeControl(session.timeControl),
@@ -3721,10 +3797,11 @@ async function emitGameOver(gameId, reason, winner, options = {}) {
           ? "0-1"
           : "1/2-1/2";
     try {
-      const syncResult = await syncTournamentGameResultByGameId(
-        gameId,
-        tournamentResult,
-      );
+      const syncResult = await syncTournamentGameResultByGameId(gameId, tournamentResult, {
+        source: "runtime",
+        ratingHandledByRealtime: true,
+        elo,
+      });
       const tournamentId = normalizeId(
         syncResult?.tournamentId || game.tournamentId,
       );
@@ -4314,7 +4391,7 @@ io.on("connection", (socket) => {
       }
 
       const tournament = await Tournament.findById(tournamentGame.tournamentId)
-        .select("status timeControl")
+        .select("status timeControl gameType rated")
         .lean();
       if (
         !tournament ||
@@ -4501,7 +4578,10 @@ io.on("connection", (socket) => {
           socketTimeControl,
           tournamentVariant,
         );
-        const isRatedTournamentGame = tournament?.rated === true && !!ratingPool;
+        const isRatedTournamentGame =
+          tournament?.rated === true &&
+          tournamentVariant !== "chess960" &&
+          !!ratingPool;
         let whiteRating = null;
         let blackRating = null;
         if (isRatedTournamentGame && ratingPool) {
@@ -5073,6 +5153,7 @@ io.on("connection", (socket) => {
       id: gameId,
       room,
       state: createInitialFourPlayerState(),
+      chatMessages: [],
       playersByColor,
       socketToColor,
       timeControl: normalizedTimeControl,
@@ -5092,6 +5173,7 @@ io.on("connection", (socket) => {
         state: game.state,
         players: playersPayload,
         timeControl: normalizedTimeControl,
+        chatMessages: getFourPlayerChatMessages(game),
       });
     });
   });
@@ -5142,11 +5224,56 @@ io.on("connection", (socket) => {
     }
 
     game.state = result.state;
+    clearEliminatedFourPlayerParticipants(game);
     emitFourPlayerState(game, {
       lastMove: result.move,
       moverColor,
     });
     maybeFinishFourPlayerGame(game, "elimination");
+  });
+
+  socket.on("fourPlayerChatMessage", (payload = {}) => {
+    const resolvedGameId = String(
+      payload.gameId || socket.data.fourPlayerGameId || "",
+    ).trim();
+    if (!resolvedGameId) return;
+    const game = fourPlayerGames.get(resolvedGameId);
+    if (!game) return;
+
+    const senderColor = game.socketToColor[socket.id];
+    if (!senderColor) return;
+
+    const authenticatedSenderId = normalizeId(socket.data.userId);
+    if (!authenticatedSenderId) return;
+
+    const requestedSenderId = normalizeId(payload.senderId);
+    if (requestedSenderId && requestedSenderId !== authenticatedSenderId) {
+      return;
+    }
+
+    const rawMessage = String(payload.message || "").trim();
+    if (!rawMessage) return;
+
+    const senderUsername = String(
+      payload.senderUsername ||
+        game.playersByColor?.[senderColor]?.name ||
+        socket.data.name ||
+        "Player",
+    )
+      .trim()
+      .slice(0, 60);
+    if (!senderUsername) return;
+
+    const chatPayload = appendFourPlayerChatMessage(game, {
+      gameId: resolvedGameId,
+      senderId: authenticatedSenderId,
+      senderUsername,
+      message: rawMessage.slice(0, 500),
+      timestamp: payload.timestamp || new Date().toISOString(),
+    });
+    if (!chatPayload) return;
+
+    io.to(game.room).emit("fourPlayerChatMessage", chatPayload);
   });
 
   socket.on("fourPlayerLeaveGame", ({ gameId } = {}) => {
@@ -5282,6 +5409,7 @@ io.on("connection", (socket) => {
         state: game.state,
         players: playersPayload,
         timeControl: game.timeControl,
+        chatMessages: getFourPlayerChatMessages(game),
         restored: true,
       });
       io.to(game.room).emit("fourPlayerParticipantReconnected", {

@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { Chess, Move, Square } from "chess.js";
 import { GameHistory } from "../historyTypes";
 import { PlyState, MoveRow, PositionData } from "./useGameReplayTypes";
+import { isLikelyChess960Game } from "../utils/chessVariantDetection";
 
 /* ──────────────────────────────────────────────────────────
    Chess960 castling helpers (client-side, mirrors server logic)
@@ -145,16 +146,14 @@ function applyChess960Castling(
    ────────────────────────────────────────────────────────── */
 
 function isChess960Game(game: GameHistory): boolean {
-  if (game.variant === "chess960") return true;
-  if (game.event?.toLowerCase().includes("960")) return true;
-  return false;
+  return isLikelyChess960Game(game);
 }
 
 function initChess(game: GameHistory): Chess {
-  const is960 = isChess960Game(game);
-  if (is960 && game.startingFen) {
+  const normalizedStartingFen = String(game.startingFen || "").trim();
+  if (normalizedStartingFen && normalizedStartingFen.toLowerCase() !== "start") {
     try {
-      return new Chess(game.startingFen);
+      return new Chess(normalizedStartingFen);
     } catch {
       // fall through
     }

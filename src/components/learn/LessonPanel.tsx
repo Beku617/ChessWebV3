@@ -19,6 +19,7 @@ interface LessonPanelProps {
   hasNextLesson: boolean;
   fillHeight?: boolean;
   showNavigationFooter?: boolean;
+  showBackToCatalog?: boolean;
 }
 
 export function LessonPanel({
@@ -35,6 +36,7 @@ export function LessonPanel({
   hasNextLesson,
   fillHeight = true,
   showNavigationFooter = true,
+  showBackToCatalog = true,
 }: LessonPanelProps) {
   const { t } = useTranslation();
   return (
@@ -44,13 +46,15 @@ export function LessonPanel({
       }`}
     >
       <div className="px-3.5 pt-3 pb-2.5 border-b border-slate-800 bg-[radial-gradient(circle_at_top_right,rgba(20,184,166,0.15),rgba(2,6,23,0.95)_50%)]">
-        <button
-          onClick={onBackToCatalog}
-          className="inline-flex items-center gap-1 text-xs text-brand-300 hover:text-brand-200 transition-colors"
-        >
-          <ChevronLeft className="w-3 h-3" />
-          {t("learn.backToLearn", "Back to Learn")}
-        </button>
+        {showBackToCatalog && (
+          <button
+            onClick={onBackToCatalog}
+            className="inline-flex items-center gap-1 text-xs text-brand-300 hover:text-brand-200 transition-colors"
+          >
+            <ChevronLeft className="w-3 h-3" />
+            {t("learn.backToLearn", "Back to Learn")}
+          </button>
+        )}
         <p className="mt-1.5 text-xs uppercase tracking-[0.14em] text-brand-300/80">
           {courseTitle}
         </p>

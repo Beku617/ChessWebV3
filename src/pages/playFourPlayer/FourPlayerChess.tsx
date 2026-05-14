@@ -26,6 +26,7 @@ import {
   FourPlayerState,
 } from "./types";
 import { useGameplayPreferences } from "../../hooks/useGameplayPreferences";
+import { clearActiveOnlineGame } from "../../utils/activeOnlineGame";
 
 interface TimeControl {
   initial: number;
@@ -91,8 +92,27 @@ const COLOR_RING_CLASS: Record<FourPlayerColor, string> = {
   green: "ring-brand-400",
 };
 
+function mapDisplayToSourceSquare(
+  row: number,
+  col: number,
+  perspectiveColor: FourPlayerColor,
+) {
+  const last = FOUR_PLAYER_BOARD_SIZE - 1;
+  if (perspectiveColor === "yellow") {
+    return { row: last - row, col: last - col };
+  }
+  if (perspectiveColor === "blue") {
+    return { row: col, col: last - row };
+  }
+  if (perspectiveColor === "green") {
+    return { row: last - col, col: row };
+  }
+  return { row, col };
+}
+
 function FourPlayerBoard({
   state,
+  perspectiveColor,
   selected,
   legalMoveSet,
   lastMoveFrom,
@@ -107,6 +127,7 @@ function FourPlayerBoard({
   allowDrag = false,
 }: {
   state: FourPlayerState;
+  perspectiveColor: FourPlayerColor;
   selected: string | null;
   legalMoveSet: Set<string>;
   lastMoveFrom: string | null;
@@ -209,9 +230,10 @@ function FourPlayerBoard({
     ) {
       return null;
     }
-    if (!isPlayableSquare(row, col)) return null;
-    return { row, col };
-  }, []);
+    const mapped = mapDisplayToSourceSquare(row, col, perspectiveColor);
+    if (!isPlayableSquare(mapped.row, mapped.col)) return null;
+    return mapped;
+  }, [perspectiveColor]);
 
   const squareFromPoint = useCallback(
     (clientX: number, clientY: number) => {
@@ -378,9 +400,16 @@ function FourPlayerBoard({
       >
         {Array.from({ length: FOUR_PLAYER_BOARD_SIZE }).map((_, row) =>
           Array.from({ length: FOUR_PLAYER_BOARD_SIZE }).map((_, col) => {
-            const key = `${row},${col}`;
-            const playable = isPlayableSquare(row, col);
-            const piece = playable ? state.board[row][col] : null;
+            const sourceSquare = mapDisplayToSourceSquare(
+              row,
+              col,
+              perspectiveColor,
+            );
+            const sourceRow = sourceSquare.row;
+            const sourceCol = sourceSquare.col;
+            const key = `${sourceRow},${sourceCol}`;
+            const playable = isPlayableSquare(sourceRow, sourceCol);
+            const piece = playable ? state.board[sourceRow][sourceCol] : null;
             const isSelected = selected === key;
             const isLegal = activeLegalSet.has(key);
             const isLastFrom = lastMoveFrom === key;
@@ -406,11 +435,11 @@ function FourPlayerBoard({
                     suppressClickRef.current = false;
                     return;
                   }
-                  onSquareClick(row, col);
+                  onSquareClick(sourceRow, sourceCol);
                 }}
                 onPointerDown={(event) => {
                   if (!interactive || !allowDrag || event.button !== 0) return;
-                  if (!canDragFrom(row, col)) return;
+                  if (!canDragFrom(sourceRow, sourceCol)) return;
                   if (!piece) return;
 
                   // Capture pointer for reliable mobile/touch drag
@@ -429,8 +458,8 @@ function FourPlayerBoard({
                   );
 
                   setDragging({
-                    fromRow: row,
-                    fromCol: col,
+                    fromRow: sourceRow,
+                    fromCol: sourceCol,
                     piece,
                     x: point?.x ?? cellSize / 2,
                     y: point?.y ?? cellSize / 2,
@@ -441,8 +470,8 @@ function FourPlayerBoard({
                 }}
                 disabled={!interactive}
                 data-four-cell
-                data-row={row}
-                data-col={col}
+                data-row={sourceRow}
+                data-col={sourceCol}
                 className={`relative aspect-square flex items-center justify-center transition-colors touch-none ${
                   isDark ? "bg-[#a6a7ab]" : "bg-[#d6d7d9]"
                 } ${
@@ -567,7 +596,10 @@ export default function FourPlayerChess() {
     canDragFrom,
     rematch,
     resetLocalState,
+    chatMessages,
+    sendChatMessage,
   } = useOnlineFourPlayerMatch();
+  const [gameEnded, setGameEnded] = useState(false);
 
   const [timeControl, setTimeControl] = useState<TimeControl>(() => {
     return (
@@ -610,6 +642,25 @@ export default function FourPlayerChess() {
     autoStartHandledRef.current = false;
     setPendingAutoStart(autoStartRequested);
   }, [autoStartRequested, location.key]);
+
+  useEffect(() => {
+    if (!gameStarted) {
+      setGameEnded(false);
+      return;
+    }
+    const isEliminated = gameState.eliminated.includes(playerColor);
+    const ended = Boolean(gameState.winner || gameOverReason || isEliminated);
+    setGameEnded(ended);
+    if (ended) {
+      clearActiveOnlineGame();
+    }
+  }, [
+    gameOverReason,
+    gameStarted,
+    gameState.eliminated,
+    gameState.winner,
+    playerColor,
+  ]);
 
   useEffect(() => {
     if (!pendingAutoStart || autoStartHandledRef.current) return;
@@ -715,7 +766,21 @@ export default function FourPlayerChess() {
     [gameState.moves],
   );
   const sidebarMessages = useMemo<SidebarMessageItem[]>(() => {
-    const messages: SidebarMessageItem[] = [];
+    const messages: SidebarMessageItem[] = Array.isArray(chatMessages)
+      ? chatMessages
+          .map((message, index) => ({
+            id: String(
+              message.id ||
+                `chat-${index}-${message.createdAt || ""}-${message.senderId || ""}`,
+            ),
+            senderId: String(message.senderId || ""),
+            senderUsername: String(message.senderUsername || "Player"),
+            content: String(message.content || "").trim(),
+            createdAt: String(message.createdAt || ""),
+            isSystem: message.isSystem === true,
+          }))
+          .filter((message) => message.content.length > 0)
+      : [];
 
     if (systemMessage && !shouldHideStatusMessage(systemMessage)) {
       messages.push({
@@ -738,7 +803,7 @@ export default function FourPlayerChess() {
     }
 
     return messages;
-  }, [queueStatus, systemMessage]);
+  }, [chatMessages, queueStatus, systemMessage]);
 
   const selectedTimeOption = TIME_OPTIONS.find(
     (opt) =>
@@ -765,14 +830,17 @@ export default function FourPlayerChess() {
   };
 
   const handlePlayAgain = () => {
-    if (!gameState.winner) {
+    if (!gameState.winner && !gameEnded) {
       leaveGame();
     }
     rematch();
   };
 
   const handleNewSearch = () => {
-    leaveGame();
+    if (!gameEnded) {
+      leaveGame();
+      return;
+    }
     resetLocalState();
   };
 
@@ -797,6 +865,7 @@ export default function FourPlayerChess() {
           >
             <FourPlayerBoard
               state={previewState}
+              perspectiveColor="red"
               selected={null}
               legalMoveSet={new Set()}
               lastMoveFrom={null}
@@ -961,7 +1030,11 @@ export default function FourPlayerChess() {
             <button
               type="button"
               onClick={() => {
-                leaveGame();
+                if (!gameEnded) {
+                  leaveGame();
+                } else {
+                  resetLocalState();
+                }
                 navigate("/play/variants");
               }}
               className="inline-flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700"
@@ -997,6 +1070,7 @@ export default function FourPlayerChess() {
           >
             <FourPlayerBoard
               state={displayedState}
+              perspectiveColor={playerColor}
               selected={selectedKey}
               legalMoveSet={visibleLegalMoveSet}
               lastMoveFrom={lastMoveFrom}
@@ -1051,6 +1125,10 @@ export default function FourPlayerChess() {
             <MoveListTabs
               className="h-full max-h-[48vh]"
               messages={sidebarMessages}
+              currentUserId={String(user?.id || "")}
+              onSendMessage={sendChatMessage}
+              disableMessageInput={hasTerminalResult}
+              hideMessageInput={!gameStarted}
               movesContent={
                 <ChessMoveList
                   rows={moveRows}
@@ -1089,7 +1167,11 @@ export default function FourPlayerChess() {
             <button
               type="button"
               onClick={() => {
-                leaveGame();
+                if (!gameEnded) {
+                  leaveGame();
+                } else {
+                  resetLocalState();
+                }
                 navigate("/play/variants");
               }}
               className="py-2.5 rounded-xl bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-800 dark:text-gray-200 font-semibold"

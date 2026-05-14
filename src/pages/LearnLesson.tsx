@@ -443,17 +443,6 @@ export default function LearnLesson() {
     }
   };
 
-  const retryCurrentStep = () => {
-    if (!currentStep) return;
-    setBoardFen(currentStep.fen);
-    setIsAdvancingStep(false);
-    clearAdvanceTimer();
-    clearMoveSelection();
-    setLastMove(null);
-    setFeedback(null);
-    setShowHint(false);
-  };
-
   const openLessonBySlug = (slug: string) => {
     if (!courseSlug) return;
     navigate(`/learn/${courseSlug}/${slug}`);
@@ -575,15 +564,14 @@ export default function LearnLesson() {
           />
 
           <section className="min-w-0 min-h-0 xl:flex-1 rounded-2xl border border-slate-800/90 bg-slate-950/85 flex flex-col overflow-hidden">
-            <div className="px-3.5 py-3 space-y-3 min-h-0 flex-1 overflow-y-auto">
-              <div className="space-y-1.5">
-                <p className="text-base text-slate-200 leading-snug">{currentStep.instructionText}</p>
-                <p className="text-sm text-slate-400 leading-relaxed">
-                  {currentStep.explanationBeforeMove}
+            <div className="px-3.5 py-3 min-h-0 flex-1 overflow-y-auto flex flex-col gap-3">
+              <div className="w-full max-h-full overflow-y-auto">
+                <p className="mx-auto max-w-2xl text-center text-base text-slate-200 leading-snug break-words">
+                  {currentStep.instructionText}
                 </p>
               </div>
 
-              {showHint && currentStep.hintText && (
+              {showHint && !lessonCompleted && currentStep.hintText && (
                 <div className="rounded-xl border border-cyan-400/35 bg-cyan-500/10 px-3 py-2 text-sm text-cyan-200">
                   {t("learn.hint", "Hint")}: {currentStep.hintText}
                 </div>
@@ -605,7 +593,7 @@ export default function LearnLesson() {
 
             <div className="px-3.5 py-2.5 border-t border-slate-800 space-y-2">
               <div className="flex flex-wrap gap-2">
-                {currentStep.hintText && (
+                {!lessonCompleted && currentStep.hintText && (
                   <button
                     onClick={() => setShowHint((prev) => !prev)}
                     className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 text-xs hover:border-slate-600"
@@ -616,35 +604,7 @@ export default function LearnLesson() {
                       : t("learn.showHint", "Show Hint")}
                   </button>
                 )}
-
-                <button
-                  onClick={retryCurrentStep}
-                  disabled={currentStep.allowRetry === false}
-                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 text-xs hover:border-slate-600 disabled:cursor-not-allowed disabled:opacity-45"
-                >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                  {t("learn.retryStep", "Retry Step")}
-                </button>
-
-                {lessonCompleted && (
-                  <button
-                    onClick={() => navigate("/learn")}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 text-xs hover:border-slate-600"
-                  >
-                    <BookOpen className="w-3.5 h-3.5" />
-                    {t("learn.backToLearn", "Back to Learn")}
-                  </button>
-                )}
               </div>
-
-              {(isSubmittingMove || isAdvancingStep) && (
-                <div className="inline-flex items-center gap-1.5 text-xs text-slate-400">
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  {isAdvancingStep
-                    ? t("learn.loadingNextStep", "Loading next step...")
-                    : t("learn.checkingMove", "Checking move...")}
-                </div>
-              )}
             </div>
           </section>
 
@@ -657,26 +617,18 @@ export default function LearnLesson() {
               <ChevronLeft className="w-3.5 h-3.5" />
               {t("learn.previous", "Previous")}
             </button>
-            {lessonCompleted && hasNextLesson ? (
-              <button
-                onClick={openNextLesson}
-                className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs bg-brand-500/20 border border-brand-400/35 text-brand-200 hover:bg-brand-500/30"
+	            {lessonCompleted && hasNextLesson ? (
+	              <button
+	                onClick={openNextLesson}
+	                className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs bg-brand-500/20 border border-brand-400/35 text-brand-200 hover:bg-brand-500/30"
               >
-                <ChevronRight className="w-3.5 h-3.5" />
-                {t("learn.nextLesson", "Next Lesson")}
-              </button>
-            ) : lessonCompleted ? (
-              <button
-                onClick={() => navigate("/learn")}
-                className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs bg-slate-900 border border-slate-700 text-slate-300 hover:border-slate-600"
-              >
-                <BookOpen className="w-3.5 h-3.5" />
-                {t("learn.backToLearn", "Back to Learn")}
-              </button>
-            ) : (
-              <button
-                onClick={retryLesson}
-                className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs bg-slate-900 border border-slate-700 text-slate-300 hover:border-slate-600"
+	                <ChevronRight className="w-3.5 h-3.5" />
+	                {t("learn.nextLesson", "Next Lesson")}
+	              </button>
+	            ) : (
+	              <button
+	                onClick={retryLesson}
+	                className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs bg-slate-900 border border-slate-700 text-slate-300 hover:border-slate-600"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 {t("learn.retryLesson", "Retry Lesson")}

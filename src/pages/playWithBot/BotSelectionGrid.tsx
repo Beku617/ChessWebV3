@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   BotPersonality,
   botPersonalities,
@@ -6,6 +7,7 @@ import {
 } from "../../data/botPersonalities";
 import { CategoryFilter, CATEGORIES } from "./types";
 import { getPlayStyleLabel, getCategoryColor } from "./utils";
+import { resolveLocalizedBotDescription } from "../../utils/botDescriptionLocalization";
 
 interface BotSelectionGridProps {
   categoryFilter: CategoryFilter;
@@ -21,6 +23,7 @@ export function BotSelectionGrid({
   onSelectBot,
 }: BotSelectionGridProps) {
   const navigate = useNavigate();
+  const { i18n } = useTranslation();
   const filteredBots =
     categoryFilter === "all"
       ? botPersonalities
@@ -98,7 +101,7 @@ export function BotSelectionGrid({
                   </span>
                 </div>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
-                  {bot.description}
+                  {resolveLocalizedBotDescription(bot.description, i18n.language)}
                 </p>
               </div>
             </div>

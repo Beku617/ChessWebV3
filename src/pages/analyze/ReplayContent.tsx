@@ -69,11 +69,6 @@ export function ReplayContent({ game }: ReplayContentProps) {
 
       {/* Main Content - 3 columns in one row */}
       <div className="flex-1 min-h-0 w-full px-4 sm:px-6 pb-3">
-        {replay.analysisDisabledReason && (
-          <div className="mb-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200">
-            {replay.analysisDisabledReason}
-          </div>
-        )}
         <div className="flex gap-3 w-full h-full min-h-0">
           {/* Left - Game Summary */}
           <div

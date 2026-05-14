@@ -55,6 +55,7 @@ const ActiveGameSessionSchema = new mongoose.Schema(
     initialFen: { type: String, default: "start" },
     pgn: { type: String, default: "" },
     moves: { type: [String], default: [] },
+    chatMessages: { type: [mongoose.Schema.Types.Mixed], default: [] },
     fenHistory: { type: [String], default: [] },
     moveCount: { type: Number, default: 0 },
     turn: { type: String, default: "w" },

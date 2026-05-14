@@ -182,7 +182,7 @@ export default function Learn() {
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <StatTile
           label={t("learn.stats.completed", "Completed")}
-          value={summary.completedLessons}
+          value={summary.completedCourses}
         />
         <StatTile
           label={t("learn.stats.inProgress", "In Progress")}

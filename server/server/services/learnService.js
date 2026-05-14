@@ -35,23 +35,110 @@ function uniqueIds(values = []) {
   return Array.from(new Set(values.map((entry) => toId(entry)).filter(Boolean)));
 }
 
-function countCompletedLessons(progress) {
-  return uniqueIds(progress?.completedLessons || []).length;
+function buildCompletedStepIndexMap(progress) {
+  const map = new Map();
+  if (!progress?.completedSteps?.length) return map;
+
+  for (const entry of progress.completedSteps) {
+    const lessonId = toId(entry.lessonId);
+    const stepIndex = Number(entry.stepIndex);
+    if (!lessonId || !Number.isFinite(stepIndex) || stepIndex < 0) continue;
+
+    if (!map.has(lessonId)) map.set(lessonId, new Set());
+    map.get(lessonId).add(stepIndex);
+  }
+
+  return map;
 }
 
-function calculateCoursePercentComplete(progress, totalLessons) {
-  const safeTotal = Math.max(0, Number(totalLessons) || 0);
+function lessonIsCompleted(
+  progress,
+  lessonId,
+  stepCount = 0,
+  completedStepIndexesByLessonId = buildCompletedStepIndexMap(progress),
+) {
+  const safeStepCount = Math.max(0, Number(stepCount) || 0);
+  if (safeStepCount <= 0) return false;
+
+  const completedStepIndexes = completedStepIndexesByLessonId.get(toId(lessonId));
+  if (!completedStepIndexes || completedStepIndexes.size < safeStepCount) return false;
+
+  for (let index = 0; index < safeStepCount; index += 1) {
+    if (!completedStepIndexes.has(index)) return false;
+  }
+
+  return true;
+}
+
+function countCompletedLessons(
+  progress,
+  lessons = [],
+  stepCountsByLessonId = {},
+  completedStepIndexesByLessonId = buildCompletedStepIndexMap(progress),
+) {
+  if (!lessons.length) return 0;
+
+  return lessons.reduce((count, lesson) => {
+    const stepCount = Number(stepCountsByLessonId[toId(lesson._id)] || 0);
+    return lessonIsCompleted(
+      progress,
+      lesson._id,
+      stepCount,
+      completedStepIndexesByLessonId,
+    )
+      ? count + 1
+      : count;
+  }, 0);
+}
+
+function calculateCoursePercentComplete(
+  progress,
+  lessons = [],
+  stepCountsByLessonId = {},
+  completedStepIndexesByLessonId = buildCompletedStepIndexMap(progress),
+) {
+  const safeTotal = Math.max(0, Number(lessons.length) || 0);
   if (safeTotal <= 0) return 0;
-  const completed = Math.min(countCompletedLessons(progress), safeTotal);
+  const completed = Math.min(
+    countCompletedLessons(
+      progress,
+      lessons,
+      stepCountsByLessonId,
+      completedStepIndexesByLessonId,
+    ),
+    safeTotal,
+  );
   return Math.max(0, Math.min(100, Math.round((completed / safeTotal) * 100)));
 }
 
-function calculateDayStreak(activityDays = []) {
+const DAY_STREAK_ACTIVITY_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+function toValidDate(value) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function calculateDayStreak({
+  activityDays = [],
+  lastActivityAt = null,
+  now = new Date(),
+} = {}) {
   const daySet = new Set((activityDays || []).map((entry) => String(entry)));
   if (daySet.size === 0) return 0;
 
+  const safeNow = toValidDate(now);
+  const safeLastActivityAt = toValidDate(lastActivityAt);
+  if (!safeNow || !safeLastActivityAt) return 0;
+
+  const elapsedSinceLastActivity = safeNow.getTime() - safeLastActivityAt.getTime();
+  if (elapsedSinceLastActivity > DAY_STREAK_ACTIVITY_WINDOW_MS) return 0;
+
+  const todayKey = toUtcDayKey(safeNow);
+  const cursor = daySet.has(todayKey)
+    ? new Date(safeNow)
+    : new Date(safeLastActivityAt);
+
   let streak = 0;
-  const cursor = new Date();
   while (true) {
     const key = toUtcDayKey(cursor);
     if (!daySet.has(key)) break;
@@ -138,11 +225,6 @@ function getLessonCompletedStepIndexes(progress, lessonId) {
     .filter((value) => Number.isFinite(value) && value >= 0);
 }
 
-function lessonIsCompleted(progress, lessonId) {
-  if (!progress?.completedLessons?.length) return false;
-  return progress.completedLessons.some((entry) => idEquals(entry, lessonId));
-}
-
 function ensureActivityDay(progress, now = new Date()) {
   const key = toUtcDayKey(now);
   const days = new Set((progress.activityDays || []).map((entry) => String(entry)));
@@ -175,20 +257,33 @@ function markLessonCompleted(progress, lessonId) {
 function resolveContinueLessonSlug({
   lessons,
   progress,
+  stepCountsByLessonId,
+  completedStepIndexesByLessonId = buildCompletedStepIndexMap(progress),
 }) {
   if (!lessons.length) return "";
   const lessonById = buildLessonLookup(lessons);
 
   const current = lessonById[toId(progress?.lessonId)];
-  if (current && !lessonIsCompleted(progress, current._id)) {
+  if (
+    current &&
+    !lessonIsCompleted(
+      progress,
+      current._id,
+      Number(stepCountsByLessonId[toId(current._id)] || 0),
+      completedStepIndexesByLessonId,
+    )
+  ) {
     return current.slug;
   }
 
-  const completedLessonIdSet = new Set(
-    (progress?.completedLessons || []).map((entry) => toId(entry)),
-  );
   const firstIncomplete = lessons.find(
-    (lesson) => !completedLessonIdSet.has(toId(lesson._id)),
+    (lesson) =>
+      !lessonIsCompleted(
+        progress,
+        lesson._id,
+        Number(stepCountsByLessonId[toId(lesson._id)] || 0),
+        completedStepIndexesByLessonId,
+      ),
   );
   return firstIncomplete?.slug || lessons[lessons.length - 1].slug;
 }
@@ -199,9 +294,20 @@ function buildCourseProgressView({
   progress,
   stepCountsByLessonId,
 }) {
+  const completedStepIndexesByLessonId = buildCompletedStepIndexMap(progress);
   const totalLessons = lessons.length;
-  const completedLessonsCount = countCompletedLessons(progress);
-  const percentComplete = calculateCoursePercentComplete(progress, totalLessons);
+  const completedLessonsCount = countCompletedLessons(
+    progress,
+    lessons,
+    stepCountsByLessonId,
+    completedStepIndexesByLessonId,
+  );
+  const percentComplete = calculateCoursePercentComplete(
+    progress,
+    lessons,
+    stepCountsByLessonId,
+    completedStepIndexesByLessonId,
+  );
 
   let status = "not_started";
   if (completedLessonsCount >= totalLessons && totalLessons > 0) {
@@ -210,7 +316,12 @@ function buildCourseProgressView({
     status = "in_progress";
   }
 
-  const continueLessonSlug = resolveContinueLessonSlug({ lessons, progress });
+  const continueLessonSlug = resolveContinueLessonSlug({
+    lessons,
+    progress,
+    stepCountsByLessonId,
+    completedStepIndexesByLessonId,
+  });
 
   return {
     percentComplete,
@@ -415,12 +526,7 @@ function computeLessonProgressView({
   const stepCount = lessonSteps.length;
   const completedStepIndexes = getLessonCompletedStepIndexes(progress, lesson._id);
   const completedIndexSet = new Set(completedStepIndexes);
-  const isCompleted =
-    lessonIsCompleted(progress, lesson._id) ||
-    (stepCount > 0 &&
-      Array.from({ length: stepCount }).every((_, index) =>
-        completedIndexSet.has(index),
-      ));
+  const isCompleted = lessonIsCompleted(progress, lesson._id, stepCount);
 
   let currentStepIndex = 0;
   if (stepCount > 0) {
@@ -691,7 +797,11 @@ async function getLessonBySlug({
       orderIndex: Number(lesson.orderIndex || 0),
       estimatedMinutes: Number(lesson.estimatedMinutes || 0),
       stepCount: Number(context.stepCountsByLessonId[toId(lesson._id)] || 0),
-      isCompleted: lessonIsCompleted(progress, lesson._id),
+      isCompleted: lessonIsCompleted(
+        progress,
+        lesson._id,
+        Number(context.stepCountsByLessonId[toId(lesson._id)] || 0),
+      ),
     })),
     steps: context.steps.map((step, index) => serializeLessonStep(step, index)),
     progress: lessonProgress,
@@ -767,7 +877,8 @@ async function submitLessonStep({
     );
     progress.percentComplete = calculateCoursePercentComplete(
       progress,
-      context.lessons.length,
+      context.lessons,
+      context.stepCountsByLessonId,
     );
     await progress.save();
 
@@ -819,13 +930,17 @@ async function submitLessonStep({
     ? Math.max(0, context.steps.length - 1)
     : nextStepIndex;
 
-  const uniqueCompletedLessons = uniqueIds(progress.completedLessons || []);
+  const completedLessonsCount = countCompletedLessons(
+    progress,
+    context.lessons,
+    context.stepCountsByLessonId,
+  );
   const isCourseCompleted =
-    uniqueCompletedLessons.length >= context.lessons.length &&
-    context.lessons.length > 0;
+    completedLessonsCount >= context.lessons.length && context.lessons.length > 0;
   progress.percentComplete = calculateCoursePercentComplete(
     progress,
-    context.lessons.length,
+    context.lessons,
+    context.stepCountsByLessonId,
   );
   progress.completedAt = isCourseCompleted ? now : null;
 
@@ -887,13 +1002,17 @@ async function completeLesson({
   }
   markLessonCompleted(progress, context.lesson._id);
 
-  const uniqueCompletedLessons = uniqueIds(progress.completedLessons || []);
+  const completedLessonsCount = countCompletedLessons(
+    progress,
+    context.lessons,
+    context.stepCountsByLessonId,
+  );
   const isCourseCompleted =
-    uniqueCompletedLessons.length >= context.lessons.length &&
-    context.lessons.length > 0;
+    completedLessonsCount >= context.lessons.length && context.lessons.length > 0;
   progress.percentComplete = calculateCoursePercentComplete(
     progress,
-    context.lessons.length,
+    context.lessons,
+    context.stepCountsByLessonId,
   );
   progress.completedAt = isCourseCompleted ? now : null;
 
@@ -924,29 +1043,81 @@ async function getLearnSummary({ userId }) {
   const watchedLessonIds = new Set();
   const completedLessonIds = new Set();
   const activityDays = new Set();
+  let latestActivityAt = null;
+
+  const recordActivity = (value) => {
+    const safeDate = toValidDate(value);
+    if (!safeDate) return;
+
+    activityDays.add(toUtcDayKey(safeDate));
+    if (!latestActivityAt || safeDate.getTime() > latestActivityAt.getTime()) {
+      latestActivityAt = safeDate;
+    }
+  };
 
   for (const progress of progressDocs) {
     if (progress.lessonId) watchedLessonIds.add(toId(progress.lessonId));
+    recordActivity(progress.lastInteractionAt);
+    recordActivity(progress.lastViewedAt);
+
     (progress.completedSteps || []).forEach((entry) => {
       if (entry.lessonId) watchedLessonIds.add(toId(entry.lessonId));
+      recordActivity(entry.completedAt);
     });
-    (progress.completedLessons || []).forEach((entry) =>
-      completedLessonIds.add(toId(entry)),
-    );
+
     (progress.activityDays || []).forEach((entry) => activityDays.add(String(entry)));
   }
 
-  const inProgressCourses = progressDocs.filter(
-    (doc) => Number(doc.percentComplete || 0) > 0 && Number(doc.percentComplete || 0) < 100,
-  ).length;
-  const completedCourses = progressDocs.filter(
-    (doc) => Number(doc.percentComplete || 0) >= 100,
-  ).length;
+  const progressCourseIds = uniqueIds(progressDocs.map((doc) => doc.courseId));
+  const allLessons = progressCourseIds.length
+    ? await LearnLesson.find({
+        courseId: { $in: progressCourseIds.map((id) => asObjectId(id)) },
+        isPublished: true,
+      })
+        .select("_id courseId")
+        .lean()
+    : [];
+  const stepCountsByLessonId = await fetchStepCounts(allLessons.map((lesson) => lesson._id));
+  const lessons = filterLessonsWithPublishedSteps(allLessons, stepCountsByLessonId);
+  const lessonsByCourseId = bundleLessonsByCourse(lessons);
+
+  let inProgressCourses = 0;
+  let completedCourses = 0;
+  for (const progress of progressDocs) {
+    const courseLessons = lessonsByCourseId[toId(progress.courseId)] || [];
+    const progressView = buildCourseProgressView({
+      course: null,
+      lessons: courseLessons,
+      progress,
+      stepCountsByLessonId,
+    });
+
+    if (progressView.status === "in_progress") inProgressCourses += 1;
+    if (progressView.status === "completed") completedCourses += 1;
+
+    const completedStepIndexesByLessonId = buildCompletedStepIndexMap(progress);
+    for (const lesson of courseLessons) {
+      const stepCount = Number(stepCountsByLessonId[toId(lesson._id)] || 0);
+      if (
+        lessonIsCompleted(
+          progress,
+          lesson._id,
+          stepCount,
+          completedStepIndexesByLessonId,
+        )
+      ) {
+        completedLessonIds.add(toId(lesson._id));
+      }
+    }
+  }
 
   return {
     watchedLessons: watchedLessonIds.size,
     completedLessons: completedLessonIds.size,
-    dayStreak: calculateDayStreak(Array.from(activityDays)),
+    dayStreak: calculateDayStreak({
+      activityDays: Array.from(activityDays),
+      lastActivityAt: latestActivityAt,
+    }),
     inProgressCourses,
     completedCourses,
   };

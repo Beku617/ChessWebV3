@@ -24,7 +24,7 @@ const QUICK_MATCH_DEFAULTS: Record<
   bullet: { initial: 60, increment: 0 },
   blitz: { initial: 180, increment: 0 },
   rapid: { initial: 600, increment: 0 },
-  classical: { initial: 1800, increment: 20 },
+  classical: { initial: 5400, increment: 30 },
   custom: { initial: 600, increment: 0 },
 };
 
@@ -40,3 +40,4 @@ export function resolveQuickMatchDefaultTimeControl(
     QUICK_MATCH_DEFAULTS[defaultTimeControl] ?? QUICK_MATCH_DEFAULTS.rapid
   );
 }
+

@@ -6,6 +6,7 @@ import { GameCardDetails } from "./GameCardDetails";
 import { GameCardMoveHistory } from "./GameCardMoveHistory";
 import { GameCardActions } from "./GameCardActions";
 import { openAnalyzeWindow } from "../../utils/analyzeNavigation";
+import { isLikelyChess960Game } from "../../utils/chessVariantDetection";
 
 interface GameCardProps {
   game: GameHistory;
@@ -17,8 +18,7 @@ interface GameCardProps {
 }
 
 function isChess960Game(game: GameHistory): boolean {
-  if (game.variant === "chess960") return true;
-  return /960|chess960/i.test(String(game.event || ""));
+  return isLikelyChess960Game(game);
 }
 
 function formatDuration(ms?: number): string {

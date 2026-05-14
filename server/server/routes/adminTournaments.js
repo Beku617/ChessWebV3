@@ -228,6 +228,7 @@ function summarizeTournaments(tournaments, playerMap, gameMap) {
   return (tournaments || []).map((tournament) => {
     const id = toId(tournament._id);
     const normalizedStatus = normalizeTournamentState(tournament.status);
+    const normalizedGameType = normalizeGameType(tournament.gameType);
     const playerStats = playerMap.get(id) || {
       registeredCount: 0,
       activeCount: 0,
@@ -257,8 +258,11 @@ function summarizeTournaments(tournaments, playerMap, gameMap) {
       type: tournament.type || "swiss",
       format: tournament.type || "swiss",
       formatLabel: formatTypeLabel(tournament.type),
-      rated: parseBoolean(tournament.rated, true),
-      gameType: normalizeGameType(tournament.gameType),
+      rated:
+        normalizedGameType === "chess960"
+          ? false
+          : parseBoolean(tournament.rated, true),
+      gameType: normalizedGameType,
       setup: normalizeSetupValue(tournament.setup),
       pairingLogic: String(tournament.pairingLogic || ""),
       durationMinutes:

@@ -1078,19 +1078,13 @@ export function useOnlineQuickMatch() {
     socket.on("moveApplied", (payload: MoveAppliedPayload) => {
       if (payload.gameId !== gameIdRef.current) return;
       const isOpponentMove = payload.turn === playerColorRef.current;
-      const shouldAnnotateThreeCheck =
-        matchVariantRef.current === "threeCheck" && !!payload.checkAwarded;
 
       if (payload.isChess960Castle) {
         const nextGame = new Chess(payload.fen);
         gameRef.current = nextGame;
         setGame(nextGame);
         const castlingSan = payload.move.san || "";
-        appendStoredMove(
-          shouldAnnotateThreeCheck
-            ? `${castlingSan} (+1 check)`
-            : castlingSan,
-        );
+        appendStoredMove(castlingSan);
         if (isOpponentMove) {
           playChessMoveSound(
             { ...payload.move, castlingSide: "k" },
@@ -1122,11 +1116,7 @@ export function useOnlineQuickMatch() {
         if (applied) {
           gameRef.current = currentGame;
           setGame(new Chess(currentGame.fen()));
-          appendStoredMove(
-            shouldAnnotateThreeCheck
-              ? `${payload.move.san || applied.san} (+1 check)`
-              : payload.move.san || applied.san,
-          );
+          appendStoredMove(payload.move.san || applied.san);
           if (isOpponentMove) {
             playChessMoveSound(applied, { isOpponentMove: true });
           }
@@ -1135,11 +1125,7 @@ export function useOnlineQuickMatch() {
           gameRef.current = nextGame;
           setGame(nextGame);
           const fallbackSan = payload.move.san || "";
-          appendStoredMove(
-            shouldAnnotateThreeCheck
-              ? `${fallbackSan} (+1 check)`
-              : fallbackSan,
-          );
+          appendStoredMove(fallbackSan);
           if (isOpponentMove) {
             playChessMoveSound(payload.move, { isOpponentMove: true });
           }

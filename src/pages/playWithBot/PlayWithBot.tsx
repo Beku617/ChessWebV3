@@ -7,6 +7,7 @@ import { PlayerInfo } from "../../components/game";
 import type { BotPersonality } from "../../data/botPersonalities";
 import { BOARD_FRAME } from "./types";
 import { useBoardTheme } from "../../hooks/useBoardTheme";
+import { resolveLocalizedBotDescription } from "../../utils/botDescriptionLocalization";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
@@ -28,10 +29,73 @@ const PLAY_AS_OPTIONS: Array<{
   label: string;
   icon: string;
 }> = [
-  { value: "white", label: "Play as White", icon: "♔" },
+  { value: "white", label: "Play as White", icon: "\u2654" },
   { value: "random", label: "Random side", icon: "?" },
-  { value: "black", label: "Play as Black", icon: "♚" },
+  { value: "black", label: "Play as Black", icon: "\u265A" },
 ];
+
+const BOT_DIFFICULTY_DESCRIPTORS: Record<
+  string,
+  { en: string; mn: string; traitEn: string; traitMn: string }
+> = {
+  beginner: {
+    en: "beginner",
+    mn: "эхлэгч",
+    traitEn: "forgives mistakes but punishes hanging pieces",
+    traitMn: "алдаа уучилдаг ч үнэгүй хүүг шууд авдаг",
+  },
+  casual: {
+    en: "casual",
+    mn: "сонирхогч",
+    traitEn: "keeps things practical and prefers simple plans",
+    traitMn: "практик тоглож, энгийн төлөвлөгөөг илүүд үздэг",
+  },
+  intermediate: {
+    en: "intermediate",
+    mn: "дунд",
+    traitEn: "spots common tactics and improves move by move",
+    traitMn: "түгээмэл тактикуудыг харж, нүүдэл бүрт сайжирдаг",
+  },
+  advanced: {
+    en: "advanced",
+    mn: "ахисан",
+    traitEn: "coordinates pieces quickly and squeezes small edges",
+    traitMn: "хөлгүүдээ хурдан уялдуулж, жижиг давууг шахдаг",
+  },
+  master: {
+    en: "master",
+    mn: "мастер",
+    traitEn: "calculates deeply and converts advantages with precision",
+    traitMn: "гүн тооцоолж, давууг маш нарийн ялалт болгодог",
+  },
+};
+
+const BOT_STYLE_DESCRIPTORS: Record<string, { en: string; mn: string }> = {
+  aggressive: {
+    en: "aggressive attacker",
+    mn: "довтолгоонд дуртай довтлогч",
+  },
+  defensive: {
+    en: "defensive strategist",
+    mn: "хамгаалалт төвтэй стратегич",
+  },
+  positional: {
+    en: "positional planner",
+    mn: "байрлалын төлөвлөгч",
+  },
+  tactical: {
+    en: "tactical hunter",
+    mn: "тактикийн ангууч",
+  },
+  random: {
+    en: "unpredictable trickster",
+    mn: "тааварлашгүй зальтан",
+  },
+  balanced: {
+    en: "balanced all-rounder",
+    mn: "тэнцвэртэй универсал",
+  },
+};
 
 function resolveBotAvatarUrl(input: unknown): string {
   const avatarUrl = String(input || "").trim();
@@ -56,6 +120,35 @@ function getBotInitials(name?: string): string {
     .toUpperCase();
 }
 
+function buildBilingualBotDescription(dbBot: any): string {
+  const difficultyKey = String(dbBot?.difficulty || "beginner").toLowerCase();
+  const playStyleKey = String(dbBot?.playStyle || "balanced").toLowerCase();
+  const difficulty =
+    BOT_DIFFICULTY_DESCRIPTORS[difficultyKey] ||
+    BOT_DIFFICULTY_DESCRIPTORS.beginner;
+  const style =
+    BOT_STYLE_DESCRIPTORS[playStyleKey] || BOT_STYLE_DESCRIPTORS.balanced;
+
+  return `EN: A ${difficulty.en}-level ${style.en} who ${difficulty.traitEn}. MN: ${difficulty.mn} түвшний ${style.mn}; ${difficulty.traitMn}.`;
+}
+
+function resolveBotDescription(dbBot: any): string {
+  const rawDescription = String(dbBot?.description || "").trim();
+  if (!rawDescription) {
+    return buildBilingualBotDescription(dbBot);
+  }
+  if (/^auto-generated test bot\b/i.test(rawDescription)) {
+    return buildBilingualBotDescription(dbBot);
+  }
+  if (/\bMN:\b/i.test(rawDescription) && /\bEN:\b/i.test(rawDescription)) {
+    return rawDescription;
+  }
+  return `EN: ${rawDescription} MN: ${buildBilingualBotDescription(dbBot).replace(
+    /^EN:[^M]*MN:\s*/i,
+    "",
+  )}`;
+}
+
 // Map database bot to BotPersonality interface
 function mapDbBotToPersonality(dbBot: any): BotPersonality {
   return {
@@ -65,7 +158,7 @@ function mapDbBotToPersonality(dbBot: any): BotPersonality {
     avatarUrl: resolveBotAvatarUrl(dbBot.avatarUrl),
     rating: dbBot.eloRating,
     title: dbBot.title || undefined,
-    description: dbBot.description || "",
+    description: resolveBotDescription(dbBot),
     personality: dbBot.personality || dbBot.quote || "",
     playStyle: dbBot.playStyle || "balanced",
     skillLevel: dbBot.skillLevel || 5,
@@ -79,7 +172,7 @@ function mapDbBotToPersonality(dbBot: any): BotPersonality {
 }
 
 export default function PlayWithBot() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const { colors } = useBoardTheme();
@@ -336,7 +429,10 @@ export default function PlayWithBot() {
                     </span>
                   </div>
                   <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
-                    {selectedBot.description}
+                    {resolveLocalizedBotDescription(
+                      selectedBot.description,
+                      i18n.language,
+                    )}
                   </p>
                 </div>
               </div>

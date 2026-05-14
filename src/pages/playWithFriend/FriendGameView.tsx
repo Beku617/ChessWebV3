@@ -61,6 +61,13 @@ interface FriendGameViewProps {
   isClockPaused?: boolean;
   onTimeOut: (isPlayer: boolean) => void;
   onResign: () => void;
+  onOfferDraw?: () => void;
+  onRespondDrawOffer?: (accept: boolean) => void;
+  drawOfferState?: {
+    status: "idle" | "sent" | "received";
+    offeredBy: "w" | "b" | null;
+    expiresAt: number | null;
+  };
   onTryAgain: () => void;
   onNewGame: () => void;
   onLeave?: () => void;
@@ -108,6 +115,9 @@ export function FriendGameView({
   isClockPaused = false,
   onTimeOut,
   onResign,
+  onOfferDraw,
+  onRespondDrawOffer,
+  drawOfferState,
   onTryAgain,
   onNewGame,
   onLeave,
@@ -150,6 +160,9 @@ export function FriendGameView({
       isClockPaused={isClockPaused}
       onTimeOut={onTimeOut}
       onResign={onResign}
+      onOfferDraw={onOfferDraw}
+      onRespondDrawOffer={onRespondDrawOffer}
+      drawOfferState={drawOfferState}
       onSendChatMessage={onSendChatMessage}
       onRematch={onTryAgain}
       onNewGame={onNewGame}
