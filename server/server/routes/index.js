@@ -10,6 +10,10 @@ import adminPuzzlesRoutes from "./adminPuzzles.js";
 import adminBotsRoutes from "./adminBots.js";
 import featuredEventsRoutes from "./featuredEvents.js";
 import adminFeaturedEventsRoutes from "./adminFeaturedEvents.js";
+import eventsRoutes from "./events.js";
+import eventsMnRoutes from "./eventsMn.js";
+import adminEventsRoutes from "./adminEvents.js";
+import adminEventsMnRoutes from "./adminEventsMn.js";
 import communityRoutes from "./community.js";
 import adminCommunityRoutes from "./adminCommunity.js";
 import adminGroupsRoutes from "./adminGroups.js";
@@ -22,6 +26,8 @@ import tournamentRoutes from "./tournamentRoutes.js";
 import messagesRoutes from "./messages.js";
 import learnRoutes from "./learn.js";
 import adminLearnRoutes from "./adminLearn.js";
+import learnMnRoutes from "./learnMn.js";
+import adminLearnMnRoutes from "./adminLearnMn.js";
 import analysisAiRoutes from "./analysisAi.js";
 // streamers route included inside lichessRoutes
 
@@ -38,6 +44,10 @@ export {
   adminBotsRoutes,
   featuredEventsRoutes,
   adminFeaturedEventsRoutes,
+  eventsRoutes,
+  eventsMnRoutes,
+  adminEventsRoutes,
+  adminEventsMnRoutes,
   communityRoutes,
   adminCommunityRoutes,
   adminGroupsRoutes,
@@ -50,5 +60,7 @@ export {
   messagesRoutes,
   learnRoutes,
   adminLearnRoutes,
+  learnMnRoutes,
+  adminLearnMnRoutes,
   analysisAiRoutes,
 };

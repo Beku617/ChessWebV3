@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Loader2, MessageSquare, Users } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 import {
@@ -24,6 +25,7 @@ import {
 const POSTS_PER_PAGE = 8;
 
 export default function CommunityGroupDetail() {
+  const { t } = useTranslation();
   const { groupIdentifier = "" } = useParams();
   const [group, setGroup] = useState<CommunityGroup | null>(null);
   const [posts, setPosts] = useState<CommunityPost[]>([]);
@@ -54,14 +56,16 @@ export default function CommunityGroupDetail() {
         }),
       );
       if (!res.ok) {
-        throw new Error(data.error || "Failed to load posting access.");
+        throw new Error(
+          data.error || t("communityPage.errors.loadPostingAccess"),
+        );
       }
       setSummary(data.summary || null);
       setPostingAccess(data.postingAccess || null);
     } catch {
       // keep composer functional if this auxiliary request fails
     }
-  }, []);
+  }, [t]);
 
   const loadGroup = useCallback(async () => {
     setLoading(true);
@@ -91,10 +95,14 @@ export default function CommunityGroupDetail() {
         }));
 
       if (!groupRes.ok) {
-        throw new Error(groupData.error || "Failed to load group.");
+        throw new Error(
+          groupData.error || t("communityGroupDetail.errors.loadGroup"),
+        );
       }
       if (!postsRes.ok) {
-        throw new Error(postsData.error || "Failed to load group posts.");
+        throw new Error(
+          postsData.error || t("communityGroupDetail.errors.loadGroupPosts"),
+        );
       }
 
       setGroup(groupData.group || postsData.group || null);
@@ -102,11 +110,15 @@ export default function CommunityGroupDetail() {
       setPages(postsData.pagination?.pages || 1);
       setTotal(postsData.total || 0);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load group.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : t("communityGroupDetail.errors.loadGroup"),
+      );
     } finally {
       setLoading(false);
     }
-  }, [groupIdentifier, page]);
+  }, [groupIdentifier, page, t]);
 
   useEffect(() => {
     void loadGroup();
@@ -141,13 +153,26 @@ export default function CommunityGroupDetail() {
       );
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(data.error || `Failed to ${action} group.`);
+        throw new Error(
+          data.error ||
+            t("communityGroupDetail.errors.toggleMembership", {
+              action: t(
+                action === "join"
+                  ? "communityGroups.actions.join"
+                  : "communityGroups.actions.leave",
+              ),
+            }),
+        );
       }
       setGroup(data.group || optimisticGroup);
       await loadMineMeta();
     } catch (err) {
       setGroup(previousGroup);
-      setError(err instanceof Error ? err.message : "Failed to update group.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : t("communityGroupDetail.errors.updateGroup"),
+      );
     } finally {
       setBusyMembership(false);
     }
@@ -173,12 +198,16 @@ export default function CommunityGroupDetail() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(data.error || "Failed to create group.");
+        throw new Error(
+          data.error || t("communityPage.errors.createGroup"),
+        );
       }
       setIsCreateOpen(false);
       setCreateGroupError("");
     } catch (err) {
-      setCreateGroupError(err instanceof Error ? err.message : "Failed to create group.");
+      setCreateGroupError(
+        err instanceof Error ? err.message : t("communityPage.errors.createGroup"),
+      );
     } finally {
       setIsCreatingGroup(false);
     }
@@ -209,9 +238,11 @@ export default function CommunityGroupDetail() {
           ) : !group ? (
             <div className="rounded-2xl bg-[#0c1728]/82 py-24 text-center shadow-[0_22px_65px_rgba(0,0,0,0.22)]">
               <Users className="mx-auto h-10 w-10 text-gray-500" />
-              <div className="mt-4 text-lg font-semibold text-white">Group not found</div>
+              <div className="mt-4 text-lg font-semibold text-white">
+                {t("communityGroupDetail.notFoundTitle")}
+              </div>
               <p className="mt-2 text-sm text-gray-500">
-                This group may have been removed.
+                {t("communityGroupDetail.notFoundDescription")}
               </p>
             </div>
           ) : (
@@ -225,19 +256,34 @@ export default function CommunityGroupDetail() {
                         {group.name}
                       </h1>
                       <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-gray-500">
-                        <span>{group.memberCount} members</span>
+                        <span>
+                          {t("communityGroups.membersCount", {
+                            count: group.memberCount,
+                          })}
+                        </span>
                         {group.topic && (
                           <span className="rounded-full bg-white/[0.04] px-2.5 py-1 text-[11px] text-gray-400">
                             {group.topic}
                           </span>
                         )}
-                        {group.creator && <span>by {group.creator.fullName}</span>}
+                        {group.creator && (
+                          <span>
+                            {t("communityGroups.createdBy", {
+                              name: group.creator.fullName,
+                            })}
+                          </span>
+                        )}
                         {group.createdAt && (
-                          <span>created {formatRelativeTime(group.createdAt)}</span>
+                          <span>
+                            {t("communityGroupDetail.createdPrefix", {
+                              time: formatRelativeTime(group.createdAt),
+                            })}
+                          </span>
                         )}
                       </div>
                       <p className="mt-4 max-w-3xl text-sm leading-7 text-gray-400">
-                        {group.description || "A NeonGambit public group for chess discussion and shared posts."}
+                        {group.description ||
+                          t("communityGroups.defaultDescription")}
                       </p>
                     </div>
                   </div>
@@ -247,7 +293,7 @@ export default function CommunityGroupDetail() {
                       to="/community/groups"
                       className="rounded-xl bg-white/[0.06] px-4 py-2.5 text-sm font-medium text-gray-200 transition-colors hover:bg-white/[0.12]"
                     >
-                      All groups
+                      {t("communityGroups.sidebar.allGroups")}
                     </Link>
                     <CommunityGroupActionButton
                       group={group}
@@ -271,10 +317,10 @@ export default function CommunityGroupDetail() {
                 ) : (
                   <div className="rounded-2xl bg-[#0c1728]/82 px-5 py-5 shadow-[0_18px_55px_rgba(0,0,0,0.22)]">
                     <div className="text-sm font-semibold text-white">
-                      Join this group to post here
+                      {t("communityGroupDetail.joinPromptTitle")}
                     </div>
                     <p className="mt-2 text-sm leading-7 text-gray-400">
-                      You can browse approved posts, but group posting is limited to members.
+                      {t("communityGroupDetail.joinPromptDescription")}
                     </p>
                     <div className="mt-4 flex items-center gap-3">
                       <CommunityGroupActionButton
@@ -287,7 +333,7 @@ export default function CommunityGroupDetail() {
                         onClick={() => setIsCreateOpen(true)}
                         className="rounded-xl bg-white/[0.06] px-4 py-2.5 text-sm font-medium text-gray-200 transition-colors hover:bg-white/[0.12]"
                       >
-                        Create another group
+                        {t("communityGroupDetail.createAnotherGroup")}
                       </button>
                     </div>
                   </div>
@@ -296,18 +342,18 @@ export default function CommunityGroupDetail() {
 
               <section className="mt-6">
                 <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-gray-500">
-                  Group Feed
+                  {t("communityGroupDetail.groupFeed")}
                 </div>
                 {posts.length === 0 ? (
                   <div className="rounded-2xl bg-[#0c1728]/82 px-6 py-20 text-center shadow-[0_22px_65px_rgba(0,0,0,0.22)]">
                     <MessageSquare className="mx-auto h-10 w-10 text-gray-500" />
                     <div className="mt-4 text-lg font-semibold text-white">
-                      No approved posts yet
+                      {t("communityGroupDetail.emptyTitle")}
                     </div>
                     <p className="mt-2 text-sm leading-7 text-gray-500">
                       {group.joined
-                        ? "Share the first post for this group. It will appear here after moderation."
-                        : "Join the group and help start the conversation."}
+                        ? t("communityGroupDetail.emptyJoined")
+                        : t("communityGroupDetail.emptyNotJoined")}
                     </p>
                   </div>
                 ) : (
@@ -321,7 +367,11 @@ export default function CommunityGroupDetail() {
                     {pages > 1 && (
                       <div className="pt-2 pb-4 space-y-2.5">
                         <p className="text-center text-xs text-gray-500">
-                          Showing {range.start} - {range.end} of {total}
+                          {t("communityPage.pagination.showing", {
+                            start: range.start,
+                            end: range.end,
+                            total,
+                          })}
                         </p>
                         <FeedPagination
                           currentPage={page}

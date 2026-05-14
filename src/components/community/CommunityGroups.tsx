@@ -2,12 +2,13 @@ import { memo, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import { Plus, Users, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Avatar, SidebarCard, formatCount } from "./CommunityUI";
 import { CommunityGroup, getInitials, resolveAssetUrl } from "./types";
 import { useBlockingModalLock } from "../../hooks/useBlockingModal";
 
 function groupInitials(group: CommunityGroup) {
-  return getInitials(group.name || "Group");
+  return getInitials(group.name || "G");
 }
 
 export function CommunityGroupAvatar({
@@ -30,6 +31,7 @@ export function CommunityGroupActionButton({
   busy?: boolean;
   onToggle?: (group: CommunityGroup) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <button
       type="button"
@@ -41,7 +43,11 @@ export function CommunityGroupActionButton({
           : "bg-brand-600 text-white hover:bg-brand-500"
       }`}
     >
-      {busy ? "Saving..." : group.joined ? "Leave" : "Join"}
+      {busy
+        ? t("communityGroups.actions.saving")
+        : group.joined
+          ? t("communityGroups.actions.leave")
+          : t("communityGroups.actions.join")}
     </button>
   );
 }
@@ -55,6 +61,7 @@ export function CommunityGroupMiniRow({
   busy?: boolean;
   onToggle?: (group: CommunityGroup) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-white/[0.04]">
       <Link to={`/community/groups/${group.slug}`} className="flex min-w-0 flex-1 items-center gap-3">
@@ -64,7 +71,11 @@ export function CommunityGroupMiniRow({
             {group.name}
           </div>
           <div className="mt-0.5 flex items-center gap-2 text-[11px] text-gray-500">
-            <span>{formatCount(group.memberCount)} members</span>
+            <span>
+              {t("communityGroups.membersCount", {
+                count: formatCount(group.memberCount),
+              })}
+            </span>
             {group.topic && <span className="truncate">{group.topic}</span>}
           </div>
         </div>
@@ -86,6 +97,7 @@ export function CommunityGroupCard({
   onToggle?: (group: CommunityGroup) => void;
   compact?: boolean;
 }) {
+  const { t } = useTranslation();
   return (
     <div
       className={`rounded-2xl border border-white/[0.05] bg-[#0c1728]/82 shadow-[0_18px_50px_rgba(0,0,0,0.2)] ${
@@ -104,7 +116,9 @@ export function CommunityGroupCard({
           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-500">
             <span className="inline-flex items-center gap-1">
               <Users className="h-3.5 w-3.5 text-brand-300/80" />
-              {formatCount(group.memberCount)} members
+              {t("communityGroups.membersCount", {
+                count: formatCount(group.memberCount),
+              })}
             </span>
             {group.topic && (
               <span className="rounded-full bg-white/[0.04] px-2.5 py-1 text-[11px] text-gray-400">
@@ -118,12 +132,13 @@ export function CommunityGroupCard({
       </div>
 
       <p className="mt-3 max-h-[4.5rem] overflow-hidden text-sm leading-6 text-gray-400">
-        {group.description || "A public NeonGambit group for chess discussion and shared games."}
+        {group.description || t("communityGroups.defaultDescription")}
       </p>
 
       {group.creator && (
         <div className="mt-4 border-t border-white/[0.05] pt-3 text-xs text-gray-500">
-          Created by <span className="text-gray-300">{group.creator.fullName}</span>
+          {t("communityGroups.createdBy")}{" "}
+          <span className="text-gray-300">{group.creator.fullName}</span>
         </div>
       )}
     </div>
@@ -143,9 +158,10 @@ export const CommunityGroupsSidebarSection = memo(function CommunityGroupsSideba
   onToggleGroup?: (group: CommunityGroup) => void;
   onOpenCreate?: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <SidebarCard
-      title="Groups"
+      title={t("communityGroups.sidebar.title")}
       icon={<Users className="h-4 w-4 text-brand-300" />}
       action={
         <div className="flex items-center gap-2">
@@ -153,13 +169,13 @@ export const CommunityGroupsSidebarSection = memo(function CommunityGroupsSideba
             to="/community/groups"
             className="text-[11px] font-semibold text-brand-200/80 hover:text-brand-100"
           >
-            All groups
+            {t("communityGroups.sidebar.allGroups")}
           </Link>
           <button
             type="button"
             onClick={onOpenCreate}
             className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/[0.05] text-gray-300 transition-colors hover:bg-white/[0.1] hover:text-white"
-            aria-label="Create group"
+            aria-label={t("communityGroups.sidebar.createGroup")}
           >
             <Plus className="h-4 w-4" />
           </button>
@@ -170,7 +186,7 @@ export const CommunityGroupsSidebarSection = memo(function CommunityGroupsSideba
         {joinedGroups.length > 0 && (
           <div>
             <div className="mb-2 text-[10px] uppercase tracking-[0.2em] text-gray-500">
-              Joined Groups
+              {t("communityGroups.sidebar.joinedGroups")}
             </div>
             <div className="space-y-1.5">
               {joinedGroups.map((group) => (
@@ -187,7 +203,7 @@ export const CommunityGroupsSidebarSection = memo(function CommunityGroupsSideba
 
         <div>
           <div className="mb-2 text-[10px] uppercase tracking-[0.2em] text-gray-500">
-            Discover
+            {t("communityGroups.sidebar.discover")}
           </div>
           {discoverGroups.length > 0 && (
             <div className="space-y-1.5">
@@ -220,6 +236,7 @@ export function CommunityGroupCreateModal({
   onClose: () => void;
   onSubmit: (payload: { name: string; description: string; topic: string }) => void;
 }) {
+  const { t } = useTranslation();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [topic, setTopic] = useState("");
@@ -273,13 +290,13 @@ export function CommunityGroupCreateModal({
         <div className="flex items-center justify-between border-b border-white/[0.08] px-6 py-5">
           <div>
             <div className="text-[10px] uppercase tracking-[0.22em] text-brand-100/80">
-              Community Group
+              {t("communityGroups.modal.eyebrow")}
             </div>
             <div
               id="community-group-modal-title"
               className="mt-1 text-lg font-semibold text-white"
             >
-              Create a group
+              {t("communityGroups.modal.title")}
             </div>
           </div>
           <button
@@ -287,7 +304,7 @@ export function CommunityGroupCreateModal({
             onClick={onClose}
             disabled={busy}
             className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.08] text-gray-200 transition-colors hover:bg-white/[0.14] hover:text-white disabled:opacity-50"
-            aria-label="Close group modal"
+            aria-label={t("communityGroups.modal.close")}
           >
             <X className="h-5 w-5" />
           </button>
@@ -295,32 +312,38 @@ export function CommunityGroupCreateModal({
 
         <div className="max-h-[min(78vh,720px)] overflow-y-auto px-6 py-5 premium-scrollbar">
           <label className="block">
-            <div className="mb-2 text-xs font-semibold text-gray-200">Group name</div>
+            <div className="mb-2 text-xs font-semibold text-gray-200">
+              {t("communityGroups.modal.groupName")}
+            </div>
             <input
               ref={nameInputRef}
               value={name}
               onChange={(event) => setName(event.target.value)}
-              placeholder="Opening Lab"
+              placeholder={t("communityGroups.modal.groupNamePlaceholder")}
               className="w-full rounded-2xl border border-white/[0.08] bg-black/30 px-4 py-3 text-sm text-white placeholder:text-gray-400 focus:border-brand-400/35 focus:outline-none focus:ring-2 focus:ring-brand-400/25"
             />
           </label>
 
           <label className="mt-4 block">
-            <div className="mb-2 text-xs font-semibold text-gray-200">Description</div>
+            <div className="mb-2 text-xs font-semibold text-gray-200">
+              {t("communityGroups.modal.description")}
+            </div>
             <textarea
               value={description}
               onChange={(event) => setDescription(event.target.value)}
-              placeholder="A place for sharp opening prep, traps, and post-game notes."
+              placeholder={t("communityGroups.modal.descriptionPlaceholder")}
               className="min-h-[120px] w-full rounded-2xl border border-white/[0.08] bg-black/30 px-4 py-3 text-sm leading-6 text-white placeholder:text-gray-400 focus:border-brand-400/35 focus:outline-none focus:ring-2 focus:ring-brand-400/25 premium-scrollbar"
             />
           </label>
 
           <label className="mt-4 block">
-            <div className="mb-2 text-xs font-semibold text-gray-200">Topic</div>
+            <div className="mb-2 text-xs font-semibold text-gray-200">
+              {t("communityGroups.modal.topic")}
+            </div>
             <input
               value={topic}
               onChange={(event) => setTopic(event.target.value)}
-              placeholder="Openings, Tactics, Clubs..."
+              placeholder={t("communityGroups.modal.topicPlaceholder")}
               className="w-full rounded-2xl border border-white/[0.08] bg-black/30 px-4 py-3 text-sm text-white placeholder:text-gray-400 focus:border-brand-400/35 focus:outline-none focus:ring-2 focus:ring-brand-400/25"
             />
           </label>
@@ -339,7 +362,7 @@ export function CommunityGroupCreateModal({
             disabled={busy}
             className="rounded-xl bg-white/[0.08] px-4 py-2.5 text-sm font-semibold text-gray-100 transition-colors hover:bg-white/[0.14] disabled:opacity-50"
           >
-            Cancel
+            {t("common.cancel")}
           </button>
           <button
             type="button"
@@ -347,7 +370,7 @@ export function CommunityGroupCreateModal({
             onClick={() => onSubmit({ name, description, topic })}
             className="rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-500 disabled:opacity-50"
           >
-            {busy ? "Creating..." : "Create group"}
+            {busy ? t("communityGroups.modal.creating") : t("communityGroups.modal.create")}
           </button>
         </div>
       </div>

@@ -13,6 +13,7 @@ import {
   Eye,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { ProfileStats, TabType } from "./types";
 import { ProfileAvatarUpload } from "./ProfileAvatarUpload";
 import { useFriendChallengeStore } from "../../store/friendChallengeStore";
@@ -98,6 +99,7 @@ export function ProfileHeader({
   onToggleBlock,
   blockActionLoading = false,
 }: ProfileHeaderProps) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const realtimePresence = useFriendChallengeStore((state) => state.presenceStatus);
   const realtimeLastSeenAt = useFriendChallengeStore((state) => state.lastSeenAt);
@@ -124,7 +126,7 @@ export function ProfileHeader({
     return () => window.removeEventListener("mousedown", handlePointerDown);
   }, [isMoreMenuOpen]);
 
-  const displayName = user?.fullName?.trim() || "Chess Player";
+  const displayName = user?.fullName?.trim() || t("profileHeader.chessPlayer");
   const totalGames = Math.max(
     Number(stats?.total ?? 0),
     Number(user?.gamesPlayed ?? 0),
@@ -177,7 +179,9 @@ export function ProfileHeader({
   const canChallenge = relationship === "friends" && !isBlocked;
   const canWatch = !isBlocked && !!onWatch && Boolean(user?.isWatchableInGame);
   const canMessage = !isBlocked && !!onMessage;
-  const blockActionLabel = isBlocked ? "Unblock" : "Block";
+  const blockActionLabel = isBlocked
+    ? t("profileHeader.actions.unblock")
+    : t("profileHeader.actions.block");
 
   return (
     <div className="relative">
@@ -230,7 +234,7 @@ export function ProfileHeader({
                         className="px-4 py-2.5 rounded-lg border border-gray-300/80 dark:border-white/15 bg-white/85 dark:bg-black/25 hover:bg-white dark:hover:bg-black/35 text-sm font-semibold text-gray-900 dark:text-white inline-flex items-center gap-2 transition-colors"
                       >
                         <Settings size={16} />
-                        Edit Profile
+                        {t("profileHeader.actions.editProfile")}
                       </button>
                     </>
                   ) : showVisitorActions ? (
@@ -240,10 +244,10 @@ export function ProfileHeader({
                           type="button"
                           onClick={onWatch}
                           className="px-4 py-2.5 rounded-lg text-sm font-semibold inline-flex items-center gap-2 transition-colors bg-cyan-500/15 text-cyan-800 hover:bg-cyan-500/25 border border-cyan-500/30 dark:text-cyan-200"
-                          title="Watch this player's live multiplayer game"
+                          title={t("profileHeader.actions.watchTitle")}
                         >
                           <Eye size={16} />
-                          Watch
+                          {t("profileHeader.actions.watch")}
                         </button>
                       ) : null}
                       <button
@@ -252,7 +256,11 @@ export function ProfileHeader({
                           if (canMessage) onMessage?.();
                         }}
                         disabled={!canMessage}
-                        title={isBlocked ? "Messaging is unavailable for blocked users." : undefined}
+                        title={
+                          isBlocked
+                            ? t("profileHeader.actions.messageUnavailable")
+                            : undefined
+                        }
                         className={`px-4 py-2.5 rounded-lg text-sm font-semibold inline-flex items-center gap-2 transition-colors ${
                           canMessage
                             ? "bg-indigo-600 hover:bg-indigo-700 text-white"
@@ -260,7 +268,7 @@ export function ProfileHeader({
                         }`}
                       >
                         <MessageCircle size={16} />
-                        Message
+                        {t("profileHeader.actions.message")}
                       </button>
                       <button
                         type="button"
@@ -268,7 +276,11 @@ export function ProfileHeader({
                           if (canChallenge) onChallenge?.();
                         }}
                         disabled={!canChallenge}
-                        title={isBlocked ? "You cannot challenge this player." : undefined}
+                        title={
+                          isBlocked
+                            ? t("profileHeader.actions.challengeUnavailable")
+                            : undefined
+                        }
                         className={`px-4 py-2.5 rounded-lg text-sm font-semibold inline-flex items-center gap-2 transition-colors ${
                           canChallenge
                             ? "bg-brand-600 hover:bg-brand-700 text-white shadow-[0_8px_20px_rgba(13,148,136,0.35)]"
@@ -276,11 +288,11 @@ export function ProfileHeader({
                         }`}
                       >
                         <Swords size={16} />
-                        Challenge
+                        {t("profileHeader.actions.challenge")}
                       </button>
                       {isBlocked ? (
                         <span className="inline-flex items-center gap-2 rounded-lg border border-red-300/70 bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-700 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-300">
-                          Blocked
+                          {t("profileHeader.status.blocked")}
                         </span>
                       ) : relationship === "friends" ? (
                         <button
@@ -290,7 +302,7 @@ export function ProfileHeader({
                           className="px-4 py-2.5 rounded-lg border border-brand-400/40 bg-brand-50/80 dark:bg-brand-500/10 hover:bg-brand-100 dark:hover:bg-brand-500/20 text-sm font-semibold text-brand-700 dark:text-brand-300 inline-flex items-center gap-2 transition-colors disabled:opacity-50"
                         >
                           <UserCheck size={16} />
-                          Friends
+                          {t("profileHeader.status.friends")}
                         </button>
                       ) : relationship === "incoming_pending" ? (
                         <div className="flex items-center gap-2">
@@ -301,7 +313,7 @@ export function ProfileHeader({
                             className="px-4 py-2.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-sm font-semibold text-white inline-flex items-center gap-2 transition-colors disabled:opacity-50"
                           >
                             <UserCheck size={16} />
-                            Accept
+                            {t("profileHeader.actions.accept")}
                           </button>
                           <button
                             type="button"
@@ -310,13 +322,13 @@ export function ProfileHeader({
                             className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors disabled:opacity-50 dark:border-slate-500/40 dark:bg-slate-800/70 dark:text-slate-200"
                           >
                             <Hourglass size={16} />
-                            Ignore
+                            {t("profileHeader.actions.ignore")}
                           </button>
                         </div>
                       ) : relationship === "outgoing_pending" ? (
                         <span className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 dark:border-slate-500/40 dark:bg-slate-800/70 dark:text-slate-200">
                           <Hourglass size={16} />
-                          Request sent
+                          {t("profileHeader.status.requestSent")}
                         </span>
                       ) : (
                         <button
@@ -326,7 +338,7 @@ export function ProfileHeader({
                           className="px-4 py-2.5 rounded-lg border border-gray-300/80 dark:border-white/15 bg-white/85 dark:bg-black/25 hover:bg-white dark:hover:bg-black/35 text-sm font-semibold text-gray-900 dark:text-white inline-flex items-center gap-2 transition-colors disabled:opacity-50"
                         >
                           <UserRoundPlus size={16} />
-                          Add Friend
+                          {t("profileHeader.actions.addFriend")}
                         </button>
                       )}
                       <div className="relative" ref={moreMenuRef}>
@@ -334,7 +346,7 @@ export function ProfileHeader({
                           type="button"
                           onClick={() => setIsMoreMenuOpen((value) => !value)}
                           className="w-10 h-10 rounded-lg border border-gray-300/80 dark:border-white/15 bg-white/85 dark:bg-black/25 hover:bg-white dark:hover:bg-black/35 text-gray-700 dark:text-gray-200 inline-flex items-center justify-center transition-colors"
-                          aria-label="More profile actions"
+                          aria-label={t("profileHeader.actions.moreActions")}
                         >
                           <MoreHorizontal size={18} />
                         </button>
@@ -350,7 +362,9 @@ export function ProfileHeader({
                               className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-gray-100 dark:hover:bg-slate-800 disabled:opacity-60"
                             >
                               {blockActionLoading
-                                ? `${blockActionLabel}ing...`
+                                ? t("profileHeader.actions.processing", {
+                                    action: blockActionLabel,
+                                  })
                                 : `${blockActionLabel} ${displayName}`}
                             </button>
                           </div>
@@ -363,7 +377,7 @@ export function ProfileHeader({
 
               <div className="mt-4 pt-3 border-t border-gray-200/70 dark:border-white/10 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
                 <span className="text-gray-500 dark:text-gray-400">
-                  Joined{" "}
+                  {t("profileHeader.joined")}{" "}
                   <span className="text-gray-900 dark:text-white">
                     {memberSince}
                   </span>
@@ -391,7 +405,7 @@ export function ProfileHeader({
                 }`}
               >
                 <BarChart3 size={16} />
-                Overview
+                {t("profileHeader.tabs.overview")}
               </button>
               <button
                 onClick={() => setActiveTab("games")}
@@ -402,7 +416,7 @@ export function ProfileHeader({
                 }`}
               >
                 <History size={16} />
-                Game History
+                {t("profileHeader.tabs.gameHistory")}
               </button>
             </div>
           </div>

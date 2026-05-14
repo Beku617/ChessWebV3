@@ -1,5 +1,6 @@
 import type { GameHistory } from "../../historyTypes";
 import { findOpeningByEco } from "../../utils/openingExplorer";
+import i18n from "../../i18n";
 
 export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
@@ -242,22 +243,28 @@ export function getInitials(name?: string | null): string {
 }
 
 export function formatRelativeTime(value?: string | null): string {
-  if (!value) return "Just now";
+  if (!value) return i18n.t("presence.justNow");
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Just now";
+  if (Number.isNaN(date.getTime())) return i18n.t("presence.justNow");
 
   const diffMs = Date.now() - date.getTime();
   const diffMinutes = Math.max(0, Math.floor(diffMs / (60 * 1000)));
-  if (diffMinutes < 1) return "Just now";
-  if (diffMinutes < 60) return `${diffMinutes}m ago`;
+  if (diffMinutes < 1) return i18n.t("presence.justNow");
+  if (diffMinutes < 60) {
+    return i18n.t("presence.minutesAgo", { count: diffMinutes });
+  }
 
   const diffHours = Math.floor(diffMinutes / 60);
-  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffHours < 24) {
+    return i18n.t("presence.hoursAgo", { count: diffHours });
+  }
 
   const diffDays = Math.floor(diffHours / 24);
-  if (diffDays < 7) return `${diffDays}d ago`;
+  if (diffDays < 7) {
+    return i18n.t("presence.daysAgo", { count: diffDays });
+  }
 
-  return date.toLocaleDateString("en-US", {
+  return date.toLocaleDateString(undefined, {
     month: "short",
     day: "numeric",
     year: diffDays > 365 ? "numeric" : undefined,
@@ -282,19 +289,21 @@ export function summarizeCommunityPost(post?: CommunityPost | null): string {
   }
 
   if (post?.postType === "game") {
-    return "Shared game";
+    return i18n.t("communityCommon.sharedGame");
   }
 
   if (post?.mediaType === "video") {
-    return "Video post";
+    return i18n.t("communityCommon.videoPost");
   }
 
   if (post?.mediaType === "image") {
     const count = Array.isArray(post.mediaItems) ? post.mediaItems.length : 0;
-    return count > 1 ? "Image set" : "Image post";
+    return count > 1
+      ? i18n.t("communityCommon.imageSet")
+      : i18n.t("communityCommon.imagePost");
   }
 
-  return "Community post";
+  return i18n.t("communityCommon.communityPost");
 }
 
 export function getCommunityMediaItems(post?: Pick<
@@ -359,7 +368,7 @@ export function formatGamePlayedAt(value?: string | null): string {
 
 export function formatCommunityTimeControl(value?: string | null): string {
   const raw = String(value || "").trim();
-  if (!raw) return "Custom";
+  if (!raw) return i18n.t("Custom");
   const normalized = raw.replace("|", "+");
   const [initialRaw, incrementRaw = "0"] = normalized.split("+");
   const initialSeconds = Number(initialRaw);
@@ -396,10 +405,10 @@ export function getCommunityOpeningLabel(
 export function formatCommunityPerspectiveResult(
   value?: CommunityPerspectiveResult | null,
 ): string {
-  if (value === "win") return "Won";
-  if (value === "loss") return "Lost";
-  if (value === "draw") return "Draw";
-  return "Result unavailable";
+  if (value === "win") return i18n.t("communityCommon.won");
+  if (value === "loss") return i18n.t("communityCommon.lost");
+  if (value === "draw") return i18n.t("communityCommon.draw");
+  return i18n.t("communityCommon.resultUnavailable");
 }
 
 export function formatCommunityResult(result?: string | null): string {
@@ -407,7 +416,7 @@ export function formatCommunityResult(result?: string | null): string {
   if (normalized === "1-0" || normalized === "0-1" || normalized === "1/2-1/2") {
     return normalized;
   }
-  return "Result unavailable";
+  return i18n.t("communityCommon.resultUnavailable");
 }
 
 export function communityGameFromHistory(game: GameHistory): CommunitySharedGame {
@@ -431,13 +440,17 @@ export function communityGameFromHistory(game: GameHistory): CommunitySharedGame
     result: String(game.result || "*"),
     timeControl: String(game.timeControl || ""),
     eco: String(game.eco || ""),
-    event: String(game.event || "NeonGambit Game"),
-    white: String(game.white || "White"),
-    black: String(game.black || "Black"),
+    event: String(game.event || i18n.t("communityCommon.neonGambitGame")),
+    white: String(game.white || i18n.t("communityCommon.white")),
+    black: String(game.black || i18n.t("communityCommon.black")),
     whiteElo: Number(game.whiteElo || 1200),
     blackElo: Number(game.blackElo || 1200),
     playAs,
-    opponent: String(game.opponent || (playAs === "white" ? game.black : game.white) || "Opponent"),
+    opponent: String(
+      game.opponent ||
+        (playAs === "white" ? game.black : game.white) ||
+        i18n.t("communityCommon.defaultOpponent"),
+    ),
     rated: Boolean(game.rated),
     totalMoves: Array.isArray(game.moves) ? game.moves.length : 0,
     playedAt: game.createdAt || null,

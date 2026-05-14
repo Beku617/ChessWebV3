@@ -138,6 +138,11 @@ const featuredEventSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Admin",
     },
+    pairId: {
+      type: String,
+      trim: true,
+      match: [/^\d{5}$/, "Pair ID must be exactly 5 digits."],
+    },
   },
   {
     timestamps: true,
@@ -147,5 +152,6 @@ const featuredEventSchema = new mongoose.Schema(
 // Index for efficient queries
 featuredEventSchema.index({ status: 1, isActive: 1, priority: -1 });
 featuredEventSchema.index({ featured: 1, isActive: 1 });
+featuredEventSchema.index({ pairId: 1 }, { unique: true, sparse: true });
 
 export default mongoose.model("FeaturedEvent", featuredEventSchema);

@@ -33,3 +33,7 @@ export { default as LearnCourse } from "./LearnCourse.js";
 export { default as LearnLesson } from "./LearnLesson.js";
 export { default as LearnLessonStep } from "./LearnLessonStep.js";
 export { default as UserLearnProgress } from "./UserLearnProgress.js";
+export { default as LearnMN } from "./LearnMN.js";
+export { default as LessonMN } from "./LessonMN.js";
+export { default as LessonStepMN } from "./LessonStepMN.js";
+export { default as UserLearnProgressMN } from "./UserLearnProgressMN.js";

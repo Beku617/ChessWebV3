@@ -31,6 +31,7 @@ type LessonDraft = {
   slug: string;
   subtitle: string;
   description: string;
+  pairId: string;
   estimatedMinutes: number;
   isPublished: boolean;
 };
@@ -40,9 +41,14 @@ const EMPTY_DRAFT: LessonDraft = {
   slug: "",
   subtitle: "",
   description: "",
+  pairId: "",
   estimatedMinutes: 10,
   isPublished: false,
 };
+
+function generatePairId() {
+  return String(Math.floor(Math.random() * 90000) + 10000);
+}
 
 function toDraft(lesson: AdminLearnLesson): LessonDraft {
   return {
@@ -50,6 +56,7 @@ function toDraft(lesson: AdminLearnLesson): LessonDraft {
     slug: lesson.slug,
     subtitle: lesson.subtitle,
     description: lesson.description,
+    pairId: lesson.pairId || "",
     estimatedMinutes: lesson.estimatedMinutes || 10,
     isPublished: lesson.isPublished,
   };
@@ -127,6 +134,7 @@ export default function AdminLearnCourse() {
         slug: draft.slug,
         subtitle: draft.subtitle,
         description: draft.description,
+        pairId: draft.pairId,
         estimatedMinutes: Number(draft.estimatedMinutes || 10),
         isPublished: draft.isPublished,
       };
@@ -379,6 +387,11 @@ export default function AdminLearnCourse() {
                               {lesson.stepCount} steps - {lesson.estimatedMinutes} min - /learn/
                               {course?.slug}/{lesson.slug}
                             </div>
+                            {lesson.pairId && (
+                              <div className="mt-1 inline-flex rounded-full bg-gray-200 px-2 py-0.5 text-[10px] font-medium text-gray-600 dark:bg-slate-800 dark:text-slate-300">
+                                Pair ID: {lesson.pairId}
+                              </div>
+                            )}
                           </div>
 
                           <div className="flex flex-wrap justify-end gap-2">
@@ -499,6 +512,38 @@ export default function AdminLearnCourse() {
                   Show lesson
                 </label>
               </div>
+
+              <label className="mt-4 block space-y-1">
+                <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
+                  Pair ID
+                </span>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]{5}"
+                    maxLength={5}
+                    value={draft.pairId}
+                    onChange={(event) =>
+                      setDraft((current) => ({
+                        ...current,
+                        pairId: event.target.value.replace(/\D/g, "").slice(0, 5),
+                      }))
+                    }
+                    placeholder="10423"
+                    className={inputClass}
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setDraft((current) => ({ ...current, pairId: generatePairId() }))
+                    }
+                    className="rounded-xl border border-gray-200 bg-gray-100 px-4 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                  >
+                    Generate
+                  </button>
+                </div>
+              </label>
 
               <div className="mt-6 flex justify-end gap-3">
                 <button

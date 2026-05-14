@@ -251,8 +251,8 @@
       "providerStatus": "AI үйлчилгээний төлөв",
       "providerConnected": "AI үйлчилгээ тохируулагдсан",
       "providerMissing": "AI үйлчилгээ тохируулагдаагүй",
-      "providerHelperPrimary": "Primary: Claude Haiku 4.5 (Bedrock). Fallback: Groq Llama 3.3 70B.",
-      "providerHelperFallbackOnly": "Bedrock token missing. Using Groq fallback only.",
+      "providerHelperPrimary": "Үндсэн: Claude Haiku 4.5 (Bedrock). Нөөц: Groq Llama 3.3 70B.",
+      "providerHelperFallbackOnly": "Bedrock токен алга байна. Зөвхөн Groq нөөц загвар ашиглаж байна.",
       "providerHelperSetup": ".env файлд VITE_AWS_BEARER_TOKEN_BEDROCK, VITE_OPENAI_API_KEY, VITE_XAI_API_KEY, VITE_DEEPSEEK_API_KEY эсвэл VITE_GROQ_API_KEY нэмээд app-аа дахин асаана уу.",
       "providerHelperSelected": "Сонгосон загвар: {{model}}. Загварыг Admin > Bots хэсгээс солино.",
       "explanationLevel": "Тайлбарын дэлгэрэнгүй байдал",
@@ -683,8 +683,16 @@
       "tryAgainIn": " {{duration}} дараа дахин оролдоно уу.",
       "rateLimited": "Нийтлэх хязгаарт хүрлээ (3 цаг тутамд {{maxPosts}} нийтлэл).{{waitText}}",
       "unavailable": "Одоогоор нийтлэх боломжгүй байна.",
-      "loadSelectedGame": "Сонгосон тоглолцоог ачаалж чадсангүй."
-    }
+      "loadSelectedGame": "Сонгосон тоглолцоог ачаалж чадсангүй.",
+      "loadGamesFailed": "Хуваалцах боломжтой тоглоомуудыг ачаалж чадсангүй.",
+      "submitFailed": "Нийтлэл илгээж чадсангүй.",
+      "imageLimit": "Та {{count}} хүртэл зураг байршуулах боломжтой.",
+      "totalImageTooLarge": "Зургийн нийт хэмжээ хэт том байна. Хамгийн дээд хэмжээ нь 40MB байна."
+    },
+    "addCaption": "Энэ тоглоомд тайлбар нэмэх...",
+    "composePlaceholder": "Тоглоомын санаа, нээлтийн мөр, клип, оньсого агшин, тэмцээний шинэчлэлт, эсвэл аль нэг тоглоомоо хуваалцаарай...",
+    "submittedForReview": "Таны нийтлэлийг хянуулахаар илгээсэн.",
+    "vsLabel": "{{white}} эсрэг {{black}}"
   },
   "communityGameViewer": {
     "whiteWon": "Цагаан хожлоо",
@@ -732,5 +740,276 @@
     "dateLabel": "Огноо: {{label}}",
     "historyTitle": "Тэмцээний түүх",
     "title": "Тэмцээний профайл"
+  },
+  "communityCommon": {
+    "sharedGame": "Хуваалцсан тоглоом",
+    "videoPost": "Видео бичлэг",
+    "imageSet": "Зургийн багц",
+    "imagePost": "Зургийн нийтлэл",
+    "communityPost": "Олон нийтийн нийтлэл",
+    "won": "Ялсан",
+    "lost": "Алдагдсан",
+    "draw": "Зурах",
+    "resultUnavailable": "Үр дүн боломжгүй",
+    "neonGambitGame": "NeonGambit тоглоом",
+    "white": "Цагаан",
+    "black": "Хар",
+    "defaultOpponent": "Өрсөлдөгч"
+  },
+  "communityPage": {
+    "tabs": {
+      "feed": "Тэжээл",
+      "myPosts": "Миний нийтлэлүүд"
+    },
+    "groups": {
+      "loading": "Бүлгүүдийг ачаалж байна..."
+    },
+    "empty": {
+      "noApprovedTitle": "Одоогоор батлагдсан нийтлэл байхгүй байна",
+      "noApprovedDescription": "Эхний шатрын бичлэгийг оруулна уу. Энэ нь тохируулсны дараа энд гарч ирнэ.",
+      "noPostsTitle": "Одоогоор нийтлэл байхгүй",
+      "noPostsDescription": "Таны илгээсэн материалууд энд модераторын статустай харагдах болно.",
+      "noGroups": "Одоогоор бүлэг байхгүй байна. Эндээс эхнийхийг үүсгэ."
+    },
+    "pagination": {
+      "showing": "{{total}}-ийн {{start}} - {{end}}-г харуулж байна"
+    },
+    "errors": {
+      "loadFeed": "Хангамжийг ачаалж чадсангүй.",
+      "loadMyPosts": "Таны нийтлэлүүдийг ачаалж чадсангүй.",
+      "loadPostingAccess": "Нийтлэх хандалтыг ачаалж чадсангүй.",
+      "loadTrending": "Тренд болж буй нийтлэлүүдийг ачаалж чадсангүй.",
+      "loadGroups": "Бүлгүүдийг ачаалж чадсангүй.",
+      "loadJoinedGroups": "Нэгдсэн бүлгүүдийг ачаалж чадсангүй.",
+      "deletePost": "Нийтлэлийг устгаж чадсангүй.",
+      "updateGroup": "Бүлгийг шинэчилж чадсангүй.",
+      "createGroup": "Бүлэг үүсгэж чадсангүй."
+    }
+  },
+  "communityGroups": {
+    "membersCount": "{{count}} гишүүд",
+    "defaultDescription": "Олон нийтийн NeonGambit групп шатрын хэлэлцүүлэг, хуваалцсан тоглоомууд.",
+    "createdBy": "үүсгэсэн",
+    "actions": {
+      "saving": "Хадгалж байна...",
+      "join": "Нэгдэх",
+      "leave": "Орхих"
+    },
+    "sidebar": {
+      "title": "Бүлгүүд",
+      "allGroups": "Бүх бүлгүүд",
+      "createGroup": "Бүлэг үүсгэх",
+      "joinedGroups": "Бүлгүүдэд нэгдсэн",
+      "discover": "Судлах"
+    },
+    "modal": {
+      "eyebrow": "Олон нийтийн бүлэг",
+      "title": "Бүлэг үүсгэх",
+      "close": "Бүлгийн горимыг хаах",
+      "groupName": "Бүлгийн нэр",
+      "groupNamePlaceholder": "Нээлтийн лаборатори",
+      "description": "Тодорхойлолт",
+      "descriptionPlaceholder": "Хурц нээлтийн бэлтгэл, занга, тоглолтын дараах тэмдэглэл хийх газар.",
+      "topic": "Сэдэв",
+      "topicPlaceholder": "Нээлт, тактик, клубууд...",
+      "creating": "Үүсгэж байна...",
+      "create": "Бүлэг үүсгэх"
+    }
+  },
+  "communityGroupsPage": {
+    "title": "Шатрын дугуйлангаа олоорой",
+    "createGroup": "Бүлэг үүсгэх",
+    "searchPlaceholder": "Бүлгийн нэр, сэдэв эсвэл тайлбараар хайх...",
+    "backToCommunity": "Нийгэмлэг рүү буцах",
+    "noGroupsTitle": "Бүлэг олдсонгүй",
+    "noGroupsDescription": "Шатрын нийгэмлэгийнхээ анхны олон нийтийн бүлгийг эхлүүлээрэй.",
+    "pagination": {
+      "showing": "{{total}} илрүүлэх бүлгээс {{start}} - {{end}}-г харуулж байна"
+    }
+  },
+  "shareGameModal": {
+    "title": "Тоглоом хуваалцах",
+    "vs": "эсрэг",
+    "searchFriends": "Найзуудаа хайх...",
+    "noFriends": "Одоогоор найз байхгүй.",
+    "noMatchingFriends": "Тохирох найзууд байхгүй.",
+    "sent": "Илгээсэн",
+    "send": "Илгээх",
+    "errors": {
+      "shareFailed": "Тоглоомыг хуваалцаж чадсангүй.",
+      "shareFailedTryAgain": "Тоглоомыг хуваалцаж чадсангүй. Дахин оролдоно уу."
+    }
+  },
+  "profileHeader": {
+    "chessPlayer": "Шатарчин",
+    "joined": "Нэгдсэн",
+    "tabs": {
+      "overview": "Тойм",
+      "gameHistory": "Тоглоомын түүх"
+    },
+    "status": {
+      "blocked": "Блоклосон",
+      "friends": "Найзууд",
+      "requestSent": "Хүсэлтийг илгээсэн"
+    },
+    "actions": {
+      "block": "Блоклох",
+      "unblock": "Блокыг тайлах",
+      "editProfile": "Профайл засах",
+      "watchTitle": "Энэ тоглогчийн олон тоглогчийн шууд тоглолтыг үзээрэй",
+      "watch": "үзэх",
+      "messageUnavailable": "Хаагдсан хэрэглэгчдэд мессеж бичих боломжгүй.",
+      "message": "Мессеж",
+      "challengeUnavailable": "Та энэ тоглогчийг эсэргүүцэх боломжгүй.",
+      "challenge": "Сорилт",
+      "accept": "Зөвшөөрөх",
+      "ignore": "Үл тоомсорлох",
+      "addFriend": "Найз нэмэх",
+      "moreActions": "Профайлын бусад үйлдэл",
+      "processing": "{{action}} хийж байна..."
+    }
+  },
+  "profilePage": {
+    "noGamesTitle": "Одоогоор тоглоом алга",
+    "noGamesDescription": "Өөрийн ахиц дэвшлийг хянаж эхлэхийн тулд анхны тоглоомоо тоглоорой!",
+    "playNow": "Одоо тогло"
+  },
+  "friendsPage": {
+    "relationshipStates": "Харилцааны төлөв",
+    "filterPlaceholder": "Найзуудаа нэр эсвэл бариулаар нь шүүнэ үү",
+    "totalCount": "{{count}} нийт",
+    "fetchingCircle": "Таны тойргийг татаж байна.",
+    "emptyListTitle": "Таны найзуудын жагсаалт хоосон байна",
+    "emptyListDescription": "Тоглогчдыг нэмж, сорьж, чатлаж эхлэх.",
+    "incomingRequests": "Ирж буй хүсэлтүүд",
+    "outgoingRequests": "Гарч буй хүсэлтүүд",
+    "newestFirst": "Хамгийн шинэ нь эхлээд",
+    "loadingIncoming": "Ирж буй хүсэлтүүдийг ачаалж байна...",
+    "loadingOutgoing": "Гарсан хүсэлтүүдийг ачаалж байна...",
+    "noIncoming": "Ирж буй хүсэлт байхгүй",
+    "noOutgoing": "Гарах хүсэлт байхгүй",
+    "noIncomingDescription": "Найзын урилга ирэхэд нь та эндээс харах болно.",
+    "noOutgoingDescription": "Шинэ холболт эхлүүлэхийн тулд урилга илгээнэ үү.",
+    "addFriends": "Найзуудаа нэмнэ үү",
+    "addFriendsDescription": "Хэрэглэгчийн нэр эсвэл имэйлээр хайх. Тоглогчдыг тойрогтоо урь.",
+    "findByNameOrEmail": "Нэр эсвэл имэйлээр хайж олоорой",
+    "searchingAcrossPlatform": "NeonGambit даяар тоглогч хайж байна.",
+    "findPlayers": "Тоглогчдыг олох",
+    "findPlayersDescription": "Шинэ найз нөхөд нэмэхийн тулд хайх. Таны үр дүн энд харагдах болно.",
+    "noEmailProvided": "Имэйл өгөөгүй",
+    "status": {
+      "thatsYou": "Энэ бол чи"
+    },
+    "time": {
+      "earlier": "Өмнө нь"
+    },
+    "requestSubtitle": {
+      "wantsToConnect": "Холбох хүсэлтэй байна",
+      "awaitingResponse": "Хариу хүлээж байна"
+    },
+    "requestStatus": {
+      "accepted": "Хүлээн зөвшөөрсөн",
+      "denied": "Татгалзсан",
+      "ignored": "Үл тоосон",
+      "canceled": "Цуцлагдсан",
+      "pending": "Хүлээгдэж байна"
+    },
+    "actions": {
+      "deny": "Үгүйсгэх",
+      "challenge": "Сорилт",
+      "challengeFriend": "Энэ найзыг уриал",
+      "sendDirectMessage": "Шууд мессеж илгээнэ үү",
+      "watchLiveTitle": "Амьд олон тоглогчтой тоглоом тоглож байна",
+      "watchCurrentGame": "Энэ найзын одоогийн тоглолтыг үзээрэй"
+    },
+    "errors": {
+      "searchFailed": "Хайлт амжилтгүй боллоо",
+      "searchFailedRetry": "Хайлт амжилтгүй боллоо. Дахин оролдоно уу.",
+      "cannotSendRequestBlocked": "Та энэ тоглогч руу найзын хүсэлт илгээх боломжгүй.",
+      "sendRequestFailed": "Хүсэлтийг илгээж чадсангүй",
+      "acceptFailed": "Хүсэлтийг хүлээж авч чадсангүй",
+      "denyFailed": "Хүсэлтийг үгүйсгэж чадсангүй",
+      "cancelFailed": "Хүсэлтийг цуцалж чадсангүй",
+      "unfriendFailed": "Найзыг устгаж чадсангүй",
+      "messageUnavailable": "Мессеж илгээх боломжгүй.",
+      "challengeUnavailable": "Та энэ тоглогчийг эсэргүүцэх боломжгүй."
+    }
+  },
+  "postCard": {
+    "imagesCount": "{{count}} зураг",
+    "deleteYourPost": "Нийтлэлээ устгана уу",
+    "reasonLabel": "Шалтгаан",
+    "mediaAlt": "Олон нийтийн мэдээллийн хэрэгсэл",
+    "imageAlt": "Олон нийтийн нийтлэлийн зураг",
+    "imageAltIndexed": "Олон нийтийн нийтлэлийн зураг {{index}}",
+    "cannotLikeOwnPost": "Та өөрийнхөө нийтлэлд дуртай байж болохгүй.",
+    "likePost": "Бичлэгт дуртай",
+    "unlikePost": "Нийтлэлээс ялгаатай",
+    "deletePostTitle": "Нийтлэлийг устгах уу?",
+    "deletePostDescription": "Энэ нь таны нийтлэлийг олон нийтийн хангамжаас устгана.",
+    "deleting": "Устгаж байна...",
+    "closeImagePreview": "Зургийг урьдчилан үзэх",
+    "keyboardArrowsHint": "Үзэхийн тулд гарын сумыг ашиглана уу",
+    "status": {
+      "pending": "Хүлээгдэж байна",
+      "approved": "Зөвшөөрсөн",
+      "rejected": "Татгалзсан",
+      "removed": "Устгасан"
+    },
+    "errors": {
+      "updateLike": "Like шинэчилж чадсангүй.",
+      "deletePost": "Нийтлэлийг устгаж чадсангүй."
+    }
+  },
+  "watchPage": {
+    "featuredTournaments": "Онцлох тэмцээнүүд",
+    "previousFeaturedSlide": "Өмнөх онцлох слайд",
+    "nextFeaturedSlide": "Дараагийн онцлох слайд",
+    "goToFeaturedSlide": "{{index}}-р онцлох слайд руу очих",
+    "fallback": {
+      "live": "ШУУД",
+      "tournament": "ТЭМЦЭЭН",
+      "speedChess": "ТҮРГЭН ШАТАР",
+      "worldChampionshipTitle": "Дэлхийн шатрын аварга шалгаруулах тэмцээн",
+      "worldChampionshipDescription": "Кандидатын тэмцээн болж, ялагч нь дэлхийн аварга Гүкештэй өрсөлдөнө.",
+      "grandPrixTitle": "FIDE Гран-При цуврал",
+      "grandPrixDescription": "Шилдэг 16 тоглогч сонгон шалгаруулалтын эрхийн төлөө дөрвөн үе шатанд өрсөлдөнө.",
+      "speedChessTitle": "Түргэн шатрын аварга шалгаруулах тэмцээн",
+      "speedChessDescription": "Дэлхийн хамгийн хурдан шатарт bullet, blitz, rapid төрлүүд нэг дор өрнөнө.",
+      "featuredEvent": "Онцлох үйл явдал",
+      "details": "Дэлгэрэнгүй",
+      "event": "ҮЙЛ ЯВДАЛ"
+    }
+  },
+  "communitySidebar": {
+    "trendingMode": {
+      "likes": "Хамгийн их таалагдсан",
+      "fresh": "Шинэ сонголтууд"
+    },
+    "byAuthor": "{{author}}-ын",
+    "new": "Шинэ",
+    "notesTitle": "Олон нийтийн тэмдэглэл",
+    "notesDescription": "Шатар- нэгдүгээрт, тайван, уншихад хялбар. Нийтлэл бүрийг хангамжид хүрэхээс өмнө хянадаг.",
+    "noteOne": "Яг одоо нийтлэл бүрт нэг зураг эсвэл нэг видео.",
+    "noteTwo": "Сэдвээс гадуурх, спам эсвэл доромжилсон контентоос татгалзсан.",
+    "noteThree": "Тэмцээний мөчүүд, санаанууд, клипүүд, дүн шинжилгээ, амттай дурсамжууд."
+  },
+  "communityGroupDetail": {
+    "notFoundTitle": "Бүлэг олдсонгүй",
+    "notFoundDescription": "Энэ бүлгийг хассан байж магадгүй.",
+    "createdPrefix": "үүсгэсэн {{time}}",
+    "joinPromptTitle": "Энд нийтлэхийн тулд энэ группт нэгдээрэй",
+    "joinPromptDescription": "Та зөвшөөрөгдсөн нийтлэлүүдийг үзэж болно, гэхдээ бүлгийн нийтлэл нь зөвхөн гишүүдэд зориулагдсан.",
+    "createAnotherGroup": "Өөр бүлэг үүсгэх",
+    "groupFeed": "Бүлгийн тэжээл",
+    "emptyTitle": "Одоогоор батлагдсан нийтлэл байхгүй байна",
+    "emptyJoined": "Энэ бүлгийн эхний бичлэгийг хуваалцаарай. Энэ нь тохируулсны дараа энд гарч ирнэ.",
+    "emptyNotJoined": "Бүлэгт нэгдэж, яриа эхлүүлэхэд тусална уу.",
+    "errors": {
+      "loadGroup": "Бүлгийг ачаалж чадсангүй.",
+      "loadGroupPosts": "Бүлгийн нийтлэлүүдийг ачаалж чадсангүй.",
+      "toggleMembership": "{{action}} бүлэгт орж чадсангүй.",
+      "updateGroup": "Бүлгийг шинэчилж чадсангүй."
+    }
   }
 }

@@ -19,6 +19,7 @@ import { FeedPagination } from "../../components/community/FeedPagination";
 import { useAuthStore } from "../../store/authStore";
 import { getRatingPoolForMatch } from "../../utils/ratingPool";
 import { API_URL, SOCKET_URL } from "../../config/network";
+import i18n from "../../i18n";
 
 type TournamentType = "swiss" | "arena" | "chess960";
 type TournamentStatus =
@@ -274,11 +275,11 @@ function parseOptionalNonNegativeNumber(value: string): number | null {
 
 const PAGE_TAB_OPTIONS: Array<{
   key: TournamentPageTab;
-  label: string;
+  labelKey: string;
 }> = [
-  { key: "current", label: "Current" },
-  { key: "schedule", label: "Schedule" },
-  { key: "create", label: "Create" },
+  { key: "current", labelKey: "tournamentsPage.pageTabs.current" },
+  { key: "schedule", labelKey: "tournamentsPage.pageTabs.schedule" },
+  { key: "create", labelKey: "tournamentsPage.pageTabs.create" },
 ];
 
 const ARENA_SCORING_RULES = {
@@ -345,9 +346,11 @@ function formatTimeCategory(item: TournamentSummary) {
 function formatGameTime(timeControl?: TimeControl) {
   const baseMinutes = getBaseMinutes(timeControl);
   const incrementSeconds = getIncrementSeconds(timeControl);
+  const minAbbr = i18n.t("tournamentsPage.units.minAbbr", "min");
+  const secAbbr = i18n.t("tournamentsPage.units.secAbbr", "s");
   return incrementSeconds > 0
-    ? `${baseMinutes} min +${incrementSeconds}s`
-    : `${baseMinutes} min`;
+    ? `${baseMinutes} ${minAbbr} +${incrementSeconds}${secAbbr}`
+    : `${baseMinutes} ${minAbbr}`;
 }
 
 function formatShortTime(date: Date) {
@@ -361,21 +364,29 @@ function formatShortTime(date: Date) {
 
 function formatRelativeCountdown(totalMinutes: number) {
   const safeMinutes = Math.max(0, Math.ceil(totalMinutes));
-  if (safeMinutes < 60) return `${safeMinutes} ${safeMinutes === 1 ? "min" : "mins"}`;
+  const minAbbr = i18n.t("tournamentsPage.units.minAbbr", "min");
+  const hourAbbr = i18n.t("tournamentsPage.units.hourAbbr", "hr");
+  const dayAbbr = i18n.t("tournamentsPage.units.dayAbbr", "day");
+  if (safeMinutes < 60) return `${safeMinutes} ${minAbbr}`;
   const hours = Math.floor(safeMinutes / 60);
   const minutes = safeMinutes % 60;
   if (hours < 24) {
-    if (minutes === 0) return `${hours} ${hours === 1 ? "hr" : "hrs"}`;
-    return `${hours} ${hours === 1 ? "hr" : "hrs"} ${minutes} ${minutes === 1 ? "min" : "mins"}`;
+    if (minutes === 0) return `${hours} ${hourAbbr}`;
+    return `${hours} ${hourAbbr} ${minutes} ${minAbbr}`;
   }
   const days = Math.floor(hours / 24);
-  return `${days} ${days === 1 ? "day" : "days"}`;
+  return `${days} ${dayAbbr}`;
 }
 
 function formatStartsIn(target: Date, now: Date) {
   const diffMinutes = (target.getTime() - now.getTime()) / 60000;
-  if (diffMinutes <= 0) return "Starts soon";
-  return `Starts in ${formatRelativeCountdown(diffMinutes)}`;
+  if (diffMinutes <= 0) {
+    return i18n.t("tournamentsPage.status.startsSoon", "Starts soon");
+  }
+  return i18n.t("tournamentsPage.status.startsIn", {
+    duration: formatRelativeCountdown(diffMinutes),
+    defaultValue: "Starts in {{duration}}",
+  });
 }
 
 function parseStartDateParts(item: TournamentSummary) {
@@ -457,7 +468,9 @@ function getTournamentStatusText(item: TournamentSummary, now: Date) {
   const endAt = getTournamentEndAt(item);
 
   if (isTournamentEnded(item, now)) {
-    return item.status === "FINISHED" ? "Results available" : "Ended";
+    return item.status === "FINISHED"
+      ? i18n.t("tournamentsPage.status.resultsAvailable", "Results available")
+      : i18n.t("tournamentsPage.status.ended", "Ended");
   }
 
   if (startAt && now.getTime() < startAt.getTime()) {
@@ -466,14 +479,17 @@ function getTournamentStatusText(item: TournamentSummary, now: Date) {
 
   if (endAt && now.getTime() < endAt.getTime()) {
     const leftMinutes = (endAt.getTime() - now.getTime()) / 60000;
-    return `${formatRelativeCountdown(leftMinutes)} left`;
+    return i18n.t("tournamentsPage.status.timeLeft", {
+      duration: formatRelativeCountdown(leftMinutes),
+      defaultValue: "{{duration}} left",
+    });
   }
 
   if (item.status === "LIVE_ROUND" || item.status === "ROUND_CLOSED") {
-    return "In progress";
+    return i18n.t("tournamentsPage.status.inProgress", "In progress");
   }
 
-  return "Starts soon";
+  return i18n.t("tournamentsPage.status.startsSoon", "Starts soon");
 }
 
 function isRegistrationLocked(item: TournamentSummary, now: Date) {
@@ -513,7 +529,9 @@ function isTournamentRunning(item: TournamentSummary, now: Date) {
 
 function getTournamentGameActionLabel(item: TournamentSummary) {
   const roundNumber = Number(item.myPendingGameRound || item.currentRound || 0);
-  return roundNumber > 1 ? "Next Game" : "Start Game";
+  return roundNumber > 1
+    ? i18n.t("tournamentsPage.actions.nextGame", "Next Game")
+    : i18n.t("tournamentsPage.actions.startGame", "Start Game");
 }
 
 function getTournamentDisplayName(item: TournamentSummary) {
@@ -529,11 +547,13 @@ function getTournamentSummaryLine(item: TournamentSummary) {
 
 function formatDurationValue(totalMinutes: number) {
   const safeMinutes = Math.max(1, Math.round(Number(totalMinutes || 0)));
-  if (safeMinutes < 60) return `${safeMinutes} min`;
+  const minAbbr = i18n.t("tournamentsPage.units.minAbbr", "min");
+  const hourAbbr = i18n.t("tournamentsPage.units.hourShort", "h");
+  if (safeMinutes < 60) return `${safeMinutes} ${minAbbr}`;
   const hours = Math.floor(safeMinutes / 60);
   const minutes = safeMinutes % 60;
-  if (minutes === 0) return `${hours}h`;
-  return `${hours}h ${minutes}m`;
+  if (minutes === 0) return `${hours}${hourAbbr}`;
+  return `${hours}${hourAbbr} ${minutes}${minAbbr}`;
 }
 
 function getTournamentDurationLabel(item: TournamentSummary, now: Date) {
@@ -821,9 +841,10 @@ function TournamentTabs({
   activeTab: TournamentPageTab;
   onTabChange: (tab: TournamentPageTab) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <nav className="flex h-[54px] w-full items-stretch gap-[2px] overflow-x-auto overflow-y-hidden border-b border-theme-glass bg-theme-secondary px-5 no-scrollbar">
-      {PAGE_TAB_OPTIONS.map(({ key, label }) => {
+      {PAGE_TAB_OPTIONS.map(({ key, labelKey }) => {
         const isActive = activeTab === key;
         return (
           <button
@@ -837,7 +858,7 @@ function TournamentTabs({
                 : "text-theme-muted hover:text-theme-foreground",
             )}
           >
-            {label}
+            {t(labelKey)}
           </button>
         );
       })}
@@ -864,6 +885,7 @@ function TournamentRow({
   onOpenGame: (gameId: string) => void;
   onOpenResult: (id: string) => void;
 }) {
+  const { t } = useTranslation();
   const speed = getTournamentSpeed(item);
   const statusText = getTournamentStatusText(item, now);
   const gameTimeLabel = getGameTimeLabel(item.timeControl);
@@ -874,11 +896,16 @@ function TournamentRow({
   const registrationLocked = !registrationOpen && !item.isRegistered && isRegistrationLocked(item, now);
   const runningAndJoined = item.isRegistered && isTournamentRunning(item, now);
   const hasPendingGame = runningAndJoined && !!String(item.myPendingGameId || "").trim();
-  const actionLabel = hasEnded ? "Result" : "Open";
+  const actionLabel = hasEnded
+    ? t("tournamentsPage.actions.result", "Result")
+    : t("tournamentsPage.actions.open", "Open");
   const actionButtonClass =
     "inline-flex h-7 min-w-[72px] items-center justify-center rounded-md px-3 text-[12px] font-semibold transition-colors disabled:opacity-60";
   const registrationHint = registrationLocked
-    ? "Registration begins 1 hour before the event starts"
+    ? t(
+        "tournamentsPage.hints.registrationStartsOneHourBefore",
+        "Registration begins 1 hour before the event starts",
+      )
     : "";
 
   return (
@@ -938,7 +965,7 @@ function TournamentRow({
                 "min-w-[92px] bg-emerald-500 text-white hover:bg-emerald-400",
               )}
             >
-              Continue
+              {t("tournamentsPage.actions.continue", "Continue")}
             </button>
           ) : registrationOpen ? (
             <button
@@ -950,7 +977,11 @@ function TournamentRow({
                 "bg-emerald-500 text-white hover:bg-emerald-400",
               )}
             >
-              {isBusy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : "Join"}
+              {isBusy ? (
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+              ) : (
+                t("tournamentsPage.actions.join", "Join")
+              )}
             </button>
           ) : item.isRegistered && !hasEnded ? (
             <button
@@ -962,7 +993,7 @@ function TournamentRow({
                 "bg-emerald-500 text-white hover:bg-emerald-400",
               )}
             >
-              Continue
+              {t("tournamentsPage.actions.continue", "Continue")}
             </button>
           ) : registrationLocked ? (
             <button
@@ -973,7 +1004,7 @@ function TournamentRow({
                 "bg-gray-300 text-gray-600 dark:bg-gray-700 dark:text-gray-300",
               )}
             >
-              Join
+              {t("tournamentsPage.actions.join", "Join")}
             </button>
           ) : (
             <button
@@ -1023,6 +1054,7 @@ function TournamentTable({
   onOpenResult: (id: string) => void;
   embedded?: boolean;
 }) {
+  const { t } = useTranslation();
   if (loading) {
     return (
       <div
@@ -1056,9 +1088,14 @@ function TournamentTable({
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl border border-theme-glass bg-white/60 text-brand-500 dark:bg-white/5">
           <Trophy className="h-6 w-6" aria-hidden="true" />
         </div>
-        <h2 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">No tournaments available</h2>
+        <h2 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
+          {t("No tournaments available")}
+        </h2>
         <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-          Create one or check back when registration opens.
+          {t(
+            "tournamentsPage.empty.createOrCheckBack",
+            "Create one or check back when registration opens.",
+          )}
         </p>
       </div>
     );
@@ -1084,12 +1121,24 @@ function TournamentTable({
           </colgroup>
           <thead className="bg-gray-900/[0.04] text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500 dark:bg-white/[0.035] dark:text-gray-400">
             <tr>
-              <th className="px-5 py-3 text-left">Type</th>
-              <th className="px-5 py-3 text-left">Game Time</th>
-              <th className="px-5 py-3 text-left">Duration</th>
-              <th className="px-5 py-3 text-left">Status</th>
-              <th className="px-5 py-3 text-left">Players</th>
-              <th className="px-5 py-3 text-right">Action</th>
+              <th className="px-5 py-3 text-left">
+                {t("tournamentsPage.table.type", "Type")}
+              </th>
+              <th className="px-5 py-3 text-left">
+                {t("tournamentsPage.table.gameTime", "Game Time")}
+              </th>
+              <th className="px-5 py-3 text-left">
+                {t("tournamentsPage.table.duration", "Duration")}
+              </th>
+              <th className="px-5 py-3 text-left">
+                {t("tournamentsPage.table.status", "Status")}
+              </th>
+              <th className="px-5 py-3 text-left">
+                {t("tournamentsPage.table.players", "Players")}
+              </th>
+              <th className="px-5 py-3 text-right">
+                {t("tournamentsPage.table.action", "Action")}
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -1156,7 +1205,7 @@ function TournamentTable({
               <div className="mt-3 grid grid-cols-3 gap-2 rounded-xl border border-theme-glass bg-white/40 p-3 dark:bg-white/[0.03]">
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gray-400 dark:text-gray-500">
-                    Game Time
+                    {t("tournamentsPage.table.gameTime", "Game Time")}
                   </p>
                   <p className="mt-1 text-sm font-medium text-gray-800 dark:text-gray-100">
                     {gameTimeLabel}
@@ -1164,7 +1213,7 @@ function TournamentTable({
                 </div>
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gray-400 dark:text-gray-500">
-                    Duration
+                    {t("tournamentsPage.table.duration", "Duration")}
                   </p>
                   <p className="mt-1 text-sm font-medium text-gray-800 dark:text-gray-100">
                     {durationText}
@@ -1172,7 +1221,7 @@ function TournamentTable({
                 </div>
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gray-400 dark:text-gray-500">
-                    Players
+                    {t("tournamentsPage.table.players", "Players")}
                   </p>
                   <p className="mt-1 text-sm font-medium text-gray-800 dark:text-gray-100">
                     <span className="inline-flex items-center gap-1.5">
@@ -1184,7 +1233,10 @@ function TournamentTable({
               </div>
               {registrationLocked && (
                 <p className="mt-2 text-[11px] text-gray-500 dark:text-gray-400">
-                  Registration begins 1 hour before the event starts
+                  {t(
+                    "tournamentsPage.hints.registrationStartsOneHourBefore",
+                    "Registration begins 1 hour before the event starts",
+                  )}
                 </p>
               )}
               <div className="mt-4 flex items-center justify-end gap-3">
@@ -1195,7 +1247,7 @@ function TournamentTable({
                     disabled={!!busyAction || !item.myPendingGameId}
                     className="inline-flex h-8 min-w-[104px] items-center justify-center rounded-md bg-emerald-500 px-3 text-[12px] font-semibold text-white transition-colors hover:bg-emerald-400 disabled:opacity-60"
                   >
-                    Continue
+                    {t("tournamentsPage.actions.continue", "Continue")}
                   </button>
                 ) : registrationOpen ? (
                   <button
@@ -1204,7 +1256,11 @@ function TournamentTable({
                     disabled={!!busyAction}
                     className="inline-flex h-8 min-w-[76px] items-center justify-center rounded-md bg-emerald-500 px-3 text-[12px] font-semibold text-white transition-colors hover:bg-emerald-400 disabled:opacity-60"
                   >
-                    {isBusy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : "Join"}
+                    {isBusy ? (
+                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                    ) : (
+                      t("tournamentsPage.actions.join", "Join")
+                    )}
                   </button>
                 ) : item.isRegistered && !hasEnded ? (
                   <button
@@ -1213,7 +1269,7 @@ function TournamentTable({
                     disabled={!!busyAction}
                     className="inline-flex h-8 min-w-[104px] items-center justify-center rounded-md bg-emerald-500 px-3 text-[12px] font-semibold text-white transition-colors hover:bg-emerald-400 disabled:opacity-60"
                   >
-                    Continue
+                    {t("tournamentsPage.actions.continue", "Continue")}
                   </button>
                 ) : registrationLocked ? (
                   <button
@@ -1221,7 +1277,7 @@ function TournamentTable({
                     disabled
                     className="inline-flex h-8 min-w-[76px] items-center justify-center rounded-md bg-gray-300 px-3 text-[12px] font-semibold text-gray-600 transition-colors disabled:opacity-70 dark:bg-gray-700 dark:text-gray-300"
                   >
-                    Join
+                    {t("tournamentsPage.actions.join", "Join")}
                   </button>
                 ) : (
                   <button
@@ -1233,9 +1289,9 @@ function TournamentTable({
                     {isBusy ? (
                       <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                     ) : hasEnded ? (
-                      "Result"
+                      t("tournamentsPage.actions.result", "Result")
                     ) : (
-                      "Open"
+                      t("tournamentsPage.actions.open", "Open")
                     )}
                   </button>
                 )}
@@ -1276,9 +1332,9 @@ interface TimelineDayBoundary {
   label: string;
 }
 
-const SCHEDULE_FORMAT_OPTIONS: Array<{ value: ScheduleFormatFilter; label: string }> = [
-  { value: "all", label: "All Formats" },
-  { value: "arena", label: "Arena" },
+const SCHEDULE_FORMAT_OPTIONS: Array<{ value: ScheduleFormatFilter; labelKey: string }> = [
+  { value: "all", labelKey: "tournamentsPage.filters.allFormats" },
+  { value: "arena", labelKey: "tournamentCommon.formats.arena" },
 ];
 
 const SCHEDULE_BAR_STYLES: Record<TournamentSpeed, string> = {
@@ -1593,6 +1649,7 @@ function TournamentScheduleTimeline({
   onRegister: (id: string) => void;
   onOpenGame: (gameId: string) => void;
 }) {
+  const { t } = useTranslation();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const controlsRef = useRef<HTMLDivElement | null>(null);
   const summaryRef = useRef<HTMLDivElement | null>(null);
@@ -1695,7 +1752,7 @@ function TournamentScheduleTimeline({
           >
             {SCHEDULE_FORMAT_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
-                {option.label}
+                {t(option.labelKey)}
               </option>
             ))}
           </select>
@@ -1704,10 +1761,12 @@ function TournamentScheduleTimeline({
             onChange={(event) => onStatusFilterChange(event.target.value as StatusFilter)}
             className="rounded-lg border border-white/10 bg-[#0b1727] px-3 py-2 text-sm font-medium text-slate-100 outline-none transition-colors focus:border-brand-400"
           >
-            <option value="all">All Statuses</option>
-            <option value="REGISTRATION_OPEN">Registration Open</option>
-            <option value="LIVE_ROUND">Live</option>
-            <option value="FINISHED">Finished</option>
+            <option value="all">{t("tournamentsPage.filters.allStatuses")}</option>
+            <option value="REGISTRATION_OPEN">
+              {t("tournamentCommon.status.registrationOpen")}
+            </option>
+            <option value="LIVE_ROUND">{t("tournamentCommon.status.live")}</option>
+            <option value="FINISHED">{t("tournamentCommon.status.finished")}</option>
           </select>
         </div>
 
@@ -1716,7 +1775,7 @@ function TournamentScheduleTimeline({
             type="button"
             onClick={() => moveDay(-1)}
             className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-slate-300 transition-colors hover:bg-white/[0.08] hover:text-white"
-            aria-label="Previous day"
+            aria-label={t("tournamentsPage.schedule.previousDay", "Previous day")}
           >
             <ChevronLeft className="h-4 w-4" aria-hidden="true" />
           </button>
@@ -1733,7 +1792,7 @@ function TournamentScheduleTimeline({
             type="button"
             onClick={() => moveDay(1)}
             className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-slate-300 transition-colors hover:bg-white/[0.08] hover:text-white"
-            aria-label="Next day"
+            aria-label={t("tournamentsPage.schedule.nextDay", "Next day")}
           >
             <ChevronRight className="h-4 w-4" aria-hidden="true" />
           </button>
@@ -1742,7 +1801,7 @@ function TournamentScheduleTimeline({
             onClick={() => onScheduleDateChange(toDateInputValueOnly(new Date()))}
             className="h-10 rounded-lg border border-brand-400/30 bg-brand-500/10 px-3 text-xs font-semibold uppercase tracking-[0.2em] text-brand-200 transition-colors hover:bg-brand-500/15"
           >
-            Today
+            {t("tournamentsPage.schedule.today", "Today")}
           </button>
         </div>
       </div>
@@ -1754,7 +1813,12 @@ function TournamentScheduleTimeline({
         <span className="font-mono uppercase tracking-[0.22em]">
           {formatScheduleDayLabel(scheduleDay)} - {formatScheduleDayLabel(scheduleRangeEnd)}
         </span>
-        <span>{timelineItems.length} scheduled tournaments in next 7 days</span>
+        <span>
+          {t("tournamentsPage.schedule.scheduledCount", {
+            count: timelineItems.length,
+            defaultValue: "{{count}} scheduled tournaments in next 7 days",
+          })}
+        </span>
       </div>
 
       {timelineItems.length === 0 ? (
@@ -1764,10 +1828,16 @@ function TournamentScheduleTimeline({
               <CalendarDays className="h-5 w-5" aria-hidden="true" />
             </div>
             <h2 className="mt-4 text-base font-semibold text-white">
-              No tournaments in this 7-day window
+              {t(
+                "tournamentsPage.schedule.emptyTitle",
+                "No tournaments in this 7-day window",
+              )}
             </h2>
             <p className="mt-2 text-sm text-slate-400">
-              Try another day or loosen the format/status filters.
+              {t(
+                "tournamentsPage.schedule.emptyDescription",
+                "Try another day or loosen the format/status filters.",
+              )}
             </p>
           </div>
         </div>
@@ -1871,7 +1941,10 @@ function TournamentScheduleTimeline({
                         {getTournamentDisplayName(item)}
                       </span>
                       <span className="block truncate font-mono text-[11px] text-slate-300/80">
-                        {item.registeredCount} players
+                        {t("tournamentsPage.detail.playersCount", {
+                          count: item.registeredCount,
+                          defaultValue: "{{count}} players",
+                        })}
                       </span>
                     </span>
                     {clippedEnd && (
@@ -2677,7 +2750,12 @@ export default function Tournaments() {
     if (scheduledStartDate) {
       const minimumStart = new Date(Date.now() + 5 * 60 * 1000);
       if (scheduledStartDate.getTime() < minimumStart.getTime()) {
-        setCreateStartTimeError("Start time must be at least 5 minutes from now.");
+        setCreateStartTimeError(
+          t(
+            "tournamentsPage.errors.startTimeTooSoon",
+            "Start time must be at least 5 minutes from now.",
+          ),
+        );
         return;
       }
     }

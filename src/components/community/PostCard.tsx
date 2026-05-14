@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import { Heart, Trash2, X } from "lucide-react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { CommunityImageGrid } from "./CommunityImageGrid";
 import { Avatar } from "./CommunityUI";
 import { CommunityGameViewer } from "./CommunityGameViewer";
@@ -41,8 +42,8 @@ function moderationStatusClass(status: CommunityPost["status"]) {
 }
 
 function formatModerationStatus(status: CommunityPost["status"]) {
-  if (!status) return "Pending";
-  return status.charAt(0).toUpperCase() + status.slice(1);
+  if (!status) return "pending";
+  return status;
 }
 
 function PostCardComponent({
@@ -54,8 +55,9 @@ function PostCardComponent({
   showModerationStatus = false,
   preferCreatedTimestamp = false,
 }: PostCardProps) {
+  const { t } = useTranslation();
   const { user } = useAuthStore();
-  const authorName = post.author?.fullName || "Chess Player";
+  const authorName = post.author?.fullName || t("profileHeader.chessPlayer");
   const mediaItems = getCommunityMediaItems(post);
   const primaryMedia = mediaItems[0] || null;
   const mediaUrl = resolveAssetUrl(primaryMedia?.url || post.mediaUrl);
@@ -80,7 +82,7 @@ function PostCardComponent({
   const isOwnPost = Boolean(user?.id && post.author?.id === user.id);
   const footerMediaLabel = hasMedia
     ? hasMultiImage
-      ? `${imageItems.length} images`
+      ? t("postCard.imagesCount", { count: imageItems.length })
       : formatFileSize(post.mediaSize)
     : "";
   const [activeImageIndex, setActiveImageIndex] = useState<number | null>(null);
@@ -263,7 +265,7 @@ function PostCardComponent({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(data.error || "Failed to update like.");
+        throw new Error(data.error || t("postCard.errors.updateLike"));
       }
 
       setLikedByMe(Boolean(data.likedByMe));
@@ -272,7 +274,9 @@ function PostCardComponent({
     } catch (err) {
       setLikedByMe(previousLiked);
       setLikeCount(previousLikeCount);
-      setActionError(err instanceof Error ? err.message : "Failed to update like.");
+      setActionError(
+        err instanceof Error ? err.message : t("postCard.errors.updateLike"),
+      );
     } finally {
       setIsLikeUpdating(false);
     }
@@ -294,7 +298,8 @@ function PostCardComponent({
       await onDelete(post.id);
       setShowDeleteConfirm(false);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to delete post.";
+      const message =
+        err instanceof Error ? err.message : t("postCard.errors.deletePost");
       setDeleteError(message);
     } finally {
       setIsDeleting(false);
@@ -340,7 +345,7 @@ function PostCardComponent({
                   post.status,
                 )}`}
               >
-                {formatModerationStatus(post.status)}
+                {t(`postCard.status.${formatModerationStatus(post.status)}`)}
               </span>
             )}
             {canDelete && (
@@ -349,7 +354,7 @@ function PostCardComponent({
                 disabled={isDeleting}
                 onClick={handleDeleteClick}
                 className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-red-500/15 hover:text-red-200 transition-colors disabled:opacity-50"
-                title="Delete your post"
+                title={t("postCard.deleteYourPost")}
               >
                 <Trash2 className="w-4 h-4" />
               </button>
@@ -369,7 +374,8 @@ function PostCardComponent({
 
         {showModerationStatus && post.status === "rejected" && post.rejectionReason && (
           <div className="mt-3 rounded-xl bg-red-500/10 px-3.5 py-2.5 text-xs text-red-200">
-            <span className="font-semibold">Reason:</span> {post.rejectionReason}
+            <span className="font-semibold">{t("postCard.reasonLabel")}:</span>{" "}
+            {post.rejectionReason}
           </div>
         )}
       </div>
@@ -402,7 +408,7 @@ function PostCardComponent({
               <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-white/5 via-transparent to-black/30" />
               <img
                 src={imageItems[0].url}
-                alt={imageItems[0].originalName || "Community post media"}
+                alt={imageItems[0].originalName || t("postCard.mediaAlt")}
                 className="relative w-full max-h-[420px] object-contain bg-black cursor-zoom-in"
                 onClick={() => setActiveImageIndex(0)}
               />
@@ -412,7 +418,7 @@ function PostCardComponent({
               <CommunityImageGrid
                 items={imageItems.map((item) => ({
                   url: item.url,
-                  alt: item.originalName || "Community post image",
+                  alt: item.originalName || t("postCard.imageAlt"),
                 }))}
                 onImageClick={(index) => setActiveImageIndex(index)}
               />
@@ -438,10 +444,10 @@ function PostCardComponent({
               onClick={() => void handleToggleLike()}
               title={
                 isOwnPost
-                  ? "You can't like your own post."
+                  ? t("postCard.cannotLikeOwnPost")
                   : likedByMe
-                    ? "Unlike post"
-                    : "Like post"
+                    ? t("postCard.unlikePost")
+                    : t("postCard.likePost")
               }
               className={`inline-flex items-center gap-2 rounded-full px-3 py-2 transition-all ${
                 likedByMe
@@ -481,9 +487,11 @@ function PostCardComponent({
               className="w-full max-w-md rounded-2xl bg-[#0d192c]/95 border border-white/10 shadow-[0_28px_90px_rgba(0,0,0,0.45)] p-5"
               onClick={(event) => event.stopPropagation()}
             >
-              <h3 className="text-base font-semibold text-white">Delete post?</h3>
+              <h3 className="text-base font-semibold text-white">
+                {t("postCard.deletePostTitle")}
+              </h3>
               <p className="mt-2 text-sm leading-6 text-gray-400">
-                This removes your post from the community feed.
+                {t("postCard.deletePostDescription")}
               </p>
               <div className="mt-5 flex items-center justify-end gap-2">
                 <button
@@ -492,7 +500,7 @@ function PostCardComponent({
                   onClick={() => setShowDeleteConfirm(false)}
                   className="rounded-lg bg-white/[0.08] px-4 py-2 text-sm text-gray-200 hover:bg-white/[0.14] transition-colors disabled:opacity-50"
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </button>
                 <button
                   type="button"
@@ -500,7 +508,7 @@ function PostCardComponent({
                   onClick={handleConfirmDelete}
                   className="rounded-lg bg-red-500/80 px-4 py-2 text-sm font-semibold text-white hover:bg-red-500 transition-colors disabled:opacity-50"
                 >
-                  {isDeleting ? "Deleting..." : "Delete"}
+                  {isDeleting ? t("postCard.deleting") : t("Delete")}
                 </button>
               </div>
             </div>
@@ -537,7 +545,7 @@ function PostCardComponent({
                 type="button"
                 onClick={() => setActiveImageIndex(null)}
                 className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
-                aria-label="Close image preview"
+                aria-label={t("postCard.closeImagePreview")}
               >
                 <X className="w-5 h-5" />
               </button>
@@ -549,7 +557,7 @@ function PostCardComponent({
             >
               <img
                 src={currentImage.url}
-                alt={currentImage.originalName || "Community post media"}
+                alt={currentImage.originalName || t("postCard.mediaAlt")}
                 className="w-[94vw] h-[90vh] object-contain"
               />
             </div>
@@ -563,7 +571,7 @@ function PostCardComponent({
                   <span>
                     {activeImageIndex + 1} / {imageItems.length}
                   </span>
-                  <span>Use keyboard arrows to browse</span>
+                  <span>{t("postCard.keyboardArrowsHint")}</span>
                 </div>
                 <div className="mx-auto mt-3 flex max-w-4xl gap-2 overflow-x-auto pb-1 premium-scrollbar">
                   {imageItems.map((item, index) => (
@@ -579,7 +587,10 @@ function PostCardComponent({
                     >
                       <img
                         src={item.url}
-                        alt={item.originalName || `Community post image ${index + 1}`}
+                        alt={
+                          item.originalName ||
+                          t("postCard.imageAltIndexed", { index: index + 1 })
+                        }
                         className="h-full w-full object-cover"
                       />
                     </button>

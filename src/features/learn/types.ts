@@ -4,6 +4,7 @@ export type LearnProgressStatus = "not_started" | "in_progress" | "completed";
 
 export interface LearnCourseLessonListItem {
   id: string;
+  pairId?: string;
   slug: string;
   title: string;
   subtitle: string;
@@ -25,6 +26,7 @@ export interface LearnCourseProgressView {
 
 export interface LearnCatalogCourse {
   id: string;
+  pairId?: string;
   slug: string;
   title: string;
   subtitle: string;
@@ -58,6 +60,7 @@ export interface LearnCatalogResponse {
 
 export interface LearnLessonSidebarItem {
   id: string;
+  pairId?: string;
   slug: string;
   title: string;
   subtitle: string;
@@ -102,6 +105,7 @@ export interface LearnLessonProgress {
 export interface LearnLessonDetail {
   course: {
     id: string;
+    pairId?: string;
     slug: string;
     title: string;
     subtitle: string;
@@ -118,6 +122,7 @@ export interface LearnLessonDetail {
   };
   lesson: {
     id: string;
+    pairId?: string;
     slug: string;
     title: string;
     subtitle: string;
@@ -131,6 +136,25 @@ export interface LearnLessonDetail {
   lessons: LearnLessonSidebarItem[];
   steps: LearnLessonStep[];
   progress: LearnLessonProgress;
+}
+
+export interface LearnPairMappingResponse {
+  pairId: string;
+  course: {
+    id: string;
+    pairId?: string;
+    slug: string;
+    title: string;
+  } | null;
+  lesson: {
+    id: string;
+    pairId?: string;
+    slug: string;
+    title: string;
+    courseId: string;
+    courseSlug: string;
+    courseTitle: string;
+  } | null;
 }
 
 export interface LearnSubmitStepResponse {

@@ -1,0 +1,160 @@
+import mongoose from "mongoose";
+
+const eventMNSchema = new mongoose.Schema(
+  {
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    description: {
+      type: String,
+      trim: true,
+    },
+    type: {
+      type: String,
+      enum: ["tournament", "match", "broadcast", "event"],
+      default: "event",
+    },
+    // For embedded games/broadcasts
+    lichessUrl: {
+      type: String,
+      trim: true,
+    },
+    // Custom image for the event
+    imageUrl: {
+      type: String,
+      trim: true,
+    },
+    // Hero banner controls
+    statusLabel: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    categoryLabel: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    viewerCountText: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    primaryButtonLabel: {
+      type: String,
+      trim: true,
+      default: "Watch Now",
+    },
+    primaryButtonUrl: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    secondaryButtonLabel: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    secondaryButtonUrl: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    backgroundType: {
+      type: String,
+      enum: ["default", "color", "image"],
+      default: "default",
+    },
+    backgroundColor: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    backgroundImageUrl: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    primaryButtonColor: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    titleColor: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    descriptionColor: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    // Players involved (for matches)
+    players: [
+      {
+        name: String,
+        rating: Number,
+        title: String, // GM, IM, FM, etc.
+        country: String,
+      },
+    ],
+    // Event timing
+    startDate: {
+      type: Date,
+    },
+    endDate: {
+      type: Date,
+    },
+    // Status
+    status: {
+      type: String,
+      enum: ["upcoming", "live", "completed"],
+      default: "upcoming",
+    },
+    // Display settings
+    featured: {
+      type: Boolean,
+      default: false,
+    },
+    priority: {
+      type: Number,
+      default: 0, // Higher = shows first
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+    // Stats
+    viewers: {
+      type: Number,
+      default: 0,
+    },
+    // Metadata
+    tags: [String],
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Admin",
+    },
+    pairId: {
+      type: String,
+      trim: true,
+      match: [/^\d{5}$/, "Pair ID must be exactly 5 digits."],
+    },
+  },
+  {
+    timestamps: true,
+  },
+);
+
+// Index for efficient queries
+eventMNSchema.index({ status: 1, isActive: 1, priority: -1 });
+eventMNSchema.index({ featured: 1, isActive: 1 });
+eventMNSchema.index({ pairId: 1 }, { unique: true, sparse: true });
+
+const EventMN =
+  mongoose.models.EventMN || mongoose.model("EventMN", eventMNSchema, "eventsmn");
+
+export default EventMN;

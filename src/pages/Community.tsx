@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Loader2, Search } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import Sidebar from "../components/Sidebar";
 import {
   CommunityGroupCreateModal,
@@ -32,6 +33,7 @@ function upsertGroup(groups: CommunityGroup[], nextGroup: CommunityGroup) {
 }
 
 export default function Community() {
+  const { t } = useTranslation();
   const { user } = useAuthStore();
   const [activeTab, setActiveTab] = useState<CommunityTab>("feed");
 
@@ -81,7 +83,7 @@ export default function Community() {
       const feedData: CommunityFeedResponse & { error?: string } =
         await feedRes.json();
       if (!feedRes.ok) {
-        throw new Error(feedData.error || "Failed to load feed.");
+        throw new Error(feedData.error || t("communityPage.errors.loadFeed"));
       }
 
       setFeedPosts(feedData.posts || []);
@@ -91,11 +93,13 @@ export default function Community() {
         setPostingAccess(feedData.postingAccess);
       }
     } catch (err) {
-      setFeedError(err instanceof Error ? err.message : "Failed to load feed.");
+      setFeedError(
+        err instanceof Error ? err.message : t("communityPage.errors.loadFeed"),
+      );
     } finally {
       setFeedLoading(false);
     }
-  }, [feedPage]);
+  }, [feedPage, t]);
 
   const loadMinePage = useCallback(async () => {
     setMineLoading(true);
@@ -108,7 +112,7 @@ export default function Community() {
       const mineData: CommunityMineResponse & { error?: string } =
         await mineRes.json();
       if (!mineRes.ok) {
-        throw new Error(mineData.error || "Failed to load your posts.");
+        throw new Error(mineData.error || t("communityPage.errors.loadMyPosts"));
       }
 
       setMinePosts(mineData.posts || []);
@@ -119,12 +123,12 @@ export default function Community() {
       setHasLoadedMine(true);
     } catch (err) {
       setMineError(
-        err instanceof Error ? err.message : "Failed to load your posts.",
+        err instanceof Error ? err.message : t("communityPage.errors.loadMyPosts"),
       );
     } finally {
       setMineLoading(false);
     }
-  }, [minePage]);
+  }, [minePage, t]);
 
   const loadMineMeta = useCallback(async () => {
     try {
@@ -141,14 +145,14 @@ export default function Community() {
         }),
       );
       if (!res.ok) {
-        throw new Error(data.error || "Failed to load posting access.");
+        throw new Error(data.error || t("communityPage.errors.loadPostingAccess"));
       }
       setSummary(data.summary || null);
       setPostingAccess(data.postingAccess || null);
     } catch {
       // keep the main feed responsive if this lightweight sync fails
     }
-  }, []);
+  }, [t]);
 
   const loadTrending = useCallback(async () => {
     setTrendingLoading(true);
@@ -160,19 +164,19 @@ export default function Community() {
       const data: CommunityTrendingResponse & { error?: string } =
         await res.json().catch(() => ({ posts: [], mode: "latest" }));
       if (!res.ok) {
-        throw new Error(data.error || "Failed to load trending posts.");
+        throw new Error(data.error || t("communityPage.errors.loadTrending"));
       }
 
       setTrendingPosts(data.posts || []);
       setTrendingMode(data.mode || "latest");
     } catch (err) {
       setTrendingError(
-        err instanceof Error ? err.message : "Failed to load trending posts.",
+        err instanceof Error ? err.message : t("communityPage.errors.loadTrending"),
       );
     } finally {
       setTrendingLoading(false);
     }
-  }, []);
+  }, [t]);
 
   const loadGroupsOverview = useCallback(async () => {
     setGroupsLoading(true);
@@ -196,21 +200,25 @@ export default function Community() {
       const joinedData: { groups: CommunityGroup[]; error?: string } =
         await joinedRes.json().catch(() => ({ groups: [] }));
       if (!overviewRes.ok) {
-        throw new Error(overviewData.error || "Failed to load groups.");
+        throw new Error(overviewData.error || t("communityPage.errors.loadGroups"));
       }
       if (!joinedRes.ok) {
-        throw new Error(joinedData.error || "Failed to load joined groups.");
+        throw new Error(
+          joinedData.error || t("communityPage.errors.loadJoinedGroups"),
+        );
       }
 
       setJoinedGroups(overviewData.joinedGroups || []);
       setDiscoverGroups(overviewData.discoverGroups || []);
       setComposerGroups(joinedData.groups || []);
     } catch (err) {
-      setGroupError(err instanceof Error ? err.message : "Failed to load groups.");
+      setGroupError(
+        err instanceof Error ? err.message : t("communityPage.errors.loadGroups"),
+      );
     } finally {
       setGroupsLoading(false);
     }
-  }, []);
+  }, [t]);
 
   const syncGroupMembershipState = useCallback((nextGroup: CommunityGroup) => {
     setJoinedGroups((prev) =>
@@ -276,7 +284,7 @@ export default function Community() {
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-      throw new Error(data.error || "Failed to delete post.");
+      throw new Error(data.error || t("communityPage.errors.deletePost"));
     }
 
     if (hasLoadedMine && minePosts.length === 1 && minePage > 1) {
@@ -301,6 +309,7 @@ export default function Community() {
     loadTrending,
     minePage,
     minePosts.length,
+    t,
   ]);
 
   const handlePostLikeChanged = useCallback(async () => {
@@ -330,18 +339,20 @@ export default function Community() {
       );
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(data.error || `Failed to ${action} group.`);
+        throw new Error(data.error || t("communityPage.errors.updateGroup"));
       }
       if (data.group) {
         syncGroupMembershipState(data.group);
       }
     } catch (err) {
       syncGroupMembershipState(group);
-      setGroupError(err instanceof Error ? err.message : "Failed to update group.");
+      setGroupError(
+        err instanceof Error ? err.message : t("communityPage.errors.updateGroup"),
+      );
     } finally {
       setBusyGroupId(null);
     }
-  }, [syncGroupMembershipState]);
+  }, [syncGroupMembershipState, t]);
 
   const handleCreateGroup = useCallback(async (payload: {
     name: string;
@@ -359,7 +370,7 @@ export default function Community() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(data.error || "Failed to create group.");
+        throw new Error(data.error || t("communityPage.errors.createGroup"));
       }
 
       setIsCreateGroupOpen(false);
@@ -370,12 +381,12 @@ export default function Community() {
       }
     } catch (err) {
       setCreateGroupError(
-        err instanceof Error ? err.message : "Failed to create group.",
+        err instanceof Error ? err.message : t("communityPage.errors.createGroup"),
       );
     } finally {
       setIsCreatingGroup(false);
     }
-  }, [loadGroupsOverview, syncGroupMembershipState]);
+  }, [loadGroupsOverview, syncGroupMembershipState, t]);
 
   const handleOpenCreateGroup = useCallback(() => {
     setIsCreateGroupOpen(true);
@@ -420,7 +431,7 @@ export default function Community() {
                       : "text-gray-300 hover:bg-white/[0.06]"
                   }`}
                 >
-                  Feed
+                  {t("communityPage.tabs.feed")}
                 </button>
                 <button
                   type="button"
@@ -431,7 +442,7 @@ export default function Community() {
                       : "text-gray-300 hover:bg-white/[0.06]"
                   }`}
                 >
-                  My Posts
+                  {t("communityPage.tabs.myPosts")}
                 </button>
               </div>
             </div>
@@ -448,10 +459,11 @@ export default function Community() {
               ) : feedPosts.length === 0 ? (
                 <div className="rounded-2xl bg-[#0c1728]/82 py-24 flex flex-col items-center justify-center text-center shadow-[0_22px_65px_rgba(0,0,0,0.22)]">
                   <Search className="w-10 h-10 mb-4 text-gray-500" />
-                  <p className="text-base font-medium text-white">No approved posts yet</p>
+                  <p className="text-base font-medium text-white">
+                    {t("communityPage.empty.noApprovedTitle")}
+                  </p>
                   <p className="mt-2 max-w-sm text-sm leading-7 text-gray-500">
-                    Submit the first chess post. It will show up here after it
-                    passes moderation.
+                    {t("communityPage.empty.noApprovedDescription")}
                   </p>
                 </div>
               ) : (
@@ -472,7 +484,11 @@ export default function Community() {
                   {feedTotalPages > 1 && (
                     <div className="pt-2 pb-4 space-y-2.5">
                       <p className="text-center text-xs text-gray-500">
-                        Showing {feedRange.start} - {feedRange.end} of {feedTotalPosts}
+                        {t("communityPage.pagination.showing", {
+                          start: feedRange.start,
+                          end: feedRange.end,
+                          total: feedTotalPosts,
+                        })}
                       </p>
                       <FeedPagination
                         currentPage={feedPage}
@@ -494,9 +510,11 @@ export default function Community() {
             ) : minePosts.length === 0 ? (
               <div className="rounded-2xl bg-[#0c1728]/82 py-24 flex flex-col items-center justify-center text-center shadow-[0_22px_65px_rgba(0,0,0,0.22)]">
                 <Search className="w-10 h-10 mb-4 text-gray-500" />
-                <p className="text-base font-medium text-white">No posts yet</p>
+                <p className="text-base font-medium text-white">
+                  {t("communityPage.empty.noPostsTitle")}
+                </p>
                 <p className="mt-2 max-w-sm text-sm leading-7 text-gray-500">
-                  Your submissions will appear here with their moderation status.
+                  {t("communityPage.empty.noPostsDescription")}
                 </p>
               </div>
             ) : (
@@ -519,7 +537,11 @@ export default function Community() {
                 {mineTotalPages > 1 && (
                   <div className="pt-2 pb-4 space-y-2.5">
                     <p className="text-center text-xs text-gray-500">
-                      Showing {mineRange.start} - {mineRange.end} of {mineTotalPosts}
+                      {t("communityPage.pagination.showing", {
+                        start: mineRange.start,
+                        end: mineRange.end,
+                        total: mineTotalPosts,
+                      })}
                     </p>
                     <FeedPagination
                       currentPage={minePage}
@@ -542,7 +564,7 @@ export default function Community() {
               />
               {groupsLoading ? (
                 <div className="rounded-2xl bg-[#0c1728]/82 px-5 py-10 text-center text-sm text-gray-500 shadow-[0_18px_55px_rgba(0,0,0,0.22)]">
-                  Loading groups...
+                  {t("communityPage.groups.loading")}
                 </div>
               ) : (
                 <CommunityGroupsSidebarSection
@@ -560,7 +582,7 @@ export default function Community() {
               )}
               {!groupsLoading && joinedGroups.length === 0 && discoverGroups.length === 0 && (
                 <div className="rounded-2xl bg-[#0c1728]/82 px-5 py-5 text-sm text-gray-400 shadow-[0_18px_55px_rgba(0,0,0,0.22)]">
-                  No groups yet. Create the first one from here.
+                  {t("communityPage.empty.noGroups")}
                 </div>
               )}
             </div>

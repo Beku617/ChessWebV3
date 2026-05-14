@@ -55,8 +55,10 @@ const PlayPractice = lazy(() => import("./pages/playPractice"));
 const Puzzles = lazy(() => import("./pages/puzzles"));
 const PuzzleHistory = lazy(() => import("./pages/puzzles/PuzzleHistory"));
 const PuzzleTrainer = lazy(() => import("./pages/puzzleTrainer"));
-const Learn = lazy(() => import("./pages/Learn"));
-const LearnLesson = lazy(() => import("./pages/LearnLesson"));
+const LearnLanguageGate = lazy(() => import("./pages/LearnLanguageGate"));
+const LearnLessonLanguageGate = lazy(
+  () => import("./pages/LearnLessonLanguageGate"),
+);
 const Tournaments = lazy(() => import("./pages/tournaments"));
 const Watch = lazy(() => import("./pages/watch"));
 const Community = lazy(() => import("./pages/Community"));
@@ -83,6 +85,10 @@ const AdminFeaturedEvents = lazy(async () => {
   const module = await import("./pages/adminFeaturedEvents");
   return { default: module.AdminFeaturedEvents };
 });
+const AdminEventsMn = lazy(async () => {
+  const module = await import("./pages/adminEventsMn");
+  return { default: module.AdminEventsMn };
+});
 const AdminGames = lazy(async () => {
   const module = await import("./pages/adminGames");
   return { default: module.AdminGames };
@@ -92,6 +98,13 @@ const AdminGroups = lazy(() => import("./pages/adminGroups"));
 const AdminLearn = lazy(() => import("./pages/adminLearn"));
 const AdminLearnCourse = lazy(() => import("./pages/adminLearn/AdminLearnCourse"));
 const AdminLearnLesson = lazy(() => import("./pages/adminLearn/AdminLearnLesson"));
+const AdminLearnMn = lazy(() => import("./pages/adminLearnMn"));
+const AdminLearnMnCourse = lazy(
+  () => import("./pages/adminLearnMn/AdminLearnCourse"),
+);
+const AdminLearnMnLesson = lazy(
+  () => import("./pages/adminLearnMn/AdminLearnLesson"),
+);
 const AdminProfile = lazy(() => import("./pages/adminProfile"));
 const Messages = lazy(async () => {
   const module = await import("./pages/messages");
@@ -793,7 +806,7 @@ function App() {
               path="/learn"
               element={
                 <ProtectedRoute>
-                  <Learn />
+                  <LearnLanguageGate />
                 </ProtectedRoute>
               }
             />
@@ -801,7 +814,7 @@ function App() {
               path="/learn/:courseSlug/:lessonSlug"
               element={
                 <ProtectedRoute>
-                  <LearnLesson />
+                  <LearnLessonLanguageGate />
                 </ProtectedRoute>
               }
             />
@@ -925,6 +938,7 @@ function App() {
             <Route path="/admin/puzzles" element={<AdminPuzzles />} />
             <Route path="/admin/bots" element={<AdminBots />} />
             <Route path="/admin/events" element={<AdminFeaturedEvents />} />
+            <Route path="/admin/events-mn" element={<AdminEventsMn />} />
             <Route path="/admin/games" element={<AdminGames />} />
             <Route path="/admin/community" element={<AdminCommunity />} />
             <Route path="/admin/groups" element={<AdminGroups />} />
@@ -936,6 +950,15 @@ function App() {
             <Route
               path="/admin/learn/courses/:courseId/lessons/:lessonId"
               element={<AdminLearnLesson />}
+            />
+            <Route path="/admin/learn-mn" element={<AdminLearnMn />} />
+            <Route
+              path="/admin/learn-mn/courses/:courseId"
+              element={<AdminLearnMnCourse />}
+            />
+            <Route
+              path="/admin/learn-mn/courses/:courseId/lessons/:lessonId"
+              element={<AdminLearnMnLesson />}
             />
             <Route path="/admin/profile" element={<AdminProfile />} />
             <Route path="/admin/analyze/:gameId" element={<AdminAnalyze />} />

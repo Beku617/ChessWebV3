@@ -35,6 +35,11 @@ const LearnCourseSchema = new mongoose.Schema(
     badge: { type: String, default: "", trim: true },
     icon: { type: String, default: "", trim: true },
     instructorName: { type: String, default: "", trim: true },
+    pairId: {
+      type: String,
+      trim: true,
+      match: [/^\d{5}$/, "Pair ID must be exactly 5 digits."],
+    },
     tags: { type: [String], default: [] },
     totalLessons: { type: Number, default: 0, min: 0 },
     sortOrder: { type: Number, default: 0, min: 0, index: true },
@@ -49,6 +54,7 @@ LearnCourseSchema.index({
   isPublished: 1,
   sortOrder: 1,
 });
+LearnCourseSchema.index({ pairId: 1 }, { unique: true, sparse: true });
 
 const LearnCourse =
   mongoose.models.LearnCourse ||

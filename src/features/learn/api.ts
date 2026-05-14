@@ -2,6 +2,7 @@ import type {
   LearnCatalogResponse,
   LearnLessonDetail,
   LearnLessonProgress,
+  LearnPairMappingResponse,
   LearnSubmitStepResponse,
   LearnSummary,
 } from "./types";
@@ -128,4 +129,13 @@ export async function searchLearnContent(query: string) {
     credentials: "include",
   });
   return parseResponse(response);
+}
+
+export async function fetchLearnPairMapping(
+  pairId: string,
+): Promise<LearnPairMappingResponse> {
+  const response = await fetch(`${API_URL}/api/learn/pair/${pairId}`, {
+    credentials: "include",
+  });
+  return parseResponse<LearnPairMappingResponse>(response);
 }

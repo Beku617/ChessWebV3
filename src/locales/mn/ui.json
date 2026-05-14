@@ -18,13 +18,13 @@
   "bots": "бот",
   "Browse All": "Бүгдийг үзэх",
   "Browse Catalog": "Каталог үзэх",
-  "Bughouse": "Bughouse",
+  "Bughouse": "Багхаус",
   "Bullet": "Буллет",
   "Cancel": "Цуцлах",
   "Check back later!": "Дараа дахин шалгаарай!",
   "Check back soon or try another category": "Удалгүй дахин шалгах эсвэл өөр ангилал туршиж үзнэ үү",
   "Chess Variants": "Шатрын хувилбарууд",
-  "Chess960": "Chess960",
+  "Chess960": "Фишер-960",
   "Choose a focus and session length.": "Чиглэл болон дасгалын хугацаагаа сонгоно уу.",
   "Choose setup": "Тохиргоо сонгох",
   "Complete": "дууссан",
@@ -85,7 +85,7 @@
   "Join": "Нэгдэх",
   "Just now": "Дөнгөж сая",
   "King and Pawn": "Хаан ба пион",
-  "King of the Hill": "King of the Hill",
+  "King of the Hill": "Хааны толгод",
   "Lessons": "Хичээл",
   "Live games powered by": "Шууд тоглолтыг дэмжигч:",
   "Live Games": "Шууд тоглолтууд",
@@ -292,7 +292,8 @@
   },
   "tournamentCommon": {
     "formats": {
-      "swiss": "Швейцар систем"
+      "swiss": "Швейцар систем",
+      "arena": "Арена"
     },
     "status": {
       "draft": "Ноорог",
@@ -564,7 +565,13 @@
       "register": "Бүртгүүлэх",
       "startRound": "Үе эхлүүлэх",
       "unregister": "Бүртгэлээс гарах",
-      "closeRegistration": "Бүртгэл хаах"
+      "closeRegistration": "Бүртгэл хаах",
+      "startGame": "Тоглолт эхлүүлэх",
+      "nextGame": "Дараагийн тоглолт",
+      "continue": "Үргэлжлүүлэх",
+      "join": "Нэгдэх",
+      "result": "Үр дүн",
+      "open": "Нээх"
     },
     "confirm": {
       "deleteDraftMessage": "Энэ ноорог тэмцээнийг бүр мөсөн устгах уу?",
@@ -578,7 +585,8 @@
       "realtimeReconnect": "Бодит цагийн холболт тасарлаа. Дахин холбогдож байна...",
       "requestFailed": "Хүсэлт амжилтгүй боллоо",
       "serverReconnect": "Серверт холбогдож чадсангүй. Дахин холбогдож байна...",
-      "serverUnavailable": "Сервер боломжгүй байна"
+      "serverUnavailable": "Сервер боломжгүй байна",
+      "startTimeTooSoon": "Эхлэх цаг одоогоос дор хаяж 5 минутын дараа байх ёстой."
     },
     "manage": {
       "registeredPlayers": "Бүртгүүлсэн тоглогчид: {{count}}",
@@ -594,7 +602,7 @@
       "scoreGroup": "Онооны бүлэг",
       "result": "Үр дүн",
       "elo": "ЭЛО",
-      "playerPairing": "{{white}} ({{whiteElo}}) — {{black}} ({{blackElo}})",
+      "playerPairing": "{{white}} ({{whiteElo}}) эсрэг {{black}} ({{blackElo}})",
       "eloDelta": "Цагаан {{whiteDelta}} / Хар {{blackDelta}}"
     },
     "finalStandings": {
@@ -642,6 +650,48 @@
       },
       "creating": "Үүсгэж байна...",
       "createDraft": "Ноорог үүсгэх"
+    },
+    "pageTabs": {
+      "current": "Идэвхтэй",
+      "schedule": "Хуваарь",
+      "create": "Үүсгэх"
+    },
+    "units": {
+      "minAbbr": "мин",
+      "secAbbr": "с",
+      "hourAbbr": "цаг",
+      "dayAbbr": "өдөр",
+      "hourShort": "ц"
+    },
+    "status": {
+      "startsSoon": "Удахгүй эхэлнэ",
+      "startsIn": "{{duration}} дараа эхэлнэ",
+      "resultsAvailable": "Үр дүн бэлэн",
+      "ended": "Дууссан",
+      "inProgress": "Явагдаж байна",
+      "timeLeft": "{{duration}} үлдлээ"
+    },
+    "hints": {
+      "registrationStartsOneHourBefore": "Бүртгэл тэмцээн эхлэхээс 1 цагийн өмнө нээгдэнэ"
+    },
+    "empty": {
+      "createOrCheckBack": "Шинэ тэмцээн үүсгэх эсвэл бүртгэл нээгдэх үед дахин шалгана уу."
+    },
+    "table": {
+      "type": "Төрөл",
+      "gameTime": "Цагийн хяналт",
+      "duration": "Үргэлжлэх хугацаа",
+      "status": "Төлөв",
+      "players": "Тоглогчид",
+      "action": "Үйлдэл"
+    },
+    "schedule": {
+      "previousDay": "Өмнөх өдөр",
+      "nextDay": "Дараагийн өдөр",
+      "today": "Өнөөдөр",
+      "scheduledCount": "Дараагийн 7 хоногт {{count}} тэмцээн хуваарьтай байна",
+      "emptyTitle": "Энэ 7 хоногийн цонхонд тэмцээн алга",
+      "emptyDescription": "Өөр өдөр сонгох эсвэл төрөл/төлөвийн шүүлтүүрээ суллаарай."
     }
   },
   "Trending in chess": "Шатрын трендүүд",

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import { useSettingsStore } from "../store/settingsStore";
-import { useAuthStore } from "../store/authStore";
+import { authApi, useAuthStore } from "../store/authStore";
 import { ProfileAvatarUpload } from "../components/profilePage";
 import { BOARD_THEME_OPTIONS } from "../config/boardThemes";
 import {
@@ -24,6 +24,7 @@ import {
   useBlockedUsers,
 } from "../features/blocking/api";
 import { fetchAiProviderStatus, getAiProviderStatus } from "../utils/groqApi";
+import { useLanguageAvailabilityStore } from "../store/languageAvailabilityStore";
 
 function getLinkedProviders(user: ReturnType<typeof useAuthStore.getState>["user"], t: (key: string, fallback: string) => string) {
   const providers: string[] = [];
@@ -59,8 +60,20 @@ function resolveAvatarUrl(avatar?: string) {
 
 export default function Settings() {
   const { settings, update, save, reset, isDirty, selectedTheme, setTheme: setBoardTheme } = useSettingsStore();
-  const { user } = useAuthStore();
+  const { user, setUser } = useAuthStore();
   const { t, i18n } = useTranslation();
+  const learnMnUnavailable = useLanguageAvailabilityStore(
+    (state) => state.learnMnUnavailable,
+  );
+  const eventsMnUnavailable = useLanguageAvailabilityStore(
+    (state) => state.eventsMnUnavailable,
+  );
+  const clearMnUnavailable = useLanguageAvailabilityStore(
+    (state) => state.clearMnUnavailable,
+  );
+  const showMnUnavailableBadge =
+    (i18n.resolvedLanguage || i18n.language || "en") === "mn" &&
+    (learnMnUnavailable || eventsMnUnavailable);
   const dirty = useMemo(() => isDirty(), [isDirty, settings]);
   const [aiProviderStatus, setAiProviderStatus] = useState(() =>
     getAiProviderStatus(settings.analysisAiModelId),
@@ -242,6 +255,30 @@ export default function Settings() {
     }
   };
 
+  const handleLanguageChange = async (value: string) => {
+    const language = value === "mn" ? "mn" : "en";
+    await i18n.changeLanguage(language);
+
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("ng_lang", language);
+    }
+
+    if (language === "en") {
+      clearMnUnavailable();
+    }
+
+    if (!user) return;
+
+    try {
+      const updatedUser = await authApi.updateProfile({
+        preferredLanguage: language,
+      });
+      setUser(updatedUser);
+    } catch {
+      // Preserve client language preference even if profile sync fails.
+    }
+  };
+
   return (
     <div
       className="min-h-screen bg-transparent text-gray-900 transition-colors duration-300 dark:text-white"
@@ -355,16 +392,31 @@ export default function Settings() {
                   helper={t("settingsLang.helper", "Choose your preferred language")}
                   last
                 >
-                  <SegmentedControl
-                    options={supportedLanguages.map((language) => ({
-                      label: language.name,
-                      value: language.code,
-                    }))}
-                    value={
-                      i18n.resolvedLanguage || i18n.language || supportedLanguages[0].code
-                    }
-                    onChange={(value) => i18n.changeLanguage(value)}
-                  />
+                  <div className="flex flex-col items-end gap-1.5">
+                    <SegmentedControl
+                      options={supportedLanguages.map((language) => ({
+                        label: language.name,
+                        value: language.code,
+                      }))}
+                      value={
+                        i18n.resolvedLanguage || i18n.language || supportedLanguages[0].code
+                      }
+                      onChange={(value) => {
+                        void handleLanguageChange(value);
+                      }}
+                    />
+                    {showMnUnavailableBadge && (
+                      <span
+                        className="rounded-full border border-amber-300/35 bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium tracking-wide text-amber-700 dark:border-amber-700/45 dark:text-amber-300"
+                        title={t(
+                          "settingsLang.mnUnavailableTooltip",
+                          "Mongolian translation is unavailable for some content.",
+                        )}
+                      >
+                        {t("settingsLang.mnUnavailable", "MN unavailable")}
+                      </span>
+                    )}
+                  </div>
                 </SettingRow>
               </SettingsCard>
 

@@ -55,6 +55,7 @@ const uploadCoverImageFile = (req, res, next) =>
 router.use(adminAuthMiddleware);
 
 router.get("/courses", adminLearnController.listCourses);
+router.post("/import-from-mn", adminLearnController.importFromMn);
 router.post("/courses", adminLearnController.createCourse);
 router.patch("/courses/:courseId", adminLearnController.updateCourse);
 router.post(

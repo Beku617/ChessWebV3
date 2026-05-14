@@ -12,6 +12,11 @@ const LearnLessonSchema = new mongoose.Schema(
     title: { type: String, required: true, trim: true },
     subtitle: { type: String, default: "", trim: true },
     description: { type: String, default: "", trim: true },
+    pairId: {
+      type: String,
+      trim: true,
+      match: [/^\d{5}$/, "Pair ID must be exactly 5 digits."],
+    },
     orderIndex: { type: Number, required: true, min: 0 },
     estimatedMinutes: { type: Number, default: 10, min: 1 },
     isPublished: { type: Boolean, default: false, index: true },
@@ -21,6 +26,7 @@ const LearnLessonSchema = new mongoose.Schema(
 
 LearnLessonSchema.index({ courseId: 1, slug: 1 }, { unique: true });
 LearnLessonSchema.index({ courseId: 1, orderIndex: 1 }, { unique: true });
+LearnLessonSchema.index({ pairId: 1 }, { unique: true, sparse: true });
 
 const LearnLesson =
   mongoose.models.LearnLesson ||

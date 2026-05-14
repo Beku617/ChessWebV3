@@ -2,6 +2,7 @@ import {
   completeLesson,
   getCourseBySlug,
   getCourseCatalog,
+  getCourseOrLessonByPairId,
   getLearnSummary,
   getLessonBySlug,
   getLessonProgressBySlug,
@@ -47,6 +48,21 @@ async function getCourse(req, res) {
   } catch (error) {
     console.error("Learn get course error:", error);
     res.status(500).json({ error: "Failed to load course." });
+  }
+}
+
+async function getByPairId(req, res) {
+  try {
+    const data = await getCourseOrLessonByPairId({
+      pairId: req.params.pairId,
+    });
+    if (data?.error) {
+      return res.status(data.error.status || 400).json({ error: data.error.message });
+    }
+    res.json(data);
+  } catch (error) {
+    console.error("Learn get by pairId error:", error);
+    res.status(500).json({ error: "Failed to load pair mapping." });
   }
 }
 
@@ -154,6 +170,7 @@ async function search(req, res) {
 export default {
   listCourses,
   getCourse,
+  getByPairId,
   getLesson,
   getMyProgress,
   getLessonProgress,

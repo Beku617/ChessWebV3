@@ -17,6 +17,12 @@ const UserSchema = new mongoose.Schema(
     emailVerificationCodeExpiresAt: { type: Date, default: null },
     emailVerificationCodeSentAt: { type: Date, default: null },
     avatar: { type: String, default: "" },
+    preferredLanguage: {
+      type: String,
+      enum: ["en", "mn"],
+      default: "en",
+      index: true,
+    },
     rating: { type: Number, default: 1200 },
     bulletRating: { type: Number, default: 1200 },
     blitzRating: { type: Number, default: 1200 },

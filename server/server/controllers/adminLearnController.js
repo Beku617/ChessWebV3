@@ -16,11 +16,21 @@ import {
   updateAdminLesson,
   updateAdminStep,
 } from "../services/adminLearnService.js";
+import { importLearnToEn } from "../services/adminContentImportService.js";
 import { deleteMediaAsset } from "../utils/mediaStorage.js";
 
 function handleError(res, action, error) {
   if (error instanceof AdminLearnError) {
     return res.status(error.status || 400).json({ error: error.message });
+  }
+  if (
+    error &&
+    typeof error === "object" &&
+    Number.isFinite(Number(error.status))
+  ) {
+    return res
+      .status(Number(error.status))
+      .json({ error: error.message || "Request failed." });
   }
 
   console.error(`Admin learn ${action} error:`, error);
@@ -183,6 +193,17 @@ async function reorderSteps(req, res) {
   }
 }
 
+async function importFromMn(req, res) {
+  try {
+    const data = await importLearnToEn({
+      sourceCourseIds: req.body?.courseIds || [],
+    });
+    res.json(data);
+  } catch (error) {
+    handleError(res, "import from mn", error);
+  }
+}
+
 export default {
   listCourses,
   createCourse,
@@ -199,4 +220,5 @@ export default {
   updateStep,
   deleteStep,
   reorderSteps,
+  importFromMn,
 };

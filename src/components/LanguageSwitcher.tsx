@@ -2,6 +2,7 @@ import { ChevronDown } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { supportedLanguages } from "../i18n";
 import { useState, useRef, useEffect } from "react";
+import { useLanguageAvailabilityStore } from "../store/languageAvailabilityStore";
 
 type LanguageSwitcherProps = {
   compact?: boolean;
@@ -13,12 +14,23 @@ export function LanguageSwitcher({
   className = "",
 }: LanguageSwitcherProps) {
   const { i18n, t } = useTranslation();
+  const learnMnUnavailable = useLanguageAvailabilityStore(
+    (state) => state.learnMnUnavailable,
+  );
+  const eventsMnUnavailable = useLanguageAvailabilityStore(
+    (state) => state.eventsMnUnavailable,
+  );
+  const clearMnUnavailable = useLanguageAvailabilityStore(
+    (state) => state.clearMnUnavailable,
+  );
   const current =
     i18n.resolvedLanguage || i18n.language || supportedLanguages[0].code;
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   const currentLang = supportedLanguages.find((l) => l.code === current);
+  const showMnUnavailableBadge =
+    current === "mn" && (learnMnUnavailable || eventsMnUnavailable);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -43,8 +55,19 @@ export function LanguageSwitcher({
               {t("language.label", "Language")}
             </span>
           )}
-          <span className="block text-sm font-semibold text-gray-800 dark:text-gray-100">
-            {currentLang?.name ?? current}
+          <span className="flex items-center gap-1.5 text-sm font-semibold text-gray-800 dark:text-gray-100">
+            <span>{currentLang?.name ?? current}</span>
+            {showMnUnavailableBadge && (
+              <span
+                className="rounded-full border border-amber-300/35 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-medium leading-none tracking-wide text-amber-700 dark:border-amber-700/45 dark:text-amber-300"
+                title={t(
+                  "settingsLang.mnUnavailableTooltip",
+                  "Mongolian translation is unavailable for some content.",
+                )}
+              >
+                {t("settingsLang.mnUnavailable", "MN unavailable")}
+              </span>
+            )}
           </span>
         </span>
 
@@ -61,6 +84,12 @@ export function LanguageSwitcher({
                 type="button"
                 onClick={() => {
                   i18n.changeLanguage(lang.code);
+                  if (typeof window !== "undefined") {
+                    window.localStorage.setItem("ng_lang", lang.code);
+                  }
+                  if (lang.code === "en") {
+                    clearMnUnavailable();
+                  }
                   setOpen(false);
                 }}
                 className={`flex w-full items-center px-3.5 py-2 text-sm transition-colors ${

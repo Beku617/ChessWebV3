@@ -292,7 +292,8 @@
   },
   "tournamentCommon": {
     "formats": {
-      "swiss": "Swiss"
+      "swiss": "Swiss",
+      "arena": "Arena"
     },
     "status": {
       "draft": "Draft",
@@ -564,7 +565,13 @@
       "register": "Register",
       "startRound": "Start Round",
       "unregister": "Unregister",
-      "closeRegistration": "Close Registration"
+      "closeRegistration": "Close Registration",
+      "startGame": "Start Game",
+      "nextGame": "Next Game",
+      "continue": "Continue",
+      "join": "Join",
+      "result": "Result",
+      "open": "Open"
     },
     "confirm": {
       "deleteDraftMessage": "Delete this draft tournament?",
@@ -578,7 +585,8 @@
       "realtimeReconnect": "Realtime disconnected. Reconnecting...",
       "requestFailed": "Request failed",
       "serverReconnect": "Unable to reach server. Reconnecting...",
-      "serverUnavailable": "Server unavailable"
+      "serverUnavailable": "Server unavailable",
+      "startTimeTooSoon": "Start time must be at least 5 minutes from now."
     },
     "manage": {
       "registeredPlayers": "Registered players: {{count}}",
@@ -642,6 +650,48 @@
       },
       "creating": "Creating...",
       "createDraft": "Create Draft"
+    },
+    "pageTabs": {
+      "current": "Current",
+      "schedule": "Schedule",
+      "create": "Create"
+    },
+    "units": {
+      "minAbbr": "min",
+      "secAbbr": "s",
+      "hourAbbr": "hr",
+      "dayAbbr": "day",
+      "hourShort": "h"
+    },
+    "status": {
+      "startsSoon": "Starts soon",
+      "startsIn": "Starts in {{duration}}",
+      "resultsAvailable": "Results available",
+      "ended": "Ended",
+      "inProgress": "In progress",
+      "timeLeft": "{{duration}} left"
+    },
+    "hints": {
+      "registrationStartsOneHourBefore": "Registration begins 1 hour before the event starts"
+    },
+    "empty": {
+      "createOrCheckBack": "Create one or check back when registration opens."
+    },
+    "table": {
+      "type": "Type",
+      "gameTime": "Game Time",
+      "duration": "Duration",
+      "status": "Status",
+      "players": "Players",
+      "action": "Action"
+    },
+    "schedule": {
+      "previousDay": "Previous day",
+      "nextDay": "Next day",
+      "today": "Today",
+      "scheduledCount": "{{count}} scheduled tournaments in next 7 days",
+      "emptyTitle": "No tournaments in this 7-day window",
+      "emptyDescription": "Try another day or loosen the format/status filters."
     }
   },
   "Trending in chess": "Trending in chess",

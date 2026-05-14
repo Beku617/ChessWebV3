@@ -16,6 +16,8 @@ import {
   createAdminLearnCourse,
   deleteAdminLearnCourse,
   fetchAdminLearnCourses,
+  fetchAdminLearnMnCoursesForImport,
+  importAdminLearnCoursesFromMn,
   uploadAdminLearnCourseCoverImage,
   updateAdminLearnCourse,
 } from "./api";
@@ -36,6 +38,7 @@ type CourseDraft = {
   coverImage: string;
   badge: string;
   icon: string;
+  pairId: string;
   sortOrder: number;
   isPublished: boolean;
 };
@@ -52,9 +55,14 @@ const EMPTY_DRAFT: CourseDraft = {
   coverImage: "",
   badge: "",
   icon: "",
+  pairId: "",
   sortOrder: 0,
   isPublished: false,
 };
+
+function generatePairId() {
+  return String(Math.floor(Math.random() * 90000) + 10000);
+}
 
 function toDraft(course: AdminLearnCourse): CourseDraft {
   return {
@@ -69,6 +77,7 @@ function toDraft(course: AdminLearnCourse): CourseDraft {
     coverImage: course.coverImage || "",
     badge: course.badge || "",
     icon: course.icon || "",
+    pairId: course.pairId || "",
     sortOrder: Number(course.sortOrder || 0),
     isPublished: course.isPublished,
   };
@@ -102,6 +111,16 @@ export default function AdminLearnOverview() {
   const [draft, setDraft] = useState<CourseDraft>(EMPTY_DRAFT);
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreviewUrl, setCoverPreviewUrl] = useState("");
+  const [importModalOpen, setImportModalOpen] = useState(false);
+  const [importLoading, setImportLoading] = useState(false);
+  const [importSaving, setImportSaving] = useState(false);
+  const [importSourceCourses, setImportSourceCourses] = useState<AdminLearnCourse[]>([]);
+  const [selectedImportCourseIds, setSelectedImportCourseIds] = useState<string[]>(
+    [],
+  );
+  const [importError, setImportError] = useState("");
+  const [importWarnings, setImportWarnings] = useState<string[]>([]);
+  const [importToast, setImportToast] = useState("");
 
   useEffect(() => {
     if (!coverFile) {
@@ -112,6 +131,12 @@ export default function AdminLearnOverview() {
     setCoverPreviewUrl(objectUrl);
     return () => URL.revokeObjectURL(objectUrl);
   }, [coverFile, draft.coverImage]);
+
+  useEffect(() => {
+    if (!importToast) return undefined;
+    const timer = setTimeout(() => setImportToast(""), 3400);
+    return () => clearTimeout(timer);
+  }, [importToast]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -192,6 +217,7 @@ export default function AdminLearnOverview() {
         coverImage: draft.coverImage,
         badge: draft.badge,
         icon: draft.icon,
+        pairId: draft.pairId,
         sortOrder: Number(draft.sortOrder || 0),
         isPublished: draft.isPublished,
       };
@@ -230,6 +256,12 @@ export default function AdminLearnOverview() {
           totalCourses: 0,
           totalLessons: 0,
           totalPublished: 0,
+        },
+      );
+      setOptions(
+        refreshed.options || {
+          categories: ["Openings", "Middlegame", "Endgame", "Strategy"],
+          difficulties: ["Beginner", "Intermediate", "Advanced"],
         },
       );
       setCourses(refreshed.courses || []);
@@ -276,6 +308,91 @@ export default function AdminLearnOverview() {
       setError(err instanceof Error ? err.message : "Failed to delete course.");
     } finally {
       setProcessingCourseId(null);
+    }
+  };
+
+  const handleOpenImport = async () => {
+    setImportModalOpen(true);
+    setImportLoading(true);
+    setImportError("");
+    setImportWarnings([]);
+    setSelectedImportCourseIds([]);
+    try {
+      const response = await fetchAdminLearnMnCoursesForImport();
+      setImportSourceCourses(response.courses || []);
+    } catch (err) {
+      setImportError(
+        err instanceof Error
+          ? err.message
+          : "Failed to load source courses for import.",
+      );
+      setImportSourceCourses([]);
+    } finally {
+      setImportLoading(false);
+    }
+  };
+
+  const closeImportModal = () => {
+    setImportModalOpen(false);
+    setImportError("");
+    setImportLoading(false);
+    setSelectedImportCourseIds([]);
+  };
+
+  const handleToggleImportCourse = (courseId: string) => {
+    setSelectedImportCourseIds((current) =>
+      current.includes(courseId)
+        ? current.filter((entry) => entry !== courseId)
+        : [...current, courseId],
+    );
+  };
+
+  const allImportSelected =
+    importSourceCourses.length > 0 &&
+    selectedImportCourseIds.length === importSourceCourses.length;
+
+  const handleToggleImportAll = () => {
+    setSelectedImportCourseIds((current) =>
+      current.length === importSourceCourses.length
+        ? []
+        : importSourceCourses.map((course) => course.id),
+    );
+  };
+
+  const handleImportSelected = async () => {
+    if (!selectedImportCourseIds.length) return;
+
+    setImportSaving(true);
+    setImportError("");
+    try {
+      const result = await importAdminLearnCoursesFromMn(selectedImportCourseIds);
+      const refreshed = await fetchAdminLearnCourses({
+        search,
+        category,
+        difficulty,
+        status,
+      });
+      setStats(
+        refreshed.stats || {
+          totalCourses: 0,
+          totalLessons: 0,
+          totalPublished: 0,
+        },
+      );
+      setOptions(
+        refreshed.options || {
+          categories: ["Openings", "Middlegame", "Endgame", "Strategy"],
+          difficulties: ["Beginner", "Intermediate", "Advanced"],
+        },
+      );
+      setCourses(refreshed.courses || []);
+      setImportWarnings(result.warnings || []);
+      setImportToast(`${result.importedCount} course(s) imported successfully`);
+      closeImportModal();
+    } catch (err) {
+      setImportError(err instanceof Error ? err.message : "Import failed.");
+    } finally {
+      setImportSaving(false);
     }
   };
 
@@ -333,14 +450,23 @@ export default function AdminLearnOverview() {
                   </h1>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={handleOpenCreate}
-                  className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-500"
-                >
-                  <Plus className="h-4 w-4" />
-                  New Course
-                </button>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => void handleOpenImport()}
+                    className="rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+                  >
+                    Import from МН
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleOpenCreate}
+                    className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-500"
+                  >
+                    <Plus className="h-4 w-4" />
+                    New Course
+                  </button>
+                </div>
               </div>
 
               <div className="mt-5 grid gap-3 sm:grid-cols-3">
@@ -429,6 +555,12 @@ export default function AdminLearnOverview() {
               </div>
             )}
 
+            {importWarnings.length > 0 && (
+              <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-200">
+                {importWarnings.join(" | ")}
+              </div>
+            )}
+
             <section
               className={`rounded-[24px] border p-4 ${compactSurfaceClass}`}
             >
@@ -472,6 +604,11 @@ export default function AdminLearnOverview() {
                               <div className="mt-1 text-xs text-gray-500">
                                 /learn/{course.slug}
                               </div>
+                              {course.pairId && (
+                                <div className="mt-1 inline-flex rounded-full bg-gray-200 px-2 py-0.5 text-[10px] font-medium text-gray-600 dark:bg-slate-800 dark:text-slate-300">
+                                  Pair ID: {course.pairId}
+                                </div>
+                              )}
                             </td>
                             <td className="px-3 py-4 text-sm text-gray-600 dark:text-gray-300">
                               {course.category}
@@ -561,6 +698,121 @@ export default function AdminLearnOverview() {
             )}
           </div>
         </main>
+
+        {importModalOpen && (
+          <div className="fixed inset-0 z-[105] bg-black/55 backdrop-blur-sm px-4 py-8 overflow-y-auto">
+            <div className="mx-auto w-full max-w-4xl rounded-2xl border border-gray-200 bg-white p-6 shadow-[0_24px_60px_rgba(15,23,42,0.25)] dark:border-slate-700 dark:bg-slate-900">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  Import from МН
+                </h2>
+                <button
+                  type="button"
+                  onClick={closeImportModal}
+                  disabled={importSaving}
+                  className="rounded-lg border border-gray-200 bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+                >
+                  Close
+                </button>
+              </div>
+
+              {importError && (
+                <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                  {importError}
+                </div>
+              )}
+
+              <div className="mt-4 rounded-xl border border-gray-200 dark:border-slate-700">
+                {importLoading ? (
+                  <div className="py-16 text-center">
+                    <Loader2 className="mx-auto h-7 w-7 animate-spin text-brand-400" />
+                  </div>
+                ) : importSourceCourses.length === 0 ? (
+                  <div className="py-12 text-center text-sm text-gray-500 dark:text-gray-400">
+                    No courses available to import.
+                  </div>
+                ) : (
+                  <div className="max-h-[52vh] overflow-auto">
+                    <table className="w-full min-w-[920px]">
+                      <thead className="bg-gray-50 dark:bg-slate-900/70">
+                        <tr className="text-left text-xs uppercase tracking-[0.14em] text-gray-500 dark:text-gray-500">
+                          <th className="px-3 py-3">
+                            <label className="inline-flex items-center gap-2 text-xs font-semibold normal-case tracking-normal text-gray-700 dark:text-slate-300">
+                              <input
+                                type="checkbox"
+                                checked={allImportSelected}
+                                onChange={handleToggleImportAll}
+                                className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500/30"
+                              />
+                              All
+                            </label>
+                          </th>
+                          <th className="px-3 py-3">Course</th>
+                          <th className="px-3 py-3">Topic</th>
+                          <th className="px-3 py-3">Level</th>
+                          <th className="px-3 py-3">Lessons</th>
+                          <th className="px-3 py-3">Pair ID</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {importSourceCourses.map((course) => (
+                          <tr
+                            key={course.id}
+                            className="border-t border-gray-200/80 dark:border-slate-800"
+                          >
+                            <td className="px-3 py-3">
+                              <input
+                                type="checkbox"
+                                checked={selectedImportCourseIds.includes(course.id)}
+                                onChange={() => handleToggleImportCourse(course.id)}
+                                className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500/30"
+                              />
+                            </td>
+                            <td className="px-3 py-3 text-sm font-medium text-gray-900 dark:text-white">
+                              {course.title}
+                            </td>
+                            <td className="px-3 py-3 text-sm text-gray-600 dark:text-slate-300">
+                              {course.category}
+                            </td>
+                            <td className="px-3 py-3 text-sm text-gray-600 dark:text-slate-300">
+                              {course.difficulty}
+                            </td>
+                            <td className="px-3 py-3 text-sm text-gray-600 dark:text-slate-300">
+                              {course.totalLessons}
+                            </td>
+                            <td className="px-3 py-3 text-xs text-gray-600 dark:text-slate-300">
+                              {course.pairId || "-"}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-5 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={closeImportModal}
+                  disabled={importSaving}
+                  className="rounded-xl border border-gray-200 bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void handleImportSelected()}
+                  disabled={importSaving || selectedImportCourseIds.length === 0}
+                  className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-500 disabled:opacity-60"
+                >
+                  {importSaving && <Loader2 className="h-4 w-4 animate-spin" />}
+                  Import Selected
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {modalOpen && (
           <div className="fixed inset-0 z-[100] bg-black/55 backdrop-blur-sm px-4 py-8 overflow-y-auto">
@@ -684,6 +936,38 @@ export default function AdminLearnOverview() {
 
               <label className="mt-4 block space-y-1">
                 <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
+                  Pair ID
+                </span>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]{5}"
+                    maxLength={5}
+                    value={draft.pairId}
+                    onChange={(event) =>
+                      setDraft((current) => ({
+                        ...current,
+                        pairId: event.target.value.replace(/\D/g, "").slice(0, 5),
+                      }))
+                    }
+                    placeholder="10423"
+                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setDraft((current) => ({ ...current, pairId: generatePairId() }))
+                    }
+                    className="rounded-xl border border-gray-200 bg-gray-100 px-4 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                  >
+                    Generate
+                  </button>
+                </div>
+              </label>
+
+              <label className="mt-4 block space-y-1">
+                <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
                   Instructor
                 </span>
                 <input
@@ -734,6 +1018,12 @@ export default function AdminLearnOverview() {
                 </button>
               </div>
             </div>
+          </div>
+        )}
+
+        {importToast && (
+          <div className="pointer-events-none fixed bottom-6 right-6 z-[130] rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg">
+            {importToast}
           </div>
         )}
       </div>

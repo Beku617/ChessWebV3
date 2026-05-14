@@ -14,6 +14,7 @@ import { useAuthStore } from "../../store/authStore";
 import { CommunityGameViewer } from "./CommunityGameViewer";
 import { CommunityImageGrid } from "./CommunityImageGrid";
 import { Avatar } from "./CommunityUI";
+import { useTranslation } from "react-i18next";
 import {
   API_URL,
   CommunityGroup,
@@ -60,19 +61,19 @@ interface PostComposerProps {
 function validateFile(file: File, expectedKind: "image" | "video") {
   if (expectedKind === "image") {
     if (!file.type.startsWith("image/")) {
-      return "Please choose a supported image file.";
+      return "communityComposer.errors.supportedImage";
     }
     if (file.size > MAX_IMAGE_BYTES) {
-      return "Image is too large. Maximum size is 8MB.";
+      return "communityComposer.errors.imageTooLarge";
     }
     return null;
   }
 
   if (!file.type.startsWith("video/")) {
-    return "Please choose a supported video file.";
+    return "communityComposer.errors.supportedVideo";
   }
   if (file.size > MAX_VIDEO_BYTES) {
-    return "Video is too large. Maximum size is 50MB.";
+    return "communityComposer.errors.videoTooLarge";
   }
   return null;
 }
@@ -106,22 +107,32 @@ function totalImageBytes(items: Pick<SelectedComposerImage, "file">[]) {
   return items.reduce((total, item) => total + Number(item.file.size || 0), 0);
 }
 
-function buildSubmissionBlockedMessage(postingAccess?: CommunityPostingAccess | null) {
+function buildSubmissionBlockedMessage(
+  postingAccess: CommunityPostingAccess | null | undefined,
+  t: (key: string, options?: Record<string, unknown>) => string,
+) {
   if (!postingAccess || postingAccess.canSubmit) return "";
 
   if (postingAccess.reason === "restricted") {
     if (postingAccess.restriction?.forever) {
       return postingAccess.restriction.reason
-        ? `Posting is restricted by moderation. Reason: ${postingAccess.restriction.reason}`
-        : "Posting is currently restricted by moderation.";
+        ? t("communityComposer.errors.restrictedWithReason", {
+            reason: postingAccess.restriction.reason,
+          })
+        : t("communityComposer.errors.restricted");
     }
 
     const untilLabel = formatDateTime(postingAccess.restriction?.until);
     const base = untilLabel
-      ? `Posting is temporarily restricted until ${untilLabel}.`
-      : "Posting is temporarily restricted by moderation.";
+      ? t("communityComposer.errors.temporarilyRestrictedUntil", {
+          until: untilLabel,
+        })
+      : t("communityComposer.errors.temporarilyRestricted");
     return postingAccess.restriction.reason
-      ? `${base} Reason: ${postingAccess.restriction.reason}`
+      ? t("communityComposer.errors.temporarilyRestrictedWithReason", {
+          base,
+          reason: postingAccess.restriction.reason,
+        })
       : base;
   }
 
@@ -134,11 +145,18 @@ function buildSubmissionBlockedMessage(postingAccess?: CommunityPostingAccess | 
         ? Math.max(0, retryAt.getTime() - Date.now())
         : 0;
     const waitText =
-      remainingMs > 0 ? ` Try again in ${formatDuration(remainingMs)}.` : "";
-    return `You've reached the posting limit (${postingAccess.rateLimit.maxPosts} posts every 3 hours).${waitText}`;
+      remainingMs > 0
+        ? t("communityComposer.errors.tryAgainIn", {
+            duration: formatDuration(remainingMs),
+          })
+        : "";
+    return t("communityComposer.errors.rateLimited", {
+      maxPosts: postingAccess.rateLimit.maxPosts,
+      waitText,
+    });
   }
 
-  return "Posting is unavailable right now.";
+  return t("communityComposer.errors.unavailable");
 }
 
 function perspectiveTone(value: CommunityShareableGameSummary["perspectiveResult"]) {
@@ -154,7 +172,7 @@ async function fetchGameDetail(gameId: string) {
   });
   const data: { game?: GameHistory; error?: string } = await res.json().catch(() => ({}));
   if (!res.ok || !data.game) {
-    throw new Error(data.error || "Failed to load the selected game.");
+    throw new Error(data.error || "communityComposer.errors.loadSelectedGame");
   }
   return data.game;
 }
@@ -166,6 +184,7 @@ export function PostComposer({
   lockGroupSelection = false,
   onSubmitted,
 }: PostComposerProps) {
+  const { t } = useTranslation();
   const { user } = useAuthStore();
   const [content, setContent] = useState("");
   const [selectedImages, setSelectedImages] = useState<SelectedComposerImage[]>([]);
@@ -257,12 +276,16 @@ export function PostComposer({
         const data: CommunityShareableGamesResponse & { error?: string } =
           await res.json().catch(() => ({ games: [], total: 0 }));
         if (!res.ok) {
-          throw new Error(data.error || "Failed to load your games.");
+          throw new Error(data.error || t("communityComposer.errors.loadGamesFailed"));
         }
         setAvailableGames(data.games || []);
       } catch (err) {
         if (controller.signal.aborted) return;
-        setGamesError(err instanceof Error ? err.message : "Failed to load your games.");
+        setGamesError(
+          err instanceof Error
+            ? err.message
+            : t("communityComposer.errors.loadGamesFailed"),
+        );
       } finally {
         if (!controller.signal.aborted) {
           setGamesLoading(false);
@@ -314,8 +337,8 @@ export function PostComposer({
     return "none";
   }, [selectedImages.length, selectedVideoFile]);
   const submissionBlockedMessage = useMemo(
-    () => buildSubmissionBlockedMessage(postingAccess),
-    [postingAccess],
+    () => buildSubmissionBlockedMessage(postingAccess, t),
+    [postingAccess, t],
   );
   const isSubmissionBlocked = submissionBlockedMessage.length > 0;
   const canSubmitNow = canSubmit && !isSubmissionBlocked && !isLoadingSelectedGame;
@@ -375,7 +398,7 @@ export function PostComposer({
     for (const file of incomingFiles) {
       const validationError = validateFile(file, "image");
       if (validationError) {
-        setError(validationError);
+        setError(t(validationError));
         return;
       }
     }
@@ -397,7 +420,7 @@ export function PostComposer({
       nextImages
         .slice(selectedImages.length)
         .forEach((image) => URL.revokeObjectURL(image.previewUrl));
-      setError(`You can upload up to ${MAX_IMAGE_COUNT} images per post.`);
+      setError(t("communityComposer.errors.imageLimit", { count: MAX_IMAGE_COUNT }));
       return;
     }
 
@@ -405,7 +428,7 @@ export function PostComposer({
       nextImages
         .slice(selectedImages.length)
         .forEach((image) => URL.revokeObjectURL(image.previewUrl));
-      setError("Selected images are too large together. Maximum total size is 40MB.");
+      setError(t("communityComposer.errors.totalImageTooLarge"));
       return;
     }
 
@@ -426,7 +449,7 @@ export function PostComposer({
     if (!file) return;
     const validationError = validateFile(file, "video");
     if (validationError) {
-      setError(validationError);
+      setError(t(validationError));
       return;
     }
 
@@ -469,7 +492,11 @@ export function PostComposer({
     } catch (err) {
       setSelectedGameSummary(null);
       setSelectedGame(null);
-      setError(err instanceof Error ? err.message : "Failed to load the selected game.");
+      setError(
+        err instanceof Error
+          ? t(err.message, { defaultValue: err.message })
+          : t("communityComposer.errors.loadSelectedGame"),
+      );
     } finally {
       setIsLoadingSelectedGame(false);
     }
@@ -513,16 +540,18 @@ export function PostComposer({
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        throw new Error(data.error || "Failed to submit post.");
+        throw new Error(data.error || t("communityComposer.errors.submitFailed"));
       }
 
       resetComposer();
-      setSuccessMessage(
-        "Submitted for review. It will appear in the feed once approved.",
-      );
+      setSuccessMessage(t("communityComposer.submittedForReview"));
       await onSubmitted?.();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to submit post.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : t("communityComposer.errors.submitFailed"),
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -555,8 +584,8 @@ export function PostComposer({
               }}
               placeholder={
                 hasSelectedGame
-                  ? "Add a caption for this game..."
-                  : "Share a game idea, opening line, clip, puzzle moment, tournament update, or one of your games..."
+                  ? t("communityComposer.addCaption")
+                  : t("communityComposer.composePlaceholder")
               }
               className={`w-full bg-transparent border-none focus:ring-0 focus:outline-none text-sm text-white placeholder:text-gray-500 resize-none premium-scrollbar ${
                 hasSelectedImages || hasSelectedVideo || selectedGameSummary
@@ -575,7 +604,7 @@ export function PostComposer({
                     onClick={clearSelectedMedia}
                     disabled={isSubmitting}
                     className="absolute right-2 top-2 z-10 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-black/60 text-gray-200 hover:bg-black/80 hover:text-white transition-colors disabled:cursor-not-allowed disabled:opacity-45"
-                    title="Remove media"
+                    title={t("communityComposer.removeMedia")}
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -596,13 +625,13 @@ export function PostComposer({
                     onClick={clearSelectedMedia}
                     disabled={isSubmitting}
                     className="absolute right-2 top-2 z-10 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-black/60 text-gray-200 hover:bg-black/80 hover:text-white transition-colors disabled:cursor-not-allowed disabled:opacity-45"
-                    title="Remove media"
+                    title={t("communityComposer.removeMedia")}
                   >
                     <X className="w-4 h-4" />
                   </button>
                   <img
                     src={selectedImages[0].previewUrl}
-                    alt={selectedImages[0].file.name || "Selected preview"}
+                    alt={selectedImages[0].file.name || t("communityComposer.selectedPreview")}
                     className="w-full max-h-[420px] object-contain bg-black"
                   />
                 </div>
@@ -614,10 +643,12 @@ export function PostComposer({
                 <div className="mb-3 flex items-center justify-between gap-3">
                   <div className="min-w-0">
                     <div className="text-[10px] font-semibold uppercase tracking-[0.24em] text-brand-200/70">
-                      Image Set
+                      {t("communityComposer.imageSet")}
                     </div>
                     <div className="mt-1 text-sm font-semibold text-white">
-                      {selectedImages.length} images selected
+                      {t("communityComposer.imagesSelected", {
+                        count: selectedImages.length,
+                      })}
                     </div>
                   </div>
 
@@ -628,14 +659,14 @@ export function PostComposer({
                     className="inline-flex items-center gap-2 rounded-lg bg-white/[0.06] px-3 py-2 text-xs font-semibold text-gray-200 transition-colors hover:bg-white/[0.12] disabled:cursor-not-allowed disabled:opacity-45"
                   >
                     <X className="h-4 w-4" />
-                    Clear all
+                    {t("communityComposer.clearAll")}
                   </button>
                 </div>
 
                 <CommunityImageGrid
                   items={selectedImages.map((image) => ({
                     url: image.previewUrl,
-                    alt: image.file.name || "Selected preview",
+                    alt: image.file.name || t("communityComposer.selectedPreview"),
                   }))}
                   onRemoveImage={handleRemoveSelectedImage}
                 />
@@ -649,7 +680,12 @@ export function PostComposer({
                       >
                         <img
                           src={image.previewUrl}
-                          alt={image.file.name || `Selected image ${index + 1}`}
+                          alt={
+                            image.file.name ||
+                            t("communityComposer.selectedImageAlt", {
+                              index: index + 1,
+                            })
+                          }
                           className="h-full w-full object-cover"
                         />
                         <button
@@ -657,7 +693,9 @@ export function PostComposer({
                           onClick={() => handleRemoveSelectedImage(index)}
                           disabled={isSubmitting}
                           className="absolute right-1 top-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-black/70 text-white hover:bg-black/85 disabled:cursor-not-allowed disabled:opacity-45"
-                          aria-label={`Remove image ${index + 1}`}
+                          aria-label={t("communityComposer.removeImageAria", {
+                            index: index + 1,
+                          })}
                         >
                           <X className="h-3 w-3" />
                         </button>
@@ -673,10 +711,12 @@ export function PostComposer({
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] px-4 py-3">
                   <div className="min-w-0">
                     <div className="text-[10px] font-semibold uppercase tracking-[0.24em] text-brand-200/70">
-                      Share Game
+                      {t("communityComposer.shareGame")}
                     </div>
                     <div className="mt-1 truncate text-sm font-semibold text-white">
-                      vs {selectedGameSummary.opponent}
+                      {t("communityComposer.vsOpponent", {
+                        opponent: selectedGameSummary.opponent,
+                      })}
                     </div>
                     <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-400">
                       <span
@@ -704,7 +744,7 @@ export function PostComposer({
                       className="inline-flex items-center gap-2 rounded-lg bg-white/[0.06] px-3 py-2 text-xs font-semibold text-gray-200 hover:bg-white/[0.12] disabled:opacity-50"
                     >
                       <Gamepad2 className="h-4 w-4" />
-                      Change
+                      {t("communityComposer.change")}
                     </button>
                     <button
                       type="button"
@@ -713,7 +753,7 @@ export function PostComposer({
                       className="inline-flex items-center gap-2 rounded-lg bg-white/[0.06] px-3 py-2 text-xs font-semibold text-gray-200 hover:bg-white/[0.12] disabled:opacity-50"
                     >
                       <X className="h-4 w-4" />
-                      Remove
+                      {t("communityComposer.remove")}
                     </button>
                   </div>
                 </div>
@@ -734,9 +774,11 @@ export function PostComposer({
               <div className="mt-3 overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0b1424]/96 shadow-[0_20px_50px_rgba(0,0,0,0.28)]">
                 <div className="flex items-center justify-between gap-3 border-b border-white/[0.06] px-4 py-3">
                   <div>
-                    <div className="text-sm font-semibold text-white">Choose a game</div>
+                    <div className="text-sm font-semibold text-white">
+                      {t("communityComposer.chooseGame")}
+                    </div>
                     <div className="mt-1 text-xs text-gray-500">
-                      Share one of your recent games with a caption and mini-board replay.
+                      {t("communityComposer.chooseGameDescription")}
                     </div>
                   </div>
                   <button
@@ -744,7 +786,7 @@ export function PostComposer({
                     onClick={() => setIsGamePickerOpen(false)}
                     disabled={isSubmitting}
                     className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white/[0.06] text-gray-300 hover:bg-white/[0.12] disabled:cursor-not-allowed disabled:opacity-45"
-                    aria-label="Close game picker"
+                    aria-label={t("communityComposer.closeGamePicker")}
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -757,7 +799,7 @@ export function PostComposer({
                       value={gameSearch}
                       disabled={isSubmitting}
                       onChange={(e) => setGameSearch(e.target.value)}
-                      placeholder="Search by opponent, opening, result, or time control..."
+                      placeholder={t("communityComposer.gameSearchPlaceholder")}
                       className="w-full rounded-xl bg-white/[0.05] py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 disabled:cursor-not-allowed disabled:opacity-45"
                     />
                   </div>
@@ -779,9 +821,11 @@ export function PostComposer({
                     </div>
                   ) : availableGames.length === 0 ? (
                     <div className="rounded-2xl bg-white/[0.04] px-4 py-8 text-center">
-                      <div className="text-sm font-medium text-white">No games found</div>
+                      <div className="text-sm font-medium text-white">
+                        {t("communityComposer.noGamesFound")}
+                      </div>
                       <div className="mt-2 text-xs leading-6 text-gray-500">
-                        Finish a few games first, or try a broader search.
+                        {t("communityComposer.noGamesFoundDescription")}
                       </div>
                     </div>
                   ) : (
@@ -809,7 +853,9 @@ export function PostComposer({
                               <div className="min-w-0">
                                 <div className="flex flex-wrap items-center gap-2">
                                   <span className="truncate text-sm font-semibold text-white">
-                                    vs {gameOption.opponent}
+                                    {t("communityComposer.vsOpponent", {
+                                      opponent: gameOption.opponent,
+                                    })}
                                   </span>
                                   <span
                                     className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ${perspectiveTone(
@@ -822,13 +868,20 @@ export function PostComposer({
                                   </span>
                                 </div>
                                 <div className="mt-1 text-xs text-gray-400">
-                                  {gameOption.white} vs {gameOption.black}
+                                  {t("communityComposer.vsLabel", {
+                                    white: gameOption.white,
+                                    black: gameOption.black,
+                                  })}
                                 </div>
                               </div>
 
                               <div className="shrink-0 text-right text-xs text-gray-500">
                                 <div>{formatGamePlayedAt(gameOption.playedAt)}</div>
-                                <div className="mt-1">{gameOption.totalMoves} moves</div>
+                                <div className="mt-1">
+                                  {t("communityComposer.movesCount", {
+                                    count: gameOption.totalMoves,
+                                  })}
+                                </div>
                               </div>
                             </div>
 
@@ -838,12 +891,12 @@ export function PostComposer({
                               </span>
                               <span className="rounded-full bg-white/[0.05] px-2.5 py-1">
                                 {gameOption.variant === "chess960"
-                                  ? "Chess960"
+                                  ? t("Chess960")
                                   : gameOption.variant === "kingOfHill"
-                                    ? "King of the Hill"
+                                    ? t("King of the Hill")
                                   : gameOption.variant === "threeCheck"
-                                    ? "Three-Check"
-                                    : "Standard"}
+                                    ? t("Three-Check")
+                                    : t("Standard")}
                               </span>
                               {optionOpening && (
                                 <span className="rounded-full bg-white/[0.05] px-2.5 py-1">
@@ -901,16 +954,16 @@ export function PostComposer({
                   lockGroupSelection ? (
                     <div className="inline-flex items-center gap-2 rounded-lg bg-brand-500/12 px-3.5 py-2 text-sm text-brand-100">
                       <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-brand-200/70">
-                        Group
+                        {t("communityComposer.group")}
                       </span>
                       <span className="font-medium">
-                        {selectedGroup?.name || "Selected group"}
+                        {selectedGroup?.name || t("communityComposer.selectedGroup")}
                       </span>
                     </div>
                   ) : (
                     <label className="inline-flex items-center gap-2 rounded-lg bg-white/[0.04] px-3 py-2 text-sm text-gray-300 transition-colors hover:bg-white/[0.08]">
                       <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500">
-                        Group
+                        {t("communityComposer.group")}
                       </span>
                       <select
                         value={selectedGroupId}
@@ -918,7 +971,7 @@ export function PostComposer({
                         className="min-w-[150px] bg-transparent text-sm text-gray-200 focus:outline-none"
                       >
                         <option value="" className="bg-[#0d192c] text-white">
-                          General community
+                          {t("communityComposer.generalCommunity")}
                         </option>
                         {availableGroups.map((group) => (
                           <option
@@ -940,7 +993,7 @@ export function PostComposer({
                   className="inline-flex items-center gap-2 rounded-lg bg-white/[0.04] px-3.5 py-2 text-sm text-gray-300 transition-colors hover:bg-white/[0.08] hover:text-brand-200 disabled:cursor-not-allowed disabled:opacity-45"
                 >
                   <ImageIcon className="w-4 h-4" />
-                  Image
+                  {t("communityComposer.image")}
                 </button>
                 <button
                   type="button"
@@ -949,7 +1002,7 @@ export function PostComposer({
                   className="inline-flex items-center gap-2 rounded-lg bg-white/[0.04] px-3.5 py-2 text-sm text-gray-300 transition-colors hover:bg-white/[0.08] hover:text-brand-200 disabled:cursor-not-allowed disabled:opacity-45"
                 >
                   <Video className="w-4 h-4" />
-                  Video
+                  {t("communityComposer.video")}
                 </button>
                 <button
                   type="button"
@@ -970,7 +1023,9 @@ export function PostComposer({
                   }`}
                 >
                   <Gamepad2 className="w-4 h-4" />
-                  {selectedGameSummary ? "Change Game" : "Share Game"}
+                  {selectedGameSummary
+                    ? t("communityComposer.changeGame")
+                    : t("communityComposer.shareGame")}
                 </button>
               </div>
 
@@ -990,10 +1045,10 @@ export function PostComposer({
                 >
                   <Send className="w-4 h-4" />
                   {isSubmitting
-                    ? "Submitting..."
+                    ? t("communityComposer.submitting")
                     : isSubmissionBlocked
-                      ? "Unavailable"
-                      : "Submit"}
+                      ? t("communityComposer.unavailable")
+                      : t("communityComposer.submit")}
                 </button>
               </div>
             </div>

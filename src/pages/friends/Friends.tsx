@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   Eye,
   Hourglass,
@@ -20,6 +21,7 @@ import {
   type FriendRelationship,
 } from "../../store/friendStore";
 import { fetchBlockStatus } from "../../features/blocking/api";
+import i18n from "../../i18n";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
@@ -54,58 +56,58 @@ interface SearchResult {
 type PrimaryTab = "friends" | "incoming" | "outgoing";
 
 function formatPresence(presence?: string, lastActiveAt?: string | null) {
-  if (presence === "online") return "Online";
-  if (presence === "in_game") return "In game";
-  if (presence === "searching_match") return "Searching";
-  if (presence === "away") return "Away";
-  if (!lastActiveAt) return "Offline";
+  if (presence === "online") return i18n.t("presence.status.online");
+  if (presence === "in_game") return i18n.t("presence.status.inGame");
+  if (presence === "searching_match") return i18n.t("presence.status.searchingMatch");
+  if (presence === "away") return i18n.t("presence.status.away");
+  if (!lastActiveAt) return i18n.t("presence.status.offline");
   const d = new Date(lastActiveAt);
-  if (Number.isNaN(d.getTime())) return "Offline";
+  if (Number.isNaN(d.getTime())) return i18n.t("presence.status.offline");
   const diff = Date.now() - d.getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "Just now";
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) return i18n.t("presence.justNow");
+  if (mins < 60) return i18n.t("presence.minutesAgo", { count: mins });
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return i18n.t("presence.hoursAgo", { count: hours });
   const days = Math.floor(hours / 24);
-  return `${days}d ago`;
+  return i18n.t("presence.daysAgo", { count: days });
 }
 
 function formatDateDistance(value?: string | null) {
-  if (!value) return "Earlier";
+  if (!value) return i18n.t("friendsPage.time.earlier");
   const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return "Earlier";
+  if (Number.isNaN(d.getTime())) return i18n.t("friendsPage.time.earlier");
   const diff = Date.now() - d.getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "Just now";
-  if (mins < 60) return `${mins}m ago`;
+  if (mins < 1) return i18n.t("presence.justNow");
+  if (mins < 60) return i18n.t("presence.minutesAgo", { count: mins });
   const hours = Math.floor(mins / 60);
-  if (hours < 48) return `${hours}h ago`;
+  if (hours < 48) return i18n.t("presence.hoursAgo", { count: hours });
   const days = Math.floor(hours / 24);
-  if (days < 14) return `${days}d ago`;
+  if (days < 14) return i18n.t("presence.daysAgo", { count: days });
   return d.toLocaleDateString();
 }
 
 function StatusBadge({ status }: { status: FriendRequestItem["status"] }) {
   const map: Record<string, { label: string; color: string }> = {
     accepted: {
-      label: "Accepted",
+      label: i18n.t("friendsPage.requestStatus.accepted"),
       color: "bg-brand-500/15 text-brand-300 border-brand-500/30",
     },
     denied: {
-      label: "Denied",
+      label: i18n.t("friendsPage.requestStatus.denied"),
       color: "bg-red-500/10 text-red-300 border-red-500/30",
     },
     ignored: {
-      label: "Ignored",
+      label: i18n.t("friendsPage.requestStatus.ignored"),
       color: "bg-slate-500/10 text-slate-300 border-slate-500/30",
     },
     canceled: {
-      label: "Canceled",
+      label: i18n.t("friendsPage.requestStatus.canceled"),
       color: "bg-amber-500/10 text-amber-200 border-amber-500/30",
     },
     pending: {
-      label: "Pending",
+      label: i18n.t("friendsPage.requestStatus.pending"),
       color: "bg-brand-500/10 text-brand-200 border-brand-500/30",
     },
   };
@@ -207,6 +209,7 @@ function TabButton({
 }
 
 export default function Friends() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const {
@@ -265,7 +268,7 @@ export default function Friends() {
       );
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(data.error || "Search failed");
+        throw new Error(data.error || t("friendsPage.errors.searchFailed"));
       }
       const results = Array.isArray(data.results) ? data.results : [];
       setSearchResults(
@@ -281,7 +284,7 @@ export default function Friends() {
       );
     } catch (error) {
       console.error(error);
-      setSearchError("Search failed. Try again.");
+      setSearchError(t("friendsPage.errors.searchFailedRetry"));
       setSearchResults([]);
     } finally {
       setSearching(false);
@@ -293,14 +296,14 @@ export default function Friends() {
       setActionId(targetId);
       const status = await fetchBlockStatus(targetId);
       if (status.isAnyBlocked || status.isBlocked || status.isBlockedByTarget) {
-        setSearchError("You cannot send a friend request to this player.");
+        setSearchError(t("friendsPage.errors.cannotSendRequestBlocked"));
         return;
       }
       await sendRequest(targetId);
       setSearchError(null);
     } catch (error) {
       const msg =
-        error instanceof Error ? error.message : "Failed to send request";
+        error instanceof Error ? error.message : t("friendsPage.errors.sendRequestFailed");
       setSearchError(msg);
     } finally {
       setActionId(null);
@@ -314,7 +317,7 @@ export default function Friends() {
       setSearchError(null);
     } catch (error) {
       const msg =
-        error instanceof Error ? error.message : "Failed to accept request";
+        error instanceof Error ? error.message : t("friendsPage.errors.acceptFailed");
       setSearchError(msg);
     } finally {
       setActionId(null);
@@ -326,14 +329,14 @@ export default function Friends() {
       setActionId(friend.id);
       const status = await fetchBlockStatus(friend.id);
       if (status.isAnyBlocked || status.isBlocked || status.isBlockedByTarget) {
-        setSearchError("Unable to send message.");
+        setSearchError(t("friendsPage.errors.messageUnavailable"));
         return;
       }
       navigate(
         `/messages?chat=${encodeURIComponent(friend.id)}&name=${encodeURIComponent(friend.name)}`,
       );
     } catch {
-      setSearchError("Unable to send message.");
+      setSearchError(t("friendsPage.errors.messageUnavailable"));
     } finally {
       setActionId(null);
     }
@@ -344,7 +347,7 @@ export default function Friends() {
       setActionId(friend.id);
       const status = await fetchBlockStatus(friend.id);
       if (status.isAnyBlocked || status.isBlocked || status.isBlockedByTarget) {
-        setSearchError("You cannot challenge this player.");
+        setSearchError(t("friendsPage.errors.challengeUnavailable"));
         return;
       }
       navigate("/play/friend", {
@@ -354,7 +357,7 @@ export default function Friends() {
         },
       });
     } catch {
-      setSearchError("You cannot challenge this player.");
+      setSearchError(t("friendsPage.errors.challengeUnavailable"));
     } finally {
       setActionId(null);
     }
@@ -373,7 +376,7 @@ export default function Friends() {
       setSearchError(null);
     } catch (error) {
       const msg =
-        error instanceof Error ? error.message : "Failed to deny request";
+        error instanceof Error ? error.message : t("friendsPage.errors.denyFailed");
       setSearchError(msg);
     } finally {
       setActionId(null);
@@ -387,7 +390,7 @@ export default function Friends() {
       setSearchError(null);
     } catch (error) {
       const msg =
-        error instanceof Error ? error.message : "Failed to cancel request";
+        error instanceof Error ? error.message : t("friendsPage.errors.cancelFailed");
       setSearchError(msg);
     } finally {
       setActionId(null);
@@ -401,7 +404,7 @@ export default function Friends() {
       setSearchError(null);
     } catch (error) {
       const msg =
-        error instanceof Error ? error.message : "Failed to remove friend";
+        error instanceof Error ? error.message : t("friendsPage.errors.unfriendFailed");
       setSearchError(msg);
     } finally {
       setActionId(null);
@@ -418,7 +421,9 @@ export default function Friends() {
         ? "ring-1 ring-[#0f253a]/18 bg-gradient-to-br from-[#0c1f30]/88 via-[#0c1829] to-[#0b1424]"
         : "ring-1 ring-[#0f1c2e]/16 bg-gradient-to-br from-[#0b1220] via-[#0b111d] to-[#0a0f1a]";
     const subtitle =
-      type === "incoming" ? "Wants to connect" : "Awaiting response";
+      type === "incoming"
+        ? t("friendsPage.requestSubtitle.wantsToConnect")
+        : t("friendsPage.requestSubtitle.awaitingResponse");
     return (
       <div
         key={req.id}
@@ -445,7 +450,7 @@ export default function Friends() {
                 {req.userName}
               </div>
               <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#13243a] text-slate-200 border border-[#1f2c45]">
-                {type === "incoming" ? "Incoming" : "Outgoing"}
+                {type === "incoming" ? t("Incoming") : t("Outgoing")}
               </span>
             </div>
             <div className="text-xs text-slate-400 leading-relaxed flex items-center gap-2 flex-wrap">
@@ -463,14 +468,14 @@ export default function Friends() {
                 disabled={disabled}
                 className="px-3 py-1.5 rounded-lg bg-brand-600 text-white text-xs font-semibold hover:bg-brand-500 disabled:opacity-60 transition-colors shadow-[0_10px_24px_rgba(13,148,136,0.28)]"
               >
-                Accept
+                {t("Accept")}
               </button>
               <button
                 onClick={() => void handleDeny(req.id)}
                 disabled={disabled}
                 className="px-3 py-1.5 rounded-lg border border-red-500/40 text-red-300 text-xs font-semibold hover:bg-red-500/10 disabled:opacity-60 transition-colors"
               >
-                Deny
+                {t("friendsPage.actions.deny")}
               </button>
             </>
           ) : (
@@ -482,7 +487,7 @@ export default function Friends() {
                   disabled={disabled}
                   className="px-3 py-1.5 rounded-lg border border-slate-600/60 text-slate-300 text-xs font-semibold hover:bg-slate-700/40 disabled:opacity-60 transition-colors"
                 >
-                  Cancel
+                  {t("Cancel")}
                 </button>
               )}
             </>
@@ -504,7 +509,7 @@ export default function Friends() {
             type="button"
             className="w-11 h-11 rounded-full overflow-hidden bg-gradient-to-br from-brand-600 to-brand-500 text-white font-bold ring-1 ring-brand-500/40"
             onClick={() => navigate(`/u/${friend.id}`)}
-            title="View profile"
+            title={t("nav.viewProfile")}
           >
             {friend.avatar ? (
               <img
@@ -538,15 +543,15 @@ export default function Friends() {
               {friend.isWatchableInGame && (
                 <span
                   className="inline-flex items-center gap-1 rounded-full border border-cyan-400/35 bg-cyan-500/10 px-2 py-0.5 text-[11px] font-semibold text-cyan-200"
-                  title="Playing a live multiplayer game"
+                  title={t("friendsPage.actions.watchLiveTitle")}
                 >
                   <Eye className="w-3 h-3" />
-                  Watch
+                  {t("Watch")}
                 </span>
               )}
               {friend.since && (
                 <span className="text-slate-500">
-                  • Friends since {new Date(friend.since).toLocaleDateString()}
+                  • {t("Friends since")} {new Date(friend.since).toLocaleDateString()}
                 </span>
               )}
             </div>
@@ -558,29 +563,29 @@ export default function Friends() {
               disabled={disabled}
               className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-500/15 text-cyan-200 border border-cyan-500/30 hover:bg-cyan-500/25"
               onClick={() => handleWatchFriend(friend)}
-              title="Watch this friend's current game"
+              title={t("friendsPage.actions.watchCurrentGame")}
             >
               <Eye className="w-4 h-4 inline-block mr-1" />
-              Watch
+              {t("Watch")}
             </button>
           )}
           <button
             disabled={disabled}
             className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-500/15 text-brand-200 border border-brand-500/30 hover:bg-brand-500/25"
             onClick={() => void handleMessageFriend(friend)}
-            title="Send a direct message"
+            title={t("friendsPage.actions.sendDirectMessage")}
           >
             <MessageCircle className="w-4 h-4 inline-block mr-1" />
-            Message
+            {t("Message")}
           </button>
           <button
             disabled={disabled}
             className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-500/15 text-cyan-200 border border-cyan-500/30 hover:bg-cyan-500/25"
             onClick={() => void handleChallengeFriend(friend)}
-            title="Challenge this friend"
+            title={t("friendsPage.actions.challengeFriend")}
           >
             <Swords className="w-4 h-4 inline-block mr-1" />
-            Challenge
+            {t("friendsPage.actions.challenge")}
           </button>
           <button
             onClick={() => void handleUnfriend(friend.id)}
@@ -588,7 +593,7 @@ export default function Friends() {
             className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-500/10 text-red-300 border border-red-500/30 hover:bg-red-500/15 disabled:opacity-60"
           >
             <UserX className="w-4 h-4 inline-block mr-1" />
-            Unfriend
+            {t("Unfriend")}
           </button>
         </div>
       </div>
@@ -605,7 +610,7 @@ export default function Friends() {
     if (relation === "friends") {
       return (
         <span className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-500/15 text-brand-200 border border-brand-500/30">
-          Friends
+          {t("Friends")}
         </span>
       );
     }
@@ -616,21 +621,21 @@ export default function Friends() {
           disabled={isProcessing}
           className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-600 text-white hover:bg-brand-500 disabled:opacity-60 shadow-[0_10px_24px_rgba(13,148,136,0.28)]"
         >
-          Accept
+          {t("Accept")}
         </button>
       );
     }
     if (relation === "outgoing_pending") {
       return (
         <span className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-700/40 text-slate-200 border border-slate-600/50">
-          Request sent
+          {t("profileHeader.status.requestSent")}
         </span>
       );
     }
     if (result.id === user?.id) {
       return (
         <span className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-700/40 text-slate-300 border border-slate-600/50">
-          That's you
+          {t("friendsPage.status.thatsYou")}
         </span>
       );
     }
@@ -640,15 +645,15 @@ export default function Friends() {
         disabled={isProcessing}
         className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-600 text-white hover:bg-brand-500 disabled:opacity-60 shadow-[0_10px_24px_rgba(13,148,136,0.28)]"
       >
-        Add Friend
+        {t("Add Friend")}
       </button>
     );
   };
 
   const tabItems: Array<{ id: PrimaryTab; label: string; count: number }> = [
-    { id: "friends", label: "Friends", count: friends.length },
-    { id: "incoming", label: "Incoming", count: pendingIncoming.length },
-    { id: "outgoing", label: "Outgoing", count: pendingOutgoing.length },
+    { id: "friends", label: t("Friends"), count: friends.length },
+    { id: "incoming", label: t("Incoming"), count: pendingIncoming.length },
+    { id: "outgoing", label: t("Outgoing"), count: pendingOutgoing.length },
   ];
 
   return (
@@ -672,7 +677,7 @@ export default function Friends() {
             <div className="flex flex-col gap-2">
               <div className="space-y-1">
                 <p className="text-sm font-semibold text-slate-100">
-                  Relationship states
+                  {t("friendsPage.relationshipStates")}
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-1.5 rounded-xl bg-[#0c1526]/82 px-1.5 py-1.5 shadow-[0_8px_18px_rgba(0,0,0,0.22)]">
@@ -697,23 +702,23 @@ export default function Friends() {
                     <input
                       value={friendFilter}
                       onChange={(e) => setFriendFilter(e.target.value)}
-                      placeholder="Filter friends by name or handle"
+                      placeholder={t("friendsPage.filterPlaceholder")}
                       className="flex-1 bg-transparent text-sm text-slate-100 placeholder:text-slate-500 outline-none"
                     />
                   </div>
                   <div className="text-xs text-slate-500 px-1.5">
-                    {friends.length} total
+                    {t("friendsPage.totalCount", { count: friends.length })}
                   </div>
                 </div>
                 {loading ? (
                   <EmptyState
-                    title="Loading friends..."
-                    description="Fetching your circle."
+                    title={t("Loading friends...")}
+                    description={t("friendsPage.fetchingCircle")}
                   />
                 ) : filteredFriends.length === 0 ? (
                   <EmptyState
-                    title="Your friends list is empty"
-                    description="Add players to start challenging and chatting."
+                    title={t("friendsPage.emptyListTitle")}
+                    description={t("friendsPage.emptyListDescription")}
                   />
                 ) : (
                   <div className="space-y-2.5">
@@ -726,17 +731,17 @@ export default function Friends() {
             {activeTab === "incoming" && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
-                  <p className="text-sm text-slate-300">Incoming requests</p>
-                  <span className="text-xs text-slate-500">Newest first</span>
+                  <p className="text-sm text-slate-300">{t("friendsPage.incomingRequests")}</p>
+                  <span className="text-xs text-slate-500">{t("friendsPage.newestFirst")}</span>
                 </div>
                 {loading ? (
                   <EmptyState
-                    title="Loading incoming requests..."
+                    title={t("friendsPage.loadingIncoming")}
                   />
                 ) : pendingIncoming.length === 0 ? (
                   <EmptyState
-                    title="No incoming requests"
-                    description="You'll see friend invites here as they arrive."
+                    title={t("friendsPage.noIncoming")}
+                    description={t("friendsPage.noIncomingDescription")}
                   />
                 ) : (
                   <div className="space-y-2.5">
@@ -751,19 +756,19 @@ export default function Friends() {
             {activeTab === "outgoing" && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
-                  <p className="text-sm text-slate-300">Outgoing requests</p>
+                  <p className="text-sm text-slate-300">{t("friendsPage.outgoingRequests")}</p>
                   <span className="text-xs text-slate-500">
-                    Awaiting response
+                    {t("friendsPage.requestSubtitle.awaitingResponse")}
                   </span>
                 </div>
                 {loading ? (
                   <EmptyState
-                    title="Loading outgoing requests..."
+                    title={t("friendsPage.loadingOutgoing")}
                   />
                 ) : pendingOutgoing.length === 0 ? (
                   <EmptyState
-                    title="No outgoing requests"
-                    description="Send an invite to start a new connection."
+                    title={t("friendsPage.noOutgoing")}
+                    description={t("friendsPage.noOutgoingDescription")}
                   />
                 ) : (
                   <div className="space-y-2.5">
@@ -781,10 +786,10 @@ export default function Friends() {
           >
             <div className="space-y-1">
               <p className="text-sm font-semibold text-slate-100">
-                Add friends
+                {t("friendsPage.addFriends")}
               </p>
               <p className="text-xs text-slate-400">
-                Search by username or email. Invite players into your circle.
+                {t("friendsPage.addFriendsDescription")}
               </p>
             </div>
 
@@ -801,7 +806,7 @@ export default function Friends() {
                         void handleSearchUsers();
                       }
                     }}
-                    placeholder="Find by name or email"
+                    placeholder={t("friendsPage.findByNameOrEmail")}
                     className="flex-1 bg-transparent text-sm text-slate-100 placeholder:text-slate-500 outline-none"
                   />
                 </div>
@@ -811,7 +816,7 @@ export default function Friends() {
                   className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-brand-600 text-white font-semibold text-sm hover:bg-brand-500 disabled:opacity-60 shadow-[0_12px_28px_rgba(13,148,136,0.35)]"
                 >
                   <UserPlus className="w-4 h-4" />
-                  {searching ? "Searching..." : "Search"}
+                  {searching ? t("Searching...") : t("Search")}
                 </button>
               </div>
               {searchError && (
@@ -824,13 +829,13 @@ export default function Friends() {
             <div className="rounded-xl border border-transparent bg-[#0c1627]/60 p-3 space-y-2 max-h-[480px] overflow-y-auto premium-scrollbar shadow-[0_10px_26px_rgba(0,0,0,0.2)]">
               {searching ? (
                 <EmptyState
-                  title="Searching..."
-                  description="Looking for players across NeonGambit."
+                  title={t("Searching...")}
+                  description={t("friendsPage.searchingAcrossPlatform")}
                 />
               ) : searchResults.length === 0 ? (
                 <EmptyState
-                  title="Find players"
-                  description="Search to add new friends. Your results will appear here."
+                  title={t("friendsPage.findPlayers")}
+                  description={t("friendsPage.findPlayersDescription")}
                 />
               ) : (
                 searchResults.map((result) => (
@@ -863,7 +868,7 @@ export default function Friends() {
                           {result.name}
                         </div>
                         <div className="text-xs text-slate-500 truncate">
-                          {result.email || "No email provided"}
+                          {result.email || t("friendsPage.noEmailProvided")}
                         </div>
                       </div>
                     </div>

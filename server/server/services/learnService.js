@@ -10,6 +10,7 @@ import { validateLessonMove } from "./learnMoveValidation.js";
 const PUBLISHED_STEP_FILTER = {
   $or: [{ isPublished: true }, { isPublished: { $exists: false } }],
 };
+const PAIR_ID_PATTERN = /^\d{5}$/;
 
 function escapeRegex(value = "") {
   return String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -347,6 +348,7 @@ function serializeCatalogCourse({
 }) {
   return {
     id: toId(course._id),
+    pairId: String(course.pairId || "").trim(),
     slug: course.slug,
     title: course.title,
     subtitle: course.subtitle || "",
@@ -363,6 +365,7 @@ function serializeCatalogCourse({
     isPublished: !!course.isPublished,
     lessons: lessons.map((lesson) => ({
       id: toId(lesson._id),
+      pairId: String(lesson.pairId || "").trim(),
       slug: lesson.slug,
       title: lesson.title,
       subtitle: lesson.subtitle || "",
@@ -676,6 +679,7 @@ async function getCourseBySlug({ userId, courseSlug }) {
 
   return {
     id: toId(course._id),
+    pairId: String(course.pairId || "").trim(),
     slug: course.slug,
     title: course.title,
     subtitle: course.subtitle || "",
@@ -691,6 +695,7 @@ async function getCourseBySlug({ userId, courseSlug }) {
     totalLessons: lessons.length,
     lessons: lessons.map((lesson) => ({
       id: toId(lesson._id),
+      pairId: String(lesson.pairId || "").trim(),
       slug: lesson.slug,
       title: lesson.title,
       subtitle: lesson.subtitle || "",
@@ -763,6 +768,7 @@ async function getLessonBySlug({
   return {
     course: {
       id: toId(context.course._id),
+      pairId: String(context.course.pairId || "").trim(),
       slug: context.course.slug,
       title: context.course.title,
       subtitle: context.course.subtitle || "",
@@ -779,6 +785,7 @@ async function getLessonBySlug({
     },
     lesson: {
       id: toId(context.lesson._id),
+      pairId: String(context.lesson.pairId || "").trim(),
       slug: context.lesson.slug,
       title: context.lesson.title,
       subtitle: context.lesson.subtitle || "",
@@ -791,6 +798,7 @@ async function getLessonBySlug({
     },
     lessons: context.lessons.map((lesson) => ({
       id: toId(lesson._id),
+      pairId: String(lesson.pairId || "").trim(),
       slug: lesson.slug,
       title: lesson.title,
       subtitle: lesson.subtitle || "",
@@ -1200,12 +1208,66 @@ async function searchLearnContent({ query }) {
   };
 }
 
+async function getCourseOrLessonByPairId({ pairId }) {
+  const normalizedPairId = String(pairId || "").trim();
+  if (!PAIR_ID_PATTERN.test(normalizedPairId)) {
+    return { error: { status: 400, message: "Pair ID must be exactly 5 digits." } };
+  }
+
+  const [course, lesson] = await Promise.all([
+    LearnCourse.findOne({
+      pairId: normalizedPairId,
+      isPublished: true,
+    })
+      .select("_id slug title pairId")
+      .lean(),
+    LearnLesson.findOne({
+      pairId: normalizedPairId,
+      isPublished: true,
+    })
+      .select("_id courseId slug title pairId")
+      .lean(),
+  ]);
+
+  let lessonView = null;
+  if (lesson) {
+    const lessonCourse = await LearnCourse.findById(lesson.courseId)
+      .select("_id slug title isPublished")
+      .lean();
+    if (lessonCourse?.isPublished) {
+      lessonView = {
+        id: toId(lesson._id),
+        pairId: String(lesson.pairId || "").trim(),
+        slug: String(lesson.slug || "").trim(),
+        title: String(lesson.title || "").trim(),
+        courseId: toId(lessonCourse._id),
+        courseSlug: String(lessonCourse.slug || "").trim(),
+        courseTitle: String(lessonCourse.title || "").trim(),
+      };
+    }
+  }
+
+  return {
+    pairId: normalizedPairId,
+    course: course
+      ? {
+          id: toId(course._id),
+          pairId: String(course.pairId || "").trim(),
+          slug: String(course.slug || "").trim(),
+          title: String(course.title || "").trim(),
+        }
+      : null,
+    lesson: lessonView,
+  };
+}
+
 export {
   completeLesson,
   getCourseBySlug,
   getCourseCatalog,
   getLearnSummary,
   getLessonBySlug,
+  getCourseOrLessonByPairId,
   getLessonProgressBySlug,
   searchLearnContent,
   submitLessonStep,

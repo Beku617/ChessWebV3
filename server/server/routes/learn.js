@@ -7,6 +7,7 @@ const router = Router();
 router.use(authMiddleware);
 
 router.get("/courses", learnController.listCourses);
+router.get("/pair/:pairId", learnController.getByPairId);
 router.get("/courses/:courseSlug", learnController.getCourse);
 router.get("/lessons/:courseSlug/:lessonSlug", learnController.getLesson);
 router.get("/progress/me", learnController.getMyProgress);

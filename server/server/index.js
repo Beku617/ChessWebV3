@@ -80,6 +80,10 @@ import {
   adminGamesRoutes,
   adminPuzzlesRoutes,
   adminBotsRoutes,
+  eventsRoutes,
+  eventsMnRoutes,
+  adminEventsRoutes,
+  adminEventsMnRoutes,
   featuredEventsRoutes,
   adminFeaturedEventsRoutes,
   communityRoutes,
@@ -93,7 +97,9 @@ import {
   tournamentRoutes,
   messagesRoutes,
   learnRoutes,
+  learnMnRoutes,
   adminLearnRoutes,
+  adminLearnMnRoutes,
   analysisAiRoutes,
 } from "./routes/index.js";
 import {
@@ -350,12 +356,16 @@ app.use("/api/admin/users", adminUsersRoutes);
 app.use("/api/admin/games", adminGamesRoutes);
 app.use("/api/admin/puzzles", adminPuzzlesRoutes);
 app.use("/api/admin/bots", adminBotsRoutes);
+app.use("/api/admin/events", adminEventsRoutes);
+app.use("/api/admin/events-mn", adminEventsMnRoutes);
 app.use("/api/admin/featured-events", adminFeaturedEventsRoutes);
 app.use("/api/media", mediaRoutes);
 app.use("/api/community", communityRoutes);
 app.use("/api/admin/community", adminCommunityRoutes);
 app.use("/api/admin/groups", adminGroupsRoutes);
 app.use("/api/admin/tournaments", adminTournamentsRoutes);
+app.use("/api/events", eventsRoutes);
+app.use("/api/events-mn", eventsMnRoutes);
 app.use("/api/featured-events", featuredEventsRoutes);
 app.use("/api/lichess", lichessRoutes);
 app.use("/api/friends", friendsRoutes);
@@ -363,8 +373,10 @@ app.use("/api/ratings", ratingsRoutes);
 app.use("/api/tournaments", tournamentRoutes);
 app.use("/api/messages", messagesRoutes);
 app.use("/api/learn", learnRoutes);
+app.use("/api/learn-mn", learnMnRoutes);
 app.use("/api/ai", analysisAiRoutes);
 app.use("/api/admin/learn", adminLearnRoutes);
+app.use("/api/admin/learn-mn", adminLearnMnRoutes);
 
 app.get("/api/active-game", async (req, res) => {
   const userId = normalizeId(req.user?.userId);

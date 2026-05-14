@@ -6,6 +6,7 @@ export interface User {
   email: string;
   fullName: string;
   avatar?: string;
+  preferredLanguage?: "en" | "mn";
   authProvider?: "local" | "google" | "facebook";
   emailVerified?: boolean;
   hasGoogleAuth?: boolean;
@@ -247,7 +248,11 @@ export const authApi = {
     return data.user;
   },
 
-  async updateProfile(data: { fullName?: string; avatar?: string }) {
+  async updateProfile(data: {
+    fullName?: string;
+    avatar?: string;
+    preferredLanguage?: "en" | "mn";
+  }) {
     const res = await fetch(`${API_URL}/api/profile`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },

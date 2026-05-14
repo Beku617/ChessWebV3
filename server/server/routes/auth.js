@@ -201,6 +201,8 @@ function toPublicUser(user) {
     email: user.email,
     fullName: user.fullName,
     avatar: user.avatar || "",
+    preferredLanguage:
+      String(user.preferredLanguage || "").toLowerCase() === "mn" ? "mn" : "en",
     authProvider: user.authProvider || "local",
     emailVerified:
       !isEmailVerificationRequired() ||
@@ -470,6 +472,10 @@ const profileValidation = [
     .withMessage("Avatar must be a string")
     .bail()
     .trim(),
+  body("preferredLanguage")
+    .optional()
+    .isIn(["en", "mn"])
+    .withMessage("preferredLanguage must be 'en' or 'mn'"),
   body("userId").optional().isString().withMessage("userId must be a string"),
   validateRequest,
 ];
@@ -1592,7 +1598,12 @@ router.get("/users/:userId", authMiddleware, async (req, res) => {
 // Update profile
 router.put("/profile", authMiddleware, profileValidation, async (req, res) => {
   try {
-    const { fullName, avatar, userId: targetUserId } = req.body || {};
+    const {
+      fullName,
+      avatar,
+      preferredLanguage,
+      userId: targetUserId,
+    } = req.body || {};
 
     if (
       targetUserId &&
@@ -1608,6 +1619,9 @@ router.put("/profile", authMiddleware, profileValidation, async (req, res) => {
     }
     if (typeof avatar === "string") {
       update.avatar = avatar;
+    }
+    if (preferredLanguage === "en" || preferredLanguage === "mn") {
+      update.preferredLanguage = preferredLanguage;
     }
 
     if (Object.keys(update).length === 0) {

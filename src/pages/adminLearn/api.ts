@@ -1,4 +1,5 @@
 import type {
+  AdminLearnImportResponse,
   AdminLearnLessonsResponse,
   AdminLearnOverviewResponse,
   AdminLearnStepsResponse,
@@ -52,6 +53,17 @@ export async function fetchAdminLearnCourses(params: {
 }) {
   const query = toQuery(params);
   return request<AdminLearnOverviewResponse>(`/api/admin/learn/courses${query}`);
+}
+
+export async function importAdminLearnCoursesFromMn(courseIds: string[]) {
+  return request<AdminLearnImportResponse>("/api/admin/learn/import-from-mn", {
+    method: "POST",
+    body: JSON.stringify({ courseIds }),
+  });
+}
+
+export async function fetchAdminLearnMnCoursesForImport() {
+  return request<AdminLearnOverviewResponse>("/api/admin/learn-mn/courses");
 }
 
 export async function createAdminLearnCourse(payload: CoursePayload) {

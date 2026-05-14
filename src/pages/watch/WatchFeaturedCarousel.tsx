@@ -6,7 +6,9 @@ import {
   ExternalLink,
   Play,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { FeaturedEvent } from "../../hooks/useWatchPage";
+import i18n from "../../i18n";
 import "./watchFeaturedCarousel.css";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
@@ -33,62 +35,61 @@ type Slide = {
   backgroundImageUrl: string;
 };
 
-const FALLBACK_SLIDES: Slide[] = [
-  {
-    id: "fallback-0",
-    variant: "slide-0",
-    piece: "K",
-    statusLabel: "LIVE",
-    eventType: "TOURNAMENT",
-    title: "World Chess Championships",
-    description:
-      "Candidates tournament will happen and the challenger will fight with World Champion Gukesh, the most anticipated chess event of the year.",
-    date: "Mar 8, 2026",
-    primaryButtonLabel: "Watch Now",
-    primaryButtonUrl: "",
-    secondaryButtonLabel: "Lichess",
-    secondaryButtonUrl: "",
-    backgroundType: "default",
-    backgroundColor: "",
-    backgroundImageUrl: "",
-  },
-  {
-    id: "fallback-1",
-    variant: "slide-1",
-    piece: "Q",
-    statusLabel: "LIVE",
-    eventType: "GRAND PRIX",
-    title: "FIDE Grand Prix Series",
-    description:
-      "Top 16 elite players battle across four legs for qualification spots with sharp opening preparation and classical precision.",
-    date: "Apr 2, 2026",
-    primaryButtonLabel: "Watch Now",
-    primaryButtonUrl: "",
-    secondaryButtonLabel: "Chess.com",
-    secondaryButtonUrl: "",
-    backgroundType: "default",
-    backgroundColor: "",
-    backgroundImageUrl: "",
-  },
-  {
-    id: "fallback-2",
-    variant: "slide-2",
-    piece: "R",
-    statusLabel: "LIVE",
-    eventType: "SPEED CHESS",
-    title: "Speed Chess Championship",
-    description:
-      "The fastest chess on the planet: bullet, blitz, and rapid in one bracket with constant tactical swings.",
-    date: "Apr 17, 2026",
-    primaryButtonLabel: "Watch Now",
-    primaryButtonUrl: "",
-    secondaryButtonLabel: "Chess.com",
-    secondaryButtonUrl: "",
-    backgroundType: "default",
-    backgroundColor: "",
-    backgroundImageUrl: "",
-  },
-];
+function buildFallbackSlides(t: (key: string) => string): Slide[] {
+  return [
+    {
+      id: "fallback-0",
+      variant: "slide-0",
+      piece: "K",
+      statusLabel: t("watchPage.fallback.live"),
+      eventType: t("watchPage.fallback.tournament"),
+      title: t("watchPage.fallback.worldChampionshipTitle"),
+      description: t("watchPage.fallback.worldChampionshipDescription"),
+      date: "Mar 8, 2026",
+      primaryButtonLabel: t("Watch Now"),
+      primaryButtonUrl: "",
+      secondaryButtonLabel: "Lichess",
+      secondaryButtonUrl: "",
+      backgroundType: "default",
+      backgroundColor: "",
+      backgroundImageUrl: "",
+    },
+    {
+      id: "fallback-1",
+      variant: "slide-1",
+      piece: "Q",
+      statusLabel: t("watchPage.fallback.live"),
+      eventType: "GRAND PRIX",
+      title: t("watchPage.fallback.grandPrixTitle"),
+      description: t("watchPage.fallback.grandPrixDescription"),
+      date: "Apr 2, 2026",
+      primaryButtonLabel: t("Watch Now"),
+      primaryButtonUrl: "",
+      secondaryButtonLabel: "Chess.com",
+      secondaryButtonUrl: "",
+      backgroundType: "default",
+      backgroundColor: "",
+      backgroundImageUrl: "",
+    },
+    {
+      id: "fallback-2",
+      variant: "slide-2",
+      piece: "R",
+      statusLabel: t("watchPage.fallback.live"),
+      eventType: t("watchPage.fallback.speedChess"),
+      title: t("watchPage.fallback.speedChessTitle"),
+      description: t("watchPage.fallback.speedChessDescription"),
+      date: "Apr 17, 2026",
+      primaryButtonLabel: t("Watch Now"),
+      primaryButtonUrl: "",
+      secondaryButtonLabel: "Chess.com",
+      secondaryButtonUrl: "",
+      backgroundType: "default",
+      backgroundColor: "",
+      backgroundImageUrl: "",
+    },
+  ];
+}
 
 function normalizePotentialUploadPath(value = ""): string {
   const raw = String(value || "").trim().replace(/\\/g, "/");
@@ -115,13 +116,13 @@ function resolveAssetUrl(url?: string | null): string {
 
 function formatTypeLabel(value?: string | null): string {
   const source = String(value || "").trim();
-  if (!source) return "EVENT";
+  if (!source) return i18n.t("watchPage.fallback.event");
   return source.replace(/[_-]+/g, " ").toUpperCase();
 }
 
 function formatStatusLabel(value?: string | null): string {
   const source = String(value || "").trim();
-  if (!source) return "LIVE";
+  if (!source) return i18n.t("watchPage.fallback.live");
   return source.replace(/[_-]+/g, " ").toUpperCase();
 }
 
@@ -130,7 +131,7 @@ function formatDateLabel(value?: string | null): string {
   if (!source) return "";
   const date = new Date(source);
   if (Number.isNaN(date.getTime())) return source;
-  return date.toLocaleDateString("en-US", {
+  return date.toLocaleDateString(undefined, {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -165,16 +166,13 @@ function eventToSlide(event: FeaturedEvent, index: number): Slide {
     piece: ["K", "Q", "R"][index % 3],
     statusLabel: formatStatusLabel(event.status),
     eventType: formatTypeLabel(event.type),
-    title: String(event.title || "Featured Event").trim() || "Featured Event",
+    title: String(event.title || "").trim(),
     description: String(event.description || "").trim(),
     date: formatDateLabel(event.startDate),
-    primaryButtonLabel:
-      String(event.primaryButtonLabel || "").trim() || "Watch Now",
+    primaryButtonLabel: String(event.primaryButtonLabel || "").trim(),
     primaryButtonUrl:
       String(event.primaryButtonUrl || "").trim() || String(event.lichessUrl || "").trim(),
-    secondaryButtonLabel:
-      extractDomainLabel(resolvedSecondaryUrl) ||
-      "Details",
+    secondaryButtonLabel: extractDomainLabel(resolvedSecondaryUrl) || "",
     secondaryButtonUrl: resolvedSecondaryUrl,
     backgroundType,
     backgroundColor: String(event.backgroundColor || "").trim(),
@@ -203,13 +201,22 @@ type WatchFeaturedCarouselProps = {
 };
 
 export function WatchFeaturedCarousel({ events, loading }: WatchFeaturedCarouselProps) {
+  const { t } = useTranslation();
   const slides = useMemo(() => {
     const source = Array.isArray(events) ? events : [];
-    if (!source.length) return FALLBACK_SLIDES;
+    if (!source.length) return buildFallbackSlides(t);
     const prioritized = source.filter((event) => event.featured);
     const visibleEvents = prioritized.length ? prioritized : source;
-    return visibleEvents.map((event, index) => eventToSlide(event, index));
-  }, [events]);
+    return visibleEvents.map((event, index) => {
+      const slide = eventToSlide(event, index);
+      return {
+        ...slide,
+        title: slide.title || t("watchPage.fallback.featuredEvent"),
+        primaryButtonLabel: slide.primaryButtonLabel || t("Watch Now"),
+        secondaryButtonLabel: slide.secondaryButtonLabel || t("watchPage.fallback.details"),
+      };
+    });
+  }, [events, t]);
 
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
@@ -239,7 +246,7 @@ export function WatchFeaturedCarousel({ events, loading }: WatchFeaturedCarousel
   return (
     <section className="watch-featured mb-10">
       <div className="watch-featured-row">
-        <div className="watch-featured-label">Featured Tournaments</div>
+        <div className="watch-featured-label">{t("watchPage.featuredTournaments")}</div>
       </div>
 
       <div
@@ -339,7 +346,7 @@ export function WatchFeaturedCarousel({ events, loading }: WatchFeaturedCarousel
           type="button"
           className="watch-featured-arr prev"
           onClick={() => goTo(currentSlide - 1)}
-          aria-label="Previous featured slide"
+          aria-label={t("watchPage.previousFeaturedSlide")}
         >
           <ChevronLeft size={16} />
         </button>
@@ -347,7 +354,7 @@ export function WatchFeaturedCarousel({ events, loading }: WatchFeaturedCarousel
           type="button"
           className="watch-featured-arr next"
           onClick={() => goTo(currentSlide + 1)}
-          aria-label="Next featured slide"
+          aria-label={t("watchPage.nextFeaturedSlide")}
         >
           <ChevronRight size={16} />
         </button>
@@ -359,7 +366,9 @@ export function WatchFeaturedCarousel({ events, loading }: WatchFeaturedCarousel
               type="button"
               className={`dot${index === currentSlide ? " active" : ""}`}
               onClick={() => goTo(index)}
-              aria-label={`Go to featured slide ${index + 1}`}
+              aria-label={t("watchPage.goToFeaturedSlide", {
+                index: index + 1,
+              })}
             />
           ))}
         </div>

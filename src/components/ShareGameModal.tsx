@@ -1,5 +1,6 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+﻿import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Search, Send, Loader2, Check } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useFriendStore, FriendListItem } from "../store/friendStore";
 import { GameHistory } from "../historyTypes";
 
@@ -11,6 +12,7 @@ interface ShareGameModalProps {
 }
 
 export function ShareGameModal({ game, onClose }: ShareGameModalProps) {
+  const { t } = useTranslation();
   const friends = useFriendStore((s) => s.friends);
   const loadFriends = useFriendStore((s) => s.loadAll);
   const [search, setSearch] = useState("");
@@ -44,18 +46,18 @@ export function ShareGameModal({ game, onClose }: ShareGameModalProps) {
   const resultText =
     game.result === "1-0"
       ? playerIsWhite
-        ? "Win"
-        : "Loss"
+        ? t("communityCommon.won")
+        : t("communityCommon.lost")
       : game.result === "0-1"
         ? playerIsWhite
-          ? "Loss"
-          : "Win"
-        : "Draw";
+          ? t("communityCommon.lost")
+          : t("communityCommon.won")
+        : t("communityCommon.draw");
 
   const resultColor =
-    resultText === "Win"
+    resultText === t("communityCommon.won")
       ? "text-brand-400"
-      : resultText === "Loss"
+      : resultText === t("communityCommon.lost")
         ? "text-rose-400"
         : "text-amber-400";
 
@@ -77,17 +79,17 @@ export function ShareGameModal({ game, onClose }: ShareGameModalProps) {
 
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error || "Failed to share game.");
+        setError(data.error || t("shareGameModal.errors.shareFailed"));
         return;
       }
       setSent(true);
       setTimeout(() => onClose(), 1200);
     } catch {
-      setError("Failed to share game. Please try again.");
+      setError(t("shareGameModal.errors.shareFailedTryAgain"));
     } finally {
       setSending(false);
     }
-  }, [selectedFriend, sending, sent, game._id, onClose]);
+  }, [selectedFriend, sending, sent, game._id, onClose, t]);
 
   return (
     <div
@@ -104,12 +106,14 @@ export function ShareGameModal({ game, onClose }: ShareGameModalProps) {
       >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[#1f2c45] px-5 py-4">
-          <h3 className="text-lg font-semibold text-slate-100">Share Game</h3>
+          <h3 className="text-lg font-semibold text-slate-100">
+            {t("shareGameModal.title")}
+          </h3>
           <button
             onClick={onClose}
             className="inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-sm font-medium text-slate-400 transition-colors hover:bg-[#1b2a41] hover:text-slate-100"
           >
-            Close
+            {t("common.close")}
           </button>
         </div>
 
@@ -119,7 +123,7 @@ export function ShareGameModal({ game, onClose }: ShareGameModalProps) {
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 text-sm">
                 <span className="font-medium text-slate-100">{game.white}</span>
-                <span className="text-slate-500">vs</span>
+                <span className="text-slate-500">{t("shareGameModal.vs")}</span>
                 <span className="font-medium text-slate-100">{game.black}</span>
               </div>
               <div className="mt-0.5 flex items-center gap-2 text-xs text-slate-400">
@@ -146,7 +150,7 @@ export function ShareGameModal({ game, onClose }: ShareGameModalProps) {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search friends..."
+              placeholder={t("shareGameModal.searchFriends")}
               className="w-full rounded-xl border border-[#25344e] bg-[#0c1629]/90 py-2.5 pl-10 pr-3 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition-all focus:border-brand-400/80 focus:ring-2 focus:ring-brand-500/20"
               autoFocus
             />
@@ -161,8 +165,8 @@ export function ShareGameModal({ game, onClose }: ShareGameModalProps) {
           {filtered.length === 0 ? (
             <div className="rounded-xl border border-dashed border-[#27354f] bg-[#0f192b]/65 px-3 py-6 text-center text-xs text-slate-500">
               {friends.length === 0
-                ? "No friends yet."
-                : "No matching friends."}
+                ? t("shareGameModal.noFriends")
+                : t("shareGameModal.noMatchingFriends")}
             </div>
           ) : (
             <div className="space-y-1">
@@ -231,7 +235,7 @@ export function ShareGameModal({ game, onClose }: ShareGameModalProps) {
             onClick={onClose}
             className="inline-flex h-10 items-center justify-center rounded-lg border border-[#25344e] bg-[#0e1727] px-4 text-sm font-medium text-slate-200 transition-colors hover:bg-[#162237]"
           >
-            Cancel
+            {t("common.cancel")}
           </button>
           <button
             onClick={() => void handleSend()}
@@ -245,14 +249,14 @@ export function ShareGameModal({ game, onClose }: ShareGameModalProps) {
             {sent ? (
               <>
                 <Check className="h-4 w-4" />
-                Sent
+                {t("shareGameModal.sent")}
               </>
             ) : sending ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <>
                 <Send className="h-4 w-4" />
-                Send
+                {t("shareGameModal.send")}
               </>
             )}
           </button>
@@ -261,4 +265,5 @@ export function ShareGameModal({ game, onClose }: ShareGameModalProps) {
     </div>
   );
 }
+
 

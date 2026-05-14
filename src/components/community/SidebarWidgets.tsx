@@ -45,7 +45,9 @@ export const TrendingWidget = memo(function TrendingWidget({
       title={t("Trending in chess")}
       action={
         <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gray-500">
-          {mode === "likes" ? "Most liked" : "Fresh picks"}
+          {mode === "likes"
+            ? t("communitySidebar.trendingMode.likes")
+            : t("communitySidebar.trendingMode.fresh")}
         </span>
       }
     >
@@ -64,15 +66,15 @@ export const TrendingWidget = memo(function TrendingWidget({
         </div>
       ) : posts.length === 0 ? (
         <div className="rounded-2xl bg-white/[0.03] px-4 py-5 text-sm leading-6 text-gray-400">
-          No approved posts yet.
+          {t("communityPage.empty.noApprovedTitle")}
         </div>
       ) : (
         <div className="space-y-2">
           {posts.slice(0, 3).map((post, index) => {
             const summary = summarizeCommunityPost(post);
-            const authorLabel = post.author?.fullName || "Chess Player";
+            const authorLabel = post.author?.fullName || t("profileHeader.chessPlayer");
             const subline = [
-              `by ${authorLabel}`,
+              `${t("communitySidebar.byAuthor", { author: authorLabel })}`,
               post.group?.name || "",
               formatRelativeTime(post.createdAt),
             ]
@@ -106,7 +108,7 @@ export const TrendingWidget = memo(function TrendingWidget({
                     </div>
                   ) : (
                     <div className="rounded-full bg-white/[0.05] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-gray-400">
-                      New
+                      {t("communitySidebar.new")}
                     </div>
                   )}
                 </div>
@@ -120,27 +122,27 @@ export const TrendingWidget = memo(function TrendingWidget({
 });
 
 export function CommunityGuidelinesWidget() {
+  const { t } = useTranslation();
   return (
     <SidebarCard
-      title="Community Notes"
+      title={t("communitySidebar.notesTitle")}
     >
       <div className="space-y-3 text-sm text-gray-300 leading-6">
         <p className="text-gray-300">
-          Chess-first, calm, and readable. Every post is reviewed before it hits the
-          feed.
+          {t("communitySidebar.notesDescription")}
         </p>
         <ul className="space-y-2 text-[13px] text-gray-400">
           <li className="flex items-start gap-2">
             <span className="mt-2 h-1.5 w-1.5 rounded-full bg-brand-400 shrink-0" />
-            One image or one video per post right now.
+            {t("communitySidebar.noteOne")}
           </li>
           <li className="flex items-start gap-2">
             <span className="mt-2 h-1.5 w-1.5 rounded-full bg-brand-400 shrink-0" />
-            Off-topic, spam, or abusive content is declined.
+            {t("communitySidebar.noteTwo")}
           </li>
           <li className="flex items-start gap-2">
             <span className="mt-2 h-1.5 w-1.5 rounded-full bg-brand-400 shrink-0" />
-            Tournament moments, ideas, clips, analysis, and tasteful memes welcome.
+            {t("communitySidebar.noteThree")}
           </li>
         </ul>
       </div>

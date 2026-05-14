@@ -683,8 +683,16 @@
       "tryAgainIn": " Try again in {{duration}}.",
       "rateLimited": "You've reached the posting limit ({{maxPosts}} posts every 3 hours).{{waitText}}",
       "unavailable": "Posting is unavailable right now.",
-      "loadSelectedGame": "Failed to load the selected game."
-    }
+      "loadSelectedGame": "Failed to load the selected game.",
+      "loadGamesFailed": "Failed to load shareable games.",
+      "submitFailed": "Failed to submit post.",
+      "imageLimit": "You can upload up to {{count}} images.",
+      "totalImageTooLarge": "Total image size is too large. Maximum combined size is 40MB."
+    },
+    "addCaption": "Add a caption for this game...",
+    "composePlaceholder": "Share a game idea, opening line, clip, puzzle moment, tournament update, or one of your games...",
+    "submittedForReview": "Your post was submitted for review.",
+    "vsLabel": "{{white}} vs {{black}}"
   },
   "communityGameViewer": {
     "whiteWon": "White won",
@@ -732,5 +740,276 @@
     "dateLabel": "Date: {{label}}",
     "historyTitle": "Tournament History",
     "title": "Tournament Profile"
+  },
+  "communityCommon": {
+    "sharedGame": "Shared game",
+    "videoPost": "Video post",
+    "imageSet": "Image set",
+    "imagePost": "Image post",
+    "communityPost": "Community post",
+    "won": "Won",
+    "lost": "Lost",
+    "draw": "Draw",
+    "resultUnavailable": "Result unavailable",
+    "neonGambitGame": "NeonGambit Game",
+    "white": "White",
+    "black": "Black",
+    "defaultOpponent": "Opponent"
+  },
+  "communityPage": {
+    "tabs": {
+      "feed": "Feed",
+      "myPosts": "My Posts"
+    },
+    "groups": {
+      "loading": "Loading groups..."
+    },
+    "empty": {
+      "noApprovedTitle": "No approved posts yet",
+      "noApprovedDescription": "Submit the first chess post. It will appear here after moderation.",
+      "noPostsTitle": "No posts yet",
+      "noPostsDescription": "Your submissions will appear here with their moderation status.",
+      "noGroups": "No groups yet. Create the first one from here."
+    },
+    "pagination": {
+      "showing": "Showing {{start}} - {{end}} of {{total}}"
+    },
+    "errors": {
+      "loadFeed": "Failed to load feed.",
+      "loadMyPosts": "Failed to load your posts.",
+      "loadPostingAccess": "Failed to load posting access.",
+      "loadTrending": "Failed to load trending posts.",
+      "loadGroups": "Failed to load groups.",
+      "loadJoinedGroups": "Failed to load joined groups.",
+      "deletePost": "Failed to delete post.",
+      "updateGroup": "Failed to update group.",
+      "createGroup": "Failed to create group."
+    }
+  },
+  "communityGroups": {
+    "membersCount": "{{count}} members",
+    "defaultDescription": "A public NeonGambit group for chess discussion and shared games.",
+    "createdBy": "Created by",
+    "actions": {
+      "saving": "Saving...",
+      "join": "Join",
+      "leave": "Leave"
+    },
+    "sidebar": {
+      "title": "Groups",
+      "allGroups": "All groups",
+      "createGroup": "Create group",
+      "joinedGroups": "Joined Groups",
+      "discover": "Discover"
+    },
+    "modal": {
+      "eyebrow": "Community Group",
+      "title": "Create a group",
+      "close": "Close group modal",
+      "groupName": "Group name",
+      "groupNamePlaceholder": "Opening Lab",
+      "description": "Description",
+      "descriptionPlaceholder": "A place for sharp opening prep, traps, and post-game notes.",
+      "topic": "Topic",
+      "topicPlaceholder": "Openings, Tactics, Clubs...",
+      "creating": "Creating...",
+      "create": "Create group"
+    }
+  },
+  "communityGroupsPage": {
+    "title": "Find your chess circle",
+    "createGroup": "Create group",
+    "searchPlaceholder": "Search by group name, topic, or description...",
+    "backToCommunity": "Back to Community",
+    "noGroupsTitle": "No groups found",
+    "noGroupsDescription": "Start the first public group for your chess community.",
+    "pagination": {
+      "showing": "Showing {{start}} - {{end}} of {{total}} discover groups"
+    }
+  },
+  "shareGameModal": {
+    "title": "Share Game",
+    "vs": "vs",
+    "searchFriends": "Search friends...",
+    "noFriends": "No friends yet.",
+    "noMatchingFriends": "No matching friends.",
+    "sent": "Sent",
+    "send": "Send",
+    "errors": {
+      "shareFailed": "Failed to share game.",
+      "shareFailedTryAgain": "Failed to share game. Please try again."
+    }
+  },
+  "profileHeader": {
+    "chessPlayer": "Chess Player",
+    "joined": "Joined",
+    "tabs": {
+      "overview": "Overview",
+      "gameHistory": "Game History"
+    },
+    "status": {
+      "blocked": "Blocked",
+      "friends": "Friends",
+      "requestSent": "Request sent"
+    },
+    "actions": {
+      "block": "Block",
+      "unblock": "Unblock",
+      "editProfile": "Edit Profile",
+      "watchTitle": "Watch this player's live multiplayer game",
+      "watch": "Watch",
+      "messageUnavailable": "Messaging is unavailable for blocked users.",
+      "message": "Message",
+      "challengeUnavailable": "You cannot challenge this player.",
+      "challenge": "Challenge",
+      "accept": "Accept",
+      "ignore": "Ignore",
+      "addFriend": "Add Friend",
+      "moreActions": "More profile actions",
+      "processing": "{{action}}ing..."
+    }
+  },
+  "profilePage": {
+    "noGamesTitle": "No games yet",
+    "noGamesDescription": "Play your first game to start tracking your progress!",
+    "playNow": "Play Now"
+  },
+  "friendsPage": {
+    "relationshipStates": "Relationship states",
+    "filterPlaceholder": "Filter friends by name or handle",
+    "totalCount": "{{count}} total",
+    "fetchingCircle": "Fetching your circle.",
+    "emptyListTitle": "Your friends list is empty",
+    "emptyListDescription": "Add players to start challenging and chatting.",
+    "incomingRequests": "Incoming requests",
+    "outgoingRequests": "Outgoing requests",
+    "newestFirst": "Newest first",
+    "loadingIncoming": "Loading incoming requests...",
+    "loadingOutgoing": "Loading outgoing requests...",
+    "noIncoming": "No incoming requests",
+    "noOutgoing": "No outgoing requests",
+    "noIncomingDescription": "You'll see friend invites here as they arrive.",
+    "noOutgoingDescription": "Send an invite to start a new connection.",
+    "addFriends": "Add friends",
+    "addFriendsDescription": "Search by username or email. Invite players into your circle.",
+    "findByNameOrEmail": "Find by name or email",
+    "searchingAcrossPlatform": "Looking for players across NeonGambit.",
+    "findPlayers": "Find players",
+    "findPlayersDescription": "Search to add new friends. Your results will appear here.",
+    "noEmailProvided": "No email provided",
+    "status": {
+      "thatsYou": "That's you"
+    },
+    "time": {
+      "earlier": "Earlier"
+    },
+    "requestSubtitle": {
+      "wantsToConnect": "Wants to connect",
+      "awaitingResponse": "Awaiting response"
+    },
+    "requestStatus": {
+      "accepted": "Accepted",
+      "denied": "Denied",
+      "ignored": "Ignored",
+      "canceled": "Canceled",
+      "pending": "Pending"
+    },
+    "actions": {
+      "deny": "Deny",
+      "challenge": "Challenge",
+      "challengeFriend": "Challenge this friend",
+      "sendDirectMessage": "Send a direct message",
+      "watchLiveTitle": "Playing a live multiplayer game",
+      "watchCurrentGame": "Watch this friend's current game"
+    },
+    "errors": {
+      "searchFailed": "Search failed",
+      "searchFailedRetry": "Search failed. Try again.",
+      "cannotSendRequestBlocked": "You cannot send a friend request to this player.",
+      "sendRequestFailed": "Failed to send request",
+      "acceptFailed": "Failed to accept request",
+      "denyFailed": "Failed to deny request",
+      "cancelFailed": "Failed to cancel request",
+      "unfriendFailed": "Failed to remove friend",
+      "messageUnavailable": "Unable to send message.",
+      "challengeUnavailable": "You cannot challenge this player."
+    }
+  },
+  "postCard": {
+    "imagesCount": "{{count}} images",
+    "deleteYourPost": "Delete your post",
+    "reasonLabel": "Reason",
+    "mediaAlt": "Community post media",
+    "imageAlt": "Community post image",
+    "imageAltIndexed": "Community post image {{index}}",
+    "cannotLikeOwnPost": "You can't like your own post.",
+    "likePost": "Like post",
+    "unlikePost": "Unlike post",
+    "deletePostTitle": "Delete post?",
+    "deletePostDescription": "This removes your post from the community feed.",
+    "deleting": "Deleting...",
+    "closeImagePreview": "Close image preview",
+    "keyboardArrowsHint": "Use keyboard arrows to browse",
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "removed": "Removed"
+    },
+    "errors": {
+      "updateLike": "Failed to update like.",
+      "deletePost": "Failed to delete post."
+    }
+  },
+  "watchPage": {
+    "featuredTournaments": "Featured Tournaments",
+    "previousFeaturedSlide": "Previous featured slide",
+    "nextFeaturedSlide": "Next featured slide",
+    "goToFeaturedSlide": "Go to featured slide {{index}}",
+    "fallback": {
+      "live": "LIVE",
+      "tournament": "TOURNAMENT",
+      "speedChess": "SPEED CHESS",
+      "worldChampionshipTitle": "World Chess Championships",
+      "worldChampionshipDescription": "Candidates tournament will happen and the challenger will fight with World Champion Gukesh.",
+      "grandPrixTitle": "FIDE Grand Prix Series",
+      "grandPrixDescription": "Top 16 elite players battle across four legs for qualification spots with sharp opening preparation and classical precision.",
+      "speedChessTitle": "Speed Chess Championship",
+      "speedChessDescription": "The fastest chess on the planet: bullet, blitz, and rapid in one bracket with constant tactical swings.",
+      "featuredEvent": "Featured Event",
+      "details": "Details",
+      "event": "EVENT"
+    }
+  },
+  "communitySidebar": {
+    "trendingMode": {
+      "likes": "Most liked",
+      "fresh": "Fresh picks"
+    },
+    "byAuthor": "by {{author}}",
+    "new": "New",
+    "notesTitle": "Community Notes",
+    "notesDescription": "Chess-first, calm, and readable. Every post is reviewed before it hits the feed.",
+    "noteOne": "One image or one video per post right now.",
+    "noteTwo": "Off-topic, spam, or abusive content is declined.",
+    "noteThree": "Tournament moments, ideas, clips, analysis, and tasteful memes welcome."
+  },
+  "communityGroupDetail": {
+    "notFoundTitle": "Group not found",
+    "notFoundDescription": "This group may have been removed.",
+    "createdPrefix": "created {{time}}",
+    "joinPromptTitle": "Join this group to post here",
+    "joinPromptDescription": "You can browse approved posts, but group posting is limited to members.",
+    "createAnotherGroup": "Create another group",
+    "groupFeed": "Group Feed",
+    "emptyTitle": "No approved posts yet",
+    "emptyJoined": "Share the first post for this group. It will appear here after moderation.",
+    "emptyNotJoined": "Join the group and help start the conversation.",
+    "errors": {
+      "loadGroup": "Failed to load group.",
+      "loadGroupPosts": "Failed to load group posts.",
+      "toggleMembership": "Failed to {{action}} group.",
+      "updateGroup": "Failed to update group."
+    }
   }
 }

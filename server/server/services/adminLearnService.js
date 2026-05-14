@@ -17,6 +17,7 @@ const COURSE_STATUS = new Set(["all", "published", "unpublished"]);
 const LESSON_STATUS = new Set(["all", "published", "unpublished"]);
 const STEP_SUCCESS_CONDITIONS = new Set(["accepted_move"]);
 const STEP_VALIDATION_MODES = new Set(LEARN_STEP_VALIDATION_MODES);
+const PAIR_ID_PATTERN = /^\d{5}$/;
 
 class AdminLearnError extends Error {
   constructor(message, status = 400) {
@@ -40,6 +41,16 @@ function asObjectId(value, label = "id") {
 
 function ensureString(value) {
   return String(value || "").trim();
+}
+
+function normalizePairId(value) {
+  if (value === undefined || value === null) return undefined;
+  const normalized = ensureString(value);
+  if (!normalized) return undefined;
+  if (!PAIR_ID_PATTERN.test(normalized)) {
+    throw new AdminLearnError("Pair ID must be exactly 5 digits.", 400);
+  }
+  return normalized;
 }
 
 function normalizeSlug(raw, fallback = "") {
@@ -221,6 +232,7 @@ function serializeCourse(course, counts = {}) {
     coverImage: ensureString(course?.coverImage),
     badge: ensureString(course?.badge),
     icon: ensureString(course?.icon),
+    pairId: ensureString(course?.pairId),
     tags: Array.isArray(course?.tags) ? course.tags : [],
     totalLessons: Number(counts.totalLessons ?? course?.totalLessons ?? 0),
     publishedLessons: Number(counts.publishedLessons ?? 0),
@@ -239,6 +251,7 @@ function serializeLesson(lesson, stepCount = 0) {
     title: ensureString(lesson?.title),
     subtitle: ensureString(lesson?.subtitle),
     description: ensureString(lesson?.description),
+    pairId: ensureString(lesson?.pairId),
     shortDescription: ensureString(lesson?.description),
     orderIndex: Number(lesson?.orderIndex || 0),
     order: Number(lesson?.orderIndex || 0),
@@ -341,6 +354,18 @@ async function ensureUniqueCourseSlug(slug, excludeCourseId = null) {
   }
 }
 
+async function ensureUniqueCoursePairId(pairId, excludeCourseId = null) {
+  if (!pairId) return;
+  const query = { pairId };
+  if (excludeCourseId) {
+    query._id = { $ne: asObjectId(excludeCourseId, "course id") };
+  }
+  const existing = await LearnCourse.findOne(query).select("_id").lean();
+  if (existing) {
+    throw new AdminLearnError("Pair ID is already used by another course.", 409);
+  }
+}
+
 async function ensureUniqueLessonSlug({ courseId, slug, excludeLessonId = null }) {
   const query = {
     courseId: asObjectId(courseId, "course id"),
@@ -352,6 +377,18 @@ async function ensureUniqueLessonSlug({ courseId, slug, excludeLessonId = null }
   const existing = await LearnLesson.findOne(query).select("_id").lean();
   if (existing) {
     throw new AdminLearnError("Lesson slug already exists in this course.", 409);
+  }
+}
+
+async function ensureUniqueLessonPairId(pairId, excludeLessonId = null) {
+  if (!pairId) return;
+  const query = { pairId };
+  if (excludeLessonId) {
+    query._id = { $ne: asObjectId(excludeLessonId, "lesson id") };
+  }
+  const existing = await LearnLesson.findOne(query).select("_id").lean();
+  if (existing) {
+    throw new AdminLearnError("Pair ID is already used by another lesson.", 409);
   }
 }
 
@@ -535,6 +572,7 @@ async function createAdminCourse(payload = {}) {
   const category = ensureString(payload.category);
   const difficulty = ensureString(payload.difficulty);
   const slug = normalizeSlug(payload.slug, title);
+  const pairId = normalizePairId(payload.pairId);
 
   if (!title) throw new AdminLearnError("Course title is required.", 400);
   if (!slug) throw new AdminLearnError("Course slug is required.", 400);
@@ -542,6 +580,7 @@ async function createAdminCourse(payload = {}) {
   assertDifficulty(difficulty);
 
   await ensureUniqueCourseSlug(slug);
+  await ensureUniqueCoursePairId(pairId);
 
   const created = await LearnCourse.create({
     slug,
@@ -553,6 +592,7 @@ async function createAdminCourse(payload = {}) {
     coverImage: ensureString(payload.coverImage),
     badge: ensureString(payload.badge),
     icon: ensureString(payload.icon),
+    pairId,
     instructorName: ensureString(payload.instructorName),
     tags: normalizeTags(payload.tags),
     totalLessons: 0,
@@ -579,6 +619,11 @@ async function updateAdminCourse(courseId, payload = {}) {
     const title = ensureString(payload.title);
     if (!title) throw new AdminLearnError("Course title is required.", 400);
     course.title = title;
+  }
+  if (payload.pairId !== undefined) {
+    const pairId = normalizePairId(payload.pairId);
+    await ensureUniqueCoursePairId(pairId, course._id);
+    course.pairId = pairId;
   }
 
   if (payload.subtitle !== undefined) course.subtitle = ensureString(payload.subtitle);
@@ -709,10 +754,12 @@ async function createAdminLesson(courseId, payload = {}) {
   const course = await fetchCourseOrThrow(courseId);
   const title = ensureString(payload.title);
   const slug = normalizeSlug(payload.slug, title);
+  const pairId = normalizePairId(payload.pairId);
 
   if (!title) throw new AdminLearnError("Lesson title is required.", 400);
   if (!slug) throw new AdminLearnError("Lesson slug is required.", 400);
   await ensureUniqueLessonSlug({ courseId: course._id, slug });
+  await ensureUniqueLessonPairId(pairId);
 
   const [maxOrder] = await LearnLesson.find({ courseId: course._id })
     .sort({ orderIndex: -1 })
@@ -727,6 +774,7 @@ async function createAdminLesson(courseId, payload = {}) {
     title,
     subtitle: ensureString(payload.subtitle),
     description: ensureString(payload.shortDescription ?? payload.description),
+    pairId,
     orderIndex: nextOrder,
     estimatedMinutes: normalizePositiveInteger(
       payload.durationMinutes ?? payload.estimatedMinutes,
@@ -760,6 +808,11 @@ async function updateAdminLesson(lessonId, payload = {}) {
     const title = ensureString(payload.title);
     if (!title) throw new AdminLearnError("Lesson title is required.", 400);
     lesson.title = title;
+  }
+  if (payload.pairId !== undefined) {
+    const pairId = normalizePairId(payload.pairId);
+    await ensureUniqueLessonPairId(pairId, lesson._id);
+    lesson.pairId = pairId;
   }
   if (payload.subtitle !== undefined) lesson.subtitle = ensureString(payload.subtitle);
   if (payload.description !== undefined) {

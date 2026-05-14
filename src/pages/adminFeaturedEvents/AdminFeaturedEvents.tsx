@@ -39,6 +39,7 @@ interface Player {
 
 interface FeaturedEvent {
   _id: string;
+  pairId?: string;
   title: string;
   description?: string;
   type: "tournament" | "match" | "broadcast" | "event";
@@ -74,6 +75,7 @@ type EventStatus = "upcoming" | "live" | "completed";
 type BackgroundType = "default" | "color" | "image";
 
 interface FormState {
+  pairId: string;
   title: string;
   description: string;
   type: EventType;
@@ -90,6 +92,7 @@ interface FormState {
 }
 
 const initialFormState: FormState = {
+  pairId: "",
   title: "",
   description: "",
   type: "event",
@@ -105,6 +108,10 @@ const initialFormState: FormState = {
   isActive: true,
 };
 
+function generatePairId() {
+  return String(Math.floor(Math.random() * 90000) + 10000);
+}
+
 export default function AdminFeaturedEvents() {
   const [events, setEvents] = useState<FeaturedEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -118,6 +125,16 @@ export default function AdminFeaturedEvents() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [importModalOpen, setImportModalOpen] = useState(false);
+  const [importLoading, setImportLoading] = useState(false);
+  const [importSaving, setImportSaving] = useState(false);
+  const [importSourceEvents, setImportSourceEvents] = useState<FeaturedEvent[]>([]);
+  const [selectedImportEventIds, setSelectedImportEventIds] = useState<string[]>(
+    [],
+  );
+  const [importError, setImportError] = useState("");
+  const [importWarnings, setImportWarnings] = useState<string[]>([]);
+  const [importToast, setImportToast] = useState("");
 
   const uploadBackgroundImage = async (eventId: string, file: File) => {
     const form = new FormData();
@@ -157,6 +174,12 @@ export default function AdminFeaturedEvents() {
     fetchEvents();
   }, []);
 
+  useEffect(() => {
+    if (!importToast) return undefined;
+    const timer = setTimeout(() => setImportToast(""), 3400);
+    return () => clearTimeout(timer);
+  }, [importToast]);
+
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -172,6 +195,7 @@ export default function AdminFeaturedEvents() {
 
     const method = editingEvent ? "PUT" : "POST";
     const payload = {
+      pairId: formData.pairId.trim(),
       title: formData.title.trim(),
       description: formData.description.trim(),
       type: formData.type,
@@ -305,6 +329,7 @@ export default function AdminFeaturedEvents() {
   const openEditModal = (event: FeaturedEvent) => {
     setEditingEvent(event);
     setFormData({
+      pairId: event.pairId || "",
       title: event.title,
       description: event.description || "",
       type: event.type,
@@ -338,6 +363,88 @@ export default function AdminFeaturedEvents() {
     setFormData(initialFormState);
     setBackgroundImageFile(null);
     setSaveError("");
+  };
+
+  const handleOpenImportModal = async () => {
+    setImportModalOpen(true);
+    setImportLoading(true);
+    setImportError("");
+    setImportWarnings([]);
+    setSelectedImportEventIds([]);
+    try {
+      const response = await fetch(`${API_URL}/api/admin/events-mn`, {
+        credentials: "include",
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to load Mongolian events.");
+      }
+      setImportSourceEvents(Array.isArray(data.events) ? data.events : []);
+    } catch (error) {
+      setImportError(
+        error instanceof Error
+          ? error.message
+          : "Failed to load source events for import.",
+      );
+      setImportSourceEvents([]);
+    } finally {
+      setImportLoading(false);
+    }
+  };
+
+  const closeImportModal = () => {
+    setImportModalOpen(false);
+    setImportError("");
+    setSelectedImportEventIds([]);
+  };
+
+  const allImportSelected =
+    importSourceEvents.length > 0 &&
+    selectedImportEventIds.length === importSourceEvents.length;
+
+  const toggleSelectImportEvent = (eventId: string) => {
+    setSelectedImportEventIds((current) =>
+      current.includes(eventId)
+        ? current.filter((entry) => entry !== eventId)
+        : [...current, eventId],
+    );
+  };
+
+  const toggleSelectAllImportEvents = () => {
+    setSelectedImportEventIds((current) =>
+      current.length === importSourceEvents.length
+        ? []
+        : importSourceEvents.map((event) => event._id),
+    );
+  };
+
+  const handleImportSelected = async () => {
+    if (!selectedImportEventIds.length) return;
+    setImportSaving(true);
+    setImportError("");
+    try {
+      const response = await fetch(
+        `${API_URL}/api/admin/featured-events/import-from-mn`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ eventIds: selectedImportEventIds }),
+        },
+      );
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to import events.");
+      }
+      await fetchEvents();
+      setImportWarnings(Array.isArray(data.warnings) ? data.warnings : []);
+      setImportToast(`${Number(data.importedCount) || 0} event(s) imported successfully`);
+      closeImportModal();
+    } catch (error) {
+      setImportError(error instanceof Error ? error.message : "Import failed.");
+    } finally {
+      setImportSaving(false);
+    }
   };
 
   // Filter events
@@ -403,14 +510,28 @@ export default function AdminFeaturedEvents() {
               Featured Events
             </h1>
           </div>
-          <button
-            onClick={openNewModal}
-            className="flex items-center gap-2 bg-brand-600 hover:bg-brand-500 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-          >
-            <Plus className="w-5 h-5" />
-            Add Event
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => void handleOpenImportModal()}
+              className="rounded-lg border border-gray-200 bg-white px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
+            >
+              Import from МН
+            </button>
+            <button
+              onClick={openNewModal}
+              className="flex items-center gap-2 bg-brand-600 hover:bg-brand-500 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+            >
+              <Plus className="w-5 h-5" />
+              Add Event
+            </button>
+          </div>
         </div>
+
+        {importWarnings.length > 0 && (
+          <div className="mb-5 rounded-lg border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-200">
+            {importWarnings.join(" | ")}
+          </div>
+        )}
 
         {/* Filters */}
         <div className="flex gap-4 mb-6">
@@ -490,6 +611,11 @@ export default function AdminFeaturedEvents() {
                         <div className="font-medium text-gray-900 dark:text-white">
                           {event.title}
                         </div>
+                        {event.pairId && (
+                          <div className="mt-1 inline-flex rounded-full bg-gray-200 px-2 py-0.5 text-[10px] font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                            Pair ID: {event.pairId}
+                          </div>
+                        )}
                         {event.description && (
                           <div className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-xs">
                             {event.description}
@@ -620,6 +746,122 @@ export default function AdminFeaturedEvents() {
           </div>
         )}
 
+        {importModalOpen && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[55] p-4">
+            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-xl">
+              <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-800">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                  Import from МН
+                </h2>
+                <button
+                  onClick={closeImportModal}
+                  disabled={importSaving}
+                  className="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white disabled:opacity-60"
+                >
+                  Close
+                </button>
+              </div>
+
+              <div className="p-6">
+                {importError && (
+                  <div className="mb-4 rounded-lg border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-200">
+                    {importError}
+                  </div>
+                )}
+
+                <div className="rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+                  {importLoading ? (
+                    <div className="py-16 text-center text-gray-500 dark:text-gray-400">
+                      Loading...
+                    </div>
+                  ) : importSourceEvents.length === 0 ? (
+                    <div className="py-12 text-center text-sm text-gray-500 dark:text-gray-400">
+                      No events available to import.
+                    </div>
+                  ) : (
+                    <div className="max-h-[52vh] overflow-auto">
+                      <table className="w-full min-w-[860px]">
+                        <thead className="bg-gray-50 dark:bg-gray-800/50">
+                          <tr>
+                            <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">
+                              <label className="inline-flex items-center gap-2 text-xs font-medium normal-case tracking-normal text-gray-700 dark:text-gray-300">
+                                <input
+                                  type="checkbox"
+                                  checked={allImportSelected}
+                                  onChange={toggleSelectAllImportEvents}
+                                  className="h-4 w-4 rounded border-gray-300 dark:border-gray-700"
+                                />
+                                All
+                              </label>
+                            </th>
+                            <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">
+                              Event
+                            </th>
+                            <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">
+                              Type
+                            </th>
+                            <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">
+                              Status
+                            </th>
+                            <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">
+                              Pair ID
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                          {importSourceEvents.map((event) => (
+                            <tr key={event._id}>
+                              <td className="px-4 py-3">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedImportEventIds.includes(event._id)}
+                                  onChange={() => toggleSelectImportEvent(event._id)}
+                                  className="h-4 w-4 rounded border-gray-300 dark:border-gray-700"
+                                />
+                              </td>
+                              <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
+                                {event.title}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300 capitalize">
+                                {event.type}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300 capitalize">
+                                {event.status}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
+                                {event.pairId || "-"}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-6 flex justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={closeImportModal}
+                    disabled={importSaving}
+                    className="px-4 py-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors disabled:opacity-60"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void handleImportSelected()}
+                    disabled={importSaving || selectedImportEventIds.length === 0}
+                    className="px-5 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg font-medium transition-colors disabled:opacity-60"
+                  >
+                    Import Selected
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Modal */}
         {showModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -671,6 +913,38 @@ export default function AdminFeaturedEvents() {
                     rows={3}
                     className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
+                    Pair ID
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]{5}"
+                      maxLength={5}
+                      value={formData.pairId}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          pairId: e.target.value.replace(/\D/g, "").slice(0, 5),
+                        })
+                      }
+                      placeholder="10423"
+                      className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFormData({ ...formData, pairId: generatePairId() })
+                      }
+                      className="rounded-lg border border-gray-200 bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                    >
+                      Generate
+                    </button>
+                  </div>
                 </div>
 
                 {/* Type & Status */}
@@ -917,6 +1191,12 @@ export default function AdminFeaturedEvents() {
                 </div>
               </form>
             </div>
+          </div>
+        )}
+
+        {importToast && (
+          <div className="pointer-events-none fixed bottom-6 right-6 z-[70] rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg">
+            {importToast}
           </div>
         )}
       </main>
