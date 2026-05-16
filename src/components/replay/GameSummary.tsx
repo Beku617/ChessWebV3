@@ -7,6 +7,7 @@ import { GameHistory } from "../../historyTypes";
 import { MoveQualityInfo } from "../../utils/moveQuality";
 import { QualityCounts } from "../../hooks/useGameReplay";
 import { OpeningMatch } from "../../utils/openingExplorer";
+import { formatLocalizedOpeningLabel } from "../../utils/openingLocalization";
 
 export function GameSummary({
   game,
@@ -28,11 +29,7 @@ export function GameSummary({
   onBack?: () => void;
 }) {
   const { t } = useTranslation();
-  const openingLabel = opening
-    ? opening.variation
-      ? `${opening.name}: ${opening.variation}`
-      : opening.name
-    : null;
+  const openingLabel = formatLocalizedOpeningLabel(opening, t);
   const whiteHighlight =
     activePlayerSide === "white"
       ? true

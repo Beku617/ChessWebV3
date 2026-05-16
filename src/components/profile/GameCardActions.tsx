@@ -1,4 +1,5 @@
 import { Copy, Check, Download, BarChart2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface GameCardActionsProps {
   copied: boolean;
@@ -13,6 +14,7 @@ export function GameCardActions({
   onCopyPgn,
   onDownloadPgn,
 }: GameCardActionsProps) {
+  const { t } = useTranslation();
   return (
     <div className="flex justify-end gap-3">
       <button
@@ -20,7 +22,7 @@ export function GameCardActions({
         className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-purple-600 text-white rounded-lg hover:bg-purple-500 transition-colors shadow-lg shadow-purple-500/20"
       >
         <BarChart2 size={16} />
-        Analyze
+        {t("profileGames.card.analyze", "Analyze")}
       </button>
       <button
         onClick={onCopyPgn}
@@ -31,14 +33,16 @@ export function GameCardActions({
         ) : (
           <Copy size={16} />
         )}
-        {copied ? "PGN Copied" : "Copy PGN"}
+        {copied
+          ? t("profileGames.card.pgnCopied", "PGN Copied")
+          : t("profileGames.card.copyPgn", "Copy PGN")}
       </button>
       <button
         onClick={onDownloadPgn}
         className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-brand-600 text-white rounded-lg hover:bg-brand-500 transition-colors shadow-lg shadow-brand-500/20"
       >
         <Download size={16} />
-        Download File
+        {t("profileGames.card.downloadFile", "Download File")}
       </button>
     </div>
   );

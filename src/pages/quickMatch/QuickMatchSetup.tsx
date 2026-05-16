@@ -1,7 +1,6 @@
 import { useState, useEffect, useId, useRef } from "react";
 import { Chessboard } from "react-chessboard";
 import {
-  Clock,
   ChevronDown,
   ChevronUp,
   ExternalLink,
@@ -407,35 +406,6 @@ export function QuickMatchSetup({
             </>
           ) : (
             <>
-              {/* Panel Header */}
-              <div className="px-4 py-3 border-b border-theme-glass">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-brand-500" />
-                    <h2 className="font-bold text-base text-gray-900 dark:text-white">
-                      {tournamentMode
-                        ? t("Tournament Game")
-                        : `${t("Quick Match")}${variantLabel ? ` - ${variantLabel}` : ""}`}
-                    </h2>
-                  </div>
-                  {!tournamentMode && (
-                    <div className="flex items-center gap-2">
-                      <span className="rounded-full bg-brand-100 text-brand-700 dark:bg-brand-500/20 dark:text-brand-300 px-2 py-0.5 text-[11px] font-semibold">
-                        {timeOptionLabel}
-                      </span>
-                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                        {timeGroupLabel}
-                      </span>
-                    </div>
-                  )}
-                </div>
-                <p className="mt-1 text-[11px] text-gray-500 dark:text-gray-400">
-                  {tournamentMode
-                    ? t("Your tournament pairing will start as soon as both players join.")
-                    : t("Find an opponent and start playing instantly.")}
-                </p>
-              </div>
-
               <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3 space-y-4">
                 {!tournamentMode && (
                   <>

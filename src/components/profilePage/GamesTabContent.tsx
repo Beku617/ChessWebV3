@@ -33,11 +33,17 @@ interface GamesTabContentProps {
   showShareButton?: boolean;
 }
 
-function formatTournamentDate(input: string | null): string {
+function formatTournamentDate(input: string | null, locale?: string): string {
   if (!input) return "-";
   const parsed = new Date(input);
   if (!Number.isFinite(parsed.getTime())) return "-";
-  return parsed.toLocaleDateString();
+  return parsed.toLocaleDateString(locale || undefined);
+}
+
+function normalizeTournamentFormat(value: string) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  return raw.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
 }
 
 export function GamesTabContent({
@@ -51,7 +57,7 @@ export function GamesTabContent({
   analyzeBaseUrl,
   showShareButton = false,
 }: GamesTabContentProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [currentPage, setCurrentPage] = useState(1);
   const [shareGame, setShareGame] = useState<GameHistory | null>(null);
 
@@ -149,7 +155,10 @@ export function GamesTabContent({
                     {row.tournamentName}
                   </td>
                   <td className="px-3 py-2 text-gray-700 dark:text-gray-300">
-                    {row.format}
+                    {t(
+                      `profileGames.formats.${normalizeTournamentFormat(row.format)}`,
+                      row.format,
+                    )}
                   </td>
                   <td className="px-3 py-2 text-gray-700 dark:text-gray-300">
                     {row.placement ? `#${row.placement}` : "-"}
@@ -168,7 +177,10 @@ export function GamesTabContent({
                     {row.eloChange}
                   </td>
                   <td className="px-3 py-2 text-gray-500 dark:text-gray-400">
-                    {formatTournamentDate(row.date)}
+                    {formatTournamentDate(
+                      row.date,
+                      i18n.resolvedLanguage || i18n.language || "en",
+                    )}
                   </td>
                 </tr>
               ))}

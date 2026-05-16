@@ -846,14 +846,14 @@ async function submitLessonStep({
   movePayload,
 }) {
   const context = await resolveCourseLessonContext({ courseSlug, lessonSlug });
-  if (!context) return { error: { status: 404, message: "Lesson not found." } };
+  if (!context) return { error: { status: 404, message: "Хичээл олдсонгүй." } };
 
   const safeStepIndex = Number(stepIndex);
   if (!Number.isInteger(safeStepIndex) || safeStepIndex < 0) {
-    return { error: { status: 400, message: "Invalid step index." } };
+    return { error: { status: 400, message: "Алхамын индекс буруу байна." } };
   }
   if (safeStepIndex >= context.steps.length) {
-    return { error: { status: 400, message: "Step index out of range." } };
+    return { error: { status: 400, message: "Алхамын индекс хүрээнээс хэтэрсэн байна." } };
   }
 
   const targetStep = context.steps[safeStepIndex];
@@ -906,7 +906,7 @@ async function submitLessonStep({
         targetStep.wrongMoveMessage ||
         targetStep.feedbackWrong ||
         validation.reason ||
-        "That move doesn't match this lesson idea yet. Try again.",
+        "Энэ нүүдэл тухайн хичээлийн санаатай хараахан нийцэхгүй байна. Дахин оролдоно уу.",
       stepIndex: safeStepIndex,
       nextStepIndex: safeStepIndex,
       lessonCompleted: progressView.lessonCompleted,
@@ -969,7 +969,7 @@ async function submitLessonStep({
     feedback:
       targetStep.successMessage ||
       targetStep.feedbackCorrect ||
-      "Correct move. Continue to the next instructional step.",
+      "Зөв нүүдэл. Дараагийн зааврын алхам руу үргэлжлүүлнэ үү.",
     stepIndex: safeStepIndex,
     nextStepIndex,
     lessonCompleted: progressView.lessonCompleted,
@@ -989,7 +989,7 @@ async function completeLesson({
   lessonSlug,
 }) {
   const context = await resolveCourseLessonContext({ courseSlug, lessonSlug });
-  if (!context) return { error: { status: 404, message: "Lesson not found." } };
+  if (!context) return { error: { status: 404, message: "Хичээл олдсонгүй." } };
 
   const now = new Date();
   const progress = await findOrCreateProgress({
@@ -1211,7 +1211,7 @@ async function searchLearnContent({ query }) {
 async function getCourseOrLessonByPairId({ pairId }) {
   const normalizedPairId = String(pairId || "").trim();
   if (!PAIR_ID_PATTERN.test(normalizedPairId)) {
-    return { error: { status: 400, message: "Pair ID must be exactly 5 digits." } };
+    return { error: { status: 400, message: "Хос ID нь яг 5 оронтой байх ёстой." } };
   }
 
   const [course, lesson] = await Promise.all([

@@ -47,9 +47,21 @@ interface TournamentDetail {
   winners?: WinnerSummary[];
 }
 
-function timeControlLabel(value?: TournamentSummary["timeControl"]): string {
+function timeControlLabel(
+  value?: TournamentSummary["timeControl"],
+  translate?: (key: string, defaultValue?: string) => unknown,
+): string {
   if (!value) return "3+0";
-  if (value.label?.trim()) return value.label.trim();
+  if (value.label?.trim()) {
+    const rawLabel = value.label.trim();
+    if (!translate) return rawLabel;
+
+    return rawLabel
+      .replace(/\bBullet\b/gi, String(translate("Bullet", "Bullet")))
+      .replace(/\bBlitz\b/gi, String(translate("Blitz", "Blitz")))
+      .replace(/\bRapid\b/gi, String(translate("Rapid", "Rapid")))
+      .replace(/\bClassical\b/gi, String(translate("Classical", "Classical")));
+  }
 
   const baseMinutes = Math.max(1, Math.round(Number(value.baseMs || 0) / 60000));
   const increment = Math.max(0, Math.round(Number(value.incMs || 0) / 1000));
@@ -389,15 +401,19 @@ export function TournamentsSection() {
                     {tournament.name}
                   </h3>
                   <p className="mt-2 text-sm text-gray-600 dark:text-gray-300 break-words">
-                    {timeControlLabel(tournament.timeControl)}
+                    {timeControlLabel(tournament.timeControl, t)}
                   </p>
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 break-words">
                     {tournament.status === "running"
-                      ? `Round ${Math.max(1, tournament.currentRound)} of ${Math.max(
-                          1,
-                          tournament.roundsPlanned,
-                        )}`
-                      : "Registration open"}
+                      ? t("tournamentsPage.detail.roundOf", {
+                          current: Math.max(1, tournament.currentRound),
+                          total: Math.max(1, tournament.roundsPlanned),
+                          defaultValue: `Round ${Math.max(1, tournament.currentRound)} of ${Math.max(
+                            1,
+                            tournament.roundsPlanned,
+                          )}`,
+                        })
+                      : t("tournamentCommon.status.registrationOpen", "Registration open")}
                   </p>
                 </div>
               </div>

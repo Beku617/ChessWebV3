@@ -16,6 +16,7 @@ import { useAuthStore } from "../../store/authStore";
 import { AnalysisLoadingOverlay } from "./AnalysisLoadingOverlay";
 import { getAnalyzeActivePlayerSide } from "./activePlayer";
 import { useAiExplanations } from "../../components/replay/explanation/useAiExplanations";
+import { formatLocalizedOpeningLabel } from "../../utils/openingLocalization";
 
 interface ReplayContentProps {
   game: GameHistory;
@@ -153,7 +154,7 @@ export function ReplayContent({ game }: ReplayContentProps) {
                   moveRows={replay.moveRows}
                   currentPly={replay.ply}
                   onJumpTo={replay.jumpTo}
-                  opening={replay.opening?.name}
+                  opening={formatLocalizedOpeningLabel(replay.opening, t) || undefined}
                   aiExplainedPlies={aiExplainedPlies}
                 />
               </div>

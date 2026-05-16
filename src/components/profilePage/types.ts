@@ -41,11 +41,12 @@ export function formatDuration(ms?: number): string {
 
 function formatMemberSinceDate(
   value?: string | Date | null,
+  locale?: string,
 ): string | null {
   if (!value) return null;
   const parsedDate = value instanceof Date ? value : new Date(value);
   if (!Number.isFinite(parsedDate.getTime())) return null;
-  return parsedDate.toLocaleDateString("en-US", {
+  return parsedDate.toLocaleDateString(locale || undefined, {
     month: "long",
     year: "numeric",
   });
@@ -54,11 +55,13 @@ function formatMemberSinceDate(
 export function formatMemberSince(
   primaryDate?: string | Date | null,
   fallbackDate?: string | Date | null,
+  locale?: string,
+  unknownLabel = "Unknown",
 ): string {
   return (
-    formatMemberSinceDate(primaryDate) ||
-    formatMemberSinceDate(fallbackDate) ||
-    "Unknown"
+    formatMemberSinceDate(primaryDate, locale) ||
+    formatMemberSinceDate(fallbackDate, locale) ||
+    unknownLabel
   );
 }
 

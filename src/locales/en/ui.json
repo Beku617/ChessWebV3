@@ -14,6 +14,7 @@
   "Black": "Black",
   "Black to move": "Black to move",
   "Blitz": "Blitz",
+  "Classical": "Classical",
   "bot": "bot",
   "bots": "bots",
   "Browse All": "Browse All",
@@ -26,6 +27,7 @@
   "Chess Variants": "Chess Variants",
   "Chess960": "Chess960",
   "Choose a focus and session length.": "Choose a focus and session length.",
+  "Choose from themed bot personalities.": "Choose from themed bot personalities.",
   "Choose setup": "Choose setup",
   "Complete": "Complete",
   "Consecutive solve days": "Consecutive solve days",
@@ -147,6 +149,7 @@
   "Play Online": "Play Online",
   "Play with Bot": "Play with Bot",
   "Play with other online players": "Play with other online players",
+  "Practice": "Practice",
   "Poll": "Poll",
   "Post": "Post",
   "posts": "posts",
@@ -302,6 +305,7 @@
       "live": "Live",
       "liveRound": "Live Round",
       "roundClosed": "Round Closed",
+      "cancelled": "Cancelled",
       "finished": "Finished"
     },
     "badges": {
@@ -531,6 +535,46 @@
   "tournamentsPage": {
     "title": "Tournaments",
     "createTournament": "Create Tournament",
+    "createChoice": {
+      "title": "Please select the kind of event you'd like to create:",
+      "shareable": "Tournaments",
+      "swissDescription": "Invite players into a round-based Swiss event with standings by score and tie-breaks.",
+      "arenaDescription": "Create a continuous arena where players score as many points as possible in a set duration."
+    },
+    "create": {
+      "swissTitle": "New Swiss Tournament",
+      "arenaTitle": "New Arena Tournament",
+      "game": "Game",
+      "rated": "Rated",
+      "chess960UnratedNotice": "Chess960 tournaments are always unrated.",
+      "submit": "Create",
+      "pendingMessage": "Creating tournament. You will be redirected to the real tournament ID once it is ready.",
+      "fields": {
+        "tournamentName": "Tournament Name",
+        "arenaName": "Arena Name",
+        "pairingLogic": "Pairing Logic",
+        "gameType": "Game Type",
+        "timeControl": "Time Control",
+        "duration": "Duration",
+        "setup": "Setup",
+        "startDate": "Start Date",
+        "startTime": "Start Time",
+        "timezonePrefix": "Timezone:",
+        "hour": "Hour",
+        "minute": "Minute"
+      },
+      "pairing": {
+        "ratingBased": "Rating-based",
+        "pointBased": "Point-based"
+      },
+      "gameTypes": {
+        "standard": "Standard",
+        "chess960": "Chess960"
+      },
+      "setup": {
+        "standard": "Standard"
+      }
+    },
     "filters": {
       "searchPlaceholder": "Search by name",
       "allFormats": "All Formats",
@@ -714,6 +758,7 @@
   "View Results": "View Results",
   "No tournaments available": "No tournaments available",
   "Create a tournament or check back for the next event.": "Create a tournament or check back for the next event.",
+  "Create a private game with a friend.": "Create a private game with a friend.",
   "Three-Check": "Three-Check",
   "Atomic Chess": "Atomic Chess",
   "Searching for opponent...": "Searching for opponent...",

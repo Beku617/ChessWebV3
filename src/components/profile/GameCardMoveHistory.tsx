@@ -1,4 +1,5 @@
 import { MoveNotation } from "../game";
+import { useTranslation } from "react-i18next";
 
 interface GameCardMoveHistoryProps {
   formattedMoves: string[];
@@ -9,10 +10,11 @@ export function GameCardMoveHistory({
   formattedMoves,
   result,
 }: GameCardMoveHistoryProps) {
+  const { t } = useTranslation();
   return (
     <div>
       <h4 className="text-xs uppercase tracking-wider text-gray-500 font-semibold mb-3">
-        Move History
+        {t("profileGames.card.moveHistory", "Move History")}
       </h4>
       <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 max-h-48 overflow-y-auto">
         <p className="font-mono text-sm text-gray-700 dark:text-gray-300 leading-relaxed">

@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Chess, type Square } from "chess.js";
 import { Chessboard } from "react-chessboard";
@@ -32,6 +32,13 @@ interface FeedbackState {
 function clampIndex(value: number, max: number) {
   if (!Number.isFinite(value) || value < 0) return 0;
   return Math.min(max, Math.floor(value));
+}
+
+function toDynamicLearnKey(value: string) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
 }
 
 function resolveRequestedMove(
@@ -88,6 +95,19 @@ export default function LearnLesson() {
   }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const translateLessonText = useCallback(
+    (value: unknown) => {
+      const raw = String(value || "").trim();
+      if (!raw) return "";
+
+      const dynamicKey = `learn.dynamic.${toDynamicLearnKey(raw)}`;
+      const byDynamicKey = t(dynamicKey, raw);
+      if (byDynamicKey !== raw) return String(byDynamicKey);
+
+      return String(t(raw, raw));
+    },
+    [t],
+  );
   const lessonLoadFailedMessage = t(
     "learn.lessonLoadFailed",
     "Failed to load lesson.",
@@ -206,6 +226,15 @@ export default function LearnLesson() {
     if (!lessonData) return [];
     return lessonData.lessons.filter((entry) => Number(entry.stepCount || 0) > 0);
   }, [lessonData]);
+  const localizedVisibleLessons = useMemo(
+    () =>
+      visibleLessons.map((entry) => ({
+        ...entry,
+        title: translateLessonText(entry.title),
+        subtitle: translateLessonText(entry.subtitle),
+      })),
+    [translateLessonText, visibleLessons],
+  );
 
   useEffect(() => {
     if (!currentStep) return;
@@ -367,7 +396,7 @@ export default function LearnLesson() {
       setProgress(result.progress);
 
       if (result.isCorrect) {
-        setFeedback({ kind: "correct", message: result.feedback });
+        setFeedback({ kind: "correct", message: translateLessonText(result.feedback) });
         setBoardFen(result.boardFenAfterMove || probe.fen());
 
         if (result.lessonCompleted && lessonData) {
@@ -400,7 +429,7 @@ export default function LearnLesson() {
         }
       } else {
         playGameplaySound("illegal");
-        setFeedback({ kind: "wrong", message: result.feedback });
+        setFeedback({ kind: "wrong", message: translateLessonText(result.feedback) });
         setIsAdvancingStep(false);
 
         if (result.keepPositionOnWrong) {
@@ -548,8 +577,8 @@ export default function LearnLesson() {
 
         <aside className="min-w-0 xl:min-h-0 xl:h-full flex flex-col gap-3 lg:gap-4">
           <LessonPanel
-            courseTitle={lessonData.course.title}
-            lessons={visibleLessons}
+            courseTitle={translateLessonText(lessonData.course.title)}
+            lessons={localizedVisibleLessons}
             currentLessonSlug={lessonData.lesson.slug}
             courseProgress={courseProgress}
             onBackToCatalog={() => navigate("/learn")}
@@ -567,19 +596,19 @@ export default function LearnLesson() {
             <div className="px-3.5 py-3 min-h-0 flex-1 overflow-y-auto flex flex-col gap-3">
               <div className="w-full max-h-full overflow-y-auto">
                 <p className="mx-auto max-w-2xl text-center text-base text-slate-200 leading-snug break-words">
-                  {currentStep.instructionText}
+                  {translateLessonText(currentStep.instructionText)}
                 </p>
               </div>
 
               {showHint && !lessonCompleted && currentStep.hintText && (
                 <div className="rounded-xl border border-cyan-400/35 bg-cyan-500/10 px-3 py-2 text-sm text-cyan-200">
-                  {t("learn.hint", "Hint")}: {currentStep.hintText}
+                  {t("learn.hint", "Hint")}: {translateLessonText(currentStep.hintText)}
                 </div>
               )}
 
               {feedback && (
                 <div className={`rounded-xl border px-3 py-2 text-sm ${feedbackClass}`}>
-                  {feedback.message}
+                  {translateLessonText(feedback.message)}
                 </div>
               )}
 

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../../store/authStore";
 import { type RatingPool, useLeaderboard } from "../../hooks/useRatingsData";
 
@@ -34,6 +35,7 @@ function rankAccent(rank: number) {
 }
 
 export function PoolLeaderboardCard() {
+  const { t } = useTranslation();
   const [pool, setPool] = useState<RatingPool>("blitz");
   const { user } = useAuthStore();
   const { entries, currentUser, loading, error } = useLeaderboard(pool, 50);
@@ -44,7 +46,7 @@ export function PoolLeaderboardCard() {
       {/* Header */}
       <div className="flex items-center justify-between gap-2">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white tracking-tight">
-          Leaderboard
+          {t("profileWidgets.leaderboardTitle", "Leaderboard")}
         </h3>
       </div>
 
@@ -61,7 +63,7 @@ export function PoolLeaderboardCard() {
                 : "bg-gray-100 dark:bg-gray-700/60 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
             }`}
           >
-            {option.label}
+            {t(`profileGames.pools.${option.id}`, option.label)}
           </button>
         ))}
       </div>
@@ -70,13 +72,13 @@ export function PoolLeaderboardCard() {
       <div className="mt-4 rounded-xl border border-gray-200/50 dark:border-gray-700/30 bg-gray-50 dark:bg-gray-900/40 overflow-hidden shadow-inner dark:shadow-[inset_0_1px_4px_rgba(0,0,0,0.2)] flex-1 min-h-0">
         {loading ? (
           <div className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
-            Loading leaderboard...
+            {t("profileWidgets.loadingLeaderboard", "Loading leaderboard...")}
           </div>
         ) : error ? (
           <div className="py-8 text-center text-sm text-red-500">{error}</div>
         ) : entries.length === 0 ? (
           <div className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
-            No rated players yet.
+            {t("profileWidgets.noRatedPlayers", "No rated players yet.")}
           </div>
         ) : (
           <div className="leaderboard-mask">
@@ -138,14 +140,21 @@ export function PoolLeaderboardCard() {
                         {entry.name}
                         {isYou && (
                           <span className="ml-1.5 text-[10px] font-semibold uppercase tracking-wide text-brand-500 dark:text-brand-400">
-                            you
+                            {t("profileWidgets.youTag", "you")}
                           </span>
                         )}
                       </div>
                       <div className="text-[11px] text-gray-400 dark:text-gray-500">
                         {entry.isProvisional
-                          ? `Provisional (${entry.games}/10)`
-                          : `${entry.games} games`}
+                          ? t("profileGames.provisionalGames", {
+                              count: entry.games,
+                              total: 10,
+                              defaultValue: "Provisional ({{count}}/{{total}})",
+                            })
+                          : t("profileGames.gamesCount", {
+                              count: entry.games,
+                              defaultValue: "{{count}} games",
+                            })}
                       </div>
                     </div>
 
@@ -168,13 +177,18 @@ export function PoolLeaderboardCard() {
       </div>
       <div className="mt-2 space-y-1">
         <p className="text-[11px] text-gray-400 dark:text-gray-500">
-          Showing top 50 players in this pool (minimum 10 rated games).
+          {t("profileWidgets.topPlayersHint", {
+            top: 50,
+            minimum: 10,
+            defaultValue:
+              "Showing top {{top}} players in this pool (minimum {{minimum}} rated games).",
+          })}
         </p>
         {currentUser && (
           <p className="text-[12px] text-gray-600 dark:text-gray-300">
             {currentUser.qualifies && currentUser.rank ? (
               <>
-                Your position:{" "}
+                {t("profileWidgets.yourPosition", "Your position")}:{" "}
                 <span className="font-semibold text-brand-600 dark:text-brand-400">
                   #{currentUser.rank}
                 </span>{" "}
@@ -182,11 +196,15 @@ export function PoolLeaderboardCard() {
               </>
             ) : (
               <>
-                Your position:{" "}
+                {t("profileWidgets.yourPosition", "Your position")}:{" "}
                 <span className="font-semibold text-gray-500 dark:text-gray-400">
-                  Unranked
+                  {t("profileWidgets.unranked", "Unranked")}
                 </span>{" "}
-                ({currentUser.games}/10 games)
+                {t("profileWidgets.unrankedGamesSuffix", {
+                  count: currentUser.games,
+                  total: 10,
+                  defaultValue: "({{count}}/{{total}} games)",
+                })}
               </>
             )}
           </p>

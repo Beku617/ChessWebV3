@@ -187,7 +187,7 @@ export default function Puzzles() {
   );
   const [minRating, setMinRating] = useState<number>(600);
   const [maxRating, setMaxRating] = useState<number>(2600);
-  const [includeMastered, setIncludeMastered] = useState(false);
+  const [includeMastered] = useState(false);
   const [page, setPage] = useState(1);
   const [viewMode, setViewMode] = useState<LibraryViewMode>(() => {
     const cached = localStorage.getItem(VIEW_STORAGE_KEY);
@@ -438,15 +438,6 @@ export default function Puzzles() {
               max={3500}
             />
           </div>
-
-          <label className="inline-flex items-center gap-2 rounded-lg border border-[#304464] bg-[#111b31] px-3 py-1.5 text-xs text-slate-100">
-            <input
-              type="checkbox"
-              checked={includeMastered}
-              onChange={(event) => setIncludeMastered(event.target.checked)}
-            />
-            {t("puzzles.library.includeMastered", "Include mastered")}
-          </label>
 
           <div className="ml-auto inline-flex rounded-lg border border-[#304464] bg-[#111b31] p-1">
             <button

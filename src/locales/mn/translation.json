@@ -455,11 +455,20 @@
     "nextLesson": "Дараагийн хичээл",
     "retryLesson": "Хичээлийг дахин эхлэх",
     "courseProgressLabel": "Курсын явц",
-    "courseLessons": "Курсын хичээлүүд"
+    "courseLessons": "Курсын хичээлүүд",
+    "dynamic": {
+      "mastering_the_ruy_lopez": "РУЙ ЛОПЕЗИЙГ ЭЗЭМШИХ НЬ",
+      "the_core_setup": "Үндсэн байрлал",
+      "typical_continuation": "Түгээмэл үргэлжлэл",
+      "entering_the_closed_structure": "Хаалттай бүтэц рүү орох",
+      "white_to_move_play_the_classical_ruy_lopez_bishop_move": "Цагаан нүүх ээлжтэй: Рүй Лопезийн уламжлалт тэмээний нүүдлийг хийнэ үү.",
+      "correct_move": "Зөв нүүдэл.",
+      "wrong_move": "Буруу нүүдэл."
+    }
   },
   "analysis": {
     "back": "Буцах",
-    "opening": "Нээлт",
+    "opening": "Гараа",
     "moveExplanation": "Нүүдлийн тайлбар",
     "moveExplanationHint": "Нүүдлийн тайлбарыг харахын тулд нүүдлийн жагсаалтаас нэгийг сонгоно уу.",
     "startingPositionTitle": "Эхлэлийн байрлал",
@@ -477,8 +486,8 @@
     "bestMovePlayed": "Та энэ нүүдлийг хийсэн байна!",
     "tip": "Зөвлөгөө:",
     "none": "Байхгүй",
-    "capturedByWhite": "Цагаан авсан хөлгүүд",
-    "capturedByBlack": "Хар авсан хөлгүүд",
+    "capturedByWhite": "Цагаан идсэн хөлгүүд",
+    "capturedByBlack": "Хар идсэн хөлгүүд",
     "moves": "Нүүдлүүд",
     "moveListWhite": "Цагаан",
     "moveListBlack": "Хар",
@@ -542,7 +551,7 @@
         "title": "Нарийвчлал дутсан",
         "description": "{{san}} нь энэ байрлалд хамгийн оновчтой сонголт байсангүй.",
         "details": "Хожих магадлал {{before}}-аас {{after}} болж, {{loss}}-иар буурсан байна.",
-        "suggestion": "Хөлгийн идэвхийг хадгалж, өрсөлдөгчид үнэ төлбөргүй давуу тал өгөхгүй нүүдэл хайгаарай."
+        "suggestion": "Хөлгийн идэвхийг хадгалж, өрсөлдөгчдөө давуу тал бэлэглэхгүй нүүдэл хайгаарай."
       },
       "mistake": {
         "title": "Алдаа",
@@ -590,7 +599,19 @@
     "noMovesYet": "Одоогоор нүүдэл байхгүй",
     "check": "Шах!",
     "checkmate": "Мат!",
-    "stalemate": "Пат"
+    "stalemate": "Пат",
+    "openingNames": {
+      "london_system": "Лондоны гараа",
+      "d4_d5_setup": "d4 d5 хувилбар",
+      "ruy_lopez": "Рүй Лопез",
+      "italian_game": "Итали тоглолт",
+      "sicilian_defense": "Сицилийн хамгаалалт",
+      "french_defense": "Франц хамгаалалт",
+      "caro_kann_defense": "Каро-Канн хамгаалалт",
+      "queen_s_gambit": "Хатангийн гамбит",
+      "king_s_indian_defense": "Хааны Энэтхэг хамгаалалт",
+      "english_opening": "Англи гараа"
+    }
   },
   "presence": {
     "unknown": "тодорхойгүй",
@@ -705,11 +726,72 @@
   },
   "profileGames": {
     "allGames": "Бүх тоглолт ({{count}})",
+    "recentGames": "Сүүлийн тоглолтууд",
+    "viewAll": "Бүгдийг үзэх",
     "tournamentHistory": "Тэмцээний түүх ({{count}})",
     "noTournamentHistory": "Тэмцээний түүх одоогоор байхгүй байна.",
     "range": "{{total}}-аас {{start}}–{{end}}",
+    "gamesCount": "{{count}} тоглолт",
+    "provisionalGames": "Түр үнэлгээ ({{count}}/{{total}})",
     "noGamesFound": "Тоглолт олдсонгүй",
     "noGamesFoundDescription": "Шүүлтийг өөрчлөх эсвэл шинэ тоглолт тоглоод үзнэ үү.",
+    "results": {
+      "win": "Хожил",
+      "loss": "Хожигдол",
+      "draw": "Тэнцээ"
+    },
+    "pools": {
+      "bullet": "Бюллет",
+      "blitz": "Блиц",
+      "rapid": "Рапид",
+      "classical": "Классик"
+    },
+    "formats": {
+      "bullet": "Бюллет",
+      "blitz": "Блиц",
+      "rapid": "Рапид",
+      "classical": "Классик",
+      "chess960": "Chess960",
+      "arena": "Арена",
+      "swiss": "Швейцар"
+    },
+    "termination": {
+      "checkmate": "Мат",
+      "resignation": "Бууж өгсөн",
+      "stalemate": "Пат",
+      "time_forfeit": "Хугацаа дууссан",
+      "timeout": "Хугацаа дууссан",
+      "draw": "Тэнцээ",
+      "draw_by_agreement": "Харилцан тохиролцсон тэнцээ",
+      "repetition": "Давталтаар тэнцээ",
+      "threefold_repetition": "Гурван давталтаар тэнцээ",
+      "insufficient_material": "Матлах материал хүрэлцэхгүй",
+      "fifty_move_rule": "50 нүүдлийн дүрмээр тэнцээ",
+      "aborted": "Цуцлагдсан",
+      "abort": "Цуцлагдсан",
+      "abandoned": "Орхигдсон"
+    },
+    "card": {
+      "gameNumber": "Тоглолт #{{index}}",
+      "duration": "Үргэлжилсэн хугацаа",
+      "moves": "Нүүдэл",
+      "shareGame": "Тоглолт хуваалцах",
+      "opening": "Гараа",
+      "timeControl": "Цагийн хяналт",
+      "termination": "Дууссан шалтгаан",
+      "opponentLevel": "Өрсөлдөгчийн түвшин",
+      "notAvailable": "Байхгүй",
+      "threeCheck": "3 шах",
+      "threeCheckScore": "{{white}} {{whiteChecks}}/3 • {{black}} {{blackChecks}}/3",
+      "white": "Цагаан",
+      "black": "Хар",
+      "moveHistory": "Нүүдлийн түүх",
+      "analyze": "Шинжлэх",
+      "pgnCopied": "PGN хууллаа",
+      "copyPgn": "PGN хуулах",
+      "downloadFile": "Файл татах",
+      "unlimited": "Хязгааргүй"
+    },
     "filters": {
       "all": "Бүгд",
       "wins": "Хожил",
@@ -872,7 +954,37 @@
   "profilePage": {
     "noGamesTitle": "Одоогоор тоглоом алга",
     "noGamesDescription": "Өөрийн ахиц дэвшлийг хянаж эхлэхийн тулд анхны тоглоомоо тоглоорой!",
-    "playNow": "Одоо тогло"
+    "playNow": "Одоо тогло",
+    "unknown": "Тодорхойгүй",
+    "errors": {
+      "fetchGamesFailed": "Тоглолтуудыг татаж чадсангүй",
+      "loadGamesFailed": "Тоглолтуудыг ачаалж чадсангүй",
+      "loadProfileFailed": "Профайлыг ачаалж чадсангүй"
+    }
+  },
+  "profileWidgets": {
+    "formatRatingsTitle": "Форматын рейтинг",
+    "ratingTimelineTitle": "Рейтингийн график",
+    "timelineUnavailable": "График зөвхөн нэвтэрсэн хэрэглэгчид харагдана.",
+    "loadingTimeline": "График ачаалж байна...",
+    "noRatedGamesInRange": "Энэ хугацаанд рейтингтэй тоглолт алга.",
+    "current": "Одоогийн",
+    "plusMinus": "+/-",
+    "rating": "Рейтинг",
+    "low": "Доод",
+    "high": "Дээд",
+    "leaderboardTitle": "Тэргүүлэгчдийн жагсаалт",
+    "loadingLeaderboard": "Жагсаалт ачаалж байна...",
+    "noRatedPlayers": "Одоогоор рейтингтэй тоглогч алга.",
+    "youTag": "та",
+    "topPlayersHint": "Энэ төрөлд шилдэг {{top}} тоглогчийг харуулж байна (хамгийн багадаа {{minimum}} рейтингтэй тоглолт).",
+    "yourPosition": "Таны байр",
+    "unranked": "Эрэмбэлэгдээгүй",
+    "unrankedGamesSuffix": "({{count}}/{{total}} тоглолт)",
+    "quickStatsTitle": "Товч статистик",
+    "favoriteOpening": "Дуртай гараа",
+    "averageGameDuration": "Дундаж үргэлжлэх хугацаа",
+    "bestWinStreak": "Хамгийн урт хожлын цуврал"
   },
   "friendsPage": {
     "relationshipStates": "Харилцааны төлөв",

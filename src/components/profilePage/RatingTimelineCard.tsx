@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { LineChart as LineChartIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import {
   Area,
   AreaChart,
@@ -74,26 +75,29 @@ function buildRenderableData(
   };
 }
 
-function formatPointDate(value: string, range: RatingRange): string {
+function formatPointDate(value: string, range: RatingRange, locale?: string): string {
   const date = new Date(value);
   if (!Number.isFinite(date.getTime())) return value;
 
   if (range === "7d" || range === "30d") {
-    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    return date.toLocaleDateString(locale || undefined, {
+      month: "short",
+      day: "numeric",
+    });
   }
 
-  return date.toLocaleDateString("en-US", {
+  return date.toLocaleDateString(locale || undefined, {
     month: "short",
     day: "numeric",
     year: "2-digit",
   });
 }
 
-function formatTooltipDate(value: string): string {
+function formatTooltipDate(value: string, locale?: string): string {
   const date = new Date(value);
   if (!Number.isFinite(date.getTime())) return value;
 
-  return date.toLocaleString("en-US", {
+  return date.toLocaleString(locale || undefined, {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -118,8 +122,10 @@ interface RatingTimelineCardProps {
 
 export function RatingTimelineCard({
   enabled = true,
-  unavailableMessage = "Timeline is only available for the signed-in player.",
+  unavailableMessage,
 }: RatingTimelineCardProps) {
+  const { t, i18n } = useTranslation();
+  const locale = i18n.resolvedLanguage || i18n.language || "en";
   const [pool, setPool] = useState<RatingPool>("blitz");
   const [range, setRange] = useState<RatingRange>("90d");
   const { points, loading, error } = useRatingTimeline(pool, range, { enabled });
@@ -145,7 +151,7 @@ export function RatingTimelineCard({
       idx: index,
       x: `${point.ts}#${index}`,
       rating: normalizeRating(point.rating),
-      displayLabel: formatPointDate(point.ts, range),
+      displayLabel: formatPointDate(point.ts, range, locale),
       timestamp: point.ts,
       delta: point.delta,
       rd: point.rd,
@@ -170,12 +176,15 @@ export function RatingTimelineCard({
       yMax: max + padding,
       lastPoint: data[data.length - 1] ?? null,
     };
-  }, [points, range]);
+  }, [locale, points, range]);
 
   const delta = chart.last - chart.first;
   const isSinglePoint = chart.data.length <= 1;
   const deltaLabel = isSinglePoint ? "--" : delta > 0 ? `+${delta}` : `${delta}`;
-  const selectedPoolLabel = POOLS.find((option) => option.id === pool)?.label ?? pool;
+  const selectedPoolLabel = t(
+    `profileGames.pools.${pool}`,
+    POOLS.find((option) => option.id === pool)?.label ?? pool,
+  );
   const selectedRangeLabel =
     RANGES.find((option) => option.id === range)?.label ?? range.toUpperCase();
 
@@ -183,7 +192,7 @@ export function RatingTimelineCard({
     <div className="h-full min-w-0 bg-white/85 dark:bg-slate-900/70 rounded-2xl p-6 border border-gray-200/70 dark:border-white/10 shadow-[0_10px_30px_rgba(15,23,42,0.08)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.4)] backdrop-blur flex flex-col">
       <div className="flex items-center justify-between gap-2">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-          Rating Timeline
+          {t("profileWidgets.ratingTimelineTitle", "Rating Timeline")}
         </h3>
         <LineChartIcon className="w-5 h-5 text-brand-500" />
       </div>
@@ -201,7 +210,7 @@ export function RatingTimelineCard({
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700/90 dark:text-gray-200 dark:hover:bg-gray-700"
             } ${!enabled ? "cursor-not-allowed opacity-60" : ""}`}
           >
-            {option.label}
+            {t(`profileGames.pools.${option.id}`, option.label)}
           </button>
         ))}
       </div>
@@ -227,11 +236,15 @@ export function RatingTimelineCard({
       <div className="mt-4 rounded-xl border border-gray-200/70 dark:border-white/10 bg-gray-50/90 dark:bg-black/20 p-3 flex-1 flex flex-col">
         {!enabled ? (
           <div className="flex min-h-[190px] flex-1 items-center justify-center text-center text-sm text-gray-500 dark:text-gray-400">
-            {unavailableMessage}
+            {unavailableMessage ||
+              t(
+                "profileWidgets.timelineUnavailable",
+                "Timeline is only available for the signed-in player.",
+              )}
           </div>
         ) : loading ? (
           <div className="min-h-[190px] flex-1 flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">
-            Loading timeline...
+            {t("profileWidgets.loadingTimeline", "Loading timeline...")}
           </div>
         ) : error ? (
           <div className="min-h-[190px] flex-1 flex items-center justify-center text-sm text-red-500">
@@ -239,7 +252,10 @@ export function RatingTimelineCard({
           </div>
         ) : points.length === 0 ? (
           <div className="min-h-[190px] flex-1 flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">
-            No rated games in this range yet.
+            {t(
+              "profileWidgets.noRatedGamesInRange",
+              "No rated games in this range yet.",
+            )}
           </div>
         ) : (
           <motion.div
@@ -254,9 +270,9 @@ export function RatingTimelineCard({
                 {selectedPoolLabel} | {selectedRangeLabel}
               </span>
               <span className="text-[12px] font-semibold text-gray-700 dark:text-gray-200">
-                Current: {chart.last}
+                {t("profileWidgets.current", "Current")}: {chart.last}
                 {typeof chart.lastPoint?.rd === "number"
-                  ? ` +/- ${Math.round(chart.lastPoint.rd)}`
+                  ? ` ${t("profileWidgets.plusMinus", "+/-")} ${Math.round(chart.lastPoint.rd)}`
                   : ""}
               </span>
             </div>
@@ -292,7 +308,7 @@ export function RatingTimelineCard({
                       const separatorIndex = value.lastIndexOf("#");
                       const ts =
                         separatorIndex >= 0 ? value.slice(0, separatorIndex) : value;
-                      return formatPointDate(ts, range);
+                      return formatPointDate(ts, range, locale);
                     }}
                   />
                   <YAxis
@@ -320,10 +336,12 @@ export function RatingTimelineCard({
                       boxShadow: "0 8px 24px rgba(0,0,0,0.25)",
                     }}
                     labelStyle={{ color: "#cbd5e1", marginBottom: "4px" }}
-                    formatter={(value: number) => [value, "Rating"] as [number, string]}
+                    formatter={(value: number) =>
+                      [value, t("profileWidgets.rating", "Rating")] as [number, string]
+                    }
                     labelFormatter={(_label: string, payload: TooltipPayloadEntry[]) => {
                       const ts = payload?.[0]?.payload?.timestamp;
-                      return ts ? formatTooltipDate(ts) : "";
+                      return ts ? formatTooltipDate(ts, locale) : "";
                     }}
                   />
                   <Area
@@ -378,7 +396,7 @@ export function RatingTimelineCard({
             </div>
 
             <div className="mt-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-              <span>Low {chart.min}</span>
+              <span>{t("profileWidgets.low", "Low")} {chart.min}</span>
               <span
                 className={`rounded-md px-2 py-0.5 font-semibold ${
                   isSinglePoint
@@ -390,7 +408,7 @@ export function RatingTimelineCard({
               >
                 {deltaLabel}
               </span>
-              <span>High {chart.max}</span>
+              <span>{t("profileWidgets.high", "High")} {chart.max}</span>
             </div>
           </motion.div>
         )}

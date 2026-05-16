@@ -34,7 +34,7 @@ export function BotSelectionGrid({
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
         <button
-          onClick={() => navigate("/play")}
+          onClick={() => navigate("/play/quick")}
           className="px-3 py-2 rounded-lg text-sm font-medium bg-white/80 dark:bg-slate-800/80 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
         >
           Back

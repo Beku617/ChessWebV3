@@ -1,6 +1,8 @@
 import { Download, Compass } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { GameHistory } from "../../historyTypes";
 import { OpeningMatch } from "../../utils/openingExplorer";
+import { formatLocalizedOpeningLabel } from "../../utils/openingLocalization";
 
 interface ReplayHeaderProps {
   game: GameHistory;
@@ -13,6 +15,7 @@ export function ReplayHeader({
   onDownloadPgn,
   opening,
 }: ReplayHeaderProps) {
+  const { t } = useTranslation();
   const resultColor =
     game.result === "1-0"
       ? "text-green-500"
@@ -37,9 +40,7 @@ export function ReplayHeader({
               {opening.eco}
             </span>
             <span className="text-gray-600 dark:text-gray-300">
-              {opening.variation
-                ? `${opening.name}: ${opening.variation}`
-                : opening.name}
+              {formatLocalizedOpeningLabel(opening, t)}
             </span>
           </div>
         )}

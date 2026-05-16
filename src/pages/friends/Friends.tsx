@@ -450,7 +450,9 @@ export default function Friends() {
                 {req.userName}
               </div>
               <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#13243a] text-slate-200 border border-[#1f2c45]">
-                {type === "incoming" ? t("Incoming") : t("Outgoing")}
+                {type === "incoming"
+                  ? t("friendsPage.incomingRequests")
+                  : t("friendsPage.outgoingRequests")}
               </span>
             </div>
             <div className="text-xs text-slate-400 leading-relaxed flex items-center gap-2 flex-wrap">
@@ -652,8 +654,16 @@ export default function Friends() {
 
   const tabItems: Array<{ id: PrimaryTab; label: string; count: number }> = [
     { id: "friends", label: t("Friends"), count: friends.length },
-    { id: "incoming", label: t("Incoming"), count: pendingIncoming.length },
-    { id: "outgoing", label: t("Outgoing"), count: pendingOutgoing.length },
+    {
+      id: "incoming",
+      label: t("friendsPage.incomingRequests"),
+      count: pendingIncoming.length,
+    },
+    {
+      id: "outgoing",
+      label: t("friendsPage.outgoingRequests"),
+      count: pendingOutgoing.length,
+    },
   ];
 
   return (

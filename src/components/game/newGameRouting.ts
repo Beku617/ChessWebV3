@@ -109,7 +109,7 @@ export function resolveNewGameRoute(input: NewGameRouteInput): ResolvedNewGameRo
   }
 
   if (input.mode === "local") {
-    return { pathname: "/play", search: "" };
+    return { pathname: "/play/quick", search: "" };
   }
 
   if (variant !== "standard") {

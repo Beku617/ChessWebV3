@@ -302,7 +302,8 @@
       "live": "Шууд",
       "liveRound": "Шууд үе шат",
       "roundClosed": "Үе шат хаагдсан",
-      "finished": "Дууссан"
+      "finished": "Дууссан",
+      "cancelled": "Цуцлагдсан"
     },
     "badges": {
       "draft": "НООРОГ",
@@ -692,6 +693,46 @@
       "scheduledCount": "Дараагийн 7 хоногт {{count}} тэмцээн хуваарьтай байна",
       "emptyTitle": "Энэ 7 хоногийн цонхонд тэмцээн алга",
       "emptyDescription": "Өөр өдөр сонгох эсвэл төрөл/төлөвийн шүүлтүүрээ суллаарай."
+    },
+    "createChoice": {
+      "title": "Үүсгэх тэмцээний төрлөө сонгоно уу:",
+      "shareable": "Тэмцээнүүд",
+      "swissDescription": "Оноо болон тай-брейкээр эрэмбэлэгдэх шаталсан Швейцар тэмцээнд тоглогчдыг урина.",
+      "arenaDescription": "Тогтсон хугацаанд хамгийн их оноо авах тасралтгүй арена тэмцээн үүсгэнэ."
+    },
+    "create": {
+      "swissTitle": "Шинэ Швейцар тэмцээн",
+      "arenaTitle": "Шинэ Арена тэмцээн",
+      "game": "Тоглолт",
+      "rated": "Рейтингтэй",
+      "chess960UnratedNotice": "Chess960 тэмцээн үргэлж рейтинггүй байдаг.",
+      "submit": "Үүсгэх",
+      "pendingMessage": "Тэмцээн үүсгэж байна. Бэлэн болмогц бодит тэмцээний ID руу автоматаар шилжинэ.",
+      "fields": {
+        "tournamentName": "Тэмцээний нэр",
+        "arenaName": "Арена нэр",
+        "pairingLogic": "Тааруулалтын логик",
+        "gameType": "Тоглолтын төрөл",
+        "timeControl": "Цагийн хяналт",
+        "duration": "Хугацаа",
+        "setup": "Тохиргоо",
+        "startDate": "Эхлэх өдөр",
+        "startTime": "Эхлэх цаг",
+        "timezonePrefix": "Цагийн бүс:",
+        "hour": "Цаг",
+        "minute": "Минут"
+      },
+      "pairing": {
+        "ratingBased": "Рейтингт суурилсан",
+        "pointBased": "Оноонд суурилсан"
+      },
+      "gameTypes": {
+        "standard": "Стандарт",
+        "chess960": "Chess960"
+      },
+      "setup": {
+        "standard": "Стандарт"
+      }
     }
   },
   "Trending in chess": "Шатрын трендүүд",
@@ -717,5 +758,9 @@
   "Three-Check": "Гурван шах",
   "Atomic Chess": "Атомик шатар",
   "Searching for opponent...": "Өрсөлдөгч хайж байна...",
-  "Server Offline": "Сервер офлайн байна"
+  "Server Offline": "Сервер офлайн байна",
+  "Choose from themed bot personalities.": "Сэдэвчилсэн ботуудаас сонгоно уу.",
+  "Create a private game with a friend.": "Найзтайгаа хувийн тоглолт үүсгэнэ үү.",
+  "Practice": "Дасгал",
+  "Classical": "Классик"
 }

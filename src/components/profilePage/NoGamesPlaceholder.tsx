@@ -12,7 +12,7 @@ export function NoGamesPlaceholder() {
         {t("profilePage.noGamesDescription")}
       </p>
       <Link
-        to="/play"
+        to="/play/quick"
         className="inline-flex items-center gap-2 bg-brand-600 hover:bg-brand-500 text-white px-6 py-3 rounded-xl font-bold transition-colors shadow-lg shadow-brand-500/25"
       >
         {t("profilePage.playNow")}

@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../store/authStore";
 import { GameHistory } from "../historyTypes";
 import Sidebar from "../components/Sidebar";
@@ -17,6 +18,7 @@ import {
 } from "../components/profilePage";
 
 export default function Profile() {
+  const { t, i18n } = useTranslation();
   const { user } = useAuthStore();
   const [games, setGames] = useState<GameHistory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,11 +36,15 @@ export default function Profile() {
         const res = await fetch(`${API_URL}/api/history`, {
           credentials: "include",
         });
-        if (!res.ok) throw new Error("Failed to fetch games");
+        if (!res.ok) throw new Error(t("profilePage.errors.fetchGamesFailed", "Failed to fetch games"));
         const data = await res.json();
         setGames(data.games || []);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load games");
+        setError(
+          err instanceof Error
+            ? err.message
+            : t("profilePage.errors.loadGamesFailed", "Failed to load games"),
+        );
       } finally {
         setLoading(false);
       }
@@ -56,7 +62,11 @@ export default function Profile() {
           credentials: "include",
         });
         const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.error || "Failed to load profile");
+        if (!res.ok) {
+          throw new Error(
+            data.error || t("profilePage.errors.loadProfileFailed", "Failed to load profile"),
+          );
+        }
         if (!cancelled) {
           setTournamentHistory(data.profile?.tournamentHistory || []);
         }
@@ -89,8 +99,14 @@ export default function Profile() {
   }, [games]);
 
   const memberSince = useMemo(
-    () => formatMemberSince(user?.createdAt ?? null, oldestGameDate),
-    [user?.createdAt, oldestGameDate],
+    () =>
+      formatMemberSince(
+        user?.createdAt ?? null,
+        oldestGameDate,
+        i18n.resolvedLanguage || i18n.language || "en",
+        t("profilePage.unknown", "Unknown"),
+      ),
+    [i18n.language, i18n.resolvedLanguage, oldestGameDate, t, user?.createdAt],
   );
 
   if (loading) {

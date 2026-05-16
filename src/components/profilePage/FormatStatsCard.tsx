@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Area,
   AreaChart,
@@ -24,24 +25,19 @@ export interface RatingSnapshot {
 const CARD_THEME: Record<
   RatingPool,
   {
-    label: string;
     lineColor: string;
   }
 > = {
   rapid: {
-    label: "Rapid",
     lineColor: "#7dd3fc",
   },
   blitz: {
-    label: "Blitz",
     lineColor: "#7dd3fc",
   },
   bullet: {
-    label: "Bullet",
     lineColor: "#67e8f9",
   },
   classical: {
-    label: "Classical",
     lineColor: "#93c5fd",
   },
 };
@@ -140,6 +136,7 @@ export function FormatStatsCard({
   ratingSnapshot,
   enableTimeline = true,
 }: FormatStatsCardProps) {
+  const { t } = useTranslation();
   const { user } = useAuthStore();
   const sourceUser = ratingSnapshot ?? user;
   const bulletTimeline = useRatingTimeline("bullet", "30d", {
@@ -205,7 +202,7 @@ export function FormatStatsCard({
     <div className="bg-white/85 dark:bg-slate-900/70 rounded-2xl p-5 border border-gray-200/70 dark:border-white/10 shadow-[0_10px_30px_rgba(15,23,42,0.08)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.4)] backdrop-blur">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-          Format Ratings
+          {t("profileWidgets.formatRatingsTitle", "Format Ratings")}
         </h3>
       </div>
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
@@ -218,7 +215,7 @@ export function FormatStatsCard({
               <div className="flex items-start gap-3">
                 <div>
                   <div className="text-sm text-slate-500 dark:text-gray-300">
-                    {format.meta.label}
+                    {t(`profileGames.pools.${format.pool}`, format.pool)}
                   </div>
                   <div className="mt-0.5 flex items-end gap-2">
                     <span className="text-[42px] font-bold leading-none tracking-tight text-slate-900 dark:text-white">
@@ -238,8 +235,15 @@ export function FormatStatsCard({
               <div className="text-right">
                 <div className="text-[11px] text-slate-500 dark:text-gray-400">
                   {format.games < 10
-                    ? `Provisional (${format.games}/10)`
-                    : `${format.games} games`}
+                    ? t("profileGames.provisionalGames", {
+                        count: format.games,
+                        total: 10,
+                        defaultValue: "Provisional ({{count}}/{{total}})",
+                      })
+                    : t("profileGames.gamesCount", {
+                        count: format.games,
+                        defaultValue: "{{count}} games",
+                      })}
                 </div>
               </div>
             </div>

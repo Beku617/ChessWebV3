@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { GameHistory } from "../../historyTypes";
 import { GameCardHeader } from "./GameCardHeader";
 import { GameCardDetails } from "./GameCardDetails";
@@ -37,36 +38,38 @@ export function GameCard({
   gameIndex,
   onShare,
 }: GameCardProps) {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
 
   const playerIsWhite = game.playAs === "white";
-  const resultText =
+  const resultKey =
     game.result === "1-0"
       ? playerIsWhite
-        ? "Win"
-        : "Loss"
+        ? "win"
+        : "loss"
       : game.result === "0-1"
         ? playerIsWhite
-          ? "Loss"
-          : "Win"
-        : "Draw";
+          ? "loss"
+          : "win"
+        : "draw";
+  const resultText = t(`profileGames.results.${resultKey}`, resultKey);
 
   const resultColor =
-    resultText === "Win"
+    resultKey === "win"
       ? "text-green-500"
-      : resultText === "Loss"
+      : resultKey === "loss"
         ? "text-red-500"
         : "text-yellow-500";
   const resultBg =
-    resultText === "Win"
+    resultKey === "win"
       ? "bg-green-500/10"
-      : resultText === "Loss"
+      : resultKey === "loss"
         ? "bg-red-500/10"
         : "bg-yellow-500/10";
   const borderColor =
-    resultText === "Win"
+    resultKey === "win"
       ? "border-l-4 border-l-green-500"
-      : resultText === "Loss"
+      : resultKey === "loss"
         ? "border-l-4 border-l-red-500"
         : "border-l-4 border-l-yellow-500";
 

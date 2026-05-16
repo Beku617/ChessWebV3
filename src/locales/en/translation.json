@@ -705,11 +705,72 @@
   },
   "profileGames": {
     "allGames": "All Games ({{count}})",
+    "recentGames": "Recent Games",
+    "viewAll": "View All",
     "tournamentHistory": "Tournament History ({{count}})",
     "noTournamentHistory": "No tournament history yet.",
     "range": "{{start}}-{{end}} of {{total}} games",
+    "gamesCount": "{{count}} games",
+    "provisionalGames": "Provisional ({{count}}/{{total}})",
     "noGamesFound": "No games found",
     "noGamesFoundDescription": "Try changing your filters or play a new game.",
+    "results": {
+      "win": "Win",
+      "loss": "Loss",
+      "draw": "Draw"
+    },
+    "pools": {
+      "bullet": "Bullet",
+      "blitz": "Blitz",
+      "rapid": "Rapid",
+      "classical": "Classical"
+    },
+    "formats": {
+      "bullet": "Bullet",
+      "blitz": "Blitz",
+      "rapid": "Rapid",
+      "classical": "Classical",
+      "chess960": "Chess960",
+      "arena": "Arena",
+      "swiss": "Swiss"
+    },
+    "termination": {
+      "checkmate": "Checkmate",
+      "resignation": "Resignation",
+      "stalemate": "Stalemate",
+      "time_forfeit": "Time forfeit",
+      "timeout": "Timeout",
+      "draw": "Draw",
+      "draw_by_agreement": "Draw by agreement",
+      "repetition": "Repetition",
+      "threefold_repetition": "Threefold repetition",
+      "insufficient_material": "Insufficient material",
+      "fifty_move_rule": "50-move rule",
+      "aborted": "Aborted",
+      "abort": "Aborted",
+      "abandoned": "Abandoned"
+    },
+    "card": {
+      "gameNumber": "Game #{{index}}",
+      "duration": "Duration",
+      "moves": "Moves",
+      "shareGame": "Share game",
+      "opening": "Opening",
+      "timeControl": "Time Control",
+      "termination": "Termination",
+      "opponentLevel": "Opponent Level",
+      "notAvailable": "N/A",
+      "threeCheck": "3-Check",
+      "threeCheckScore": "{{white}} {{whiteChecks}}/3 • {{black}} {{blackChecks}}/3",
+      "white": "White",
+      "black": "Black",
+      "moveHistory": "Move History",
+      "analyze": "Analyze",
+      "pgnCopied": "PGN Copied",
+      "copyPgn": "Copy PGN",
+      "downloadFile": "Download File",
+      "unlimited": "Unlimited"
+    },
     "filters": {
       "all": "All",
       "wins": "Wins",
@@ -872,7 +933,37 @@
   "profilePage": {
     "noGamesTitle": "No games yet",
     "noGamesDescription": "Play your first game to start tracking your progress!",
-    "playNow": "Play Now"
+    "playNow": "Play Now",
+    "unknown": "Unknown",
+    "errors": {
+      "fetchGamesFailed": "Failed to fetch games",
+      "loadGamesFailed": "Failed to load games",
+      "loadProfileFailed": "Failed to load profile"
+    }
+  },
+  "profileWidgets": {
+    "formatRatingsTitle": "Format Ratings",
+    "ratingTimelineTitle": "Rating Timeline",
+    "timelineUnavailable": "Timeline is only available for the signed-in player.",
+    "loadingTimeline": "Loading timeline...",
+    "noRatedGamesInRange": "No rated games in this range yet.",
+    "current": "Current",
+    "plusMinus": "+/-",
+    "rating": "Rating",
+    "low": "Low",
+    "high": "High",
+    "leaderboardTitle": "Leaderboard",
+    "loadingLeaderboard": "Loading leaderboard...",
+    "noRatedPlayers": "No rated players yet.",
+    "youTag": "you",
+    "topPlayersHint": "Showing top {{top}} players in this pool (minimum {{minimum}} rated games).",
+    "yourPosition": "Your position",
+    "unranked": "Unranked",
+    "unrankedGamesSuffix": "({{count}}/{{total}} games)",
+    "quickStatsTitle": "Quick Stats",
+    "favoriteOpening": "Favorite Opening",
+    "averageGameDuration": "Avg. Game Duration",
+    "bestWinStreak": "Best Win Streak"
   },
   "friendsPage": {
     "relationshipStates": "Relationship states",

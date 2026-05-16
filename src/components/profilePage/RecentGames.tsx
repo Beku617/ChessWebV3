@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { History } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { GameHistory } from "../../historyTypes";
 import { GameCard } from "../profile";
 import { ShareGameModal } from "../ShareGameModal";
@@ -21,6 +22,7 @@ export function RecentGames({
   setActiveTab,
   analyzeBaseUrl,
 }: RecentGamesProps) {
+  const { t } = useTranslation();
   const [shareGame, setShareGame] = useState<GameHistory | null>(null);
 
   // Build index numbers (1-based) that match the profile history order
@@ -40,13 +42,13 @@ export function RecentGames({
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-bold flex items-center gap-2">
           <History size={20} className="text-brand-500" />
-          Recent Games
+          {t("profileGames.recentGames", "Recent Games")}
         </h3>
         <button
           onClick={() => setActiveTab("games")}
           className="text-sm text-brand-600 dark:text-brand-400 hover:underline font-medium"
         >
-          View All →
+          {t("profileGames.viewAll", "View All")} →
         </button>
       </div>
       <div className="space-y-3">

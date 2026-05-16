@@ -15,6 +15,7 @@ import {
 import { useGameReplay } from "../../hooks/useGameReplay";
 import { AdminAnalysisLoadingOverlay } from "./AdminAnalysisLoadingOverlay";
 import { useAiExplanations } from "../../components/replay/explanation/useAiExplanations";
+import { formatLocalizedOpeningLabel } from "../../utils/openingLocalization";
 
 interface AdminReplayContentProps {
   game: GameHistory;
@@ -148,7 +149,7 @@ export function AdminReplayContent({ game }: AdminReplayContentProps) {
                     moveRows={replay.moveRows}
                     currentPly={replay.ply}
                     onJumpTo={replay.jumpTo}
-                    opening={replay.opening?.name}
+                    opening={formatLocalizedOpeningLabel(replay.opening, t) || undefined}
                     aiExplainedPlies={aiExplainedPlies}
                   />
                 </div>

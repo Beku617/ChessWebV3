@@ -38,7 +38,6 @@ import { isAnalyzePath, openAnalyzeWindow } from "./utils/analyzeNavigation";
 import { API_URL } from "./config/network";
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
-const Game = lazy(() => import("./pages/game"));
 const PlayWithBot = lazy(async () => {
   const module = await import("./pages/playWithBot");
   return { default: module.default };
@@ -546,7 +545,6 @@ function Layout({ children }: { children: React.ReactNode }) {
   const isLearnLessonPage = /^\/learn\/[^/]+\/[^/]+$/.test(location.pathname);
   const isWatchGamePage = /^\/watch\/[^/]+$/.test(location.pathname);
   const isGamePage =
-    location.pathname === "/play" ||
     location.pathname === "/play/bot" ||
     location.pathname === "/play/quick" ||
     location.pathname === "/play/friend" ||
@@ -670,7 +668,7 @@ function App() {
               path="/play"
               element={
                 <ProtectedRoute>
-                  <Game />
+                  <Navigate to="/play/quick" replace />
                 </ProtectedRoute>
               }
             />

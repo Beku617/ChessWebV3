@@ -20,17 +20,21 @@ const LANGUAGE_STORAGE_KEY = "ng_lang";
 const PAIR_ID_PATTERN = /^\d{5}$/;
 
 function normalizeLanguage(value: unknown): LearnLanguage {
-  return String(value || "").toLowerCase() === "mn" ? "mn" : "en";
+  const normalized = String(value || "").toLowerCase();
+  return normalized.startsWith("mn") ? "mn" : "en";
 }
 
 function readStoredLanguage(): LearnLanguage {
   if (typeof window === "undefined") return "en";
-  return normalizeLanguage(window.localStorage.getItem(LANGUAGE_STORAGE_KEY));
+  const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
+  if (stored) return normalizeLanguage(stored);
+  return normalizeLanguage(window.localStorage.getItem("i18nextLng"));
 }
 
 function persistLanguage(language: LearnLanguage) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
+  window.localStorage.setItem("i18nextLng", language);
 }
 
 function normalizePairId(value: unknown): string {
@@ -64,7 +68,8 @@ export default function LearnLessonLanguageGate() {
     const storedLanguage = readStoredLanguage();
     const i18nLanguage = normalizeLanguage(i18n.resolvedLanguage || i18n.language || "en");
 
-    const nextLanguage = profileLanguage || storedLanguage || i18nLanguage || "en";
+    // Always honor the actively selected UI language first.
+    const nextLanguage = i18nLanguage || profileLanguage || storedLanguage || "en";
     setRequestedLanguage(nextLanguage);
     persistLanguage(nextLanguage);
   }, [i18n.language, i18n.resolvedLanguage, user?.preferredLanguage]);
@@ -144,6 +149,15 @@ export default function LearnLessonLanguageGate() {
         return;
       }
 
+      const mongolianBySlug = await safeFetchLessonMn();
+      if (mongolianBySlug) {
+        if (!cancelled) {
+          setLanguage("mn");
+          setLearnMnUnavailable(false);
+        }
+        return;
+      }
+
       const englishBySlug = await safeFetchLessonEn();
       if (englishBySlug) {
         const pairId = normalizePairId(englishBySlug?.lesson?.pairId);
@@ -170,15 +184,6 @@ export default function LearnLessonLanguageGate() {
         if (!cancelled) {
           setLanguage("en");
           setLearnMnUnavailable(true);
-        }
-        return;
-      }
-
-      const mongolianBySlug = await safeFetchLessonMn();
-      if (mongolianBySlug) {
-        if (!cancelled) {
-          setLanguage("mn");
-          setLearnMnUnavailable(false);
         }
         return;
       }
