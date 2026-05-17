@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { User } from "../models/index.js";
+import { History, History960, User } from "../models/index.js";
 import { adminAuthMiddleware } from "../middleware/index.js";
 import {
   countGameHistories,

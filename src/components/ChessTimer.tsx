@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useChessStore } from "../store/chessStore";
+import { INFINITY_SYMBOL } from "../constants";
 
 interface ChessTimerProps {
   initialTime: number; // seconds
@@ -112,7 +113,7 @@ const ChessTimer: React.FC<ChessTimerProps> = ({
   if (initialTime === 0) {
     return (
       <div className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-slate-700 text-gray-900 dark:text-white font-mono text-xl">
-        ∞
+        {INFINITY_SYMBOL}
       </div>
     );
   }

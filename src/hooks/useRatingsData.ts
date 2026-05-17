@@ -1,7 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
 import { API_URL } from "./useStockfishGameTypes";
 
-export type RatingPool = "bullet" | "blitz" | "rapid" | "classical";
+export type RatingPool =
+  | "bullet"
+  | "blitz"
+  | "rapid"
+  | "classical"
+  | "bullet960"
+  | "blitz960"
+  | "rapid960"
+  | "classical960";
 export type RatingRange = "7d" | "30d" | "90d" | "1y" | "all";
 
 export interface RatingTimelinePoint {

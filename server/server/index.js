@@ -75,6 +75,7 @@ import {
   puzzleRoutes,
   gameConfigRoutes,
   botsRoutes,
+  pgnRoutes,
   adminRoutes,
   adminUsersRoutes,
   adminGamesRoutes,
@@ -112,10 +113,21 @@ import { areUsersBlocked } from "./utils/visibility.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const allowedOrigins = [
+const DEFAULT_ALLOWED_ORIGINS = [
   "http://localhost:5173",
+  "http://localhost:3000",
   "https://neongambit-chesswebv3.vercel.app",
 ];
+const allowedOrigins = process.env.CORS_ORIGINS
+  ? [
+      ...new Set(
+        process.env.CORS_ORIGINS.split(",")
+          .map((origin) => String(origin || "").trim())
+          .filter(Boolean)
+          .concat(["http://localhost:5173", "http://localhost:3000"]),
+      ),
+    ]
+  : DEFAULT_ALLOWED_ORIGINS;
 const PORT = Number.parseInt(process.env.PORT || "3001", 10);
 const BODY_LIMIT = process.env.BODY_LIMIT || "10mb";
 const COOKIE_SECRET =
@@ -351,6 +363,7 @@ app.use("/api/history", historyRoutes);
 app.use("/api/puzzles", puzzleRoutes);
 app.use("/api/game-config", gameConfigRoutes);
 app.use("/api/bots", botsRoutes);
+app.use("/api/pgn", pgnRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/admin/users", adminUsersRoutes);
 app.use("/api/admin/games", adminGamesRoutes);

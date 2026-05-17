@@ -1,4 +1,5 @@
 import { BotPersonality } from "../../../data/botPersonalities";
+import { INFINITY_SYMBOL } from "../../../constants";
 
 export type TabType = "bots" | "custom";
 export type BotCategory = BotPersonality["category"];
@@ -35,5 +36,5 @@ export const timeOptions = [
   { label: "3+2", initial: 180, increment: 2 },
   { label: "5+3", initial: 300, increment: 3 },
   { label: "15+10", initial: 900, increment: 10 },
-  { label: "∞", initial: 0, increment: 0 },
+  { label: INFINITY_SYMBOL, initial: 0, increment: 0 },
 ];
