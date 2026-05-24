@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
 import {
   Eye,
   Hourglass,
@@ -673,9 +673,7 @@ export default function Friends() {
         <header className="space-y-3">
           <div className="flex items-start justify-between flex-wrap gap-3">
             <div className="space-y-1">
-              <h1 className="text-2xl font-semibold text-slate-50 sr-only">
-                Friends
-              </h1>
+              <h1 className="text-2xl font-semibold text-slate-50 sr-only"> <Trans>Friends</Trans> </h1>
             </div>
           </div>
         </header>
@@ -826,7 +824,9 @@ export default function Friends() {
                   className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-brand-600 text-white font-semibold text-sm hover:bg-brand-500 disabled:opacity-60 shadow-[0_12px_28px_rgba(13,148,136,0.35)]"
                 >
                   <UserPlus className="w-4 h-4" />
-                  {searching ? t("Searching...") : t("Search")}
+                  {searching
+                    ? t("friendsPage.searchingLabel", "Searching...")
+                    : t("Search")}
                 </button>
               </div>
               {searchError && (
@@ -839,7 +839,7 @@ export default function Friends() {
             <div className="rounded-xl border border-transparent bg-[#0c1627]/60 p-3 space-y-2 max-h-[480px] overflow-y-auto premium-scrollbar shadow-[0_10px_26px_rgba(0,0,0,0.2)]">
               {searching ? (
                 <EmptyState
-                  title={t("Searching...")}
+                  title={t("friendsPage.searchingLabel", "Searching...")}
                   description={t("friendsPage.searchingAcrossPlatform")}
                 />
               ) : searchResults.length === 0 ? (

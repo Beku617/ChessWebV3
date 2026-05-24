@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Check, ChevronDown, Sparkles } from "lucide-react";
+import { useTranslation, Trans } from "react-i18next";
 import { Modal } from "../../components/settings";
 import { useSettingsStore } from "../../store/settingsStore";
 import {
@@ -23,6 +24,7 @@ function providerColor(providerId: AnalysisAiProviderId): string {
 }
 
 export function AnalysisAiModelSelector() {
+  const { t } = useTranslation();
   const settings = useSettingsStore((state) => state.settings);
   const updateSetting = useSettingsStore((state) => state.update);
   const selectedModel = useMemo(
@@ -83,21 +85,15 @@ export function AnalysisAiModelSelector() {
       <Modal
         open={open}
         onClose={() => setOpen(false)}
-        title="AI Model Selector"
+        title={t("analysis.aiModelSelectorTitle")}
         maxWidth="max-w-5xl"
       >
         <div className="space-y-4">
-          <div className="rounded-xl border border-theme-glass bg-[var(--glass-surface-soft)] px-4 py-3 text-xs text-gray-600 dark:text-gray-300">
-            Selected model is applied to all game analysis views (User Analyze,
-            Analyze960, and Admin Analyze), including AI explanations for
-            Mistake, Blunder, and Brilliant moves.
-          </div>
+          <div className="rounded-xl border border-theme-glass bg-[var(--glass-surface-soft)] px-4 py-3 text-xs text-gray-600 dark:text-gray-300"> <Trans>Selected model is applied to all game analysis views (User Analyze, Analyze960, and Admin Analyze), including AI explanations for Mistake, Blunder, and Brilliant moves.</Trans> </div>
 
           <div className="grid gap-4 md:grid-cols-[250px,minmax(0,1fr)]">
             <div className="theme-glass-panel-soft rounded-2xl p-3">
-              <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                Providers
-              </h3>
+              <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400"> <Trans>Providers</Trans> </h3>
               <div className="max-h-[420px] space-y-2 overflow-y-auto pr-1 premium-scrollbar">
                 {ANALYSIS_AI_PROVIDERS.map((provider) => {
                   const isActive = provider.id === activeProvider;
@@ -142,9 +138,7 @@ export function AnalysisAiModelSelector() {
             </div>
 
             <div className="theme-glass-panel-soft rounded-2xl p-3">
-              <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                Models
-              </h3>
+              <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400"> <Trans>Models</Trans> </h3>
               <div className="max-h-[420px] space-y-2 overflow-y-auto pr-1 premium-scrollbar">
                 {modelsForActiveProvider.map((model) => {
                   const isSelected = model.id === selectedModel.id;
@@ -173,14 +167,11 @@ export function AnalysisAiModelSelector() {
                               </span>
                             )}
                           </div>
-                          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                            Input: {model.input}
+                          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400"> <Trans>Input:</Trans> {model.input}
                           </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            Output: {model.output}
+                          <p className="text-xs text-gray-500 dark:text-gray-400"> <Trans>Output:</Trans> {model.output}
                           </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            Max input: {model.maxInputTokens}
+                          <p className="text-xs text-gray-500 dark:text-gray-400"> <Trans>Max input:</Trans> {model.maxInputTokens}
                           </p>
                           {!isConfigured && (
                             <p className="mt-1 text-[11px] text-amber-700 dark:text-amber-300">

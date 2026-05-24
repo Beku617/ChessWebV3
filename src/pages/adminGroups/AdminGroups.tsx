@@ -1,5 +1,6 @@
 import { useCallback, useDeferredValue, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation, Trans } from "react-i18next";
 import { Edit3, Loader2, Plus, Search, Trash2, Users } from "lucide-react";
 import { AdminPagination } from "../../components/AdminPagination";
 import AdminSidebar from "../../components/AdminSidebar";
@@ -28,6 +29,7 @@ const emptyDraft: GroupDraft = {
 };
 
 export default function AdminGroups() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { isAuthenticated, isLoading: authLoading, checkAuth } = useAdminStore();
   const { isDarkMode } = useThemeStore();
@@ -181,9 +183,7 @@ export default function AdminGroups() {
           <section className="rounded-[28px] border border-gray-200/80 bg-white/95 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.08)] dark:border-white/[0.05] dark:bg-[#0c1728]/85 dark:shadow-[0_24px_75px_rgba(0,0,0,0.24)]">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <h1 className="text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
-                  Community Groups
-                </h1>
+                <h1 className="text-3xl font-semibold tracking-tight text-gray-900 dark:text-white"> <Trans>Community Groups</Trans> </h1>
               </div>
 
               <button
@@ -192,7 +192,9 @@ export default function AdminGroups() {
                 className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-500"
               >
                 <Plus className="h-4 w-4" />
-                {isCreateOpen ? "Close form" : "Create group"}
+                {isCreateOpen
+                  ? t("admin.groups.actions.closeForm", "Close form")
+                  : t("admin.groups.actions.createGroup", "Create group")}
               </button>
             </div>
 
@@ -205,7 +207,7 @@ export default function AdminGroups() {
                     setSearch(event.target.value);
                     setPage(1);
                   }}
-                  placeholder="Search groups by name, topic, or description..."
+                  placeholder={t("admin.search.groups")}
                   className="w-full rounded-2xl border border-gray-200 bg-gray-50 py-3 pl-11 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-white/[0.05] dark:bg-white/[0.05] dark:text-white dark:placeholder:text-gray-500"
                 />
               </div>
@@ -220,7 +222,7 @@ export default function AdminGroups() {
                       onChange={(event) =>
                         setCreateDraft((current) => ({ ...current, name: event.target.value }))
                       }
-                      placeholder="Group name"
+                      placeholder={t("admin.groups.placeholders.groupName", "Group name")}
                       className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-white/[0.05] dark:bg-white/[0.05] dark:text-white dark:placeholder:text-gray-500"
                     />
                     <textarea
@@ -231,7 +233,10 @@ export default function AdminGroups() {
                           description: event.target.value,
                         }))
                       }
-                      placeholder="Describe what this group is for..."
+                      placeholder={t(
+                        "admin.groups.placeholders.description",
+                        "Describe what this group is for...",
+                      )}
                       className="min-h-[120px] w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm leading-6 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-white/[0.05] dark:bg-white/[0.05] dark:text-white dark:placeholder:text-gray-500"
                     />
                   </div>
@@ -242,7 +247,7 @@ export default function AdminGroups() {
                       onChange={(event) =>
                         setCreateDraft((current) => ({ ...current, topic: event.target.value }))
                       }
-                      placeholder="Topic"
+                      placeholder={t("admin.groups.placeholders.topic", "Topic")}
                       className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-white/[0.05] dark:bg-white/[0.05] dark:text-white dark:placeholder:text-gray-500"
                     />
                     <button
@@ -251,7 +256,9 @@ export default function AdminGroups() {
                       disabled={isCreating}
                       className="w-full rounded-xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-500 disabled:opacity-50"
                     >
-                      {isCreating ? "Creating..." : "Create group"}
+                      {isCreating
+                        ? t("admin.groups.actions.creating", "Creating...")
+                        : t("admin.groups.actions.createGroup", "Create group")}
                     </button>
                   </div>
                 </div>
@@ -272,10 +279,8 @@ export default function AdminGroups() {
           ) : groups.length === 0 ? (
             <div className="mt-6 rounded-2xl border border-gray-200/80 bg-white/95 px-6 py-24 text-center shadow-[0_18px_44px_rgba(15,23,42,0.08)] dark:border-white/[0.05] dark:bg-[#0c1728]/80 dark:shadow-[0_22px_65px_rgba(0,0,0,0.22)]">
               <Users className="mx-auto h-10 w-10 text-gray-500" />
-              <div className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">No groups yet</div>
-              <p className="mt-2 text-sm leading-7 text-gray-500 dark:text-gray-500">
-                Create the first public community group.
-              </p>
+              <div className="mt-4 text-lg font-semibold text-gray-900 dark:text-white"><Trans>No groups yet</Trans></div>
+              <p className="mt-2 text-sm leading-7 text-gray-500 dark:text-gray-500"> <Trans>Create the first public community group.</Trans> </p>
             </div>
           ) : (
             <div className="mt-6 grid gap-5 xl:grid-cols-2">
@@ -295,13 +300,13 @@ export default function AdminGroups() {
                             {group.name}
                           </div>
                           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-500">
-                            <span>{group.memberCount} members</span>
+                            <span>{group.memberCount} <Trans>members</Trans></span>
                             {group.topic && (
                               <span className="rounded-full bg-gray-100 px-2.5 py-1 text-[11px] text-gray-500 dark:bg-white/[0.04] dark:text-gray-400">
                                 {group.topic}
                               </span>
                             )}
-                            <span>/community/groups/{group.slug}</span>
+                            <span><Trans>/community/groups/</Trans>{group.slug}</span>
                           </div>
                         </div>
                       </div>
@@ -312,7 +317,9 @@ export default function AdminGroups() {
                             type="button"
                             onClick={() => handleStartEdit(group)}
                             className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100 text-gray-700 transition-colors hover:bg-gray-200 dark:bg-white/[0.05] dark:text-gray-200 dark:hover:bg-white/[0.1]"
-                            aria-label={`Edit ${group.name}`}
+                            aria-label={t("admin.aria.editGroup", {
+                              name: group.name,
+                            })}
                           >
                             <Edit3 className="h-4 w-4" />
                           </button>
@@ -322,7 +329,9 @@ export default function AdminGroups() {
                           disabled={isBusy}
                           onClick={() => void handleDelete(group)}
                           className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-red-500/10 text-red-200 transition-colors hover:bg-red-500/20 disabled:opacity-50"
-                          aria-label={`Delete ${group.name}`}
+                          aria-label={t("admin.aria.deleteGroup", {
+                            name: group.name,
+                          })}
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -360,55 +369,52 @@ export default function AdminGroups() {
                             type="button"
                             onClick={() => setEditingId(null)}
                             className="rounded-xl bg-gray-100 px-4 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-200 dark:bg-white/[0.06] dark:text-gray-200 dark:hover:bg-white/[0.12]"
-                          >
-                            Cancel
-                          </button>
+                          > <Trans>Cancel</Trans> </button>
                           <button
                             type="button"
                             disabled={isBusy}
                             onClick={() => void handleSaveEdit(group.id)}
                             className="rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-500 disabled:opacity-50"
                           >
-                            {isBusy ? "Saving..." : "Save changes"}
+                            {isBusy
+                              ? t("admin.groups.actions.saving", "Saving...")
+                              : t("admin.groups.actions.saveChanges", "Save changes")}
                           </button>
                         </div>
                       </div>
                     ) : (
                       <>
                         <p className="mt-4 text-sm leading-7 text-gray-600 dark:text-gray-400">
-                          {group.description || "No description yet."}
+                          {group.description ||
+                            t("admin.groups.labels.noDescription", "No description yet.")}
                         </p>
                         <div className="mt-5 grid gap-3 sm:grid-cols-3">
                           <div className="rounded-2xl bg-gray-100/90 px-4 py-3 dark:bg-white/[0.03]">
-                            <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500 dark:text-gray-500">
-                              Members
-                            </div>
+                            <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500 dark:text-gray-500"> <Trans>Members</Trans> </div>
                             <div className="mt-2 text-lg font-semibold text-gray-900 dark:text-white">
                               {group.memberCount}
                             </div>
                           </div>
                           <div className="rounded-2xl bg-gray-100/90 px-4 py-3 dark:bg-white/[0.03]">
-                            <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500 dark:text-gray-500">
-                              Approved Posts
-                            </div>
+                            <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500 dark:text-gray-500"> <Trans>Approved Posts</Trans> </div>
                             <div className="mt-2 text-lg font-semibold text-gray-900 dark:text-white">
                               {group.approvedPostCount || 0}
                             </div>
                           </div>
                           <div className="rounded-2xl bg-gray-100/90 px-4 py-3 dark:bg-white/[0.03]">
-                            <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500 dark:text-gray-500">
-                              Created
-                            </div>
+                            <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500 dark:text-gray-500"> <Trans>Created</Trans> </div>
                             <div className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
-                              {group.createdAt ? formatRelativeTime(group.createdAt) : "Just now"}
+                              {group.createdAt
+                                ? formatRelativeTime(group.createdAt)
+                                : t("admin.groups.labels.justNow", "Just now")}
                             </div>
                           </div>
                         </div>
 
-                        <div className="mt-5 border-t border-gray-200 pt-4 text-sm text-gray-500 dark:border-white/[0.05] dark:text-gray-500">
-                          Creator:{" "}
+                        <div className="mt-5 border-t border-gray-200 pt-4 text-sm text-gray-500 dark:border-white/[0.05] dark:text-gray-500"> <Trans>Creator:</Trans>{" "}
                           <span className="text-gray-800 dark:text-gray-200">
-                            {group.creator?.fullName || "Unknown"}
+                            {group.creator?.fullName ||
+                              t("admin.groups.labels.unknown", "Unknown")}
                           </span>
                         </div>
                       </>
@@ -424,7 +430,7 @@ export default function AdminGroups() {
               totalPages={totalPages}
               totalItems={totalGroups}
               pageSize={GROUPS_PAGE_SIZE}
-              itemLabel="groups"
+              itemLabel={t("admin.groups.labels.groups", "groups")}
               onPageChange={setPage}
             />
           )}

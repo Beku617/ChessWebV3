@@ -1,3 +1,4 @@
+import { Trans } from "react-i18next";
 interface PuzzleProgressBarProps {
   streak: number;
   puzzleElo: number;
@@ -28,7 +29,7 @@ export function PuzzleProgressBar({
 
       {/* Puzzle Elo */}
       <div className="px-3 pb-2 text-sm text-gray-300 flex items-center gap-2">
-        <span className="text-gray-400">Puzzle Elo</span>
+        <span className="text-gray-400"><Trans>Puzzle Elo</Trans></span>
         <span className="font-semibold text-amber-300 font-mono">
           {puzzleElo}
         </span>

@@ -1,4 +1,5 @@
 import { X } from "lucide-react";
+import { useTranslation, Trans } from "react-i18next";
 
 type PreviewGalleryModalProps = {
   gallery: {
@@ -14,6 +15,7 @@ export function PreviewGalleryModal({
   onClose,
   onSelect,
 }: PreviewGalleryModalProps) {
+  const { t } = useTranslation();
   if (!gallery) return null;
 
   return (
@@ -25,7 +27,7 @@ export function PreviewGalleryModal({
         type="button"
         onClick={onClose}
         className="absolute top-4 right-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
-        aria-label="Close image preview"
+        aria-label={t("common.closeImagePreview")}
       >
         <X className="w-5 h-5" />
       </button>
@@ -45,7 +47,7 @@ export function PreviewGalleryModal({
             <span>
               {gallery.index + 1} / {gallery.items.length}
             </span>
-            <span>Use keyboard arrows to browse</span>
+            <span><Trans>Use keyboard arrows to browse</Trans></span>
           </div>
           <div className="mx-auto mt-3 flex max-w-4xl gap-2 overflow-x-auto pb-1 premium-scrollbar">
             {gallery.items.map((item, index) => (

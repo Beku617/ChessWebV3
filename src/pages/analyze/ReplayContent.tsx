@@ -20,9 +20,10 @@ import { formatLocalizedOpeningLabel } from "../../utils/openingLocalization";
 
 interface ReplayContentProps {
   game: GameHistory;
+  onBack?: () => void;
 }
 
-export function ReplayContent({ game }: ReplayContentProps) {
+export function ReplayContent({ game, onBack }: ReplayContentProps) {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const replay = useGameReplay(game);
@@ -56,7 +57,7 @@ export function ReplayContent({ game }: ReplayContentProps) {
       <div className="flex-shrink-0 px-4 sm:px-6 pt-4 mb-2">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => navigate("/profile")}
+            onClick={onBack ?? (() => navigate("/profile"))}
             className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
           >
             <ArrowLeft size={16} />

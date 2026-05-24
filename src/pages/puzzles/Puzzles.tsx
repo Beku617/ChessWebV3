@@ -12,7 +12,7 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import { Chessboard } from "react-chessboard";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
 import type { PuzzleItem } from "./types";
 import { fetchPuzzleLibrary, togglePuzzleBookmark } from "./api";
 
@@ -261,7 +261,6 @@ export default function Puzzles() {
       value: "review_due",
       label: t("puzzles.status.reviewDue", "Review Due"),
     },
-    { value: "mastered", label: t("puzzles.status.mastered", "Mastered") },
     {
       value: "bookmarked",
       label: t("puzzles.status.bookmarked", "Bookmarked"),
@@ -508,7 +507,7 @@ export default function Puzzles() {
                 <div className="mt-2.5 flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <h3 className="font-semibold text-white truncate">{puzzle.title}</h3>
-                    <p className="text-xs text-slate-400">{puzzle.rating} Elo</p>
+                    <p className="text-xs text-slate-400">{puzzle.rating} <Trans>Elo</Trans></p>
                   </div>
                   {puzzle.userState?.isBookmarked ? (
                     <button

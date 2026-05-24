@@ -1,3 +1,4 @@
+import { Trans } from "react-i18next";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Chess } from "chess.js";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
@@ -552,9 +553,7 @@ export function WatchSpectatorGame({ gameId }: WatchSpectatorGameProps) {
               disabled={!canStepBackward}
               className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-gray-800 dark:text-gray-200 font-medium transition-colors disabled:opacity-50"
             >
-              <ChevronLeft className="w-4 h-4" />
-              Previous
-            </button>
+              <ChevronLeft className="w-4 h-4" /> <Trans>Previous</Trans> </button>
             <button
               type="button"
               onClick={() =>
@@ -562,9 +561,7 @@ export function WatchSpectatorGame({ gameId }: WatchSpectatorGameProps) {
               }
               disabled={!canStepForward}
               className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-gray-800 dark:text-gray-200 font-medium transition-colors disabled:opacity-50"
-            >
-              Next
-              <ChevronRight className="w-4 h-4" />
+            > <Trans>Next</Trans> <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         }
@@ -598,16 +595,12 @@ export function WatchSpectatorGame({ gameId }: WatchSpectatorGameProps) {
                   type="button"
                   onClick={closeResultModal}
                   className="w-full rounded-xl bg-sky-600 px-5 py-3 font-semibold text-white transition-colors hover:bg-sky-500"
-                >
-                  Continue Watching Moves
-                </button>
+                > <Trans>Continue Watching Moves</Trans> </button>
                 <button
                   type="button"
                   onClick={() => navigate("/watch")}
                   className="w-full rounded-xl border border-slate-600 bg-slate-800/70 px-5 py-3 font-semibold text-slate-100 transition-colors hover:bg-slate-700"
-                >
-                  Back to Watch
-                </button>
+                > <Trans>Back to Watch</Trans> </button>
               </div>
             </div>
           </div>

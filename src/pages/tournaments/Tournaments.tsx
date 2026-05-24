@@ -1,7 +1,7 @@
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
 import {
   CalendarDays,
   ChevronLeft,
@@ -353,8 +353,14 @@ function formatGameTime(timeControl?: TimeControl) {
     : `${baseMinutes} ${minAbbr}`;
 }
 
+function getUiLocale() {
+  const language = String(i18n.resolvedLanguage || i18n.language || "").toLowerCase();
+  if (language.startsWith("mn")) return "mn-MN";
+  return undefined;
+}
+
 function formatShortTime(date: Date) {
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(getUiLocale(), {
     month: "short",
     day: "numeric",
     hour: "numeric",
@@ -669,7 +675,7 @@ function ArenaResultsModal({
           >
             <X size={18} />
           </button>
-          <h3 className="text-2xl font-semibold leading-tight">Arena Over</h3>
+          <h3 className="text-2xl font-semibold leading-tight"><Trans>Arena Over</Trans></h3>
           <p className="mt-1 text-sm text-white/80">{tournament.name || "Tournament"}</p>
           <p className="mt-0.5 text-xs text-white/55">
             {tournament.timeControlLabel || formatTimeCategory(tournament)}
@@ -1415,11 +1421,11 @@ function isSameLocalDay(left: Date, right: Date) {
 }
 
 function formatTimelineHour(date: Date) {
-  return new Intl.DateTimeFormat(undefined, { hour: "numeric" }).format(date);
+  return new Intl.DateTimeFormat(getUiLocale(), { hour: "numeric" }).format(date);
 }
 
 function formatDayBoundaryLabel(date: Date) {
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(getUiLocale(), {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -1429,7 +1435,7 @@ function formatDayBoundaryLabel(date: Date) {
 }
 
 function formatScheduleDayLabel(date: Date) {
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(getUiLocale(), {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -2218,10 +2224,10 @@ export default function Tournaments() {
   );
   const formatStatusLabel = (status: TournamentStatus) => {
     if (status === "REGISTRATION_OPEN") {
-      return t("tournamentCommon.status.registrationOpen", "Registration open");
+      return t("tournamentCommon.status.registrationOpen", "Registration Open");
     }
     if (status === "LIVE_ROUND") {
-      return t("tournamentCommon.status.live", "Active");
+      return t("tournamentCommon.status.live", "Live");
     }
     if (status === "ROUND_CLOSED") {
       return t("tournamentCommon.badges.roundClosed", "Round closed");
@@ -3190,8 +3196,7 @@ export default function Tournaments() {
                       >
                         {CREATE_DURATION_OPTIONS.map((duration) => (
                           <option key={duration} value={String(duration)}>
-                            {duration} min
-                          </option>
+                            {duration} <Trans>min</Trans> </option>
                         ))}
                       </select>
                     </div>

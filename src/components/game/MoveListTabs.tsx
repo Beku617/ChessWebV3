@@ -1,4 +1,5 @@
 import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 function joinClasses(...classes: Array<string | undefined | null | false>) {
   return classes.filter(Boolean).join(" ");
@@ -63,9 +64,9 @@ export function MoveListTabs({
   messages,
   showMessagesTab,
   className,
-  movesLabel = "Moves",
-  messagesLabel = "Messages",
-  emptyMessagesText = "No messages yet.",
+  movesLabel,
+  messagesLabel,
+  emptyMessagesText,
   defaultTab = "moves",
   currentUserId,
   messagesTopContent,
@@ -73,9 +74,20 @@ export function MoveListTabs({
   onSendMessage,
   disableMessageInput = false,
   hideMessageInput = false,
-  messageInputPlaceholder = "Type a message...",
-  sendButtonLabel = "Send",
+  messageInputPlaceholder,
+  sendButtonLabel,
 }: MoveListTabsProps) {
+  const { t } = useTranslation();
+  const resolvedMovesLabel = movesLabel ?? t("quickMatch.tabs.moves", "Moves");
+  const resolvedMessagesLabel = messagesLabel ?? t("Messages");
+  const resolvedEmptyMessagesText =
+    emptyMessagesText ??
+    t("quickMatch.chat.emptyMessages", "No messages yet.");
+  const resolvedMessageInputPlaceholder =
+    messageInputPlaceholder ??
+    t("quickMatch.chat.typeMessage", "Type a message...");
+  const resolvedSendButtonLabel =
+    sendButtonLabel ?? t("quickMatch.chat.send", "Send");
   const canShowMessages = showMessagesTab ?? messages !== undefined;
   const [tab, setTab] = useState<"moves" | "messages">(
     defaultTab === "messages" && !canShowMessages ? "moves" : defaultTab,
@@ -191,7 +203,7 @@ export function MoveListTabs({
                 : "text-gray-600 hover:bg-gray-200/70 dark:text-gray-300 dark:hover:bg-slate-700/60",
             )}
           >
-            {movesLabel}
+            {resolvedMovesLabel}
           </button>
           <button
             type="button"
@@ -203,7 +215,7 @@ export function MoveListTabs({
                 : "text-gray-600 hover:bg-gray-200/70 dark:text-gray-300 dark:hover:bg-slate-700/60",
             )}
           >
-            <span>{messagesLabel}</span>
+            <span>{resolvedMessagesLabel}</span>
             {unreadMessageCount > 0 ? (
               <span className="inline-flex min-w-[1.1rem] items-center justify-center rounded-full bg-emerald-500 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
                 {unreadMessageCount > 99 ? "99+" : unreadMessageCount}
@@ -225,7 +237,7 @@ export function MoveListTabs({
               {messagesTopContent ? <div>{messagesTopContent}</div> : null}
               {safeMessages.length === 0 && !messagesTopContent ? (
                 <div className="text-center text-gray-400 dark:text-gray-500 text-xs py-6">
-                  {emptyMessagesText}
+                  {resolvedEmptyMessagesText}
                 </div>
               ) : (
                 safeMessages.map((message) => {
@@ -256,7 +268,11 @@ export function MoveListTabs({
                   return (
                     <div
                       key={message.id}
-                      aria-label={isOwnMessage ? "Your message" : "Opponent message"}
+                      aria-label={
+                        isOwnMessage
+                          ? t("game.chat.yourMessage")
+                          : t("game.chat.opponentMessage")
+                      }
                       className={joinClasses(
                         "flex",
                         isOwnMessage ? "justify-end" : "justify-start",
@@ -303,7 +319,7 @@ export function MoveListTabs({
                       submitDraftMessage();
                     }}
                     disabled={disableMessageInput}
-                    placeholder={messageInputPlaceholder}
+                    placeholder={resolvedMessageInputPlaceholder}
                     className="flex-1 rounded-lg border border-white/10 bg-slate-900/65 px-3 py-2 text-xs text-gray-100 placeholder:text-gray-400 focus:border-emerald-400/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
                   />
                   <button
@@ -312,7 +328,7 @@ export function MoveListTabs({
                     disabled={disableMessageInput || !draftMessage.trim()}
                     className="rounded-lg bg-emerald-500/85 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    {sendButtonLabel}
+                    {resolvedSendButtonLabel}
                   </button>
                 </div>
               </div>

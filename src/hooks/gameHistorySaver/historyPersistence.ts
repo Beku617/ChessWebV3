@@ -1,3 +1,5 @@
+import i18n from "../../i18n";
+
 export const MIN_STORED_MOVES = 2;
 
 export type HistoryPersistenceStatus =
@@ -18,10 +20,18 @@ export function canAnalyzeSavedGame(savedGameId: string | null): boolean {
 export function getHistoryStatusNote(
   status: HistoryPersistenceStatus,
 ): string | null {
-  if (status === "saving") return "Saving game to history...";
+  if (status === "saving") {
+    return i18n.t("quickMatch.history.saving", "Saving game to history...");
+  }
   if (status === "skipped_short_game")
-    return "Game analyze is unavailable for very short games.";
+    return i18n.t(
+      "quickMatch.history.shortGameAnalyzeUnavailable",
+      "Game analyze is unavailable for very short games.",
+    );
   if (status === "failed")
-    return "Game analyze is unavailable because this game was not saved.";
+    return i18n.t(
+      "quickMatch.history.notSavedAnalyzeUnavailable",
+      "Game analyze is unavailable because this game was not saved.",
+    );
   return null;
 }

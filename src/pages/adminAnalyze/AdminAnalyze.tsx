@@ -1,11 +1,11 @@
+import { Trans } from "react-i18next";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { GameHistory } from "../../historyTypes";
 import { useAdminStore } from "../../store/adminStore";
-import AdminSidebar from "../../components/AdminSidebar";
 import { API_URL } from "./types";
-import { AdminReplayContent } from "./AdminReplayContent";
+import { ReplayContent } from "../analyze/ReplayContent";
 
 export default function AdminAnalyze() {
   const { gameId } = useParams<{ gameId: string }>();
@@ -66,15 +66,12 @@ export default function AdminAnalyze() {
   if (error || !game) {
     return (
       <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-950 text-gray-900 dark:text-white">
-        <AdminSidebar />
-        <main className="ml-72 p-8">
+        <main className="mx-auto w-full max-w-5xl p-8">
           <button
             onClick={() => navigate(-1)}
             className="flex items-center gap-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 mb-6"
           >
-            <ArrowLeft className="w-4 h-4" />
-            Go Back
-          </button>
+            <ArrowLeft className="w-4 h-4" /> <Trans>Go Back</Trans> </button>
           <div className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 p-4 rounded-xl">
             {error || "Game not found"}
           </div>
@@ -83,6 +80,6 @@ export default function AdminAnalyze() {
     );
   }
 
-  return <AdminReplayContent game={game} />;
+  return <ReplayContent game={game} />;
 }
 

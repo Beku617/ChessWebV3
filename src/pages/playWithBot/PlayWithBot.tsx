@@ -60,7 +60,7 @@ const BOT_DIFFICULTY_DESCRIPTORS: Record<
     en: "advanced",
     mn: "ахисан",
     traitEn: "coordinates pieces quickly and squeezes small edges",
-    traitMn: "хөлгүүдээ хурдан уялдуулж, жижиг давууг шахдаг",
+    traitMn: "хөлгүүдээ хурдан уялдуулж, жижиг давууг шагдаг",
   },
   master: {
     en: "master",
@@ -323,7 +323,7 @@ export default function PlayWithBot() {
           >
             <PlayerInfo
               name={selectedBot?.name || t("Select Bot")}
-              subtitle={selectedBot?.title || "AI opponent"}
+              subtitle={selectedBot?.title || t("botGame.aiOpponent", "AI opponent")}
               rating={selectedBot?.rating ?? null}
               avatarLetter={getBotInitials(selectedBot?.name)}
               avatarImage={selectedBot?.avatarUrl}
@@ -478,7 +478,7 @@ export default function PlayWithBot() {
                           {categoryBots.length === 1 ? t("bot") : t("bots")}
                         </span>
                         <span className="text-xs font-semibold text-gray-400">
-                          {isExpanded ? "Hide" : "Show"}
+                          {isExpanded ? t("Hide") : t("Show")}
                         </span>
                       </div>
                     </button>

@@ -1,5 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Chessboard } from "react-chessboard";
+import { useTranslation, Trans } from "react-i18next";
 import {
   ChevronDown,
   ChevronUp,
@@ -143,6 +144,7 @@ export function FriendGameSetup({
   challengeInfo = null,
   isRealtimeConnected = true,
 }: FriendGameSetupProps) {
+  const { t } = useTranslation();
   const { user } = useAuthStore();
   const { colors } = useBoardTheme();
   const [friendSearch, setFriendSearch] = useState("");
@@ -224,7 +226,7 @@ export function FriendGameSetup({
         const mappedFriends: FriendPreview[] = (data.friends || []).map(
           (f: any) => ({
             id: String(f.id),
-            name: f.name || f.fullName || "Friend",
+            name: f.name || f.fullName || t("Friend"),
             avatar: resolveAvatarUrl(f.avatar),
             rating: typeof f.rating === "number" ? f.rating : undefined,
           }),
@@ -235,7 +237,7 @@ export function FriendGameSetup({
         setFriendsError(null);
       } catch {
         if (!isActive) return;
-        setFriendsError("Failed to load friends list.");
+        setFriendsError(t("Failed to load friends list."));
       } finally {
         if (isActive) setLoadingFriends(false);
       }
@@ -321,10 +323,15 @@ export function FriendGameSetup({
   }, [timeControl]);
 
   const selectedTimeLabel = selectedTimeOption
-    ? `${selectedTimeOption.label} (${selectedTimeOption.groupLabel})`
-    : "Select Time";
+    ? `${t(selectedTimeOption.label)} (${t(selectedTimeOption.groupLabel)})`
+    : t("Select Time");
 
-  const opponentLabel = friendName?.trim() || "Friend";
+  const normalizedFriendName = friendName?.trim();
+  const opponentLabel =
+    normalizedFriendName &&
+    normalizedFriendName.toLowerCase() !== "friend"
+      ? normalizedFriendName
+      : t("Friend");
   const playerAvatarUrl = resolveAvatarUrl(user?.avatar);
 
   const handleSendChallenge = () => {
@@ -376,7 +383,7 @@ export function FriendGameSetup({
           >
             <PlayerInfo
               name={opponentLabel}
-              subtitle={selectedFriend ? "Friend match" : "Select friend"}
+              subtitle={selectedFriend ? t("Friend match") : t("Select friend")}
               rating={selectedFriend?.rating ?? null}
               avatarLetter={opponentLabel.substring(0, 2).toUpperCase() || "F"}
               avatarImage={selectedFriend?.avatar}
@@ -440,7 +447,7 @@ export function FriendGameSetup({
             style={{ width: boardWidth }}
           >
             <PlayerInfo
-              name={user?.fullName || "You"}
+              name={user?.fullName || t("You")}
               rating={user?.rating ?? null}
               avatarLetter={user?.fullName?.substring(0, 2).toUpperCase() || "Y"}
               avatarImage={playerAvatarUrl}
@@ -466,14 +473,14 @@ export function FriendGameSetup({
                     type="text"
                     value={friendSearch}
                     onChange={(e) => setFriendSearch(e.target.value)}
-                    placeholder="Search by username"
+                    placeholder={t("common.searchByUsername")}
                     className="w-full pl-10 pr-3 py-2 rounded-xl bg-white/60 dark:bg-white/10 text-gray-900 dark:text-white text-[12px] border border-white/10 focus:outline-none focus:ring-2 focus:ring-brand-500"
                   />
                 </div>
 
                 <div className="mt-2 flex items-center gap-2">
                   <span className="text-[12px] font-semibold text-gray-900 dark:text-white">
-                    Friends
+                    {t("Friends")}
                   </span>
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-gray-300">
                     {filteredFriends.length}
@@ -483,13 +490,13 @@ export function FriendGameSetup({
                 <div className="mt-1 max-h-48 overflow-y-auto space-y-1 pr-1">
                   {loadingFriends ? (
                     <p className="text-[11px] text-gray-500 dark:text-gray-400 py-1">
-                      Loading friends...
+                      {t("Loading friends...")}
                     </p>
                   ) : friendsError ? (
                     <p className="text-[11px] text-red-500 py-1">{friendsError}</p>
                   ) : filteredFriends.length === 0 ? (
                     <p className="text-[11px] text-gray-500 dark:text-gray-400 py-1">
-                      No friends found.
+                      {t("No friends found.")}
                     </p>
                   ) : (
                     filteredFriends.map((friend) => {
@@ -548,7 +555,7 @@ export function FriendGameSetup({
                 <div className="theme-glass-panel-soft rounded-2xl p-3">
                   <div className="flex items-center gap-2 text-[12px] font-semibold text-gray-900 dark:text-white">
                     <Users className="w-4 h-4 text-brand-500" />
-                    <span>Play vs</span>
+                    <span>{t("Play vs")}</span>
                   </div>
 
                   <div className="mt-3 flex flex-col items-center text-center">
@@ -582,13 +589,13 @@ export function FriendGameSetup({
                     onClick={() => setHasChosenFriend(false)}
                     className="mt-3 w-full py-2 rounded-xl border border-white/10 bg-white/55 dark:bg-white/10 text-[12px] font-semibold text-gray-700 dark:text-gray-300 hover:bg-white/75 dark:hover:bg-white/15 transition-colors"
                   >
-                    Change Friend
+                    {t("Change Friend")}
                   </button>
                 </div>
 
                 <div className="theme-glass-panel-soft rounded-2xl p-3">
                   <div className="text-[12px] font-semibold text-gray-900 dark:text-white mb-2">
-                    Game Type
+                    {t("Game Type")}
                   </div>
                   <button
                     type="button"
@@ -596,7 +603,7 @@ export function FriendGameSetup({
                     className="w-full py-3 px-3 rounded-xl bg-white/55 dark:bg-white/10 border border-white/10 text-gray-800 dark:text-gray-100 flex items-center justify-between"
                   >
                     <span className="flex items-center gap-2 text-[13px] font-semibold">
-                      {selectedGameType.label}
+                      {t(selectedGameType.label)}
                     </span>
                     {isGameTypeOpen ? (
                       <ChevronUp className="w-4 h-4 opacity-80" />
@@ -624,7 +631,7 @@ export function FriendGameSetup({
                             }`}
                           >
                             <span className="flex items-center gap-2 text-[13px] font-medium">
-                              <span>{option.label}</span>
+                              <span>{t(option.label)}</span>
                             </span>
                           </button>
                         );
@@ -655,7 +662,7 @@ export function FriendGameSetup({
                       {TIME_GROUPS.map((group) => (
                         <div key={group.id}>
                             <div className="flex items-center gap-1.5 text-[12px] font-semibold text-gray-800 dark:text-gray-200">
-                              <span>{group.label}</span>
+                              <span>{t(group.label)}</span>
                             </div>
                             <div className="mt-1.5 grid grid-cols-3 gap-2">
                               {group.options.map((option) => {
@@ -679,7 +686,7 @@ export function FriendGameSetup({
                                         : "bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 ring-1 ring-gray-200 dark:ring-slate-700 hover:ring-gray-300 dark:hover:ring-slate-600"
                                     }`}
                                   >
-                                    {option.label}
+                                    {t(option.label)}
                                   </button>
                                 );
                               })}
@@ -688,11 +695,11 @@ export function FriendGameSetup({
                       ))}
                       <div className="theme-glass-panel-soft rounded-xl p-2.5">
                         <div className="text-[12px] font-semibold text-gray-800 dark:text-gray-200">
-                          Custom
+                          {t("Custom")}
                         </div>
                         <div className="mt-2 grid grid-cols-2 gap-2">
                           <label className="text-[11px] text-gray-600 dark:text-gray-300">
-                            Base (min)
+                            {t("Base (min)")}
                             <input
                               type="number"
                               min={1}
@@ -705,7 +712,7 @@ export function FriendGameSetup({
                             />
                           </label>
                           <label className="text-[11px] text-gray-600 dark:text-gray-300">
-                            Increment (sec)
+                            {t("Increment (sec)")}
                             <input
                               type="number"
                               min={0}
@@ -723,7 +730,7 @@ export function FriendGameSetup({
                           onClick={applyCustomTimeControl}
                           className="mt-2 w-full rounded-lg bg-brand-500/20 text-brand-700 dark:text-brand-300 py-1.5 text-[12px] font-semibold ring-1 ring-brand-500/40 hover:bg-brand-500/25 transition-colors"
                         >
-                          Apply Custom
+                          {t("Apply Custom")}
                         </button>
                       </div>
                     </div>
@@ -731,13 +738,11 @@ export function FriendGameSetup({
                 </div>
 
                 <p className="px-1 text-[11px] text-gray-500 dark:text-gray-400">
-                  Friend games are always unrated. Elo does not change.
+                  {t("Friend games are always unrated. Elo does not change.")}
                 </p>
 
                 <div className="theme-glass-panel-soft rounded-2xl p-3">
-                  <div className="text-[12px] font-semibold text-gray-900 dark:text-white mb-2">
-                    I play as
-                  </div>
+                  <div className="text-[12px] font-semibold text-gray-900 dark:text-white mb-2"> <Trans>I play as</Trans> </div>
                   <div className="grid grid-cols-3 gap-2">
                     {PLAY_AS_OPTIONS.map((option) => {
                       const active = playAs === option.id;
@@ -752,7 +757,7 @@ export function FriendGameSetup({
                               : "bg-gray-100 dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-300"
                           }`}
                         >
-                          {option.label}
+                          {t(option.label)}
                         </button>
                       );
                     })}
@@ -786,17 +791,17 @@ export function FriendGameSetup({
               >
                 <Play className="w-5 h-5" />
                 {isSendingChallenge
-                  ? "Sending..."
+                  ? t("Sending...")
                   : isRealtimeConnected
-                    ? "Send Challenge"
-                    : "Server Offline"}
+                    ? t("Send Challenge")
+                    : t("Server Offline")}
               </button>
             ) : (
               <button
                 disabled
                 className="w-full py-3 rounded-2xl bg-gray-300 dark:bg-slate-700 text-gray-500 dark:text-gray-400 font-bold text-[15px] cursor-not-allowed flex items-center justify-center gap-2"
               >
-                Choose Friend First
+                {t("Choose Friend First")}
               </button>
             )}
           </div>

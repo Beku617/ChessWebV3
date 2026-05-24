@@ -1,3 +1,4 @@
+import { Trans, useTranslation } from "react-i18next";
 import { BotPersonality } from "../../data/botPersonalities";
 import { TIME_OPTIONS } from "./types";
 
@@ -10,6 +11,12 @@ interface GameSettingsPanelProps {
   onStart: () => void;
 }
 
+const PLAY_AS_OPTIONS: Array<"white" | "black" | "random"> = [
+  "white",
+  "black",
+  "random",
+];
+
 export function GameSettingsPanel({
   selectedBot,
   playAs,
@@ -18,6 +25,8 @@ export function GameSettingsPanel({
   onTimeControlChange,
   onStart,
 }: GameSettingsPanelProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="lg:col-span-1">
       <div className="rounded-2xl border border-gray-200/60 dark:border-white/10 bg-white/80 dark:bg-slate-800/80 p-5 sticky top-6">
@@ -36,8 +45,7 @@ export function GameSettingsPanel({
                     </span>
                   )}
                 </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">
-                  Rating: {selectedBot.rating}
+                <div className="text-sm text-gray-500 dark:text-gray-400"> <Trans>Rating:</Trans> {selectedBot.rating}
                 </div>
               </div>
             </div>
@@ -46,18 +54,14 @@ export function GameSettingsPanel({
             </p>
           </div>
         ) : (
-          <div className="mb-6 pb-4 border-b border-gray-200/60 dark:border-white/10 text-center text-gray-400 dark:text-gray-500">
-            Select a bot to play against
-          </div>
+          <div className="mb-6 pb-4 border-b border-gray-200/60 dark:border-white/10 text-center text-gray-400 dark:text-gray-500"> <Trans>Select a bot to play against</Trans> </div>
         )}
 
         {/* Play As */}
         <div className="mb-5">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Play as
-          </label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"> <Trans>Play as</Trans> </label>
           <div className="grid grid-cols-3 gap-2">
-            {(["white", "black", "random"] as const).map((color) => (
+            {PLAY_AS_OPTIONS.map((color) => (
               <button
                 key={color}
                 onClick={() => onPlayAsChange(color)}
@@ -67,7 +71,7 @@ export function GameSettingsPanel({
                     : "bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600"
                 }`}
               >
-                {color === "random" ? " Random" : color}
+                {color === "random" ? t("Random") : t(color)}
               </button>
             ))}
           </div>
@@ -75,9 +79,7 @@ export function GameSettingsPanel({
 
         {/* Time Control */}
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Time Control
-          </label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"> <Trans>Time Control</Trans> </label>
           <div className="grid grid-cols-3 gap-2">
             {TIME_OPTIONS.map((opt) => (
               <button
@@ -107,7 +109,12 @@ export function GameSettingsPanel({
           disabled={!selectedBot}
           className="w-full py-4 rounded-xl bg-gradient-to-r from-brand-500 to-brand-500 hover:from-brand-600 hover:to-brand-600 text-white font-bold text-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
         >
-          {selectedBot ? `Play vs ${selectedBot.name}` : "Select a Bot"}
+          {selectedBot
+            ? t("playWithBot.playVs", {
+                name: selectedBot.name,
+                defaultValue: "Play vs {{name}}",
+              })
+            : t("playWithBot.selectBot", { defaultValue: "Select a Bot" })}
         </button>
       </div>
     </div>

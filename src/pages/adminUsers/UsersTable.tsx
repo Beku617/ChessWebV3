@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { User, SortField } from "./types";
 import { UsersTableHeader, UsersTableEmpty } from "./UsersTableHeader";
 import { UserRow } from "./UserRow";
@@ -41,6 +42,7 @@ export function UsersTable({
   onDelete,
   onBan,
 }: UsersTableProps) {
+  const { t } = useTranslation();
   return (
     <>
       <UsersTableHeader
@@ -63,14 +65,14 @@ export function UsersTable({
             <thead className="bg-gray-50 dark:bg-gray-800/50">
               <tr>
                 <th className="text-left px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
-                  User
+                  {t("admin.users.table.user")}
                 </th>
                 <th className="text-left px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
                   <button
                     onClick={() => onSort("rating")}
                     className="hover:text-brand-500"
                   >
-                    Rating
+                    {t("admin.users.table.rating")}
                   </button>
                 </th>
                 <th className="text-left px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -78,28 +80,28 @@ export function UsersTable({
                     onClick={() => onSort("gamesPlayed")}
                     className="hover:text-brand-500"
                   >
-                    Games
+                    {t("admin.users.table.games")}
                   </button>
                 </th>
                 <th className="text-left px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
-                  W/L/D
+                  {t("admin.users.table.wld")}
                 </th>
                 <th className="text-left px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Win Rate
+                  {t("admin.users.table.winRate")}
                 </th>
                 <th className="text-left px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Status
+                  {t("admin.users.table.status")}
                 </th>
                 <th className="text-left px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
                   <button
                     onClick={() => onSort("createdAt")}
                     className="hover:text-brand-500"
                   >
-                    Joined
+                    {t("admin.users.table.joined")}
                   </button>
                 </th>
                 <th className="text-right px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Actions
+                  {t("admin.users.table.actions")}
                 </th>
               </tr>
             </thead>

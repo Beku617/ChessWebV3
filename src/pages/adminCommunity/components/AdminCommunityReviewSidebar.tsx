@@ -1,3 +1,4 @@
+import { Trans, useTranslation } from "react-i18next";
 import { Check, Pencil, Trash2, X } from "lucide-react";
 import {
   formatCommunityResult,
@@ -80,13 +81,14 @@ export function AdminCommunityReviewSidebar({
   onClearRestriction,
   onToggleUnlimitedPosting,
 }: AdminCommunityReviewSidebarProps) {
+  const { t } = useTranslation();
   const restriction = post.authorPostingRestriction || null;
 
   return (
     <aside className="border-t border-white/[0.05] bg-[linear-gradient(180deg,rgba(255,255,255,0.015),rgba(255,255,255,0.01))] px-5 py-5 xl:border-l xl:border-t-0 sm:px-6 sm:py-6">
       <div className="flex h-full flex-col">
         <div className="rounded-[20px] border border-white/[0.04] bg-white/[0.025] p-4">
-          <div className="text-[10px] uppercase tracking-[0.22em] text-gray-500">Review</div>
+          <div className="text-[10px] uppercase tracking-[0.22em] text-gray-500"><Trans>Review</Trans></div>
           <div className="mt-3 flex items-start justify-between gap-3">
             <span
               className={`inline-flex items-center rounded-full px-3 py-1.5 text-xs font-semibold ${statusClass(
@@ -100,32 +102,32 @@ export function AdminCommunityReviewSidebar({
 
           <div className="mt-4 space-y-3 border-t border-white/[0.05] pt-4">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-500">Content type</span>
+              <span className="text-gray-500"><Trans>Content type</Trans></span>
               <span className="text-gray-100">{contentTypeLabel}</span>
             </div>
             {post.group && (
               <div className="flex items-center justify-between gap-3 text-sm">
-                <span className="text-gray-500">Group</span>
+                <span className="text-gray-500"><Trans>Group</Trans></span>
                 <span className="text-right text-gray-200">{post.group.name}</span>
               </div>
             )}
             {post.postType === "game" && post.game && (
               <>
                 <div className="flex items-center justify-between gap-3 text-sm">
-                  <span className="text-gray-500">Result</span>
+                  <span className="text-gray-500"><Trans>Result</Trans></span>
                   <span className="text-right text-gray-200">
                     {formatCommunityResult(post.game.result)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between gap-3 text-sm">
-                  <span className="text-gray-500">Time control</span>
+                  <span className="text-gray-500"><Trans>Time control</Trans></span>
                   <span className="text-right text-gray-200">
                     {formatCommunityTimeControl(post.game.timeControl)}
                   </span>
                 </div>
                 {gameOpening && (
                   <div className="flex items-center justify-between gap-3 text-sm">
-                    <span className="text-gray-500">Opening</span>
+                    <span className="text-gray-500"><Trans>Opening</Trans></span>
                     <span className="truncate text-right text-gray-200">{gameOpening}</span>
                   </div>
                 )}
@@ -133,7 +135,7 @@ export function AdminCommunityReviewSidebar({
             )}
             {post.reviewedBy && (
               <div className="flex items-center justify-between gap-3 text-sm">
-                <span className="text-gray-500">Reviewed by</span>
+                <span className="text-gray-500"><Trans>Reviewed by</Trans></span>
                 <span className="text-right text-gray-200">{post.reviewedBy.username}</span>
               </div>
             )}
@@ -144,9 +146,7 @@ export function AdminCommunityReviewSidebar({
           <div className="mt-4 rounded-[20px] border border-white/[0.04] bg-white/[0.025] p-4">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <div className="text-[10px] uppercase tracking-[0.22em] text-gray-500">
-                  Posting access
-                </div>
+                <div className="text-[10px] uppercase tracking-[0.22em] text-gray-500"> <Trans>Posting access</Trans> </div>
                 <div className="mt-2 text-sm font-medium text-gray-100">
                   {formatRestrictionLabel(restriction)}
                 </div>
@@ -165,10 +165,10 @@ export function AdminCommunityReviewSidebar({
                 }`}
               >
                 {isRateLimitBypassBusy
-                  ? "Saving..."
+                  ? t("admin.community.actions.saving", "Saving...")
                   : restrictionDraft.unlimitedPosts
-                    ? "Disable unlimited posting"
-                    : "Enable unlimited posting"}
+                    ? t("admin.community.actions.disableUnlimitedPosting", "Disable unlimited posting")
+                    : t("admin.community.actions.enableUnlimitedPosting", "Enable unlimited posting")}
               </button>
 
               <FilterDropdown
@@ -185,7 +185,10 @@ export function AdminCommunityReviewSidebar({
                 onChange={(event) =>
                   onRestrictionDraftChange({ reason: event.target.value })
                 }
-                placeholder="Optional restriction reason..."
+                placeholder={t(
+                  "admin.community.placeholders.optionalRestrictionReason",
+                  "Optional restriction reason...",
+                )}
                 className="w-full rounded-xl bg-white/[0.05] px-3.5 py-2.5 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
               />
 
@@ -198,7 +201,9 @@ export function AdminCommunityReviewSidebar({
                   }
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/[0.08] px-3.5 py-2.5 text-sm font-semibold text-gray-100 hover:bg-white/[0.14] disabled:opacity-50"
                 >
-                  {isRestrictionBusy ? "Saving..." : "Apply restriction"}
+                  {isRestrictionBusy
+                    ? t("admin.community.actions.saving", "Saving...")
+                    : t("admin.community.actions.applyRestriction", "Apply restriction")}
                 </button>
 
                 {restriction?.active && (
@@ -207,9 +212,7 @@ export function AdminCommunityReviewSidebar({
                     disabled={isRestrictionBusy}
                     onClick={onClearRestriction}
                     className="inline-flex items-center justify-center rounded-xl bg-brand-500/14 px-3.5 py-2.5 text-sm font-semibold text-brand-200 hover:bg-brand-500/22 disabled:opacity-50"
-                  >
-                    Clear
-                  </button>
+                  > <Trans>Clear</Trans> </button>
                 )}
               </div>
             </div>
@@ -218,23 +221,22 @@ export function AdminCommunityReviewSidebar({
 
         {post.rejectionReason && (
           <div className="mt-4 rounded-[18px] bg-red-500/10 px-4 py-3.5 text-sm text-red-200">
-            <div className="text-[10px] uppercase tracking-[0.2em] text-red-200/75">
-              Rejection note
-            </div>
+            <div className="text-[10px] uppercase tracking-[0.2em] text-red-200/75"> <Trans>Rejection note</Trans> </div>
             <div className="mt-2 leading-6">{post.rejectionReason}</div>
           </div>
         )}
 
         <div className="mt-4 border-t border-white/[0.05] pt-4">
-          <div className="text-[10px] uppercase tracking-[0.22em] text-gray-500">
-            Review actions
-          </div>
+          <div className="text-[10px] uppercase tracking-[0.22em] text-gray-500"> <Trans>Review actions</Trans> </div>
 
           {showRejectBox && (
             <textarea
               value={rejectionDraft}
               onChange={(event) => onRejectionDraftChange(event.target.value)}
-              placeholder="Optional rejection reason..."
+              placeholder={t(
+                "admin.community.placeholders.optionalRejectionReason",
+                "Optional rejection reason...",
+              )}
               className="mt-3 min-h-[110px] w-full rounded-[18px] bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
             />
           )}
@@ -247,9 +249,7 @@ export function AdminCommunityReviewSidebar({
                 onClick={onApprove}
                 className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(13,148,136,0.22)] hover:bg-brand-500 disabled:opacity-50"
               >
-                <Check className="h-4 w-4" />
-                Approve
-              </button>
+                <Check className="h-4 w-4" /> <Trans>Approve</Trans> </button>
             )}
 
             {showSecondaryActionRow && (
@@ -261,9 +261,7 @@ export function AdminCommunityReviewSidebar({
                     onClick={onStartEdit}
                     className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/[0.05] px-4 py-2.5 text-sm font-semibold text-gray-200 hover:bg-white/[0.1] disabled:opacity-50"
                   >
-                    <Pencil className="h-4 w-4" />
-                    Edit
-                  </button>
+                    <Pencil className="h-4 w-4" /> <Trans>Edit</Trans> </button>
                 )}
 
                 {showRejectBox ? (
@@ -272,9 +270,7 @@ export function AdminCommunityReviewSidebar({
                     disabled={isBusy}
                     onClick={onCloseReject}
                     className="inline-flex items-center justify-center rounded-xl bg-white/[0.05] px-4 py-2.5 text-sm font-semibold text-gray-300 hover:bg-white/[0.1] disabled:opacity-50"
-                  >
-                    Cancel
-                  </button>
+                  > <Trans>Cancel</Trans> </button>
                 ) : showRejectAction ? (
                   <button
                     type="button"
@@ -282,9 +278,7 @@ export function AdminCommunityReviewSidebar({
                     onClick={onOpenReject}
                     className="inline-flex items-center justify-center gap-2 rounded-xl bg-red-500/10 px-4 py-2.5 text-sm font-semibold text-red-200 hover:bg-red-500/18 disabled:opacity-50"
                   >
-                    <X className="h-4 w-4" />
-                    Reject
-                  </button>
+                    <X className="h-4 w-4" /> <Trans>Reject</Trans> </button>
                 ) : null}
               </div>
             )}
@@ -296,9 +290,7 @@ export function AdminCommunityReviewSidebar({
                 onClick={onReject}
                 className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-red-500/12 px-4 py-3 text-sm font-semibold text-red-200 hover:bg-red-500/20 disabled:opacity-50"
               >
-                <X className="h-4 w-4" />
-                Confirm reject
-              </button>
+                <X className="h-4 w-4" /> <Trans>Confirm reject</Trans> </button>
             )}
 
             <button
@@ -307,9 +299,7 @@ export function AdminCommunityReviewSidebar({
               onClick={onDelete}
               className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white/[0.04] px-4 py-2.5 text-sm font-semibold text-gray-300 hover:bg-white/[0.08] disabled:opacity-50"
             >
-              <Trash2 className="h-4 w-4" />
-              Delete
-            </button>
+              <Trash2 className="h-4 w-4" /> <Trans>Delete</Trans> </button>
           </div>
         </div>
       </div>

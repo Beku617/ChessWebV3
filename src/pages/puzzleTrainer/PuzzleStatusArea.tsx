@@ -1,3 +1,4 @@
+import { Trans } from "react-i18next";
 import { Check, X, Eye, Lightbulb } from "lucide-react";
 import { PuzzleStatus } from "./types";
 import { formatTime } from "./utils";
@@ -22,9 +23,8 @@ export function PuzzleStatusArea({
           <Check size={18} strokeWidth={3} />
         </div>
         <div>
-          <h3 className="font-bold text-brand-400 text-sm">Correct!</h3>
-          <p className="text-brand-500 text-xs">
-            Solved in {formatTime(elapsedTime)}
+          <h3 className="font-bold text-brand-400 text-sm"><Trans>Correct!</Trans></h3>
+          <p className="text-brand-500 text-xs"> <Trans>Solved in</Trans> {formatTime(elapsedTime)}
           </p>
         </div>
       </div>
@@ -38,8 +38,8 @@ export function PuzzleStatusArea({
           <X size={18} strokeWidth={3} />
         </div>
         <div>
-          <h3 className="font-bold text-red-400 text-sm">Wrong move</h3>
-          <p className="text-red-500 text-xs">Try again or view solution</p>
+          <h3 className="font-bold text-red-400 text-sm"><Trans>Wrong move</Trans></h3>
+          <p className="text-red-500 text-xs"><Trans>Try again or view solution</Trans></p>
         </div>
       </div>
     );
@@ -49,8 +49,7 @@ export function PuzzleStatusArea({
     return (
       <div className="bg-blue-900/40 border border-blue-600 rounded-lg p-3">
         <div className="flex items-center gap-2 text-blue-400 font-semibold text-sm mb-1">
-          <Eye size={16} /> Solution
-        </div>
+          <Eye size={16} /> <Trans>Solution</Trans> </div>
         <div className="flex flex-wrap gap-1">
           {solutionMoves.map((move, idx) => (
             <span
@@ -69,10 +68,8 @@ export function PuzzleStatusArea({
     return (
       <div className="bg-yellow-900/40 border border-yellow-600 rounded-lg p-3">
         <div className="flex items-center gap-2 text-yellow-400 font-semibold text-sm mb-1">
-          <Lightbulb size={16} /> Hint
-        </div>
-        <p className="text-yellow-500 text-xs">
-          First move:{" "}
+          <Lightbulb size={16} /> <Trans>Hint</Trans> </div>
+        <p className="text-yellow-500 text-xs"> <Trans>First move:</Trans>{" "}
           <span className="font-mono font-bold">
             {solutionMoves[0]?.slice(0, 2)}...
           </span>

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Loader2, X } from "lucide-react";
+import { useTranslation, Trans } from "react-i18next";
 import {
   AdminGame,
   AdminUserOption,
@@ -32,6 +33,7 @@ export function GameFormModal({
   users,
   saving,
 }: GameFormModalProps) {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState<GameFormData>(DEFAULT_GAME_FORM);
   const userListId = useMemo(
     () => `admin-game-users-${Math.random().toString(36).slice(2)}`,
@@ -74,12 +76,8 @@ export function GameFormModal({
       <div className="w-full max-w-4xl max-h-[92vh] overflow-y-auto rounded-2xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-gray-800 shadow-2xl">
         <div className="sticky top-0 z-10 flex items-center justify-between p-5 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-b border-gray-200 dark:border-gray-800">
           <div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-              Edit Game
-            </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-              Manage game data and make it ready for admin analysis.
-            </p>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white"> <Trans>Edit Game</Trans> </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5"> <Trans>Manage game data and make it ready for admin analysis.</Trans> </p>
           </div>
           <button
             type="button"
@@ -94,9 +92,7 @@ export function GameFormModal({
         <form onSubmit={handleSubmit} className="p-5 space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <label className="space-y-1.5">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Owner User ID *
-              </span>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300"> <Trans>Owner User ID *</Trans> </span>
               <input
                 list={userListId}
                 required
@@ -104,7 +100,7 @@ export function GameFormModal({
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, userId: e.target.value }))
                 }
-                placeholder="Paste user id or pick from list"
+                placeholder={t("admin.form.ownerUserPlaceholder")}
                 className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
               <datalist id={userListId}>
@@ -119,9 +115,7 @@ export function GameFormModal({
             </label>
 
             <label className="space-y-1.5">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Event
-              </span>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300"> <Trans>Event</Trans> </span>
               <input
                 value={formData.event}
                 onChange={(e) =>
@@ -132,9 +126,7 @@ export function GameFormModal({
             </label>
 
             <label className="space-y-1.5">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                White *
-              </span>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300"> <Trans>White *</Trans> </span>
               <input
                 required
                 value={formData.white}
@@ -146,9 +138,7 @@ export function GameFormModal({
             </label>
 
             <label className="space-y-1.5">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Black *
-              </span>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300"> <Trans>Black *</Trans> </span>
               <input
                 required
                 value={formData.black}
@@ -160,9 +150,7 @@ export function GameFormModal({
             </label>
 
             <label className="space-y-1.5">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Result *
-              </span>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300"> <Trans>Result *</Trans> </span>
               <select
                 required
                 value={formData.result}
@@ -180,9 +168,7 @@ export function GameFormModal({
             </label>
 
             <label className="space-y-1.5">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Play As *
-              </span>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300"> <Trans>Play As *</Trans> </span>
               <select
                 required
                 value={formData.playAs}
@@ -194,15 +180,13 @@ export function GameFormModal({
                 }
                 className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
               >
-                <option value="white">White</option>
-                <option value="black">Black</option>
+                <option value="white"><Trans>White</Trans></option>
+                <option value="black"><Trans>Black</Trans></option>
               </select>
             </label>
 
             <label className="space-y-1.5">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Variant
-              </span>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300"> <Trans>Variant</Trans> </span>
               <select
                 value={formData.variant}
                 onChange={(e) =>
@@ -213,15 +197,13 @@ export function GameFormModal({
                 }
                 className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
               >
-                <option value="standard">Standard</option>
-                <option value="chess960">Chess960</option>
+                <option value="standard"><Trans>Standard</Trans></option>
+                <option value="chess960"><Trans>Chess960</Trans></option>
               </select>
             </label>
 
             <label className="space-y-1.5">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Time Control
-              </span>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300"> <Trans>Time Control</Trans> </span>
               <input
                 value={formData.timeControl}
                 onChange={(e) =>
@@ -236,9 +218,7 @@ export function GameFormModal({
             </label>
 
             <label className="space-y-1.5">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                White Elo
-              </span>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300"> <Trans>White Elo</Trans> </span>
               <input
                 type="number"
                 value={formData.whiteElo}
@@ -253,9 +233,7 @@ export function GameFormModal({
             </label>
 
             <label className="space-y-1.5">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Black Elo
-              </span>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300"> <Trans>Black Elo</Trans> </span>
               <input
                 type="number"
                 value={formData.blackElo}
@@ -270,9 +248,7 @@ export function GameFormModal({
             </label>
 
             <label className="space-y-1.5">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Opponent
-              </span>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300"> <Trans>Opponent</Trans> </span>
               <input
                 value={formData.opponent}
                 onChange={(e) =>
@@ -286,9 +262,7 @@ export function GameFormModal({
             </label>
 
             <label className="space-y-1.5">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Opponent Level
-              </span>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300"> <Trans>Opponent Level</Trans> </span>
               <input
                 type="number"
                 value={formData.opponentLevel}
@@ -303,9 +277,7 @@ export function GameFormModal({
             </label>
 
             <label className="space-y-1.5">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Site
-              </span>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300"> <Trans>Site</Trans> </span>
               <input
                 value={formData.site}
                 onChange={(e) =>
@@ -316,9 +288,7 @@ export function GameFormModal({
             </label>
 
             <label className="space-y-1.5">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Date (PGN)
-              </span>
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300"> <Trans>Date (PGN)</Trans> </span>
               <input
                 value={formData.date}
                 onChange={(e) =>
@@ -338,14 +308,10 @@ export function GameFormModal({
                 setFormData((prev) => ({ ...prev, rated: e.target.checked }))
               }
               className="w-4 h-4 rounded border-gray-300 dark:border-gray-700 text-brand-500 focus:ring-brand-500"
-            />
-            Rated Game
-          </label>
+            /> <Trans>Rated Game</Trans> </label>
 
           <label className="space-y-1.5 block">
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Termination
-            </span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300"> <Trans>Termination</Trans> </span>
             <input
               value={formData.termination}
               onChange={(e) =>
@@ -360,9 +326,7 @@ export function GameFormModal({
           </label>
 
           <label className="space-y-1.5 block">
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Moves (space/newline separated SAN)
-            </span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300"> <Trans>Moves (space/newline separated SAN)</Trans> </span>
             <textarea
               value={formData.movesText}
               onChange={(e) =>
@@ -378,9 +342,7 @@ export function GameFormModal({
           </label>
 
           <label className="space-y-1.5 block">
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Move Text (optional)
-            </span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300"> <Trans>Move Text (optional)</Trans> </span>
             <textarea
               value={formData.moveText}
               onChange={(e) =>
@@ -396,16 +358,14 @@ export function GameFormModal({
           </label>
 
           <label className="space-y-1.5 block">
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              PGN (optional)
-            </span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300"> <Trans>PGN (optional)</Trans> </span>
             <textarea
               value={formData.pgn}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, pgn: e.target.value }))
               }
               rows={6}
-              placeholder='[Event "NeonGambit"] ...'
+              placeholder={t("admin.form.pgnPlaceholder")}
               className="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 px-3 py-2 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono text-xs"
             />
           </label>
@@ -416,17 +376,13 @@ export function GameFormModal({
               onClick={onClose}
               disabled={saving}
               className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors disabled:opacity-40"
-            >
-              Cancel
-            </button>
+            > <Trans>Cancel</Trans> </button>
             <button
               type="submit"
               disabled={saving}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-brand-500 to-brand-500 text-white font-medium hover:from-brand-600 hover:to-brand-600 transition-colors disabled:opacity-50"
             >
-              {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-              Save Changes
-            </button>
+              {saving && <Loader2 className="w-4 h-4 animate-spin" />} <Trans>Save Changes</Trans> </button>
           </div>
         </form>
       </div>

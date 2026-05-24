@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation, Trans } from "react-i18next";
 import {
   CheckCircle,
   Eye,
@@ -10,6 +11,8 @@ import {
   XCircle,
 } from "lucide-react";
 import AdminSidebar from "../../components/AdminSidebar";
+import { adminSupportedLanguages, setAdminLocale } from "../../adminI18n";
+import { SegmentedControl } from "../../components/settings";
 import { ProfileAvatarUpload } from "../../components/profilePage/ProfileAvatarUpload";
 import { useAdminStore } from "../../store/adminStore";
 
@@ -21,6 +24,8 @@ interface Stats {
   newUsersThisWeek: number;
   gamesThisWeek: number;
 }
+
+const PASSWORD_FIELD_KEYS = ["current", "next", "confirm"] as const;
 
 function StatCard({
   label,
@@ -84,7 +89,12 @@ function Toast({
 
 export default function AdminProfile() {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
   const { admin, isAuthenticated, isLoading, checkAuth, setAdmin } = useAdminStore();
+  const activeLocale =
+    (i18n.resolvedLanguage || i18n.language || "en").startsWith("mn")
+      ? "mn"
+      : "en";
 
   const [stats, setStats] = useState<Stats | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
@@ -214,7 +224,10 @@ export default function AdminProfile() {
               <div className="flex-shrink-0">
                 <ProfileAvatarUpload
                   currentAvatar={admin?.avatar}
-                  userName={admin?.username || "Administrator"}
+                  userName={
+                    admin?.username ||
+                    t("admin.profile.fallback.administrator", "Administrator")
+                  }
                   size="xl"
                   editable={true}
                   onPersistAvatar={handlePersistAvatar}
@@ -224,10 +237,12 @@ export default function AdminProfile() {
               <div className="min-w-0 flex-1">
                 <div className="min-w-0">
                   <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
-                    {admin?.username || "Administrator"}
+                    {admin?.username ||
+                      t("admin.profile.fallback.administrator", "Administrator")}
                   </h1>
                   <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
-                    {admin?.email || "No email available"}
+                    {admin?.email ||
+                      t("admin.profile.fallback.noEmail", "No email available")}
                   </p>
                 </div>
               </div>
@@ -248,21 +263,27 @@ export default function AdminProfile() {
               ) : (
                 <div className="grid gap-4 sm:grid-cols-2">
                   <StatCard
-                    label="Total Users"
+                    label={t("admin.profile.stats.totalUsers", "Total Users")}
                     value={stats?.totalUsers ?? 0}
-                    sub={`+${stats?.newUsersThisWeek ?? 0} this week`}
+                    sub={t("admin.profile.stats.thisWeekDelta", {
+                      defaultValue: "+{{count}} this week",
+                      count: stats?.newUsersThisWeek ?? 0,
+                    })}
                   />
                   <StatCard
-                    label="Total Games"
+                    label={t("admin.profile.stats.totalGames", "Total Games")}
                     value={stats?.totalGames ?? 0}
-                    sub={`+${stats?.gamesThisWeek ?? 0} this week`}
+                    sub={t("admin.profile.stats.thisWeekDelta", {
+                      defaultValue: "+{{count}} this week",
+                      count: stats?.gamesThisWeek ?? 0,
+                    })}
                   />
                   <StatCard
-                    label="New Users (7d)"
+                    label={t("admin.profile.stats.newUsers7d", "New Users (7d)")}
                     value={stats?.newUsersThisWeek ?? 0}
                   />
                   <StatCard
-                    label="Games This Week"
+                    label={t("admin.profile.stats.gamesThisWeek", "Games This Week")}
                     value={stats?.gamesThisWeek ?? 0}
                   />
                 </div>
@@ -276,12 +297,8 @@ export default function AdminProfile() {
                     <Key className="h-5 w-5 text-red-500" />
                   </div>
                   <div>
-                    <div className="text-sm font-semibold text-gray-900 dark:text-white">
-                      Credential Security
-                    </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">
-                      Manage the current admin password.
-                    </div>
+                    <div className="text-sm font-semibold text-gray-900 dark:text-white"> <Trans>Credential Security</Trans> </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400"> <Trans>Manage the current admin password.</Trans> </div>
                   </div>
                 </div>
                 <button
@@ -289,17 +306,19 @@ export default function AdminProfile() {
                   className="inline-flex items-center gap-2 rounded-xl bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-200 dark:bg-white/10 dark:text-gray-300 dark:hover:bg-white/20"
                 >
                   <Key className="h-4 w-4" />
-                  {pwOpen ? "Close" : "Change Password"}
+                  {pwOpen
+                    ? t("admin.profile.actions.close", "Close")
+                    : t("admin.profile.actions.changePassword", "Change Password")}
                 </button>
               </div>
 
               {pwOpen ? (
                 <div className="space-y-4 px-6 py-5">
-                  {(["current", "next", "confirm"] as const).map((field) => {
+                  {PASSWORD_FIELD_KEYS.map((field) => {
                     const labels = {
-                      current: "Current Password",
-                      next: "New Password",
-                      confirm: "Confirm New Password",
+                      current: t("admin.profile.password.current", "Current Password"),
+                      next: t("admin.profile.password.new", "New Password"),
+                      confirm: t("admin.profile.password.confirm", "Confirm New Password"),
                     };
 
                     return (
@@ -351,21 +370,36 @@ export default function AdminProfile() {
                         <Loader2 className="h-4 w-4 animate-spin" />
                       ) : (
                         <Save className="h-4 w-4" />
-                      )}
-                      Update Password
-                    </button>
+                      )} <Trans>Update Password</Trans> </button>
                     <button
                       onClick={() => {
                         setPwOpen(false);
                         setPwFields({ current: "", next: "", confirm: "" });
                       }}
                       className="rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-500 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10"
-                    >
-                      Cancel
-                    </button>
+                    > <Trans>Cancel</Trans> </button>
                   </div>
                 </div>
               ) : null}
+
+              <div className="flex flex-col gap-3 border-t border-gray-200/70 px-6 py-5 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                    {t("admin.sidebar.languageLabel")}
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400"> <Trans>Admin interface language</Trans> </div>
+                </div>
+                <SegmentedControl
+                  options={adminSupportedLanguages.map((lang) => ({
+                    label: t(`admin.sidebar.localeOption.${lang.code}`),
+                    value: lang.code,
+                  }))}
+                  value={activeLocale}
+                  onChange={(value) => {
+                    void setAdminLocale(value);
+                  }}
+                />
+              </div>
             </section>
           </div>
         </div>

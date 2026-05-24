@@ -4,6 +4,7 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ReactElement } from "react";
 import { Chessboard } from "react-chessboard";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { ChessMoveList, buildChessMoveRows } from "../../components/game";
 import { PromotionModal } from "../../components/game/PromotionModal";
 import type { PromotionPiece, PromotionState } from "../../components/game";
@@ -17,6 +18,7 @@ import {
   playGameplaySound,
 } from "../../utils/moveSounds";
 import { BOARD_FRAME } from "../quickMatch/types";
+import { PracticePgnImport } from "./PracticePgnImport";
 
 type PracticeModeId =
   | "free-move"
@@ -24,10 +26,14 @@ type PracticeModeId =
 
 interface PracticeMode {
   id: PracticeModeId;
-  title: string;
-  desc: string;
   icon: (color: string) => ReactElement;
 }
+
+type PracticeModeCopy = {
+  title: string;
+  desc: string;
+  openLabel: string;
+};
 
 type BuilderPieceId =
   | "wK"
@@ -180,8 +186,6 @@ const FREE_MOVE_BASE_BUTTON_STYLE: CSSProperties = {
 const PRACTICE_MODES: PracticeMode[] = [
   {
     id: "free-move",
-    title: "Free Move",
-    desc: "Move pieces freely, alternating turns",
     icon: (color) => (
       <svg
         viewBox="0 0 24 24"
@@ -197,8 +201,6 @@ const PRACTICE_MODES: PracticeMode[] = [
   },
   {
     id: "position-builder",
-    title: "Position Builder",
-    desc: "Set up any custom position",
     icon: (color) => (
       <svg
         viewBox="0 0 24 24"
@@ -216,6 +218,19 @@ const PRACTICE_MODES: PracticeMode[] = [
     ),
   },
 ];
+
+const DEFAULT_PRACTICE_MODE_COPY: Record<PracticeModeId, PracticeModeCopy> = {
+  "free-move": {
+    title: "Free Move",
+    desc: "Move pieces freely, alternating turns",
+    openLabel: "Open Free Move",
+  },
+  "position-builder": {
+    title: "Position Builder",
+    desc: "Set up any custom position",
+    openLabel: "Open Position Builder",
+  },
+};
 
 function hasCheckMethod(game: Chess) {
   const candidate = game as unknown as {
@@ -348,6 +363,7 @@ function formatTopMoveScore(scoreCp?: number, scoreMate?: number) {
 export default function PlayPractice() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
   const { colors } = useBoardTheme();
   const { autoQueen, allowClickInput, allowDragInput, showLegalMoves, premoves } =
     useGameplayPreferences();
@@ -361,6 +377,7 @@ export default function PlayPractice() {
     isPracticeFreeMoveActive || isPositionBuilderFreeMoveActive;
   const isPositionBuilderActive =
     normalizedPath === "/play/practice/positionbuilder";
+  const isPracticePgnActive = normalizedPath === "/play/practice/pgn";
   const isSessionModeActive = isFreeMoveActive || isPositionBuilderActive;
   const builderLocationState = isPositionBuilderFreeMoveActive
     ? (location.state as
@@ -426,6 +443,9 @@ export default function PlayPractice() {
   const [pendingPromotionMove, setPendingPromotionMove] =
     useState<PracticePromotionMove | null>(null);
   const [boardWidth, setBoardWidth] = useState(620);
+  const [isPgnImportModalOpen, setIsPgnImportModalOpen] = useState(
+    isPracticePgnActive,
+  );
   const practiceBoardId = useId().replace(/:/g, "");
   const {
     preMove,
@@ -462,10 +482,44 @@ export default function PlayPractice() {
     depth: 14,
   });
   const moveRows = useMemo(() => buildChessMoveRows(sanMoves), [sanMoves]);
+  const practiceModeCopy = useMemo<Record<PracticeModeId, PracticeModeCopy>>(
+    () => ({
+      "free-move": {
+        title: t(
+          "practice.workspace.modes.freeMove.title",
+          DEFAULT_PRACTICE_MODE_COPY["free-move"].title,
+        ),
+        desc: t(
+          "practice.workspace.modes.freeMove.desc",
+          DEFAULT_PRACTICE_MODE_COPY["free-move"].desc,
+        ),
+        openLabel: t(
+          "practice.workspace.modes.freeMove.open",
+          DEFAULT_PRACTICE_MODE_COPY["free-move"].openLabel,
+        ),
+      },
+      "position-builder": {
+        title: t(
+          "practice.workspace.modes.positionBuilder.title",
+          DEFAULT_PRACTICE_MODE_COPY["position-builder"].title,
+        ),
+        desc: t(
+          "practice.workspace.modes.positionBuilder.desc",
+          DEFAULT_PRACTICE_MODE_COPY["position-builder"].desc,
+        ),
+        openLabel: t(
+          "practice.workspace.modes.positionBuilder.open",
+          DEFAULT_PRACTICE_MODE_COPY["position-builder"].openLabel,
+        ),
+      },
+    }),
+    [t],
+  );
   const activeMode = useMemo(
     () => PRACTICE_MODES.find((mode) => mode.id === selectedModeId) ?? PRACTICE_MODES[0],
     [selectedModeId],
   );
+  const activeModeCopy = practiceModeCopy[activeMode.id];
   const positionBuilderModeIcon = useMemo(
     () => PRACTICE_MODES.find((mode) => mode.id === "position-builder")?.icon,
     [],
@@ -526,6 +580,29 @@ export default function PlayPractice() {
     freeMovePathRef.current = freeMoveRouteSignature;
   };
 
+  const closePgnImportModal = () => {
+    setIsPgnImportModalOpen(false);
+    if (isPracticePgnActive) {
+      navigate("/play/practice", { replace: true });
+    }
+  };
+
+  useEffect(() => {
+    setIsPgnImportModalOpen(isPracticePgnActive);
+  }, [isPracticePgnActive]);
+
+  useEffect(() => {
+    if (!isPgnImportModalOpen) return;
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      closePgnImportModal();
+    };
+
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [isPgnImportModalOpen, isPracticePgnActive, navigate]);
+
   useEffect(() => {
     if (isFreeMoveActive) {
       setSelectedModeId("free-move");
@@ -556,14 +633,23 @@ export default function PlayPractice() {
     const hasFreeMovePathChanged = freeMovePathRef.current !== freeMoveRouteSignature;
     if (!wasFreeMoveRef.current || hasFreeMovePathChanged) {
       let nextFen = standardFreeMoveStartFen;
-      let nextNotice = "Invalid FEN received. Loaded start position.";
+      let nextNotice = t(
+        "practice.workspace.notices.invalidFenStart",
+        "Invalid FEN received. Loaded start position.",
+      );
 
       if (rawPassedFen && passedFen) {
         const importedGame = new Chess();
         const isValidFen = importedGame.load(passedFen);
         if (isValidFen) {
           nextFen = passedFen;
-          nextNotice = `Loaded position from Position Builder (${importedGame.turn() === "w" ? "White" : "Black"} to move).`;
+          const sideToMove = importedGame.turn() === "w"
+            ? t("practice.workspace.turn.white", "White")
+            : t("practice.workspace.turn.black", "Black");
+          nextNotice = t("practice.workspace.notices.loadedFromBuilder", {
+            side: sideToMove,
+            defaultValue: `Loaded position from Position Builder (${sideToMove} to move).`,
+          });
         }
       }
 
@@ -575,6 +661,7 @@ export default function PlayPractice() {
     passedFen,
     rawPassedFen,
     standardFreeMoveStartFen,
+    t,
   ]);
 
   useEffect(() => {
@@ -756,7 +843,12 @@ export default function PlayPractice() {
 
       clearPreMove();
       if (!move) {
-        setPanelNotice("Queued pre-move is no longer legal.");
+        setPanelNotice(
+          t(
+            "practice.workspace.notices.queuedPreMoveNoLongerLegal",
+            "Queued pre-move is no longer legal.",
+          ),
+        );
         return false;
       }
 
@@ -779,7 +871,7 @@ export default function PlayPractice() {
         to: queuedPreMove.to as Square,
       });
       clearSelection();
-      setPanelNotice("Pre-move played.");
+      setPanelNotice(t("practice.workspace.notices.preMovePlayed", "Pre-move played."));
       setExportFallback("");
       setRedoStack([]);
       playChessMoveSound(move, { isOpponentMove: move.color !== practicePlayerColor });
@@ -789,7 +881,9 @@ export default function PlayPractice() {
       return true;
     } catch {
       clearPreMove();
-      setPanelNotice("Queued pre-move was invalid.");
+      setPanelNotice(
+        t("practice.workspace.notices.queuedPreMoveInvalid", "Queued pre-move was invalid."),
+      );
       return false;
     }
   };
@@ -948,8 +1042,14 @@ export default function PlayPractice() {
       playGameplaySound("illegal");
       setPanelNotice(
         isSelectedPreMoveSource
-          ? "Select a legal pre-move target."
-          : "Choose one of the highlighted legal moves.",
+          ? t(
+              "practice.workspace.notices.selectLegalPreMoveTarget",
+              "Select a legal pre-move target.",
+            )
+          : t(
+              "practice.workspace.notices.chooseHighlightedLegalMove",
+              "Choose one of the highlighted legal moves.",
+            ),
       );
       return;
     }
@@ -958,14 +1058,19 @@ export default function PlayPractice() {
       const targetHasPromotion = targetMoves.some((move) => Boolean(move.promotion));
       if (targetHasPromotion) {
         if (!autoQueen) {
-          setPanelNotice("Promotion pre-moves are queued as a queen.");
+          setPanelNotice(
+            t(
+              "practice.workspace.notices.promotionPremovesQueuedAsQueen",
+              "Promotion pre-moves are queued as a queen.",
+            ),
+          );
         }
         setPreMove(moveFrom, square, "q");
       } else {
         setPreMove(moveFrom, square);
       }
       clearSelection();
-      setPanelNotice("Pre-move queued.");
+      setPanelNotice(t("practice.workspace.notices.preMoveQueued", "Pre-move queued."));
       return;
     }
 
@@ -1010,14 +1115,19 @@ export default function PlayPractice() {
       const targetHasPromotion = targetMoves.some((move) => Boolean(move.promotion));
       if (targetHasPromotion) {
         if (!autoQueen) {
-          setPanelNotice("Promotion pre-moves are queued as a queen.");
+          setPanelNotice(
+            t(
+              "practice.workspace.notices.promotionPremovesQueuedAsQueen",
+              "Promotion pre-moves are queued as a queen.",
+            ),
+          );
         }
         setPreMove(source, target, "q");
       } else {
         setPreMove(source, target);
       }
       clearSelection();
-      setPanelNotice("Pre-move queued.");
+      setPanelNotice(t("practice.workspace.notices.preMoveQueued", "Pre-move queued."));
       suppressNextSquareClickRef.current = true;
       return false;
     }
@@ -1051,7 +1161,12 @@ export default function PlayPractice() {
     if (positionBuilderSelectedPiece === "eraser") {
       const removed = next.remove(square);
       if (!removed) {
-        setPanelNotice("No piece on that square.");
+        setPanelNotice(
+          t(
+            "practice.workspace.notices.positionBuilderNoPieceOnSquare",
+            "No piece on that square.",
+          ),
+        );
         return;
       }
     } else {
@@ -1064,7 +1179,10 @@ export default function PlayPractice() {
       );
       if (!wasPlaced) {
         setPanelNotice(
-          "Invalid setup. Keep legal piece counts and only one king per side.",
+          t(
+            "practice.workspace.notices.positionBuilderInvalidSetup",
+            "Invalid setup. Keep legal piece counts and only one king per side.",
+          ),
         );
         return;
       }
@@ -1103,7 +1221,12 @@ export default function PlayPractice() {
     next.remove(source);
     const moved = next.put(currentPiece, target);
     if (!moved) {
-      setPanelNotice("Invalid placement for this position.");
+      setPanelNotice(
+        t(
+          "practice.workspace.notices.positionBuilderInvalidPlacement",
+          "Invalid placement for this position.",
+        ),
+      );
       return false;
     }
 
@@ -1130,13 +1253,20 @@ export default function PlayPractice() {
     const next = new Chess();
     const loaded = next.load(fen);
     if (!loaded) {
-      setPanelNotice("Invalid FEN string.");
+      setPanelNotice(
+        t(
+          "practice.workspace.notices.positionBuilderInvalidFenString",
+          "Invalid FEN string.",
+        ),
+      );
       return false;
     }
     setPositionBuilderGame(next);
     clearSelection();
     setLastMove(null);
-    setPanelNotice("Position loaded.");
+    setPanelNotice(
+      t("practice.workspace.notices.positionBuilderPositionLoaded", "Position loaded."),
+    );
     setPositionBuilderFenFallback("");
     return true;
   };
@@ -1144,7 +1274,12 @@ export default function PlayPractice() {
   const handlePositionBuilderLoadFen = () => {
     const fen = positionBuilderFenInput.trim();
     if (!fen) {
-      setPanelNotice("Enter a FEN string first.");
+      setPanelNotice(
+        t(
+          "practice.workspace.notices.positionBuilderEnterFenFirst",
+          "Enter a FEN string first.",
+        ),
+      );
       return;
     }
     applyPositionBuilderFen(fen);
@@ -1154,23 +1289,43 @@ export default function PlayPractice() {
     const fen = positionBuilderGame.fen();
     if (!navigator.clipboard?.writeText) {
       setPositionBuilderFenFallback(fen);
-      setPanelNotice("Clipboard unavailable. FEN shown below.");
+      setPanelNotice(
+        t(
+          "practice.workspace.notices.positionBuilderClipboardUnavailableFenShown",
+          "Clipboard unavailable. FEN shown below.",
+        ),
+      );
       return;
     }
     try {
       await navigator.clipboard.writeText(fen);
       setPositionBuilderFenFallback("");
-      setPanelNotice("FEN copied to clipboard.");
+      setPanelNotice(
+        t(
+          "practice.workspace.notices.positionBuilderFenCopiedToClipboard",
+          "FEN copied to clipboard.",
+        ),
+      );
     } catch {
       setPositionBuilderFenFallback(fen);
-      setPanelNotice("Clipboard blocked. FEN shown below.");
+      setPanelNotice(
+        t(
+          "practice.workspace.notices.positionBuilderClipboardBlockedFenShown",
+          "Clipboard blocked. FEN shown below.",
+        ),
+      );
     }
   };
 
   const handlePositionBuilderSideChange = (side: "w" | "b") => {
     const fenParts = positionBuilderGame.fen().split(" ");
     if (fenParts.length < 6) {
-      setPanelNotice("Cannot update side to move.");
+      setPanelNotice(
+        t(
+          "practice.workspace.notices.positionBuilderCannotUpdateSideToMove",
+          "Cannot update side to move.",
+        ),
+      );
       return;
     }
     fenParts[1] = side;
@@ -1180,7 +1335,16 @@ export default function PlayPractice() {
     const loaded = applyPositionBuilderFen(nextFen);
     if (loaded) {
       setPositionBuilderSideToMove(side);
-      setPanelNotice(`Turn set to ${side === "w" ? "White" : "Black"}.`);
+      const sideLabel =
+        side === "w"
+          ? t("practice.workspace.turn.white", "White")
+          : t("practice.workspace.turn.black", "Black");
+      setPanelNotice(
+        t("practice.workspace.notices.positionBuilderTurnSetTo", {
+          side: sideLabel,
+          defaultValue: `Turn set to ${sideLabel}.`,
+        }),
+      );
     }
   };
 
@@ -1189,14 +1353,21 @@ export default function PlayPractice() {
     setPositionBuilderGame(next);
     clearSelection();
     setLastMove(null);
-    setPanelNotice("Loaded start position.");
+    setPanelNotice(
+      t(
+        "practice.workspace.notices.positionBuilderLoadedStartPosition",
+        "Loaded start position.",
+      ),
+    );
     setPositionBuilderFenFallback("");
   };
 
   const handlePositionBuilderClearBoard = () => {
     const emptyBoardFen = `8/8/8/8/8/8/8/8 ${positionBuilderSideToMove} - - 0 1`;
     applyPositionBuilderFen(emptyBoardFen);
-    setPanelNotice("Board cleared.");
+    setPanelNotice(
+      t("practice.workspace.notices.positionBuilderBoardCleared", "Board cleared."),
+    );
   };
 
   const validatePositionBuilderBeforeStart = () => {
@@ -1205,8 +1376,14 @@ export default function PlayPractice() {
     const validationGame = new Chess();
     if (!validationGame.load(validationFen)) {
       setPositionBuilderValidationModal({
-        title: "Invalid Position",
-        message: "Could not validate this position. Try rebuilding it.",
+        title: t(
+          "practice.workspace.positionBuilderValidation.invalidTitle",
+          "Invalid Position",
+        ),
+        message: t(
+          "practice.workspace.positionBuilderValidation.couldNotValidate",
+          "Could not validate this position. Try rebuilding it.",
+        ),
       });
       return false;
     }
@@ -1218,8 +1395,14 @@ export default function PlayPractice() {
       const result = validator.validate_fen(validationFen);
       if (!result.valid) {
         setPositionBuilderValidationModal({
-          title: "Invalid Position",
-          message: result.error || "FEN validation failed.",
+          title: t(
+            "practice.workspace.positionBuilderValidation.invalidTitle",
+            "Invalid Position",
+          ),
+          message: t(
+            "practice.workspace.positionBuilderValidation.fenValidationFailed",
+            "FEN validation failed.",
+          ),
         });
         return false;
       }
@@ -1246,8 +1429,14 @@ export default function PlayPractice() {
 
     if (whiteKingCount !== 1 || blackKingCount !== 1) {
       setPositionBuilderValidationModal({
-        title: "Invalid Position",
-        message: "Board must contain exactly 1 White king and 1 Black king.",
+        title: t(
+          "practice.workspace.positionBuilderValidation.invalidTitle",
+          "Invalid Position",
+        ),
+        message: t(
+          "practice.workspace.positionBuilderValidation.boardMustContainKings",
+          "Board must contain exactly 1 White king and 1 Black king.",
+        ),
       });
       return false;
     }
@@ -1259,8 +1448,14 @@ export default function PlayPractice() {
       Math.abs(whiteKingPos.col - blackKingPos.col) <= 1
     ) {
       setPositionBuilderValidationModal({
-        title: "Invalid Position",
-        message: "Kings cannot be adjacent.",
+        title: t(
+          "practice.workspace.positionBuilderValidation.invalidTitle",
+          "Invalid Position",
+        ),
+        message: t(
+          "practice.workspace.positionBuilderValidation.kingsCannotBeAdjacent",
+          "Kings cannot be adjacent.",
+        ),
       });
       return false;
     }
@@ -1272,8 +1467,17 @@ export default function PlayPractice() {
 
     if (isSideInCheck(validationGame, sideNotToMove)) {
       setPositionBuilderValidationModal({
-        title: "Invalid Position",
-        message: `${sideNotToMoveLabel} king is in check, but ${sideNotToMoveLabel} is not the side to move.`,
+        title: t(
+          "practice.workspace.positionBuilderValidation.invalidTitle",
+          "Invalid Position",
+        ),
+        message: t(
+          "practice.workspace.positionBuilderValidation.sideInCheckButNotToMove",
+          {
+            side: sideNotToMoveLabel,
+            defaultValue: `${sideNotToMoveLabel} king is in check, but ${sideNotToMoveLabel} is not the side to move.`,
+          },
+        ),
       });
       return false;
     }
@@ -1286,13 +1490,31 @@ export default function PlayPractice() {
 
       if (isCheckmate) {
         setPositionBuilderValidationModal({
-          title: "Checkmate",
-          message: `Checkmate: No legal moves for ${sideToMoveLabel}`,
+          title: t(
+            "practice.workspace.positionBuilderValidation.checkmateTitle",
+            "Checkmate",
+          ),
+          message: t(
+            "practice.workspace.positionBuilderValidation.checkmateNoLegalMoves",
+            {
+              side: sideToMoveLabel,
+              defaultValue: `Checkmate: No legal moves for ${sideToMoveLabel}`,
+            },
+          ),
         });
       } else if (isStalemate) {
         setPositionBuilderValidationModal({
-          title: "Stalemate",
-          message: `Stalemate: No legal moves for ${sideToMoveLabel}`,
+          title: t(
+            "practice.workspace.positionBuilderValidation.stalemateTitle",
+            "Stalemate",
+          ),
+          message: t(
+            "practice.workspace.positionBuilderValidation.stalemateNoLegalMoves",
+            {
+              side: sideToMoveLabel,
+              defaultValue: `Stalemate: No legal moves for ${sideToMoveLabel}`,
+            },
+          ),
         });
       }
       return false;
@@ -1307,7 +1529,12 @@ export default function PlayPractice() {
     const turn = rawFen.split(" ")[1] === "b" ? "b" : "w";
     const cleanFen = sanitizeFenForPractice(rawFen, turn) ?? rawFen.trim();
     if (cleanFen.split(/\s+/).length !== 6) {
-      setPanelNotice("Invalid FEN string.");
+      setPanelNotice(
+        t(
+          "practice.workspace.notices.positionBuilderInvalidFenString",
+          "Invalid FEN string.",
+        ),
+      );
       return;
     }
     console.log("Passing FEN to FreeMove:", cleanFen);
@@ -1322,7 +1549,7 @@ export default function PlayPractice() {
 
   const handleUndo = () => {
     if (!freeMoveHistory.length) {
-      setPanelNotice("No moves to undo.");
+      setPanelNotice(t("practice.workspace.notices.noMovesToUndo", "No moves to undo."));
       return;
     }
 
@@ -1336,13 +1563,13 @@ export default function PlayPractice() {
     setLastMove(null);
     clearSelection();
     clearPreMove();
-    setPanelNotice("Last move undone.");
+    setPanelNotice(t("practice.workspace.notices.lastMoveUndone", "Last move undone."));
     setExportFallback("");
   };
 
   const handleRedo = () => {
     if (!redoStack.length) {
-      setPanelNotice("No moves to redo.");
+      setPanelNotice(t("practice.workspace.notices.noMovesToRedo", "No moves to redo."));
       return;
     }
 
@@ -1355,7 +1582,12 @@ export default function PlayPractice() {
     });
 
     if (!move || next.fen() !== redoMove.fenAfter) {
-      setPanelNotice("Cannot redo from current position.");
+      setPanelNotice(
+        t(
+          "practice.workspace.notices.cannotRedoFromCurrentPosition",
+          "Cannot redo from current position.",
+        ),
+      );
       setRedoStack([]);
       return;
     }
@@ -1366,7 +1598,7 @@ export default function PlayPractice() {
     setLastMove({ from: redoMove.from, to: redoMove.to });
     clearSelection();
     clearPreMove();
-    setPanelNotice("Move restored.");
+    setPanelNotice(t("practice.workspace.notices.moveRestored", "Move restored."));
     setExportFallback("");
     playChessMoveSound(move, { isOpponentMove: move.color === "b" });
   };
@@ -1380,8 +1612,11 @@ export default function PlayPractice() {
     clearPreMove();
     setPanelNotice(
       isPositionBuilderFreeMoveActive
-        ? "Position reset to builder start."
-        : "Position reset to start.",
+        ? t(
+            "practice.workspace.notices.positionResetToBuilderStart",
+            "Position reset to builder start.",
+          )
+        : t("practice.workspace.notices.positionResetToStart", "Position reset to start."),
     );
     setExportFallback("");
     setRedoStack([]);
@@ -1397,23 +1632,35 @@ export default function PlayPractice() {
     const pgnGame = buildGameFromHistory(freeMoveInitialFen, freeMoveHistory);
     const pgn = pgnGame.pgn();
     if (!pgn) {
-      setPanelNotice("No moves to export yet.");
+      setPanelNotice(t("practice.workspace.notices.noMovesToExportYet", "No moves to export yet."));
       return;
     }
 
     if (!navigator.clipboard?.writeText) {
       setExportFallback(pgn);
-      setPanelNotice("Clipboard unavailable. PGN displayed below.");
+      setPanelNotice(
+        t(
+          "practice.workspace.notices.clipboardUnavailablePgnShown",
+          "Clipboard unavailable. PGN displayed below.",
+        ),
+      );
       return;
     }
 
     try {
       await navigator.clipboard.writeText(pgn);
-      setPanelNotice("PGN copied to clipboard.");
+      setPanelNotice(
+        t("practice.workspace.notices.pgnCopiedToClipboard", "PGN copied to clipboard."),
+      );
       setExportFallback("");
     } catch {
       setExportFallback(pgn);
-      setPanelNotice("Clipboard blocked. PGN displayed below.");
+      setPanelNotice(
+        t(
+          "practice.workspace.notices.clipboardBlockedPgnShown",
+          "Clipboard blocked. PGN displayed below.",
+        ),
+      );
     }
   };
 
@@ -1613,7 +1860,7 @@ export default function PlayPractice() {
                           letterSpacing: "-0.01em",
                         }}
                       >
-                        Free Move
+                        {practiceModeCopy["free-move"].title}
                       </h2>
                     </div>
                     <button
@@ -1636,7 +1883,7 @@ export default function PlayPractice() {
                         cursor: "pointer",
                       }}
                     >
-                      Back
+                      {t("practice.workspace.back", "Буцах")}
                     </button>
                   </div>
 
@@ -1679,7 +1926,7 @@ export default function PlayPractice() {
                           textTransform: "uppercase",
                         }}
                       >
-                        Move History
+                        {t("practice.workspace.moveHistory", "Move History")}
                       </span>
                     </div>
                     <div
@@ -1694,7 +1941,10 @@ export default function PlayPractice() {
                     >
                       <ChessMoveList
                         rows={moveRows}
-                        emptyMessage="Make a legal move to start your PGN list."
+                        emptyMessage={t(
+                          "practice.workspace.moveHistoryEmpty",
+                          "Make a legal move to start your PGN list.",
+                        )}
                         activePly={sanMoves.length || null}
                         rowClassName="grid grid-cols-[30px_minmax(0,1fr)_minmax(0,1fr)] gap-1.5 items-center text-sm"
                         moveNumberClassName="text-[#334155]"
@@ -1716,36 +1966,6 @@ export default function PlayPractice() {
                       overflow: "hidden",
                     }}
                   >
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 8,
-                        padding: "10px 14px",
-                        borderBottom: "1px solid #1a2640",
-                        background: "#111827",
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: 6,
-                          height: 6,
-                          borderRadius: "50%",
-                          background: "#334155",
-                        }}
-                      />
-                      <span
-                        style={{
-                          fontSize: 10,
-                          fontWeight: 700,
-                          color: "#64748b",
-                          letterSpacing: "0.1em",
-                          textTransform: "uppercase",
-                        }}
-                      >
-                        Position Insights
-                      </span>
-                    </div>
                     <div
                       style={{
                         padding: "10px 12px",
@@ -1793,7 +2013,10 @@ export default function PlayPractice() {
                             padding: "0 2px",
                           }}
                         >
-                          Opening data unavailable
+                          {t(
+                            "practice.workspace.freeMove.openingUnavailable",
+                            "Opening data unavailable",
+                          )}
                         </div>
                       )}
 
@@ -1823,7 +2046,7 @@ export default function PlayPractice() {
                               textTransform: "uppercase",
                             }}
                           >
-                            Top 5 Moves
+                            {t("practice.workspace.freeMove.topFiveMoves", "Top 5 Moves")}
                           </div>
                           <div
                             style={{
@@ -1832,8 +2055,8 @@ export default function PlayPractice() {
                             }}
                           >
                             {createGameFromFen(fen).turn() === "w"
-                              ? "White to move"
-                              : "Black to move"}
+                              ? t("practice.workspace.freeMove.whiteToMove", "White to move")
+                              : t("practice.workspace.freeMove.blackToMove", "Black to move")}
                           </div>
                         </div>
 
@@ -1845,10 +2068,16 @@ export default function PlayPractice() {
                             }}
                           >
                             {topMovesLoading
-                              ? "Analyzing top moves..."
+                              ? t(
+                                  "practice.workspace.freeMove.analyzingTopMoves",
+                                  "Analyzing top moves...",
+                                )
                               : topMovesError
                                 ? topMovesError
-                                : "Top moves will appear here."}
+                                : t(
+                                    "practice.workspace.freeMove.topMovesPlaceholder",
+                                    "Top moves will appear here.",
+                                  )}
                           </div>
                         ) : (
                           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
@@ -1898,36 +2127,6 @@ export default function PlayPractice() {
                       overflow: "hidden",
                     }}
                   >
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 8,
-                        padding: "11px 14px",
-                        borderBottom: "1px solid #1a2640",
-                        background: "#111827",
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: 6,
-                          height: 6,
-                          borderRadius: "50%",
-                          background: "#334155",
-                        }}
-                      />
-                      <span
-                        style={{
-                          fontSize: 10,
-                          fontWeight: 700,
-                          color: "#64748b",
-                          letterSpacing: "0.1em",
-                          textTransform: "uppercase",
-                        }}
-                      >
-                        Controls
-                      </span>
-                    </div>
 
                     <div
                       style={{
@@ -1973,7 +2172,12 @@ export default function PlayPractice() {
                             fontWeight: 500,
                           }}
                         >
-                          {sanMoves.length === 0 ? "Start position" : `${sanMoves.length} ply`}
+                          {sanMoves.length === 0
+                            ? t("practice.workspace.freeMove.startPosition", "Start Position")
+                            : t("practice.workspace.freeMove.plyCount", {
+                                count: sanMoves.length,
+                                defaultValue: `${sanMoves.length} ply`,
+                              })}
                         </span>
                         <button
                           onClick={handleRedo}
@@ -2005,7 +2209,7 @@ export default function PlayPractice() {
                           color: "#64748b",
                         }}
                       >
-                        Reset to Start
+                        {t("practice.workspace.freeMove.resetToStart", "Reset to Start")}
                       </button>
                       <button
                         onClick={handleExportPgn}
@@ -2021,7 +2225,7 @@ export default function PlayPractice() {
                             "0 2px 8px rgb(var(--color-brand-500-rgb) / 0.25)",
                         }}
                       >
-                        Export PGN
+                        {t("practice.workspace.exportPgn", "Export PGN")}
                       </button>
                     </div>
                     <div style={{ padding: "0 12px 12px" }}>
@@ -2040,7 +2244,7 @@ export default function PlayPractice() {
                           cursor: "pointer",
                         }}
                       >
-                        Flip Board
+                        {t("practice.workspace.freeMove.flipBoard", "Flip Board")}
                       </button>
                     </div>
                     {preMove && (
@@ -2052,7 +2256,8 @@ export default function PlayPractice() {
                           fontFamily: '"Roboto Mono", monospace',
                         }}
                       >
-                        Queued pre-move: {preMove.from}{"->"}
+                        {t("practice.workspace.freeMove.queuedPreMove", "Queued pre-move")}:{" "}
+                        {preMove.from}{"->"}
                         {preMove.to}
                         {preMove.promotion ?? ""}
                       </div>
@@ -2151,7 +2356,7 @@ export default function PlayPractice() {
                           letterSpacing: "-0.01em",
                         }}
                       >
-                        Position Builder
+                        {practiceModeCopy["position-builder"].title}
                       </h2>
                     </div>
                     <button
@@ -2168,7 +2373,7 @@ export default function PlayPractice() {
                         cursor: "pointer",
                       }}
                     >
-                      Back
+                      {t("practice.workspace.back", "Буцах")}
                     </button>
                   </div>
 
@@ -2207,7 +2412,7 @@ export default function PlayPractice() {
                           textTransform: "uppercase",
                         }}
                       >
-                        Turn to Move
+                        {t("practice.workspace.turnToMove", "Turn to Move")}
                       </span>
                     </div>
                     <div style={{ display: "flex", gap: 6, padding: "10px 12px" }}>
@@ -2248,7 +2453,7 @@ export default function PlayPractice() {
                             border: "1.5px solid #cbd5e1",
                           }}
                         />
-                        White
+                        {t("practice.workspace.turn.white", "White")}
                       </button>
                       <button
                         type="button"
@@ -2287,7 +2492,7 @@ export default function PlayPractice() {
                             border: "1.5px solid #475569",
                           }}
                         />
-                        Black
+                        {t("practice.workspace.turn.black", "Black")}
                       </button>
                     </div>
                   </div>
@@ -2310,14 +2515,6 @@ export default function PlayPractice() {
                         background: "#111827",
                       }}
                     >
-                      <div
-                        style={{
-                          width: 6,
-                          height: 6,
-                          borderRadius: "50%",
-                          background: "#334155",
-                        }}
-                      />
                       <span
                         style={{
                           fontSize: 11,
@@ -2327,7 +2524,10 @@ export default function PlayPractice() {
                           textTransform: "uppercase",
                         }}
                       >
-                        Piece Palette
+                        {t(
+                          "practice.workspace.positionBuilderPanel.piecePalette",
+                          "Piece Palette",
+                        )}
                       </span>
                     </div>
 
@@ -2343,7 +2543,10 @@ export default function PlayPractice() {
                           textTransform: "uppercase",
                         }}
                       >
-                        White Pieces
+                        {t(
+                          "practice.workspace.positionBuilderPanel.whitePiece",
+                          "White Piece",
+                        )}
                       </div>
                       <div
                         style={{
@@ -2412,7 +2615,10 @@ export default function PlayPractice() {
                           textTransform: "uppercase",
                         }}
                       >
-                        Black Pieces
+                        {t(
+                          "practice.workspace.positionBuilderPanel.blackPiece",
+                          "Black Piece",
+                        )}
                       </div>
                       <div
                         style={{
@@ -2508,7 +2714,10 @@ export default function PlayPractice() {
                           >
                             <path d="M3 6h18M8 6V4h8v2M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
                           </svg>
-                          Eraser (click board square to remove)
+                          {t(
+                            "practice.workspace.positionBuilderPanel.eraserHelp",
+                            "Eraser (click board square to remove)",
+                          )}
                         </button>
                       </div>
                     </div>
@@ -2549,7 +2758,10 @@ export default function PlayPractice() {
                           textTransform: "uppercase",
                         }}
                       >
-                        FEN String
+                        {t(
+                          "practice.workspace.positionBuilderPanel.fenString",
+                          "FEN String",
+                        )}
                       </span>
                     </div>
                     <div
@@ -2608,7 +2820,10 @@ export default function PlayPractice() {
                             borderRadius: 8,
                           }}
                         >
-                          Load FEN
+                          {t(
+                            "practice.workspace.positionBuilderPanel.loadFen",
+                            "Load FEN",
+                          )}
                         </button>
                         <button
                           type="button"
@@ -2625,7 +2840,10 @@ export default function PlayPractice() {
                             boxShadow: "0 2px 8px rgba(16,185,129,0.28)",
                           }}
                         >
-                          Copy FEN
+                          {t(
+                            "practice.workspace.positionBuilderPanel.copyFen",
+                            "Copy FEN",
+                          )}
                         </button>
                       </div>
                     </div>
@@ -2666,7 +2884,10 @@ export default function PlayPractice() {
                           textTransform: "uppercase",
                         }}
                       >
-                        Board Actions
+                        {t(
+                          "practice.workspace.positionBuilderPanel.boardActions",
+                          "Board Actions",
+                        )}
                       </span>
                     </div>
                     <div
@@ -2688,7 +2909,10 @@ export default function PlayPractice() {
                           border: "1px solid #263045",
                         }}
                       >
-                        Start Position
+                        {t(
+                          "practice.workspace.freeMove.startPositionButton",
+                          "Start Position",
+                        )}
                       </button>
                       <button
                         type="button"
@@ -2700,7 +2924,10 @@ export default function PlayPractice() {
                           border: "1px solid rgba(248,113,113,0.45)",
                         }}
                       >
-                        Clear Board
+                        {t(
+                          "practice.workspace.positionBuilderPanel.clearBoard",
+                          "Clear Board",
+                        )}
                       </button>
                       <button
                         type="button"
@@ -2715,7 +2942,10 @@ export default function PlayPractice() {
                           boxShadow: "0 4px 14px rgba(16,185,129,0.34)",
                         }}
                       >
-                        Start from This Position
+                        {t(
+                          "practice.workspace.positionBuilderPanel.startFromThisPosition",
+                          "Start from This Position",
+                        )}
                       </button>
                     </div>
                   </div>
@@ -2779,10 +3009,13 @@ export default function PlayPractice() {
                     <p
                       style={{ fontSize: 15, fontWeight: 600, color: "#f1f5f9" }}
                     >
-                      Practice Workspace
+                      {t("practice.workspace.title", "Practice Workspace")}
                     </p>
                     <p style={{ fontSize: 12, color: "#64748b", marginTop: 3 }}>
-                      Choose a training mode to set your next session.
+                      {t(
+                        "practice.workspace.subtitle",
+                        "Choose a training mode to set your next session.",
+                      )}
                     </p>
                   </div>
 
@@ -2798,6 +3031,7 @@ export default function PlayPractice() {
                   >
                     {PRACTICE_MODES.map((mode) => {
                       const isActive = selectedModeId === mode.id;
+                      const modeCopy = practiceModeCopy[mode.id];
                       return (
                         <button
                           key={mode.id}
@@ -2849,7 +3083,7 @@ export default function PlayPractice() {
                                 color: "#e2e8f0",
                               }}
                             >
-                              {mode.title}
+                              {modeCopy.title}
                             </p>
                             <p
                               style={{
@@ -2861,7 +3095,7 @@ export default function PlayPractice() {
                                 whiteSpace: "nowrap",
                               }}
                             >
-                              {mode.desc}
+                              {modeCopy.desc}
                             </p>
                           </div>
                         </button>
@@ -2885,7 +3119,7 @@ export default function PlayPractice() {
                         marginBottom: 6,
                       }}
                     >
-                      Current Selection
+                      {t("practice.workspace.currentSelection", "Current Selection")}
                     </p>
                     <p
                       style={{
@@ -2895,7 +3129,7 @@ export default function PlayPractice() {
                         marginBottom: 2,
                       }}
                     >
-                      {activeMode.title}
+                      {activeModeCopy.title}
                     </p>
                     <p
                       style={{
@@ -2904,7 +3138,7 @@ export default function PlayPractice() {
                         marginBottom: 14,
                       }}
                     >
-                      {activeMode.desc}
+                      {activeModeCopy.desc}
                     </p>
                     <button
                       type="button"
@@ -2929,7 +3163,26 @@ export default function PlayPractice() {
                         letterSpacing: "0.01em",
                       }}
                     >
-                      Open {activeMode.title}
+                      {activeModeCopy.openLabel}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => navigate("/play/practice/pgn")}
+                      style={{
+                        width: "100%",
+                        padding: "10px",
+                        marginTop: 8,
+                        background: "transparent",
+                        color: "#94a3b8",
+                        border: "1px solid #334155",
+                        borderRadius: 10,
+                        fontSize: 13,
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        letterSpacing: "0.01em",
+                      }}
+                    >
+                      {t("practice.workspace.importUploadPgn", "Import / Upload PGN")}
                     </button>
                   </div>
                 </div>
@@ -2938,6 +3191,43 @@ export default function PlayPractice() {
           </AnimatePresence>
         </div>
       </div>
+      {isPgnImportModalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          onMouseDown={closePgnImportModal}
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 110,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 12,
+            background: "rgba(2, 6, 23, 0.8)",
+            backdropFilter: "blur(2px)",
+          }}
+        >
+          <div
+            onMouseDown={(event) => event.stopPropagation()}
+            style={{
+              width: "min(90vw, 720px)",
+              height: "min(520px, 92vh)",
+              maxHeight: 520,
+              borderRadius: 16,
+              border: "1px solid #334155",
+              background: "#111827",
+              boxShadow: "0 22px 56px -24px rgba(2,6,23,0.95)",
+              overflow: "hidden",
+            }}
+          >
+            <PracticePgnImport
+              embedded
+              onRequestClose={closePgnImportModal}
+            />
+          </div>
+        </div>
+      )}
       {positionBuilderValidationModal && (
         <div
           role="dialog"
@@ -3020,7 +3310,7 @@ export default function PlayPractice() {
                     boxShadow: "0 2px 10px rgba(16,185,129,0.28)",
                   }}
                 >
-                  OK
+                  {t("practice.workspace.positionBuilderValidation.okButton", "OK")}
                 </button>
               </div>
             </div>

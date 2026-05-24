@@ -16,6 +16,7 @@ import {
   useBlocker,
   useBeforeUnload,
 } from "react-router-dom";
+import { I18nextProvider, useTranslation } from "react-i18next";
 import Sidebar from "./components/Sidebar";
 import { useThemeStore } from "./store/themeStore";
 import { useAuthStore, authApi } from "./store/authStore";
@@ -36,6 +37,7 @@ import {
 } from "./utils/activeOnlineGame";
 import { isAnalyzePath, openAnalyzeWindow } from "./utils/analyzeNavigation";
 import { API_URL } from "./config/network";
+import adminI18n from "./adminI18n";
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const PlayWithBot = lazy(async () => {
@@ -319,19 +321,29 @@ function AnalyzeNavigationBridge() {
   return null;
 }
 
-function getActiveGameRedirectMessage(pathname: string) {
+function getActiveGameRedirectMessage(
+  pathname: string,
+  t: (key: string, defaultValue?: string) => string,
+) {
   const normalized = String(pathname || "").toLowerCase();
   if (
     normalized.startsWith("/puzzles") ||
     normalized.startsWith("/play/bot") ||
     normalized.startsWith("/play/practice")
   ) {
-    return "You were redirected because you already have an active online game in progress.";
+    return t(
+      "quickMatch.leave.redirectAlreadyInGameWithContext",
+      "You were redirected because you already have an active online game in progress.",
+    );
   }
-  return "You already have an active game in progress.";
+  return t(
+    "quickMatch.leave.redirectAlreadyInGame",
+    "You already have an active game in progress.",
+  );
 }
 
 function ActiveGameGuard() {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, isLoading } = useAuthStore();
@@ -471,7 +483,7 @@ function ActiveGameGuard() {
 
         if (!alreadyOnTargetRoute) {
           setActiveGameRedirectNotice(
-            getActiveGameRedirectMessage(location.pathname),
+            getActiveGameRedirectMessage(location.pathname, t),
           );
           allowGuardRedirectRef.current = true;
           navigate(targetPath, { replace: true });
@@ -502,14 +514,16 @@ function ActiveGameGuard() {
                 id="leave-game-dialog-title"
                 className="text-lg font-semibold text-gray-900 dark:text-white"
               >
-                Leave Current Game?
+                {t("quickMatch.leave.title", "Leave Current Game?")}
               </h2>
               <p
                 id="leave-game-dialog-description"
                 className="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300"
               >
-                You are currently in a game. Leaving now may forfeit the match.
-                Do you want to resign and leave?
+                {t(
+                  "quickMatch.leave.description",
+                  "You are currently in a game. Leaving now may forfeit the match. Do you want to resign and leave?",
+                )}
               </p>
             </div>
             <div className="flex items-center justify-end gap-2.5 border-t border-theme-glass px-6 py-4">
@@ -519,7 +533,7 @@ function ActiveGameGuard() {
                 disabled={isLeaving}
                 className="rounded-lg border border-theme-glass bg-white/70 px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-white/80 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white/5 dark:text-gray-200 dark:hover:bg-white/10"
               >
-                Stay
+                {t("quickMatch.leave.stay", "Stay")}
               </button>
               <button
                 type="button"
@@ -527,7 +541,9 @@ function ActiveGameGuard() {
                 disabled={isLeaving}
                 className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-500 disabled:cursor-not-allowed disabled:opacity-70"
               >
-                {isLeaving ? "Leaving..." : "Resign & Leave"}
+                {isLeaving
+                  ? t("quickMatch.leave.leaving", "Leaving...")
+                  : t("quickMatch.leave.resignAndLeave", "Resign & Leave")}
               </button>
             </div>
           </div>
@@ -624,6 +640,14 @@ function RouteFallback() {
       <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
     </div>
   );
+}
+
+function AdminI18nScope({ children }: { children: React.ReactNode }) {
+  return <I18nextProvider i18n={adminI18n}>{children}</I18nextProvider>;
+}
+
+function withAdminI18n(element: React.ReactNode) {
+  return <AdminI18nScope>{element}</AdminI18nScope>;
 }
 
 function App() {
@@ -738,6 +762,14 @@ function App() {
             />
             <Route
               path="/play/practice/positionBuilder/freeMove"
+              element={
+                <ProtectedRoute>
+                  <PlayPractice />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/play/practice/pgn"
               element={
                 <ProtectedRoute>
                   <PlayPractice />
@@ -930,36 +962,66 @@ function App() {
             />
 
             {/* Admin routes - uses same login page, admin auth checked inside */}
-            <Route path="/admin" element={<Navigate to="/admin/users" replace />} />
-            <Route path="/admin/users" element={<AdminUsers />} />
-            <Route path="/admin/users/:userId" element={<AdminUserProfile />} />
-            <Route path="/admin/puzzles" element={<AdminPuzzles />} />
-            <Route path="/admin/bots" element={<AdminBots />} />
-            <Route path="/admin/events" element={<AdminFeaturedEvents />} />
-            <Route path="/admin/events-mn" element={<AdminEventsMn />} />
-            <Route path="/admin/games" element={<AdminGames />} />
-            <Route path="/admin/community" element={<AdminCommunity />} />
-            <Route path="/admin/groups" element={<AdminGroups />} />
-            <Route path="/admin/learn" element={<AdminLearn />} />
+            <Route
+              path="/admin"
+              element={withAdminI18n(<Navigate to="/admin/users" replace />)}
+            />
+            <Route path="/admin/users" element={withAdminI18n(<AdminUsers />)} />
+            <Route
+              path="/admin/users/:userId"
+              element={withAdminI18n(<AdminUserProfile />)}
+            />
+            <Route
+              path="/admin/puzzles"
+              element={withAdminI18n(<AdminPuzzles />)}
+            />
+            <Route path="/admin/bots" element={withAdminI18n(<AdminBots />)} />
+            <Route
+              path="/admin/events"
+              element={withAdminI18n(<AdminFeaturedEvents />)}
+            />
+            <Route
+              path="/admin/events-mn"
+              element={withAdminI18n(<AdminEventsMn />)}
+            />
+            <Route path="/admin/games" element={withAdminI18n(<AdminGames />)} />
+            <Route
+              path="/admin/community"
+              element={withAdminI18n(<AdminCommunity />)}
+            />
+            <Route
+              path="/admin/groups"
+              element={withAdminI18n(<AdminGroups />)}
+            />
+            <Route path="/admin/learn" element={withAdminI18n(<AdminLearn />)} />
             <Route
               path="/admin/learn/courses/:courseId"
-              element={<AdminLearnCourse />}
+              element={withAdminI18n(<AdminLearnCourse />)}
             />
             <Route
               path="/admin/learn/courses/:courseId/lessons/:lessonId"
-              element={<AdminLearnLesson />}
+              element={withAdminI18n(<AdminLearnLesson />)}
             />
-            <Route path="/admin/learn-mn" element={<AdminLearnMn />} />
+            <Route
+              path="/admin/learn-mn"
+              element={withAdminI18n(<AdminLearnMn />)}
+            />
             <Route
               path="/admin/learn-mn/courses/:courseId"
-              element={<AdminLearnMnCourse />}
+              element={withAdminI18n(<AdminLearnMnCourse />)}
             />
             <Route
               path="/admin/learn-mn/courses/:courseId/lessons/:lessonId"
-              element={<AdminLearnMnLesson />}
+              element={withAdminI18n(<AdminLearnMnLesson />)}
             />
-            <Route path="/admin/profile" element={<AdminProfile />} />
-            <Route path="/admin/analyze/:gameId" element={<AdminAnalyze />} />
+            <Route
+              path="/admin/profile"
+              element={withAdminI18n(<AdminProfile />)}
+            />
+            <Route
+              path="/admin/analyze/:gameId"
+              element={withAdminI18n(<AdminAnalyze />)}
+            />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>

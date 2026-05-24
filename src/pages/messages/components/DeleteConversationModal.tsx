@@ -36,10 +36,7 @@ export function DeleteConversationModal({
               {t("messages.deleteConfirmTitle", "Delete conversation?")}
             </h4>
             <p className="mt-1 text-sm text-slate-400">
-              {t(
-                "messages.deleteConfirmBody",
-                "This will remove the conversation from your messages. It will not erase it for the other participant.",
-              )}
+              {t("messages.deleteConfirmBody")}
             </p>
           </div>
         </div>

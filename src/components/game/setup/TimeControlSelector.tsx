@@ -1,3 +1,4 @@
+import { Trans } from "react-i18next";
 import { timeOptions } from "./constants";
 
 interface TimeControlSelectorProps {
@@ -11,9 +12,7 @@ export function TimeControlSelector({
 }: TimeControlSelectorProps) {
   return (
     <div className="mb-6">
-      <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-        Time Control
-      </label>
+      <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block"> <Trans>Time Control</Trans> </label>
       <div className="grid grid-cols-4 gap-2">
         {timeOptions.map((opt) => (
           <button

@@ -28,6 +28,7 @@ import {
   adminLearnMnRoutes,
   puzzleRoutes,
   ratingsRoutes,
+  pgnRoutes,
   tournamentRoutes,
 } from "../routes/index.js";
 
@@ -37,6 +38,7 @@ function registerApiRoutes(app) {
   app.use("/api/puzzles", puzzleRoutes);
   app.use("/api/game-config", gameConfigRoutes);
   app.use("/api/bots", botsRoutes);
+  app.use("/api/pgn", pgnRoutes);
   app.use("/api/admin", adminRoutes);
   app.use("/api/admin/users", adminUsersRoutes);
   app.use("/api/admin/games", adminGamesRoutes);

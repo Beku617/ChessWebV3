@@ -38,6 +38,7 @@ import {
   getUserRatingForPool,
 } from "../utils/ratingPool";
 import { useGameplayPreferences } from "./useGameplayPreferences";
+import i18n from "../i18n";
 
 type PlayerColor = "w" | "b";
 type MatchVariant =
@@ -1350,7 +1351,7 @@ export function useFriendOnlineGame() {
         offeredBy: payload.offeredBy || playerColorRef.current,
         expiresAt: Number(payload.expiresAt || 0) || null,
       });
-      setStatusMessage("Draw offer sent.");
+      setStatusMessage(i18n.t("quickMatch.draw.offerSent", "Draw offer sent."));
     };
 
     const handleDrawOfferReceived = (payload: DrawOfferPayload) => {
@@ -1368,13 +1369,20 @@ export function useFriendOnlineGame() {
         offeredBy: payload.offeredBy || null,
         expiresAt: Number(payload.expiresAt || 0) || null,
       });
-      setStatusMessage("Opponent offered a draw.");
+      setStatusMessage(
+        i18n.t(
+          "quickMatch.draw.opponentOffered",
+          "Your opponent offered a draw.",
+        ),
+      );
     };
 
     const handleDrawOfferAccepted = (payload: DrawOfferPayload) => {
       if (payload.gameId !== gameIdRef.current) return;
       setDrawOfferState(idleDrawOfferState);
-      setStatusMessage("Draw offer accepted.");
+      setStatusMessage(
+        i18n.t("quickMatch.draw.offerAccepted", "Draw offer accepted."),
+      );
     };
 
     const handleDrawOfferDeclined = (payload: DrawOfferPayload) => {
@@ -1382,15 +1390,18 @@ export function useFriendOnlineGame() {
       setDrawOfferState(idleDrawOfferState);
       setStatusMessage(
         payload.reason === "move"
-          ? "Draw offer declined by move."
-          : "Draw offer declined.",
+          ? i18n.t(
+              "quickMatch.draw.offerDeclinedByMove",
+              "Draw offer declined by move.",
+            )
+          : i18n.t("quickMatch.draw.offerDeclined", "Draw offer declined."),
       );
     };
 
     const handleDrawOfferExpired = (payload: DrawOfferPayload) => {
       if (payload.gameId !== gameIdRef.current) return;
       setDrawOfferState(idleDrawOfferState);
-      setStatusMessage("Draw offer expired.");
+      setStatusMessage(i18n.t("quickMatch.draw.offerExpired", "Draw offer expired."));
     };
 
     const handleOpponentDisconnected = (payload?: {
@@ -2430,7 +2441,10 @@ export function useFriendOnlineGame() {
     if (!socket || !gameIdRef.current || gameOver) return;
     socket.emit("offerDraw", { gameId: gameIdRef.current }, (response?: SocketAckResponse) => {
       if (response?.success === false) {
-        setStatusMessage(response.error || "Unable to offer draw.");
+        setStatusMessage(
+          response.error ||
+            i18n.t("quickMatch.draw.unableToOffer", "Unable to offer draw."),
+        );
         return;
       }
       setDrawOfferState({
@@ -2439,7 +2453,12 @@ export function useFriendOnlineGame() {
         expiresAt: Number(response?.expiresAt || 0) || null,
       });
       if (response?.delivered === false) {
-        setStatusMessage("Draw offer sent. Waiting for opponent to reconnect.");
+        setStatusMessage(
+          i18n.t(
+            "quickMatch.draw.offerSentWaitingReconnect",
+            "Draw offer sent. Waiting for opponent to reconnect.",
+          ),
+        );
       }
     });
   }, [gameOver, socket]);
@@ -2452,7 +2471,13 @@ export function useFriendOnlineGame() {
         { gameId: gameIdRef.current, accept },
         (response?: SocketAckResponse) => {
           if (response?.success === false) {
-            setStatusMessage(response.error || "Unable to respond to draw offer.");
+            setStatusMessage(
+              response.error ||
+                i18n.t(
+                  "quickMatch.draw.unableToRespond",
+                  "Unable to respond to draw offer.",
+                ),
+            );
             return;
           }
           if (!accept) {

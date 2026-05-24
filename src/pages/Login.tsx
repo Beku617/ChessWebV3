@@ -8,7 +8,7 @@ import FacebookLogin, {
 import { useAuthStore, authApi, type AuthApiError } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
 import { useAdminStore } from "../store/adminStore";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
 import LanguageSwitcher from "../components/LanguageSwitcher";
 import { useOAuthConfig } from "../hooks/useOAuthConfig";
 import { ThemeWindow } from "../components/settings";
@@ -288,9 +288,10 @@ export default function Login() {
                 className="relative w-28 h-28 object-contain mx-auto"
               />
             </div>
-            <h1 className="mt-3 text-2xl font-bold text-gray-900 dark:text-white tracking-tight">
+            <h1 className="mt-3 text-4xl font-bold text-gray-900 dark:text-white tracking-tight"> <Trans>NeonGambit</Trans> </h1>
+            <p className="mt-1 text-sm font-medium text-gray-500 dark:text-gray-400">
               {t("auth.welcomeBack", "Welcome Back")}
-            </h1>
+            </p>
           </div>
 
           {banReason && (

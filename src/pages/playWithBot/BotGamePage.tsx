@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { Chess } from "chess.js";
+import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../../store/authStore";
 import { useStockfishGame } from "../../hooks/useStockfishGame";
 import {
@@ -82,6 +83,7 @@ function formatOpeningLabel(
 }
 
 export default function BotGamePage() {
+  const { t } = useTranslation();
   const { botId } = useParams<{ botId: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -137,11 +139,15 @@ export default function BotGamePage() {
   const latestPly = moves.length;
   const activePly = selectedPly ?? (latestPly > 0 ? latestPly : null);
   const openingLabel = useMemo(() => {
-    if (moves.length === 0) return "Starting Position";
+    if (moves.length === 0) {
+      return t("quickMatch.opening.startingPosition", "Starting Position");
+    }
     const formatted = formatOpeningLabel(opening);
     if (formatted) return formatted;
-    return openingLoading ? "Detecting opening..." : "";
-  }, [moves.length, opening, openingLoading]);
+    return openingLoading
+      ? t("quickMatch.opening.detecting", "Detecting opening...")
+      : "";
+  }, [moves.length, opening, openingLoading, t]);
   const fenByPly = useMemo(() => {
     const chess = new Chess();
     const map = new Map<number, string>();
@@ -195,7 +201,7 @@ export default function BotGamePage() {
         });
 
         if (!res.ok) {
-          throw new Error("Bot not found");
+          throw new Error(t("botGame.notFound", "Bot not found"));
         }
 
         const data = await res.json();
@@ -204,7 +210,7 @@ export default function BotGamePage() {
         setError(null);
       } catch (err) {
         console.error("Error fetching bot:", err);
-        setError("Bot not found");
+        setError(t("botGame.notFound", "Bot not found"));
       } finally {
         setLoading(false);
       }
@@ -276,13 +282,13 @@ export default function BotGamePage() {
       <div className="min-h-screen bg-slate-100 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-            Bot not found
+            {t("botGame.notFound", "Bot not found")}
           </h2>
           <button
             onClick={() => navigate("/play/bot")}
             className="px-6 py-3 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-medium"
           >
-            Back to Bot Selection
+            {t("botGame.backToBotSelection", "Back to Bot Selection")}
           </button>
         </div>
       </div>
@@ -325,7 +331,7 @@ export default function BotGamePage() {
                 >
                   <PlayerInfo
                     name={bot.name}
-                    subtitle=""
+                    subtitle={t("botGame.aiOpponent", "AI opponent")}
                     rating={bot.rating}
                     avatarLetter={getBotInitials(bot.name)}
                     avatarImage={bot.avatarUrl}
@@ -369,7 +375,7 @@ export default function BotGamePage() {
                   style={{ width: boardWidth }}
                 >
                   <PlayerInfo
-                    name={user?.fullName || "You"}
+                    name={user?.fullName || t("You")}
                     subtitle=""
                     avatarLetter={user?.fullName?.substring(0, 2).toUpperCase() || "Y"}
                     avatarImage={user?.avatar}
@@ -418,7 +424,7 @@ export default function BotGamePage() {
                         )}
                       </div>
                       <div className="text-sm text-gray-500 dark:text-gray-400">
-                        Rating: {bot.rating}
+                        {t("quickMatch.result.rating", "Rating")}: {bot.rating}
                       </div>
                     </div>
                   </div>
@@ -438,7 +444,7 @@ export default function BotGamePage() {
                           rows={moveRows}
                           activePly={activePly}
                           onSelectPly={handleSelectPly}
-                          emptyMessage="No moves yet"
+                          emptyMessage={t("quickMatch.moves.empty", "No moves yet")}
                           rowClassName="text-sm"
                           moveCellClassName="rounded px-2 py-1 transition-colors"
                           activeMoveClassName="bg-[#00e5a0]/20 text-[#00e5a0] font-semibold"
@@ -457,13 +463,13 @@ export default function BotGamePage() {
                     disabled={gameOver}
                     className="w-full py-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 font-medium transition-colors disabled:opacity-50"
                   >
-                    Resign
+                    {t("game.actions.resign", "Resign")}
                   </ResignConfirmButton>
                   <button
                     onClick={() => navigate("/play/bot")}
                     className="w-full py-3 rounded-xl bg-white/10 hover:bg-white/15 text-gray-800 dark:text-gray-200 font-medium transition-colors"
                   >
-                    Back to Bot Selection
+                    {t("botGame.backToBotSelection", "Back to Bot Selection")}
                   </button>
                 </div>
                 </div>

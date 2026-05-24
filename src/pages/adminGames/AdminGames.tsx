@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation, Trans } from "react-i18next";
 import {
   Check,
   ChevronLeft,
@@ -48,6 +49,7 @@ function variantBadgeClass(variant: string): string {
 }
 
 export default function AdminGames() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { isAuthenticated, isLoading: authLoading, checkAuth } = useAdminStore();
 
@@ -186,9 +188,7 @@ export default function AdminGames() {
         <div className="flex flex-wrap items-start justify-between gap-4 mb-7">
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-3">
-              <Gamepad2 className="w-8 h-8 text-brand-500" />
-              Games Management
-            </h1>
+              <Gamepad2 className="w-8 h-8 text-brand-500" /> <Trans>Games Management</Trans> </h1>
           </div>
 
           <div className="flex items-center gap-3">
@@ -197,41 +197,32 @@ export default function AdminGames() {
               onClick={handleExport}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
             >
-              <Download className="w-4 h-4" />
-              Export CSV
-            </button>
+              <Download className="w-4 h-4" /> <Trans>Export CSV</Trans> </button>
           </div>
         </div>
 
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
             <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4">
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Total Games
-              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400"> <Trans>Total Games</Trans> </p>
               <p className="mt-1 text-2xl font-bold">{stats.total}</p>
             </div>
             <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4">
-              <p className="text-sm text-gray-500 dark:text-gray-400">Rated</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400"><Trans>Rated</Trans></p>
               <p className="mt-1 text-2xl font-bold text-brand-600 dark:text-brand-400">
                 {stats.rated}
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                {ratedPercent}% of all games
-              </p>
+                {ratedPercent}<Trans>% of all games</Trans> </p>
             </div>
             <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4">
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Standard / 960
-              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400"> <Trans>Standard / 960</Trans> </p>
               <p className="mt-1 text-2xl font-bold">
                 {stats.byVariant.standard} / {stats.byVariant.chess960}
               </p>
             </div>
             <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4">
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Last 24 Hours
-              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400"> <Trans>Last 24 Hours</Trans> </p>
               <p className="mt-1 text-2xl font-bold text-brand-600 dark:text-brand-400">
                 {stats.recent24h}
               </p>
@@ -250,7 +241,7 @@ export default function AdminGames() {
                     setSearchQuery(e.target.value);
                     setPage(1);
                   }}
-                  placeholder="Search by players, event, ECO..."
+                  placeholder={t("admin.search.games")}
                   className="w-full pl-10 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
                 />
               </div>
@@ -264,9 +255,9 @@ export default function AdminGames() {
               }}
               className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
             >
-              <option value="">All Variants</option>
-              <option value="standard">Standard</option>
-              <option value="chess960">Chess960</option>
+              <option value=""><Trans>All Variants</Trans></option>
+              <option value="standard"><Trans>Standard</Trans></option>
+              <option value="chess960"><Trans>Chess960</Trans></option>
             </select>
 
             <select
@@ -277,7 +268,7 @@ export default function AdminGames() {
               }}
               className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
             >
-              <option value="">All Results</option>
+              <option value=""><Trans>All Results</Trans></option>
               {GAME_RESULT_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.value}
@@ -293,9 +284,9 @@ export default function AdminGames() {
               }}
               className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
             >
-              <option value="">All Types</option>
-              <option value="true">Rated</option>
-              <option value="false">Casual</option>
+              <option value=""><Trans>All Types</Trans></option>
+              <option value="true"><Trans>Rated</Trans></option>
+              <option value="false"><Trans>Casual</Trans></option>
             </select>
           </div>
         </div>
@@ -314,33 +305,19 @@ export default function AdminGames() {
           ) : games.length === 0 ? (
             <div className="py-20 text-center text-gray-500 dark:text-gray-400">
               <Gamepad2 className="w-12 h-12 mx-auto mb-3 opacity-40" />
-              <p>No games found with current filters.</p>
+              <p><Trans>No games found with current filters.</Trans></p>
             </div>
           ) : (
             <table className="w-full">
               <thead className="bg-gray-50 dark:bg-slate-800/50 border-b border-gray-200 dark:border-gray-800">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                    Players
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                    Result
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                    Variant
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                    Owner
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                    Moves
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                    Created
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
-                    Actions
-                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"> <Trans>Players</Trans> </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"> <Trans>Result</Trans> </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"> <Trans>Variant</Trans> </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"> <Trans>Owner</Trans> </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"> <Trans>Moves</Trans> </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"> <Trans>Created</Trans> </th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"> <Trans>Actions</Trans> </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
@@ -355,7 +332,7 @@ export default function AdminGames() {
                     >
                       <td className="px-4 py-3">
                         <div className="font-medium text-gray-900 dark:text-white">
-                          {game.white} vs {game.black}
+                          {game.white} <Trans>vs</Trans> {game.black}
                         </div>
                         <div className="text-xs text-gray-500 dark:text-gray-400">
                           {game.event || "NeonGambit Game"}
@@ -414,7 +391,7 @@ export default function AdminGames() {
                             type="button"
                             onClick={() => openAnalyzeWindow(`/admin/analyze/${game._id}`)}
                             className="p-2 rounded-lg text-gray-500 hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"
-                            title="Analyze"
+                            title={t("admin.actions.analyze")}
                           >
                             <Eye className="w-4 h-4" />
                           </button>
@@ -422,7 +399,7 @@ export default function AdminGames() {
                             type="button"
                             onClick={() => handleEditClick(game)}
                             className="p-2 rounded-lg text-gray-500 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-                            title="Edit"
+                            title={t("admin.actions.edit")}
                           >
                             <Pencil className="w-4 h-4" />
                           </button>
@@ -430,7 +407,7 @@ export default function AdminGames() {
                             type="button"
                             onClick={() => setDeleteTarget(game)}
                             className="p-2 rounded-lg text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                            title="Delete"
+                            title={t("admin.actions.delete")}
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -445,11 +422,8 @@ export default function AdminGames() {
 
           {pagination.pages > 1 && (
             <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-800">
-              <div className="text-sm text-gray-500 dark:text-gray-400">
-                Showing {(pagination.page - 1) * pagination.limit + 1} to{" "}
-                {Math.min(pagination.page * pagination.limit, pagination.total)}{" "}
-                of {pagination.total} games
-              </div>
+              <div className="text-sm text-gray-500 dark:text-gray-400"> <Trans>Showing</Trans> {(pagination.page - 1) * pagination.limit + 1} <Trans>to</Trans>{" "}
+                {Math.min(pagination.page * pagination.limit, pagination.total)}{" "} <Trans>of</Trans> {pagination.total} <Trans>games</Trans> </div>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
@@ -459,8 +433,7 @@ export default function AdminGames() {
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
-                <span className="text-sm text-gray-600 dark:text-gray-400">
-                  Page {pagination.page} of {pagination.pages}
+                <span className="text-sm text-gray-600 dark:text-gray-400"> <Trans>Page</Trans> {pagination.page} <Trans>of</Trans> {pagination.pages}
                 </span>
                 <button
                   type="button"

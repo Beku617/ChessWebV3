@@ -2,7 +2,7 @@
    Community — Shared small components
    ═══════════════════════════════════════════════════════ */
 import type { ReactNode } from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
 import { resolveAssetUrl } from "./types";
 
 /* ─── Title Badge (GM, IM, etc.) ─── */
@@ -28,7 +28,7 @@ export function TitleBadge({ title }: { title: string }) {
 /* ─── Verified Check ─── */
 export function VerifiedBadge() {
   return (
-    <span className="text-[10px] font-semibold text-brand-400">Verified</span>
+    <span className="text-[10px] font-semibold text-brand-400"><Trans>Verified</Trans></span>
   );
 }
 

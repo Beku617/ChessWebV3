@@ -8,9 +8,8 @@ import { useLanguageAvailabilityStore } from "../store/languageAvailabilityStore
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 const WATCH_LIVE_GAMES_ENDPOINT = `${API_URL}/api/watch/live-games`;
 const EVENTS_ENDPOINT = `${API_URL}/api/events?limit=10`;
-const EVENTS_MN_PAIR_ENDPOINT = `${API_URL}/api/events-mn/pair`;
+const EVENTS_MN_ENDPOINT = `${API_URL}/api/events-mn?limit=10`;
 const LANGUAGE_STORAGE_KEY = "ng_lang";
-const PAIR_ID_PATTERN = /^\d{5}$/;
 
 // Types for featured events from our backend
 export interface FeaturedEvent {
@@ -52,12 +51,15 @@ export interface FeaturedEvent {
 
 type PreferredLanguage = "en" | "mn";
 
-function normalizePreferredLanguage(value: unknown): PreferredLanguage {
-  return String(value || "").toLowerCase() === "mn" ? "mn" : "en";
+function normalizePreferredLanguage(value: unknown): PreferredLanguage | null {
+  const normalized = String(value || "").trim().toLowerCase();
+  if (normalized.startsWith("mn")) return "mn";
+  if (normalized.startsWith("en")) return "en";
+  return null;
 }
 
-function readStoredPreferredLanguage(): PreferredLanguage {
-  if (typeof window === "undefined") return "en";
+function readStoredPreferredLanguage(): PreferredLanguage | null {
+  if (typeof window === "undefined") return null;
   return normalizePreferredLanguage(
     window.localStorage.getItem(LANGUAGE_STORAGE_KEY),
   );
@@ -66,11 +68,6 @@ function readStoredPreferredLanguage(): PreferredLanguage {
 function persistPreferredLanguage(language: PreferredLanguage) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
-}
-
-function normalizePairId(value: unknown): string {
-  const normalized = String(value || "").trim();
-  return PAIR_ID_PATTERN.test(normalized) ? normalized : "";
 }
 
 async function fetchFeaturedEventsFromApi(endpoint: string): Promise<FeaturedEvent[]> {
@@ -82,24 +79,6 @@ async function fetchFeaturedEventsFromApi(endpoint: string): Promise<FeaturedEve
 
   const data = await response.json();
   return Array.isArray(data) ? data : [];
-}
-
-async function fetchEventPairMappingMn(
-  pairId: string,
-): Promise<FeaturedEvent | null> {
-  const response = await fetch(
-    `${EVENTS_MN_PAIR_ENDPOINT}/${encodeURIComponent(pairId)}`,
-    {
-      credentials: "include",
-    },
-  );
-  if (!response.ok) return null;
-
-  const data = await response.json().catch(() => null);
-  if (!data || typeof data !== "object") return null;
-
-  const mappedEvent = (data as { event?: FeaturedEvent | null }).event;
-  return mappedEvent || null;
 }
 
 function normalizeWatchLiveGame(raw: any): WatchLiveGame {
@@ -268,16 +247,17 @@ export function useFeaturedEvents() {
     if (userPreferredLanguage) return userPreferredLanguage;
     const storedLanguage = readStoredPreferredLanguage();
     if (storedLanguage) return storedLanguage;
-    return normalizePreferredLanguage("en");
+    return "mn";
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const nextLanguage =
+      normalizePreferredLanguage(i18n.resolvedLanguage || i18n.language) ||
       userPreferredLanguage ||
       readStoredPreferredLanguage() ||
-      normalizePreferredLanguage(i18n.resolvedLanguage || i18n.language || "en");
+      "mn";
     setLanguage(nextLanguage);
     persistPreferredLanguage(nextLanguage);
   }, [i18n.language, i18n.resolvedLanguage, userPreferredLanguage]);
@@ -287,7 +267,7 @@ export function useFeaturedEvents() {
 
     const updateFromStorage = () => {
       if (userPreferredLanguage) return;
-      setLanguage(readStoredPreferredLanguage());
+      setLanguage(readStoredPreferredLanguage() || "mn");
     };
 
     window.addEventListener("storage", updateFromStorage);
@@ -319,27 +299,17 @@ export function useFeaturedEvents() {
         return;
       }
 
+      const mongolianEvents = await fetchFeaturedEventsFromApi(EVENTS_MN_ENDPOINT);
+      if (mongolianEvents.length > 0) {
+        applyEventsState(mongolianEvents);
+        setEventsMnUnavailable(false);
+        setError(null);
+        return;
+      }
+
       const englishEvents = await fetchFeaturedEventsFromApi(EVENTS_ENDPOINT);
-      const mappedEvents = await Promise.all(
-        englishEvents.map(async (event) => {
-          const pairId = normalizePairId(event?.pairId);
-          if (!pairId) {
-            return { event, isFallback: true };
-          }
-
-          const translatedEvent = await fetchEventPairMappingMn(pairId);
-          if (!translatedEvent) {
-            return { event, isFallback: true };
-          }
-
-          return { event: translatedEvent, isFallback: false };
-        }),
-      );
-
-      const fallbackTriggered = mappedEvents.some((entry) => entry.isFallback);
-      const visibleEvents = mappedEvents.map((entry) => entry.event);
-      applyEventsState(visibleEvents);
-      setEventsMnUnavailable(fallbackTriggered);
+      applyEventsState(englishEvents);
+      setEventsMnUnavailable(true);
       setError(null);
     } catch (err) {
       if (language === "mn") {

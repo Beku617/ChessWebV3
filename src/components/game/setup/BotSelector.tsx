@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
 import {
   BotPersonality,
   getBotsByCategory,
@@ -37,9 +37,7 @@ export function BotSelector({
     >
       {/* Category Selector */}
       <div className="mb-4">
-        <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-          Difficulty Category
-        </label>
+        <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block"> <Trans>Difficulty Category</Trans> </label>
         <div className="flex gap-1 overflow-x-auto pb-2">
           {categories.map((cat) => (
             <button
@@ -62,9 +60,7 @@ export function BotSelector({
 
       {/* Bot Selection Grid */}
       <div className="mb-4">
-        <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-          Choose Your Opponent
-        </label>
+        <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block"> <Trans>Choose Your Opponent</Trans> </label>
         <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
           {botsInCategory.map((bot) => (
             <button
@@ -92,8 +88,7 @@ export function BotSelector({
                         ? "text-brand-100"
                         : "text-gray-500 dark:text-gray-400"
                     }`}
-                  >
-                    Rating: {bot.rating}
+                  > <Trans>Rating:</Trans> {bot.rating}
                   </div>
                 </div>
               </div>

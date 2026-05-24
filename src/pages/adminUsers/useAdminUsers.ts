@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAdminStore } from "../../store/adminStore";
 import {
   User,
@@ -28,6 +29,7 @@ function resolveAccountStatus(user: User): "offline" | "active" | "playing" {
 }
 
 export function useAdminUsers() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { isAuthenticated, isLoading, checkAuth } = useAdminStore();
 
@@ -92,7 +94,7 @@ export function useAdminUsers() {
       if (
         isPlaying &&
         !window.confirm(
-          "This user is currently in an active game. Their account will be deleted automatically when the match ends. Continue?",
+          t("admin.users.confirm.actionWhenPlaying"),
         )
       ) {
         return;
@@ -151,7 +153,7 @@ export function useAdminUsers() {
         setDeleteConfirm(null);
       }
     },
-    [users],
+    [t, users],
   );
 
   const handleBanUser = useCallback(
@@ -162,7 +164,7 @@ export function useAdminUsers() {
         shouldBan &&
         isPlaying &&
         !window.confirm(
-          "This user is currently in an active game. Their account will be deleted automatically when the match ends. Continue?",
+          t("admin.users.confirm.actionWhenPlaying"),
         )
       ) {
         return;
@@ -224,7 +226,7 @@ export function useAdminUsers() {
         setBanReason("");
       }
     },
-    [],
+    [t, users],
   );
 
   const handleSort = useCallback((field: SortField) => {
@@ -242,7 +244,14 @@ export function useAdminUsers() {
 
   const exportUsers = useCallback(() => {
     const csv = [
-      ["Name", "Email", "Rating", "Games Played", "Win Rate", "Joined"],
+      [
+        t("admin.users.csv.name"),
+        t("admin.users.csv.email"),
+        t("admin.users.table.rating"),
+        t("admin.users.csv.gamesPlayed"),
+        t("admin.users.table.winRate"),
+        t("admin.users.table.joined"),
+      ],
       ...users.map((u) => [
         u.fullName,
         u.email,
@@ -264,7 +273,7 @@ export function useAdminUsers() {
     a.download = "users.csv";
     a.click();
     URL.revokeObjectURL(url);
-  }, [users]);
+  }, [t, users]);
 
   const totalPages = Math.ceil(totalUsers / LIMIT);
 

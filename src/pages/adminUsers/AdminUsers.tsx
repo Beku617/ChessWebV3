@@ -1,4 +1,5 @@
 import { Users, Download, Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import AdminSidebar from "../../components/AdminSidebar";
 import { useAdminUsers } from "./useAdminUsers";
 import { UserStatsCards } from "./UserStatsCards";
@@ -6,6 +7,7 @@ import { UsersTable } from "./UsersTable";
 import { UsersPagination } from "./UsersPagination";
 
 export default function AdminUsers() {
+  const { t } = useTranslation();
   const {
     users,
     totalUsers,
@@ -51,7 +53,7 @@ export default function AdminUsers() {
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-3">
               <Users className="w-7 h-7 text-brand-500" />
-              User Management
+              {t("admin.users.pageTitle")}
             </h1>
           </div>
           <div className="flex items-center gap-3">
@@ -60,7 +62,7 @@ export default function AdminUsers() {
               className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg text-sm font-medium transition-colors"
             >
               <Download className="w-4 h-4" />
-              Export CSV
+              {t("admin.users.exportCsv")}
             </button>
           </div>
         </div>

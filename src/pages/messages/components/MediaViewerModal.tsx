@@ -1,4 +1,5 @@
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { MessageAttachment } from "../types";
 import { formatBytes, isVideoAttachment, resolveMediaUrl } from "../utils";
@@ -14,6 +15,7 @@ export function MediaViewerModal({
   onClose,
   onStep,
 }: MediaViewerModalProps) {
+  const { t } = useTranslation();
   if (!viewer || viewer.attachments.length === 0) return null;
 
   const current = viewer.attachments[viewer.index] || viewer.attachments[0];
@@ -58,13 +60,16 @@ export function MediaViewerModal({
         ) : (
           <img
             src={resolveMediaUrl(current?.url)}
-            alt={current?.filename || "attachment"}
+            alt={current?.filename || t("messages.attachmentFallback", "attachment")}
             className="max-h-[80vh] w-full rounded-2xl border border-white/10 bg-[#0b1424] object-contain shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
           />
         )}
         <div className="mt-3 flex items-center justify-center gap-3 text-sm text-slate-200">
           <span className="max-w-[60vw] truncate">
-            {current?.filename || (video ? "Video" : "Photo")}
+            {current?.filename ||
+              (video
+                ? t("messages.videoFileFallback", "Video")
+                : t("messages.photoFileFallback", "Photo"))}
           </span>
           <span className="text-slate-400">{formatBytes(current?.size || 0)}</span>
         </div>

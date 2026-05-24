@@ -1,5 +1,6 @@
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation, Trans } from "react-i18next";
 import {
   Check,
   ChevronDown,
@@ -39,6 +40,11 @@ type FilterOption = {
   label: string;
 };
 
+const SECONDARY_ACTION_GRID_CLASS = {
+  single: "grid-cols-1",
+  double: "grid-cols-2",
+} as const;
+
 function FilterDropdown({
   value,
   options,
@@ -50,6 +56,7 @@ function FilterDropdown({
   onChange: (value: string) => void;
   ariaLabel: string;
 }) {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -83,7 +90,9 @@ function FilterDropdown({
         onClick={() => setIsOpen((open) => !open)}
         className="w-full inline-flex items-center justify-between gap-2 rounded-lg bg-gray-100 px-4 py-3 text-sm text-gray-900 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500/30 transition-colors dark:bg-white/[0.06] dark:text-white dark:hover:bg-white/[0.1]"
       >
-        <span className="truncate">{selected?.label || "Select"}</span>
+        <span className="truncate">
+          {selected?.label || t("admin.community.filter.select", "Select")}
+        </span>
         <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </button>
 
@@ -275,6 +284,7 @@ function matchesAdminPostFilters(
 }
 
 export default function AdminCommunity() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { isAuthenticated, isLoading: authLoading, checkAuth } = useAdminStore();
   const { isDarkMode } = useThemeStore();
@@ -992,7 +1002,7 @@ export default function AdminCommunity() {
             type="button"
             onClick={() => setPreviewGallery(null)}
             className="absolute top-4 right-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
-            aria-label="Close image preview"
+            aria-label={t("common.closeImagePreview")}
           >
             <X className="w-5 h-5" />
           </button>
@@ -1012,7 +1022,7 @@ export default function AdminCommunity() {
                 <span>
                   {previewGallery.index + 1} / {previewGallery.items.length}
                 </span>
-                <span>Use keyboard arrows to browse</span>
+                <span><Trans>Use keyboard arrows to browse</Trans></span>
               </div>
               <div className="mx-auto mt-3 flex max-w-4xl gap-2 overflow-x-auto pb-1 premium-scrollbar">
                 {previewGallery.items.map((item, index) => (
@@ -1062,13 +1072,8 @@ export default function AdminCommunity() {
                 <Trash2 className="w-5 h-5" />
               </div>
               <div className="min-w-0">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Delete this post permanently?
-                </h3>
-                <p className="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300">
-                  The uploaded media will be removed too. This action cannot be
-                  undone.
-                </p>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white"> <Trans>Delete this post permanently?</Trans> </h3>
+                <p className="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300"> <Trans>The uploaded media will be removed too. This action cannot be undone.</Trans> </p>
                 {deleteTargetPost?.text && (
                   <div className="mt-3 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-600 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-gray-400">
                     {deleteTargetPost.text.slice(0, 140)}
@@ -1083,9 +1088,7 @@ export default function AdminCommunity() {
                 type="button"
                 onClick={() => setDeleteConfirmPostId(null)}
                 className="inline-flex items-center justify-center rounded-xl bg-gray-100 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-200 dark:bg-white/[0.08] dark:text-gray-200 dark:hover:bg-white/[0.14]"
-              >
-                Cancel
-              </button>
+              > <Trans>Cancel</Trans> </button>
               <button
                 type="button"
                 onClick={() => void handleConfirmDelete()}
@@ -1096,9 +1099,7 @@ export default function AdminCommunity() {
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
                   <Trash2 className="w-4 h-4" />
-                )}
-                Delete
-              </button>
+                )} <Trans>Delete</Trans> </button>
             </div>
           </div>
         </div>
@@ -1137,7 +1138,9 @@ export default function AdminCommunity() {
                 className="inline-flex shrink-0 items-center gap-2 rounded-full bg-gray-100 px-3.5 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-200 dark:bg-white/[0.08] dark:text-gray-200 dark:hover:bg-white/[0.14]"
               >
                 {isCreateOpen ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-                {isCreateOpen ? "Close" : "New Post"}
+                {isCreateOpen
+                  ? t("admin.community.actions.close", "Close")
+                  : t("admin.community.actions.newPost", "New Post")}
               </button>
             </div>
 
@@ -1151,14 +1154,14 @@ export default function AdminCommunity() {
                       setSearch(e.target.value);
                       setPage(1);
                     }}
-                    placeholder="Search by author, caption, file name, or game info..."
+                    placeholder={t("admin.search.communityPosts")}
                     className="w-full rounded-lg border border-gray-200 bg-gray-50 py-3 pl-11 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-white/[0.05] dark:bg-white/[0.06] dark:text-white dark:placeholder:text-gray-500"
                   />
                 </div>
               </div>
 
               <FilterDropdown
-                ariaLabel="Status filter"
+                ariaLabel={t("admin.community.aria.statusFilter", "Status filter")}
                 value={statusFilter}
                 options={statusOptions}
                 onChange={(value) => {
@@ -1168,7 +1171,7 @@ export default function AdminCommunity() {
               />
 
               <FilterDropdown
-                ariaLabel="Media filter"
+                ariaLabel={t("admin.community.aria.mediaFilter", "Media filter")}
                 value={mediaFilter}
                 options={mediaOptions}
                 onChange={(value) => {
@@ -1188,7 +1191,7 @@ export default function AdminCommunity() {
                 />
                 <div className="max-w-[220px]">
                   <FilterDropdown
-                    ariaLabel="Create post status"
+                    ariaLabel={t("admin.community.aria.createPostStatus", "Create post status")}
                     value={createStatus}
                     options={postStatusOptions}
                     onChange={setCreateStatus}
@@ -1198,7 +1201,7 @@ export default function AdminCommunity() {
                   <input
                     value={createRejectionReason}
                     onChange={(e) => setCreateRejectionReason(e.target.value)}
-                    placeholder="Rejection reason"
+                    placeholder={t("admin.community.placeholders.rejectionReason", "Rejection reason")}
                     className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-white/[0.05] dark:bg-white/[0.06] dark:text-white dark:placeholder:text-gray-500"
                   />
                 )}
@@ -1216,7 +1219,9 @@ export default function AdminCommunity() {
                     className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-500 disabled:opacity-50"
                   >
                     <Plus className="w-4 h-4" />
-                    {isCreating ? "Creating..." : "Create Post"}
+                    {isCreating
+                      ? t("admin.community.actions.creating", "Creating...")
+                      : t("admin.community.actions.createPost", "Create Post")}
                   </button>
                 </div>
               </div>
@@ -1241,15 +1246,15 @@ export default function AdminCommunity() {
           ) : posts.length === 0 ? (
             <div className="rounded-2xl border border-gray-200/80 bg-white/95 py-24 text-center shadow-[0_18px_42px_rgba(15,23,42,0.08)] dark:border-white/[0.05] dark:bg-[#0c1728]/80 dark:shadow-[0_24px_75px_rgba(0,0,0,0.24)]">
               <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-500" />
-              <p className="text-base font-medium text-gray-900 dark:text-white">No posts found</p>
-              <p className="mt-2 text-sm text-gray-500 dark:text-gray-500">
-                Try a different status or search filter.
-              </p>
+              <p className="text-base font-medium text-gray-900 dark:text-white"><Trans>No posts found</Trans></p>
+              <p className="mt-2 text-sm text-gray-500 dark:text-gray-500"> <Trans>Try a different status or search filter.</Trans> </p>
             </div>
           ) : (
             <div className="space-y-5">
               {posts.map((post) => {
-                const authorName = post.author?.fullName || "Chess Player";
+                const authorName =
+                  post.author?.fullName ||
+                  t("admin.community.labels.chessPlayer", "Chess Player");
                 const authorId = String(post.author?.id || "");
                 const mediaItems = getCommunityMediaItems(post);
                 const mediaUrl = resolveAssetUrl(mediaItems[0]?.url || post.mediaUrl);
@@ -1282,15 +1287,18 @@ export default function AdminCommunity() {
                 const contentTypeLabel = formatAdminContentType(post);
                 const reviewStatusLabel = formatStatusLabel(post.status);
                 const reviewStateLabel = post.reviewedAt
-                  ? `Reviewed ${formatRelativeTime(post.reviewedAt)}`
-                  : "Awaiting review";
+                  ? t("admin.community.labels.reviewedAt", {
+                      defaultValue: "Reviewed {{time}}",
+                      time: formatRelativeTime(post.reviewedAt),
+                    })
+                  : t("admin.community.labels.awaitingReview", "Awaiting review");
                 const showApproveAction = post.status !== "approved";
                 const showRejectAction = post.status !== "rejected";
                 const showSecondaryActionRow = !isEditing || showRejectBox || showRejectAction;
                 const secondaryActionGridClass =
                   !isEditing && (showRejectBox || showRejectAction)
-                    ? "grid-cols-2"
-                    : "grid-cols-1";
+                    ? SECONDARY_ACTION_GRID_CLASS.double
+                    : SECONDARY_ACTION_GRID_CLASS.single;
 
                 return (
                   <article
@@ -1312,9 +1320,9 @@ export default function AdminCommunity() {
                                   {authorName}
                                 </h3>
                               <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
-                                <span>Submitted {formatRelativeTime(post.createdAt)}</span>
+                                <span><Trans>Submitted</Trans> {formatRelativeTime(post.createdAt)}</span>
                                 {post.updatedAt && (
-                                  <span>Updated {formatRelativeTime(post.updatedAt)}</span>
+                                  <span><Trans>Updated</Trans> {formatRelativeTime(post.updatedAt)}</span>
                                 )}
                               </div>
                             </div>
@@ -1322,9 +1330,7 @@ export default function AdminCommunity() {
                             </div>
 
                             <div className="shrink-0 text-right">
-                              <div className="text-[10px] uppercase tracking-[0.22em] text-gray-500">
-                                Preview
-                              </div>
+                              <div className="text-[10px] uppercase tracking-[0.22em] text-gray-500"> <Trans>Preview</Trans> </div>
                               <div className="mt-1 text-xs text-gray-400">
                                 {contentTypeLabel}
                               </div>
@@ -1333,9 +1339,7 @@ export default function AdminCommunity() {
 
                           {post.text && (
                             <div className="rounded-[18px] border border-white/[0.04] bg-white/[0.025] px-4 py-3.5">
-                              <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500">
-                                Caption
-                              </div>
+                              <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500"> <Trans>Caption</Trans> </div>
                               <div className="mt-2 whitespace-pre-wrap text-sm leading-6 text-gray-100/90">
                                 {post.text}
                               </div>
@@ -1344,9 +1348,7 @@ export default function AdminCommunity() {
 
                           {post.group && (
                             <div className="rounded-[18px] border border-white/[0.04] bg-white/[0.02] px-4 py-3 text-sm text-gray-300">
-                              <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500">
-                                Group
-                              </div>
+                              <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500"> <Trans>Group</Trans> </div>
                               <div className="mt-2 flex flex-wrap items-center gap-2">
                                 <span className="rounded-full bg-brand-500/10 px-2.5 py-1 text-[11px] font-semibold text-brand-100">
                                   {post.group.name}
@@ -1362,9 +1364,7 @@ export default function AdminCommunity() {
 
                           {isEditing && (
                             <div className="space-y-3 rounded-[18px] border border-white/[0.05] bg-[#091321]/80 p-4">
-                              <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500">
-                                Edit Submission
-                              </div>
+                              <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500"> <Trans>Edit Submission</Trans> </div>
                               <textarea
                                 value={editText}
                                 onChange={(e) => setEditText(e.target.value)}
@@ -1373,7 +1373,7 @@ export default function AdminCommunity() {
                               />
                               <div className="max-w-[220px]">
                                 <FilterDropdown
-                                  ariaLabel="Edit post status"
+                                  ariaLabel={t("admin.community.aria.editPostStatus", "Edit post status")}
                                   value={editStatus}
                                   options={postStatusOptions}
                                   onChange={setEditStatus}
@@ -1383,14 +1383,12 @@ export default function AdminCommunity() {
                                 <input
                                   value={editRejectionReason}
                                   onChange={(e) => setEditRejectionReason(e.target.value)}
-                                  placeholder="Rejection reason"
+                                  placeholder={t("admin.community.placeholders.rejectionReason", "Rejection reason")}
                                   className="w-full rounded-xl bg-white/[0.05] px-4 py-2.5 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                                 />
                               )}
                               {isGamePost ? (
-                                <div className="rounded-xl bg-white/[0.04] px-4 py-3 text-sm leading-6 text-gray-400">
-                                  Shared game snapshot is locked for moderation edits. You can update the caption, status, and rejection reason here.
-                                </div>
+                                <div className="rounded-xl bg-white/[0.04] px-4 py-3 text-sm leading-6 text-gray-400"> <Trans>Shared game snapshot is locked for moderation edits. You can update the caption, status, and rejection reason here.</Trans> </div>
                               ) : (
                                 <>
                                   <input
@@ -1406,9 +1404,7 @@ export default function AdminCommunity() {
                                         checked={editRemoveMedia}
                                         onChange={(e) => setEditRemoveMedia(e.target.checked)}
                                         className="rounded border-white/20 bg-transparent text-brand-500 focus:ring-brand-500/30"
-                                      />
-                                      Remove existing media
-                                    </label>
+                                      /> <Trans>Remove existing media</Trans> </label>
                                   )}
                                 </>
                               )}
@@ -1418,18 +1414,14 @@ export default function AdminCommunity() {
                                   onClick={cancelEditPost}
                                   className="inline-flex items-center gap-2 rounded-xl bg-white/[0.08] px-4 py-2.5 text-sm text-gray-200 hover:bg-white/[0.14]"
                                 >
-                                  <X className="w-4 h-4" />
-                                  Cancel
-                                </button>
+                                  <X className="w-4 h-4" /> <Trans>Cancel</Trans> </button>
                                 <button
                                   type="button"
                                   disabled={isBusy}
                                   onClick={() => handleSaveEdit(post.id)}
                                   className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-500 disabled:opacity-50"
                                 >
-                                  <Check className="w-4 h-4" />
-                                  Save changes
-                                </button>
+                                  <Check className="w-4 h-4" /> <Trans>Save changes</Trans> </button>
                               </div>
                             </div>
                           )}
@@ -1464,7 +1456,10 @@ export default function AdminCommunity() {
                                 <div className="overflow-hidden rounded-[16px] bg-black/55">
                                   <img
                                     src={imageItems[0].url}
-                                    alt={imageItems[0].originalName || "Community post media"}
+                                    alt={
+                                      imageItems[0].originalName ||
+                                      t("admin.community.media.postMediaAlt", "Community post media")
+                                    }
                                     className="w-full max-h-[420px] object-contain bg-black cursor-zoom-in"
                                     onClick={() =>
                                       setPreviewGallery({
@@ -1486,12 +1481,16 @@ export default function AdminCommunity() {
                                   <CommunityImageGrid
                                     items={imageItems.map((item) => ({
                                       url: item.url,
-                                      alt: item.originalName || "Community post image",
+                                      alt:
+                                        item.originalName ||
+                                        t("admin.community.media.postImageAlt", "Community post image"),
                                     }))}
                                     onImageClick={(index) => {
                                       const galleryItems = imageItems.map((item) => ({
                                         src: item.url,
-                                        alt: item.originalName || "Community post media",
+                                        alt:
+                                          item.originalName ||
+                                          t("admin.community.media.postMediaAlt", "Community post media"),
                                       }));
                                       if (!galleryItems[index]) return;
                                       setPreviewGallery({
@@ -1508,15 +1507,15 @@ export default function AdminCommunity() {
                                   {post.mediaType === "video" ? (
                                     <>
                                       <PlayCircle className="w-3.5 h-3.5 text-brand-300" />
-                                      <span>Video preview</span>
+                                      <span><Trans>Video preview</Trans></span>
                                     </>
                                   ) : post.mediaType === "image" ? (
                                     <>
                                       <ImageIcon className="w-3.5 h-3.5 text-brand-300" />
                                       <span>
                                         {imageItems.length > 1
-                                          ? "Image set"
-                                          : "Image preview"}
+                                          ? t("admin.community.media.imageSet", "Image set")
+                                          : t("admin.community.media.imagePreview", "Image preview")}
                                       </span>
                                     </>
                                   ) : (
@@ -1538,9 +1537,7 @@ export default function AdminCommunity() {
                       <aside className="border-t border-gray-200 bg-[linear-gradient(180deg,rgba(248,250,252,0.96),rgba(241,245,249,0.94))] px-5 py-5 xl:border-l xl:border-t-0 sm:px-6 sm:py-6 dark:border-white/[0.05] dark:bg-[linear-gradient(180deg,rgba(255,255,255,0.015),rgba(255,255,255,0.01))]">
                         <div className="flex h-full flex-col">
                           <div className="rounded-[20px] border border-gray-200/80 bg-white/90 p-4 dark:border-white/[0.04] dark:bg-white/[0.025]">
-                            <div className="text-[10px] uppercase tracking-[0.22em] text-gray-500 dark:text-gray-500">
-                              Review
-                            </div>
+                            <div className="text-[10px] uppercase tracking-[0.22em] text-gray-500 dark:text-gray-500"> <Trans>Review</Trans> </div>
                             <div className="mt-3 flex items-start justify-between gap-3">
                               <span
                                 className={`inline-flex items-center rounded-full px-3 py-1.5 text-xs font-semibold ${statusClass(
@@ -1556,12 +1553,12 @@ export default function AdminCommunity() {
 
                             <div className="mt-4 space-y-3 border-t border-gray-200 pt-4 dark:border-white/[0.05]">
                               <div className="flex items-center justify-between text-sm">
-                                <span className="text-gray-500 dark:text-gray-500">Content type</span>
+                                <span className="text-gray-500 dark:text-gray-500"><Trans>Content type</Trans></span>
                                 <span className="text-gray-900 dark:text-gray-100">{contentTypeLabel}</span>
                               </div>
                               {post.group && (
                                 <div className="flex items-center justify-between gap-3 text-sm">
-                                  <span className="text-gray-500 dark:text-gray-500">Group</span>
+                                  <span className="text-gray-500 dark:text-gray-500"><Trans>Group</Trans></span>
                                   <span className="text-right text-gray-800 dark:text-gray-200">
                                     {post.group.name}
                                   </span>
@@ -1570,20 +1567,20 @@ export default function AdminCommunity() {
                               {isGamePost && post.game && (
                                 <>
                                   <div className="flex items-center justify-between gap-3 text-sm">
-                                    <span className="text-gray-500">Result</span>
+                                    <span className="text-gray-500"><Trans>Result</Trans></span>
                                     <span className="text-right text-gray-200">
                                       {formatCommunityResult(post.game.result)}
                                     </span>
                                   </div>
                                   <div className="flex items-center justify-between gap-3 text-sm">
-                                    <span className="text-gray-500">Time control</span>
+                                    <span className="text-gray-500"><Trans>Time control</Trans></span>
                                     <span className="text-right text-gray-200">
                                       {formatCommunityTimeControl(post.game.timeControl)}
                                     </span>
                                   </div>
                                   {gameOpening && (
                                     <div className="flex items-center justify-between gap-3 text-sm">
-                                      <span className="text-gray-500">Opening</span>
+                                      <span className="text-gray-500"><Trans>Opening</Trans></span>
                                       <span className="truncate text-right text-gray-200">
                                         {gameOpening}
                                       </span>
@@ -1593,7 +1590,7 @@ export default function AdminCommunity() {
                               )}
                               {post.reviewedBy && (
                                 <div className="flex items-center justify-between gap-3 text-sm">
-                                  <span className="text-gray-500">Reviewed by</span>
+                                  <span className="text-gray-500"><Trans>Reviewed by</Trans></span>
                                   <span className="text-right text-gray-200">
                                     {post.reviewedBy.username}
                                   </span>
@@ -1606,9 +1603,7 @@ export default function AdminCommunity() {
                           <div className="mt-4 rounded-[20px] border border-white/[0.04] bg-white/[0.025] p-4">
                             <div className="flex items-start justify-between gap-3">
                               <div>
-                                <div className="text-[10px] uppercase tracking-[0.22em] text-gray-500">
-                                  Posting access
-                                </div>
+                                <div className="text-[10px] uppercase tracking-[0.22em] text-gray-500"> <Trans>Posting access</Trans> </div>
                                 <div className="mt-2 text-sm font-medium text-gray-100">
                                   {formatRestrictionLabel(restriction)}
                                 </div>
@@ -1634,8 +1629,8 @@ export default function AdminCommunity() {
                                 {isRateLimitBypassBusy
                                   ? "Saving..."
                                   : restrictionDraft.unlimitedPosts
-                                    ? "Disable unlimited posting"
-                                    : "Enable unlimited posting"}
+                                    ? t("admin.community.actions.disableUnlimitedPosting", "Disable unlimited posting")
+                                    : t("admin.community.actions.enableUnlimitedPosting", "Enable unlimited posting")}
                               </button>
 
                               <FilterDropdown
@@ -1673,7 +1668,9 @@ export default function AdminCommunity() {
                                   }
                                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/[0.08] px-3.5 py-2.5 text-sm font-semibold text-gray-100 hover:bg-white/[0.14] disabled:opacity-50"
                                 >
-                                  {isRestrictionBusy ? "Saving..." : "Apply restriction"}
+                                  {isRestrictionBusy
+                                    ? t("admin.community.actions.saving", "Saving...")
+                                    : t("admin.community.actions.applyRestriction", "Apply restriction")}
                                 </button>
 
                                 {restriction?.active && (
@@ -1688,9 +1685,7 @@ export default function AdminCommunity() {
                                       void updatePostingRestriction(authorId, "none", "");
                                     }}
                                     className="inline-flex items-center justify-center rounded-xl bg-brand-500/15 px-3.5 py-2.5 text-sm font-semibold text-brand-200 hover:bg-brand-500/20 disabled:opacity-50"
-                                  >
-                                    Clear
-                                  </button>
+                                  > <Trans>Clear</Trans> </button>
                                 )}
                               </div>
                             </div>
@@ -1699,17 +1694,13 @@ export default function AdminCommunity() {
 
                         {post.rejectionReason && (
                           <div className="mt-4 rounded-[18px] bg-red-500/10 px-4 py-3.5 text-sm text-red-200">
-                            <div className="text-[10px] uppercase tracking-[0.2em] text-red-200/75">
-                              Rejection note
-                            </div>
+                            <div className="text-[10px] uppercase tracking-[0.2em] text-red-200/75"> <Trans>Rejection note</Trans> </div>
                             <div className="mt-2 leading-6">{post.rejectionReason}</div>
                           </div>
                         )}
 
                           <div className="mt-4 border-t border-white/[0.05] pt-4">
-                            <div className="text-[10px] uppercase tracking-[0.22em] text-gray-500">
-                              Review actions
-                            </div>
+                            <div className="text-[10px] uppercase tracking-[0.22em] text-gray-500"> <Trans>Review actions</Trans> </div>
 
                             {showRejectBox && (
                               <textarea
@@ -1733,9 +1724,7 @@ export default function AdminCommunity() {
                                   onClick={() => handleApprove(post.id)}
                                   className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(13,148,136,0.22)] hover:bg-brand-500 disabled:opacity-50"
                                 >
-                                  <Check className="w-4 h-4" />
-                                  Approve
-                                </button>
+                                  <Check className="w-4 h-4" /> <Trans>Approve</Trans> </button>
                               )}
 
                               {showSecondaryActionRow && (
@@ -1747,9 +1736,7 @@ export default function AdminCommunity() {
                                       onClick={() => startEditPost(post)}
                                       className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/[0.05] px-4 py-2.5 text-sm font-semibold text-gray-200 hover:bg-white/[0.1] disabled:opacity-50"
                                     >
-                                      <Pencil className="w-4 h-4" />
-                                      Edit
-                                    </button>
+                                      <Pencil className="w-4 h-4" /> <Trans>Edit</Trans> </button>
                                   )}
 
                                   {showRejectBox ? (
@@ -1758,9 +1745,7 @@ export default function AdminCommunity() {
                                       disabled={isBusy}
                                       onClick={() => setActiveRejectId(null)}
                                       className="inline-flex items-center justify-center rounded-xl bg-white/[0.05] px-4 py-2.5 text-sm font-semibold text-gray-300 hover:bg-white/[0.1] disabled:opacity-50"
-                                    >
-                                      Cancel
-                                    </button>
+                                    > <Trans>Cancel</Trans> </button>
                                   ) : showRejectAction ? (
                                     <button
                                       type="button"
@@ -1768,9 +1753,7 @@ export default function AdminCommunity() {
                                       onClick={() => setActiveRejectId(post.id)}
                                       className="inline-flex items-center justify-center gap-2 rounded-xl bg-red-500/10 px-4 py-2.5 text-sm font-semibold text-red-200 hover:bg-red-500/18 disabled:opacity-50"
                                     >
-                                      <X className="w-4 h-4" />
-                                      Reject
-                                    </button>
+                                      <X className="w-4 h-4" /> <Trans>Reject</Trans> </button>
                                   ) : null}
                                 </div>
                               )}
@@ -1782,9 +1765,7 @@ export default function AdminCommunity() {
                                   onClick={() => handleReject(post.id)}
                                   className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-200 hover:bg-red-500/20 disabled:opacity-50"
                                 >
-                                  <X className="w-4 h-4" />
-                                  Confirm reject
-                                </button>
+                                  <X className="w-4 h-4" /> <Trans>Confirm reject</Trans> </button>
                               )}
 
                               <button
@@ -1793,9 +1774,7 @@ export default function AdminCommunity() {
                                 onClick={() => handleDelete(post.id)}
                                 className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-white/[0.04] px-4 py-2.5 text-sm font-semibold text-gray-300 hover:bg-white/[0.08] disabled:opacity-50"
                               >
-                                <Trash2 className="w-4 h-4" />
-                                Delete
-                              </button>
+                                <Trash2 className="w-4 h-4" /> <Trans>Delete</Trans> </button>
                             </div>
                           </div>
                         </div>
@@ -1809,8 +1788,7 @@ export default function AdminCommunity() {
 
           {pages > 1 && (
             <div className="mt-6 space-y-2.5 px-1">
-              <p className="text-xs text-gray-500 text-center">
-                Showing {(page - 1) * 8 + 1} - {Math.min(page * 8, total)} of {total}
+              <p className="text-xs text-gray-500 text-center"> <Trans>Showing</Trans> {(page - 1) * 8 + 1} - {Math.min(page * 8, total)} <Trans>of</Trans> {total}
               </p>
               <FeedPagination
                 currentPage={page}

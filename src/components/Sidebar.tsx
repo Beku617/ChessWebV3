@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuthStore, authApi } from "../store/authStore";
 import { useThemeStore } from "../store/themeStore";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
 import { useFriendStore } from "../store/friendStore";
 import { useMessageStore } from "../store/messageStore";
 import type { LucideIcon } from "lucide-react";
@@ -122,9 +122,7 @@ export default function Sidebar() {
           className={`hidden md:inline text-gray-900 dark:text-white font-bold tracking-tight ${
             isCompact ? "text-xl" : "text-2xl"
           }`}
-        >
-          NeonGambit
-        </span>
+        > <Trans>NeonGambit</Trans> </span>
       </Link>
 
       {/* Navigation */}

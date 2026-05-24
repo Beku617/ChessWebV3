@@ -210,18 +210,15 @@ export default function PuzzleTrainer() {
                                   "No puzzle available",
                                 )}
                           </p>
-                          <p className="mt-2 text-sm leading-6 text-slate-400">
-                            {activeMode === "review"
-                              ? t(
-                                  "puzzles.trainer.noReviewDescription",
-                                  "You are all caught up. Failed or gave-up rated puzzles are added here immediately.",
-                                )
-                              : selectionReason ||
+                          {activeMode === "review" ? null : (
+                            <p className="mt-2 text-sm leading-6 text-slate-400">
+                              {selectionReason ||
                                 t(
                                   "puzzles.trainer.noPuzzleDescription",
                                   "Please try again in a moment.",
                                 )}
-                          </p>
+                            </p>
+                          )}
                         </div>
                       </div>
                     ) : (
@@ -325,17 +322,6 @@ export default function PuzzleTrainer() {
                         <div>
                           <p className="text-sm font-semibold text-white">
                             {sideToMoveLabel}
-                          </p>
-                          <p className="text-xs text-slate-400">
-                            {puzzleStartsWithWhite
-                              ? t(
-                                  "puzzles.trainer.playFirstMoveWhite",
-                                  "Play the first move for White.",
-                                )
-                              : t(
-                                  "puzzles.trainer.playFirstMoveBlack",
-                                  "Play the first move for Black.",
-                                )}
                           </p>
                         </div>
                       </div>
@@ -442,10 +428,6 @@ export default function PuzzleTrainer() {
                   </div>
 
                   <div className={cardClass}>
-                    <p className="mb-3 text-xs uppercase tracking-[0.16em] text-slate-400">
-                      {t("puzzles.trainer.line", "Line")}
-                    </p>
-
                     {!solutionLineVisible ? (
                       <p className="text-xs leading-5 text-slate-500">
                         {t(

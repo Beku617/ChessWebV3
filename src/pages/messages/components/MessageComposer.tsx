@@ -8,7 +8,7 @@ import {
   Video,
   X,
 } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
 
 import {
   ACCEPTED_IMAGE_TYPES,
@@ -114,7 +114,7 @@ export function MessageComposer({
           <div className="mb-2 flex items-center justify-between text-[12px] text-slate-200">
             <span className="inline-flex items-center gap-2">
               <Video className="h-4 w-4 text-brand-300" />
-              <span>1 video selected · {formatBytes(pendingVideo.size)}</span>
+              <span><Trans>1 video selected ·</Trans> {formatBytes(pendingVideo.size)}</span>
             </span>
             <button
               type="button"
@@ -158,7 +158,9 @@ export function MessageComposer({
               <ImageIcon className="h-4 w-4 text-brand-300" />
               <span>
                 {pendingImages.length}{" "}
-                {pendingImages.length === 1 ? "image selected" : "images selected"} -{" "}
+                {pendingImages.length === 1
+                  ? t("messages.imageSelected", "image selected")
+                  : t("messages.imagesSelected", "images selected")} -{" "}
                 {formatBytes(totalPendingImageBytes)}
               </span>
             </span>
@@ -207,11 +209,8 @@ export function MessageComposer({
         pendingImages.length === 0 &&
         !pendingVideo && (
           <div className="mb-2 flex items-center gap-2 rounded-xl border border-brand-500/20 bg-brand-500/5 px-3 py-2">
-            <span className="text-xs text-brand-300/90">
-              Type <span className="font-mono font-semibold">/game1</span>,{" "}
-              <span className="font-mono font-semibold">/game2</span>, etc. to
-              share a game from your profile history
-            </span>
+            <span className="text-xs text-brand-300/90"> <Trans>Type</Trans> <span className="font-mono font-semibold"><Trans>/game1</Trans></span>,{" "}
+              <span className="font-mono font-semibold"><Trans>/game2</Trans></span><Trans>, etc. to share a game from your profile history</Trans> </span>
           </div>
         )}
 

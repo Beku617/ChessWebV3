@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const DASHBOARD_VISIBLE_TOURNAMENT_COUNT = 2;
 
 type TournamentStatus = "draft" | "registering" | "running" | "finished";
 type TournamentApiStatus =
@@ -343,110 +344,150 @@ export function TournamentsSection() {
   );
   const prioritizedTournaments =
     upcomingTournaments.length > 0 ? upcomingTournaments : runningTournaments;
+  const visibleTournaments = prioritizedTournaments.slice(
+    0,
+    DASHBOARD_VISIBLE_TOURNAMENT_COUNT,
+  );
+  const hasMoreTournaments =
+    prioritizedTournaments.length > visibleTournaments.length;
+
+  const sectionHeader = (
+    <div className="mb-4 flex items-center justify-between gap-3">
+      <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
+        {t("Tournaments")}
+      </h2>
+      {hasMoreTournaments ? (
+        <button
+          type="button"
+          onClick={() => navigate("/tournaments")}
+          className="text-sm text-teal-600 dark:text-teal-400 hover:text-teal-500 dark:hover:text-teal-300 transition-colors"
+        >
+          {t("Browse All")}
+        </button>
+      ) : null}
+    </div>
+  );
 
   if (loading) {
-    return <LoadingCards />;
+    return (
+      <div>
+        {sectionHeader}
+        <LoadingCards />
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <div className="rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-3 min-w-0">
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-gray-900 dark:text-white">
-                {t("Unable to load tournaments")}
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                {t("Please try again in a moment.")}
-              </p>
+      <div>
+        {sectionHeader}
+        <div className="rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3 min-w-0">
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                  {t("Unable to load tournaments")}
+                </p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {t("Please try again in a moment.")}
+                </p>
+              </div>
             </div>
+            <button
+              onClick={() => setReloadKey((value) => value + 1)}
+              className="inline-flex items-center justify-center rounded-lg border border-gray-300 dark:border-gray-700 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            >
+              {t("Retry")}
+            </button>
           </div>
-          <button
-            onClick={() => setReloadKey((value) => value + 1)}
-            className="inline-flex items-center justify-center rounded-lg border border-gray-300 dark:border-gray-700 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-          >
-            {t("Retry")}
-          </button>
         </div>
       </div>
     );
   }
 
   if (prioritizedTournaments.length > 0) {
-    const isMultiColumn = prioritizedTournaments.length > 1;
+    const isMultiColumn = visibleTournaments.length > 1;
 
     return (
-      <div className={`grid grid-cols-1 gap-4 ${isMultiColumn ? "md:grid-cols-2" : ""}`}>
-        {prioritizedTournaments.map((tournament) => {
-          const tone = getStatusTone(tournament.status);
+      <div>
+        {sectionHeader}
+        <div className={`grid grid-cols-1 gap-4 ${isMultiColumn ? "md:grid-cols-2" : ""}`}>
+          {visibleTournaments.map((tournament) => {
+            const tone = getStatusTone(tournament.status);
 
-          return (
-            <div
-              key={tournament.id}
-              className={`min-w-0 rounded-xl border dark:border-gray-700/50 p-4 sm:p-5 shadow-sm ${getCardClasses(
-                tournament.status,
-              )}`}
-            >
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                <div className="min-w-0 flex-1">
-                  <div
-                    className={`flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] ${tone.badge}`}
-                  >
-                    <span>
-                      {tournament.status === "running" ? t("Active") : t("Upcoming")}
+            return (
+              <div
+                key={tournament.id}
+                className={`min-w-0 rounded-xl border dark:border-gray-700/50 p-4 sm:p-5 shadow-sm ${getCardClasses(
+                  tournament.status,
+                )}`}
+              >
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="min-w-0 flex-1">
+                    <div
+                      className={`flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] ${tone.badge}`}
+                    >
+                      <span>
+                        {tournament.status === "running" ? t("Active") : t("Upcoming")}
+                      </span>
+                    </div>
+                    <h3 className="mt-2 text-lg font-semibold leading-tight text-gray-900 dark:text-white break-words">
+                      {tournament.name}
+                    </h3>
+                    <p className="mt-2 text-sm text-gray-600 dark:text-gray-300 break-words">
+                      {timeControlLabel(tournament.timeControl, t)}
+                    </p>
+                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 break-words">
+                      {tournament.status === "running"
+                        ? t("tournamentsPage.detail.roundOf", {
+                            current: Math.max(1, tournament.currentRound),
+                            total: Math.max(1, tournament.roundsPlanned),
+                            defaultValue: `Round ${Math.max(1, tournament.currentRound)} of ${Math.max(
+                              1,
+                              tournament.roundsPlanned,
+                            )}`,
+                          })
+                        : t(
+                            "tournamentCommon.status.registrationOpen",
+                            "Registration Open",
+                          )}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="inline-flex min-w-0 items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                    <span className="truncate">
+                      {tournament.registeredCount} {t("players joined")}
                     </span>
                   </div>
-                  <h3 className="mt-2 text-lg font-semibold leading-tight text-gray-900 dark:text-white break-words">
-                    {tournament.name}
-                  </h3>
-                  <p className="mt-2 text-sm text-gray-600 dark:text-gray-300 break-words">
-                    {timeControlLabel(tournament.timeControl, t)}
-                  </p>
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 break-words">
-                    {tournament.status === "running"
-                      ? t("tournamentsPage.detail.roundOf", {
-                          current: Math.max(1, tournament.currentRound),
-                          total: Math.max(1, tournament.roundsPlanned),
-                          defaultValue: `Round ${Math.max(1, tournament.currentRound)} of ${Math.max(
-                            1,
-                            tournament.roundsPlanned,
-                          )}`,
-                        })
-                      : t("tournamentCommon.status.registrationOpen", "Registration open")}
-                  </p>
+
+                  <button
+                    onClick={() => navigate(buildTournamentUrl(tournament.id))}
+                    className={`inline-flex items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium text-white transition-colors ${tone.button}`}
+                  >
+                    {t(getActionLabel(tournament))}
+                  </button>
                 </div>
               </div>
-
-              <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="inline-flex min-w-0 items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                  <span className="truncate">
-                    {tournament.registeredCount} {t("players joined")}
-                  </span>
-                </div>
-
-                <button
-                  onClick={() => navigate(buildTournamentUrl(tournament.id))}
-                  className={`inline-flex items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium text-white transition-colors ${tone.button}`}
-                >
-                  {t(getActionLabel(tournament))}
-                </button>
-              </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/20 px-4 py-8 text-center">
-      <p className="mt-3 text-sm font-medium text-gray-900 dark:text-white">
-        {t("No tournaments available")}
-      </p>
-      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-        {t("Create a tournament or check back for the next event.")}
-      </p>
+    <div>
+      {sectionHeader}
+      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/20 px-4 py-8 text-center">
+        <p className="mt-3 text-sm font-medium text-gray-900 dark:text-white">
+          {t("No tournaments available")}
+        </p>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          {t("Create a tournament or check back for the next event.")}
+        </p>
+      </div>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation, Trans } from "react-i18next";
 import {
   ArrowLeft,
   ChevronDown,
@@ -25,6 +26,11 @@ import type { AdminLearnCourse, AdminLearnLesson, LessonPayload } from "./types"
 import { useAdminGuard } from "./useAdminGuard";
 
 type LessonStatusFilter = "all" | "published" | "unpublished";
+const LESSON_STATUS_FILTER_VALUE = {
+  all: "all",
+  published: "published",
+  unpublished: "unpublished",
+} as const;
 
 type LessonDraft = {
   title: string;
@@ -63,6 +69,7 @@ function toDraft(lesson: AdminLearnLesson): LessonDraft {
 }
 
 export default function AdminLearnCourse() {
+  const { t } = useTranslation();
   const { courseId = "" } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
   const { isDarkMode } = useThemeStore();
@@ -179,7 +186,9 @@ export default function AdminLearnCourse() {
   };
 
   const handleDeleteLesson = async (lesson: AdminLearnLesson) => {
-    const confirmed = window.confirm(`Delete lesson "${lesson.title}"?`);
+    const confirmed = window.confirm(
+      t("admin.confirm.deleteLesson", { title: lesson.title }),
+    );
     if (!confirmed) return;
     setProcessingLessonId(lesson.id);
     setError("");
@@ -275,38 +284,33 @@ export default function AdminLearnCourse() {
                 onClick={() => navigate("/admin/learn-mn")}
                 className={neutralButtonClass}
               >
-                <ArrowLeft className="h-3.5 w-3.5" />
-                Back to Learn Admin
-              </button>
+                <ArrowLeft className="h-3.5 w-3.5" /> <Trans>Back to Learn Admin</Trans> </button>
 
               <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <h1 className="text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
-                    {course?.title || "Loading course..."}
+                    {course?.title ||
+                      t("admin.learn.labels.loadingCourse", "Loading course...")}
                   </h1>
                 </div>
                 <button
                   onClick={openCreate}
                   className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-500"
                 >
-                  <Plus className="h-4 w-4" />
-                  Add Lesson
-                </button>
+                  <Plus className="h-4 w-4" /> <Trans>Add Lesson</Trans> </button>
               </div>
 
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
         <div className={`rounded-2xl border px-4 py-4 ${statCardClass}`}>
-          <div className="text-[11px] uppercase tracking-[0.2em] text-gray-500">
-            Topic / Level
-                  </div>
+          <div className="text-[11px] uppercase tracking-[0.2em] text-gray-500"> <Trans>Topic / Level</Trans> </div>
                   <div className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
-                    {course?.category || "-"} / {course?.difficulty || "-"}
+                    {course?.category || t("common.notAvailable", "-")}{" "}
+                    <Trans>/</Trans>{" "}
+                    {course?.difficulty || t("common.notAvailable", "-")}
                   </div>
                 </div>
                 <div className={`rounded-2xl border px-4 py-4 ${statCardClass}`}>
-                  <div className="text-[11px] uppercase tracking-[0.2em] text-gray-500">
-                    Lessons
-                  </div>
+                  <div className="text-[11px] uppercase tracking-[0.2em] text-gray-500"> <Trans>Lessons</Trans> </div>
                   <div className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
                     {lessons.length}
                   </div>
@@ -321,7 +325,7 @@ export default function AdminLearnCourse() {
                   <input
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
-                    placeholder="Search lessons..."
+                    placeholder={t("admin.search.lessons")}
                     className={textInputClass}
                   />
                 </label>
@@ -332,9 +336,9 @@ export default function AdminLearnCourse() {
                   }
                   className={inputClass}
                 >
-                  <option value="all">All status</option>
-                  <option value="published">Published</option>
-                  <option value="unpublished">Unpublished</option>
+                  <option value={LESSON_STATUS_FILTER_VALUE.all}><Trans>All status</Trans></option>
+                  <option value={LESSON_STATUS_FILTER_VALUE.published}><Trans>Published</Trans></option>
+                  <option value={LESSON_STATUS_FILTER_VALUE.unpublished}><Trans>Unpublished</Trans></option>
                 </select>
               </div>
             </section>
@@ -351,9 +355,7 @@ export default function AdminLearnCourse() {
                   <Loader2 className="mx-auto h-8 w-8 animate-spin text-brand-400" />
                 </div>
               ) : lessons.length === 0 ? (
-                <div className="py-16 text-center text-gray-500 dark:text-gray-400">
-                  No lessons found.
-                </div>
+                <div className="py-16 text-center text-gray-500 dark:text-gray-400"> <Trans>No lessons found.</Trans> </div>
               ) : (
                 <div className="space-y-3">
                   {lessons.map((lesson, index) => {
@@ -365,8 +367,7 @@ export default function AdminLearnCourse() {
                       >
                         <div className="flex flex-wrap items-start justify-between gap-3">
                           <div className="min-w-0">
-                            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.14em] text-gray-500">
-                              Lesson {lesson.orderIndex + 1}
+                            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.14em] text-gray-500"> <Trans>Lesson</Trans> {lesson.orderIndex + 1}
                               <span
                                 className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
                                   lesson.isPublished
@@ -374,22 +375,31 @@ export default function AdminLearnCourse() {
                                     : draftBadgeClass
                                 }`}
                               >
-                                {lesson.isPublished ? "Published" : "Draft"}
+                                {lesson.isPublished
+                                  ? t("admin.learn.status.published", "Published")
+                                  : t("admin.learn.status.draft", "Draft")}
                               </span>
                             </div>
                             <h3 className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">
                               {lesson.title}
                             </h3>
                             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                              {lesson.subtitle || lesson.description || "No subtitle."}
+                              {lesson.subtitle ||
+                                lesson.description ||
+                                t("admin.learn.labels.noSubtitle", "No subtitle.")}
                             </p>
                             <div className="mt-2 text-xs text-gray-500">
-                              {lesson.stepCount} steps - {lesson.estimatedMinutes} min - /learn/
-                              {course?.slug}/{lesson.slug}
+                              {t("admin.learn.labels.lessonMeta", {
+                                defaultValue:
+                                  "{{steps}} steps - {{minutes}} min - /learn/{{courseSlug}}/{{lessonSlug}}",
+                                steps: lesson.stepCount,
+                                minutes: lesson.estimatedMinutes,
+                                courseSlug: course?.slug || "",
+                                lessonSlug: lesson.slug,
+                              })}
                             </div>
                             {lesson.pairId && (
-                              <div className="mt-1 inline-flex rounded-full bg-gray-200 px-2 py-0.5 text-[10px] font-medium text-gray-600 dark:bg-slate-800 dark:text-slate-300">
-                                Pair ID: {lesson.pairId}
+                              <div className="mt-1 inline-flex rounded-full bg-gray-200 px-2 py-0.5 text-[10px] font-medium text-gray-600 dark:bg-slate-800 dark:text-slate-300"> <Trans>Pair ID:</Trans> {lesson.pairId}
                               </div>
                             )}
                           </div>
@@ -401,9 +411,7 @@ export default function AdminLearnCourse() {
                               className={`${neutralButtonClass} disabled:opacity-55`}
                             >
                               <span className="inline-flex items-center gap-1">
-                                <ChevronUp className="h-3.5 w-3.5" />
-                                Up
-                              </span>
+                                <ChevronUp className="h-3.5 w-3.5" /> <Trans>Up</Trans> </span>
                             </button>
                             <button
                               disabled={busy || index === lessons.length - 1}
@@ -411,9 +419,7 @@ export default function AdminLearnCourse() {
                               className={`${neutralButtonClass} disabled:opacity-55`}
                             >
                               <span className="inline-flex items-center gap-1">
-                                <ChevronDown className="h-3.5 w-3.5" />
-                                Down
-                              </span>
+                                <ChevronDown className="h-3.5 w-3.5" /> <Trans>Down</Trans> </span>
                             </button>
                             <button
                               onClick={() =>
@@ -422,17 +428,13 @@ export default function AdminLearnCourse() {
                                 )
                               }
                               className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${openActionClass}`}
-                            >
-                              Step Editor
-                            </button>
+                            > <Trans>Step Editor</Trans> </button>
                             <button
                               onClick={() => openEdit(lesson)}
                               className={neutralButtonClass}
                             >
                               <span className="inline-flex items-center gap-1">
-                                <PencilLine className="h-3.5 w-3.5" />
-                                Edit
-                              </span>
+                                <PencilLine className="h-3.5 w-3.5" /> <Trans>Edit</Trans> </span>
                             </button>
                             <button
                               disabled={busy}
@@ -445,7 +447,9 @@ export default function AdminLearnCourse() {
                                 ) : (
                                   <Eye className="h-3.5 w-3.5" />
                                 )}
-                                {lesson.isPublished ? "Unpublish" : "Publish"}
+                                {lesson.isPublished
+                                  ? t("admin.learn.actions.unpublish", "Unpublish")
+                                  : t("admin.learn.actions.publish", "Publish")}
                               </span>
                             </button>
                             <button
@@ -454,9 +458,7 @@ export default function AdminLearnCourse() {
                               className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50 ${deleteActionClass}`}
                             >
                               <span className="inline-flex items-center gap-1">
-                                <Trash2 className="h-3.5 w-3.5" />
-                                Delete
-                              </span>
+                                <Trash2 className="h-3.5 w-3.5" /> <Trans>Delete</Trans> </span>
                             </button>
                           </div>
                         </div>
@@ -474,21 +476,19 @@ export default function AdminLearnCourse() {
             <div className="mx-auto w-full max-w-2xl rounded-2xl border border-gray-200 bg-white p-6 shadow-[0_24px_60px_rgba(15,23,42,0.25)] dark:border-slate-700 dark:bg-slate-900">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  {editingLesson ? "Edit lesson" : "Create lesson"}
+                  {editingLesson
+                    ? t("admin.learn.actions.editLesson", "Edit lesson")
+                    : t("admin.learn.actions.createLesson", "Create lesson")}
                 </h2>
                 <button
                   onClick={() => setModalOpen(false)}
                   className="rounded-lg border border-gray-200 bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
-                >
-                  Close
-                </button>
+                > <Trans>Close</Trans> </button>
               </div>
 
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 <label className="space-y-1">
-                  <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                    Lesson name
-                  </span>
+                  <span className="text-xs uppercase tracking-[0.14em] text-gray-500"> <Trans>Lesson name</Trans> </span>
                   <input
                     value={draft.title}
                     onChange={(event) =>
@@ -508,15 +508,11 @@ export default function AdminLearnCourse() {
                       }))
                     }
                     className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-400/40"
-                  />
-                  Show lesson
-                </label>
+                  /> <Trans>Show lesson</Trans> </label>
               </div>
 
               <label className="mt-4 block space-y-1">
-                <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                  Pair ID
-                </span>
+                <span className="text-xs uppercase tracking-[0.14em] text-gray-500"> <Trans>Pair ID</Trans> </span>
                 <div className="flex gap-2">
                   <input
                     type="text"
@@ -530,7 +526,7 @@ export default function AdminLearnCourse() {
                         pairId: event.target.value.replace(/\D/g, "").slice(0, 5),
                       }))
                     }
-                    placeholder="10423"
+                    placeholder={t("admin.learn.placeholders.pairId", "10423")}
                     className={inputClass}
                   />
                   <button
@@ -539,9 +535,7 @@ export default function AdminLearnCourse() {
                       setDraft((current) => ({ ...current, pairId: generatePairId() }))
                     }
                     className="rounded-xl border border-gray-200 bg-gray-100 px-4 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-                  >
-                    Generate
-                  </button>
+                  > <Trans>Generate</Trans> </button>
                 </div>
               </label>
 
@@ -549,16 +543,16 @@ export default function AdminLearnCourse() {
                 <button
                   onClick={() => setModalOpen(false)}
                   className="rounded-xl border border-gray-200 bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-                >
-                  Cancel
-                </button>
+                > <Trans>Cancel</Trans> </button>
                 <button
                   disabled={saving}
                   onClick={() => void handleSaveLesson()}
                   className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-500 disabled:opacity-60"
                 >
                   {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-                  {editingLesson ? "Save Changes" : "Create Lesson"}
+                  {editingLesson
+                    ? t("admin.learn.actions.saveChanges", "Save Changes")
+                    : t("admin.learn.actions.createLessonTitle", "Create Lesson")}
                 </button>
               </div>
             </div>

@@ -1,5 +1,5 @@
 import { Eye, ExternalLink, Calendar, Users } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
 import { FeaturedEvent } from "../../hooks/useWatchPage";
 import { TransformedLiveGame } from "../../utils/lichessApi";
 
@@ -170,7 +170,7 @@ export function FeaturedMatch({
                 className="flex items-center space-x-2 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-900 dark:text-white px-6 py-3 rounded-lg font-bold transition-all"
               >
                 <ExternalLink className="w-5 h-5" />
-                <span>Lichess</span>
+                <span><Trans>Lichess</Trans></span>
               </a>
             )}
           </div>

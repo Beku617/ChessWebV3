@@ -20,7 +20,7 @@ import {
   Video,
   ExternalLink,
 } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
 import Sidebar from "../../components/Sidebar";
 import { useAuthStore } from "../../store/authStore";
 import { useMessageStore } from "../../store/messageStore";
@@ -39,6 +39,38 @@ const MAX_ATTACHMENTS = 10;
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024; // 8MB
 const MAX_TOTAL_IMAGE_BYTES = 32 * 1024 * 1024; // 32MB total images
 const MAX_VIDEO_BYTES = 50 * 1024 * 1024; // 50MB per video
+
+const GRID_COLS_CLASS = {
+  one: "grid-cols-1",
+  two: "grid-cols-2",
+  twoRows: "grid-cols-2 grid-rows-2",
+  three: "grid-cols-3",
+} as const;
+
+const ATTACHMENT_LAYOUT_CLASS = {
+  single: "aspect-[4/3] md:aspect-[16/10]",
+  leadTall: "row-span-2 aspect-[3/4] md:aspect-[2/3]",
+  square: "aspect-square",
+  default: "aspect-[4/3]",
+} as const;
+
+const MESSAGE_SPACING_CLASS = {
+  first: "mt-0",
+  grouped: "mt-1.5",
+  default: "mt-4",
+} as const;
+
+const GAME_RESULT_ACCENT_CLASS = {
+  decisive: "text-brand-300",
+  draw: "text-amber-300",
+} as const;
+
+const GAME_CARD_BG_CLASS = {
+  mine: "border-white/20 bg-white/10 hover:bg-white/15",
+  theirs: "border-[#25344e] bg-[#0b1424]/80 hover:bg-[#0f1a2e]/90",
+} as const;
+
+const OFFLINE_PRESENCE_STATUS: PresenceStatus = "offline";
 
 interface Conversation {
   partnerId: string;
@@ -804,7 +836,9 @@ export default function Messages() {
             <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/45 via-black/15 to-transparent" />
           </div>
           <div className="mt-2 flex items-center justify-between gap-2 text-[12px] text-slate-200/90">
-            <span className="truncate">{videos[0].filename || "Video"}</span>
+            <span className="truncate">
+              {videos[0].filename || t("messages.media.video", "Video")}
+            </span>
             <span className="text-slate-400">{formatBytes(videos[0].size || 0)}</span>
           </div>
         </div>
@@ -818,11 +852,11 @@ export default function Messages() {
             const display = count > 5 ? images.slice(0, 5) : images;
             const extra = count - display.length;
             const gridCols = (() => {
-              if (count === 1) return "grid-cols-1";
-              if (count === 2) return "grid-cols-2";
-              if (count === 3) return "grid-cols-2 grid-rows-2";
-              if (count === 4) return "grid-cols-2";
-              return "grid-cols-3";
+              if (count === 1) return GRID_COLS_CLASS.one;
+              if (count === 2) return GRID_COLS_CLASS.two;
+              if (count === 3) return GRID_COLS_CLASS.twoRows;
+              if (count === 4) return GRID_COLS_CLASS.two;
+              return GRID_COLS_CLASS.three;
             })();
 
             return (
@@ -832,12 +866,12 @@ export default function Messages() {
                   const isOverlay = extra > 0 && idx === display.length - 1;
                   const layoutClass =
                     count === 1
-                      ? "aspect-[4/3] md:aspect-[16/10]"
+                      ? ATTACHMENT_LAYOUT_CLASS.single
                       : count === 3 && idx === 0
-                        ? "row-span-2 aspect-[3/4] md:aspect-[2/3]"
+                        ? ATTACHMENT_LAYOUT_CLASS.leadTall
                         : count >= 3
-                          ? "aspect-square"
-                          : "aspect-[4/3]";
+                          ? ATTACHMENT_LAYOUT_CLASS.square
+                          : ATTACHMENT_LAYOUT_CLASS.default;
 
                   return (
                     <button
@@ -848,7 +882,7 @@ export default function Messages() {
                     >
                       <img
                         src={resolveMediaUrl(att.url)}
-                        alt={att.filename || "attachment"}
+                        alt={att.filename || t("messages.media.attachment", "attachment")}
                         loading="lazy"
                         className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                       />
@@ -1192,7 +1226,8 @@ export default function Messages() {
                   {visibleConversations.map((c) => {
                     const selected = activeChatId === c.partnerId;
                     const presence = friendPresenceMap.get(c.partnerId);
-                    const presenceStatus: PresenceStatus = presence?.status || "offline";
+                    const presenceStatus: PresenceStatus =
+                      presence?.status || OFFLINE_PRESENCE_STATUS;
                     const presenceLabel = presenceText(presenceStatus, presence?.lastActiveAt || null);
                     return (
                       <button
@@ -1416,7 +1451,11 @@ export default function Messages() {
                     const mine = m.sender === user?.id;
                     const previous = messages[index - 1];
                     const grouped = previous && previous.sender === m.sender;
-                    const spacing = index === 0 ? "mt-0" : grouped ? "mt-1.5" : "mt-4";
+                    const spacing = index === 0
+                      ? MESSAGE_SPACING_CLASS.first
+                      : grouped
+                        ? MESSAGE_SPACING_CLASS.grouped
+                        : MESSAGE_SPACING_CLASS.default;
                     const attachments = Array.isArray(m.attachments) ? m.attachments : [];
                     const hasAttachments = attachments.length > 0;
                     const hasText = Boolean(m.content && m.content.trim().length > 0);
@@ -1445,14 +1484,22 @@ export default function Messages() {
                           {hasSharedGame && (() => {
                             const sg = m.sharedGame!;
                             const gameResultText =
-                              sg.result === "1-0" ? "White wins" : sg.result === "0-1" ? "Black wins" : sg.result === "1/2-1/2" ? "Draw" : sg.result || "—";
+                              sg.result === "1-0"
+                                ? t("messages.gameResult.whiteWins", "White wins")
+                                : sg.result === "0-1"
+                                  ? t("messages.gameResult.blackWins", "Black wins")
+                                  : sg.result === "1/2-1/2"
+                                    ? t("messages.gameResult.draw", "Draw")
+                                    : sg.result || "—";
                             const resultAccent =
-                              sg.result === "1-0" || sg.result === "0-1" ? "text-brand-300" : "text-amber-300";
+                              sg.result === "1-0" || sg.result === "0-1"
+                                ? GAME_RESULT_ACCENT_CLASS.decisive
+                                : GAME_RESULT_ACCENT_CLASS.draw;
                             const variant = sg.variant === "chess960" ? "960" : "";
                             const analyzeUrl = sg.variant === "chess960" ? `/analyze960/${sg.gameId}` : `/analyze/${sg.gameId}`;
                             const cardBg = mine
-                              ? "border-white/20 bg-white/10 hover:bg-white/15"
-                              : "border-[#25344e] bg-[#0b1424]/80 hover:bg-[#0f1a2e]/90";
+                              ? GAME_CARD_BG_CLASS.mine
+                              : GAME_CARD_BG_CLASS.theirs;
 
                             return (
                               <Link
@@ -1464,7 +1511,7 @@ export default function Messages() {
                                     <div className="flex items-center gap-1.5 text-[13px] font-semibold">
                                       <span className={mine ? "text-white" : "text-slate-100"}>{sg.white}</span>
                                       {sg.whiteElo != null && <span className={`text-[11px] font-normal ${mine ? "text-cyan-100/70" : "text-slate-500"}`}>({sg.whiteElo})</span>}
-                                      <span className={mine ? "text-cyan-100/60" : "text-slate-500"}>vs</span>
+                                      <span className={mine ? "text-cyan-100/60" : "text-slate-500"}><Trans>vs</Trans></span>
                                       <span className={mine ? "text-white" : "text-slate-100"}>{sg.black}</span>
                                       {sg.blackElo != null && <span className={`text-[11px] font-normal ${mine ? "text-cyan-100/70" : "text-slate-500"}`}>({sg.blackElo})</span>}
                                     </div>
@@ -1485,20 +1532,18 @@ export default function Messages() {
                                       {sg.moves != null && sg.moves > 0 && (
                                         <>
                                           <span className={mine ? "text-cyan-100/40" : "text-slate-600"}>·</span>
-                                          <span>{sg.moves} moves</span>
+                                          <span>{sg.moves} <Trans>moves</Trans></span>
                                         </>
                                       )}
                                       {sg.rated && (
                                         <>
                                           <span className={mine ? "text-cyan-100/40" : "text-slate-600"}>·</span>
-                                          <span>Rated</span>
+                                          <span><Trans>Rated</Trans></span>
                                         </>
                                       )}
                                     </div>
                                     <div className={`mt-1.5 inline-flex items-center gap-1 text-[11px] font-medium ${mine ? "text-white/80 group-hover:text-white" : "text-brand-400/80 group-hover:text-brand-300"} transition-colors`}>
-                                      <ExternalLink className="h-3 w-3" />
-                                      View Game
-                                    </div>
+                                      <ExternalLink className="h-3 w-3" /> <Trans>View Game</Trans> </div>
                                   </div>
                                 </div>
                               </Link>
@@ -1566,7 +1611,7 @@ export default function Messages() {
                       <div className="mb-2 flex items-center justify-between text-[12px] text-slate-200">
                         <span className="inline-flex items-center gap-2">
                           <Video className="h-4 w-4 text-brand-300" />
-                          <span>1 video selected · {formatBytes(pendingVideo.size)}</span>
+                          <span><Trans>1 video selected ·</Trans> {formatBytes(pendingVideo.size)}</span>
                         </span>
                         <button
                           type="button"
@@ -1610,7 +1655,9 @@ export default function Messages() {
                           <ImageIcon className="h-4 w-4 text-brand-300" />
                           <span>
                             {pendingImages.length}{" "}
-                            {pendingImages.length === 1 ? "image selected" : "images selected"} -{" "}
+                            {pendingImages.length === 1
+                              ? t("messages.media.imageSelected", "image selected")
+                              : t("messages.media.imagesSelected", "images selected")} -{" "}
                             {formatBytes(totalPendingImageBytes)}
                           </span>
                         </span>
@@ -1656,9 +1703,7 @@ export default function Messages() {
                   {/* /gameN command hint */}
                   {/^\/game\d*$/i.test(draft.trim()) && !pendingImages.length && !pendingVideo && (
                     <div className="mb-2 flex items-center gap-2 rounded-xl border border-brand-500/20 bg-brand-500/5 px-3 py-2">
-                      <span className="text-xs text-brand-300/90">
-                        Type <span className="font-mono font-semibold">/game1</span>, <span className="font-mono font-semibold">/game2</span>, etc. to share a game from your profile history
-                      </span>
+                      <span className="text-xs text-brand-300/90"> <Trans>Type</Trans> <span className="font-mono font-semibold"><Trans>/game1</Trans></span>, <span className="font-mono font-semibold"><Trans>/game2</Trans></span><Trans>, etc. to share a game from your profile history</Trans> </span>
                     </div>
                   )}
 
@@ -1763,13 +1808,16 @@ export default function Messages() {
                   ) : (
                     <img
                       src={resolveMediaUrl(current?.url)}
-                      alt={current?.filename || "attachment"}
+                      alt={current?.filename || t("messages.media.attachment", "attachment")}
                       className="max-h-[80vh] w-full rounded-2xl border border-white/10 bg-[#0b1424] object-contain shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
                     />
                   )}
                   <div className="mt-3 flex items-center justify-center gap-3 text-sm text-slate-200">
                     <span className="max-w-[60vw] truncate">
-                      {current?.filename || (video ? "Video" : "Photo")}
+                      {current?.filename ||
+                        (video
+                          ? t("messages.media.video", "Video")
+                          : t("messages.media.photo", "Photo"))}
                     </span>
                     <span className="text-slate-400">{formatBytes(current?.size || 0)}</span>
                   </div>
@@ -1810,10 +1858,7 @@ export default function Messages() {
                   {t("messages.deleteConfirmTitle", "Delete conversation?")}
                 </h4>
                 <p className="mt-1 text-sm text-slate-400">
-                  {t(
-                    "messages.deleteConfirmBody",
-                    "This will remove the conversation from your messages. It will not erase it for the other participant.",
-                  )}
+                  {t("messages.deleteConfirmBody")}
                 </p>
               </div>
             </div>

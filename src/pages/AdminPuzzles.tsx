@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useId, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation, Trans } from "react-i18next";
 import {
   Plus,
   Pencil,
@@ -264,6 +265,7 @@ function getLegalMoveTargets(game: Chess, sourceSquare: Square): Square[] {
 }
 
 export default function AdminPuzzles() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { isAuthenticated, checkAuth } = useAdminStore();
   const [puzzles, setPuzzles] = useState<Puzzle[]>([]);
@@ -582,7 +584,12 @@ export default function AdminPuzzles() {
       setSelectedPiece(null);
       setSelectedMoveSquare(null);
     } catch (e) {
-      alert("Invalid FEN position. Please set up a valid position first.");
+      alert(
+        t(
+          "practice.workspace.notices.positionBuilderInvalidFenString",
+          "Invalid FEN string.",
+        ),
+      );
     }
   };
 
@@ -859,15 +866,13 @@ export default function AdminPuzzles() {
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-3xl font-bold">Puzzles</h1>
+              <h1 className="text-3xl font-bold"><Trans>Puzzles</Trans></h1>
             </div>
             <button
               onClick={handleCreate}
               className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg font-medium transition-colors"
             >
-              <Plus size={20} />
-              Add Puzzle
-            </button>
+              <Plus size={20} /> <Trans>Add Puzzle</Trans> </button>
           </div>
 
           {/* Search */}
@@ -876,7 +881,7 @@ export default function AdminPuzzles() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
-                placeholder="Search puzzles..."
+                placeholder={t("admin.search.puzzles")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
@@ -892,9 +897,9 @@ export default function AdminPuzzles() {
                 }
                 className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm"
               >
-                <option value="all">All active states</option>
-                <option value="active">Active only</option>
-                <option value="inactive">Inactive only</option>
+                <option value="all"><Trans>All active states</Trans></option>
+                <option value="active"><Trans>Active only</Trans></option>
+                <option value="inactive"><Trans>Inactive only</Trans></option>
               </select>
 
               <label className="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm">
@@ -902,9 +907,7 @@ export default function AdminPuzzles() {
                   type="checkbox"
                   checked={duplicateOnly}
                   onChange={(event) => setDuplicateOnly(event.target.checked)}
-                />
-                Duplicates
-              </label>
+                /> <Trans>Duplicates</Trans> </label>
             </div>
           </div>
 
@@ -918,24 +921,12 @@ export default function AdminPuzzles() {
               <table className="w-full min-w-[1100px]">
                 <thead>
                   <tr className="border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
-                    <th className="text-left px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400">
-                      Puzzle
-                    </th>
-                    <th className="text-left px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400">
-                      Difficulty
-                    </th>
-                    <th className="text-left px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400">
-                      Rating
-                    </th>
-                    <th className="text-left px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400">
-                      Quality
-                    </th>
-                    <th className="text-left px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400">
-                      State
-                    </th>
-                    <th className="text-right px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400">
-                      Actions
-                    </th>
+                    <th className="text-left px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400"> <Trans>Puzzle</Trans> </th>
+                    <th className="text-left px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400"> <Trans>Difficulty</Trans> </th>
+                    <th className="text-left px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400"> <Trans>Rating</Trans> </th>
+                    <th className="text-left px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400"> <Trans>Quality</Trans> </th>
+                    <th className="text-left px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400"> <Trans>State</Trans> </th>
+                    <th className="text-right px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400"> <Trans>Actions</Trans> </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -961,14 +952,12 @@ export default function AdminPuzzles() {
                       </td>
                       <td className="px-6 py-4 font-medium">{puzzle.rating}</td>
                       <td className="px-6 py-4 text-xs text-gray-500 dark:text-gray-300 space-y-0.5">
-                        <div>
-                          Attempts:{" "}
+                        <div> <Trans>Attempts:</Trans>{" "}
                           <span className="font-medium text-gray-700 dark:text-gray-100">
                             {puzzle.quality?.attempts ?? puzzle.timesPlayed}
                           </span>
                         </div>
-                        <div>
-                          Solve / Fail:{" "}
+                        <div> <Trans>Solve / Fail:</Trans>{" "}
                           <span className="font-medium text-emerald-600 dark:text-emerald-300">
                             {puzzle.quality?.solveRate ?? 0}%
                           </span>{" "}
@@ -977,11 +966,9 @@ export default function AdminPuzzles() {
                             {puzzle.quality?.failRate ?? 0}%
                           </span>
                         </div>
-                        <div>
-                          Avg Time:{" "}
+                        <div> <Trans>Avg Time:</Trans>{" "}
                           <span className="font-medium text-gray-700 dark:text-gray-100">
-                            {Math.round((puzzle.quality?.avgTimeMs ?? 0) / 1000)}s
-                          </span>
+                            {Math.round((puzzle.quality?.avgTimeMs ?? 0) / 1000)}<Trans>s</Trans> </span>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-xs text-gray-500 dark:text-gray-300">
@@ -1002,8 +989,7 @@ export default function AdminPuzzles() {
                             {puzzle.isActive !== false ? "Active" : "Inactive"}
                           </button>
                           {Number(puzzle.duplicateCount || 1) > 1 && (
-                            <span className="text-amber-500 dark:text-amber-300">
-                              Duplicate ×{puzzle.duplicateCount}
+                            <span className="text-amber-500 dark:text-amber-300"> <Trans>Duplicate ×</Trans>{puzzle.duplicateCount}
                             </span>
                           )}
                         </div>
@@ -1048,7 +1034,7 @@ export default function AdminPuzzles() {
 
               {filteredPuzzles.length === 0 && (
                 <div className="text-center py-12 text-gray-500">
-                  <p>No puzzles found</p>
+                  <p><Trans>No puzzles found</Trans></p>
                 </div>
               )}
 
@@ -1056,7 +1042,8 @@ export default function AdminPuzzles() {
               {filteredPuzzles.length > 0 && (
                 <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 dark:border-gray-800">
                   <div className="text-sm text-gray-500 dark:text-gray-400">
-                    {rangeStart}-{rangeEnd} of {filteredPuzzles.length} puzzles
+                    {rangeStart}-{rangeEnd} <Trans>of</Trans> {filteredPuzzles.length}{" "}
+                    {t("admin.puzzles.pagination.items", "puzzles")}
                   </div>
                   {totalPages > 1 && (
                     <div className="flex items-center gap-1.5">
@@ -1111,7 +1098,9 @@ export default function AdminPuzzles() {
           <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-5xl my-4">
             <div className="p-6 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
               <h2 className="text-xl font-bold">
-                {editingPuzzle ? "Edit Puzzle" : "Create Puzzle"}
+                {editingPuzzle
+                  ? t("admin.modal.editPuzzle")
+                  : t("admin.modal.createPuzzle")}
               </h2>
               <button
                 onClick={() => setShowModal(false)}
@@ -1142,17 +1131,13 @@ export default function AdminPuzzles() {
                         onClick={clearBoard}
                         disabled={isRecordingSolution}
                         className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded disabled:opacity-50"
-                      >
-                        Clear
-                      </button>
+                      > <Trans>Clear</Trans> </button>
                       <button
                         type="button"
                         onClick={setStartingPosition}
                         disabled={isRecordingSolution}
                         className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded disabled:opacity-50"
-                      >
-                        Starting
-                      </button>
+                      > <Trans>Starting</Trans> </button>
                     </div>
                   </div>
 
@@ -1161,9 +1146,7 @@ export default function AdminPuzzles() {
                     <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg space-y-2">
                       {/* White Pieces Row */}
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-medium text-gray-600 dark:text-gray-300 w-12">
-                          White
-                        </span>
+                        <span className="text-xs font-medium text-gray-600 dark:text-gray-300 w-12"> <Trans>White</Trans> </span>
                         <div className="flex gap-1">
                           {WHITE_PIECES.map((piece) => (
                             <button
@@ -1189,9 +1172,7 @@ export default function AdminPuzzles() {
                       </div>
                       {/* Black Pieces Row */}
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-medium text-gray-600 dark:text-gray-300 w-12">
-                          Black
-                        </span>
+                        <span className="text-xs font-medium text-gray-600 dark:text-gray-300 w-12"> <Trans>Black</Trans> </span>
                         <div className="flex gap-1">
                           {BLACK_PIECES.map((piece) => (
                             <button
@@ -1217,9 +1198,7 @@ export default function AdminPuzzles() {
                       </div>
                       {/* Eraser */}
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-medium text-gray-600 dark:text-gray-300 w-12">
-                          Tool
-                        </span>
+                        <span className="text-xs font-medium text-gray-600 dark:text-gray-300 w-12"> <Trans>Tool</Trans> </span>
                         <button
                           type="button"
                           onClick={() =>
@@ -1268,9 +1247,7 @@ export default function AdminPuzzles() {
                         onClick={startRecordingSolution}
                         className="flex items-center gap-2 px-3 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg text-sm font-medium"
                       >
-                        <Play size={16} />
-                        Record Solution
-                      </button>
+                        <Play size={16} /> <Trans>Record Solution</Trans> </button>
                     ) : (
                       <>
                         <button
@@ -1278,26 +1255,19 @@ export default function AdminPuzzles() {
                           onClick={stopRecordingSolution}
                           className="flex items-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg text-sm font-medium"
                         >
-                          <SquareIcon size={16} />
-                          Stop Recording
-                        </button>
+                          <SquareIcon size={16} /> <Trans>Stop Recording</Trans> </button>
                         <button
                           type="button"
                           onClick={undoSolutionMove}
                           disabled={solutionMoves.length === 0}
                           className="flex items-center gap-2 px-3 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg text-sm font-medium disabled:opacity-50"
                         >
-                          <RotateCcw size={16} />
-                          Undo
-                        </button>
+                          <RotateCcw size={16} /> <Trans>Undo</Trans> </button>
                       </>
                     )}
                   </div>
                   {isRecordingSolution && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Click a piece to highlight its legal moves, then click a
-                      highlighted square to record. Dragging still works.
-                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400"> <Trans>Click a piece to highlight its legal moves, then click a highlighted square to record. Dragging still works.</Trans> </p>
                   )}
 
                   {recordingMessage && (
@@ -1309,9 +1279,7 @@ export default function AdminPuzzles() {
                   {/* Recorded Moves Display */}
                   {solutionMoves.length > 0 && (
                     <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                      <div className="text-sm font-medium mb-1">
-                        Recorded Moves:
-                      </div>
+                      <div className="text-sm font-medium mb-1"> <Trans>Recorded Moves:</Trans> </div>
                       <div className="font-mono text-sm">
                         {solutionMoves.join(", ")}
                       </div>
@@ -1322,9 +1290,7 @@ export default function AdminPuzzles() {
                 {/* Right Column - Form Fields */}
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Move Number
-                    </label>
+                    <label className="block text-sm font-medium mb-1"> <Trans>Move Number</Trans> </label>
                     <input
                       type="number"
                       step={1}
@@ -1342,9 +1308,7 @@ export default function AdminPuzzles() {
 
                   {/* Who to Move */}
                   <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Who to Move
-                    </label>
+                    <label className="block text-sm font-medium mb-1"> <Trans>Who to Move</Trans> </label>
                     <div className="flex gap-2">
                       <button
                         type="button"
@@ -1354,9 +1318,7 @@ export default function AdminPuzzles() {
                             ? "bg-gray-200 dark:bg-gray-600 border-2 border-brand-500"
                             : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
                         }`}
-                      >
-                        White to Move
-                      </button>
+                      > <Trans>White to Move</Trans> </button>
                       <button
                         type="button"
                         onClick={() => handleWhiteToMoveChange(false)}
@@ -1365,16 +1327,12 @@ export default function AdminPuzzles() {
                             ? "bg-gray-700 dark:bg-gray-300 text-white dark:text-gray-900 border-2 border-brand-500"
                             : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
                         }`}
-                      >
-                        Black to Move
-                      </button>
+                      > <Trans>Black to Move</Trans> </button>
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Title
-                    </label>
+                    <label className="block text-sm font-medium mb-1"> <Trans>Title</Trans> </label>
                     <input
                       type="text"
                       value={formData.title}
@@ -1387,9 +1345,7 @@ export default function AdminPuzzles() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Category
-                    </label>
+                    <label className="block text-sm font-medium mb-1"> <Trans>Category</Trans> </label>
                     <input
                       type="text"
                       value={formData.category}
@@ -1403,9 +1359,7 @@ export default function AdminPuzzles() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium mb-1">
-                        Difficulty
-                      </label>
+                      <label className="block text-sm font-medium mb-1"> <Trans>Difficulty</Trans> </label>
                       <select
                         value={formData.difficulty}
                         onChange={(e) =>
@@ -1419,15 +1373,13 @@ export default function AdminPuzzles() {
                         }
                         className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
                       >
-                        <option value="Easy">Easy</option>
-                        <option value="Medium">Medium</option>
-                        <option value="Hard">Hard</option>
+                        <option value="Easy"><Trans>Easy</Trans></option>
+                        <option value="Medium"><Trans>Medium</Trans></option>
+                        <option value="Hard"><Trans>Hard</Trans></option>
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-1">
-                        Rating
-                      </label>
+                      <label className="block text-sm font-medium mb-1"> <Trans>Rating</Trans> </label>
                       <input
                         type="number"
                         value={formData.rating}
@@ -1450,15 +1402,11 @@ export default function AdminPuzzles() {
                         onChange={(e) =>
                           setFormData({ ...formData, isActive: e.target.checked })
                         }
-                      />
-                      Active
-                    </label>
+                      /> <Trans>Active</Trans> </label>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Description
-                    </label>
+                    <label className="block text-sm font-medium mb-1"> <Trans>Description</Trans> </label>
                     <textarea
                       value={formData.description}
                       onChange={(e) =>
@@ -1473,9 +1421,7 @@ export default function AdminPuzzles() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-1">
-                      FEN Position
-                    </label>
+                    <label className="block text-sm font-medium mb-1"> <Trans>FEN Position</Trans> </label>
                     <input
                       type="text"
                       value={formData.fen}
@@ -1497,15 +1443,13 @@ export default function AdminPuzzles() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Solution (comma-separated moves)
-                    </label>
+                    <label className="block text-sm font-medium mb-1"> <Trans>Solution (comma-separated moves)</Trans> </label>
                     <input
                       type="text"
                       value={formData.solution}
                       readOnly
                       placeholder="Qh7+, Kf8, Qh8#"
-                      title="Use Record Solution to set moves"
+                      title={t("admin.actions.useRecordedSolution")}
                       className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/70 focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono text-sm cursor-not-allowed"
                       required
                     />
@@ -1516,16 +1460,16 @@ export default function AdminPuzzles() {
                       type="button"
                       onClick={() => setShowModal(false)}
                       className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-                    >
-                      Cancel
-                    </button>
+                    > <Trans>Cancel</Trans> </button>
                     <button
                       type="submit"
                       disabled={saving || isRecordingSolution}
                       className="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg font-medium transition-colors flex items-center gap-2 disabled:opacity-50"
                     >
                       {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-                      {editingPuzzle ? "Save Changes" : "Create Puzzle"}
+                      {editingPuzzle
+                        ? t("admin.modal.saveChanges")
+                        : t("admin.modal.createPuzzle")}
                     </button>
                   </div>
                 </div>

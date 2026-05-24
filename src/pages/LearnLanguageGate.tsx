@@ -12,12 +12,15 @@ type LearnLanguage = "en" | "mn";
 
 const LANGUAGE_STORAGE_KEY = "ng_lang";
 
-function normalizeLanguage(value: unknown): LearnLanguage {
-  return String(value || "").toLowerCase() === "mn" ? "mn" : "en";
+function normalizeLanguage(value: unknown): LearnLanguage | null {
+  const normalized = String(value || "").trim().toLowerCase();
+  if (normalized.startsWith("mn")) return "mn";
+  if (normalized.startsWith("en")) return "en";
+  return null;
 }
 
-function readStoredLanguage(): LearnLanguage {
-  if (typeof window === "undefined") return "en";
+function readStoredLanguage(): LearnLanguage | null {
+  if (typeof window === "undefined") return null;
   return normalizeLanguage(window.localStorage.getItem(LANGUAGE_STORAGE_KEY));
 }
 
@@ -34,9 +37,11 @@ export default function LearnLanguageGate() {
     (state) => state.setLearnMnUnavailable,
   );
 
-  const [language, setLanguage] = useState<LearnLanguage>(() => readStoredLanguage());
+  const [language, setLanguage] = useState<LearnLanguage>(
+    () => readStoredLanguage() || "mn",
+  );
   const [requestedLanguage, setRequestedLanguage] = useState<LearnLanguage>(() =>
-    readStoredLanguage(),
+    readStoredLanguage() || "mn",
   );
 
   useEffect(() => {
@@ -45,9 +50,10 @@ export default function LearnLanguageGate() {
         ? user.preferredLanguage
         : null;
     const storedLanguage = readStoredLanguage();
-    const i18nLanguage = normalizeLanguage(i18n.resolvedLanguage || i18n.language || "en");
+    const i18nLanguage = normalizeLanguage(i18n.resolvedLanguage || i18n.language);
 
-    const nextLanguage = profileLanguage || storedLanguage || i18nLanguage || "en";
+    // Keep Learn content aligned with the actively selected UI language first.
+    const nextLanguage = i18nLanguage || profileLanguage || storedLanguage || "mn";
     setRequestedLanguage(nextLanguage);
     persistLanguage(nextLanguage);
   }, [i18n.language, i18n.resolvedLanguage, user?.preferredLanguage]);

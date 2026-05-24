@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { History } from "lucide-react";
+import { ChevronRight, History } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { GameHistory } from "../../historyTypes";
 import { GameCard } from "../profile";
@@ -46,9 +46,10 @@ export function RecentGames({
         </h3>
         <button
           onClick={() => setActiveTab("games")}
-          className="text-sm text-brand-600 dark:text-brand-400 hover:underline font-medium"
+          className="inline-flex items-center gap-1 text-sm text-brand-600 dark:text-brand-400 hover:underline font-medium"
         >
-          {t("profileGames.viewAll", "View All")} →
+          <span>{t("profileGames.viewAll", "View All")}</span>
+          <ChevronRight className="h-4 w-4" />
         </button>
       </div>
       <div className="space-y-3">
@@ -73,4 +74,5 @@ export function RecentGames({
     </motion.div>
   );
 }
+
 

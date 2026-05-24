@@ -1,3 +1,4 @@
+import { Trans } from "react-i18next";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useFriendChallengeStore } from "../store/friendChallengeStore";
@@ -77,15 +78,11 @@ export default function FriendChallengeOverlay() {
   return (
     <div className="fixed right-4 bottom-4 z-[80] w-[320px] max-w-[calc(100vw-2rem)] rounded-2xl border border-gray-200 dark:border-white/10 bg-white/95 dark:bg-slate-900/95 shadow-2xl p-3 backdrop-blur">
       <div className="flex items-center gap-2">
-        <h3 className="text-sm font-bold text-gray-900 dark:text-white">
-          Friend Challenge
-        </h3>
+        <h3 className="text-sm font-bold text-gray-900 dark:text-white"> <Trans>Friend Challenge</Trans> </h3>
       </div>
 
       <p className="mt-2 text-[13px] text-gray-700 dark:text-gray-200">
-        <span className="font-semibold">{challenge.fromName}</span> challenged you
-        to play.
-      </p>
+        <span className="font-semibold">{challenge.fromName}</span> <Trans>challenged you to play.</Trans> </p>
 
       <div className="mt-2 grid grid-cols-2 gap-2 text-[11px]">
         <div className="rounded-lg bg-gray-100 dark:bg-slate-800 px-2 py-1 text-gray-700 dark:text-gray-300">
@@ -115,9 +112,7 @@ export default function FriendChallengeOverlay() {
             }
           }}
           className="py-2 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-200 font-semibold hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors flex items-center justify-center gap-1"
-        >
-          Decline
-        </button>
+        > <Trans>Decline</Trans> </button>
         <button
           type="button"
           disabled={isResponding}
@@ -134,9 +129,7 @@ export default function FriendChallengeOverlay() {
             }
           }}
           className="py-2 rounded-xl bg-brand-500 text-white font-semibold hover:bg-brand-600 transition-colors flex items-center justify-center gap-1"
-        >
-          Accept
-        </button>
+        > <Trans>Accept</Trans> </button>
       </div>
     </div>
   );

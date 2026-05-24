@@ -46,6 +46,8 @@ interface Props {
   title?: string;
 }
 
+const AUTO_Y_DOMAIN: ["auto", "auto"] = ["auto", "auto"];
+
 function formatDateLabel(input: string | null) {
   if (!input) return "-";
   const date = new Date(input);
@@ -144,7 +146,7 @@ export default function TournamentProfileSection({
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={history}>
                 <XAxis dataKey="label" hide />
-                <YAxis hide domain={["auto", "auto"]} />
+                <YAxis hide domain={AUTO_Y_DOMAIN} />
                 <Tooltip
                   formatter={(value: number, name: string) => [
                     value,

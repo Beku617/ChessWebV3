@@ -1,4 +1,5 @@
 import { MessageSquare, Plus, Search, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { FilterOption } from "../types";
 import { FilterDropdown } from "./FilterDropdown";
@@ -59,6 +60,8 @@ export function AdminCommunityToolbar({
   onStatusFilterChange,
   onToggleCreate,
 }: AdminCommunityToolbarProps) {
+  const { t } = useTranslation();
+
   return (
     <>
       <section className="relative z-30 rounded-2xl bg-[#0c1728]/82 backdrop-blur p-5 mb-6 shadow-[0_18px_55px_rgba(0,0,0,0.22)]">
@@ -89,7 +92,9 @@ export function AdminCommunityToolbar({
             className="inline-flex items-center gap-2 rounded-full bg-white/[0.08] px-3.5 py-2 text-sm text-gray-200 hover:bg-white/[0.14] transition-colors shrink-0"
           >
             {isCreateOpen ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-            {isCreateOpen ? "Close" : "New Post"}
+            {isCreateOpen
+              ? t("admin.community.actions.close", "Close")
+              : t("admin.community.actions.newPost", "New Post")}
           </button>
         </div>
 
@@ -100,21 +105,21 @@ export function AdminCommunityToolbar({
               <input
                 value={search}
                 onChange={(event) => onSearchChange(event.target.value)}
-                placeholder="Search by author, caption, file name, or game info..."
+                placeholder={t("admin.search.communityPosts")}
                 className="w-full rounded-lg bg-white/[0.06] pl-11 pr-4 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
               />
             </div>
           </div>
 
           <FilterDropdown
-            ariaLabel="Status filter"
+            ariaLabel={t("admin.community.aria.statusFilter", "Status filter")}
             value={statusFilter}
             options={statusOptions}
             onChange={onStatusFilterChange}
           />
 
           <FilterDropdown
-            ariaLabel="Media filter"
+            ariaLabel={t("admin.community.aria.mediaFilter", "Media filter")}
             value={mediaFilter}
             options={mediaOptions}
             onChange={onMediaFilterChange}
@@ -126,12 +131,12 @@ export function AdminCommunityToolbar({
             <textarea
               value={createText}
               onChange={(event) => onCreateTextChange(event.target.value)}
-              placeholder="Post text..."
+              placeholder={t("admin.community.placeholders.postText", "Post text...")}
               className="w-full min-h-[120px] rounded-xl bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
             />
             <div className="max-w-[220px]">
               <FilterDropdown
-                ariaLabel="Create post status"
+                ariaLabel={t("admin.community.aria.createPostStatus", "Create post status")}
                 value={createStatus}
                 options={postStatusOptions}
                 onChange={onCreateStatusChange}
@@ -143,7 +148,7 @@ export function AdminCommunityToolbar({
                 onChange={(event) =>
                   onCreateRejectionReasonChange(event.target.value)
                 }
-                placeholder="Rejection reason"
+                placeholder={t("admin.community.placeholders.rejectionReason", "Rejection reason")}
                 className="w-full rounded-lg bg-white/[0.06] px-4 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
               />
             )}
@@ -163,7 +168,9 @@ export function AdminCommunityToolbar({
                 className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-500 disabled:opacity-50"
               >
                 <Plus className="w-4 h-4" />
-                {isCreating ? "Creating..." : "Create Post"}
+                {isCreating
+                  ? t("admin.community.actions.creating", "Creating...")
+                  : t("admin.community.actions.createPost", "Create Post")}
               </button>
             </div>
           </div>

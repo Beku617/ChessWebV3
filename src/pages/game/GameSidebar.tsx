@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Gamepad2 } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
 import { QUICK_ACTIONS, iconMap } from "./types";
 
 interface GameSidebarProps {
@@ -37,9 +37,7 @@ export function GameSidebar({ onStartMatch }: GameSidebarProps) {
       <div className="theme-glass-panel-strong flex-1 rounded-3xl px-5 py-6 lg:p-6 flex flex-col overflow-hidden">
         <div className="flex items-center justify-center flex-shrink-0 mb-5">
           <div className="flex items-center gap-2">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-              Play Chess
-            </h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white"> <Trans>Play Chess</Trans> </h2>
           </div>
         </div>
 

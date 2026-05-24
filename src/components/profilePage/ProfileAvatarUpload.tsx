@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Camera, X, Upload, Loader2 } from "lucide-react";
+import { useTranslation, Trans } from "react-i18next";
 import { useAuthStore, authApi } from "../../store/authStore";
 
 interface ProfileAvatarUploadProps {
@@ -20,6 +21,7 @@ export function ProfileAvatarUpload({
   size = "md",
   editable = true,
 }: ProfileAvatarUploadProps) {
+  const { t } = useTranslation();
   const { setUser, user } = useAuthStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -170,7 +172,7 @@ export function ProfileAvatarUpload({
           <button
             onClick={() => setIsModalOpen(true)}
             className={`absolute bottom-0 right-0 ${editButtonClass} bg-white dark:bg-gray-800 rounded-full shadow-lg flex items-center justify-center border-2 border-white dark:border-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors group-hover:scale-110`}
-            title="Change avatar"
+            title={t("profile.avatar.change")}
           >
             <Camera size={16} className="text-gray-700 dark:text-gray-300" />
           </button>
@@ -196,9 +198,7 @@ export function ProfileAvatarUpload({
             >
               {/* Header */}
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                  Update Profile Picture
-                </h3>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white"> <Trans>Update Profile Picture</Trans> </h3>
                 <button
                   onClick={closeModal}
                   className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
@@ -234,9 +234,7 @@ export function ProfileAvatarUpload({
                     onClick={() => setPreviewUrl(null)}
                     className="mt-3 text-sm text-red-500 hover:text-red-600 flex items-center gap-1"
                   >
-                    <X size={14} />
-                    Clear selection
-                  </button>
+                    <X size={14} /> <Trans>Clear selection</Trans> </button>
                 )}
               </div>
 
@@ -262,9 +260,7 @@ export function ProfileAvatarUpload({
                   onClick={() => fileInputRef.current?.click()}
                   className="w-full py-3 px-4 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl text-gray-700 dark:text-gray-200 font-medium flex items-center justify-center gap-2 transition-colors"
                 >
-                  <Upload size={18} />
-                  Choose Image
-                </button>
+                  <Upload size={18} /> <Trans>Choose Image</Trans> </button>
 
                 {previewUrl && (
                   <button
@@ -279,9 +275,7 @@ export function ProfileAvatarUpload({
                       </>
                     ) : (
                       <>
-                        <Camera size={18} />
-                        Save Avatar
-                      </>
+                        <Camera size={18} /> <Trans>Save Avatar</Trans> </>
                     )}
                   </button>
                 )}
@@ -299,18 +293,14 @@ export function ProfileAvatarUpload({
                       </>
                     ) : (
                       <>
-                        <X size={18} />
-                        Remove Avatar
-                      </>
+                        <X size={18} /> <Trans>Remove Avatar</Trans> </>
                     )}
                   </button>
                 )}
               </div>
 
               {/* Help text */}
-              <p className="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
-                Supported formats: JPG, PNG, GIF. Max size: 2MB
-              </p>
+              <p className="mt-4 text-center text-sm text-gray-500 dark:text-gray-400"> <Trans>Supported formats: JPG, PNG, GIF. Max size: 2MB</Trans> </p>
             </motion.div>
           </motion.div>
         )}

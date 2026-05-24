@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useTranslation, Trans } from "react-i18next";
 import {
   Plus,
   Pencil,
@@ -113,6 +114,7 @@ function generatePairId() {
 }
 
 export default function AdminFeaturedEvents() {
+  const { t } = useTranslation();
   const [events, setEvents] = useState<FeaturedEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -506,24 +508,18 @@ export default function AdminFeaturedEvents() {
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              Featured Events
-            </h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white"> <Trans>Featured Events</Trans> </h1>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={() => void handleOpenImportModal()}
               className="rounded-lg border border-gray-200 bg-white px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
-            >
-              Import from МН
-            </button>
+            > <Trans>Import from МН</Trans> </button>
             <button
               onClick={openNewModal}
               className="flex items-center gap-2 bg-brand-600 hover:bg-brand-500 text-white px-4 py-2 rounded-lg font-medium transition-colors"
             >
-              <Plus className="w-5 h-5" />
-              Add Event
-            </button>
+              <Plus className="w-5 h-5" /> <Trans>Add Event</Trans> </button>
           </div>
         </div>
 
@@ -539,7 +535,7 @@ export default function AdminFeaturedEvents() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Search events..."
+              placeholder={t("admin.search.events")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:border-brand-500 shadow-sm"
@@ -550,10 +546,10 @@ export default function AdminFeaturedEvents() {
             onChange={(e) => setFilterStatus(e.target.value)}
             className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500 shadow-sm"
           >
-            <option value="all">All Status</option>
-            <option value="upcoming">Upcoming</option>
-            <option value="live">Live</option>
-            <option value="completed">Completed</option>
+            <option value="all"><Trans>All Status</Trans></option>
+            <option value="upcoming"><Trans>Upcoming</Trans></option>
+            <option value="live"><Trans>Live</Trans></option>
+            <option value="completed"><Trans>Completed</Trans></option>
           </select>
         </div>
 
@@ -564,40 +560,24 @@ export default function AdminFeaturedEvents() {
           </div>
         ) : filteredEvents.length === 0 ? (
           <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-            <p>No events found</p>
+            <p><Trans>No events found</Trans></p>
             <button
               onClick={openNewModal}
               className="mt-4 text-brand-500 hover:underline"
-            >
-              Create your first event
-            </button>
+            > <Trans>Create your first event</Trans> </button>
           </div>
         ) : (
           <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm">
             <table className="w-full">
               <thead className="bg-gray-50 dark:bg-gray-800/50">
                 <tr>
-                  <th className="text-left px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Event
-                  </th>
-                  <th className="text-left px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Type
-                  </th>
-                  <th className="text-left px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Status
-                  </th>
-                  <th className="text-left px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Date
-                  </th>
-                  <th className="text-center px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Featured
-                  </th>
-                  <th className="text-center px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Active
-                  </th>
-                  <th className="text-right px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400">
-                    Actions
-                  </th>
+                  <th className="text-left px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400"> <Trans>Event</Trans> </th>
+                  <th className="text-left px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400"> <Trans>Type</Trans> </th>
+                  <th className="text-left px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400"> <Trans>Status</Trans> </th>
+                  <th className="text-left px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400"> <Trans>Date</Trans> </th>
+                  <th className="text-center px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400"> <Trans>Featured</Trans> </th>
+                  <th className="text-center px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400"> <Trans>Active</Trans> </th>
+                  <th className="text-right px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400"> <Trans>Actions</Trans> </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -612,8 +592,7 @@ export default function AdminFeaturedEvents() {
                           {event.title}
                         </div>
                         {event.pairId && (
-                          <div className="mt-1 inline-flex rounded-full bg-gray-200 px-2 py-0.5 text-[10px] font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300">
-                            Pair ID: {event.pairId}
+                          <div className="mt-1 inline-flex rounded-full bg-gray-200 px-2 py-0.5 text-[10px] font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300"> <Trans>Pair ID:</Trans> {event.pairId}
                           </div>
                         )}
                         {event.description && (
@@ -636,9 +615,9 @@ export default function AdminFeaturedEvents() {
                         }
                         className={`${getStatusColor(event.status)} text-white text-xs px-2 py-1 rounded font-medium bg-opacity-80`}
                       >
-                        <option value="upcoming">Upcoming</option>
-                        <option value="live">Live</option>
-                        <option value="completed">Completed</option>
+                        <option value="upcoming"><Trans>Upcoming</Trans></option>
+                        <option value="live"><Trans>Live</Trans></option>
+                        <option value="completed"><Trans>Completed</Trans></option>
                       </select>
                     </td>
                     <td className="px-6 py-4 text-gray-500 dark:text-gray-400 text-sm">
@@ -702,8 +681,7 @@ export default function AdminFeaturedEvents() {
             {/* Pagination */}
             <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 dark:border-gray-800">
               <div className="text-sm text-gray-500 dark:text-gray-400">
-                {rangeStart}\u2013{rangeEnd} of {filteredEvents.length} events
-              </div>
+                {rangeStart}<Trans>\u2013</Trans>{rangeEnd} <Trans>of</Trans> {filteredEvents.length} <Trans>events</Trans> </div>
               {totalPages > 1 && (
                 <div className="flex items-center gap-1.5">
                   <button
@@ -718,9 +696,7 @@ export default function AdminFeaturedEvents() {
                       <span
                         key={`dots-${i}`}
                         className="w-9 h-9 flex items-center justify-center text-gray-400 dark:text-gray-600 text-sm select-none"
-                      >
-                        \u2026
-                      </span>
+                      > <Trans>\u2026</Trans> </span>
                     ) : (
                       <button
                         key={p}
@@ -750,16 +726,12 @@ export default function AdminFeaturedEvents() {
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[55] p-4">
             <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-xl">
               <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-800">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                  Import from МН
-                </h2>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white"> <Trans>Import from МН</Trans> </h2>
                 <button
                   onClick={closeImportModal}
                   disabled={importSaving}
                   className="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white disabled:opacity-60"
-                >
-                  Close
-                </button>
+                > <Trans>Close</Trans> </button>
               </div>
 
               <div className="p-6">
@@ -775,9 +747,7 @@ export default function AdminFeaturedEvents() {
                       Loading...
                     </div>
                   ) : importSourceEvents.length === 0 ? (
-                    <div className="py-12 text-center text-sm text-gray-500 dark:text-gray-400">
-                      No events available to import.
-                    </div>
+                    <div className="py-12 text-center text-sm text-gray-500 dark:text-gray-400"> <Trans>No events available to import.</Trans> </div>
                   ) : (
                     <div className="max-h-[52vh] overflow-auto">
                       <table className="w-full min-w-[860px]">
@@ -790,22 +760,12 @@ export default function AdminFeaturedEvents() {
                                   checked={allImportSelected}
                                   onChange={toggleSelectAllImportEvents}
                                   className="h-4 w-4 rounded border-gray-300 dark:border-gray-700"
-                                />
-                                All
-                              </label>
+                                /> <Trans>All</Trans> </label>
                             </th>
-                            <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">
-                              Event
-                            </th>
-                            <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">
-                              Type
-                            </th>
-                            <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">
-                              Status
-                            </th>
-                            <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">
-                              Pair ID
-                            </th>
+                            <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400"> <Trans>Event</Trans> </th>
+                            <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400"> <Trans>Type</Trans> </th>
+                            <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400"> <Trans>Status</Trans> </th>
+                            <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400"> <Trans>Pair ID</Trans> </th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -845,17 +805,13 @@ export default function AdminFeaturedEvents() {
                     onClick={closeImportModal}
                     disabled={importSaving}
                     className="px-4 py-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors disabled:opacity-60"
-                  >
-                    Cancel
-                  </button>
+                  > <Trans>Cancel</Trans> </button>
                   <button
                     type="button"
                     onClick={() => void handleImportSelected()}
                     disabled={importSaving || selectedImportEventIds.length === 0}
                     className="px-5 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg font-medium transition-colors disabled:opacity-60"
-                  >
-                    Import Selected
-                  </button>
+                  > <Trans>Import Selected</Trans> </button>
                 </div>
               </div>
             </div>
@@ -868,7 +824,9 @@ export default function AdminFeaturedEvents() {
             <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-xl">
               <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-800">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                  {editingEvent ? "Edit Event" : "Add New Event"}
+                  {editingEvent
+                    ? t("admin.modal.editEvent")
+                    : t("admin.modal.addNewEvent")}
                 </h2>
                 <button
                   onClick={closeModal}
@@ -886,9 +844,7 @@ export default function AdminFeaturedEvents() {
                 )}
                 {/* Title */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
-                    Title *
-                  </label>
+                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2"> <Trans>Title *</Trans> </label>
                   <input
                     type="text"
                     required
@@ -902,9 +858,7 @@ export default function AdminFeaturedEvents() {
 
                 {/* Description */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
-                    Description
-                  </label>
+                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2"> <Trans>Description</Trans> </label>
                   <textarea
                     value={formData.description}
                     onChange={(e) =>
@@ -916,9 +870,7 @@ export default function AdminFeaturedEvents() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
-                    Pair ID
-                  </label>
+                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2"> <Trans>Pair ID</Trans> </label>
                   <div className="flex gap-2">
                     <input
                       type="text"
@@ -941,18 +893,14 @@ export default function AdminFeaturedEvents() {
                         setFormData({ ...formData, pairId: generatePairId() })
                       }
                       className="rounded-lg border border-gray-200 bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
-                    >
-                      Generate
-                    </button>
+                    > <Trans>Generate</Trans> </button>
                   </div>
                 </div>
 
                 {/* Type & Status */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
-                      Type
-                    </label>
+                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2"> <Trans>Type</Trans> </label>
                     <select
                       value={formData.type}
                       onChange={(e) =>
@@ -963,16 +911,14 @@ export default function AdminFeaturedEvents() {
                       }
                       className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
                     >
-                      <option value="event">Event</option>
-                      <option value="tournament">Tournament</option>
-                      <option value="match">Match</option>
-                      <option value="broadcast">Broadcast</option>
+                      <option value="event"><Trans>Event</Trans></option>
+                      <option value="tournament"><Trans>Tournament</Trans></option>
+                      <option value="match"><Trans>Match</Trans></option>
+                      <option value="broadcast"><Trans>Broadcast</Trans></option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
-                      Status
-                    </label>
+                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2"> <Trans>Status</Trans> </label>
                     <select
                       value={formData.status}
                       onChange={(e) =>
@@ -983,18 +929,16 @@ export default function AdminFeaturedEvents() {
                       }
                       className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
                     >
-                      <option value="upcoming">Upcoming</option>
-                      <option value="live">Live</option>
-                      <option value="completed">Completed</option>
+                      <option value="upcoming"><Trans>Upcoming</Trans></option>
+                      <option value="live"><Trans>Live</Trans></option>
+                      <option value="completed"><Trans>Completed</Trans></option>
                     </select>
                   </div>
                 </div>
 
                 {/* Dates */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
-                    Date
-                  </label>
+                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2"> <Trans>Date</Trans> </label>
                   <input
                     type="date"
                     value={formData.startDate}
@@ -1008,9 +952,7 @@ export default function AdminFeaturedEvents() {
                 {/* Buttons */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
-                      Main Button Label
-                    </label>
+                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2"> <Trans>Main Button Label</Trans> </label>
                     <input
                       type="text"
                       value={formData.primaryButtonLabel}
@@ -1025,9 +967,7 @@ export default function AdminFeaturedEvents() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
-                      Main Button URL
-                    </label>
+                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2"> <Trans>Main Button URL</Trans> </label>
                     <input
                       type="url"
                       value={formData.primaryButtonUrl}
@@ -1045,9 +985,7 @@ export default function AdminFeaturedEvents() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
-                      Secondary Button URL
-                    </label>
+                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2"> <Trans>Secondary Button URL</Trans> </label>
                     <input
                       type="url"
                       value={formData.secondaryButtonUrl}
@@ -1074,9 +1012,7 @@ export default function AdminFeaturedEvents() {
                         }
                         className="w-4 h-4 rounded border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-brand-500 focus:ring-brand-500"
                       />
-                      <span className="text-sm text-gray-600 dark:text-gray-300">
-                        Featured
-                      </span>
+                      <span className="text-sm text-gray-600 dark:text-gray-300"> <Trans>Featured</Trans> </span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
@@ -1090,18 +1026,14 @@ export default function AdminFeaturedEvents() {
                         }
                         className="w-4 h-4 rounded border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-brand-500 focus:ring-brand-500"
                       />
-                      <span className="text-sm text-gray-600 dark:text-gray-300">
-                        Active
-                      </span>
+                      <span className="text-sm text-gray-600 dark:text-gray-300"> <Trans>Active</Trans> </span>
                     </label>
                   </div>
                 </div>
 
                 {/* Background */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
-                    Background Type
-                  </label>
+                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2"> <Trans>Background Type</Trans> </label>
                   <select
                     value={formData.backgroundType}
                     onChange={(e) =>
@@ -1112,17 +1044,15 @@ export default function AdminFeaturedEvents() {
                     }
                     className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
                   >
-                    <option value="default">Default Gradient</option>
-                    <option value="color">Custom Color</option>
-                    <option value="image">Custom Image</option>
+                    <option value="default"><Trans>Default Gradient</Trans></option>
+                    <option value="color"><Trans>Custom Color</Trans></option>
+                    <option value="image"><Trans>Custom Image</Trans></option>
                   </select>
                 </div>
 
                 {formData.backgroundType === "color" && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
-                      Background Color
-                    </label>
+                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2"> <Trans>Background Color</Trans> </label>
                     <input
                       type="color"
                       value={formData.backgroundColor || "#1a0e04"}
@@ -1140,9 +1070,7 @@ export default function AdminFeaturedEvents() {
                 {formData.backgroundType === "image" && (
                   <>
                     <div>
-                      <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
-                        Background Image URL
-                      </label>
+                      <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2"> <Trans>Background Image URL</Trans> </label>
                       <input
                         type="url"
                         value={formData.backgroundImageUrl}
@@ -1158,9 +1086,7 @@ export default function AdminFeaturedEvents() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
-                        Upload Background Image
-                      </label>
+                      <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2"> <Trans>Upload Background Image</Trans> </label>
                       <input
                         type="file"
                         accept="image/png,image/jpeg,image/webp,image/gif"
@@ -1179,14 +1105,14 @@ export default function AdminFeaturedEvents() {
                     type="button"
                     onClick={closeModal}
                     className="px-4 py-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-                  >
-                    Cancel
-                  </button>
+                  > <Trans>Cancel</Trans> </button>
                   <button
                     type="submit"
                     className="px-6 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg font-medium transition-colors"
                   >
-                    {editingEvent ? "Save Changes" : "Create Event"}
+                    {editingEvent
+                      ? t("admin.modal.saveChanges")
+                      : t("admin.modal.createEvent")}
                   </button>
                 </div>
               </form>

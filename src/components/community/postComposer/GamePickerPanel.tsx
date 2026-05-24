@@ -1,5 +1,5 @@
 import { Search, X } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
 import {
   formatCommunityPerspectiveResult,
   formatCommunityTimeControl,
@@ -136,7 +136,7 @@ export function GamePickerPanel({
                         </span>
                       </div>
                       <div className="mt-1 text-xs text-gray-400">
-                        {gameOption.white} vs {gameOption.black}
+                        {gameOption.white} <Trans>vs</Trans> {gameOption.black}
                       </div>
                     </div>
 

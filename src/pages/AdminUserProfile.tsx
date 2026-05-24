@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { useAdminStore } from "../store/adminStore";
 import AdminSidebar from "../components/AdminSidebar";
@@ -41,6 +42,7 @@ interface UserData {
 }
 
 export default function AdminUserProfile() {
+  const { t } = useTranslation();
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
   const {
@@ -79,7 +81,7 @@ export default function AdminUserProfile() {
         const userRes = await fetch(`${API_URL}/api/admin/users/${userId}`, {
           credentials: "include",
         });
-        if (!userRes.ok) throw new Error("Failed to fetch user");
+        if (!userRes.ok) throw new Error(t("admin.users.errors.fetchUser"));
         const userData = await userRes.json();
         setUser(userData.user);
 
@@ -95,13 +97,15 @@ export default function AdminUserProfile() {
           setGames(gamesData.games || []);
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load user");
+        setError(
+          err instanceof Error ? err.message : t("admin.users.errors.loadUser"),
+        );
       } finally {
         setLoading(false);
       }
     }
     fetchUserData();
-  }, [isAuthenticated, userId]);
+  }, [isAuthenticated, t, userId]);
 
   const stats = useMemo(() => calculateStats(games), [games]);
   const filteredGames = useMemo(
@@ -129,10 +133,10 @@ export default function AdminUserProfile() {
             className="flex items-center gap-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 mb-6"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to Dashboard
+            {t("admin.users.backToDashboard")}
           </button>
           <div className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 p-4 rounded-xl">
-            {error || "User not found"}
+            {error || t("admin.users.errors.notFound")}
           </div>
         </main>
       </div>
@@ -173,7 +177,7 @@ export default function AdminUserProfile() {
             className="flex items-center gap-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 mb-4"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to Dashboard
+            {t("admin.users.backToDashboard")}
           </button>
         </div>
 
@@ -198,7 +202,9 @@ export default function AdminUserProfile() {
                 analyzeBaseUrl="/admin/analyze"
                 enableSelfRatingAnalytics={false}
                 ratingSnapshot={profileUser}
-                timelineUnavailableMessage="Timeline is unavailable in admin view for this player."
+                timelineUnavailableMessage={t(
+                  "admin.users.timelineUnavailable",
+                )}
               />
             ) : (
               <GamesTabContent

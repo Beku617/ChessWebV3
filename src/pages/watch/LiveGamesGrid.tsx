@@ -6,6 +6,9 @@ import { useTranslation } from "react-i18next";
 import type { WatchLiveGame } from "./types";
 
 const GAMES_PER_PAGE = 12;
+const LIVE_GAME_TABS = ["Top Rated", "Blitz", "Rapid", "Classical"] as const;
+const ACTIVE_TAB_LAYOUT_ID = "activeTab";
+const PAGE_ELLIPSIS = "...";
 
 function getPageNumbers(current: number, total: number): (number | "...")[] {
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
@@ -27,6 +30,11 @@ export function LiveGameCard({ game }: LiveGameCardProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const label = game.category || game.type;
+  const categorySummary = t("watch.liveGames.categorySummary", {
+    label,
+    time: game.time,
+    defaultValue: "{{label}} - {{time}}",
+  });
   return (
     <motion.button
       type="button"
@@ -37,9 +45,7 @@ export function LiveGameCard({ game }: LiveGameCardProps) {
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center space-x-2 text-xs font-medium text-gray-500 dark:text-gray-400">
           <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-          <span>
-            {label} - {game.time}
-          </span>
+          <span>{categorySummary}</span>
         </div>
         <div className="flex items-center space-x-1 text-xs text-gray-500">
           <Eye className="w-3 h-3" />
@@ -204,7 +210,7 @@ export function LiveGamesGrid({
     <section>
       <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 mb-6">
         <div className="flex space-x-6">
-          {["Top Rated", "Blitz", "Rapid", "Classical"].map((tab) => (
+          {LIVE_GAME_TABS.map((tab) => (
             <button
               key={tab}
               onClick={() => onTabChange(tab)}
@@ -217,7 +223,7 @@ export function LiveGamesGrid({
               {t(tab)}
               {activeTab === tab && (
                 <motion.div
-                  layoutId="activeTab"
+                  layoutId={ACTIVE_TAB_LAYOUT_ID}
                   className="absolute bottom-0 left-0 right-0 h-0.5 bg-brand-500"
                 />
               )}
@@ -238,7 +244,12 @@ export function LiveGamesGrid({
 
       {!loading && filteredGames.length > 0 && (
         <div className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-          {rangeStart}-{rangeEnd} {t("of")} {filteredGames.length} {t("games")}
+          {t("watch.liveGames.rangeSummary", {
+            start: rangeStart,
+            end: rangeEnd,
+            total: filteredGames.length,
+            defaultValue: "{{start}}-{{end}} of {{total}} games",
+          })}
         </div>
       )}
 
@@ -278,7 +289,7 @@ export function LiveGamesGrid({
                 key={`dots-${i}`}
                 className="w-9 h-9 flex items-center justify-center text-gray-400 dark:text-gray-600 text-sm select-none"
               >
-                ...
+                {PAGE_ELLIPSIS}
               </span>
             ) : (
               <button

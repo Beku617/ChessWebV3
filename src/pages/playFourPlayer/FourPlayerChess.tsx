@@ -1,3 +1,4 @@
+import { Trans, useTranslation } from "react-i18next";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, Clock, Timer, Users } from "lucide-react";
@@ -91,6 +92,10 @@ const COLOR_RING_CLASS: Record<FourPlayerColor, string> = {
   yellow: "ring-amber-400",
   green: "ring-brand-400",
 };
+
+const FOUR_PLAYER_COLORS = Object.keys(
+  COLOR_LABEL_CLASS,
+) as FourPlayerColor[];
 
 function mapDisplayToSourceSquare(
   row: number,
@@ -540,36 +545,40 @@ function PlayersGrid({
   eliminated: FourPlayerColor[];
   you: FourPlayerColor;
 }) {
+  const { t } = useTranslation();
+
   return (
     <div className="grid grid-cols-2 gap-2">
-      {(["red", "blue", "yellow", "green"] as FourPlayerColor[]).map(
-        (color) => {
-          const isOut = eliminated.includes(color);
-          const isTurn = turn === color;
-          const isYou = you === color;
-          return (
-            <div
-              key={color}
-              className={`rounded-xl border px-3 py-2 ${COLOR_LABEL_CLASS[color]} ${
-                isTurn ? `ring-2 ${COLOR_RING_CLASS[color]}` : ""
-              } ${isOut ? "opacity-45 line-through" : ""}`}
-            >
-              <div className="text-[11px] font-bold uppercase tracking-wide">
-                {color}
-                {isYou ? " (You)" : ""}
-              </div>
-              <div className="text-xs mt-0.5 truncate">
-                {players[color]?.name || color}
-              </div>
+      {FOUR_PLAYER_COLORS.map((color) => {
+        const isOut = eliminated.includes(color);
+        const isTurn = turn === color;
+        const isYou = you === color;
+        const colorLabel = t(`fourPlayer.colors.${color}`, { defaultValue: color });
+        return (
+          <div
+            key={color}
+            className={`rounded-xl border px-3 py-2 ${COLOR_LABEL_CLASS[color]} ${
+              isTurn ? `ring-2 ${COLOR_RING_CLASS[color]}` : ""
+            } ${isOut ? "opacity-45 line-through" : ""}`}
+          >
+            <div className="text-[11px] font-bold uppercase tracking-wide">
+              {colorLabel}
+              {isYou
+                ? t("fourPlayer.youSuffix", { defaultValue: " (You)" })
+                : ""}
             </div>
-          );
-        },
-      )}
+            <div className="text-xs mt-0.5 truncate">
+              {players[color]?.name || colorLabel}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
 
 export default function FourPlayerChess() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuthStore();
@@ -672,7 +681,10 @@ export default function FourPlayerChess() {
     if (!isConnected) return;
 
     autoStartHandledRef.current = true;
-    startMatch(timeControl, user?.fullName || "Player");
+    startMatch(
+      timeControl,
+      user?.fullName || t("fourPlayer.playerFallback", { defaultValue: "Player" }),
+    );
   }, [
     gameStarted,
     isConnected,
@@ -886,18 +898,18 @@ export default function FourPlayerChess() {
                 <div className="w-full max-w-[320px] rounded-2xl border border-gray-200/70 dark:border-white/10 bg-white/90 dark:bg-slate-900/90 p-7 text-center shadow-lg">
                   <Timer className="w-10 h-10 mx-auto text-gray-700 dark:text-gray-200" />
                   <p className="mt-3 text-2xl font-semibold text-gray-900 dark:text-white">
-                    {searchElapsedSeconds}s
-                  </p>
+                    {searchElapsedSeconds}<Trans>s</Trans> </p>
                   <p className="mt-2 text-base text-gray-600 dark:text-gray-300">
-                    {queueStatus || "Searching 4-player match..."}
+                    {queueStatus ||
+                      t("fourPlayer.searchingMatch", {
+                        defaultValue: "Searching 4-player match...",
+                      })}
                   </p>
                   <button
                     type="button"
                     onClick={handleCancelSearch}
                     className="mt-7 text-base font-medium text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white transition-colors"
-                  >
-                    Cancel
-                  </button>
+                  > <Trans>Cancel</Trans> </button>
                 </div>
               </div>
             ) : (
@@ -906,24 +918,23 @@ export default function FourPlayerChess() {
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
                       <Users className="w-4 h-4 text-brand-500" />
-                      <h2 className="font-bold text-base text-gray-900 dark:text-white">
-                        4-Player Online
-                      </h2>
+                      <h2 className="font-bold text-base text-gray-900 dark:text-white"> <Trans>4-Player Online</Trans> </h2>
                     </div>
                     <span className="text-[11px] rounded-full bg-brand-500/15 text-brand-600 dark:text-brand-300 px-2 py-0.5 font-semibold">
-                      {selectedTimeOption?.label || "5+0"}
+                      {selectedTimeOption?.label ||
+                        t("fourPlayer.defaultTimeControl", {
+                          defaultValue: "5+0",
+                        })}
                     </span>
                   </div>
-                  <p className="mt-1 text-[11px] text-gray-500 dark:text-gray-400">
-                    Queue with 3 more players and start instantly.
-                  </p>
+                  <p className="mt-1 text-[11px] text-gray-500 dark:text-gray-400"> <Trans>Queue with 3 more players and start instantly.</Trans> </p>
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4 space-y-3">
                   <div className="rounded-2xl border border-gray-200/70 dark:border-white/10 bg-white/60 dark:bg-slate-900/60 p-3">
                     <div className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
                       <Clock className="w-4 h-4 text-brand-500" />
-                      <span>Time Control</span>
+                      <span><Trans>Time Control</Trans></span>
                     </div>
                     <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
                       {TIME_OPTIONS.map((opt) => {
@@ -967,7 +978,11 @@ export default function FourPlayerChess() {
                     disabled={!isConnected}
                     className="w-full py-3 rounded-xl bg-gradient-to-r from-brand-500 to-brand-500 hover:from-brand-600 hover:to-brand-600 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold text-base transition-all shadow-lg hover:shadow-xl disabled:cursor-not-allowed"
                   >
-                    {isConnected ? "Search Match" : "Server Offline"}
+                    {isConnected
+                      ? t("fourPlayer.searchMatchButton", {
+                          defaultValue: "Search Match",
+                        })
+                      : t("Server Offline")}
                   </button>
                 </div>
               </>
@@ -984,18 +999,30 @@ export default function FourPlayerChess() {
   const isMyTurn = displayedState.turn === playerColor && !hasTerminalResult;
   const youWin = gameState.winner === playerColor;
   const gameOverTitle = youWin
-    ? "You Win"
+    ? t("fourPlayer.gameOver.youWin", { defaultValue: "You Win" })
     : gameState.winner
-      ? `${gameState.winner.toUpperCase()} Wins`
+      ? t("fourPlayer.gameOver.winnerWins", {
+          winner: gameState.winner.toUpperCase(),
+          defaultValue: "{{winner}} Wins",
+        })
       : isPlayerEliminated
-        ? "You Were Eliminated"
-        : "Match Over";
+        ? t("fourPlayer.gameOver.eliminated", {
+            defaultValue: "You Were Eliminated",
+          })
+        : t("fourPlayer.gameOver.matchOver", { defaultValue: "Match Over" });
   const gameOverDescription =
     gameOverReason
-      ? `Reason: ${gameOverReason}`
+      ? t("fourPlayer.gameOver.reason", {
+          reason: gameOverReason,
+          defaultValue: "Reason: {{reason}}",
+        })
       : isPlayerEliminated
-        ? "Your run has ended in this match."
-        : "Match finished.";
+        ? t("fourPlayer.gameOver.playerRunEnded", {
+            defaultValue: "Your run has ended in this match.",
+          })
+        : t("fourPlayer.gameOver.matchFinished", {
+            defaultValue: "Match finished.",
+          });
 
   return (
     <div className="relative h-full min-h-0 w-full bg-slate-100 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 overflow-hidden">
@@ -1009,16 +1036,12 @@ export default function FourPlayerChess() {
                 type="button"
                 onClick={handlePlayAgain}
                 className="flex-1 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-600 font-semibold"
-              >
-                Play Again
-              </button>
+              > <Trans>Play Again</Trans> </button>
               <button
                 type="button"
                 onClick={handleNewSearch}
                 className="flex-1 py-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 font-semibold"
-              >
-                New Search
-              </button>
+              > <Trans>New Search</Trans> </button>
             </div>
           </div>
         </div>
@@ -1039,13 +1062,9 @@ export default function FourPlayerChess() {
               }}
               className="inline-flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700"
             >
-              <ArrowLeft className="w-4 h-4" />
-              Variants
-            </button>
+              <ArrowLeft className="w-4 h-4" /> <Trans>Variants</Trans> </button>
             <div className="text-center">
-              <h1 className="text-lg font-bold text-gray-900 dark:text-white">
-                4-Player Chess Online
-              </h1>
+              <h1 className="text-lg font-bold text-gray-900 dark:text-white"> <Trans>4-Player Chess Online</Trans> </h1>
             </div>
             <div
               className={`px-3 py-2 rounded-lg text-xs font-semibold ${
@@ -1057,10 +1076,16 @@ export default function FourPlayerChess() {
               }`}
             >
               {isReviewingPastMove
-                ? `Review: ${displayedState.turn.toUpperCase()} to move`
+                ? t("fourPlayer.reviewingTurn", {
+                    color: displayedState.turn.toUpperCase(),
+                    defaultValue: "Review: {{color}} to move",
+                  })
                 : isMyTurn
-                  ? "Your Turn"
-                  : `${displayedState.turn.toUpperCase()} to move`}
+                  ? t("fourPlayer.status.yourTurn", { defaultValue: "Your Turn" })
+                  : t("fourPlayer.status.colorToMove", {
+                      color: displayedState.turn.toUpperCase(),
+                      defaultValue: "{{color}} to move",
+                    })}
             </div>
           </div>
 
@@ -1091,14 +1116,15 @@ export default function FourPlayerChess() {
 
         <div className="min-w-0 rounded-3xl border border-gray-200/70 dark:border-white/10 bg-white/80 dark:bg-slate-900/80 shadow-xl backdrop-blur-lg p-4 flex flex-col min-h-0">
           <div className="mb-3">
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-              Match Info
-            </h2>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              Playing as {players[playerColor]?.name || user?.fullName || "You"}
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white"> <Trans>Match Info</Trans> </h2>
+            <p className="text-xs text-gray-500 dark:text-gray-400"> <Trans>Playing as</Trans> {players[playerColor]?.name || user?.fullName || t("fourPlayer.you", { defaultValue: "You" })}
               {isReviewingPastMove
-                ? `. Reviewing move ${selectedPly} of ${latestPly}.`
-                : "."}
+                ? t("fourPlayer.reviewingMoveCount", {
+                    current: selectedPly,
+                    total: latestPly,
+                    defaultValue: ". Reviewing move {{current}} of {{total}}.",
+                  })
+                : t("fourPlayer.period", { defaultValue: "." })}
             </p>
           </div>
 
@@ -1119,9 +1145,7 @@ export default function FourPlayerChess() {
           )}
 
           <div className="flex-1 min-h-0 mt-3 rounded-2xl border border-gray-200 dark:border-slate-700 bg-white/70 dark:bg-slate-950/60 overflow-hidden">
-            <div className="px-3 py-2 border-b border-gray-200 dark:border-slate-700 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide">
-              Move Log
-            </div>
+            <div className="px-3 py-2 border-b border-gray-200 dark:border-slate-700 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide"> <Trans>Move Log</Trans> </div>
             <MoveListTabs
               className="h-full max-h-[48vh]"
               messages={sidebarMessages}
@@ -1132,7 +1156,9 @@ export default function FourPlayerChess() {
               movesContent={
                 <ChessMoveList
                   rows={moveRows}
-                  emptyMessage="No moves yet"
+                  emptyMessage={t("fourPlayer.moveLog.empty", {
+                    defaultValue: "No moves yet",
+                  })}
                   activePly={activePly}
                   onSelectPly={(ply) => {
                     if (!Number.isFinite(ply)) return;
@@ -1161,9 +1187,7 @@ export default function FourPlayerChess() {
               type="button"
               onClick={handlePlayAgain}
               className="py-2.5 rounded-xl bg-brand-500/10 hover:bg-brand-500/20 text-brand-700 dark:text-brand-300 font-semibold"
-            >
-              Play Again
-            </button>
+            > <Trans>Play Again</Trans> </button>
             <button
               type="button"
               onClick={() => {
@@ -1175,9 +1199,7 @@ export default function FourPlayerChess() {
                 navigate("/play/variants");
               }}
               className="py-2.5 rounded-xl bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-800 dark:text-gray-200 font-semibold"
-            >
-              Leave
-            </button>
+            > <Trans>Leave</Trans> </button>
           </div>
         </div>
       </div>

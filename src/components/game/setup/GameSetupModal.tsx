@@ -1,3 +1,4 @@
+import { Trans } from "react-i18next";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play } from "lucide-react";
@@ -54,9 +55,7 @@ export function GameSetupModal({ isOpen, onStart }: GameSetupModalProps) {
         animate={{ opacity: 1, scale: 1 }}
         className="bg-white dark:bg-gray-900 rounded-xl p-6 w-full max-w-lg shadow-2xl border border-gray-200 dark:border-gray-800 max-h-[90vh] overflow-y-auto pointer-events-auto"
       >
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-          New Game
-        </h2>
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4"> <Trans>New Game</Trans> </h2>
 
         <TabSelector activeTab={activeTab} setActiveTab={setActiveTab} />
 

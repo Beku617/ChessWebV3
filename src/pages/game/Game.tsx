@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { useStockfishGame } from "../../hooks/useStockfishGame";
 import { GameOverModal, PlayerInfo, GameBoard } from "../../components/game";
 import type { GameSettings } from "../../components/game";
@@ -8,6 +9,7 @@ import { BOARD_FRAME } from "./types";
 import { GameSidebar } from "./GameSidebar";
 
 export default function Game() {
+  const { t } = useTranslation();
   const { user } = useAuthStore();
 
   const {
@@ -129,7 +131,7 @@ export default function Game() {
           >
             <PlayerInfo
               name="Opponent"
-              subtitle="Waiting to start"
+              subtitle={t("game.waitingToStart")}
               avatarLetter="?"
               avatarStyle="opponent"
               initialTime={gameSettings.timeControl.initial}

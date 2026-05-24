@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Stats } from "./types";
 
 interface StatCardProps {
@@ -30,6 +31,7 @@ interface DashboardStatsProps {
 }
 
 export function DashboardStats({ stats, isLoading, error }: DashboardStatsProps) {
+  const { t } = useTranslation();
   return (
     <>
       {error && (
@@ -39,22 +41,22 @@ export function DashboardStats({ stats, isLoading, error }: DashboardStatsProps)
       )}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard
-          label="Total Users"
+          label={t("admin.dashboard.stats.totalUsers")}
           value={stats?.totalUsers ?? null}
           isLoading={isLoading}
         />
         <StatCard
-          label="Total Games"
+          label={t("admin.dashboard.stats.totalGames")}
           value={stats?.totalGames ?? null}
           isLoading={isLoading}
         />
         <StatCard
-          label="New Users (7d)"
+          label={t("admin.dashboard.stats.newUsers7d")}
           value={stats?.newUsersThisWeek ?? null}
           isLoading={isLoading}
         />
         <StatCard
-          label="Games (7d)"
+          label={t("admin.dashboard.stats.games7d")}
           value={stats?.gamesThisWeek ?? null}
           isLoading={isLoading}
         />

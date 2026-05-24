@@ -1,3 +1,4 @@
+import { Trans } from "react-i18next";
 interface PlayAsSelectorProps {
   playAs: "white" | "black";
   setPlayAs: (color: "white" | "black") => void;
@@ -6,9 +7,7 @@ interface PlayAsSelectorProps {
 export function PlayAsSelector({ playAs, setPlayAs }: PlayAsSelectorProps) {
   return (
     <div className="mb-6">
-      <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-        Play As
-      </label>
+      <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block"> <Trans>Play As</Trans> </label>
       <div className="flex gap-2">
         {(["white", "black"] as const).map((color) => (
           <button

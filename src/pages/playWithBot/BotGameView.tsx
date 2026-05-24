@@ -1,3 +1,4 @@
+import { Trans, useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useMemo } from "react";
 import { Square } from "chess.js";
@@ -85,6 +86,7 @@ export function BotGameView({
   promotionState,
   onPromotionPieceSelect,
 }: BotGameViewProps) {
+  const { t } = useTranslation();
   const { user } = useAuthStore();
   const navigate = useNavigate();
   const moveRows = useMemo(() => buildChessMoveRows(moves), [moves]);
@@ -124,7 +126,10 @@ export function BotGameView({
           <div className="flex-shrink-0 z-10" style={{ width: boardWidth }}>
             <PlayerInfo
               name={gameSettings.selectedBot?.name || "Stockfish"}
-              subtitle={gameSettings.selectedBot?.title || "AI opponent"}
+              subtitle={
+                gameSettings.selectedBot?.title ||
+                t("botGame.aiOpponent", "AI opponent")
+              }
               avatarLetter={opponentInitials}
               avatarStyle="opponent"
               initialTime={timerInitialTime}
@@ -202,8 +207,7 @@ export function BotGameView({
                     </span>
                   )}
                 </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">
-                  Rating: {gameSettings.selectedBot?.rating || "N/A"}
+                <div className="text-sm text-gray-500 dark:text-gray-400"> <Trans>Rating:</Trans> {gameSettings.selectedBot?.rating || "N/A"}
                 </div>
               </div>
             </div>
@@ -230,15 +234,11 @@ export function BotGameView({
               onConfirm={onResign}
               disabled={gameOver}
               className="w-full py-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 font-medium transition-colors disabled:opacity-50"
-            >
-              Resign
-            </ResignConfirmButton>
+            > <Trans>Resign</Trans> </ResignConfirmButton>
             <button
               onClick={() => navigate("/play/bot")}
               className="w-full py-3 rounded-xl bg-white/10 hover:bg-white/15 text-gray-800 dark:text-gray-200 font-medium transition-colors"
-            >
-              Back to Bot Selection
-            </button>
+            > <Trans>Back to Bot Selection</Trans> </button>
           </div>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Square } from "chess.js";
 import {
   BarChart3,
@@ -219,26 +220,6 @@ function getInitials(name: string): string {
   return letters || "??";
 }
 
-function getJoinedCountdownLabel(
-  startAt: string | null | undefined,
-  nowMs: number,
-): string | null {
-  if (!startAt) return null;
-  const startMs = new Date(startAt).getTime();
-  if (!Number.isFinite(startMs)) return null;
-
-  const remainingMs = startMs - nowMs;
-  if (remainingMs <= 0) return null;
-
-  if (remainingMs < 60_000) {
-    const seconds = Math.max(1, Math.ceil(remainingMs / 1000));
-    return `Starts in ${seconds} second${seconds === 1 ? "" : "s"}`;
-  }
-
-  const minutes = Math.max(1, Math.floor(remainingMs / 60_000));
-  return `Starts in ${minutes} minute${minutes === 1 ? "" : "s"}`;
-}
-
 function formatDurationClock(totalSeconds: number): string {
   const seconds = Math.max(0, Math.floor(totalSeconds));
   const hours = Math.floor(seconds / 3600);
@@ -288,18 +269,26 @@ function getViewerOutcome(
   return null;
 }
 
-function getTournamentResultTitle(result: string | null | undefined): string {
-  const normalized = String(result || "Game complete").trim();
-  if (!normalized) return "Game complete";
+function getTournamentResultTitle(
+  result: string | null | undefined,
+  fallbackLabel: string,
+): string {
+  const normalized = String(result || fallbackLabel).trim();
+  if (!normalized) return fallbackLabel;
   return normalized.replace(/\s*\([^)]*\)\s*/g, " ").replace(/\s+/g, " ").trim();
 }
 
-function getWinnerLabel(row: TournamentPanelHistoryRow | null | undefined): string | null {
+function getWinnerLabel(
+  row: TournamentPanelHistoryRow | null | undefined,
+  whiteFallback = "White",
+  blackFallback = "Black",
+  drawLabel = "Draw",
+): string | null {
   if (!row) return null;
   const result = String(row.rawResult || row.result || "");
-  if (result === "1-0" || result === "1-0F") return String(row.white || "White");
-  if (result === "0-1" || result === "0-1F") return String(row.black || "Black");
-  if (result === "1/2-1/2") return "Draw";
+  if (result === "1-0" || result === "1-0F") return String(row.white || whiteFallback);
+  if (result === "0-1" || result === "0-1F") return String(row.black || blackFallback);
+  if (result === "1/2-1/2") return drawLabel;
   return null;
 }
 
@@ -379,32 +368,80 @@ function shouldHideSidebarMessage(content: string) {
   );
 }
 
+function localizeSidebarSystemMessage(
+  content: string,
+  t: (key: string, defaultValue?: string) => string,
+): string {
+  const normalized = content.trim().toLowerCase();
+  if (normalized === "draw offer sent.") {
+    return t("quickMatch.draw.offerSent", "Draw offer sent.");
+  }
+  if (normalized === "opponent offered a draw.") {
+    return t("quickMatch.draw.opponentOffered", "Your opponent offered a draw.");
+  }
+  if (normalized === "draw offer accepted.") {
+    return t("quickMatch.draw.offerAccepted", "Draw offer accepted.");
+  }
+  if (normalized === "draw offer declined.") {
+    return t("quickMatch.draw.offerDeclined", "Draw offer declined.");
+  }
+  if (normalized === "draw offer declined by move.") {
+    return t("quickMatch.draw.offerDeclinedByMove", "Draw offer declined by move.");
+  }
+  if (normalized === "draw offer expired.") {
+    return t("quickMatch.draw.offerExpired", "Draw offer expired.");
+  }
+  if (normalized === "draw offer sent. waiting for opponent to reconnect.") {
+    return t(
+      "quickMatch.draw.offerSentWaitingReconnect",
+      "Draw offer sent. Waiting for opponent to reconnect.",
+    );
+  }
+  if (normalized === "unable to offer draw.") {
+    return t("quickMatch.draw.unableToOffer", "Unable to offer draw.");
+  }
+  if (normalized === "unable to respond to draw offer.") {
+    return t(
+      "quickMatch.draw.unableToRespond",
+      "Unable to respond to draw offer.",
+    );
+  }
+  return content;
+}
+
 function buildSidebarMessages(
   chatMessages: MatchChatMessageEntry[] | undefined,
   statusMessage: string | null | undefined,
+  localizeSystemMessage: (content: string) => string,
 ): SidebarMessageItem[] {
   const mappedChat = Array.isArray(chatMessages)
     ? chatMessages
-        .map((message, index) => ({
-          id: String(`chat-${index}-${message?.createdAt || ""}`),
-          senderId: String(message?.senderId || ""),
-          senderUsername: String(message?.senderUsername || "Player"),
-          content: String(message?.content || "").trim(),
-          createdAt: String(message?.createdAt || ""),
-          isSystem: message?.isSystem === true,
-        }))
-        .filter((message) => !shouldHideSidebarMessage(message.content))
+        .map((message, index) => {
+          const rawContent = String(message?.content || "").trim();
+          if (shouldHideSidebarMessage(rawContent)) return null;
+          const isSystem = message?.isSystem === true;
+          return {
+            id: String(`chat-${index}-${message?.createdAt || ""}`),
+            senderId: String(message?.senderId || ""),
+            senderUsername: String(message?.senderUsername || "Player"),
+            content: isSystem ? localizeSystemMessage(rawContent) : rawContent,
+            createdAt: String(message?.createdAt || ""),
+            isSystem,
+          } as SidebarMessageItem;
+        })
+        .filter((message): message is SidebarMessageItem => message !== null)
     : [];
 
   const safeStatus = String(statusMessage || "").trim();
   if (!safeStatus || shouldHideSidebarMessage(safeStatus)) {
     return mappedChat;
   }
+  const localizedStatus = localizeSystemMessage(safeStatus);
 
   const alreadyExists = mappedChat.some(
     (message) =>
       message.isSystem === true &&
-      String(message.content || "").trim() === safeStatus,
+      String(message.content || "").trim() === localizedStatus,
   );
   if (alreadyExists) {
     return mappedChat;
@@ -413,10 +450,10 @@ function buildSidebarMessages(
   return [
     ...mappedChat,
     {
-      id: `status-${safeStatus}`,
+      id: `status-${localizedStatus}`,
       senderId: "system",
       senderUsername: "System",
-      content: safeStatus,
+      content: localizedStatus,
       createdAt: "",
       isSystem: true,
     },
@@ -485,6 +522,7 @@ export function QuickMatchGameView({
   moveLogFooterMessage,
   hideQuickMatchTitleSuffix = false,
 }: QuickMatchGameViewProps) {
+  const { t } = useTranslation();
   const { user } = useAuthStore();
   const navigate = useNavigate();
   const [selectedPly, setSelectedPly] = useState<number | null>(null);
@@ -513,11 +551,15 @@ export function QuickMatchGameView({
   );
   const openingDisplayLabel = useMemo(() => {
     if (!canShowOpening) return "";
-    if (moves.length === 0) return "Starting Position";
+    if (moves.length === 0) {
+      return t("quickMatch.opening.startingPosition", "Starting Position");
+    }
     const formatted = formatOpeningLabel(opening);
     if (formatted) return formatted;
-    return openingLoading ? "Detecting opening..." : "";
-  }, [canShowOpening, moves.length, opening, openingLoading]);
+    return openingLoading
+      ? t("quickMatch.opening.detecting", "Detecting opening...")
+      : "";
+  }, [canShowOpening, moves.length, opening, openingLoading, t]);
   const fenByPly = useMemo(() => buildFenByPly(moves), [moves]);
   const resolvedActivePly = isExternallyControlled
     ? activeMovePly ?? null
@@ -547,12 +589,20 @@ export function QuickMatchGameView({
   const playerCheckedCount = playerColor === "w" ? whiteCheckCount : blackCheckCount;
   const opponentCheckedCount =
     playerColor === "w" ? blackCheckCount : whiteCheckCount;
+  const opponentChecksLabel = t("quickMatch.checks", {
+    count: opponentCheckedCount,
+    defaultValue: "Checks {{count}}/3",
+  });
+  const playerChecksLabel = t("quickMatch.checks", {
+    count: playerCheckedCount,
+    defaultValue: "Checks {{count}}/3",
+  });
   const opponentDisplayName = isThreeCheck
-    ? `${opponentName || "Opponent"} (Checks ${opponentCheckedCount}/3)`
-    : opponentName || "Opponent";
+    ? `${opponentName || t("Opponent")} (${opponentChecksLabel})`
+    : opponentName || t("Opponent");
   const playerDisplayName = isThreeCheck
-    ? `${user?.fullName || "You"} (Checks ${playerCheckedCount}/3)`
-    : user?.fullName || "You";
+    ? `${user?.fullName || t("You")} (${playerChecksLabel})`
+    : user?.fullName || t("You");
   const opponentNameForInfo = String(topPlayerNameOverride || opponentDisplayName);
   const playerNameForInfo = String(bottomPlayerNameOverride || playerDisplayName);
   const opponentRatingForInfo =
@@ -581,8 +631,11 @@ export function QuickMatchGameView({
   const tournamentStandings = tournamentPanelData?.standings || [];
   const tournamentHistory = tournamentPanelData?.history || [];
   const sidebarMessages = useMemo(
-    () => buildSidebarMessages(chatMessages, statusMessage),
-    [chatMessages, statusMessage],
+    () =>
+      buildSidebarMessages(chatMessages, statusMessage, (content) =>
+        localizeSidebarSystemMessage(content, t),
+      ),
+    [chatMessages, statusMessage, t],
   );
   const tournamentGameAction = tournamentPanelData?.gameAction || null;
   const tournamentType = String(tournamentPanelData?.tournament?.type || "").toLowerCase();
@@ -608,14 +661,55 @@ export function QuickMatchGameView({
     tournamentPanelData?.tournament?.scheduledStartAt ??
     tournamentPanelData?.tournament?.startedAt ??
     null;
-  const joinedCountdownLabel = getJoinedCountdownLabel(
-    joinedCountdownStartAt,
-    countdownNowMs,
-  );
+  const joinedCountdownLabel = useMemo(() => {
+    if (!joinedCountdownStartAt) return null;
+    const startMs = new Date(joinedCountdownStartAt).getTime();
+    if (!Number.isFinite(startMs)) return null;
+    const remainingMs = startMs - countdownNowMs;
+    if (remainingMs <= 0) return null;
+    if (remainingMs < 60_000) {
+      return t("quickMatch.tournament.startsInSeconds", {
+        count: Math.max(1, Math.ceil(remainingMs / 1000)),
+        defaultValue: "Starts in {{count}}s",
+      });
+    }
+    return t("quickMatch.tournament.startsInMinutes", {
+      count: Math.max(1, Math.floor(remainingMs / 60_000)),
+      defaultValue: "Starts in {{count}} min",
+    });
+  }, [countdownNowMs, joinedCountdownStartAt, t]);
+  const localizedTournamentActionLabel = useMemo(() => {
+    const normalized = tournamentActionLabel.trim().toLowerCase();
+    if (normalized === "ready") {
+      return t("quickMatch.tournament.ready", "Ready");
+    }
+    if (normalized === "waiting for pairing") {
+      return t("quickMatch.tournament.waitingForPairing", "Waiting for pairing");
+    }
+    if (normalized === "join") {
+      return t("tournamentsPage.actions.join", "Join");
+    }
+    if (normalized === "start game") {
+      return t("tournamentsPage.actions.startGame", "Start Game");
+    }
+    if (normalized === "next game") {
+      return t("tournamentsPage.actions.nextGame", "Next Game");
+    }
+    if (normalized === "final standings") {
+      return t("tournamentsPage.finalStandings.title", "Final Standings");
+    }
+    if (normalized === "joined") {
+      return t("quickMatch.tournament.joined", "Joined");
+    }
+    if (normalized === "time ended") {
+      return t("quickMatch.tournament.timeEnded", "Time ended");
+    }
+    return tournamentActionLabel;
+  }, [t, tournamentActionLabel]);
   const tournamentActionDisplayLabel =
     isJoinedAction && joinedCountdownLabel
-      ? `${tournamentActionLabel} (${joinedCountdownLabel})`
-      : tournamentActionLabel;
+      ? `${localizedTournamentActionLabel} (${joinedCountdownLabel})`
+      : localizedTournamentActionLabel;
   const arenaClockLabel = getArenaClockLabel(
     tournamentPanelData?.tournament,
     countdownNowMs,
@@ -636,17 +730,25 @@ export function QuickMatchGameView({
     null;
   const activeTournamentHistoryRow =
     tournamentHistory.find((row) => row.gameId === activeTournamentGameId) || null;
-  const tournamentResultTitle = getTournamentResultTitle(gameResult);
+  const tournamentResultTitle = getTournamentResultTitle(
+    gameResult,
+    t("quickMatch.result.gameComplete", "Game complete"),
+  );
   const viewerOutcome = getViewerOutcome(activeTournamentHistoryRow, viewerUserId);
   const viewerOutcomeLabel =
     viewerOutcome === "win"
-      ? "Win"
+      ? t("quickMatch.result.win", "Win")
       : viewerOutcome === "draw"
-        ? "Draw"
+        ? t("quickMatch.result.draw", "Draw")
         : viewerOutcome === "loss"
-          ? "Loss"
+          ? t("quickMatch.result.loss", "Loss")
           : null;
-  const winnerLabel = getWinnerLabel(activeTournamentHistoryRow);
+  const winnerLabel = getWinnerLabel(
+    activeTournamentHistoryRow,
+    t("White"),
+    t("Black"),
+    t("quickMatch.result.draw", "Draw"),
+  );
   const viewerTournamentGameRatingChange = buildPlayerRatingChange(gameOverElo, playerColor);
   const viewerTournamentHistoryRatingDelta =
     String(activeTournamentHistoryRow?.whiteId || "") === viewerUserId
@@ -661,7 +763,42 @@ export function QuickMatchGameView({
     : viewerTournamentRatingDelta !== null
       ? formatSignedRatingDelta(viewerTournamentRatingDelta)
       : null;
-  const filteredTournamentStatusMessage = sanitizeTournamentStatusMessage(statusMessage);
+  const filteredTournamentStatusMessage = useMemo(() => {
+    const normalized = sanitizeTournamentStatusMessage(statusMessage);
+    if (!normalized) return null;
+    const key = normalized.trim().toLowerCase();
+    if (key === "registration is closed.") {
+      return t("quickMatch.tournament.registrationClosed", "Registration is closed.");
+    }
+    if (key === "registration begins 1 hour before the event starts.") {
+      return t(
+        "quickMatch.tournament.registrationStartsOneHour",
+        "Registration begins 1 hour before the event starts.",
+      );
+    }
+    if (key === "failed to load tournament.") {
+      return t("quickMatch.tournament.failedToLoad", "Failed to load tournament.");
+    }
+    if (key === "joining ready pool...") {
+      return t("quickMatch.tournament.joiningReadyPool", "Joining ready pool...");
+    }
+    if (key === "failed to join ready pool.") {
+      return t(
+        "quickMatch.tournament.failedToJoinReadyPool",
+        "Failed to join ready pool.",
+      );
+    }
+    if (key === "joining...") {
+      return t("quickMatch.tournament.joining", "Joining...");
+    }
+    if (key === "failed to join tournament.") {
+      return t(
+        "quickMatch.tournament.failedToJoinTournament",
+        "Failed to join tournament.",
+      );
+    }
+    return normalized;
+  }, [statusMessage, t]);
   const [showTournamentResultModal, setShowTournamentResultModal] = useState(false);
   const shownTournamentResultGameRef = useRef("");
   const [showArenaOverModal, setShowArenaOverModal] = useState(false);
@@ -694,9 +831,11 @@ export function QuickMatchGameView({
             <Handshake size={18} />
           </div>
           <div className="min-w-0 flex-1">
-            <div className="text-sm font-semibold">Draw offered</div>
+            <div className="text-sm font-semibold">
+              {t("quickMatch.draw.offered", "Draw offered")}
+            </div>
             <p className="mt-1 text-xs text-slate-300">
-              Your opponent offered a draw.
+              {t("quickMatch.draw.opponentOffered", "Your opponent offered a draw.")}
             </p>
           </div>
         </div>
@@ -708,7 +847,7 @@ export function QuickMatchGameView({
             className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-brand-600 text-sm font-semibold text-white transition-colors hover:bg-brand-500 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Check size={15} />
-            Accept
+            {t("Accept")}
           </button>
           <button
             type="button"
@@ -717,12 +856,12 @@ export function QuickMatchGameView({
             className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.06] text-sm font-semibold text-slate-100 transition-colors hover:bg-white/[0.1] disabled:cursor-not-allowed disabled:opacity-60"
           >
             <X size={15} />
-            Decline
+            {t("Decline")}
           </button>
         </div>
       </div>
     );
-  }, [gameOver, gameStarted, hasIncomingDrawOffer, onRespondDrawOffer]);
+  }, [gameOver, gameStarted, hasIncomingDrawOffer, onRespondDrawOffer, t]);
 
   const handleTournamentGameAction = () => {
     if (!tournamentGameAction || tournamentGameAction.disabled) return;
@@ -958,8 +1097,16 @@ export function QuickMatchGameView({
                     ? "border-brand-300/65 bg-brand-500/55"
                     : "border-white/20 bg-slate-900/35 hover:bg-slate-800/50"
                 }`}
-                aria-label={isFocusMode ? "Exit focus mode" : "Enter focus mode"}
-                title={isFocusMode ? "Exit focus mode" : "Focus mode"}
+                aria-label={
+                  isFocusMode
+                    ? t("quickMatch.focus.exit", "Exit focus mode")
+                    : t("quickMatch.focus.enter", "Enter focus mode")
+                }
+                title={
+                  isFocusMode
+                    ? t("quickMatch.focus.exit", "Exit focus mode")
+                    : t("quickMatch.focus.title", "Focus mode")
+                }
               >
                 {isFocusMode ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
               </button>
@@ -1038,10 +1185,10 @@ export function QuickMatchGameView({
                     <span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-cyan-300 shadow-[0_0_0_3px_rgba(103,232,249,0.24)]" />
                     <div className="min-w-0">
                       <p className="text-[11px] font-semibold leading-tight text-cyan-100">
-                        Draw offer received
+                        {t("quickMatch.draw.received", "Draw offer received")}
                       </p>
                       <p className="mt-0.5 text-[10px] leading-tight text-cyan-100/75">
-                        Accept or decline now.
+                        {t("quickMatch.draw.acceptOrDeclineNow", "Accept or decline now.")}
                       </p>
                     </div>
                   </div>
@@ -1053,7 +1200,7 @@ export function QuickMatchGameView({
                       className="inline-flex h-8 items-center justify-center gap-1 rounded-md bg-emerald-600 text-[11px] font-semibold text-white transition-colors hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-55"
                     >
                       <Check size={12} />
-                      Accept
+                      {t("Accept")}
                     </button>
                     <button
                       type="button"
@@ -1062,7 +1209,7 @@ export function QuickMatchGameView({
                       className="inline-flex h-8 items-center justify-center gap-1 rounded-md border border-white/20 bg-white/10 text-[11px] font-semibold text-slate-100 transition-colors hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-55"
                     >
                       <X size={12} />
-                      Decline
+                      {t("Decline")}
                     </button>
                   </div>
                 </div>
@@ -1076,12 +1223,12 @@ export function QuickMatchGameView({
                 }`}
                 title={
                   drawOfferPending
-                    ? "Draw offer pending"
+                    ? t("quickMatch.draw.pending", "Draw offer pending")
                     : hasIncomingDrawOffer
-                      ? "Draw offer received"
-                      : "Offer draw"
+                      ? t("quickMatch.draw.received", "Draw offer received")
+                      : t("quickMatch.draw.offer", "Offer draw")
                 }
-                aria-label="Offer draw"
+                aria-label={t("quickMatch.draw.offer", "Offer draw")}
               >
                 {hasIncomingDrawOffer ? (
                   <span className="quickmatch-focus-action-alert-dot" aria-hidden="true" />
@@ -1093,8 +1240,8 @@ export function QuickMatchGameView({
                 onConfirm={onResign}
                 disabled={gameOver}
                 className="quickmatch-focus-action-button quickmatch-focus-action-danger"
-                title="Resign"
-                aria-label="Resign game"
+                title={t("game.actions.resign")}
+                aria-label={t("game.aria.resignGame")}
               >
                 <Flag size={18} />
               </ResignConfirmButton>
@@ -1117,13 +1264,20 @@ export function QuickMatchGameView({
                         </div>
                         <div className="min-w-0">
                           <h2 className="truncate text-base font-semibold text-slate-100">
-                            {tournamentPanelData?.tournament?.name || "Arena Tournament"}
+                            {tournamentPanelData?.tournament?.name ||
+                              t("quickMatch.tournament.headerFallback", "Arena Tournament")}
                           </h2>
                           <p className="truncate text-xs text-cyan-100/75">
-                            Standard - {tournamentStandings.length} players
+                            {t("quickMatch.tournament.headerSummary", {
+                              count: tournamentStandings.length,
+                              defaultValue: "Standard - {{count}} players",
+                            })}
                           </p>
                           <p className="truncate text-xs text-cyan-100/65">
-                            Pairing: Rating-based
+                            {t(
+                              "quickMatch.tournament.headerPairing",
+                              "Pairing: Rating-based",
+                            )}
                           </p>
                         </div>
                       </div>
@@ -1159,7 +1313,7 @@ export function QuickMatchGameView({
                       : "text-gray-600 hover:bg-gray-200/70 dark:text-gray-300 dark:hover:bg-slate-700/60"
                   }`}
                 >
-                  Standings
+                  {t("tournamentsPage.tabs.standings", "Standings")}
                 </button>
                 <button
                   onClick={() => setTournamentTab("games")}
@@ -1169,7 +1323,7 @@ export function QuickMatchGameView({
                       : "text-gray-600 hover:bg-gray-200/70 dark:text-gray-300 dark:hover:bg-slate-700/60"
                   }`}
                 >
-                  Games
+                  {t("Games")}
                 </button>
                 <button
                   onClick={() => setTournamentTab("moves")}
@@ -1179,7 +1333,7 @@ export function QuickMatchGameView({
                       : "text-gray-600 hover:bg-gray-200/70 dark:text-gray-300 dark:hover:bg-slate-700/60"
                   }`}
                 >
-                  Moves
+                  {t("quickMatch.tabs.moves", "Moves")}
                 </button>
               </div>
             )}
@@ -1205,7 +1359,7 @@ export function QuickMatchGameView({
                         rows={moveRows}
                         activePly={resolvedActivePly}
                         onSelectPly={handleSelectPly}
-                        emptyMessage="No moves yet"
+                        emptyMessage={t("quickMatch.moves.empty", "No moves yet")}
                         moveCellClassName="rounded px-2 py-1 transition-colors"
                         activeMoveClassName="bg-[#00e5a0]/20 text-[#00e5a0] font-semibold"
                         inactiveMoveClassName="text-gray-800 dark:text-gray-200"
@@ -1233,12 +1387,12 @@ export function QuickMatchGameView({
                 <div className="h-full overflow-auto p-2">
                   {isTournamentFinished ? (
                     <div className="mb-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-200">
-                      Final Standings
+                      {t("tournamentsPage.finalStandings.title", "Final Standings")}
                     </div>
                   ) : null}
                   {tournamentStandings.length === 0 ? (
                     <div className="text-center text-gray-400 dark:text-gray-500 text-xs py-6">
-                      Standings are loading...
+                      {t("quickMatch.standings.loading", "Standings are loading...")}
                     </div>
                   ) : (
                     <div className="space-y-1.5">
@@ -1299,7 +1453,7 @@ export function QuickMatchGameView({
                 <div className="h-full overflow-auto p-2">
                   {tournamentHistory.length === 0 ? (
                     <div className="text-center text-gray-400 dark:text-gray-500 text-xs py-6">
-                      No games yet.
+                      {t("quickMatch.games.empty", "No games yet.")}
                     </div>
                   ) : (
                     <div className="space-y-1.5">
@@ -1315,7 +1469,11 @@ export function QuickMatchGameView({
                         >
                           <div className="flex items-center justify-between text-[11px] text-gray-500 dark:text-gray-400">
                             <span>
-                              Round {row.roundNumber} - Board {row.board}
+                              {t("quickMatch.games.roundBoard", {
+                                round: row.roundNumber,
+                                board: row.board,
+                                defaultValue: "Round {{round}} - Board {{board}}",
+                              })}
                             </span>
                             <span
                               className={`rounded-full px-2 py-0.5 font-semibold ${
@@ -1324,7 +1482,9 @@ export function QuickMatchGameView({
                                   : "bg-amber-500/15 text-amber-700 dark:text-amber-300"
                               }`}
                             >
-                              {row.status === "completed" ? "Done" : "Live"}
+                              {row.status === "completed"
+                                ? t("tournamentCommon.roundStatus.completed", "Completed")
+                                : t("tournamentCommon.roundStatus.inProgress", "In Progress")}
                             </span>
                           </div>
                           <div className="mt-1.5 flex items-center justify-between gap-2 text-xs">
@@ -1346,7 +1506,7 @@ export function QuickMatchGameView({
                                 className="inline-flex h-7 items-center gap-1.5 rounded-md border border-brand-400/35 bg-brand-500/10 px-2.5 text-[11px] font-semibold text-brand-700 transition-colors hover:bg-brand-500/20 dark:text-brand-200"
                               >
                                 <BarChart3 size={13} />
-                                Analyze
+                                {t("quickMatch.actions.analyze", "Analyze")}
                               </button>
                             </div>
                           ) : null}
@@ -1369,7 +1529,7 @@ export function QuickMatchGameView({
                       rows={moveRows}
                       activePly={resolvedActivePly}
                       onSelectPly={handleSelectPly}
-                      emptyMessage="No moves yet"
+                      emptyMessage={t("quickMatch.moves.empty", "No moves yet")}
                       moveCellClassName="rounded px-2 py-1 transition-colors"
                       activeMoveClassName="bg-[#00e5a0]/20 text-[#00e5a0] font-semibold"
                       inactiveMoveClassName="text-gray-800 dark:text-gray-200"
@@ -1402,7 +1562,7 @@ export function QuickMatchGameView({
                           className="flex h-11 items-center justify-center gap-2 rounded-xl bg-emerald-500 text-sm font-semibold text-white transition-colors hover:bg-emerald-400"
                         >
                           <Check size={16} />
-                          Accept Draw
+                          {t("quickMatch.draw.acceptDraw", "Accept Draw")}
                         </button>
                         <button
                           type="button"
@@ -1410,7 +1570,7 @@ export function QuickMatchGameView({
                           className="flex h-11 items-center justify-center gap-2 rounded-xl bg-white/10 text-sm font-semibold text-gray-800 transition-colors hover:bg-white/15 dark:text-gray-100"
                         >
                           <X size={16} />
-                          Decline
+                          {t("Decline")}
                         </button>
                       </div>
                     ) : (
@@ -1421,7 +1581,7 @@ export function QuickMatchGameView({
                           className="flex h-11 items-center justify-center gap-2 rounded-xl bg-red-500/10 text-sm font-semibold text-red-600 transition-colors hover:bg-red-500/20 dark:text-red-300"
                         >
                           <Flag size={16} />
-                          Resign
+                          {t("game.actions.resign")}
                         </ResignConfirmButton>
                         <button
                           type="button"
@@ -1430,12 +1590,14 @@ export function QuickMatchGameView({
                           className="flex h-11 items-center justify-center gap-2 rounded-xl bg-white/10 text-sm font-semibold text-gray-800 transition-colors hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-100"
                           title={
                             drawOfferPending
-                              ? "Draw offer pending"
-                              : "Offer draw"
+                              ? t("quickMatch.draw.pending", "Draw offer pending")
+                              : t("quickMatch.draw.offer", "Offer draw")
                           }
                         >
                           <Handshake size={16} />
-                          {drawOfferPending ? "Offered" : "Offer Draw"}
+                          {drawOfferPending
+                            ? t("quickMatch.draw.offeredShort", "Offered")
+                            : t("quickMatch.draw.offerButton", "Offer Draw")}
                         </button>
                       </div>
                     )
@@ -1465,7 +1627,7 @@ export function QuickMatchGameView({
                       className="flex h-11 items-center justify-center gap-2 rounded-xl bg-red-500/10 text-sm font-semibold text-red-600 transition-colors hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-400"
                     >
                       <Flag size={16} />
-                      Resign
+                      {t("game.actions.resign")}
                     </ResignConfirmButton>
                     <button
                       type="button"
@@ -1479,14 +1641,16 @@ export function QuickMatchGameView({
                       className="flex h-11 items-center justify-center gap-2 rounded-xl bg-white/10 text-sm font-semibold text-gray-800 transition-colors hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-100"
                       title={
                         drawOfferPending
-                          ? "Draw offer pending"
+                          ? t("quickMatch.draw.pending", "Draw offer pending")
                           : hasIncomingDrawOffer
-                            ? "Draw offer received"
-                            : "Offer draw"
+                            ? t("quickMatch.draw.received", "Draw offer received")
+                            : t("quickMatch.draw.offer", "Offer draw")
                       }
                     >
                       <Handshake size={16} />
-                      {drawOfferPending ? "Offered" : "Offer Draw"}
+                      {drawOfferPending
+                        ? t("quickMatch.draw.offeredShort", "Offered")
+                        : t("quickMatch.draw.offerButton", "Offer Draw")}
                     </button>
                   </div>
                 </>
@@ -1506,18 +1670,26 @@ export function QuickMatchGameView({
                 type="button"
                 onClick={() => setShowTournamentResultModal(false)}
                 className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-cyan-200/20 bg-cyan-200/10 text-cyan-100 transition-colors hover:bg-cyan-200/20"
-                aria-label="Close result dialog"
+                aria-label={t("quickMatch.modal.closeResult", "Close result dialog")}
               >
                 <X size={16} />
               </button>
             </div>
 
             <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-cyan-100/75">
-              {winnerLabel ? <span>Winner: {winnerLabel}</span> : null}
-              {viewerOutcomeLabel ? <span>Result: {viewerOutcomeLabel}</span> : null}
+              {winnerLabel ? (
+                <span>
+                  {t("Winner")}: {winnerLabel}
+                </span>
+              ) : null}
+              {viewerOutcomeLabel ? (
+                <span>
+                  {t("tournamentsPage.actions.result", "Result")}: {viewerOutcomeLabel}
+                </span>
+              ) : null}
               {isRatedTournament && viewerTournamentRatingDelta !== null && viewerTournamentRatingLabel ? (
                 <span className={ratingDeltaTextClass(viewerTournamentRatingDelta)}>
-                  Rating: {viewerTournamentRatingLabel}
+                  {t("quickMatch.result.rating", "Rating")}: {viewerTournamentRatingLabel}
                 </span>
               ) : null}
             </div>
@@ -1530,7 +1702,7 @@ export function QuickMatchGameView({
                 className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-emerald-500 px-4 text-sm font-semibold text-white transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <BarChart3 size={16} />
-                Analyze
+                {t("quickMatch.actions.analyze", "Analyze")}
               </button>
             </div>
           </div>
@@ -1544,13 +1716,15 @@ export function QuickMatchGameView({
                 type="button"
                 onClick={() => setShowArenaOverModal(false)}
                 className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-md text-white/55 transition hover:bg-white/10 hover:text-white"
-                aria-label="Close arena results"
+                aria-label={t("quickMatch.modal.closeArenaResults", "Close arena results")}
               >
                 <X size={18} />
               </button>
-              <h3 className="text-2xl font-semibold leading-tight">Arena Over</h3>
+              <h3 className="text-2xl font-semibold leading-tight">
+                {t("quickMatch.arena.over", "Arena Over")}
+              </h3>
               <p className="mt-1 text-sm text-white/80">
-                {tournamentPanelData?.tournament?.name || "Tournament"}
+                {tournamentPanelData?.tournament?.name || t("Tournament")}
               </p>
               {arenaFormatLabel ? (
                 <p className="mt-0.5 text-xs text-white/55">{arenaFormatLabel}</p>

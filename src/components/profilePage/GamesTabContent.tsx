@@ -8,6 +8,7 @@ import { ShareGameModal } from "../ShareGameModal";
 import { FilterType, TournamentHistoryEntry } from "./types";
 
 const GAMES_PER_PAGE = 10;
+const PROFILE_GAME_FILTERS = ["all", "wins", "losses", "draws"] as const;
 
 function getPageNumbers(current: number, total: number): (number | "...")[] {
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
@@ -109,7 +110,7 @@ export function GamesTabContent({
         </h2>
 
         <div className="flex bg-white dark:bg-gray-900 p-1 rounded-xl border border-gray-200 dark:border-gray-800">
-          {(["all", "wins", "losses", "draws"] as const).map((f) => (
+          {PROFILE_GAME_FILTERS.map((f) => (
             <button
               key={f}
               onClick={() => handleSetFilter(f)}
@@ -179,7 +180,7 @@ export function GamesTabContent({
                   <td className="px-3 py-2 text-gray-500 dark:text-gray-400">
                     {formatTournamentDate(
                       row.date,
-                      i18n.resolvedLanguage || i18n.language || "en",
+                      i18n.resolvedLanguage || i18n.language || undefined,
                     )}
                   </td>
                 </tr>

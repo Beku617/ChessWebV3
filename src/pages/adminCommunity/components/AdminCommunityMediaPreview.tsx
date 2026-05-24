@@ -1,3 +1,4 @@
+import { Trans, useTranslation } from "react-i18next";
 import { Image as ImageIcon, PlayCircle } from "lucide-react";
 import { CommunityGameViewer } from "../../../components/community/CommunityGameViewer";
 import { CommunityImageGrid } from "../../../components/community/CommunityImageGrid";
@@ -24,6 +25,7 @@ export function AdminCommunityMediaPreview({
   contentTypeLabel,
   onOpenGallery,
 }: AdminCommunityMediaPreviewProps) {
+  const { t } = useTranslation();
   const isGamePost = post.postType === "game";
 
   if (isGamePost) {
@@ -43,7 +45,8 @@ export function AdminCommunityMediaPreview({
 
   const galleryItems = imageItems.map((item) => ({
     src: item.url,
-    alt: item.originalName || "Community post media",
+    alt:
+      item.originalName || t("admin.community.media.postMediaAlt", "Community post media"),
   }));
 
   return (
@@ -62,7 +65,10 @@ export function AdminCommunityMediaPreview({
         <div className="overflow-hidden rounded-[16px] bg-black/55">
           <img
             src={imageItems[0].url}
-            alt={imageItems[0].originalName || "Community post media"}
+            alt={
+              imageItems[0].originalName ||
+              t("admin.community.media.postMediaAlt", "Community post media")
+            }
             className="w-full max-h-[420px] cursor-zoom-in bg-black object-contain"
             onClick={() => onOpenGallery(galleryItems, 0)}
           />
@@ -72,7 +78,9 @@ export function AdminCommunityMediaPreview({
           <CommunityImageGrid
             items={imageItems.map((item) => ({
               url: item.url,
-              alt: item.originalName || "Community post image",
+              alt:
+                item.originalName ||
+                t("admin.community.media.postImageAlt", "Community post image"),
             }))}
             onImageClick={(index) => {
               if (!galleryItems[index]) return;
@@ -87,12 +95,16 @@ export function AdminCommunityMediaPreview({
           {post.mediaType === "video" ? (
             <>
               <PlayCircle className="h-3.5 w-3.5 text-brand-300" />
-              <span>Video preview</span>
+              <span><Trans>Video preview</Trans></span>
             </>
           ) : post.mediaType === "image" ? (
             <>
               <ImageIcon className="h-3.5 w-3.5 text-brand-300" />
-              <span>{imageItems.length > 1 ? "Image set" : "Image preview"}</span>
+              <span>
+                {imageItems.length > 1
+                  ? t("admin.community.media.imageSet", "Image set")
+                  : t("admin.community.media.imagePreview", "Image preview")}
+              </span>
             </>
           ) : (
             <span>{contentTypeLabel}</span>

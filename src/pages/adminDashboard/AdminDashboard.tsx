@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Loader2 } from "lucide-react";
 import { useAdminStore } from "../../store/adminStore";
 import AdminSidebar from "../../components/AdminSidebar";
@@ -8,6 +9,7 @@ import { DashboardStats } from "./DashboardStats";
 import { DashboardUsersTable } from "./DashboardUsersTable";
 
 export default function AdminDashboard() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { isAuthenticated, isLoading, checkAuth } = useAdminStore();
 
@@ -42,7 +44,7 @@ export default function AdminDashboard() {
     fetch(`${API_URL}/api/admin/stats`, { credentials: "include" })
       .then((res) => {
         if (!res.ok) {
-          throw new Error("Failed to load dashboard stats");
+          throw new Error(t("admin.dashboard.errors.loadStats"));
         }
         return res.json();
       })
@@ -51,11 +53,13 @@ export default function AdminDashboard() {
         console.error(err);
         setStats(null);
         setStatsError(
-          err instanceof Error ? err.message : "Failed to load dashboard stats",
+          err instanceof Error
+            ? err.message
+            : t("admin.dashboard.errors.loadStats"),
         );
       })
       .finally(() => setLoadingStats(false));
-  }, [isAuthenticated]);
+  }, [isAuthenticated, t]);
 
   // Fetch users
   useEffect(() => {
@@ -116,7 +120,7 @@ export default function AdminDashboard() {
       <main className="ml-72 p-8">
         {/* Page Title */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold">Dashboard</h1>
+          <h1 className="text-2xl font-bold">{t("admin.dashboard.pageTitle")}</h1>
         </div>
 
         {/* Stats */}

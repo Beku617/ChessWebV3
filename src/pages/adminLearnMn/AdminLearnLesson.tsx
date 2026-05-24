@@ -1,6 +1,7 @@
 import { useEffect, useId, useMemo, useState } from "react";
 import { Chess, type Square } from "chess.js";
 import { Chessboard } from "react-chessboard";
+import { useTranslation, Trans } from "react-i18next";
 import {
   ArrowLeft,
   ChevronDown,
@@ -45,6 +46,12 @@ type StepDraft = {
 
 const DEFAULT_SUCCESS_MESSAGE = "Correct move.";
 const DEFAULT_WRONG_MOVE_MESSAGE = "Try another move.";
+const SIDE_TO_MOVE_VALUE = {
+  white: "white",
+  black: "black",
+} as const;
+const BOARD_PREVIEW_FALLBACK_POSITION = "start";
+const BOARD_PREVIEW_DROP_ACTION = "snapback";
 
 const EMPTY_STEP_DRAFT: StepDraft = {
   instructionText: "",
@@ -89,6 +96,7 @@ function mergeAcceptedMoves(values: string[]): string[] {
 }
 
 export default function AdminLearnLesson() {
+  const { t } = useTranslation();
   const { courseId = "", lessonId = "" } = useParams<{
     courseId: string;
     lessonId: string;
@@ -249,7 +257,9 @@ export default function AdminLearnLesson() {
   };
 
   const handleDeleteStep = async (step: AdminLearnStep) => {
-    const confirmed = window.confirm(`Delete step ${step.orderIndex + 1}?`);
+    const confirmed = window.confirm(
+      t("admin.confirm.deleteStep", { index: step.orderIndex + 1 }),
+    );
     if (!confirmed) return;
 
     setProcessingStepId(step.id);
@@ -529,13 +539,12 @@ export default function AdminLearnLesson() {
                 onClick={() => navigate(`/admin/learn-mn/courses/${courseId}`)}
                 className={neutralButtonClass}
               >
-                <ArrowLeft className="h-3.5 w-3.5" />
-                Back to Course
-              </button>
+                <ArrowLeft className="h-3.5 w-3.5" /> <Trans>Back to Course</Trans> </button>
 
               <div className="mt-4">
                 <h1 className={`text-3xl font-semibold tracking-tight ${headingTextClass}`}>
-                  {lesson?.title || "Loading lesson..."}
+                    {lesson?.title ||
+                      t("admin.learn.labels.loadingLesson", "Loading lesson...")}
                 </h1>
               </div>
             </section>
@@ -549,16 +558,12 @@ export default function AdminLearnLesson() {
             <section className="grid gap-5 xl:grid-cols-[330px_minmax(0,1fr)]">
               <div className={`rounded-[24px] border p-4 ${surfaceClass}`}>
                 <div className="flex items-center justify-between gap-2">
-                  <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-gray-500">
-                    Steps
-                  </h2>
+                  <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-gray-500"> <Trans>Steps</Trans> </h2>
                   <button
                     onClick={handleNewStep}
                     className="inline-flex items-center gap-1 rounded-lg bg-brand-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-brand-500"
                   >
-                    <Plus className="h-3.5 w-3.5" />
-                    New
-                  </button>
+                    <Plus className="h-3.5 w-3.5" /> <Trans>New</Trans> </button>
                 </div>
 
                 <label className="relative mt-3 block">
@@ -566,7 +571,7 @@ export default function AdminLearnLesson() {
                   <input
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
-                    placeholder="Search steps..."
+                    placeholder={t("admin.search.steps")}
                     className={searchInputClass}
                   />
                 </label>
@@ -576,9 +581,7 @@ export default function AdminLearnLesson() {
                     <Loader2 className="mx-auto h-7 w-7 animate-spin text-brand-400" />
                   </div>
                 ) : steps.length === 0 ? (
-                  <div className={`py-16 text-center text-sm ${mutedTextClass}`}>
-                    No steps yet.
-                  </div>
+                  <div className={`py-16 text-center text-sm ${mutedTextClass}`}> <Trans>No steps yet.</Trans> </div>
                 ) : (
                   <div className="mt-3 space-y-2">
                     {steps.map((step, index) => {
@@ -597,11 +600,11 @@ export default function AdminLearnLesson() {
                             onClick={() => handleSelectStep(step)}
                             className="w-full text-left"
                           >
-                            <div className="text-[11px] uppercase tracking-[0.14em] text-gray-500">
-                              Step {step.orderIndex + 1}
+                            <div className="text-[11px] uppercase tracking-[0.14em] text-gray-500"> <Trans>Step</Trans> {step.orderIndex + 1}
                             </div>
                             <div className={`mt-1 text-sm ${headingTextClass} line-clamp-2`}>
-                              {step.instructionText || "No instructions yet."}
+                              {step.instructionText ||
+                                t("admin.learn.labels.noInstructions", "No instructions yet.")}
                             </div>
                           </button>
                           <div className="mt-2 flex flex-wrap gap-1.5">
@@ -645,7 +648,12 @@ export default function AdminLearnLesson() {
                 <section className={`rounded-[24px] border p-5 ${surfaceClass}`}>
                   <div className="flex items-center justify-between gap-2">
                     <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-gray-500">
-                      {selectedStep ? `Edit Step ${selectedStep.orderIndex + 1}` : "Create Step"}
+                      {selectedStep
+                        ? t("admin.learn.actions.editStepWithIndex", {
+                            defaultValue: "Edit Step {{index}}",
+                            index: selectedStep.orderIndex + 1,
+                          })
+                        : t("admin.learn.actions.createStep", "Create Step")}
                     </h2>
                     <button
                       disabled={savingStep}
@@ -657,25 +665,23 @@ export default function AdminLearnLesson() {
                       ) : (
                         <Save className="h-3.5 w-3.5" />
                       )}
-                      {selectedStep ? "Save Step" : "Create Step"}
+                      {selectedStep
+                        ? t("admin.learn.actions.saveStep", "Save Step")
+                        : t("admin.learn.actions.createStep", "Create Step")}
                     </button>
                   </div>
 
                   <div className="mt-4 grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
                     <div className="space-y-5">
                       <div>
-                        <h3 className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                          Step Info
-                        </h3>
+                        <h3 className="text-xs uppercase tracking-[0.14em] text-gray-500"> <Trans>Step Info</Trans> </h3>
                       </div>
 
                       <div>
-                        <h3 className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                          Board
-                        </h3>
+                        <h3 className="text-xs uppercase tracking-[0.14em] text-gray-500"> <Trans>Board</Trans> </h3>
                         <div className="mt-2 space-y-3">
                           <label className="block space-y-1">
-                            <span className={fieldLabelClass}>Board position</span>
+                            <span className={fieldLabelClass}><Trans>Board position</Trans></span>
                             <textarea
                               value={stepDraft.fen}
                               onChange={(event) =>
@@ -684,13 +690,13 @@ export default function AdminLearnLesson() {
                                   fen: event.target.value,
                                 }))
                               }
-                              placeholder="Paste FEN here"
+                              placeholder={t("admin.form.pasteFen")}
                               className={`min-h-[75px] ${textareaClass}`}
                             />
                           </label>
                           <div className="grid gap-3 sm:grid-cols-2">
                             <label className="space-y-1">
-                              <span className={fieldLabelClass}>Move color</span>
+                              <span className={fieldLabelClass}><Trans>Move color</Trans></span>
                               <select
                                 value={stepDraft.sideToMove}
                                 onChange={(event) =>
@@ -703,8 +709,8 @@ export default function AdminLearnLesson() {
                                 }
                                 className={fullInputClass}
                               >
-                                <option value="white">White to move</option>
-                                <option value="black">Black to move</option>
+                                <option value={SIDE_TO_MOVE_VALUE.white}><Trans>White to move</Trans></option>
+                                <option value={SIDE_TO_MOVE_VALUE.black}><Trans>Black to move</Trans></option>
                               </select>
                             </label>
                           </div>
@@ -712,9 +718,7 @@ export default function AdminLearnLesson() {
                       </div>
 
                       <div>
-                        <h3 className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                          Instructions
-                        </h3>
+                        <h3 className="text-xs uppercase tracking-[0.14em] text-gray-500"> <Trans>Instructions</Trans> </h3>
                         <div className="mt-2 space-y-3">
                           <div className="block">
                             <textarea
@@ -726,7 +730,7 @@ export default function AdminLearnLesson() {
                                   instructionText: event.target.value,
                                 }))
                               }
-                              placeholder="Ask the student what to play"
+                              placeholder={t("admin.form.studentPrompt")}
                               className={`min-h-[82px] ${textareaClass}`}
                             />
                           </div>
@@ -734,12 +738,10 @@ export default function AdminLearnLesson() {
                       </div>
 
                       <div>
-                        <h3 className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                          Feedback
-                        </h3>
+                        <h3 className="text-xs uppercase tracking-[0.14em] text-gray-500"> <Trans>Feedback</Trans> </h3>
                         <div className="mt-2 grid gap-3 sm:grid-cols-2">
                           <label className="block space-y-1">
-                            <span className={fieldLabelClass}>Correct feedback</span>
+                            <span className={fieldLabelClass}><Trans>Correct feedback</Trans></span>
                             <textarea
                               value={stepDraft.successMessage}
                               onChange={(event) =>
@@ -748,12 +750,12 @@ export default function AdminLearnLesson() {
                                   successMessage: event.target.value,
                                 }))
                               }
-                              placeholder="Great move."
+                              placeholder={t("admin.form.successMessage")}
                               className={`min-h-[70px] ${textareaClass}`}
                             />
                           </label>
                           <label className="block space-y-1">
-                            <span className={fieldLabelClass}>Wrong feedback</span>
+                            <span className={fieldLabelClass}><Trans>Wrong feedback</Trans></span>
                             <textarea
                               value={stepDraft.wrongMoveMessage}
                               onChange={(event) =>
@@ -762,7 +764,7 @@ export default function AdminLearnLesson() {
                                   wrongMoveMessage: event.target.value,
                                 }))
                               }
-                              placeholder="Try again."
+                              placeholder={t("admin.form.retryMessage")}
                               className={`min-h-[70px] ${textareaClass}`}
                             />
                           </label>
@@ -770,12 +772,10 @@ export default function AdminLearnLesson() {
                       </div>
 
                       <div>
-                        <h3 className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                          Correct Moves
-                        </h3>
+                        <h3 className="text-xs uppercase tracking-[0.14em] text-gray-500"> <Trans>Correct Moves</Trans> </h3>
                         <div className="mt-2 space-y-3">
                           <label className="block space-y-1">
-                            <span className={fieldLabelClass}>Correct moves</span>
+                            <span className={fieldLabelClass}><Trans>Correct moves</Trans></span>
                             <textarea
                               value={stepDraft.acceptedMoves}
                               onChange={(event) =>
@@ -784,7 +784,7 @@ export default function AdminLearnLesson() {
                                   acceptedMoves: event.target.value,
                                 }))
                               }
-                              placeholder="Example: e4, Nf3"
+                              placeholder={t("admin.form.acceptedMovesExample")}
                               className={`min-h-[70px] ${textareaClass}`}
                             />
                           </label>
@@ -808,8 +808,8 @@ export default function AdminLearnLesson() {
                                 <Play className="h-3.5 w-3.5" />
                               )}
                               {isRecordingAcceptedMoves
-                                ? "Stop board recording"
-                                : "Record from board"}
+                                ? t("admin.learn.actions.stopBoardRecording", "Stop board recording")
+                                : t("admin.learn.actions.recordFromBoard", "Record from board")}
                             </button>
                             <button
                               type="button"
@@ -817,12 +817,8 @@ export default function AdminLearnLesson() {
                               onClick={() => setAcceptedMoveTokens([])}
                               className={`${compactNeutralButtonClass} inline-flex items-center gap-1.5 disabled:cursor-not-allowed`}
                             >
-                              <RotateCcw className="h-3.5 w-3.5" />
-                              Clear moves
-                            </button>
-                            <span className={`text-xs ${mutedTextClass}`}>
-                              Drag or click a legal move on the preview board to add it.
-                            </span>
+                              <RotateCcw className="h-3.5 w-3.5" /> <Trans>Clear moves</Trans> </button>
+                            <span className={`text-xs ${mutedTextClass}`}> <Trans>Drag or click a legal move on the preview board to add it.</Trans> </span>
                           </div>
                           {acceptedMoveTokens.length > 0 && (
                             <div className="flex flex-wrap gap-1.5">
@@ -837,10 +833,10 @@ export default function AdminLearnLesson() {
                                       )
                                     }
                                     className={moveChipRemoveClass}
-                                    aria-label={`Remove move ${token}`}
-                                  >
-                                    x
-                                  </button>
+                                    aria-label={t("admin.aria.removeMove", {
+                                      token,
+                                    })}
+                                  > <Trans>x</Trans> </button>
                                 </span>
                               ))}
                             </div>
@@ -857,18 +853,14 @@ export default function AdminLearnLesson() {
                                   }))
                                 }
                                 className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-400/40"
-                              />
-                              Show step
-                            </label>
+                              /> <Trans>Show step</Trans> </label>
                           </div>
                         </div>
                       </div>
                     </div>
 
                     <aside className="space-y-3">
-                      <h3 className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                        Position Preview
-                      </h3>
+                      <h3 className="text-xs uppercase tracking-[0.14em] text-gray-500"> <Trans>Position Preview</Trans> </h3>
                       <div className={previewSurfaceClass}>
                         <div
                           className={`mx-auto w-[280px] max-w-full rounded-xl overflow-hidden border ${previewBoardBorderClass}`}
@@ -876,7 +868,11 @@ export default function AdminLearnLesson() {
                           <Chessboard
                             id={`admin-learn-step-preview-${previewBoardId}`}
                             allowDragOutsideBoard={false}
-                            position={previewValidation.valid ? stepDraft.fen : "start"}
+                            position={
+                              previewValidation.valid
+                                ? stepDraft.fen
+                                : BOARD_PREVIEW_FALLBACK_POSITION
+                            }
                             boardOrientation={stepDraft.boardOrientation}
                             onPieceDrop={handleAcceptedMoveDrop}
                             onSquareClick={handlePreviewSquareClick}
@@ -884,7 +880,7 @@ export default function AdminLearnLesson() {
                             arePiecesDraggable={isRecordingAcceptedMoves && previewValidation.valid}
                             customSquareStyles={previewMoveSquares}
                             boardWidth={280}
-                            dropOffBoardAction="snapback"
+                            dropOffBoardAction={BOARD_PREVIEW_DROP_ACTION}
                           />
                         </div>
                         {!previewValidation.valid && (
@@ -894,8 +890,14 @@ export default function AdminLearnLesson() {
                         )}
                         <p className={`mt-3 text-xs ${mutedTextClass}`}>
                           {isRecordingAcceptedMoves
-                            ? "Recording active: drag a legal move to add it to accepted moves."
-                            : "Preview uses current FEN and side to move selection."}
+                            ? t(
+                                "admin.learn.hints.recordingActive",
+                                "Recording active: drag a legal move to add it to accepted moves.",
+                              )
+                            : t(
+                                "admin.learn.hints.previewUsage",
+                                "Preview uses current FEN and side to move selection.",
+                              )}
                         </p>
                       </div>
                     </aside>

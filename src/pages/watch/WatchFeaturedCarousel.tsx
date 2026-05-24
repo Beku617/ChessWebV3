@@ -116,12 +116,21 @@ function resolveAssetUrl(url?: string | null): string {
 
 function formatTypeLabel(value?: string | null): string {
   const source = String(value || "").trim();
+  const normalized = source.toLowerCase();
+  if (normalized === "tournament") return i18n.t("Tournament").toUpperCase();
+  if (normalized === "match") return i18n.t("Match").toUpperCase();
+  if (normalized === "broadcast") return i18n.t("Broadcast").toUpperCase();
+  if (normalized === "event") return i18n.t("Event").toUpperCase();
   if (!source) return i18n.t("watchPage.fallback.event");
   return source.replace(/[_-]+/g, " ").toUpperCase();
 }
 
 function formatStatusLabel(value?: string | null): string {
   const source = String(value || "").trim();
+  const normalized = source.toLowerCase();
+  if (normalized === "live") return i18n.t("live").toUpperCase();
+  if (normalized === "upcoming") return i18n.t("UPCOMING").toUpperCase();
+  if (normalized === "completed") return i18n.t("Completed").toUpperCase();
   if (!source) return i18n.t("watchPage.fallback.live");
   return source.replace(/[_-]+/g, " ").toUpperCase();
 }
@@ -131,7 +140,9 @@ function formatDateLabel(value?: string | null): string {
   if (!source) return "";
   const date = new Date(source);
   if (Number.isNaN(date.getTime())) return source;
-  return date.toLocaleDateString(undefined, {
+  const locale = i18n.resolvedLanguage || i18n.language || undefined;
+  return date.toLocaleDateString(locale, {
+    localeMatcher: "best fit",
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -159,20 +170,24 @@ function eventToSlide(event: FeaturedEvent, index: number): Slide {
   const fallbackSecondaryUrl = String(event.lichessUrl || "").trim();
   const secondaryButtonUrl = String(event.secondaryButtonUrl || "").trim();
   const resolvedSecondaryUrl = secondaryButtonUrl || fallbackSecondaryUrl;
+  const statusLabel = String(event.statusLabel || "").trim();
+  const categoryLabel = String(event.categoryLabel || "").trim();
+  const secondaryButtonLabel = String(event.secondaryButtonLabel || "").trim();
+  const primaryButtonLabel = String(event.primaryButtonLabel || "").trim();
 
   return {
     id: String(event._id || `event-${index}`),
     variant,
     piece: ["K", "Q", "R"][index % 3],
-    statusLabel: formatStatusLabel(event.status),
-    eventType: formatTypeLabel(event.type),
+    statusLabel: statusLabel || formatStatusLabel(event.status),
+    eventType: categoryLabel || formatTypeLabel(event.type),
     title: String(event.title || "").trim(),
     description: String(event.description || "").trim(),
     date: formatDateLabel(event.startDate),
-    primaryButtonLabel: String(event.primaryButtonLabel || "").trim(),
+    primaryButtonLabel,
     primaryButtonUrl:
       String(event.primaryButtonUrl || "").trim() || String(event.lichessUrl || "").trim(),
-    secondaryButtonLabel: extractDomainLabel(resolvedSecondaryUrl) || "",
+    secondaryButtonLabel: secondaryButtonLabel || extractDomainLabel(resolvedSecondaryUrl) || "",
     secondaryButtonUrl: resolvedSecondaryUrl,
     backgroundType,
     backgroundColor: String(event.backgroundColor || "").trim(),

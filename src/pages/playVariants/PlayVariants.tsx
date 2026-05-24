@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Chessboard } from "react-chessboard";
-import { Clock, Shuffle } from "lucide-react";
+import { Clock } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../../store/authStore";
 import { PlayerInfo } from "../../components/game";
@@ -150,7 +150,7 @@ function createChess960PreviewFen(): string {
   return `${rank}/pppppppp/8/8/8/8/PPPPPPPP/${rank.toUpperCase()} w - - 0 1`;
 }
 
-function FourPlayerPreview({ size }: { size: number }) {
+function FourPlayerPreview({ size, label }: { size: number; label: string }) {
   const cells = [];
   for (let row = 0; row < 14; row += 1) {
     for (let col = 0; col < 14; col += 1) {
@@ -184,7 +184,7 @@ function FourPlayerPreview({ size }: { size: number }) {
       </div>
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <span className="px-3 py-1.5 rounded-full bg-black/55 text-white text-xs font-semibold uppercase tracking-wide">
-          4-Player Board
+          {label}
         </span>
       </div>
     </div>
@@ -352,7 +352,7 @@ export default function PlayVariants() {
             style={{ width: boardWidth }}
           >
             <PlayerInfo
-              name={selectedVariant.label}
+              name={t(selectedVariant.label)}
               subtitle={t("Variant")}
               avatarLetter="V"
               avatarStyle="opponent"
@@ -367,7 +367,7 @@ export default function PlayVariants() {
 
           {/* Chess Board Preview */}
           {selectedVariant.key === "fourPlayer" ? (
-            <FourPlayerPreview size={boardWidth} />
+            <FourPlayerPreview size={boardWidth} label={t("4-Player Board")} />
           ) : (
             <div
               className="theme-glass-panel-strong rounded-2xl overflow-hidden"
@@ -436,19 +436,6 @@ export default function PlayVariants() {
 
         {/* Right Side - Variants Panel */}
         <div className="theme-glass-panel-strong min-w-0 w-full rounded-none border-l-0 flex flex-col h-full overflow-hidden">
-          {/* Panel Header */}
-          <div className="p-3 border-b border-theme-glass">
-            <div className="flex items-center gap-2">
-              <Shuffle className="w-4 h-4 text-brand-500" />
-              <h2 className="font-bold text-[15px] text-gray-900 dark:text-white">
-                {t("Chess Variants")}
-              </h2>
-            </div>
-            <p className="mt-1 text-[11px] text-gray-500 dark:text-gray-400">
-              {t("Pick a ruleset and jump into a match.")}
-            </p>
-          </div>
-
           <div className="flex-1 flex flex-col gap-3 px-3 py-3 overflow-hidden min-h-0">
             {/* Variant Options */}
             <div className="theme-glass-panel-soft rounded-2xl p-3">

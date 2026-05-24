@@ -1,7 +1,7 @@
 import { memo, useEffect, useId, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Chessboard } from "react-chessboard";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
 import { useReplayMoveSounds } from "../../hooks/useReplayMoveSounds";
 import { usePositionParser } from "../../hooks/usePositionParser";
 import { useElementSize } from "../../hooks/useElementSize";
@@ -344,7 +344,7 @@ function CommunityGameViewerComponent({
           <div className="mt-2.5 flex flex-col gap-1.5 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
             <div className="min-w-0">
               <div className="truncate text-[13px] font-semibold text-gray-100 sm:text-sm">
-                {game.white} ({game.whiteElo}) vs {game.black} ({game.blackElo})
+                {game.white} ({game.whiteElo}<Trans>) vs</Trans> {game.black} ({game.blackElo})
               </div>
               <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px] leading-none text-gray-500">
                 <span className="font-medium text-gray-300">{outcomeLabel}</span>

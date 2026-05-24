@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { FilterOption } from "../types";
 
@@ -16,6 +17,7 @@ export function FilterDropdown({
   options,
   value,
 }: FilterDropdownProps) {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -49,7 +51,9 @@ export function FilterDropdown({
         onClick={() => setIsOpen((open) => !open)}
         className="w-full inline-flex items-center justify-between gap-2 rounded-lg bg-white/[0.06] px-4 py-3 text-sm text-white hover:bg-white/[0.1] focus:outline-none focus:ring-2 focus:ring-brand-500/30 transition-colors"
       >
-        <span className="truncate">{selected?.label || "Select"}</span>
+        <span className="truncate">
+          {selected?.label || t("admin.community.filter.select", "Select")}
+        </span>
         <ChevronDown
           className={`w-4 h-4 text-gray-400 transition-transform ${
             isOpen ? "rotate-180" : ""

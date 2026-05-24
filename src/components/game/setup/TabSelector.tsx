@@ -1,3 +1,4 @@
+import { Trans } from "react-i18next";
 import { TabType } from "./constants";
 
 interface TabSelectorProps {
@@ -15,9 +16,7 @@ export function TabSelector({ activeTab, setActiveTab }: TabSelectorProps) {
             ? "bg-brand-600 text-white"
             : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
         }`}
-      >
-        Play vs Bot
-      </button>
+      > <Trans>Play vs Bot</Trans> </button>
       <button
         onClick={() => setActiveTab("custom")}
         className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
@@ -25,9 +24,7 @@ export function TabSelector({ activeTab, setActiveTab }: TabSelectorProps) {
             ? "bg-brand-600 text-white"
             : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
         }`}
-      >
-        Custom Level
-      </button>
+      > <Trans>Custom Level</Trans> </button>
     </div>
   );
 }

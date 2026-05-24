@@ -1,3 +1,4 @@
+import { Trans } from "react-i18next";
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
@@ -401,9 +402,7 @@ export default function UserProfile() {
             <button
               onClick={() => navigate(-1)}
               className="mt-4 px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors"
-            >
-              Go Back
-            </button>
+            > <Trans>Go Back</Trans> </button>
           </div>
         </div>
       </div>

@@ -1,3 +1,4 @@
+import { Trans } from "react-i18next";
 import { AlertTriangle, Loader2, X } from "lucide-react";
 import { AdminGame } from "./types";
 
@@ -26,14 +27,10 @@ export function DeleteGameModal({
             <AlertTriangle className="w-5 h-5" />
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Delete Game
-            </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              This will permanently remove the game record and cannot be undone.
-            </p>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white"> <Trans>Delete Game</Trans> </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1"> <Trans>This will permanently remove the game record and cannot be undone.</Trans> </p>
             <p className="text-sm text-gray-700 dark:text-gray-300 mt-3 font-medium">
-              {game.white} vs {game.black}
+              {game.white} <Trans>vs</Trans> {game.black}
             </p>
           </div>
           <button
@@ -52,18 +49,14 @@ export function DeleteGameModal({
             onClick={onClose}
             disabled={deleting}
             className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors disabled:opacity-40"
-          >
-            Cancel
-          </button>
+          > <Trans>Cancel</Trans> </button>
           <button
             type="button"
             onClick={onConfirm}
             disabled={deleting}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-50"
           >
-            {deleting && <Loader2 className="w-4 h-4 animate-spin" />}
-            Delete
-          </button>
+            {deleting && <Loader2 className="w-4 h-4 animate-spin" />} <Trans>Delete</Trans> </button>
         </div>
       </div>
     </div>

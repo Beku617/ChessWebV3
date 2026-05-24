@@ -1,882 +1,456 @@
 {
-  "brand": {
-    "name": "NeonGambit"
-  },
-  "settingsLang": {
-    "title": "Хэл",
-    "helper": "Харилцах хэлээ сонгоно уу."
-  },
-  "practice": {
-    "description": "Дурын байрлал тохируулж, шинжилгээ хийнэ."
-  },
-  "language": {
-    "label": "Хэл"
-  },
-  "common": {
-    "user": "Хэрэглэгч",
-    "userInitial": "Х",
-    "toggleTheme": "Сэдэв солих"
-  },
-  "nav": {
-    "tournaments": "Тэмцээн",
-    "puzzles": "Бодолт",
-    "learn": "Сурах",
-    "watch": "Үзэх",
-    "community": "Нийгэмлэг",
-    "viewProfile": "Профайл харах",
-    "messages": "Зурвас",
-    "friends": "Найзууд",
-    "settings": "Тохиргоо",
-    "logout": "Гарах"
-  },
-  "auth": {
-    "welcomeBack": "Дахин тавтай морил",
-    "accountBannedTitle": "Данс хаагдсан",
-    "accountBannedReason": "Таны данс хаагдсан байна. Шалтгаан: {{reason}}",
-    "email": "Имэйл",
-    "emailPlaceholder": "chi@example.com",
-    "password": "Нууц үг",
-    "forgotPassword": "Нууц үгээ мартсан уу?",
-    "rememberMe": "30 хоногт нэвтэрсэн хэвээр байх",
-    "signIn": "Нэвтрэх",
-    "orContinue": "Эсвэл доорхоор үргэлжлүүлэх",
-    "noAccount": "Данс байхгүй юу?",
-    "signUp": "Бүртгүүлэх",
-    "loginFailed": "Нэвтрэхэд алдаа гарлаа",
-    "googleLoginFailed": "Google-ээр нэвтрэхэд алдаа гарлаа.",
-    "googleNotConfigured": "Google нэвтрэлт тохируулагдаагүй байна.",
-    "createAccount": "Данс үүсгэх",
-    "fullName": "Бүтэн нэр",
-    "namePlaceholder": "Бат Эрдэнэ",
-    "minimumChars": "Хамгийн багадаа 8 тэмдэгт",
-    "orSignup": "Эсвэл доорхоор бүртгүүлэх",
-    "haveAccount": "Өмнө нь бүртгүүлсэн үү?",
-    "signInCta": "Нэвтрэх",
-    "registrationFailed": "Бүртгэл амжилтгүй болов",
-    "facebookLoginFailed": "Facebook-ээр нэвтрэхэд алдаа гарлаа.",
-    "continueWithGoogle": "Google-ээр нэвтрэх",
-    "continueWithFacebook": "Facebook-ээр нэвтрэх",
-    "socialNotConfigured": "Сошиал нэвтрэлт тохируулагдаагүй байна."
-  },
-  "settings": {
-    "header": {
-      "title": "Тохиргоо",
-      "subtitle": "Данс болон тохиргоогоо удирдах"
+  "quickMatch": {
+    "leave": {
+      "redirectAlreadyInGameWithContext": "You were redirected because you already have an active online game in progress.",
+      "redirectAlreadyInGame": "You already have an active game in progress.",
+      "title": "Leave Current Game?",
+      "description": "You are currently in a game. Leaving now may forfeit the match. Do you want to resign and leave?",
+      "stay": "Stay",
+      "leaving": "Leaving...",
+      "resignAndLeave": "Resign & Leave"
+    },
+    "gameOver": {
+      "title": {
+        "default": "Game Over",
+        "youResigned": "You Resigned",
+        "draw": "Draw",
+        "youBeat": "You Beat {{opponent}}",
+        "youWon": "You Won",
+        "youLost": "You Lost",
+        "gameAborted": "Game Aborted"
+      },
+      "reason": {
+        "resignation": "Resignation"
+      },
+      "byReason": "by {{reason}}",
+      "victoryByReason": "Victory by {{reason}}",
+      "eloChange": "Elo {{old}}->{{new}} ({{delta}})"
     },
     "actions": {
-      "reset": "Сэргээх",
-      "saveChanges": "Өөрчлөлт хадгалах",
-      "change": "Солих",
-      "manage": "Удирдах"
+      "gameAnalyze": "Game Analyze",
+      "preparingAnalyze": "Preparing Analyze...",
+      "backToTournament": "Back to Tournament",
+      "tryAgain": "Try Again",
+      "newGame": "New Game",
+      "analyze": "Analyze"
     },
-    "toasts": {
-      "saved": "Тохиргоо амжилттай хадгалагдлаа!",
-      "reset": "Сүүлийн хадгалалт руу буцаав",
-      "passwordChanged": "Нууц үг амжилттай шинэчлэгдлээ!",
-      "deletionRequested": "Данс устгах хүсэлт илгээгдлээ",
-      "unblocked": "Хэрэглэгчийн хориг цуцлагдлаа."
+    "tabs": {
+      "moves": "Moves"
     },
-    "errors": {
-      "fillPasswordFields": "Нууц үгийн бүх талбарыг бөглөнө үү.",
-      "passwordTooShort": "Шинэ нууц үг хамгийн багадаа 8 тэмдэгттэй байх ёстой.",
-      "passwordMismatch": "Шинэ нууц үгүүд таарахгүй байна.",
-      "changePasswordFailed": "Нууц үг солиход алдаа гарлаа.",
-      "blockedUsersLoad": "Хориглосон хэрэглэгчдийг ачаалж байна...",
-      "noBlockedUsers": "Хориглосон хэрэглэгч байхгүй байна.",
-      "blockedSince": "{{date}}-с хойш хориглосон",
-      "blocked": "Хориглосон",
-      "unblockFailed": "Хэрэглэгчийн хоригийг цуцалж чадсангүй.",
-      "unblocking": "Хориг цуцалж байна...",
-      "unblock": "Хориг цуцлах",
-      "passwordUpdating": "Шинэчилж байна..."
+    "chat": {
+      "emptyMessages": "No messages yet.",
+      "typeMessage": "Type a message...",
+      "send": "Send"
     },
-    "profile": {
-      "title": "Профайл ба данс",
-      "subtitle": "Хувийн мэдээлэл, аюулгүй байдал",
-      "username": "Хэрэглэгчийн нэр",
-      "email": "Имэйл",
-      "changePassword": "Нууц үг солих",
-      "changePasswordHelper": "Дансны нууц үгээ шинэчилнэ",
-      "linkedAccounts": "Холбосон дансууд",
-      "linkedAccountsHelper": "Гадаад үйлчилгээнүүдтэй холбох",
-      "google": "Google",
-      "facebook": "Facebook"
-    },
-    "appearance": {
-      "title": "Харагдац",
-      "subtitle": "NeonGambit-ийн харагдах байдлыг тохируулна",
-      "theme": "Сэдэв",
-      "themeHelper": "Өнгөний хэлбэрээ сонгоно уу",
-      "themeNames": {
-        "dark-neon": "Үндсэн",
-        "midnight-blue": "Шөнийн цэнхэр",
-        "forest-green": "Ойн ногоон",
-        "light-classic": "Сонгодог цайвар",
-        "violet_storm": "Нил шуурга",
-        "aurora": "Туйлын туяа",
-        "solar_gold": "Нарны алт",
-        "arctic_ice": "Туйлын мөс",
-        "ember": "Үнс нурам",
-        "sakura": "Сакура шөнө",
-        "toxic_lime": "Хурц лайм",
-        "obsidian_rose": "Обсидиан сарнай"
-      },
-      "themeDescriptions": {
-        "dark-neon": "NeonGambit-ийн үндсэн харанхуй сэдэв — тод цэнхэр туяатай",
-        "midnight-blue": "Гүн хөх өнгийн тайван, цэнхэр тодруулгатай сэдэв",
-        "forest-green": "Харанхуй ногоон дэвсгэр дээрх шинэлэг тод ялгаралтай сэдэв",
-        "light-classic": "Цэвэрхэн цайвар, сонгодог харагдацтай сэдэв",
-        "violet_storm": "Сансар мэт харанхуй дэвсгэр дээрх цахилгаан нил гялбаа",
-        "aurora": "Харанхуй тэнгэрт туйлын туяа мэт бүжиглэх өнгийн сэдэв",
-        "solar_gold": "Хайлсан алт шиг тансаг, харанхуй алтан сэдэв",
-        "arctic_ice": "Хэт цэвэр харанхуй суурь дээрх мөсөн цагаан сэдэв",
-        "ember": "Улайссан гал мэт улбар туяатай харанхуй сэдэв",
-        "sakura": "Харанхуйд гийгүүлэх сакура цэцгийн өнгийн сэдэв",
-        "toxic_lime": "Хар дэвсгэр дээрх хурц лаймын неон өнгийн сэдэв",
-        "obsidian_rose": "Гүн сарнайн туяатай тансаг харанхуй сэдэв"
-      },
-      "themes": {
-        "dark": "Хар",
-        "dim": "Бүүдгэр",
-        "amoled": "AMOLED"
-      },
-      "accentColor": "Онцлох өнгө",
-      "accentHelper": "Үндсэн тод өнгө",
-      "accent": {
-        "teal": "Ногоовтор цэнхэр",
-        "purple": "Нил ягаан",
-        "blue": "Цэнхэр"
-      },
-      "boardTheme": "Самбарын сэдэв",
-      "boardThemeHelper": "Шатрын самбарын өнгийн хэлбэр сонгоно",
-      "boardThemeNames": {
-        "classic": "Сонгодог",
-        "modern-gray": "Орчин үеийн саарал",
-        "blue-ocean": "Цэнхэр далай",
-        "warm-wood": "Дулаан мод",
-        "purple-night": "Нил шөнө",
-        "neon-green": "Неон ногоон",
-        "neon-cyber": "Кибер неон",
-        "neon-purple": "Неон нил",
-        "soft-dark": "Зөөлөн харанхуй",
-        "high-contrast-minimal": "Өндөр контрасттай минимал"
-      },
-      "boardThemes": {
-        "green": "Ногоон",
-        "brown": "Бор",
-        "blue": "Цэнхэр",
-        "purple": "Нил ягаан",
-        "gray": "Саарал",
-        "neon": "Неон"
-      },
-      "pieceStyle": "Хөлгийн дүрслэл",
-      "pieceStyleHelper": "Шатрын хөлгүүдийн харагдах загвар",
-      "pieces": {
-        "neo": "Нео",
-        "classic": "Классик",
-        "alpha": "Альфа",
-        "merida": "Мерида"
-      },
-      "reducedMotion": "Хөдөлгөөн багасгах",
-      "reducedMotionHelper": "Анимэйшн хөдөлгөөнийг хязгаарлах"
-    },
-    "gameplay": {
-      "title": "Тоглолт",
-      "subtitle": "Тоглоомын туршлагаа тохируулна",
-      "defaultTime": "Цагийн хяналтын анхдагч тохиргоо",
-      "defaultTimeHelper": "Шинэ тоглолтод ашиглах цагийн хяналт",
-      "timeControls": {
-        "bullet": "Буллет",
-        "blitz": "Блиц",
-        "rapid": "Рапид",
-        "classical": "Классик",
-        "custom": "Тусгай тохиргоо"
-      },
-      "autoQueen": "Автомат хатан",
-      "autoQueenHelper": "Пиёныг хатан болгон автоматаар дэвшүүлэх",
-      "moveInput": "Нүүдэл оруулах арга",
-      "moveInputHelper": "Самбар дээр нүүдэл хийх аргаа сонгоно уу",
-      "input": {
-        "click": "Дарах",
-        "drag": "Чирэх",
-        "both": "Дарах эсвэл чирэх"
-      },
-      "legalMoves": "Боломжит нүүдлүүдийг харуулах",
-      "legalMovesHelper": "Хийж болох нүдүүдийг тодруулж харуулах",
-      "confirmMove": "Нүүдэл баталгаажуулах",
-      "confirmMoveHelper": "Нүүхийн өмнө баталгаажуулалт хийх",
-      "premoves": "Урьдчилсан нүүдэл",
-      "premovesHelper": "Өрсөлдөгчийн нүүдлийг хүлээх үед урьдчилан нүүдэл тавих"
-    },
-    "notifications": {
-      "title": "Мэдэгдэл",
-      "subtitle": "Ямар мэдэгдэл хүлээн авахыг тохируулна",
-      "email": "Имэйл мэдэгдэл",
-      "emailHelper": "Үйл ажиллагааны мэдэгдлийг имэйлээр авна",
-      "push": "Push мэдэгдэл",
-      "pushHelper": "Хөтөч дээр push мэдэгдэл хүлээн авна",
-      "challengeRequests": "Тоглох урилга",
-      "challengeHelper": "Хэн нэгэн тоглоход урьсан үед мэдэгдэл ирнэ.",
-      "tournamentUpdates": "Тэмцээний шинэчлэл",
-      "tournamentHelper": "Удахгүй болох тэмцээн болон үр дүнгийн мэдэгдэл",
-      "soundEffects": "Дууны эффект",
-      "soundEffectsHelper": "Тоглоомын дуу, мэдэгдлийн дохио",
-      "soundVolume": "Дууны түвшин",
-      "soundVolumeHelper": "Дууны эффектийн хэмжээг тохируулах"
-    },
-    "privacy": {
-      "title": "Нууцлал ба аюулгүй байдал",
-      "subtitle": "Таны мэдээллийг хэн харж болохыг тохируулна",
-      "visibility": "Профайлын харагдалт",
-      "visibilityHelper": "Профайлыг хэн харж болох вэ",
-      "options": {
-        "public": "Нээлттэй",
-        "friends": "Найзууд",
-        "private": "Хувийн"
-      },
-      "onlineStatus": "Онлайн байдлыг харуулах",
-      "onlineStatusHelper": "Бусад хэрэглэгчдэд онлайн байгаагаа харуулах",
-      "lastSeen": "Сүүлд идэвхтэй байсан цаг",
-      "lastSeenHelper": "Хэзээ сүүлд идэвхтэй байсныг харуулах",
-      "blockedUsers": "Хориглосон хэрэглэгчид",
-      "blockedUsersHelper": "Хоригийн жагсаалтаа удирдах"
-    },
-    "ai": {
-      "title": "Хиймэл оюун ба шинжилгээ",
-      "subtitle": "Хиймэл оюуны тохиргоо",
-      "explanations": "AI нүүдлийн тайлбар",
-      "explanationsHelper": "Админаас сонгосон AI загварыг ашиглана. Тэр загвар ажиллахгүй, Groq тохируулагдсан бол Groq-г нөөцөөр ашиглана.",
-      "groqConnected": "Groq API холбогдсон",
-      "groqMissing": "VITE_GROQ_API_KEY байхгүй байна — .env файлд нэмнэ үү",
-      "providerStatus": "AI үйлчилгээний төлөв",
-      "providerConnected": "AI үйлчилгээ тохируулагдсан",
-      "providerMissing": "AI үйлчилгээ тохируулагдаагүй",
-      "providerHelperPrimary": "Үндсэн: Claude Haiku 4.5 (Bedrock). Нөөц: Groq Llama 3.3 70B.",
-      "providerHelperFallbackOnly": "Bedrock токен алга байна. Зөвхөн Groq нөөц загвар ашиглаж байна.",
-      "providerHelperSetup": ".env файлд VITE_AWS_BEARER_TOKEN_BEDROCK, VITE_OPENAI_API_KEY, VITE_XAI_API_KEY, VITE_DEEPSEEK_API_KEY эсвэл VITE_GROQ_API_KEY нэмээд app-аа дахин асаана уу.",
-      "providerHelperSelected": "Сонгосон загвар: {{model}}. Загварыг Admin > Bots хэсгээс солино.",
-      "explanationLevel": "Тайлбарын дэлгэрэнгүй байдал",
-      "explanationLevelHelper": "AI тайлбарын нарийвчлалын түвшин",
-      "levels": {
-        "brief": "Товч",
-        "normal": "Дунд",
-        "deep": "Дэлгэрэнгүй"
-      },
-      "postGame": "Тоглолтын дараах шинжилгээ",
-      "postGameHelper": "Тоглолт дуусмагц хөдөлгүүрээр шинжлэх",
-      "engineStrength": "Хөдөлгүүрийн хүч",
-      "engineStrengthHelper": "Stockfish-ийн гүйцэтгэлийн түвшин",
-      "levelLabel": "Түв."
-    },
-    "stats": {
-      "bullet": "Буллет",
-      "blitz": "Блиц",
-      "rapid": "Рапид",
-      "classical": "Классик",
-      "gamesPlayed": "Нийт тоглолт",
-      "gamesWon": "Хожсон тоглолт"
-    },
-    "quickActions": {
-      "title": "Хурдан үйлдэл",
-      "exportPgn": "Тоглолтуудаа PGN-ээр татах",
-      "downloadData": "Дансны мэдээлэл татах"
-    },
-    "danger": {
-      "title": "Аюултай бүс",
-      "subtitle": "Буцаах боломжгүй үйлдлүүд",
-      "signOutAll": "Бүх төхөөрөмжөөс гарах",
-      "deleteAccount": "Данс устгах"
-    },
-    "modals": {
-      "changePassword": {
-        "title": "Нууц үг солих",
-        "current": "Одоогийн нууц үг",
-        "currentPlaceholder": "Одоогийн нууц үгээ оруулна уу",
-        "new": "Шинэ нууц үг",
-        "newPlaceholder": "Шинэ нууц үгээ оруулна уу",
-        "confirm": "Нууц үг давтах",
-        "confirmPlaceholder": "Шинэ нууц үгээ дахин оруулна уу",
-        "cta": "Нууц үг шинэчлэх"
-      },
-      "delete": {
-        "title": "Данс устгах",
-        "warning": "Энэ үйлдэл буцаах боломжгүй. Таны бүх тоглолт, рейтинг болон өгөгдөл бүрмөсөн устана.",
-        "confirmLabel": "Баталгаажуулахын тулд {{name}}-г бичнэ үү",
-        "username": "хэрэглэгчийн нэр",
-        "cta": "Дансыг бүрмөсөн устгах"
-      }
-    }
-  },
-  "puzzles": {
-    "difficulty": {
-      "easy": "Хялбар",
-      "medium": "Дунд",
-      "hard": "Хэцүү"
-    },
-    "status": {
-      "all": "Бүгд",
-      "new": "Шинэ",
-      "seen": "Үзсэн",
-      "solved": "Бодсон",
-      "failed": "Алдсан",
-      "failedBefore": "Өмнө алдаж байсан",
-      "reviewDue": "Давтах цаг болсон",
-      "mastered": "Эзэмшсэн",
-      "bookmarked": "Хадгалсан",
-      "archived": "Архивласан",
-      "unseen": "Үзээгүй",
-      "unknown": "Тодорхойгүй"
-    },
-    "results": {
-      "solved": "Бодсон",
-      "failed": "Алдсан",
-      "skipped": "Алгасан",
-      "abandoned": "Орхисон"
-    },
-    "modeLabels": {
-      "rated": "Рейтингтэй",
-      "review": "Давталт",
-      "random": "Санамсаргүй",
-      "library": "Сан"
-    },
-    "library": {
-      "title": "Бодолтын сан",
-      "searchLabel": "Хайлт",
-      "searchPlaceholder": "Гарчгаар хайх",
-      "statusLabel": "Төлөв",
-      "difficultyLabel": "Түвшин",
-      "ratingSeparator": "хүртэл",
-      "includeMastered": "Эзэмшсэнийг оруулах",
-      "grid": "Хүрээ",
-      "list": "Жагсаалт",
-      "loading": "Бодолтын санг ачаалж байна...",
-      "loadFailed": "Бодолтын санг ачаалж чадсангүй",
-      "emptyReviewDue": "Одоогоор давтах бодолт байхгүй байна. Рейтингтэй горимд алдаа гаргасан эсвэл бууж өгсөн бодолтууд энд шууд нэмэгдэнэ.",
-      "emptyFiltered": "Таны шүүлтэд тохирох бодолт олдсонгүй.",
-      "bookmarked": "Хадгалсан",
-      "noDescription": "Тайлбар байхгүй",
-      "attempts": "{{count}} удаа оролдсон",
-      "start": "Эхлэх",
-      "noMotifs": "Мотив байхгүй",
-      "pagination": "{{total}}-аас {{start}}–{{end}}-г харуулж байна"
+    "resignConfirm": {
+      "title": "Resign Game?",
+      "description": "Are you sure you want to resign this game? This will count as a loss."
     },
     "history": {
-      "eyebrow": "Бодолтын түүх",
-      "searchLabel": "Хайлт",
-      "searchPlaceholder": "Гарчгаар хайх",
-      "loading": "Бодолтын түүхийг ачаалж байна...",
-      "loadFailed": "Бодолтын түүхийг ачаалж чадсангүй",
-      "empty": "Таны хайлтад тохирох түүх олдсонгүй.",
-      "summary": "{{mode}} • {{result}} • {{date}} • {{time}}"
+      "saving": "Saving game to history...",
+      "shortGameAnalyzeUnavailable": "Game analyze is unavailable for very short games.",
+      "notSavedAnalyzeUnavailable": "Game analyze is unavailable because this game was not saved."
     },
-    "trainer": {
-      "historyTab": "Түүх",
-      "loading": "Бодолтыг ачаалж байна...",
-      "noReviewTitle": "Одоогоор давтах бодолт байхгүй",
-      "noReviewDescription": "Бүх давталтаа дуусгасан байна. Рейтингтэй горимд алдаа гаргах эсвэл бууж өгөхөд энэ жагсаалтад шууд орно.",
-      "noPuzzleTitle": "Бодолт олдсонгүй",
-      "noPuzzleDescription": "Түр хүлээгээд дахин оролдоно уу.",
-      "loadFailed": "Бодолтыг ачаалж чадсангүй",
-      "submitFailed": "Оролдлогыг хадгалж чадсангүй",
-      "puzzleElo": "Бодолтын Elo",
-      "streak": "Цуврал",
-      "sideToMove": "Нүүх ээлж",
-      "whiteToMove": "Цагаан нүүнэ",
-      "blackToMove": "Хар нүүнэ",
-      "playFirstMoveWhite": "Цагаанаар эхний нүүдлийг хийнэ үү.",
-      "playFirstMoveBlack": "Хар өнгөөр эхний нүүдлийг хийнэ үү.",
-      "waitingForPuzzle": "Бодолтыг хүлээж байна...",
-      "timer": "Хугацаа",
-      "bookmark": "Хадгалах",
-      "bookmarked": "Хадгалсан",
-      "useHint": "Санамж авах",
-      "hintUsed": "Санамж ашигласан",
-      "showSolution": "Шийдлийг харах",
-      "tryAgain": "Дахин оролдох",
-      "shufflePuzzle": "Санамсаргүй бодолт",
-      "nextPuzzle": "Дараагийн бодолт",
-      "line": "Хувилбар",
-      "revealLine": "Хувилбарыг харахын тулд \"Шийдлийг харах\" товчийг дарна уу.",
-      "noStoredLine": "Хадгалсан хувилбар байхгүй.",
-      "invalidFen": "Энэ бодолтын FEN утга буруу байна"
+    "draw": {
+      "offerSent": "Draw offer sent.",
+      "opponentOffered": "Таны өрсөлдөгч тэнцээ санал болголоо.",
+      "offerAccepted": "Draw offer accepted.",
+      "offerDeclinedByMove": "Draw offer declined by move.",
+      "offerDeclined": "Draw offer declined.",
+      "offerExpired": "Draw offer expired.",
+      "unableToOffer": "Unable to offer draw.",
+      "offerSentWaitingReconnect": "Draw offer sent. Waiting for opponent to reconnect.",
+      "unableToRespond": "Unable to respond to draw offer.",
+      "offered": "Draw offered",
+      "received": "Draw offer received",
+      "acceptOrDeclineNow": "Accept or decline now.",
+      "pending": "Draw offer pending",
+      "offer": "Offer draw",
+      "acceptDraw": "Accept Draw",
+      "offeredShort": "Offered",
+      "offerButton": "Offer Draw"
+    },
+    "opening": {
+      "startingPosition": "Starting Position",
+      "detecting": "Detecting opening..."
+    },
+    "result": {
+      "rating": "Rating",
+      "gameComplete": "Game complete",
+      "win": "Win",
+      "draw": "Draw",
+      "loss": "Loss"
+    },
+    "moves": {
+      "empty": "No moves yet"
+    },
+    "checks_one": "Checks {{count}}/3",
+    "checks_other": "Checks {{count}}/3",
+    "tournament": {
+      "startsInSeconds_one": "Starts in {{count}}s",
+      "startsInSeconds_other": "Starts in {{count}}s",
+      "startsInMinutes_one": "Starts in {{count}} min",
+      "startsInMinutes_other": "Starts in {{count}} min",
+      "ready": "Ready",
+      "waitingForPairing": "Waiting for pairing",
+      "joined": "Joined",
+      "timeEnded": "Time ended",
+      "registrationClosed": "Registration is closed.",
+      "registrationStartsOneHour": "Registration begins 1 hour before the event starts.",
+      "failedToLoad": "Failed to load tournament.",
+      "joiningReadyPool": "Joining ready pool...",
+      "failedToJoinReadyPool": "Failed to join ready pool.",
+      "joining": "Joining...",
+      "failedToJoinTournament": "Failed to join tournament.",
+      "headerFallback": "Arena Tournament",
+      "headerSummary_one": "Standard - {{count}} players",
+      "headerSummary_other": "Standard - {{count}} players",
+      "headerPairing": "Pairing: Rating-based"
+    },
+    "focus": {
+      "exit": "Exit focus mode",
+      "enter": "Enter focus mode",
+      "title": "Focus mode"
+    },
+    "standings": {
+      "loading": "Standings are loading..."
+    },
+    "games": {
+      "empty": "No games yet.",
+      "roundBoard": "Round {{round}} - Board {{board}}"
+    },
+    "modal": {
+      "closeResult": "Close result dialog",
+      "closeArenaResults": "Close arena results"
+    },
+    "arena": {
+      "over": "Arena Over"
+    },
+    "search": {
+      "searchingForOpponent": "Searching for opponent...",
+      "waitingForOpponent": "Waiting for opponent...",
+      "waitingTournamentOpponent": "Waiting for your tournament opponent to open the game link...",
+      "tournamentPairingInfo": "This is a tournament pairing. The game will start automatically once both players join this link. You can keep this tab open; no extra matchmaking is needed.",
+      "statusSearching": "Searching...",
+      "statusSearchingLabel": "Searching"
     }
   },
-  "learn": {
-    "stats": {
-      "completed": "Дууссан",
-      "inProgress": "Явагдаж байна",
-      "dayStreak": "Өдрийн цуврал"
-    },
-    "searchPlaceholder": "Курс, нээлт, их мастер хайх...",
-    "difficulty": {
-      "all": "Бүх түвшин",
-      "beginner": "Анхан шат",
-      "intermediate": "Дунд шат",
-      "advanced": "Ахисан шат"
-    },
-    "progress": {
-      "all": "Бүх явц",
-      "notStarted": "Эхлээгүй",
-      "inProgress": "Явагдаж байна",
-      "completed": "Дууссан"
-    },
-    "categories": {
-      "openings": "Нээлт",
-      "middlegame": "Дунд тоглолт",
-      "endgame": "Эндшпиль",
-      "strategy": "Стратеги"
-    },
-    "loading": "Сургалтын каталогийг ачаалж байна...",
-    "loadFailed": "Сургалтын каталогийг ачаалж чадсангүй.",
-    "empty": "Таны шүүлтэд тохирох курс олдсонгүй.",
-    "clearFilters": "Хайлт болон шүүлтийг цэвэрлэх",
-    "courseProgress": "Курсын явц",
-    "quickLessons": "Шуурхай хичээлүүд",
-    "lessonProgress": "{{completed}}/{{total}} хичээл",
-    "lessonProgressCompleted": "{{completed}}/{{total}} хичээл дууссан",
-    "moreLessons_one": "Бусад {{count}} хичээл",
-    "moreLessons_other": "Бусад {{count}} хичээл",
-    "retryCourse": "Курсыг дахин эхлэх",
-    "continueLesson": "Хичээлийг үргэлжлүүлэх",
-    "startCourse": "Курс эхлэх",
-    "instructorFallback": "NeonGambit-ийн багш",
-    "lessonNotFound": "Хичээл олдсонгүй",
-    "lessonNotFoundDescription": "Хүссэн хичээлийг ачаалах боломжгүй байна.",
-    "lessonLoadFailed": "Хичээлийг ачаалж чадсангүй.",
-    "submitMoveFailed": "Хичээлийн нүүдлийг илгээж чадсангүй.",
-    "backToLearn": "Сургалт руу буцах",
-    "hint": "Санамж",
-    "lessonComplete": "Хичээл дууслаа!",
-    "hideHint": "Санамж нуух",
-    "showHint": "Санамж харуулах",
-    "retryStep": "Алхамыг дахин оролдох",
-    "checkingMove": "Нүүдлийг шалгаж байна...",
-    "previous": "Өмнөх",
-    "nextLesson": "Дараагийн хичээл",
-    "retryLesson": "Хичээлийг дахин эхлэх",
-    "courseProgressLabel": "Курсын явц",
-    "courseLessons": "Курсын хичээлүүд",
-    "dynamic": {
-      "mastering_the_ruy_lopez": "РУЙ ЛОПЕЗИЙГ ЭЗЭМШИХ НЬ",
-      "the_core_setup": "Үндсэн байрлал",
-      "typical_continuation": "Түгээмэл үргэлжлэл",
-      "entering_the_closed_structure": "Хаалттай бүтэц рүү орох",
-      "white_to_move_play_the_classical_ruy_lopez_bishop_move": "Цагаан нүүх ээлжтэй: Рүй Лопезийн уламжлалт тэмээний нүүдлийг хийнэ үү.",
-      "correct_move": "Зөв нүүдэл.",
-      "wrong_move": "Буруу нүүдэл."
-    }
+  "pagination": {
+    "showingRange": "Нийт {{total}} {{itemLabel}}-ийн {{start}}–{{end}}-ийг харуулж байна",
+    "first": "First",
+    "previousPage": "Previous page",
+    "pageOf": "{{page}} / {{totalPages}} хуудас",
+    "nextPage": "Next page",
+    "last": "Last",
+    "goToPage": "{{page}}-р хуудас руу очих"
   },
-  "analysis": {
-    "back": "Буцах",
-    "opening": "Гараа",
-    "moveExplanation": "Нүүдлийн тайлбар",
-    "moveExplanationHint": "Нүүдлийн тайлбарыг харахын тулд нүүдлийн жагсаалтаас нэгийг сонгоно уу.",
-    "startingPositionTitle": "Эхлэлийн байрлал",
-    "startingPositionDescription": "Тоглолт стандарт эхлэлийн байрлалаас эхэлнэ.",
-    "startingPositionDetails": "Шинжилгээ болон тайлбарыг харахын тулд нүүдэл сонгоно уу.",
-    "moveAnalysisTitle": "Нүүдлийн шинжилгээ",
-    "movePlayed": "{{san}} нүүгдлээ.",
-    "moveAnalysisUnavailable": "Энэ нүүдэлд шинжилгээний мэдээлэл байхгүй байна.",
-    "aiLoading": "AI тайлбар авч байна...",
-    "aiLoadFailed": "AI тайлбар авч чадсангүй",
-    "aiLoadTimedOut": "AI тайлбар хэт удаан хүлээлээ. Оронд нь суурь шинжилгээний тайлбарыг харуулж байна.",
-    "aiProviderMissingForModel": "Сонгосон AI загвар тохируулагдаагүй байна. Шаардлагатай provider key-г нэмээд дахин оролдоно уу.",
-    "aiNoExplanationsReturned": "AI загвар энэ тоглолтын тайлбарыг зөв бүтэцтэй буцаасангүй. Өөр загвар сонгоод үзнэ үү.",
-    "bestMove": "Оновчтой нүүдэл:",
-    "bestMovePlayed": "Та энэ нүүдлийг хийсэн байна!",
-    "tip": "Зөвлөгөө:",
-    "none": "Байхгүй",
-    "capturedByWhite": "Цагаан идсэн хөлгүүд",
-    "capturedByBlack": "Хар идсэн хөлгүүд",
-    "moves": "Нүүдлүүд",
-    "moveListWhite": "Цагаан",
-    "moveListBlack": "Хар",
-    "noMovesRecorded": "Бүртгэсэн нүүдэл байхгүй байна",
-    "moveListHints": "← → товчоор шилжих • Зай дарж тоглуулах • F дарж эргүүлэх",
-    "qualityBreakdown": {
-      "white": "Цагаан",
-      "black": "Хар"
+  "admin": {
+    "sidebar": {
+      "brandAlt": "NeonGambit лого",
+      "brandName": "NeonGambit",
+      "adminBadge": "Админ",
+      "adminFallbackName": "Админ",
+      "adminRole": "Админ",
+      "localeOption": {
+        "en": "Англи",
+        "mn": "Монгол"
+      },
+      "logOut": "Гарах",
+      "languageLabel": "Админ хэл"
     },
-    "qualityLabels": {
-      "Brilliant": "Гайхалтай",
-      "Great": "Маш сайн",
-      "Best": "Шилдэг",
-      "Excellent": "Онц сайн",
-      "Good": "Сайн",
-      "Book": "Онолын",
-      "Inaccuracy": "Нарийвчлал дутсан",
-      "Mistake": "Алдаа",
-      "Miss": "Боломж алдсан",
-      "Blunder": "Ноцтой алдаа",
-      "Unknown": "?"
+    "actions": {
+      "viewAdminProfile": "Админ профайлыг харах",
+      "edit": "Засварлах",
+      "delete": "Устгах",
+      "viewProfile": "Профайлыг харах",
+      "deleteUser": "Хэрэглэгчийг устгах",
+      "analyze": "Шинжилгээ хийх",
+      "useRecordedSolution": "Хөдөлгөөнийг тохируулахын тулд Бичлэгийн шийдлийг ашиглана уу"
     },
-    "colors": {
-      "white": "цагаан",
-      "black": "хар"
+    "search": {
+      "bots": "Ботууд хайх...",
+      "communityPosts": "Зохиогч, тайлбар, файлын нэр эсвэл тоглоомын мэдээллээр хайх...",
+      "users": "Хэрэглэгчдийг хайх...",
+      "events": "Үйл явдал хайх...",
+      "games": "Тоглогчид, үйл явдал, ЭКО-оор хайх...",
+      "groups": "Бүлгүүдийг нэр, сэдэв эсвэл тайлбараар хайх...",
+      "lessons": "Хичээл хайх...",
+      "steps": "Хичээлийн алхмуудыг хайх...",
+      "courses": "Курс хайх...",
+      "puzzles": "Шатрын тоглоом хайх...",
+      "usersByNameOrEmail": "Нэр эсвэл имэйлээр хайх..."
     },
-    "moveExplanations": {
-      "brilliant": {
-        "title": "Гайхалтай нүүдэл!",
-        "description": "{{san}} бол гайхалтай золиос агуулсан нүүдэл юм. Энэ нүүдэл {{mover}} талд шийдвэрлэх давуу байдал авчиржээ.",
-        "details": "Тактикийн золиосын ачаар байрлал {{swing}}-иар сайжирч, өрсөлдөгч хялбархан няцааж чадахгүй болов.",
-        "suggestion": "Ийм нүүдэл л хүчтэй тоглогчдыг бусдаас ялгаруулдаг."
+    "bots": {
+      "modal": {
+        "editBot": "Edit Bot",
+        "createNewBot": "Create New Bot"
       },
-      "great": {
-        "title": "Маш сайн нүүдэл!",
-        "description": "{{san}} нь {{mover}} талын байрлалыг мэдэгдэхүйц сайжруулсан нүүдэл юм.",
-        "details": "Хожих магадлал {{before}}-аас {{after}} болж, {{gain}}-иар өссөн байна.",
-        "suggestion": "Энэ нүүдэл байрлалын гол нөөцийг зөв ашигласан байна."
+      "placeholders": {
+        "botName": "Enter bot name",
+        "categoryExample": "e.g., general, historical, sports",
+        "titleExample": "e.g., GM, IM, FM",
+        "quote": "Bot's signature quote...",
+        "description": "Describe this bot..."
       },
-      "best": {
-        "title": "Шилдэг нүүдэл",
-        "description": "{{san}} бол энэ байрлал дахь хамгийн оновчтой нүүдэл бөгөөд үнэлгээг хадгалж буй эсвэл сайжруулж байна.",
-        "details": "Байрлалын үнэлгээ {{after}} хожих магадлалтайгаар хэвээр байна."
+      "labels": {
+        "title": "Title (GM, IM, etc.)",
+        "quoteCount_one": "{{count}}/200",
+        "quoteCount_other": "{{count}}/200",
+        "percentValue": "{{value}}%"
       },
-      "excellent": {
-        "title": "Онц сайн нүүдэл",
-        "description": "{{san}} нь хөдөлгүүрийн хамгийн сайн сонголтод маш ойрхон, онц сайн нүүдэл юм.",
-        "details": "Хамгийн сайн нүүдэлтэй харьцуулахад зөвхөн {{loss}} алдагдалтай байна."
-      },
-      "good": {
-        "title": "Сайн нүүдэл",
-        "description": "{{san}} нь байрлалыг тоглоход тохиромжтой хэвээр үлдээсэн тогтвортой нүүдэл юм.",
-        "details": "{{loss}} орчим нарийвчлалын алдагдалтай ч гэсэн хүлээн зөвшөөрөгдөх нүүдэл."
-      },
-      "book": {
-        "title": "Онолын нүүдэл",
-        "description": "{{san}} нь тогтсон онолыг дагасан стандарт нээлтийн нүүдэл юм.",
-        "details": "Энэ нүүдэл бол олонд танигдсан нээлтийн онолын бүрэлдэхүүн хэсэг. Хоёр тал тогтсон хувилбараар явж байна."
-      },
-      "inaccuracy": {
-        "title": "Нарийвчлал дутсан",
-        "description": "{{san}} нь энэ байрлалд хамгийн оновчтой сонголт байсангүй.",
-        "details": "Хожих магадлал {{before}}-аас {{after}} болж, {{loss}}-иар буурсан байна.",
-        "suggestion": "Хөлгийн идэвхийг хадгалж, өрсөлдөгчдөө давуу тал бэлэглэхгүй нүүдэл хайгаарай."
-      },
-      "mistake": {
-        "title": "Алдаа",
-        "description": "{{san}} нь {{mover}} талын байрлалд мэдэгдэхүйц хохирол учруулсан алдаа юм.",
-        "details": "Хожих магадлал {{before}}-аас {{after}} болж, нийт {{loss}}-ийн савлагаа үүслээ.",
-        "suggestion": "Нүүхийн өмнө авах, шахах болон аюул занал байгаа эсэхийг шалга. Өрсөлдөгч чинь юу зорьж байгааг өөрөөсөө асуугаарай."
-      },
-      "miss": {
-        "title": "Боломж алдсан",
-        "description": "{{san}} нь өрсөлдөгчийн алдааг ашиглах боломжийг алдаж орхив.",
-        "details": "Өрсөлдөгч алдаа гаргасан ч энэ нүүдэл түүнийг хангалттай шийтгэсэнгүй. Давуу тал бүрэн дүүрэн хэрэгжсэнгүй.",
-        "suggestion": "Өрсөлдөгч тасрахад яарахгүйгээр тактикийн шийтгэлийг хайгаарай."
-      },
-      "blunder": {
-        "title": "Ноцтой алдаа",
-        "description": "{{san}} нь тоглолтын явцыг огцом өөрчилсөн ноцтой алдаа байв.",
-        "details": "Хожих магадлал {{before}}-аас {{after}} болж, {{loss}} алдагдал үүсгэлээ.",
-        "suggestion": "Нүүдлийг батлахын өмнө ил зогсож буй хөлгүүд болон тактикийн аюулыг заавал шалгаарай. \"Миний хөлөг аюулгүй юу? Өрсөлдөгч юу хийж чадах вэ?\" гэж өөрөөсөө асуугаарай."
-      },
-      "unknown": {
-        "title": "Нүүдэл",
-        "description": "{{san}} нүүгдлээ.",
-        "details": "Энэ нүүдэлд шинжилгээний мэдээлэл байхгүй байна."
+      "actions": {
+        "saving": "Saving...",
+        "updateBot": "Update Bot",
+        "createBot": "Create Bot"
       }
     },
-    "loadingTitle": "Таны тоглолцоог шинжилж байна",
-    "adminLoadingTitle": "Тоглолцоог шинжилж байна",
-    "loadingDescription": "Stockfish байрлал бүрийг үнэлж, нарийвчлал болон нүүдлийн чанарыг тооцоолж байна",
-    "progress": "Явц",
-    "evaluatingPositions": "Байрлалуудыг үнэлж байна",
-    "calculatingAccuracy": "Нарийвчлалыг тооцоолж байна",
-    "gameNotFound": "Тоглолцоо олдсонгүй",
-    "backToProfile": "Профайл руу буцах",
-    "errors": {
-      "noGameId": "Тоглолцооны ID өгөгдөөгүй байна",
-      "fetchGame": "Тоглолцоог татаж чадсангүй",
-      "loadGame": "Тоглолцоог ачаалж чадсангүй",
-      "unableToLoadGame": "Тоглолцоог ачаалах боломжгүй байна"
+    "community": {
+      "filter": {
+        "select": "Select"
+      },
+      "actions": {
+        "close": "Close",
+        "newPost": "New Post",
+        "creating": "Creating...",
+        "createPost": "Create Post",
+        "disableUnlimitedPosting": "Disable unlimited posting",
+        "enableUnlimitedPosting": "Enable unlimited posting",
+        "saving": "Saving...",
+        "applyRestriction": "Apply restriction"
+      },
+      "aria": {
+        "statusFilter": "Status filter",
+        "mediaFilter": "Media filter",
+        "createPostStatus": "Create post status",
+        "editPostStatus": "Edit post status"
+      },
+      "placeholders": {
+        "rejectionReason": "Rejection reason",
+        "editPostText": "Edit post text...",
+        "optionalRestrictionReason": "Optional restriction reason...",
+        "optionalRejectionReason": "Optional rejection reason...",
+        "postText": "Post text..."
+      },
+      "labels": {
+        "chessPlayer": "Chess Player",
+        "reviewedAt": "Reviewed {{time}}",
+        "awaitingReview": "Awaiting review"
+      },
+      "media": {
+        "postMediaAlt": "Community post media",
+        "postImageAlt": "Community post image",
+        "imageSet": "Image set",
+        "imagePreview": "Image preview"
+      }
     },
-    "title": "Шинжилгээ",
-    "summary": "Дүгнэлт",
-    "accuracy": "Нарийвчлал",
-    "analyzedBy": "Шинжилсэн хөдөлгүүр:",
-    "engineEvaluation": "Хөдөлгүүрийн үнэлгээ",
-    "noMovesYet": "Одоогоор нүүдэл байхгүй",
-    "check": "Шах!",
-    "checkmate": "Мат!",
-    "stalemate": "Пат",
-    "openingNames": {
-      "london_system": "Лондоны гараа",
-      "d4_d5_setup": "d4 d5 хувилбар",
-      "ruy_lopez": "Рүй Лопез",
-      "italian_game": "Итали тоглолт",
-      "sicilian_defense": "Сицилийн хамгаалалт",
-      "french_defense": "Франц хамгаалалт",
-      "caro_kann_defense": "Каро-Канн хамгаалалт",
-      "queen_s_gambit": "Хатангийн гамбит",
-      "king_s_indian_defense": "Хааны Энэтхэг хамгаалалт",
-      "english_opening": "Англи гараа"
-    }
-  },
-  "presence": {
-    "unknown": "тодорхойгүй",
-    "justNow": "дөнгөж сая",
-    "minutesAgo": "{{count}} мин өмнө",
-    "hoursAgo": "{{count}} цагийн өмнө",
-    "daysAgo": "{{count}} өдрийн өмнө",
-    "lastSeen": "Сүүлд {{time}} харагдсан",
-    "status": {
-      "inGame": "Тоглож байна",
-      "searchingMatch": "Тоглолт хайж байна",
-      "away": "Байхгүй",
-      "online": "Онлайн",
-      "offline": "Оффлайн"
-    }
-  },
-  "messages": {
-    "search": "Яриа хайх",
-    "tabConversations": "Ярианууд",
-    "tabArchived": "Архив",
-    "loading": "Яриануудыг ачаалж байна...",
-    "archivedEmpty": "Архивласан яриа байхгүй байна.",
-    "conversationsEmpty": "Одоогоор яриа байхгүй байна.",
-    "noMessages": "Одоогоор зурвас байхгүй байна.",
-    "deleteConfirmTitle": "Яриаг устгах уу?",
-    "deleteConfirmBody": "Энэ нь яриаг таны хэсгээс устгана. Нөгөө оролцогчийн хэсгээс устгахгүй.",
-    "confirmDelete": "Устгах",
-    "archivedReadOnly": "Энэ яриа архивлагдсан байна. Хариулахын тулд эхлээд архиваас гарна уу.",
-    "unarchive": "Архиваас гаргах",
-    "clearAttachments": "Бүгдийг арилгах",
-    "composePlaceholder": "Зурвас бичнэ үү...",
-    "archived": "Яриаг архивт шилжүүллээ.",
-    "unarchived": "Яриаг архиваас гаргалаа.",
-    "conversation": "Яриа",
-    "loadingConversation": "Яриануудыг ачаалж байна...",
-    "openingLatest": "Хамгийн сүүлийн яриаг нээж байна...",
-    "emptyTitle": "Яриа байхгүй байна",
-    "emptySubtitle": "Жагсаалтаасаа тоглогч сонгож, яриа эхлүүлнэ үү.",
-    "archive": "Архивлах",
-    "action": "Боловсруулж байна...",
-    "delete": "Устгах",
-    "startConversation": "Одоогоор зурвас байхгүй байна. Яриаг эхлүүлнэ үү.",
-    "errors": {
-      "send": "Зурвас илгээж чадсангүй.",
-      "archive": "Яриаг архивлаж чадсангүй.",
-      "unarchive": "Яриаг архиваас гаргаж чадсангүй.",
-      "delete": "Яриаг устгаж чадсангүй."
-    }
-  },
-  "communityComposer": {
-    "group": "Бүлэг",
-    "selectedGroup": "Сонгосон бүлэг",
-    "generalCommunity": "Ерөнхий нийгэмлэг",
-    "image": "Зураг",
-    "video": "Видео",
-    "shareGame": "Тоглолцоо хуваалцах",
-    "changeGame": "Тоглолцоо солих",
-    "submitting": "Илгээж байна...",
-    "unavailable": "Боломжгүй",
-    "submit": "Нийтлэх",
-    "chooseGame": "Тоглолцоо сонгох",
-    "chooseGameDescription": "Саяхны тоглолтуудаасаа тайлбар болон мини самбараар дахин тоглуулах хэлбэрээр хуваалцаарай.",
-    "closeGamePicker": "Тоглолцоо сонгогчийг хаах",
-    "gameSearchPlaceholder": "Өрсөлдөгч, нээлт, үр дүн эсвэл цагийн хяналтаар хайх...",
-    "noGamesFound": "Тоглолцоо олдсонгүй",
-    "noGamesFoundDescription": "Эхлээд хэдэн тоглолт дуусгасны дараа эсвэл хайлтын нөхцөлөө өөрчилж үзнэ үү.",
-    "vsOpponent": "{{opponent}}-ийн эсрэг",
-    "movesCount_one": "{{count}} нүүдэл",
-    "movesCount_other": "{{count}} нүүдэл",
-    "change": "Солих",
-    "remove": "Устгах",
-    "removeMedia": "Медиа устгах",
-    "selectedPreview": "Сонгосон урьдчилсан харагдац",
-    "imageSet": "Зургийн багц",
-    "imagesSelected_one": "{{count}} зураг сонгогдсон",
-    "imagesSelected_other": "{{count}} зураг сонгогдсон",
-    "clearAll": "Бүгдийг цэвэрлэх",
-    "selectedImageAlt": "Сонгосон {{index}}-р зураг",
-    "removeImageAria": "{{index}}-р зургийг устгах",
-    "errors": {
-      "supportedImage": "Дэмжигдэх зургийн файл сонгоно уу.",
-      "imageTooLarge": "Зураг хэт том байна. Дээд хэмжээ 8MB.",
-      "supportedVideo": "Дэмжигдэх видео файл сонгоно уу.",
-      "videoTooLarge": "Видео хэт том байна. Дээд хэмжээ 50MB.",
-      "restrictedWithReason": "Модерацийн улмаас нийтлэх боломжгүй байна. Шалтгаан: {{reason}}",
-      "restricted": "Одоогоор модерацийн улмаас нийтлэх боломжгүй байна.",
-      "temporarilyRestrictedUntil": "{{until}} хүртэл нийтлэх түр хориотой байна.",
-      "temporarilyRestricted": "Одоогоор модерацийн улмаас нийтлэх боломжгүй байна.",
-      "temporarilyRestrictedWithReason": "{{base}} Шалтгаан: {{reason}}",
-      "tryAgainIn": " {{duration}} дараа дахин оролдоно уу.",
-      "rateLimited": "Нийтлэх хязгаарт хүрлээ (3 цаг тутамд {{maxPosts}} нийтлэл).{{waitText}}",
-      "unavailable": "Одоогоор нийтлэх боломжгүй байна.",
-      "loadSelectedGame": "Сонгосон тоглолцоог ачаалж чадсангүй.",
-      "loadGamesFailed": "Хуваалцах боломжтой тоглоомуудыг ачаалж чадсангүй.",
-      "submitFailed": "Нийтлэл илгээж чадсангүй.",
-      "imageLimit": "Та {{count}} хүртэл зураг байршуулах боломжтой.",
-      "totalImageTooLarge": "Зургийн нийт хэмжээ хэт том байна. Хамгийн дээд хэмжээ нь 40MB байна."
+    "dashboard": {
+      "errors": {
+        "loadStats": "Самбарын статистик ачаалж чадсангүй"
+      },
+      "pageTitle": "Самбар",
+      "stats": {
+        "totalUsers": "Нийт хэрэглэгчид",
+        "totalGames": "Нийт тоглолт",
+        "newUsers7d": "Шинэ хэрэглэгч (7 хоног)",
+        "games7d": "Тоглолт (7 хоног)"
+      },
+      "usersSectionTitle": "Хэрэглэгчид"
     },
-    "addCaption": "Энэ тоглоомд тайлбар нэмэх...",
-    "composePlaceholder": "Тоглоомын санаа, нээлтийн мөр, клип, оньсого агшин, тэмцээний шинэчлэлт, эсвэл аль нэг тоглоомоо хуваалцаарай...",
-    "submittedForReview": "Таны нийтлэлийг хянуулахаар илгээсэн.",
-    "vsLabel": "{{white}} эсрэг {{black}}"
+    "users": {
+      "empty": "Хэрэглэгч олдсонгүй",
+      "table": {
+        "user": "Хэрэглэгч",
+        "rating": "Рейтинг",
+        "games": "Тоглолт",
+        "winRate": "Ялалтын хувь",
+        "joined": "Нэгдсэн",
+        "actions": "Үйлдэл",
+        "wld": "Х/Хд/Тц",
+        "status": "Төлөв"
+      },
+      "itemLabel": "хэрэглэгч",
+      "errors": {
+        "fetchUser": "Хэрэглэгчийг татаж чадсангүй",
+        "loadUser": "Хэрэглэгчийн мэдээлэл ачаалж чадсангүй",
+        "notFound": "Хэрэглэгч олдсонгүй"
+      },
+      "backToDashboard": "Самбар руу буцах",
+      "timelineUnavailable": "Энэ тоглогчийн рейтингийн график админ харагдацад боломжгүй.",
+      "pageTitle": "Хэрэглэгчийн удирдлага",
+      "exportCsv": "CSV экспортлох",
+      "confirm": {
+        "actionWhenPlaying": "Энэ хэрэглэгч одоо идэвхтэй тоглолтод байна. Тоглолт дуусмагц бүртгэл автоматаар устах болно. Үргэлжлүүлэх үү?"
+      },
+      "csv": {
+        "name": "Нэр",
+        "email": "Имэйл",
+        "gamesPlayed": "Нийт тоглолт"
+      },
+      "status": {
+        "playing": "Тоглож байна",
+        "active": "Идэвхтэй",
+        "offline": "Оффлайн"
+      },
+      "unknownUser": "Тодорхойгүй хэрэглэгч",
+      "pendingDeletion": "Устгах хүсэлттэй",
+      "ban": {
+        "reasonPlaceholder": "Хаах шалтгаан (заавал биш)",
+        "unban": "Нээх",
+        "ban": "Хаах",
+        "unbanUser": "Хэрэглэгчийг нээх",
+        "banUser": "Хэрэглэгчийг хаах"
+      },
+      "sortBy": "Эрэмбэлэх:",
+      "sort": {
+        "date": "Огноо",
+        "rating": "Рейтинг",
+        "games": "Тоглолт"
+      },
+      "clearSearch": "Хайлтыг цэвэрлэх",
+      "stats": {
+        "totalUsers": "Нийт хэрэглэгчид",
+        "newThisWeek": "Энэ долоо хоногт шинээр",
+        "bannedUsers": "Хаагдсан хэрэглэгчид",
+        "topRating": "Хамгийн өндөр рейтинг",
+        "totalGames": "Нийт тоглолт"
+      }
+    },
+    "modal": {
+      "editEvent": "Үйл явдлыг засах",
+      "addNewEvent": "Шинэ үйл явдал нэмэх",
+      "saveChanges": "Өөрчлөлтүүдийг хадгалах",
+      "createEvent": "Үйл явдал үүсгэх",
+      "editCourse": "Сургалтын курс засах",
+      "createCourse": "Сургалтын курс бий болгох",
+      "editPuzzle": "Шатрын оньсого засах",
+      "createPuzzle": "Шатрын оньсого үүсгэх"
+    },
+    "form": {
+      "ownerUserPlaceholder": "Хэрэглэгчийн ID-г буулгах эсвэл жагсаалтаас сонгоно уу",
+      "pgnPlaceholder": "[Event \"NeonGambit\"] ...",
+      "pasteFen": "FEN энд оруулна уу",
+      "studentPrompt": "Сурагчаас юу тоглохыг асуу",
+      "successMessage": "Гайхалтай алхам.",
+      "retryMessage": "Дахин оролдоно уу.",
+      "acceptedMovesExample": "Жишээ: e4, Nf3"
+    },
+    "groups": {
+      "actions": {
+        "closeForm": "Close form",
+        "createGroup": "Create group",
+        "creating": "Creating...",
+        "saving": "Saving...",
+        "saveChanges": "Save changes"
+      },
+      "placeholders": {
+        "groupName": "Group name",
+        "description": "Describe what this group is for...",
+        "topic": "Topic"
+      },
+      "labels": {
+        "noDescription": "No description yet.",
+        "justNow": "Just now",
+        "unknown": "Unknown",
+        "groups": "groups"
+      }
+    },
+    "aria": {
+      "editGroup": "Засах {{name}}",
+      "deleteGroup": "{{name}} устгах",
+      "removeMove": "{{token}} зөөхийг арилгах"
+    },
+    "confirm": {
+      "deleteLesson": "\"{{title}}\" хичээлийг устгах уу?",
+      "deleteStep": "{{index}} алхамыг устгах уу?",
+      "deleteCourseWithLessons": "\"{{title}}\" болон бүх хичээлийг устгах уу?"
+    },
+    "learn": {
+      "labels": {
+        "loadingCourse": "Loading course...",
+        "noSubtitle": "No subtitle.",
+        "lessonMeta": "{{steps}} steps - {{minutes}} min - /learn/{{courseSlug}}/{{lessonSlug}}",
+        "loadingLesson": "Loading lesson...",
+        "noInstructions": "No instructions yet.",
+        "courseSingular": "course",
+        "coursePlural": "courses",
+        "lessonSingular": "lesson",
+        "lessonPlural": "lessons"
+      },
+      "status": {
+        "published": "Published",
+        "draft": "Draft"
+      },
+      "actions": {
+        "unpublish": "Unpublish",
+        "publish": "Publish",
+        "editLesson": "Edit lesson",
+        "createLesson": "Create lesson",
+        "saveChanges": "Save Changes",
+        "createLessonTitle": "Create Lesson",
+        "editStepWithIndex": "Edit Step {{index}}",
+        "createStep": "Create Step",
+        "saveStep": "Save Step",
+        "stopBoardRecording": "Stop board recording",
+        "recordFromBoard": "Record from board",
+        "createCourse": "Create Course"
+      },
+      "placeholders": {
+        "pairId": "10423",
+        "instructorExample": "IM Viktor Asanov"
+      },
+      "hints": {
+        "recordingActive": "Recording active: drag a legal move to add it to accepted moves.",
+        "previewUsage": "Preview uses current FEN and side to move selection."
+      },
+      "media": {
+        "coverPreviewAlt": "Course cover preview"
+      }
+    },
+    "profile": {
+      "fallback": {
+        "administrator": "Administrator",
+        "noEmail": "No email available"
+      },
+      "stats": {
+        "totalUsers": "Total Users",
+        "thisWeekDelta_one": "+{{count}} this week",
+        "thisWeekDelta_other": "+{{count}} this week",
+        "totalGames": "Total Games",
+        "newUsers7d": "New Users (7d)",
+        "gamesThisWeek": "Games This Week"
+      },
+      "actions": {
+        "close": "Close",
+        "changePassword": "Change Password"
+      },
+      "password": {
+        "current": "Current Password",
+        "new": "New Password",
+        "confirm": "Confirm New Password"
+      }
+    },
+    "puzzles": {
+      "pagination": {
+        "items": "puzzles"
+      }
+    }
   },
   "communityGameViewer": {
-    "whiteWon": "Цагаан хожлоо",
-    "blackWon": "Хар хожлоо",
-    "draw": "Тэнцлээ",
-    "resultUnavailable": "Үр дүн байхгүй",
     "previewUnavailable": "Тоглолцооны урьдчилсан харагдац боломжгүй байна.",
     "analyzeGame": "Тоглолцоо шинжлэх",
     "useArrowKeys": "Сумтай товч ашиглана уу"
   },
-  "profileGames": {
-    "allGames": "Бүх тоглолт ({{count}})",
-    "recentGames": "Сүүлийн тоглолтууд",
-    "viewAll": "Бүгдийг үзэх",
-    "tournamentHistory": "Тэмцээний түүх ({{count}})",
-    "noTournamentHistory": "Тэмцээний түүх одоогоор байхгүй байна.",
-    "range": "{{total}}-аас {{start}}–{{end}}",
-    "gamesCount": "{{count}} тоглолт",
-    "provisionalGames": "Түр үнэлгээ ({{count}}/{{total}})",
-    "noGamesFound": "Тоглолт олдсонгүй",
-    "noGamesFoundDescription": "Шүүлтийг өөрчлөх эсвэл шинэ тоглолт тоглоод үзнэ үү.",
-    "results": {
-      "win": "Хожил",
-      "loss": "Хожигдол",
-      "draw": "Тэнцээ"
-    },
-    "pools": {
-      "bullet": "Бюллет",
-      "blitz": "Блиц",
-      "rapid": "Рапид",
-      "classical": "Классик"
-    },
-    "formats": {
-      "bullet": "Бюллет",
-      "blitz": "Блиц",
-      "rapid": "Рапид",
-      "classical": "Классик",
-      "chess960": "Chess960",
-      "arena": "Арена",
-      "swiss": "Швейцар"
-    },
-    "termination": {
-      "checkmate": "Мат",
-      "resignation": "Бууж өгсөн",
-      "stalemate": "Пат",
-      "time_forfeit": "Хугацаа дууссан",
-      "timeout": "Хугацаа дууссан",
-      "draw": "Тэнцээ",
-      "draw_by_agreement": "Харилцан тохиролцсон тэнцээ",
-      "repetition": "Давталтаар тэнцээ",
-      "threefold_repetition": "Гурван давталтаар тэнцээ",
-      "insufficient_material": "Матлах материал хүрэлцэхгүй",
-      "fifty_move_rule": "50 нүүдлийн дүрмээр тэнцээ",
-      "aborted": "Цуцлагдсан",
-      "abort": "Цуцлагдсан",
-      "abandoned": "Орхигдсон"
-    },
-    "card": {
-      "gameNumber": "Тоглолт #{{index}}",
-      "duration": "Үргэлжилсэн хугацаа",
-      "moves": "Нүүдэл",
-      "shareGame": "Тоглолт хуваалцах",
-      "opening": "Гараа",
-      "timeControl": "Цагийн хяналт",
-      "termination": "Дууссан шалтгаан",
-      "opponentLevel": "Өрсөлдөгчийн түвшин",
-      "notAvailable": "Байхгүй",
-      "threeCheck": "3 шах",
-      "threeCheckScore": "{{white}} {{whiteChecks}}/3 • {{black}} {{blackChecks}}/3",
-      "white": "Цагаан",
-      "black": "Хар",
-      "moveHistory": "Нүүдлийн түүх",
-      "analyze": "Шинжлэх",
-      "pgnCopied": "PGN хууллаа",
-      "copyPgn": "PGN хуулах",
-      "downloadFile": "Файл татах",
-      "unlimited": "Хязгааргүй"
-    },
-    "filters": {
-      "all": "Бүгд",
-      "wins": "Хожил",
-      "losses": "Хожигдол",
-      "draws": "Тэнцээ"
-    },
-    "columns": {
-      "tournament": "Тэмцээн",
-      "format": "Формат",
-      "placement": "Байр",
-      "score": "Оноо",
-      "eloChange": "ELO өөрчлөлт",
-      "date": "Огноо"
-    }
-  },
-  "tournamentProfile": {
-    "unavailable": "Тэмцээний профайлын мэдээлэл боломжгүй байна.",
-    "description": "Ерөнхий ELO, тэмцээний амжилт болон байр эзлэлтийг харуулна.",
-    "currentElo": "Одоогийн ELO",
-    "record": "Х / Т / Хг",
-    "allTournaments": "Бүх тэмцээн",
-    "tournamentsCreated": "Үүсгэсэн тэмцээнүүд",
-    "organizerActivity": "Зохион байгуулагчийн идэвх",
-    "eloHistory": "ELO-ийн түүх",
-    "noEloEvents": "Тэмцээний ELO өөрчлөлтийн түүх байхгүй байна.",
-    "elo": "ELO",
-    "delta": "Өөрчлөлт",
-    "dateLabel": "Огноо: {{label}}",
-    "historyTitle": "Тэмцээний түүх",
-    "title": "Тэмцээний профайл"
-  },
-  "communityCommon": {
-    "sharedGame": "Хуваалцсан тоглоом",
-    "videoPost": "Видео бичлэг",
-    "imageSet": "Зургийн багц",
-    "imagePost": "Зургийн нийтлэл",
-    "communityPost": "Олон нийтийн нийтлэл",
-    "won": "Ялсан",
-    "lost": "Алдагдсан",
-    "draw": "Зурах",
-    "resultUnavailable": "Үр дүн боломжгүй",
-    "neonGambitGame": "NeonGambit тоглоом",
-    "white": "Цагаан",
-    "black": "Хар",
-    "defaultOpponent": "Өрсөлдөгч"
-  },
-  "communityPage": {
-    "tabs": {
-      "feed": "Тэжээл",
-      "myPosts": "Миний нийтлэлүүд"
-    },
-    "groups": {
-      "loading": "Бүлгүүдийг ачаалж байна..."
-    },
-    "empty": {
-      "noApprovedTitle": "Одоогоор батлагдсан нийтлэл байхгүй байна",
-      "noApprovedDescription": "Эхний шатрын бичлэгийг оруулна уу. Энэ нь тохируулсны дараа энд гарч ирнэ.",
-      "noPostsTitle": "Одоогоор нийтлэл байхгүй",
-      "noPostsDescription": "Таны илгээсэн материалууд энд модераторын статустай харагдах болно.",
-      "noGroups": "Одоогоор бүлэг байхгүй байна. Эндээс эхнийхийг үүсгэ."
-    },
-    "pagination": {
-      "showing": "{{total}}-ийн {{start}} - {{end}}-г харуулж байна"
-    },
-    "errors": {
-      "loadFeed": "Хангамжийг ачаалж чадсангүй.",
-      "loadMyPosts": "Таны нийтлэлүүдийг ачаалж чадсангүй.",
-      "loadPostingAccess": "Нийтлэх хандалтыг ачаалж чадсангүй.",
-      "loadTrending": "Тренд болж буй нийтлэлүүдийг ачаалж чадсангүй.",
-      "loadGroups": "Бүлгүүдийг ачаалж чадсангүй.",
-      "loadJoinedGroups": "Нэгдсэн бүлгүүдийг ачаалж чадсангүй.",
-      "deletePost": "Нийтлэлийг устгаж чадсангүй.",
-      "updateGroup": "Бүлгийг шинэчилж чадсангүй.",
-      "createGroup": "Бүлэг үүсгэж чадсангүй."
-    }
-  },
+  ") vs": ") vs",
   "communityGroups": {
-    "membersCount": "{{count}} гишүүд",
-    "defaultDescription": "Олон нийтийн NeonGambit групп шатрын хэлэлцүүлэг, хуваалцсан тоглоомууд.",
-    "createdBy": "үүсгэсэн",
     "actions": {
       "saving": "Хадгалж байна...",
-      "join": "Нэгдэх",
-      "leave": "Орхих"
+      "leave": "Орхих",
+      "join": "Нэгдэх"
     },
+    "membersCount_one": "{{count}} ??????",
+    "membersCount_other": "{{count}} ??????",
+    "defaultDescription": "Олон нийтийн NeonGambit групп шатрын хэлэлцүүлэг, хуваалцсан тоглоомууд.",
+    "createdBy": "үүсгэсэн",
     "sidebar": {
       "title": "Бүлгүүд",
       "allGroups": "Бүх бүлгүүд",
@@ -898,45 +472,27 @@
       "create": "Бүлэг үүсгэх"
     }
   },
-  "communityGroupsPage": {
-    "title": "Шатрын дугуйлангаа олоорой",
-    "createGroup": "Бүлэг үүсгэх",
-    "searchPlaceholder": "Бүлгийн нэр, сэдэв эсвэл тайлбараар хайх...",
-    "backToCommunity": "Нийгэмлэг рүү буцах",
-    "noGroupsTitle": "Бүлэг олдсонгүй",
-    "noGroupsDescription": "Шатрын нийгэмлэгийнхээ анхны олон нийтийн бүлгийг эхлүүлээрэй.",
-    "pagination": {
-      "showing": "{{total}} илрүүлэх бүлгээс {{start}} - {{end}}-г харуулж байна"
-    }
+  "common": {
+    "cancel": "Цуцлах",
+    "moveNumberDot": "{{num}}.",
+    "back": "Буцах",
+    "close": "Хаах",
+    "user": "Хэрэглэгч",
+    "userInitial": "Х",
+    "preview": "Preview",
+    "closeImagePreview": "Зургийг урьдчилан үзэх",
+    "confirm": "Confirm",
+    "notAvailable": "-",
+    "searchByUsername": "Хэрэглэгчийн нэрээр хайх"
   },
-  "shareGameModal": {
-    "title": "Тоглоом хуваалцах",
-    "vs": "эсрэг",
-    "searchFriends": "Найзуудаа хайх...",
-    "noFriends": "Одоогоор найз байхгүй.",
-    "noMatchingFriends": "Тохирох найзууд байхгүй.",
-    "sent": "Илгээсэн",
-    "send": "Илгээх",
-    "errors": {
-      "shareFailed": "Тоглоомыг хуваалцаж чадсангүй.",
-      "shareFailedTryAgain": "Тоглоомыг хуваалцаж чадсангүй. Дахин оролдоно уу."
-    }
-  },
+  "Verified": "Verified",
+  "Following": "Дагаж байна",
+  "Follow": "Дагах",
   "profileHeader": {
     "chessPlayer": "Шатарчин",
-    "joined": "Нэгдсэн",
-    "tabs": {
-      "overview": "Тойм",
-      "gameHistory": "Тоглоомын түүх"
-    },
-    "status": {
-      "blocked": "Блоклосон",
-      "friends": "Найзууд",
-      "requestSent": "Хүсэлтийг илгээсэн"
-    },
     "actions": {
-      "block": "Блоклох",
       "unblock": "Блокыг тайлах",
+      "block": "Блоклох",
       "editProfile": "Профайл засах",
       "watchTitle": "Энэ тоглогчийн олон тоглогчийн шууд тоглолтыг үзээрэй",
       "watch": "үзэх",
@@ -949,150 +505,107 @@
       "addFriend": "Найз нэмэх",
       "moreActions": "Профайлын бусад үйлдэл",
       "processing": "{{action}} хийж байна..."
-    }
-  },
-  "profilePage": {
-    "noGamesTitle": "Одоогоор тоглоом алга",
-    "noGamesDescription": "Өөрийн ахиц дэвшлийг хянаж эхлэхийн тулд анхны тоглоомоо тоглоорой!",
-    "playNow": "Одоо тогло",
-    "unknown": "Тодорхойгүй",
-    "errors": {
-      "fetchGamesFailed": "Тоглолтуудыг татаж чадсангүй",
-      "loadGamesFailed": "Тоглолтуудыг ачаалж чадсангүй",
-      "loadProfileFailed": "Профайлыг ачаалж чадсангүй"
-    }
-  },
-  "profileWidgets": {
-    "formatRatingsTitle": "Форматын рейтинг",
-    "ratingTimelineTitle": "Рейтингийн график",
-    "timelineUnavailable": "График зөвхөн нэвтэрсэн хэрэглэгчид харагдана.",
-    "loadingTimeline": "График ачаалж байна...",
-    "noRatedGamesInRange": "Энэ хугацаанд рейтингтэй тоглолт алга.",
-    "current": "Одоогийн",
-    "plusMinus": "+/-",
-    "rating": "Рейтинг",
-    "low": "Доод",
-    "high": "Дээд",
-    "leaderboardTitle": "Тэргүүлэгчдийн жагсаалт",
-    "loadingLeaderboard": "Жагсаалт ачаалж байна...",
-    "noRatedPlayers": "Одоогоор рейтингтэй тоглогч алга.",
-    "youTag": "та",
-    "topPlayersHint": "Энэ төрөлд шилдэг {{top}} тоглогчийг харуулж байна (хамгийн багадаа {{minimum}} рейтингтэй тоглолт).",
-    "yourPosition": "Таны байр",
-    "unranked": "Эрэмбэлэгдээгүй",
-    "unrankedGamesSuffix": "({{count}}/{{total}} тоглолт)",
-    "quickStatsTitle": "Товч статистик",
-    "favoriteOpening": "Дуртай гараа",
-    "averageGameDuration": "Дундаж үргэлжлэх хугацаа",
-    "bestWinStreak": "Хамгийн урт хожлын цуврал"
-  },
-  "friendsPage": {
-    "relationshipStates": "Харилцааны төлөв",
-    "filterPlaceholder": "Найзуудаа нэр эсвэл бариулаар нь шүүнэ үү",
-    "totalCount": "{{count}} нийт",
-    "fetchingCircle": "Таны тойргийг татаж байна.",
-    "emptyListTitle": "Таны найзуудын жагсаалт хоосон байна",
-    "emptyListDescription": "Тоглогчдыг нэмж, сорьж, чатлаж эхлэх.",
-    "incomingRequests": "Ирж буй хүсэлтүүд",
-    "outgoingRequests": "Гарч буй хүсэлтүүд",
-    "newestFirst": "Хамгийн шинэ нь эхлээд",
-    "loadingIncoming": "Ирж буй хүсэлтүүдийг ачаалж байна...",
-    "loadingOutgoing": "Гарсан хүсэлтүүдийг ачаалж байна...",
-    "noIncoming": "Ирж буй хүсэлт байхгүй",
-    "noOutgoing": "Гарах хүсэлт байхгүй",
-    "noIncomingDescription": "Найзын урилга ирэхэд нь та эндээс харах болно.",
-    "noOutgoingDescription": "Шинэ холболт эхлүүлэхийн тулд урилга илгээнэ үү.",
-    "addFriends": "Найзуудаа нэмнэ үү",
-    "addFriendsDescription": "Хэрэглэгчийн нэр эсвэл имэйлээр хайх. Тоглогчдыг тойрогтоо урь.",
-    "findByNameOrEmail": "Нэр эсвэл имэйлээр хайж олоорой",
-    "searchingAcrossPlatform": "NeonGambit даяар тоглогч хайж байна.",
-    "findPlayers": "Тоглогчдыг олох",
-    "findPlayersDescription": "Шинэ найз нөхөд нэмэхийн тулд хайх. Таны үр дүн энд харагдах болно.",
-    "noEmailProvided": "Имэйл өгөөгүй",
+    },
     "status": {
-      "thatsYou": "Энэ бол чи"
+      "blocked": "Блоклосон",
+      "friends": "Найзууд",
+      "requestSent": "Хүсэлтийг илгээсэн"
     },
-    "time": {
-      "earlier": "Өмнө нь"
-    },
-    "requestSubtitle": {
-      "wantsToConnect": "Холбох хүсэлтэй байна",
-      "awaitingResponse": "Хариу хүлээж байна"
-    },
-    "requestStatus": {
-      "accepted": "Хүлээн зөвшөөрсөн",
-      "denied": "Татгалзсан",
-      "ignored": "Үл тоосон",
-      "canceled": "Цуцлагдсан",
-      "pending": "Хүлээгдэж байна"
-    },
-    "actions": {
-      "deny": "Үгүйсгэх",
-      "challenge": "Сорилт",
-      "challengeFriend": "Энэ найзыг уриал",
-      "sendDirectMessage": "Шууд мессеж илгээнэ үү",
-      "watchLiveTitle": "Амьд олон тоглогчтой тоглоом тоглож байна",
-      "watchCurrentGame": "Энэ найзын одоогийн тоглолтыг үзээрэй"
-    },
-    "errors": {
-      "searchFailed": "Хайлт амжилтгүй боллоо",
-      "searchFailedRetry": "Хайлт амжилтгүй боллоо. Дахин оролдоно уу.",
-      "cannotSendRequestBlocked": "Та энэ тоглогч руу найзын хүсэлт илгээх боломжгүй.",
-      "sendRequestFailed": "Хүсэлтийг илгээж чадсангүй",
-      "acceptFailed": "Хүсэлтийг хүлээж авч чадсангүй",
-      "denyFailed": "Хүсэлтийг үгүйсгэж чадсангүй",
-      "cancelFailed": "Хүсэлтийг цуцалж чадсангүй",
-      "unfriendFailed": "Найзыг устгаж чадсангүй",
-      "messageUnavailable": "Мессеж илгээх боломжгүй.",
-      "challengeUnavailable": "Та энэ тоглогчийг эсэргүүцэх боломжгүй."
+    "joined": "Нэгдсэн",
+    "tabs": {
+      "overview": "Тойм",
+      "gameHistory": "Тоглоомын түүх"
     }
   },
   "postCard": {
-    "imagesCount": "{{count}} зураг",
-    "deleteYourPost": "Нийтлэлээ устгана уу",
-    "reasonLabel": "Шалтгаан",
-    "mediaAlt": "Олон нийтийн мэдээллийн хэрэгсэл",
-    "imageAlt": "Олон нийтийн нийтлэлийн зураг",
-    "imageAltIndexed": "Олон нийтийн нийтлэлийн зураг {{index}}",
-    "cannotLikeOwnPost": "Та өөрийнхөө нийтлэлд дуртай байж болохгүй.",
-    "likePost": "Бичлэгт дуртай",
-    "unlikePost": "Нийтлэлээс ялгаатай",
-    "deletePostTitle": "Нийтлэлийг устгах уу?",
-    "deletePostDescription": "Энэ нь таны нийтлэлийг олон нийтийн хангамжаас устгана.",
-    "deleting": "Устгаж байна...",
-    "closeImagePreview": "Зургийг урьдчилан үзэх",
-    "keyboardArrowsHint": "Үзэхийн тулд гарын сумыг ашиглана уу",
+    "imagesCount_one": "{{count}} ?????",
+    "imagesCount_other": "{{count}} ?????",
     "status": {
       "pending": "Хүлээгдэж байна",
-      "approved": "Зөвшөөрсөн",
+      "approved": "Зөвшөөрөгдсөн",
       "rejected": "Татгалзсан",
       "removed": "Устгасан"
     },
     "errors": {
       "updateLike": "Like шинэчилж чадсангүй.",
       "deletePost": "Нийтлэлийг устгаж чадсангүй."
-    }
+    },
+    "deleteYourPost": "Нийтлэлээ устгана уу",
+    "reasonLabel": "Шалтгаан",
+    "mediaAlt": "Олон нийтийн мэдээллийн хэрэгсэл",
+    "imageAlt": "Олон нийтийн нийтлэлийн зураг",
+    "cannotLikeOwnPost": "Та өөрийнхөө нийтлэлд дуртай байж болохгүй.",
+    "unlikePost": "Нийтлэлээс ялгаатай",
+    "likePost": "Бичлэгт дуртай",
+    "deletePostTitle": "Нийтлэлийг устгах уу?",
+    "deletePostDescription": "Энэ нь таны нийтлэлийг олон нийтийн хангамжаас устгана.",
+    "deleting": "Устгаж байна...",
+    "closeImagePreview": "Зургийг урьдчилан үзэх",
+    "keyboardArrowsHint": "Үзэхийн тулд гарын сумыг ашиглана уу",
+    "imageAltIndexed": "Олон нийтийн нийтлэлийн зураг {{index}}"
   },
-  "watchPage": {
-    "featuredTournaments": "Онцлох тэмцээнүүд",
-    "previousFeaturedSlide": "Өмнөх онцлох слайд",
-    "nextFeaturedSlide": "Дараагийн онцлох слайд",
-    "goToFeaturedSlide": "{{index}}-р онцлох слайд руу очих",
-    "fallback": {
-      "live": "ШУУД",
-      "tournament": "ТЭМЦЭЭН",
-      "speedChess": "ТҮРГЭН ШАТАР",
-      "worldChampionshipTitle": "Дэлхийн шатрын аварга шалгаруулах тэмцээн",
-      "worldChampionshipDescription": "Кандидатын тэмцээн болж, ялагч нь дэлхийн аварга Гүкештэй өрсөлдөнө.",
-      "grandPrixTitle": "FIDE Гран-При цуврал",
-      "grandPrixDescription": "Шилдэг 16 тоглогч сонгон шалгаруулалтын эрхийн төлөө дөрвөн үе шатанд өрсөлдөнө.",
-      "speedChessTitle": "Түргэн шатрын аварга шалгаруулах тэмцээн",
-      "speedChessDescription": "Дэлхийн хамгийн хурдан шатарт bullet, blitz, rapid төрлүүд нэг дор өрнөнө.",
-      "featuredEvent": "Онцлох үйл явдал",
-      "details": "Дэлгэрэнгүй",
-      "event": "ҮЙЛ ЯВДАЛ"
-    }
+  "Delete": "Delete",
+  "communityComposer": {
+    "errors": {
+      "restrictedWithReason": "Модерацийн улмаас нийтлэх боломжгүй байна. Шалтгаан: {{reason}}",
+      "restricted": "Одоогоор модерацийн улмаас нийтлэх боломжгүй байна.",
+      "temporarilyRestrictedUntil": "{{until}} хүртэл нийтлэх түр хориотой байна.",
+      "temporarilyRestricted": "Одоогоор модерацийн улмаас нийтлэх боломжгүй байна.",
+      "temporarilyRestrictedWithReason": "{{base}} Шалтгаан: {{reason}}",
+      "tryAgainIn": " {{duration}} дараа дахин оролдоно уу.",
+      "rateLimited": "Нийтлэх хязгаарт хүрлээ (3 цаг тутамд {{maxPosts}} нийтлэл).{{waitText}}",
+      "unavailable": "Одоогоор нийтлэх боломжгүй байна.",
+      "loadGamesFailed": "Хуваалцах боломжтой тоглоомуудыг ачаалж чадсангүй.",
+      "imageLimit_one": "?? ??? ???????? ???? ??? ?? {{count}} ????? ??????? ?????????.",
+      "imageLimit_other": "?? ??? ???????? ???? ??? ?? {{count}} ????? ??????? ?????????.",
+      "totalImageTooLarge": "Зургийн нийт хэмжээ хэт том байна. Хамгийн дээд хэмжээ нь 40MB байна.",
+      "loadSelectedGame": "Сонгосон тоглолцоог ачаалж чадсангүй.",
+      "submitFailed": "Нийтлэл илгээж чадсангүй.",
+      "supportedImage": "Дэмжигдэх зургийн файл сонгоно уу.",
+      "imageTooLarge": "Зураг хэт том байна. Дээд хэмжээ 8MB.",
+      "supportedVideo": "Дэмжигдэх видео файл сонгоно уу.",
+      "videoTooLarge": "Видео хэт том байна. Дээд хэмжээ 50MB."
+    },
+    "submittedForReview": "Таны нийтлэлийг хянуулахаар илгээсэн.",
+    "addCaption": "Энэ тоглоомд тайлбар нэмэх...",
+    "composePlaceholder": "Тоглоомын санаа, нээлтийн мөр, клип, оньсого агшин, тэмцээний шинэчлэлт, эсвэл аль нэг тоглоомоо хуваалцаарай...",
+    "removeMedia": "Медиа устгах",
+    "selectedPreview": "Сонгосон урьдчилсан харагдац",
+    "imageSet": "Зургийн багц",
+    "imagesSelected_one": "{{count}} зураг сонгогдсон",
+    "imagesSelected_other": "{{count}} зураг сонгогдсон",
+    "clearAll": "Бүгдийг цэвэрлэх",
+    "selectedImageAlt": "Сонгосон {{index}}-р зураг",
+    "removeImageAria": "{{index}}-р зургийг устгах",
+    "shareGame": "Тоглолцоо хуваалцах",
+    "vsOpponent": "{{opponent}}-ийн эсрэг",
+    "change": "Солих",
+    "remove": "Устгах",
+    "chooseGame": "Тоглолцоо сонгох",
+    "chooseGameDescription": "Саяхны тоглолтуудаасаа тайлбар болон мини хөлгөөр дахин тоглуулах хэлбэрээр хуваалцаарай.",
+    "closeGamePicker": "Тоглолцоо сонгогчийг хаах",
+    "gameSearchPlaceholder": "Өрсөлдөгч, нээлт, үр дүн эсвэл цагийн форматаар хайх...",
+    "noGamesFound": "Тоглолцоо олдсонгүй",
+    "noGamesFoundDescription": "Эхлээд хэдэн тоглолт дуусгасны дараа эсвэл хайлтын нөхцөлөө өөрчилж үзнэ үү.",
+    "vsLabel": "{{white}} эсрэг {{black}}",
+    "movesCount_one": "{{count}} нүүдэл",
+    "movesCount_other": "{{count}} нүүдэл",
+    "group": "Бүлэг",
+    "selectedGroup": "Сонгосон бүлэг",
+    "generalCommunity": "Ерөнхий нийгэмлэг",
+    "image": "Зураг",
+    "video": "Видео",
+    "changeGame": "Тоглолцоо солих",
+    "submitting": "Илгээж байна...",
+    "unavailable": "Боломжгүй",
+    "submit": "Нийтлэх"
   },
+  "Chess960": "Chess960",
+  "King of the Hill": "Хааны толгод",
+  "Three-Check": "Гурван шаг",
+  "Standard": "Standard",
+  "vs": "vs",
+  "Trending in chess": "Шатрын трендүүд",
   "communitySidebar": {
     "trendingMode": {
       "likes": "Хамгийн их таалагдсан",
@@ -1106,7 +619,992 @@
     "noteTwo": "Сэдвээс гадуурх, спам эсвэл доромжилсон контентоос татгалзсан.",
     "noteThree": "Тэмцээний мөчүүд, санаанууд, клипүүд, дүн шинжилгээ, амттай дурсамжууд."
   },
+  "communityPage": {
+    "empty": {
+      "noApprovedTitle": "Одоогоор батлагдсан нийтлэл байхгүй байна",
+      "noApprovedDescription": "Эхний шатрын бичлэгийг оруулна уу. Энэ нь тохируулсны дараа энд гарч ирнэ.",
+      "noPostsTitle": "Одоогоор нийтлэл байхгүй",
+      "noPostsDescription": "Таны илгээсэн материалууд энд модераторын статустай харагдах болно.",
+      "noGroups": "Одоогоор бүлэг байхгүй байна. Эндээс эхнийхийг үүсгэ."
+    },
+    "errors": {
+      "loadFeed": "Хангамжийг ачаалж чадсангүй.",
+      "loadMyPosts": "Таны нийтлэлүүдийг ачаалж чадсангүй.",
+      "loadPostingAccess": "Нийтлэх хандалтыг ачаалж чадсангүй.",
+      "loadTrending": "Тренд болж буй нийтлэлүүдийг ачаалж чадсангүй.",
+      "loadGroups": "Бүлгүүдийг ачаалж чадсангүй.",
+      "loadJoinedGroups": "Нэгдсэн бүлгүүдийг ачаалж чадсангүй.",
+      "deletePost": "Нийтлэлийг устгаж чадсангүй.",
+      "updateGroup": "Бүлгийг шинэчилж чадсангүй.",
+      "createGroup": "Бүлэг үүсгэж чадсангүй."
+    },
+    "tabs": {
+      "feed": "Тэжээл",
+      "myPosts": "Миний нийтлэлүүд"
+    },
+    "pagination": {
+      "showing": "{{total}}-ийн {{start}} - {{end}}-г харуулж байна"
+    },
+    "groups": {
+      "loading": "Бүлгүүдийг ачаалж байна..."
+    }
+  },
+  "Live Now": "Одоо шууд",
+  "games": "games",
+  "Top Players": "Шилдэг тоглогчид",
+  "Puzzle Leaders": "Бодлогын тэргүүлэгчид",
+  "Full board": "Бүтэн хөлөг",
+  "solved": "бодсон",
+  "Who to Follow": "Хэнийг дагах вэ",
+  "followers": "followers",
+  "Upcoming Events": "Удахгүй болох үйл явдлууд",
+  "Daily Puzzle": "Өдрийн бодлого",
+  "Solve Today's Puzzle": "Өнөөдрийн бодлого бодох",
+  "presence": {
+    "justNow": "дөнгөж сая",
+    "minutesAgo_one": "{{count}} ??????? ????",
+    "minutesAgo_other": "{{count}} ??????? ????",
+    "hoursAgo_one": "{{count}} ?????? ????",
+    "hoursAgo_other": "{{count}} ?????? ????",
+    "daysAgo_one": "{{count}} ?????? ????",
+    "daysAgo_other": "{{count}} ?????? ????",
+    "status": {
+      "online": "Онлайн",
+      "inGame": "Тоглож байна",
+      "searchingMatch": "Тоглолт хайж байна",
+      "away": "Байхгүй",
+      "offline": "Оффлайн"
+    }
+  },
+  "communityCommon": {
+    "sharedGame": "Хуваалцсан тоглоом",
+    "videoPost": "Видео бичлэг",
+    "imageSet": "Зургийн багц",
+    "imagePost": "Зургийн нийтлэл",
+    "communityPost": "Олон нийтийн нийтлэл",
+    "won": "Ялсан",
+    "lost": "Алдагдсан",
+    "draw": "Зурах",
+    "resultUnavailable": "Үр дүн боломжгүй",
+    "neonGambitGame": "NeonGambit тоглоом",
+    "white": "Цагаан",
+    "black": "Хар",
+    "defaultOpponent": "Өрсөлдөгч"
+  },
+  "Custom": "Дурын цаг",
+  "Format Ratings": "Төрлийн рейтингүүд",
+  "Hot": "Халуун",
+  "Rising": "Өсөж буй",
+  "Stable": "Тогтвортой",
+  "Win Rate": "Хожлын хувь",
+  "Games": "Тоглолт",
+  "Streak": "Цуврал",
+  "Live Games": "Шууд тоглолтууд",
+  "active": "идэвхтэй",
+  "Refresh live games": "Шууд тоглолтуудыг шинэчлэх",
+  "View All": "Бүгдийг үзэх",
+  "Watch": "Үзэх",
+  "Open puzzle training": "Бодлогын бэлтгэлийг нээх",
+  "Puzzles": "Puzzles",
+  "No puzzles available yet": "???????? ??????? ??????? ?????.",
+  "Browse All": "Бүгдийг үзэх",
+  "Solve Puzzle": "Бодлого бодох",
+  "Just now": "Дөнгөж сая",
+  "min ago": "минутын өмнө",
+  "hours ago": "цагийн өмнө",
+  "hour ago": "цагийн өмнө",
+  "days ago": "өдрийн өмнө",
+  "day ago": "өдрийн өмнө",
+  "Recent Matches": "Сүүлийн тоглолтууд",
+  "No games played yet": "Одоогоор тоглосон тоглолт байхгүй байна",
+  "Start a game to see your history here": "Энд түүхээ харахын тулд тоглолт эхлүүлнэ үү",
+  "Tournaments": "Тэмцээнүүд",
+  "Unable to load tournaments": "Тэмцээнүүдийг ачаалж чадсангүй",
+  "Please try again in a moment": "??? ????????? ????? ???????? ??.",
+  "Retry": "Дахин оролдох",
+  "Active": "Active",
+  "Upcoming": "Upcoming",
+  "tournamentsPage": {
+    "detail": {
+      "roundOf": "{{current}} / {{total}} үе",
+      "playersCount_one": "{{count}} players",
+      "playersCount_other": "{{count}} players"
+    },
+    "actions": {
+      "join": "Join",
+      "startGame": "Start Game",
+      "nextGame": "Next Game",
+      "result": "Result",
+      "open": "Open",
+      "continue": "Continue",
+      "endTournament": "End Tournament",
+      "delete": "Delete"
+    },
+    "finalStandings": {
+      "title": "Final Standings"
+    },
+    "tabs": {
+      "standings": "Standings"
+    },
+    "units": {
+      "secAbbr": "с",
+      "minAbbr": "min",
+      "hourAbbr": "hr",
+      "dayAbbr": "day",
+      "hourShort": "h"
+    },
+    "status": {
+      "startsSoon": "Starts soon",
+      "startsIn": "Starts in {{duration}}",
+      "resultsAvailable": "Results available",
+      "ended": "Ended",
+      "timeLeft": "{{duration}} left",
+      "inProgress": "In progress"
+    },
+    "hints": {
+      "registrationStartsOneHourBefore": "Registration begins 1 hour before the event starts"
+    },
+    "empty": {
+      "createOrCheckBack": "Create one or check back when registration opens."
+    },
+    "table": {
+      "type": "Type",
+      "gameTime": "Game Time",
+      "duration": "Duration",
+      "status": "Status",
+      "players": "Players",
+      "action": "Action"
+    },
+    "filters": {
+      "allStatuses": "All Statuses",
+      "searchPlaceholder": "Search by name",
+      "allFormats": "All Formats"
+    },
+    "schedule": {
+      "previousDay": "Previous day",
+      "nextDay": "Next day",
+      "today": "Today",
+      "scheduledCount_one": "{{count}} scheduled tournaments in next 7 days",
+      "scheduledCount_other": "{{count}} scheduled tournaments in next 7 days",
+      "emptyTitle": "No tournaments in this 7-day window",
+      "emptyDescription": "Try another day or loosen the format/status filters."
+    },
+    "errors": {
+      "serverReconnect": "Unable to reach server. Reconnecting...",
+      "realtimeReconnect": "Realtime disconnected. Reconnecting...",
+      "realtimeFailed": "Realtime connection failed. Reconnecting...",
+      "fetchTournaments": "Failed to fetch tournaments",
+      "fetchTournament": "Failed to fetch tournament",
+      "serverUnavailable": "Server unavailable",
+      "requestFailed": "Request failed",
+      "startTimeTooSoon": "Start time must be at least 5 minutes from now."
+    },
+    "confirm": {
+      "deleteDraftMessage": "Delete this draft tournament permanently?",
+      "title": "Confirm Action"
+    },
+    "createChoice": {
+      "title": "Please select the kind of event you'd like to create:",
+      "shareable": "Tournaments",
+      "swissDescription": "Invite players into a round-based Swiss event with standings by score and tie-breaks.",
+      "arenaDescription": "Create a continuous arena where players score as many points as possible in a set duration."
+    },
+    "create": {
+      "arenaTitle": "New Arena Tournament",
+      "swissTitle": "New Swiss Tournament",
+      "fields": {
+        "arenaName": "Arena Name",
+        "tournamentName": "Tournament Name",
+        "pairingLogic": "Pairing Logic",
+        "gameType": "Game Type",
+        "timeControl": "Time Control",
+        "duration": "Duration",
+        "setup": "Setup",
+        "startDate": "Start Date",
+        "startTime": "Start Time",
+        "timezonePrefix": "Timezone:",
+        "hour": "Hour",
+        "minute": "Minute"
+      },
+      "game": "Game",
+      "rated": "Rated",
+      "chess960UnratedNotice": "Chess960 tournaments are always unrated.",
+      "pairing": {
+        "ratingBased": "Rating-based",
+        "pointBased": "Point-based"
+      },
+      "gameTypes": {
+        "standard": "Standard",
+        "chess960": "Chess960"
+      },
+      "setup": {
+        "standard": "Standard"
+      },
+      "submit": "Create",
+      "pendingMessage": "Creating tournament. You will be redirected to the real tournament ID once it is ready."
+    },
+    "modal": {
+      "placeholders": {
+        "name": "Title"
+      },
+      "fields": {
+        "rounds": "Rounds",
+        "maxPlayers": "Max Players"
+      },
+      "creating": "Creating..."
+    },
+    "pagination": {
+      "showingRange": "Нийт {{total}} тэмцээний {{start}}–{{end}}-ийг харуулж байна"
+    }
+  },
+  "tournamentCommon": {
+    "status": {
+      "registrationOpen": "Бүртгэл нээлттэй",
+      "live": "Шууд",
+      "finished": "Finished",
+      "cancelled": "Cancelled",
+      "draft": "Draft"
+    },
+    "roundStatus": {
+      "completed": "Completed",
+      "inProgress": "In Progress"
+    },
+    "badges": {
+      "roundClosed": "Round closed"
+    },
+    "rating": {
+      "none": "None"
+    },
+    "formats": {
+      "swiss": "Swiss Tournament",
+      "arena": "Arena"
+    },
+    "generic": {
+      "optional": "Optional"
+    }
+  },
+  "players joined": "тоглогч нэгдсэн",
+  "No tournaments available": "Тэмцээн байхгүй байна",
+  "Create a tournament or check back for the next event": "??????? ?????? ????? ????????? ???? ??????? ????????? ????? ??????? ??.",
+  "Friend Challenge": "Friend Challenge",
+  "challenged you to play": "challenged you to play.",
+  "Decline": "Decline",
+  "Accept": "Accept",
+  "game": {
+    "sidebar": {
+      "status": {
+        "gameOver": "Game over",
+        "inProgress": "In progress",
+        "waiting": "Waiting"
+      },
+      "opening": {
+        "detecting": "Detecting opening...",
+        "makeMoveToDetect": "Make a move to detect",
+        "waitingFirstMove": "Waiting for your first move",
+        "ecoLabel": "ECO {{eco}}",
+        "bookPending": "Book pending",
+        "nextMoves": " • Next: {{moves}}"
+      },
+      "log": {
+        "firstMovePrompt": "Make your first move to populate the log.",
+        "startPrompt": "Start a game to see your move list."
+      }
+    },
+    "chat": {
+      "yourMessage": "Таны мессеж",
+      "opponentMessage": "Өрсөлдөгчийн мессеж"
+    },
+    "aria": {
+      "choosePromotionPiece": "Дэвшүүлэх хөлөг сонгох",
+      "promoteTo": "{{piece}} болгон дэвшүүлэх",
+      "resignGame": "Тоглолтоос бууж өгөх"
+    },
+    "actions": {
+      "resign": "Бууж өгөх"
+    },
+    "waitingToStart": "Эхлэхийг хүлээж байна"
+  },
+  "Game log": "Game log",
+  "Moves & opening": "Moves & opening",
+  "A clean timeline of your current game": "A clean timeline of your current game.",
+  "Messages": "Зурвасууд",
+  "Choose Promotion": "Choose Promotion",
+  "Cancel": "Cancel",
+  "Difficulty Category": "Difficulty Category",
+  "Choose Your Opponent": "Choose Your Opponent",
+  "Rating:": "Rating:",
+  "Difficulty: Level": "Difficulty: Level",
+  "Easy": "Easy",
+  "Hard": "Hard",
+  "New Game": "New Game",
+  "Play As": "Play As",
+  "Play vs Bot": "Play vs Bot",
+  "Custom Level": "Custom Level",
+  "Time Control": "Time Control",
+  "language": {
+    "label": "Хэл"
+  },
+  "settingsLang": {
+    "mnUnavailableTooltip": "Энэ хэсэг одоогоор зөвхөн англи хэл дээр ажиллана.",
+    "mnUnavailable": "Монгол хэл одоогоор боломжгүй",
+    "title": "Хэл",
+    "helper": "Харилцах хэлээ сонгоно уу."
+  },
+  "learn": {
+    "retryCourse": "Курсыг дахин эхлэх",
+    "continueLesson": "Хичээлийг үргэлжлүүлэх",
+    "startCourse": "Курс эхлэх",
+    "categories": {
+      "openings": "Нээлт",
+      "middlegame": "Дунд тоглолт",
+      "endgame": "Эндшпиль",
+      "strategy": "Стратеги"
+    },
+    "difficulty": {
+      "beginner": "Анхан шат",
+      "intermediate": "Дунд шат",
+      "advanced": "Ахисан шат",
+      "all": "Бүх түвшин"
+    },
+    "instructorFallback": "NeonGambit-ийн багш",
+    "courseProgress": "Курсын явц",
+    "lessonProgress": "{{completed}}/{{total}} хичээл",
+    "quickLessons": "Шуурхай хичээлүүд",
+    "backToLearn": "Сургалт руу буцах",
+    "courseProgressLabel": "Курсын явц",
+    "lessonProgressCompleted": "{{completed}}/{{total}} хичээл дууссан",
+    "courseLessons": "Курсын хичээлүүд",
+    "previous": "Өмнөх",
+    "nextLesson": "Дараагийн хичээл",
+    "retryLesson": "Хичээлийг дахин эхлэх",
+    "loadFailed": "Сургалтын каталогийг ачаалж чадсангүй.",
+    "stats": {
+      "completed": "Дууссан",
+      "inProgress": "Явагдаж байна",
+      "dayStreak": "Өдрийн цуврал"
+    },
+    "searchPlaceholder": "Курс, нээлт, их мастер хайх...",
+    "progress": {
+      "all": "Бүх явц",
+      "notStarted": "Эхлээгүй",
+      "inProgress": "Явагдаж байна",
+      "completed": "Дууссан"
+    },
+    "loading": "Сургалтын каталогийг ачаалж байна...",
+    "empty": "Таны шүүлтэд тохирох курс олдсонгүй.",
+    "clearFilters": "Хайлт болон шүүлтийг цэвэрлэх",
+    "lessonLoadFailed": "Хичээлийг ачаалж чадсангүй.",
+    "submitMoveFailed": "Хичээлийн нүүдлийг илгээж чадсангүй.",
+    "lessonNotFound": "Хичээл олдсонгүй",
+    "lessonNotFoundDescription": "Хүссэн хичээлийг ачаалах боломжгүй байна.",
+    "hint": "Санамж",
+    "lessonComplete": "Хичээл дууслаа!",
+    "hideHint": "Санамж нуух",
+    "showHint": "Санамж харуулах"
+  },
+  "profileGames": {
+    "card": {
+      "analyze": "Шинжлэх",
+      "pgnCopied": "PGN хууллаа",
+      "copyPgn": "PGN хуулах",
+      "downloadFile": "Файл татах",
+      "opening": "Гараа",
+      "timeControl": "Цагийн формат",
+      "unlimited": "Хязгааргүй",
+      "termination": "Дууссан шалтгаан",
+      "opponentLevel": "Өрсөлдөгчийн түвшин",
+      "notAvailable": "Байхгүй",
+      "threeCheck": "3 шаг",
+      "threeCheckScore": "{{white}} {{whiteChecks}}/3 • {{black}} {{blackChecks}}/3",
+      "white": "Цагаан",
+      "black": "Хар",
+      "gameNumber": "Тоглолт #{{index}}",
+      "duration": "Үргэлжилсэн хугацаа",
+      "moves": "Нүүдэл",
+      "shareGame": "Тоглолт хуваалцах",
+      "moveHistory": "Нүүдлийн түүх"
+    },
+    "columns": {
+      "date": "Огноо",
+      "tournament": "Тэмцээн",
+      "format": "Формат",
+      "placement": "Байр",
+      "score": "Оноо",
+      "eloChange": "ELO өөрчлөлт"
+    },
+    "pools": {
+      "bullet": "Буллет",
+      "blitz": "Блиц",
+      "rapid": "Рапид",
+      "classical": "Классик"
+    },
+    "filters": {
+      "all": "Бүгд",
+      "wins": "Хожил",
+      "losses": "Хожигдол",
+      "draws": "Тэнцээ"
+    },
+    "results": {
+      "win": "Хожил",
+      "loss": "Хожигдол",
+      "draw": "Тэнцээ"
+    },
+    "provisionalGames_one": "Provisional ({{count}}/{{total}})",
+    "provisionalGames_other": "Provisional ({{count}}/{{total}})",
+    "gamesCount_one": "{{count}} games",
+    "gamesCount_other": "{{count}} games",
+    "allGames_one": "{{count}} ???????",
+    "allGames_other": "{{count}} ???????",
+    "tournamentHistory_one": "{{count}} ????????? ????",
+    "tournamentHistory_other": "{{count}} ????????? ????",
+    "noTournamentHistory": "Тэмцээний түүх одоогоор байхгүй байна.",
+    "range": "{{total}}-аас {{start}}–{{end}}",
+    "noGamesFound": "Тоглолт олдсонгүй",
+    "noGamesFoundDescription": "Шүүлтийг өөрчлөх эсвэл шинэ тоглолт тоглоод үзнэ үү.",
+    "recentGames": "Сүүлийн тоглолтууд",
+    "viewAll": "Бүгдийг үзэх"
+  },
+  "profilePage": {
+    "unknown": "Тодорхойгүй",
+    "noGamesTitle": "Одоогоор тоглоом алга",
+    "noGamesDescription": "Өөрийн ахиц дэвшлийг хянаж эхлэхийн тулд анхны тоглоомоо тоглоорой!",
+    "playNow": "Одоо тогло",
+    "errors": {
+      "fetchGamesFailed": "Тоглолтуудыг татаж чадсангүй",
+      "loadGamesFailed": "Тоглолтуудыг ачаалж чадсангүй",
+      "loadProfileFailed": "Профайлыг ачаалж чадсангүй"
+    }
+  },
+  "profileWidgets": {
+    "formatRatingsTitle": "Форматын рейтинг",
+    "leaderboardTitle": "Тэргүүлэгчдийн жагсаалт",
+    "loadingLeaderboard": "Жагсаалт ачаалж байна...",
+    "noRatedPlayers": "Одоогоор рейтингтэй тоглогч алга.",
+    "youTag": "та",
+    "topPlayersHint": "Энэ төрөлд шилдэг {{top}} тоглогчийг харуулж байна (хамгийн багадаа {{minimum}} рейтингтэй тоглолт).",
+    "yourPosition": "Таны байр",
+    "unranked": "Эрэмбэлэгдээгүй",
+    "unrankedGamesSuffix_one": "({{count}}/{{total}} games)",
+    "unrankedGamesSuffix_other": "({{count}}/{{total}} games)",
+    "quickStatsTitle": "Товч статистик",
+    "favoriteOpening": "Дуртай гараа",
+    "averageGameDuration": "Дундаж үргэлжлэх хугацаа",
+    "bestWinStreak": "Хамгийн урт хожлын цуврал",
+    "ratingTimelineTitle": "Рейтингийн график",
+    "timelineUnavailable": "График зөвхөн нэвтэрсэн хэрэглэгчид харагдана.",
+    "loadingTimeline": "График ачаалж байна...",
+    "noRatedGamesInRange": "Энэ хугацаанд рейтингтэй тоглолт алга.",
+    "current": "Одоогийн",
+    "plusMinus": "+/-",
+    "rating": "Рейтинг",
+    "low": "Доод",
+    "high": "Дээд"
+  },
+  "Performance by Color": "Performance by Color",
+  "Playing White": "Playing White",
+  "Playing Black": "Playing Black",
+  "profile": {
+    "avatar": {
+      "change": "Аватарыг өөрчлөх"
+    },
+    "stats": {
+      "totalGames": "Нийт тоглоомууд",
+      "winRate": "Ялалтын хувь",
+      "currentStreak": "Одоогийн цуврал",
+      "averageMoves": "Дундаж. Хөдлөх"
+    }
+  },
+  "Update Profile Picture": "Update Profile Picture",
+  "Clear selection": "Clear selection",
+  "Choose Image": "Choose Image",
+  "Save Avatar": "Save Avatar",
+  "Remove Avatar": "Remove Avatar",
+  "Supported formats: JPG, PNG, GIF": {
+    " Max size: 2MB": "Supported formats: JPG, PNG, GIF. Max size: 2MB"
+  },
+  "tournamentProfile": {
+    "title": "Тэмцээний профайл",
+    "unavailable": "Тэмцээний профайлын мэдээлэл боломжгүй байна.",
+    "description": "Ерөнхий ELO, тэмцээний амжилт болон байр эзлэлтийг харуулна.",
+    "currentElo": "Одоогийн ELO",
+    "record": "Х / Т / Хг",
+    "allTournaments": "Бүх тэмцээн",
+    "tournamentsCreated": "Үүсгэсэн тэмцээнүүд",
+    "organizerActivity": "Зохион байгуулагчийн идэвх",
+    "eloHistory": "ELO-ийн түүх",
+    "noEloEvents": "Тэмцээний ELO өөрчлөлтийн түүх байхгүй байна.",
+    "elo": "ELO",
+    "delta": "Өөрчлөлт",
+    "dateLabel": "Огноо: {{label}}",
+    "historyTitle": "Тэмцээний түүх"
+  },
+  "No engine data yet": "No engine data yet",
+  "analysis": {
+    "none": "Байхгүй",
+    "capturedByWhite": "Цагаан идсэн хөлгүүд",
+    "capturedByBlack": "Хар идсэн хөлгүүд",
+    "bestMove": "Оновчтой нүүдэл:",
+    "bestMovePlayed": "Та энэ нүүдлийг хийсэн байна!",
+    "moveExplanation": "Нүүдлийн тайлбар",
+    "moveExplanationHint": "Нүүдлийн тайлбарыг харахын тулд нүүдлийн жагсаалтаас нэгийг сонгоно уу.",
+    "analyzedBy": "Шинжилсэн хөдөлгүүр:",
+    "aiLoading": "AI тайлбар авч байна...",
+    "startingPositionTitle": "Эхлэлийн байрлал",
+    "startingPositionDescription": "Тоглолт стандарт эхлэлийн байрлалаас эхэлнэ.",
+    "startingPositionDetails": "Шинжилгээ болон тайлбарыг харахын тулд нүүдэл сонгоно уу.",
+    "tip": "Зөвлөгөө:",
+    "aiLoadTimedOut": "AI тайлбар хэт удаан хүлээлээ. Оронд нь суурь шинжилгээний тайлбарыг харуулж байна.",
+    "aiNoExplanationsReturned": "AI загвар энэ тоглолтын тайлбарыг зөв бүтэцтэй буцаасангүй. Өөр загвар сонгоод үзнэ үү.",
+    "aiLoadFailed": "AI тайлбар авч чадсангүй",
+    "summary": "Дүгнэлт",
+    "opening": "Гараа",
+    "accuracy": "Нарийвчлал",
+    "qualityBreakdown": {
+      "white": "Цагаан",
+      "black": "Хар"
+    },
+    "checkmate": "Мат!",
+    "stalemate": "Пат",
+    "check": "Шаг!",
+    "engineEvaluation": "Хөдөлгүүрийн үнэлгээ",
+    "eval": "Eval",
+    "moves": "Нүүдлүүд",
+    "moveListWhite": "Цагаан",
+    "moveListBlack": "Хар",
+    "noMovesYet": "Одоогоор нүүдэл байхгүй",
+    "moveListHints": "← → товчоор шилжих • Зай дарж тоглуулах • F дарж эргүүлэх",
+    "adminLoadingTitle": "Тоглолцоог шинжилж байна",
+    "loadingDescription": "Stockfish байрлал бүрийг үнэлж, нарийвчлал болон нүүдлийн чанарыг тооцоолж байна",
+    "progress": "Явц",
+    "evaluatingPositions": "Байрлалуудыг үнэлж байна",
+    "calculatingAccuracy": "Нарийвчлалыг тооцоолж байна",
+    "back": "Буцах",
+    "title": "Шинжилгээ",
+    "aiModelSelectorTitle": "AI загвар сонгогч",
+    "loadingTitle": "Таны тоглолцоог шинжилж байна",
+    "errors": {
+      "noGameId": "Тоглолцооны ID өгөгдөөгүй байна",
+      "fetchGame": "Тоглолцоог татаж чадсангүй",
+      "loadGame": "Тоглолцоог ачаалж чадсангүй",
+      "unableToLoadGame": "Тоглолцоог ачаалах боломжгүй байна"
+    },
+    "gameNotFound": "Тоглолцоо олдсонгүй",
+    "backToProfile": "Профайл руу буцах"
+  },
+  "settings": {
+    "appearance": {
+      "theme": "Сэдэв",
+      "themeHelper": "Өнгөний хэлбэрээ сонгоно уу",
+      "title": "Харагдац",
+      "subtitle": "NeonGambit-ийн харагдах байдлыг тохируулна",
+      "boardTheme": "Хөлгийн сэдэв",
+      "boardThemeHelper": "Шатрын хөлгийн өнгийн хэлбэр сонгоно"
+    },
+    "profile": {
+      "google": "Google",
+      "facebook": "Facebook",
+      "title": "Профайл ба бүртгэл",
+      "subtitle": "Хувийн мэдээлэл, аюулгүй байдал",
+      "email": "Имэйл",
+      "changePassword": "Нууц үг солих",
+      "changePasswordHelper": "Бүртгэлийн нууц үгээ шинэчилнэ",
+      "linkedAccounts": "Холбосон бүртгэлүүд"
+    },
+    "ai": {
+      "providerConnected": "AI үйлчилгээ тохируулагдсан",
+      "providerMissing": "AI үйлчилгээ тохируулагдаагүй",
+      "providerHelperSelected": "Сонгосон загвар: {{model}}. Загварыг Admin > Bots хэсгээс солино.",
+      "providerHelperSetup": ".env файлд VITE_AWS_BEARER_TOKEN_BEDROCK, VITE_OPENAI_API_KEY, VITE_XAI_API_KEY, VITE_DEEPSEEK_API_KEY эсвэл VITE_GROQ_API_KEY нэмээд app-аа дахин асаана уу.",
+      "title": "Хиймэл оюун ба шинжилгээ",
+      "subtitle": "Хиймэл оюуны тохиргоо",
+      "explanations": "AI нүүдлийн тайлбар",
+      "explanationsHelper": "Админаас сонгосон AI загварыг ашиглана. Тэр загвар ажиллахгүй, Groq тохируулагдсан бол Groq-г нөөцөөр ашиглана.",
+      "explanationLevel": "Тайлбарын дэлгэрэнгүй байдал",
+      "explanationLevelHelper": "AI тайлбарын нарийвчлалын түвшин",
+      "levels": {
+        "brief": "Товч",
+        "normal": "Дунд",
+        "deep": "Дэлгэрэнгүй"
+      },
+      "postGame": "Тоглолтын дараах шинжилгээ",
+      "postGameHelper": "Тоглолт дуусмагц хөдөлгүүрээр шинжлэх",
+      "providerStatus": "AI үйлчилгээний төлөв"
+    },
+    "toasts": {
+      "saved": "Тохиргоо амжилттай хадгалагдлаа!",
+      "reset": "Сүүлийн хадгалалт руу буцаав",
+      "unblocked": "Хэрэглэгчийн хориг цуцлагдлаа.",
+      "passwordChanged": "Нууц үг амжилттай шинэчлэгдлээ!"
+    },
+    "errors": {
+      "unblockFailed": "Хэрэглэгчийн хоригийг цуцалж чадсангүй.",
+      "fillPasswordFields": "Нууц үгийн бүх талбарыг бөглөнө үү.",
+      "passwordTooShort": "Шинэ нууц үг хамгийн багадаа 8 тэмдэгттэй байх ёстой.",
+      "passwordMismatch": "Шинэ нууц үгүүд таарахгүй байна.",
+      "changePasswordFailed": "Нууц үг солиход алдаа гарлаа.",
+      "blockedUsersLoad": "Хориглосон хэрэглэгчдийг ачаалж байна...",
+      "noBlockedUsers": "Хориглосон хэрэглэгч байхгүй байна.",
+      "blockedSince": "{{date}}-с хойш хориглосон",
+      "blocked": "Хориглосон",
+      "unblocking": "Хориг цуцалж байна...",
+      "unblock": "Хориг цуцлах",
+      "passwordUpdating": "Шинэчилж байна..."
+    },
+    "header": {
+      "title": "Тохиргоо"
+    },
+    "actions": {
+      "reset": "Сэргээх",
+      "saveChanges": "Өөрчлөлт хадгалах",
+      "change": "Солих",
+      "manage": "Удирдах"
+    },
+    "gameplay": {
+      "title": "Тоглолт",
+      "subtitle": "Тоглоомын туршлагаа тохируулна",
+      "defaultTime": "Цагийн форматын анхдагч тохиргоо",
+      "defaultTimeHelper": "Шинэ тоглолтод ашиглах цагийн формат",
+      "timeControls": {
+        "bullet": "Буллет",
+        "blitz": "Блиц",
+        "rapid": "Рапид",
+        "classical": "Классик",
+        "custom": "Дурын цаг"
+      },
+      "autoQueen": "Автомат хатан",
+      "autoQueenHelper": "Пиёныг хатан болгон автоматаар дэвшүүлэх",
+      "autoQueenAria": "Auto-queen",
+      "moveInput": "Нүүдэл оруулах арга",
+      "moveInputHelper": "Хөлөг дээр нүүдэл хийх аргаа сонгоно уу",
+      "input": {
+        "click": "Дарах",
+        "drag": "Чирэх",
+        "both": "Дарах эсвэл чирэх"
+      },
+      "legalMoves": "Боломжит нүүдлүүдийг харуулах",
+      "legalMovesHelper": "Хийж болох нүдүүдийг тодруулж харуулах",
+      "showLegalMovesAria": "Show legal moves",
+      "premoves": "Урьдчилсан нүүдэл",
+      "premovesHelper": "Өрсөлдөгчийн нүүдлийг хүлээх үед урьдчилан нүүдэл тавих",
+      "premovesAria": "Premoves"
+    },
+    "privacy": {
+      "title": "Нууцлал ба аюулгүй байдал",
+      "blockedUsers": "Хориглосон хэрэглэгчид",
+      "blockedUsersHelper": "Хоригийн жагсаалтаа удирдах"
+    },
+    "modals": {
+      "changePassword": {
+        "title": "Нууц үг солих",
+        "current": "Одоогийн нууц үг",
+        "currentPlaceholder": "Одоогийн нууц үгээ оруулна уу",
+        "new": "Шинэ нууц үг",
+        "newPlaceholder": "Шинэ нууц үгээ оруулна уу",
+        "confirm": "Нууц үг давтах",
+        "confirmPlaceholder": "Шинэ нууц үгээ дахин оруулна уу",
+        "cta": "Нууц үг шинэчлэх"
+      }
+    }
+  },
+  "shareGameModal": {
+    "errors": {
+      "shareFailed": "Тоглоомыг хуваалцаж чадсангүй.",
+      "shareFailedTryAgain": "Тоглоомыг хуваалцаж чадсангүй. Дахин оролдоно уу."
+    },
+    "title": "Тоглоом хуваалцах",
+    "vs": "эсрэг",
+    "searchFriends": "Найзуудаа хайх...",
+    "noFriends": "Одоогоор найз байхгүй.",
+    "noMatchingFriends": "Тохирох найзууд байхгүй.",
+    "sent": "Илгээсэн",
+    "send": "Илгээх"
+  },
+  "nav": {
+    "tournaments": "Тэмцээн",
+    "puzzles": "Бодлого",
+    "learn": "Сурах",
+    "watch": "Үзэх",
+    "community": "Нийгэмлэг",
+    "messages": "Зурвас",
+    "friends": "Найзууд",
+    "settings": "Тохиргоо",
+    "logout": "Гарах",
+    "viewProfile": "Профайл харах"
+  },
+  "NeonGambit": "NeonGambit",
+  "Go Back": "Go Back",
+  "Bot Management": "Bot Management",
+  "Export CSV": "Export CSV",
+  "Create Bot": "Create Bot",
+  "Total Bots": "Total Bots",
+  "Inactive": "Inactive",
+  "Masters": "Masters",
+  "All Difficulties": "All Difficulties",
+  "All Categories": "All Categories",
+  "All Status": "All Status",
+  "No bots found": "No bots found",
+  "Create your first bot": "Create your first bot",
+  "Bot": "Bot",
+  "Difficulty": "Difficulty",
+  "Category": "Category",
+  "Quote": "Quote",
+  "Status": "Status",
+  "Actions": "Actions",
+  "Edit": "Edit",
+  "Showing": "Showing",
+  "to": "to",
+  "of": "of",
+  "bots": "bots",
+  "Previous": "Previous",
+  "Page": "Page",
+  "Next": "Next",
+  "Selected model is applied to all game analysis views (User Analyze, Analyze960, and Admin Analyze), including AI explanations for Mistake, Blunder, and Brilliant moves": "Selected model is applied to all game analysis views (User Analyze, Analyze960, and Admin Analyze), including AI explanations for Mistake, Blunder, and Brilliant moves.",
+  "Providers": "Providers",
+  "Models": "Models",
+  "Input:": "Input:",
+  "Output:": "Output:",
+  "Max input:": "Max input:",
+  "Close": "Close",
+  "Bot Name *": "Bot Name *",
+  "Avatar Image (optional)": "Avatar Image (optional)",
+  "Image": "Image",
+  "Upload Image": "Upload Image",
+  "Max 5MB, JPG/PNG/GIF/WebP": "Max 5MB, JPG/PNG/GIF/WebP",
+  "ELO Rating *": "ELO Rating *",
+  "Difficulty *": "Difficulty *",
+  "Quote/Tagline": "Quote/Tagline",
+  "Description": "Description",
+  "Play Style": "Play Style",
+  "Skill Level:": "Skill Level:",
+  "0 (Weakest)": "0 (Weakest)",
+  "20 (Strongest)": "20 (Strongest)",
+  "Blunder Chance:": "Blunder Chance:",
+  "Use Opening Book": "Use Opening Book",
+  "Delete Bot": "Delete Bot",
+  "Are you sure you want to delete": "Are you sure you want to delete",
+  "ELO -": "ELO -",
+  "This bot is currently active and visible to users": "This bot is currently active and visible to users.",
+  "This action cannot be undone": {
+    " The bot will be permanently removed from the system": "This action cannot be undone. The bot will be permanently removed from the system."
+  },
+  "Use keyboard arrows to browse": "Use keyboard arrows to browse",
+  "Delete this post permanently?": "Delete this post permanently?",
+  "The uploaded media will be removed too": {
+    " This action cannot be undone": "The uploaded media will be removed too. This action cannot be undone."
+  },
+  "No posts found": "No posts found",
+  "Try a different status or search filter": "Try a different status or search filter.",
+  "Submitted": "Submitted",
+  "Updated": "Updated",
+  "Preview": "Preview",
+  "Caption": "Caption",
+  "Group": "Group",
+  "Edit Submission": "Edit Submission",
+  "Shared game snapshot is locked for moderation edits": {
+    " You can update the caption, status, and rejection reason here": "Shared game snapshot is locked for moderation edits. You can update the caption, status, and rejection reason here."
+  },
+  "Remove existing media": "Remove existing media",
+  "Save changes": "Save changes",
+  "Video preview": "Video preview",
+  "Review": "Review",
+  "Content type": "Content type",
+  "Result": "Result",
+  "Time control": "Time control",
+  "Opening": "Opening",
+  "Reviewed by": "Reviewed by",
+  "Posting access": "Posting access",
+  "Clear": "Clear",
+  "Rejection note": "Rejection note",
+  "Review actions": "Review actions",
+  "Approve": "Approve",
+  "Reject": "Reject",
+  "Confirm reject": "Confirm reject",
+  "Featured Events": "Featured Events",
+  "Import from EN": "Import from EN",
+  "Add Event": "Add Event",
+  "Live": "Live",
+  "Completed": "Completed",
+  "No events found": "No events found",
+  "Create your first event": "Create your first event",
+  "Event": "Event",
+  "Type": "Type",
+  "Date": "Date",
+  "Featured": "Featured",
+  "Pair ID:": "Pair ID:",
+  "\\u2013": "\\u2013",
+  "events": "events",
+  "\\u2026": "\\u2026",
+  "No events available to import": "No events available to import.",
+  "All": "All",
+  "Pair ID": "Pair ID",
+  "Import Selected": "Import Selected",
+  "Title *": "Title *",
+  "Generate": "Generate",
+  "Tournament": "Tournament",
+  "Match": "Match",
+  "Broadcast": "Broadcast",
+  "Main Button Label": "Main Button Label",
+  "Main Button URL": "Main Button URL",
+  "Secondary Button URL": "Secondary Button URL",
+  "Background Type": "Background Type",
+  "Default Gradient": "Default Gradient",
+  "Custom Color": "Custom Color",
+  "Custom Image": "Custom Image",
+  "Background Color": "Background Color",
+  "Background Image URL": "Background Image URL",
+  "Upload Background Image": "Upload Background Image",
+  "Import from МН": "Import from МН",
+  "Games Management": "Games Management",
+  "Total Games": "Total Games",
+  "Rated": "Rated",
+  "% of all games": "% of all games",
+  "Standard / 960": "Standard / 960",
+  "Last 24 Hours": "Last 24 Hours",
+  "All Variants": "All Variants",
+  "All Results": "All Results",
+  "All Types": "All Types",
+  "Casual": "Casual",
+  "No games found with current filters": "No games found with current filters.",
+  "Players": "Players",
+  "Variant": "Variant",
+  "Owner": "Owner",
+  "Moves": "Moves",
+  "Created": "Created",
+  "Delete Game": "Delete Game",
+  "This will permanently remove the game record and cannot be undone": "This will permanently remove the game record and cannot be undone.",
+  "Edit Game": "Edit Game",
+  "Manage game data and make it ready for admin analysis": "Manage game data and make it ready for admin analysis.",
+  "Owner User ID *": "Owner User ID *",
+  "White *": "White *",
+  "Black *": "Black *",
+  "Result *": "Result *",
+  "Play As *": "Play As *",
+  "White": "White",
+  "Black": "Black",
+  "White Elo": "White Elo",
+  "Black Elo": "Black Elo",
+  "Opponent": "Opponent",
+  "Opponent Level": "Opponent Level",
+  "Site": "Site",
+  "Date (PGN)": "Date (PGN)",
+  "Rated Game": "Rated Game",
+  "Termination": "Termination",
+  "Moves (space/newline separated SAN)": "Moves (space/newline separated SAN)",
+  "Move Text (optional)": "Move Text (optional)",
+  "PGN (optional)": "PGN (optional)",
+  "Save Changes": "Save Changes",
+  "Community Groups": "Community Groups",
+  "No groups yet": "No groups yet",
+  "Create the first public community group": "Create the first public community group.",
+  "members": "members",
+  "/community/groups/": "/community/groups/",
+  "Members": "Members",
+  "Approved Posts": "Approved Posts",
+  "Creator:": "Creator:",
+  "Back to Learn Admin": "Back to Learn Admin",
+  "Add Lesson": "Add Lesson",
+  "Topic / Level": "Topic / Level",
+  "/": "/",
+  "Lessons": "Lessons",
+  "All status": "All status",
+  "Published": "Published",
+  "Unpublished": "Unpublished",
+  "No lessons found": "No lessons found.",
+  "Lesson": "Lesson",
+  "Up": "Up",
+  "Down": "Down",
+  "Step Editor": "Step Editor",
+  "Lesson name": "Lesson name",
+  "Show lesson": "Show lesson",
+  "Back to Course": "Back to Course",
+  "Steps": "Steps",
+  "New": "New",
+  "No steps yet": "No steps yet.",
+  "Step": "Step",
+  "Step Info": "Step Info",
+  "Board": "Board",
+  "Board position": "Board position",
+  "Move color": "Move color",
+  "White to move": "White to move",
+  "Black to move": "Black to move",
+  "Instructions": "Instructions",
+  "Feedback": "Feedback",
+  "Correct feedback": "Correct feedback",
+  "Wrong feedback": "Wrong feedback",
+  "Correct Moves": "Correct Moves",
+  "Correct moves": "Correct moves",
+  "Clear moves": "Clear moves",
+  "Drag or click a legal move on the preview board to add it": "Drag or click a legal move on the preview board to add it.",
+  "x": "x",
+  "Show step": "Show step",
+  "Position Preview": "Position Preview",
+  "Learn Course Management": "Learn Course Management",
+  "New Course": "New Course",
+  "Total Courses": "Total Courses",
+  "Total Lessons": "Total Lessons",
+  "Published Courses": "Published Courses",
+  "All categories": "All categories",
+  "All difficulties": "All difficulties",
+  "No courses found for the current filters": "No courses found for the current filters.",
+  "Course": "Course",
+  "Topic": "Topic",
+  "Level": "Level",
+  "/learn/": "/learn/",
+  "total /": "total /",
+  "published": "published",
+  "Open": "Open",
+  "in current result": "in current result.",
+  "No courses available to import": "No courses available to import.",
+  "Course name": "Course name",
+  "Cover image": "Cover image",
+  "Cover": "Cover",
+  "No image selected": "No image selected",
+  "Summary": "Summary",
+  "Instructor": "Instructor",
+  "Show course": "Show course",
+  "Credential Security": "Credential Security",
+  "Manage the current admin password": "Manage the current admin password.",
+  "Update Password": "Update Password",
+  "Admin interface language": "Admin interface language",
+  "Add Puzzle": "Add Puzzle",
+  "All active states": "All active states",
+  "Active only": "Active only",
+  "Inactive only": "Inactive only",
+  "Duplicates": "Duplicates",
+  "Puzzle": "Puzzle",
+  "Rating": "Rating",
+  "Quality": "Quality",
+  "State": "State",
+  "Attempts:": "Attempts:",
+  "Solve / Fail:": "Solve / Fail:",
+  "Avg Time:": "Avg Time:",
+  "s": "s",
+  "Duplicate ×": "Duplicate ×",
+  "No puzzles found": "No puzzles found",
+  "Starting": "Starting",
+  "Tool": "Tool",
+  "Record Solution": "Record Solution",
+  "Stop Recording": "Stop Recording",
+  "Undo": "Undo",
+  "Click a piece to highlight its legal moves, then click a highlighted square to record": {
+    " Dragging still works": "Click a piece to highlight its legal moves, then click a highlighted square to record. Dragging still works."
+  },
+  "Recorded Moves:": "Recorded Moves:",
+  "Move Number": "Move Number",
+  "Who to Move": "Who to Move",
+  "White to Move": "White to Move",
+  "Black to Move": "Black to Move",
+  "Title": "Title",
+  "Medium": "Medium",
+  "FEN Position": "FEN Position",
+  "Solution (comma-separated moves)": "Solution (comma-separated moves)",
   "communityGroupDetail": {
+    "errors": {
+      "loadGroup": "Бүлгийг ачаалж чадсангүй.",
+      "loadGroupPosts": "Бүлгийн нийтлэлүүдийг ачаалж чадсангүй.",
+      "toggleMembership": "{{action}} бүлэгт орж чадсангүй.",
+      "updateGroup": "Бүлгийг шинэчилж чадсангүй."
+    },
     "notFoundTitle": "Бүлэг олдсонгүй",
     "notFoundDescription": "Энэ бүлгийг хассан байж магадгүй.",
     "createdPrefix": "үүсгэсэн {{time}}",
@@ -1116,12 +1614,563 @@
     "groupFeed": "Бүлгийн тэжээл",
     "emptyTitle": "Одоогоор батлагдсан нийтлэл байхгүй байна",
     "emptyJoined": "Энэ бүлгийн эхний бичлэгийг хуваалцаарай. Энэ нь тохируулсны дараа энд гарч ирнэ.",
-    "emptyNotJoined": "Бүлэгт нэгдэж, яриа эхлүүлэхэд тусална уу.",
-    "errors": {
-      "loadGroup": "Бүлгийг ачаалж чадсангүй.",
-      "loadGroupPosts": "Бүлгийн нийтлэлүүдийг ачаалж чадсангүй.",
-      "toggleMembership": "{{action}} бүлэгт орж чадсангүй.",
-      "updateGroup": "Бүлгийг шинэчилж чадсангүй."
+    "emptyNotJoined": "Бүлэгт нэгдэж, яриа эхлүүлэхэд тусална уу."
+  },
+  "communityGroupsPage": {
+    "title": "Шатрын дугуйлангаа олоорой",
+    "createGroup": "Бүлэг үүсгэх",
+    "searchPlaceholder": "Бүлгийн нэр, сэдэв эсвэл тайлбараар хайх...",
+    "backToCommunity": "Нийгэмлэг рүү буцах",
+    "noGroupsTitle": "Бүлэг олдсонгүй",
+    "noGroupsDescription": "Шатрын нийгэмлэгийнхээ анхны олон нийтийн бүлгийг эхлүүлээрэй.",
+    "pagination": {
+      "showing": "{{total}} илрүүлэх бүлгээс {{start}} - {{end}}-г харуулж байна"
     }
+  },
+  "friendsPage": {
+    "time": {
+      "earlier": "Өмнө нь"
+    },
+    "requestStatus": {
+      "accepted": "Хүлээн зөвшөөрсөн",
+      "denied": "Татгалзсан",
+      "ignored": "Үл тоосон",
+      "canceled": "Цуцлагдсан",
+      "pending": "Хүлээгдэж байна"
+    },
+    "errors": {
+      "searchFailed": "Хайлт амжилтгүй боллоо",
+      "searchFailedRetry": "Хайлт амжилтгүй боллоо. Дахин оролдоно уу.",
+      "cannotSendRequestBlocked": "Та энэ тоглогч руу найзын хүсэлт илгээх боломжгүй.",
+      "sendRequestFailed": "Хүсэлтийг илгээж чадсангүй",
+      "acceptFailed": "Хүсэлтийг хүлээж авч чадсангүй",
+      "messageUnavailable": "Мессеж илгээх боломжгүй.",
+      "challengeUnavailable": "Та энэ тоглогчийг эсэргүүцэх боломжгүй.",
+      "denyFailed": "Хүсэлтийг үгүйсгэж чадсангүй",
+      "cancelFailed": "Хүсэлтийг цуцалж чадсангүй",
+      "unfriendFailed": "Найзыг устгаж чадсангүй"
+    },
+    "requestSubtitle": {
+      "wantsToConnect": "Холбох хүсэлтэй байна",
+      "awaitingResponse": "Хариу хүлээж байна"
+    },
+    "incomingRequests": "Ирж буй хүсэлтүүд",
+    "outgoingRequests": "Гарч буй хүсэлтүүд",
+    "actions": {
+      "deny": "Үгүйсгэх",
+      "watchLiveTitle": "Амьд олон тоглогчтой тоглоом тоглож байна",
+      "watchCurrentGame": "Энэ найзын одоогийн тоглолтыг үзээрэй",
+      "sendDirectMessage": "Шууд мессеж илгээнэ үү",
+      "challengeFriend": "Энэ найзыг уриал",
+      "challenge": "Сорилт"
+    },
+    "status": {
+      "thatsYou": "Энэ бол чи"
+    },
+    "relationshipStates": "Харилцааны төлөв",
+    "filterPlaceholder": "Найзуудаа нэр эсвэл бариулаар нь шүүнэ үү",
+    "totalCount_one": "{{count}} ????",
+    "totalCount_other": "{{count}} ????",
+    "fetchingCircle": "Таны тойргийг татаж байна.",
+    "emptyListTitle": "Таны найзуудын жагсаалт хоосон байна",
+    "emptyListDescription": "Тоглогчдыг нэмж, сорьж, чатлаж эхлэх.",
+    "newestFirst": "Хамгийн шинэ нь эхлээд",
+    "loadingIncoming": "Ирж буй хүсэлтүүдийг ачаалж байна...",
+    "noIncoming": "Ирж буй хүсэлт байхгүй",
+    "noIncomingDescription": "Найзын урилга ирэхэд нь та эндээс харах болно.",
+    "loadingOutgoing": "Гарсан хүсэлтүүдийг ачаалж байна...",
+    "noOutgoing": "Гарах хүсэлт байхгүй",
+    "noOutgoingDescription": "Шинэ холболт эхлүүлэхийн тулд урилга илгээнэ үү.",
+    "addFriends": "Найзуудаа нэмнэ үү",
+    "addFriendsDescription": "Хэрэглэгчийн нэр эсвэл имэйлээр хайх. Тоглогчдыг тойрогтоо урь.",
+    "findByNameOrEmail": "Нэр эсвэл имэйлээр хайж олоорой",
+    "searchingLabel": "Searching...",
+    "searchingAcrossPlatform": "NeonGambit даяар тоглогч хайж байна.",
+    "findPlayers": "Тоглогчдыг олох",
+    "findPlayersDescription": "Шинэ найз нөхөд нэмэхийн тулд хайх. Таны үр дүн энд харагдах болно.",
+    "noEmailProvided": "Имэйл өгөөгүй"
+  },
+  "Friends since": "Найз болсон огноо",
+  "Message": "Зурвас",
+  "Unfriend": "Найзаас хасах",
+  "Friends": "Friends",
+  "Add Friend": "Найз нэмэх",
+  "Loading friends": {
+    "": "????????? ?????? ?????..."
+  },
+  "Search": "Хайх",
+  "Play Chess": "Play Chess",
+  "auth": {
+    "loginFailed": "Нэвтрэхэд алдаа гарлаа",
+    "googleLoginFailed": "Google-ээр нэвтрэхэд алдаа гарлаа.",
+    "facebookLoginFailed": "Facebook-ээр нэвтрэхэд алдаа гарлаа.",
+    "quickTestLoginFailed": "Quick test login failed",
+    "quickTestLoginRetry": "Could not create a unique test account. Please try again.",
+    "welcomeBack": "Дахин тавтай морил",
+    "accountBannedTitle": "Бүртгэл хаагдсан",
+    "accountBannedReason": "Таны бүртгэл хаагдсан байна. Шалтгаан: {{reason}}",
+    "email": "Имэйл",
+    "emailPlaceholder": "chi@example.com",
+    "password": "Нууц үг",
+    "rememberMe": "30 хоногт нэвтэрсэн хэвээр байх",
+    "signIn": "Нэвтрэх",
+    "quickTestLogin": "Quick Test Login (Dev Only)",
+    "orContinue": "Эсвэл доорхоор үргэлжлүүлэх",
+    "continueWithGoogle": "Google-ээр нэвтрэх",
+    "continueWithFacebook": "Facebook-ээр нэвтрэх",
+    "socialNotConfigured": "Сошиал нэвтрэлт тохируулагдаагүй байна.",
+    "noAccount": "Бүртгэл байгаа юу?",
+    "signUp": "Бүртгүүлэх",
+    "registrationFailed": "Бүртгэл амжилтгүй болов",
+    "createAccount": "Бүртгэл үүсгэх",
+    "fullName": "Бүтэн нэр",
+    "namePlaceholder": "Бат Эрдэнэ",
+    "minimumChars": "Хамгийн багадаа 8 тэмдэгт",
+    "orSignup": "Эсвэл доорхоор бүртгүүлэх",
+    "haveAccount": "Өмнө нь бүртгүүлсэн үү?",
+    "signInCta": "Нэвтрэх"
+  },
+  "messages": {
+    "videoFileFallback": "Video",
+    "attachmentFallback": "attachment",
+    "search": "Яриа хайх",
+    "tabConversations": "Ярианууд",
+    "tabArchived": "Архив",
+    "loading": "Яриануудыг ачаалж байна...",
+    "archivedEmpty": "Архивласан яриа байхгүй байна.",
+    "conversationsEmpty": "Одоогоор яриа байхгүй байна.",
+    "noMessages": "Одоогоор зурвас байхгүй байна.",
+    "deleteConfirmTitle": "Яриаг устгах уу?",
+    "deleteConfirmBody": "Энэ нь яриаг таны хэсгээс устгана. Нөгөө оролцогчийн хэсгээс устгахгүй.",
+    "confirmDelete": "Устгах",
+    "photoFileFallback": "Photo",
+    "archivedReadOnly": "Энэ яриа архивлагдсан байна. Хариулахын тулд эхлээд архиваас гарна уу.",
+    "unarchive": "Архиваас гаргах",
+    "clearAttachments": "Бүгдийг арилгах",
+    "imageSelected": "image selected",
+    "imagesSelected": "images selected",
+    "composePlaceholder": "Зурвас бичнэ үү...",
+    "media": {
+      "video": "Video",
+      "attachment": "attachment",
+      "imageSelected": "image selected",
+      "imagesSelected": "images selected",
+      "photo": "Photo"
+    },
+    "errors": {
+      "send": "Зурвас илгээж чадсангүй.",
+      "archive": "Яриаг архивлаж чадсангүй.",
+      "unarchive": "Яриаг архиваас гаргаж чадсангүй.",
+      "delete": "Яриаг устгаж чадсангүй."
+    },
+    "archived": "Яриаг архивт шилжүүллээ.",
+    "unarchived": "Яриаг архиваас гаргалаа.",
+    "conversation": "Яриа",
+    "loadingConversation": "Яриануудыг ачаалж байна...",
+    "openingLatest": "Хамгийн сүүлийн яриаг нээж байна...",
+    "emptyTitle": "Яриа байхгүй байна",
+    "emptySubtitle": "Жагсаалтаасаа тоглогч сонгож, яриа эхлүүлнэ үү.",
+    "archive": "Архивлах",
+    "action": "Боловсруулж байна...",
+    "delete": "Устгах",
+    "startConversation": "Одоогоор зурвас байхгүй байна. Яриаг эхлүүлнэ үү.",
+    "gameResult": {
+      "whiteWins": "White wins",
+      "blackWins": "Black wins",
+      "draw": "Draw"
+    }
+  },
+  "1 video selected ·": "1 video selected ·",
+  "/game1": "/game1",
+  "/game2": "/game2",
+  ", etc": {
+    " to share a game from your profile history": ", etc. to share a game from your profile history"
+  },
+  "moves": "moves",
+  "View Game": "View Game",
+  "Page not found": "Page not found",
+  "The page you requested could not be found": "The page you requested could not be found.",
+  "fourPlayer": {
+    "youSuffix": " (You)",
+    "playerFallback": "Player",
+    "colors": {
+      "red": "Улаан",
+      "blue": "Цэнхэр",
+      "yellow": "Шар",
+      "green": "Ногоон"
+    },
+    "searchingMatch": "Searching 4-player match...",
+    "defaultTimeControl": "5+0",
+    "searchMatchButton": "Search Match",
+    "gameOver": {
+      "youWin": "You Win",
+      "winnerWins": "{{winner}} Wins",
+      "eliminated": "You Were Eliminated",
+      "matchOver": "Match Over",
+      "reason": "Reason: {{reason}}",
+      "playerRunEnded": "Your run has ended in this match.",
+      "matchFinished": "Match finished."
+    },
+    "reviewingTurn": "Review: {{color}} to move",
+    "status": {
+      "yourTurn": "Your Turn",
+      "colorToMove": "{{color}} to move"
+    },
+    "you": "You",
+    "reviewingMoveCount": ". Reviewing move {{current}} of {{total}}.",
+    "period": ".",
+    "moveLog": {
+      "empty": "No moves yet"
+    }
+  },
+  "4-Player Online": "4-Player Online",
+  "Queue with 3 more players and start instantly": "Queue with 3 more players and start instantly.",
+  "Server Offline": "Сервер офлайн байна",
+  "Play Again": "Play Again",
+  "New Search": "New Search",
+  "Variants": "Variants",
+  "4-Player Chess Online": "4-Player Chess Online",
+  "Match Info": "Match Info",
+  "Playing as": "Playing as",
+  "Move Log": "Move Log",
+  "Leave": "Leave",
+  "practice": {
+    "workspace": {
+      "modes": {
+        "freeMove": {
+          "title": "Дурын нүүдэл",
+          "desc": "Дурын бодыг ээлжлэн хөдөлгөнө",
+          "open": "Дурын нүүдэл турших",
+          "plyCount_one": "{{count}} ????? ??????",
+          "plyCount_other": "{{count}} ????? ??????"
+        },
+        "positionBuilder": {
+          "title": "Байрлал үүсгэх",
+          "desc": "Дурын ямар ч байрлал бүтээ",
+          "open": "Байрлал үүсгэх"
+        }
+      },
+      "notices": {
+        "invalidFenStart": "FEN буруу байна. Эхний байрлалаар ачааллаа.",
+        "loadedFromBuilder": "Байрлал үүсгэгчээс байрлал ачааллаа ({{side}} нүүнэ).",
+        "queuedPreMoveNoLongerLegal": "Дараалсан урьдчилсан нүүдэл хүчингүй боллоо.",
+        "preMovePlayed": "Урьдчилсан нүүдэл тоглогдлоо.",
+        "queuedPreMoveInvalid": "Дараалсан урьдчилсан нүүдэл буруу байлаа.",
+        "selectLegalPreMoveTarget": "Урьдчилсан нүүдлийн зөв зорилтот нүд сонгоно уу.",
+        "chooseHighlightedLegalMove": "Тодруулсан зөв нүүдлүүдээс нэгийг сонгоно уу.",
+        "promotionPremovesQueuedAsQueen": "Пешкийн хувиралттай урьдчилсан нүүдэл хатнаар дараалалд орно.",
+        "preMoveQueued": "Урьдчилсан нүүдэл дараалалд орлоо.",
+        "positionBuilderNoPieceOnSquare": "Тэр нүдэнд бод алга.",
+        "positionBuilderInvalidSetup": "Байрлал буруу байна. Бодны зөв тоо болон тал тус бүр нэг хаантай байх ёстой.",
+        "positionBuilderInvalidPlacement": "Энэ байрлалд ингэж байрлуулах боломжгүй.",
+        "positionBuilderInvalidFenString": "FEN мөр буруу байна.",
+        "positionBuilderPositionLoaded": "Байрлалыг ачааллаа.",
+        "positionBuilderEnterFenFirst": "Эхлээд FEN мөр оруулна уу.",
+        "positionBuilderClipboardUnavailableFenShown": "Clipboard боломжгүй. FEN-г доор харууллаа.",
+        "positionBuilderFenCopiedToClipboard": "FEN-г clipboard руу хууллаа.",
+        "positionBuilderClipboardBlockedFenShown": "Clipboard хаалттай байна. FEN-г доор харууллаа.",
+        "positionBuilderCannotUpdateSideToMove": "Нүүх талыг шинэчилж чадсангүй.",
+        "positionBuilderTurnSetTo": "Нүүх талыг {{side}} болголоо.",
+        "positionBuilderLoadedStartPosition": "Анхны байрлалыг ачааллаа.",
+        "positionBuilderBoardCleared": "Бүх бодыг арилгалаа.",
+        "noMovesToUndo": "Буцаах нүүдэл алга.",
+        "lastMoveUndone": "Сүүлийн нүүдлийг буцаалаа.",
+        "noMovesToRedo": "Дахин хийх нүүдэл алга.",
+        "cannotRedoFromCurrentPosition": "Одоогийн байрлалаас дахин хийх боломжгүй.",
+        "moveRestored": "Нүүдлийг сэргээлээ.",
+        "positionResetToBuilderStart": "Байрлалыг үүсгэгчийн эхлэл рүү сэргээлээ.",
+        "positionResetToStart": "Байрлалыг анхны байрлал руу сэргээлээ.",
+        "noMovesToExportYet": "Экспортлох нүүдэл алга.",
+        "clipboardUnavailablePgnShown": "Clipboard боломжгүй. PGN-г доор харууллаа.",
+        "pgnCopiedToClipboard": "PGN-г clipboard руу хууллаа.",
+        "clipboardBlockedPgnShown": "Clipboard хаалттай байна. PGN-г доор харууллаа."
+      },
+      "turn": {
+        "white": "Цагаан",
+        "black": "Хар"
+      },
+      "positionBuilderValidation": {
+        "invalidTitle": "Байрлал буруу",
+        "couldNotValidate": "Энэ байрлалыг шалгаж чадсангүй. Дахин байрлуулаад оролдоно уу.",
+        "fenValidationFailed": "FEN шалгалт амжилтгүй.",
+        "boardMustContainKings": "Хөлөг дээр яг 1 цагаан хаан, 1 хар хаан байх ёстой.",
+        "kingsCannotBeAdjacent": "Хоёр хаан зэрэгцэж болохгүй.",
+        "sideInCheckButNotToMove": "{{side}} хаан шаганд байна, гэхдээ {{side}} нүүх ээлж биш.",
+        "checkmateTitle": "Мат",
+        "checkmateNoLegalMoves": "Мат: {{side}} талд хууль ёсны нүүдэл алга",
+        "stalemateTitle": "Пат",
+        "stalemateNoLegalMoves": "Пат: {{side}} талд хууль ёсны нүүдэл алга",
+        "okButton": "За"
+      },
+      "back": "Буцах",
+      "moveHistory": "Нүүдлийн түүх",
+      "moveHistoryEmpty": "PGN жагсаалт эхлүүлэхийн тулд зөв нүүдэл хийнэ үү.",
+      "freeMove": {
+        "openingUnavailable": "Гарааны мэдээлэл алга",
+        "topFiveMoves": "Шилдэг 5 нүүдэл",
+        "whiteToMove": "Цагаан тал нүүх",
+        "blackToMove": "Хар тал нүүх",
+        "analyzingTopMoves": "Шилдэг нүүдлүүдийг шинжилж байна...",
+        "topMovesPlaceholder": "Шилдэг нүүдлүүд энд гарна.",
+        "startPosition": "Анхны байрлал",
+        "plyCount_one": "{{count}} ????? ??????",
+        "plyCount_other": "{{count}} ????? ??????",
+        "resetToStart": "Анхны байрлал руу явах",
+        "flipBoard": "Хөлгийг эргүүлэх",
+        "queuedPreMove": "Дараалсан урьдчилсан нүүдэл",
+        "startPositionButton": "Анхны байрлал"
+      },
+      "exportPgn": "PGN экспортлох",
+      "turnToMove": "Нүүх тал",
+      "positionBuilderPanel": {
+        "piecePalette": "Бодны сонголт",
+        "whitePiece": "Цагаан бод",
+        "blackPiece": "Хар бод",
+        "eraserHelp": "Арилгагч (товч дээр дараад арилгах нүдэн дээрээ дар)",
+        "fenString": "Байрлал",
+        "loadFen": "Байрлалыг ачааллах",
+        "copyFen": "Байрлалыг хуулах",
+        "boardActions": "Үйлдлүүд",
+        "clearBoard": "Бүх бодыг арилгах",
+        "startFromThisPosition": "Энэ байрлалаас эхлэх"
+      },
+      "title": "Дадлагын орчин",
+      "subtitle": "Дасгал хийх талбараа сонго",
+      "currentSelection": "Одоогийн сонголт",
+      "importUploadPgn": "Байрлал оруулах"
+    },
+    "pgn": {
+      "status": {
+        "loadedFile": "{{fileName}} ачааллаа.",
+        "parsedPlies_one": "{{count}} ????? ?????? ????????????.",
+        "parsedPlies_other": "{{count}} ????? ?????? ????????????.",
+        "parsedSuccess": "PGN амжилттай боловсруулагдлаа."
+      },
+      "errors": {
+        "unableToReadFile": "Сонгосон PGN файлыг уншиж чадсангүй.",
+        "emptyInput": "Эхлээд PGN текст буулгах эсвэл PGN файл оруулна уу.",
+        "parseFailed": "PGN боловсруулалт амжилтгүй. Файлаа шалгана уу.",
+        "noGamePayload": "PGN боловсруулсан ч шинжилгээний тоглолтын өгөгдөл ирсэнгүй."
+      },
+      "backToPractice": "Дадлагад буцах",
+      "title": "PGN оруулах / шинжлэх",
+      "close": "PGN цонх хаах",
+      "pasteLabel": "PGN буулгах",
+      "uploadButton": ".pgn файл оруулах",
+      "placeholder": "[Event \"Practice\"]\\n[Site \"NeonGambit\"]\\n\\n1. e4 e5 2. Nf3 Nc6 3. Bb5 a6",
+      "sourceFile": "Эх файл: {{fileName}}",
+      "parsing": "PGN боловсруулж байна...",
+      "openInAnalysisBoard": "Шинжилгээний самбар дээр нээх",
+      "clearInput": "Оролтыг цэвэрлэх",
+      "importOptions": "Оруулах тохиргоо",
+      "importHelp": "PGN текстээ шууд буулгах эсвэл .pgn файл оруулаад шинжилгээний самбарт ачаална."
+    }
+  },
+  "4-Player Board": "4 тоглогчийн хөлөг",
+  "You": "Та",
+  "Start Variant": "Хувилбар эхлүүлэх",
+  "botGame": {
+    "notFound": "Bot not found",
+    "backToBotSelection": "Back to Bot Selection",
+    "aiOpponent": "AI opponent"
+  },
+  "Resign": "Resign",
+  "Back to Bot Selection": "Back to Bot Selection",
+  "Back": "Back",
+  "Play with Bot": "Play with Bot",
+  "Select a bot to play against": "Select a bot to play against",
+  "Play as": "Play as",
+  "Random": "Санамсаргүй",
+  "playWithBot": {
+    "playVs": "Play vs {{name}}",
+    "selectBot": "Select a Bot"
+  },
+  "Failed to fetch bots": "Ботуудыг татаж чадсангүй",
+  "Failed to load bots": "Ботуудыг ачаалж чадсангүй",
+  "Select Bot": "Бот сонгох",
+  "Play Bots": "Боттой тоглох",
+  "Loading bots": {
+    "": "???????? ?????? ?????..."
+  },
+  "bot": "бот",
+  "Play": "Тоглох",
+  "Friend": "Найз",
+  "Failed to load friends list": "????????? ?????????? ?????? ?????????",
+  "Select Time": "Цаг сонгох",
+  "Friend match": "Найзтай тоглолт",
+  "Select friend": "Найзаа сонгох",
+  "No friends found": "???? ?????????",
+  "Play vs": "Эсрэг тоглох",
+  "Change Friend": "Найзаа солих",
+  "Game Type": "Тоглолтын төрөл",
+  "Base (min)": "Үндсэн минут",
+  "Increment (sec)": "Нэмэлт секунд",
+  "Apply Custom": "дурын цаг ашиглах",
+  "Friend games are always unrated": {
+    " Elo does not change": "Elo ?????????????."
+  },
+  "I play as": "I play as",
+  "Sending": {
+    "": "?????? ?????..."
+  },
+  "Send Challenge": "Урилга илгээх",
+  "Choose Friend First": "Эхлээд найзаа сонгоно уу",
+  "Search puzzle title, theme, or motif": {
+    "": "???????? ???, ????? ????? ????????? ????..."
+  },
+  "puzzles": {
+    "difficulty": {
+      "easy": "Хялбар",
+      "hard": "Хэцүү",
+      "medium": "Дунд"
+    },
+    "modeLabels": {
+      "review": "Давталт",
+      "random": "Санамсаргүй",
+      "library": "Сан",
+      "rated": "Рейтингтэй"
+    },
+    "history": {
+      "summary": "{{mode}} • {{result}} • {{date}} • {{time}}",
+      "loadFailed": "Бодлогын түүхийг ачаалж чадсангүй",
+      "eyebrow": "Бодлогын түүх",
+      "searchLabel": "Хайлт",
+      "searchPlaceholder": "Гарчгаар хайх",
+      "loading": "Бодлогын түүхийг ачаалж байна...",
+      "empty": "Таны хайлтад тохирох түүх олдсонгүй."
+    },
+    "library": {
+      "start": "Эхлэх",
+      "pagination": "{{total}}-аас {{start}}–{{end}}-г харуулж байна",
+      "loadFailed": "Бодлогын санг ачаалж чадсангүй",
+      "title": "Бодлогын сан",
+      "searchLabel": "Хайлт",
+      "searchPlaceholder": "Гарчгаар хайх",
+      "statusLabel": "Төлөв",
+      "difficultyLabel": "Түвшин",
+      "ratingSeparator": "хүртэл",
+      "grid": "Хүрээ",
+      "list": "Жагсаалт",
+      "loading": "Бодлогын санг ачаалж байна...",
+      "emptyReviewDue": "Одоогоор давтах бодлого байхгүй байна. Рейтингтэй горимд алдаа гаргасан эсвэл бууж өгсөн бодлогууд энд шууд нэмэгдэнэ.",
+      "emptyFiltered": "Таны шүүлтэд тохирох бодлого олдсонгүй.",
+      "bookmarked": "Хадгалсан",
+      "noDescription": "Тайлбар байхгүй",
+      "attempts_one": "{{count}} attempts",
+      "attempts_other": "{{count}} attempts",
+      "noMotifs": "Мотив байхгүй"
+    },
+    "status": {
+      "all": "Бүгд",
+      "new": "Шинэ",
+      "solved": "Бодсон",
+      "failedBefore": "Өмнө алдаж байсан",
+      "reviewDue": "Давтах цаг болсон",
+      "bookmarked": "Хадгалсан"
+    },
+    "trainer": {
+      "historyTab": "Түүх",
+      "whiteToMove": "Цагаан нүүнэ",
+      "blackToMove": "Хар нүүнэ",
+      "loading": "Бодлогыг ачаалж байна...",
+      "noReviewTitle": "Одоогоор давтах бодлого байхгүй",
+      "noPuzzleTitle": "Бодлого олдсонгүй",
+      "noPuzzleDescription": "Түр хүлээгээд дахин оролдоно уу.",
+      "puzzleElo": "Бодлогын Elo",
+      "streak": "Цуврал",
+      "sideToMove": "Нүүх ээлж",
+      "waitingForPuzzle": "Бодлогыг хүлээж байна...",
+      "timer": "Хугацаа",
+      "bookmarked": "Хадгалсан",
+      "bookmark": "Хадгалах",
+      "hintUsed": "Сэжүүр ашигласан",
+      "useHint": "Сэжүүр авах",
+      "showSolution": "Шийдлийг харах",
+      "tryAgain": "Дахин оролдох",
+      "shufflePuzzle": "Санамсаргүй бодлого бодох",
+      "nextPuzzle": "Дараагийн бодлого",
+      "revealLine": "Шийдлийг хармаар байвал шийдлийг харах товчийг дар",
+      "noStoredLine": "Хадгалсан хувилбар байхгүй.",
+      "loadFailed": "Бодлогыг ачаалж чадсангүй",
+      "submitFailed": "Оролдлогыг хадгалж чадсангүй",
+      "invalidFen": "Энэ бодлогын FEN утга буруу байна"
+    }
+  },
+  "Elo": "Elo",
+  "Solve": "Бодох",
+  "Puzzle Library": "Бодлогын сан",
+  "shown": "үзүүлсэн",
+  "No puzzles available": "Бодлого байхгүй байна",
+  "Puzzle Rating": "Бодлогын рейтинг",
+  "Best:": "Шилдэг:",
+  "Solved Today": "Өнөөдөр бодсон",
+  "solved overall": "нийт бодсон",
+  "Day": "Өдөр",
+  "Days": "Өдөр",
+  "Consecutive solve days": "Дараалан бодсон өдрүүд",
+  "Next Puzzle": "Next Puzzle",
+  "to move": "to move",
+  "Puzzle Elo": "Puzzle Elo",
+  "Correct!": "Correct!",
+  "Solved in": "Solved in",
+  "Wrong move": "Wrong move",
+  "Try again or view solution": "Try again or view solution",
+  "Solution": "Solution",
+  "Hint": "Hint",
+  "First move:": "First move:",
+  "Winner": "Ялагч",
+  "Atomic Chess": "Атомик шатар",
+  "Game": "Тоглолт",
+  "Rating range:": "Рейтингийн хүрээ:",
+  "Arena Over": "Arena Over",
+  "min": "min",
+  "Featured Match": "Онцлох тоглолт",
+  "View all events": "Бүх үйл явдлыг үзэх",
+  "UPCOMING": "УДАХГҮЙ",
+  "watching": "үзэж байна",
+  "Watch Now": "Одоо үзэх",
+  "Lichess": "Lichess",
+  "via Lichess": "Lichess-ээр",
+  "View all tournaments": "Бүх тэмцээнийг үзэх",
+  "Watch on Lichess": "Lichess дээр үзэх",
+  "No featured events at the moment": "Одоогоор онцлох үйл явдал байхгүй байна",
+  "watch": {
+    "liveGames": {
+      "categorySummary": "{{label}} - {{time}}",
+      "rangeSummary": "{{start}}-{{end}} of {{total}} games"
+    }
+  },
+  "Refresh": "Шинэчлэх",
+  "No live games in this category right now": "Энэ ангилалд одоогоор шууд тоглолт байхгүй байна",
+  "Check back soon or try another category": "Удалгүй дахин шалгах эсвэл өөр ангилал туршиж үзнэ үү",
+  "Watch Live": "Шууд үзэх",
+  "Search players or events": {
+    "": "??????? ????? ??? ????? ????..."
+  },
+  "watchPage": {
+    "fallback": {
+      "live": "ШУУД",
+      "tournament": "ТЭМЦЭЭН",
+      "worldChampionshipTitle": "Дэлхийн шатрын аварга шалгаруулах тэмцээн",
+      "worldChampionshipDescription": "Кандидатын тэмцээн болж, ялагч нь дэлхийн аварга Гүкештэй өрсөлдөнө.",
+      "grandPrixTitle": "FIDE Гран-При цуврал",
+      "grandPrixDescription": "Шилдэг 16 тоглогч сонгон шалгаруулалтын эрхийн төлөө дөрвөн үе шатанд өрсөлдөнө.",
+      "speedChess": "ТҮРГЭН ШАТАР",
+      "speedChessTitle": "Түргэн шатрын аварга шалгаруулах тэмцээн",
+      "speedChessDescription": "Дэлхийн хамгийн хурдан шатарт bullet, blitz, rapid төрлүүд нэг дор өрнөнө.",
+      "event": "ҮЙЛ ЯВДАЛ",
+      "featuredEvent": "Онцлох үйл явдал",
+      "details": "Дэлгэрэнгүй"
+    },
+    "featuredTournaments": "Онцлох тэмцээнүүд",
+    "previousFeaturedSlide": "Өмнөх онцлох слайд",
+    "nextFeaturedSlide": "Дараагийн онцлох слайд",
+    "goToFeaturedSlide": "{{index}}-р онцлох слайд руу очих"
+  },
+  "Continue Watching Moves": "Continue Watching Moves",
+  "Back to Watch": "Back to Watch",
+  "friends": {
+    "totalCount_one": "{{count}} ????",
+    "totalCount_other": "{{count}} ????"
   }
 }

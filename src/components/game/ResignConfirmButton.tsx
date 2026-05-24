@@ -6,6 +6,7 @@ import {
   useId,
   useState,
 } from "react";
+import { useTranslation } from "react-i18next";
 import { createPortal } from "react-dom";
 
 interface ResignConfirmButtonProps
@@ -21,6 +22,7 @@ export function ResignConfirmButton({
   type = "button",
   ...buttonProps
 }: ResignConfirmButtonProps) {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const titleId = useId();
   const descriptionId = useId();
@@ -66,14 +68,16 @@ export function ResignConfirmButton({
             id={titleId}
             className="text-lg font-semibold text-gray-900 dark:text-white"
           >
-            Resign Game?
+            {t("quickMatch.resignConfirm.title", "Resign Game?")}
           </h2>
           <p
             id={descriptionId}
             className="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300"
           >
-            Are you sure you want to resign this game? This will count as a
-            loss.
+            {t(
+              "quickMatch.resignConfirm.description",
+              "Are you sure you want to resign this game? This will count as a loss.",
+            )}
           </p>
         </div>
         <div className="flex items-center justify-end gap-2.5 border-t border-theme-glass px-6 py-4">
@@ -82,14 +86,14 @@ export function ResignConfirmButton({
             onClick={handleClose}
             className="rounded-lg border border-theme-glass bg-white/70 px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-white/80 dark:bg-white/5 dark:text-gray-200 dark:hover:bg-white/10"
           >
-            Cancel
+            {t("Cancel")}
           </button>
           <button
             type="button"
             onClick={handleConfirm}
             className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-500"
           >
-            Resign
+            {t("game.actions.resign", "Resign")}
           </button>
         </div>
       </div>

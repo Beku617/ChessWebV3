@@ -51,14 +51,6 @@ export function ThemeOptionsGrid({
                     themeOption.label,
                   )}
                 </span>
-                {themeOption.description ? (
-                  <span className="mt-1 block text-xs text-slate-400">
-                    {t(
-                      `settings.appearance.themeDescriptions.${themeOption.name}`,
-                      themeOption.description,
-                    )}
-                  </span>
-                ) : null}
               </div>
               {isActive ? (
                 <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[var(--accent)] text-white">

@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Users, Clock, RefreshCw, Radio } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import type { WatchLiveGame } from "../../pages/watch/types";
 
@@ -22,6 +22,7 @@ export function LiveGamesSection({
   const { t } = useTranslation();
   const navigate = useNavigate();
   const isLoading = loading || apiLoading;
+  const hasMoreGames = games.length > 5;
 
   return (
     <motion.div
@@ -53,12 +54,14 @@ export function LiveGamesSection({
           >
             <RefreshCw className={`w-4 h-4 ${apiLoading ? "animate-spin" : ""}`} />
           </button>
-          <button
-            onClick={() => navigate("/watch")}
-            className="text-sm text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 transition-colors font-medium"
-          >
-            {t("View All")} &gt;
-          </button>
+          {!isLoading && hasMoreGames ? (
+            <button
+              onClick={() => navigate("/watch")}
+              className="text-sm text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 transition-colors font-medium"
+            >
+              {t("View All")} &gt;
+            </button>
+          ) : null}
         </div>
       </div>
 
@@ -118,7 +121,7 @@ export function LiveGamesSection({
                           ({game.whiteRating})
                         </span>
                       </span>
-                      <span className="text-gray-300 dark:text-gray-600 text-xs">vs</span>
+                      <span className="text-gray-300 dark:text-gray-600 text-xs"><Trans>vs</Trans></span>
                       <span className="text-gray-900 dark:text-white font-medium">
                         {game.blackTitle && (
                           <span className="text-amber-500 dark:text-amber-400 mr-1 text-xs">

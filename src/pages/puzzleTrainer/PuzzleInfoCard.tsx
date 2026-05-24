@@ -1,3 +1,4 @@
+import { Trans } from "react-i18next";
 import { PuzzleItem } from "./types";
 
 interface PuzzleInfoCardProps {
@@ -23,8 +24,7 @@ export function PuzzleInfoCard({ puzzle, isWhiteToMove }: PuzzleInfoCardProps) {
                 }`}
               />
               <span className="font-semibold text-xs">
-                {isWhiteToMove ? "White" : "Black"} to move
-              </span>
+                {isWhiteToMove ? "White" : "Black"} <Trans>to move</Trans> </span>
             </div>
             <p className="text-gray-300 text-xs leading-relaxed line-clamp-2">
               {puzzle.description ||

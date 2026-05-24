@@ -45,6 +45,46 @@ function getLinkedProviders(user: ReturnType<typeof useAuthStore.getState>["user
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
+const SETTINGS_CARD_ACCENT = {
+  profile: "bg-brand-500",
+  language: "bg-indigo-500",
+  appearance: "bg-purple-500",
+  gameplay: "bg-brand-500",
+  ai: "bg-emerald-500",
+  privacy: "bg-blue-500",
+} as const;
+
+const SETTINGS_KEY = {
+  defaultTimeControl: "defaultTimeControl",
+  autoQueen: "autoQueen",
+  moveInput: "moveInput",
+  showLegalMoves: "showLegalMoves",
+  premoves: "premoves",
+  enableAiExplanations: "enableAiExplanations",
+  explanationLevel: "explanationLevel",
+  postGameAnalysis: "postGameAnalysis",
+} as const;
+
+const TIME_CONTROL_VALUE = {
+  bullet: "bullet",
+  blitz: "blitz",
+  rapid: "rapid",
+  classical: "classical",
+  custom: "custom",
+} as const;
+
+const MOVE_INPUT_VALUE = {
+  click: "click",
+  drag: "drag",
+  both: "both",
+} as const;
+
+const EXPLANATION_LEVEL_VALUE = {
+  brief: "brief",
+  normal: "normal",
+  deep: "deep",
+} as const;
+
 function resolveAvatarUrl(avatar?: string) {
   if (!avatar) return "";
   if (
@@ -323,7 +363,7 @@ export default function Settings() {
                   "settings.profile.subtitle",
                   "Your personal information and security",
                 )}
-                accent="bg-brand-500"
+                accent={SETTINGS_CARD_ACCENT.profile}
               >
                 <div className="flex flex-col items-center gap-5 py-3 sm:flex-row sm:items-start">
                   <ProfileAvatarUpload
@@ -385,7 +425,7 @@ export default function Settings() {
               <SettingsCard
                 title={t("settingsLang.title", "Language")}
                 subtitle={t("settingsLang.helper", "Choose your preferred language")}
-                accent="bg-indigo-500"
+                accent={SETTINGS_CARD_ACCENT.language}
               >
                 <SettingRow
                   label={t("settingsLang.title", "Language")}
@@ -422,11 +462,8 @@ export default function Settings() {
 
               <SettingsCard
                 title={t("settings.appearance.title", "Appearance")}
-                subtitle={t(
-                  "settings.appearance.subtitle",
-                  "Customize how NeonGambit looks",
-                )}
-                accent="bg-purple-500"
+                subtitle={t("settings.appearance.subtitle")}
+                accent={SETTINGS_CARD_ACCENT.appearance}
               >
                 <SettingRow
                   label={t("settings.appearance.theme", "Theme")}
@@ -460,7 +497,7 @@ export default function Settings() {
               <SettingsCard
                 title={t("settings.gameplay.title", "Gameplay")}
                 subtitle={t("settings.gameplay.subtitle", "Tweak your playing experience")}
-                accent="bg-brand-500"
+                accent={SETTINGS_CARD_ACCENT.gameplay}
               >
                 <SettingRow
                   label={t("settings.gameplay.defaultTime", "Default Time Control")}
@@ -471,13 +508,13 @@ export default function Settings() {
                 >
                   <Select
                     value={settings.defaultTimeControl}
-                    onChange={(value) => update("defaultTimeControl", value)}
+                    onChange={(value) => update(SETTINGS_KEY.defaultTimeControl, value)}
                     options={[
-                      { label: t("settings.gameplay.timeControls.bullet", "Bullet"), value: "bullet" },
-                      { label: t("settings.gameplay.timeControls.blitz", "Blitz"), value: "blitz" },
-                      { label: t("settings.gameplay.timeControls.rapid", "Rapid"), value: "rapid" },
-                      { label: t("settings.gameplay.timeControls.classical", "Classical"), value: "classical" },
-                      { label: t("settings.gameplay.timeControls.custom", "Custom"), value: "custom" },
+                      { label: t("settings.gameplay.timeControls.bullet", "Bullet"), value: TIME_CONTROL_VALUE.bullet },
+                      { label: t("settings.gameplay.timeControls.blitz", "Blitz"), value: TIME_CONTROL_VALUE.blitz },
+                      { label: t("settings.gameplay.timeControls.rapid", "Rapid"), value: TIME_CONTROL_VALUE.rapid },
+                      { label: t("settings.gameplay.timeControls.classical", "Classical"), value: TIME_CONTROL_VALUE.classical },
+                      { label: t("settings.gameplay.timeControls.custom", "Custom"), value: TIME_CONTROL_VALUE.custom },
                     ]}
                   />
                 </SettingRow>
@@ -491,8 +528,8 @@ export default function Settings() {
                 >
                   <Toggle
                     enabled={settings.autoQueen}
-                    onChange={(value) => update("autoQueen", value)}
-                    ariaLabel="Auto-queen"
+                    onChange={(value) => update(SETTINGS_KEY.autoQueen, value)}
+                    ariaLabel={t("settings.gameplay.autoQueenAria", "Auto-queen")}
                   />
                 </SettingRow>
 
@@ -502,12 +539,20 @@ export default function Settings() {
                 >
                   <SegmentedControl
                     options={[
-                      { label: t("settings.gameplay.input.click", "Click"), value: "click" },
-                      { label: t("settings.gameplay.input.drag", "Drag"), value: "drag" },
-                      { label: t("settings.gameplay.input.both", "Both"), value: "both" },
+                      { label: t("settings.gameplay.input.click", "Click"), value: MOVE_INPUT_VALUE.click },
+                      { label: t("settings.gameplay.input.drag", "Drag"), value: MOVE_INPUT_VALUE.drag },
+                      { label: t("settings.gameplay.input.both", "Both"), value: MOVE_INPUT_VALUE.both },
                     ]}
                     value={settings.moveInput}
-                    onChange={(value) => update("moveInput", value as "click" | "drag" | "both")}
+                    onChange={(value) =>
+                      update(
+                        SETTINGS_KEY.moveInput,
+                        value as
+                          | typeof MOVE_INPUT_VALUE.click
+                          | typeof MOVE_INPUT_VALUE.drag
+                          | typeof MOVE_INPUT_VALUE.both,
+                      )
+                    }
                   />
                 </SettingRow>
 
@@ -517,8 +562,8 @@ export default function Settings() {
                 >
                   <Toggle
                     enabled={settings.showLegalMoves}
-                    onChange={(value) => update("showLegalMoves", value)}
-                    ariaLabel="Show legal moves"
+                    onChange={(value) => update(SETTINGS_KEY.showLegalMoves, value)}
+                    ariaLabel={t("settings.gameplay.showLegalMovesAria", "Show legal moves")}
                   />
                 </SettingRow>
 
@@ -529,8 +574,8 @@ export default function Settings() {
                 >
                   <Toggle
                     enabled={settings.premoves}
-                    onChange={(value) => update("premoves", value)}
-                    ariaLabel="Premoves"
+                    onChange={(value) => update(SETTINGS_KEY.premoves, value)}
+                    ariaLabel={t("settings.gameplay.premovesAria", "Premoves")}
                   />
                 </SettingRow>
               </SettingsCard>
@@ -541,7 +586,7 @@ export default function Settings() {
                   "settings.ai.subtitle",
                   "Configure AI-powered replay explanations",
                 )}
-                accent="bg-emerald-500"
+                accent={SETTINGS_CARD_ACCENT.ai}
               >
                 <SettingRow
                   label={t("settings.ai.explanations", "AI Move Explanations")}
@@ -552,7 +597,9 @@ export default function Settings() {
                 >
                   <Toggle
                     enabled={settings.enableAiExplanations}
-                    onChange={(value) => update("enableAiExplanations", value)}
+                    onChange={(value) =>
+                      update(SETTINGS_KEY.enableAiExplanations, value)
+                    }
                     ariaLabel={t(
                       "settings.ai.explanations",
                       "AI Move Explanations",
@@ -571,22 +618,25 @@ export default function Settings() {
                     options={[
                       {
                         label: t("settings.ai.levels.brief", "Brief"),
-                        value: "brief",
+                        value: EXPLANATION_LEVEL_VALUE.brief,
                       },
                       {
                         label: t("settings.ai.levels.normal", "Normal"),
-                        value: "normal",
+                        value: EXPLANATION_LEVEL_VALUE.normal,
                       },
                       {
                         label: t("settings.ai.levels.deep", "Deep"),
-                        value: "deep",
+                        value: EXPLANATION_LEVEL_VALUE.deep,
                       },
                     ]}
                     value={settings.explanationLevel}
                     onChange={(value) =>
                       update(
-                        "explanationLevel",
-                        value as "brief" | "normal" | "deep",
+                        SETTINGS_KEY.explanationLevel,
+                        value as
+                          | typeof EXPLANATION_LEVEL_VALUE.brief
+                          | typeof EXPLANATION_LEVEL_VALUE.normal
+                          | typeof EXPLANATION_LEVEL_VALUE.deep,
                       )
                     }
                   />
@@ -601,7 +651,9 @@ export default function Settings() {
                 >
                   <Toggle
                     enabled={settings.postGameAnalysis}
-                    onChange={(value) => update("postGameAnalysis", value)}
+                    onChange={(value) =>
+                      update(SETTINGS_KEY.postGameAnalysis, value)
+                    }
                     ariaLabel={t(
                       "settings.ai.postGame",
                       "Post-Game Analysis",
@@ -628,7 +680,7 @@ export default function Settings() {
 
               <SettingsCard
                 title={t("settings.privacy.title", "Privacy & Safety")}
-                accent="bg-blue-500"
+                accent={SETTINGS_CARD_ACCENT.privacy}
               >
                 <SettingRow
                   label={t("settings.privacy.blockedUsers", "Blocked Users")}

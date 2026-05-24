@@ -242,19 +242,77 @@ export function QuickMatchSetup({
     GAME_TYPE_OPTIONS[0];
   const timeGroupLabel =
     t(selectedTimeOption?.groupLabel || getTimeGroupLabel(timeControl));
-  const timeOptionLabel = selectedTimeOption?.label || formatTimeLabel(timeControl);
+  const timeOptionLabel = selectedTimeOption
+    ? t(selectedTimeOption.label)
+    : formatTimeLabel(timeControl);
   const selectedTimeLabel = selectedTimeOption
-    ? `${selectedTimeOption.label} (${t(selectedTimeOption.groupLabel)})`
+    ? `${t(selectedTimeOption.label)} (${t(selectedTimeOption.groupLabel)})`
     : `${timeOptionLabel} (${timeGroupLabel})`;
   const isUnratedVariant =
     variant === "chess960" ||
     variant === "threeCheck" ||
     variant === "kingOfHill" ||
     variant === "atomic";
+  const searchingForOpponentLabel = t(
+    "quickMatch.search.searchingForOpponent",
+    "Searching for opponent...",
+  );
+  const waitingForOpponentLabel = t(
+    "quickMatch.search.waitingForOpponent",
+    "Waiting for opponent...",
+  );
+  const waitingForTournamentOpponentLabel = t(
+    "quickMatch.search.waitingTournamentOpponent",
+    "Waiting for your tournament opponent to open the game link...",
+  );
+  const tournamentPairingInfoLabel = t(
+    "quickMatch.search.tournamentPairingInfo",
+    "This is a tournament pairing. The game will start automatically once both players join this link. You can keep this tab open; no extra matchmaking is needed.",
+  );
+  const searchingStatusLabel = t(
+    "quickMatch.search.statusSearching",
+    "Searching...",
+  );
+  const searchingStatusLabelBase = searchingStatusLabel.replace(
+    /\s*\.{3}\s*$/,
+    "",
+  );
+  const localizedQueueStatus = (() => {
+    if (!queueStatus) return null;
+    const trimmedStatus = queueStatus.trim();
+
+    if (/^Searching for opponent\.\.\.$/i.test(trimmedStatus)) {
+      return searchingForOpponentLabel;
+    }
+
+    const rangeMatch = trimmedStatus.match(
+      /^Searching for opponent\s*\((?:\u00B1|\+\/-)?\s*(\d+)\)\.\.\.$/i,
+    );
+    if (rangeMatch) {
+      return `${searchingForOpponentLabel.replace(/\.\.\.$/, "")} (+/-${rangeMatch[1]})...`;
+    }
+
+    if (/^Waiting for opponent\.\.\.$/i.test(trimmedStatus)) {
+      return waitingForOpponentLabel;
+    }
+
+    if (/^Waiting for your tournament opponent\.\.\.$/i.test(trimmedStatus)) {
+      return waitingForTournamentOpponentLabel;
+    }
+
+    if (
+      /^Waiting for your tournament opponent to open the game link\.\.\.$/i.test(
+        trimmedStatus,
+      )
+    ) {
+      return waitingForTournamentOpponentLabel;
+    }
+
+    return queueStatus;
+  })();
   const searchingGameText = tournamentMode
-    ? queueStatus ||
-      t("Waiting for your tournament opponent to open the game link...")
-    : `${t("Searching")} ${timeOptionLabel} ${timeGroupLabel}${variantLabel ? " " + variantLabel : ""} ${t("Game")}`;
+    ? localizedQueueStatus || waitingForTournamentOpponentLabel
+    : `${searchingStatusLabelBase} ${timeOptionLabel} ${timeGroupLabel}${variantLabel ? " " + variantLabel : ""} ${t("Game")}`;
   const expandedRange = Math.min(
     500,
     50 + Math.floor(searchElapsedSeconds / 5) * 25,
@@ -277,7 +335,7 @@ export function QuickMatchSetup({
       ref={containerRef}
       className="relative h-full min-h-0 w-full bg-transparent"
     >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(20,184,166,0.14),transparent_48%),radial-gradient(circle_at_85%_10%,rgba(56,189,248,0.08),transparent_42%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(255,255,255,0.42),transparent_56%),radial-gradient(circle_at_85%_10%,rgba(56,189,248,0.05),transparent_44%),linear-gradient(180deg,rgba(255,255,255,0.22),rgba(255,255,255,0.1))]" />
       <div className="relative h-full min-h-0 grid grid-cols-1 lg:grid-cols-2">
         {/* Left Side - Board Preview with Player Info */}
         <div
@@ -291,7 +349,7 @@ export function QuickMatchSetup({
             style={{ width: boardWidth }}
           >
             <PlayerInfo
-              name={isSearching ? t("Searching...") : ""}
+              name={isSearching ? searchingStatusLabel : ""}
               subtitle={isSearching ? searchingGameText : ""}
               avatarLetter="?"
               avatarStyle="opponent"
@@ -380,18 +438,18 @@ export function QuickMatchSetup({
                   <div className="theme-glass-panel-strong w-full max-w-[300px] rounded-2xl p-7 text-center">
                     <Timer className="w-10 h-10 mx-auto text-gray-700 dark:text-gray-200" />
                     <p className="mt-3 text-2xl font-semibold text-gray-900 dark:text-white">
-                      {searchElapsedSeconds} sec
+                      {searchElapsedSeconds} {t("tournamentsPage.units.secAbbr", "s")}
                     </p>
                     <p className="mt-2 text-lg text-gray-600 dark:text-gray-300">
                       {searchingGameText}
                     </p>
                     <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                       {tournamentMode
-                        ? queueStatus || t("Waiting for opponent...")
-                        : queueStatus ||
+                        ? localizedQueueStatus || waitingForOpponentLabel
+                        : localizedQueueStatus ||
                           (isUnratedVariant
-                            ? t("Searching for opponent...")
-                            : `${t("Rating range:")} ±${expandedRange}`)}
+                            ? searchingForOpponentLabel
+                            : `${t("Rating range:")} +/-${expandedRange}`)}
                     </p>
                     <button
                       type="button"
@@ -512,7 +570,7 @@ export function QuickMatchSetup({
                                             : "bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 ring-1 ring-gray-200 dark:ring-slate-700 hover:ring-gray-300 dark:hover:ring-slate-600"
                                         }`}
                                       >
-                                        {opt.label}
+                                        {t(opt.label)}
                                       </button>
                                     );
                                   })}
@@ -522,11 +580,11 @@ export function QuickMatchSetup({
                           })}
                           <div className="theme-glass-panel-soft rounded-xl p-2.5">
                             <div className="text-[12px] font-semibold text-gray-800 dark:text-gray-200">
-                              Custom
+                              {t("Custom")}
                             </div>
                             <div className="mt-2 grid grid-cols-2 gap-2">
                               <label className="text-[11px] text-gray-600 dark:text-gray-300">
-                                Base (min)
+                                {t("Base (min)")}
                                 <input
                                   type="number"
                                   min={1}
@@ -539,7 +597,7 @@ export function QuickMatchSetup({
                                 />
                               </label>
                               <label className="text-[11px] text-gray-600 dark:text-gray-300">
-                                Increment (sec)
+                                {t("Increment (sec)")}
                                 <input
                                   type="number"
                                   min={0}
@@ -557,7 +615,7 @@ export function QuickMatchSetup({
                               onClick={applyCustomTimeControl}
                               className="mt-2 w-full rounded-lg bg-brand-500/20 text-brand-700 dark:text-brand-300 py-1.5 text-[12px] font-semibold ring-1 ring-brand-500/40 hover:bg-brand-500/25 transition-colors"
                             >
-                              Apply Custom
+                              {t("Apply Custom")}
                             </button>
                           </div>
                         </div>
@@ -568,7 +626,7 @@ export function QuickMatchSetup({
 
                 {tournamentMode && (
                   <div className="theme-glass-panel-soft rounded-2xl p-3 text-sm text-gray-700 dark:text-gray-200">
-                    {t("This is a tournament pairing. The game will start automatically once both players join this link. You can keep this tab open; no extra matchmaking is needed.")}
+                    {tournamentPairingInfoLabel}
                   </div>
                 )}
               </div>
@@ -581,7 +639,7 @@ export function QuickMatchSetup({
                     className="w-full py-3 rounded-xl bg-gradient-to-r from-brand-500 to-brand-500 hover:from-brand-600 hover:to-brand-600 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold text-lg transition-all shadow-lg hover:shadow-xl active:scale-[0.98] disabled:cursor-not-allowed disabled:shadow-none"
                   >
                     {isSearching
-                      ? t("Searching...")
+                      ? searchingStatusLabel
                       : isConnected
                         ? t("Play")
                         : t("Server Offline")}
@@ -595,3 +653,4 @@ export function QuickMatchSetup({
     </div>
   );
 }
+

@@ -4,6 +4,7 @@ import {
   RotateCcw,
   Swords,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { createPortal } from "react-dom";
 import {
   canAnalyzeSavedGame,
@@ -40,35 +41,64 @@ interface GameOverModalProps {
   } | null;
 }
 
-function extractReasonLabel(raw: string): string | null {
+type ResultReason =
+  | "checkmate"
+  | "stalemate"
+  | "repetition"
+  | "insufficientMaterial"
+  | "timeForfeit"
+  | "resignation"
+  | "abandonment"
+  | "aborted";
+
+const RESULT_REASON_DEFAULTS: Record<ResultReason, string> = {
+  checkmate: "Checkmate",
+  stalemate: "Stalemate",
+  repetition: "Repetition",
+  insufficientMaterial: "Insufficient Material",
+  timeForfeit: "Time Forfeit",
+  resignation: "Resignation",
+  abandonment: "Abandonment",
+  aborted: "Aborted",
+};
+
+function extractReasonKey(raw: string): ResultReason | null {
   const lower = raw.toLowerCase();
 
-  if (lower.includes("checkmate")) return "Checkmate";
-  if (lower.includes("stalemate")) return "Stalemate";
+  if (lower.includes("checkmate")) return "checkmate";
+  if (lower.includes("stalemate")) return "stalemate";
   if (lower.includes("threefold") || lower.includes("repetition"))
-    return "Repetition";
-  if (lower.includes("insufficient")) return "Insufficient Material";
-  if (lower.includes("time")) return "Time Forfeit";
-  if (lower.includes("resign")) return "Resignation";
+    return "repetition";
+  if (lower.includes("insufficient")) return "insufficientMaterial";
+  if (lower.includes("time")) return "timeForfeit";
+  if (lower.includes("resign")) return "resignation";
   if (
     (lower.includes("stockfish wins!") || lower === "you win!") &&
     !lower.includes("time")
   ) {
-    return "Checkmate";
+    return "checkmate";
   }
   if (lower.includes("opponent left") || lower.includes("disconnect"))
-    return "Abandonment";
-  if (lower.includes("aborted")) return "Aborted";
+    return "abandonment";
+  if (lower.includes("aborted")) return "aborted";
   return null;
 }
 
 function parseGameResult(
   result: string | null,
+  t: (key: string, defaultValueOrOptions?: unknown, options?: unknown) => string,
   opponentName?: string,
 ): ParsedResult {
-  const raw = String(result || "Game Over").trim();
+  const fallbackGameOver = t("quickMatch.gameOver.title.default", "Game Over");
+  const raw = String(result || fallbackGameOver).trim();
   const lower = raw.toLowerCase();
-  const reasonLabel = extractReasonLabel(raw);
+  const reasonKey = extractReasonKey(raw);
+  const reasonLabel = reasonKey
+    ? t(
+        `quickMatch.gameOver.reason.${reasonKey}`,
+        RESULT_REASON_DEFAULTS[reasonKey],
+      )
+    : null;
   const parenthetical = raw.match(/\(([^)]+)\)/)?.[1]?.trim() || null;
   const cleanOpponent = String(opponentName || "")
     .trim()
@@ -76,16 +106,25 @@ function parseGameResult(
 
   if (lower.includes("you resigned")) {
     return {
-      title: "You Resigned",
-      subtitle: parenthetical || "Resignation",
+      title: t("quickMatch.gameOver.title.youResigned", "You Resigned"),
+      subtitle:
+        parenthetical ||
+        t("quickMatch.gameOver.reason.resignation", "Resignation"),
       tone: "loss",
     };
   }
 
   if (lower.includes("draw")) {
     return {
-      title: "Draw",
-      subtitle: parenthetical || (reasonLabel ? `by ${reasonLabel}` : null),
+      title: t("quickMatch.gameOver.title.draw", "Draw"),
+      subtitle:
+        parenthetical ||
+        (reasonLabel
+          ? t("quickMatch.gameOver.byReason", {
+              reason: reasonLabel,
+              defaultValue: "by {{reason}}",
+            })
+          : null),
       tone: "draw",
     };
   }
@@ -98,32 +137,57 @@ function parseGameResult(
 
   if (isWin) {
     return {
-      title: cleanOpponent ? `You Beat ${cleanOpponent}` : "You Won",
+      title: cleanOpponent
+        ? t("quickMatch.gameOver.title.youBeat", {
+            opponent: cleanOpponent,
+            defaultValue: "You Beat {{opponent}}",
+          })
+        : t("quickMatch.gameOver.title.youWon", "You Won"),
       subtitle:
-        parenthetical || (reasonLabel ? `Victory by ${reasonLabel}` : null),
+        parenthetical ||
+        (reasonLabel
+          ? t("quickMatch.gameOver.victoryByReason", {
+              reason: reasonLabel,
+              defaultValue: "Victory by {{reason}}",
+            })
+          : null),
       tone: "win",
     };
   }
 
   if (isLoss) {
     return {
-      title: "You Lost",
-      subtitle: parenthetical || (reasonLabel ? `by ${reasonLabel}` : null),
+      title: t("quickMatch.gameOver.title.youLost", "You Lost"),
+      subtitle:
+        parenthetical ||
+        (reasonLabel
+          ? t("quickMatch.gameOver.byReason", {
+              reason: reasonLabel,
+              defaultValue: "by {{reason}}",
+            })
+          : null),
       tone: "loss",
     };
   }
 
   if (lower.includes("aborted")) {
     return {
-      title: "Game Aborted",
+      title: t("quickMatch.gameOver.title.gameAborted", "Game Aborted"),
       subtitle: parenthetical || null,
       tone: "neutral",
     };
   }
 
   return {
-    title: raw || "Game Over",
-    subtitle: parenthetical || (reasonLabel ? `by ${reasonLabel}` : null),
+    title: raw || fallbackGameOver,
+    subtitle:
+      parenthetical ||
+      (reasonLabel
+        ? t("quickMatch.gameOver.byReason", {
+            reason: reasonLabel,
+            defaultValue: "by {{reason}}",
+          })
+        : null),
     tone: "neutral",
   };
 }
@@ -137,27 +201,27 @@ function toneClasses(tone: ModalTone): {
     return {
       border: "border-slate-800/90",
       glow: "from-brand-500/15",
-      title: "text-brand-100",
+      title: "text-brand-700 dark:text-brand-100",
     };
   }
   if (tone === "loss") {
     return {
       border: "border-slate-800/90",
       glow: "from-slate-500/10",
-      title: "text-rose-100",
+      title: "text-rose-700 dark:text-rose-100",
     };
   }
   if (tone === "draw") {
     return {
       border: "border-slate-800/90",
       glow: "from-brand-500/12",
-      title: "text-brand-100",
+      title: "text-brand-700 dark:text-brand-100",
     };
   }
   return {
     border: "border-slate-800/90",
     glow: "from-violet-500/12",
-    title: "text-violet-100",
+    title: "text-violet-700 dark:text-violet-100",
   };
 }
 
@@ -216,9 +280,10 @@ export function GameOverModal({
   historyStatus = "idle",
   elo = null,
 }: GameOverModalProps) {
+  const { t } = useTranslation();
   if (!isOpen) return null;
 
-  const parsed = parseGameResult(result, opponentName);
+  const parsed = parseGameResult(result, t, opponentName);
   const tone = toneClasses(parsed.tone);
   const canAnalyze = canAnalyzeSavedGame(savedGameId);
   const historyNote = getHistoryStatusNote(historyStatus);
@@ -253,14 +318,21 @@ export function GameOverModal({
             </h2>
 
             {showResultSubtitle && (
-              <p className="text-sm text-slate-300/95">{parsed.subtitle}</p>
+              <p className="text-sm text-slate-700 dark:text-slate-300/95">
+                {parsed.subtitle}
+              </p>
             )}
           </div>
 
           {showEloBlock && (
             <div className="mb-4 rounded-xl border border-brand-500/25 bg-brand-500/10 px-3 py-2.5">
-              <p className="text-sm font-semibold text-slate-100">
-                {`Elo ${playerElo?.oldRating}->${playerElo?.newRating}(${formatDelta(playerElo?.delta || 0)})`}
+              <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                {t("quickMatch.gameOver.eloChange", {
+                  old: playerElo?.oldRating,
+                  new: playerElo?.newRating,
+                  delta: formatDelta(playerElo?.delta || 0),
+                  defaultValue: "Elo {{old}}->{{new}} ({{delta}})",
+                })}
               </p>
             </div>
           )}
@@ -274,7 +346,9 @@ export function GameOverModal({
                 className="w-full h-12 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-medium transition-all duration-150 flex items-center justify-center gap-2 shadow-[0_12px_28px_rgba(124,58,237,0.35)] disabled:opacity-75 disabled:cursor-wait"
               >
                 <BarChart3 size={18} />
-                {canAnalyze ? "Game Analyze" : "Preparing Analyze..."}
+                {canAnalyze
+                  ? t("quickMatch.actions.gameAnalyze", "Game Analyze")
+                  : t("quickMatch.actions.preparingAnalyze", "Preparing Analyze...")}
               </button>
             )}
 
@@ -282,9 +356,9 @@ export function GameOverModal({
               <button
                 type="button"
                 onClick={() => onBackToTournament?.()}
-                className="w-full h-11 rounded-xl bg-white/10 hover:bg-white/15 text-slate-100 font-medium transition-colors"
+                className="w-full h-11 rounded-xl border border-theme-glass bg-white/70 text-slate-800 font-medium transition-colors hover:bg-white/85 disabled:cursor-not-allowed disabled:opacity-60 disabled:text-slate-500 dark:border-white/10 dark:bg-white/10 dark:text-slate-100 dark:hover:bg-white/15 dark:disabled:text-slate-400"
               >
-                Back to Tournament
+                {t("quickMatch.actions.backToTournament", "Back to Tournament")}
               </button>
             ) : (
               <>
@@ -294,21 +368,21 @@ export function GameOverModal({
                   className="w-full h-11 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-medium transition-colors flex items-center justify-center gap-2"
                 >
                   <RotateCcw size={16} />
-                  Try Again
+                  {t("quickMatch.actions.tryAgain", "Try Again")}
                 </button>
                 <button
                   type="button"
                   onClick={onNewGame}
-                  className="w-full h-11 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-slate-100 font-medium transition-colors flex items-center justify-center gap-2"
+                  className="w-full h-11 rounded-xl border border-theme-glass bg-white/70 text-slate-800 font-medium transition-colors hover:bg-white/85 disabled:cursor-not-allowed disabled:opacity-60 disabled:text-slate-500 dark:border-white/10 dark:bg-white/10 dark:text-slate-100 dark:hover:bg-white/15 dark:disabled:text-slate-400 flex items-center justify-center gap-2"
                 >
                   <Swords size={16} />
-                  New Game
+                  {t("quickMatch.actions.newGame", "New Game")}
                 </button>
               </>
             )}
           </div>
           {!canAnalyze && historyNote && (
-            <p className="mt-3 text-xs text-slate-400 text-center">
+            <p className="mt-3 text-center text-xs text-slate-500 dark:text-slate-400">
               {historyNote}
             </p>
           )}

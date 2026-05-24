@@ -65,7 +65,7 @@ export const QUICK_ACTIONS: QuickAction[] = [
   {
     id: "practice",
     title: "Practice",
-    description: "practice.description",
+    description: "Sharpen tactics, endgames, and openings.",
     icon: "Target",
     accent: "from-purple-500/80 to-fuchsia-500/80",
     route: "/play/practice",

@@ -1,3 +1,4 @@
+import { Trans } from "react-i18next";
 import { ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -50,9 +51,7 @@ export function SharedGameCard({ game, mine }: SharedGameCardProps) {
                 ({game.whiteElo})
               </span>
             )}
-            <span className={mine ? "text-cyan-100/60" : "text-slate-500"}>
-              vs
-            </span>
+            <span className={mine ? "text-cyan-100/60" : "text-slate-500"}> <Trans>vs</Trans> </span>
             <span className={mine ? "text-white" : "text-slate-100"}>
               {game.black}
             </span>
@@ -98,7 +97,7 @@ export function SharedGameCard({ game, mine }: SharedGameCardProps) {
                 <span className={mine ? "text-cyan-100/40" : "text-slate-600"}>
                   ·
                 </span>
-                <span>{game.moves} moves</span>
+                <span>{game.moves} <Trans>moves</Trans></span>
               </>
             )}
             {game.rated && (
@@ -106,7 +105,7 @@ export function SharedGameCard({ game, mine }: SharedGameCardProps) {
                 <span className={mine ? "text-cyan-100/40" : "text-slate-600"}>
                   ·
                 </span>
-                <span>Rated</span>
+                <span><Trans>Rated</Trans></span>
               </>
             )}
           </div>
@@ -117,9 +116,7 @@ export function SharedGameCard({ game, mine }: SharedGameCardProps) {
                 : "text-brand-400/80 group-hover:text-brand-300"
             } transition-colors`}
           >
-            <ExternalLink className="h-3 w-3" />
-            View Game
-          </div>
+            <ExternalLink className="h-3 w-3" /> <Trans>View Game</Trans> </div>
         </div>
       </div>
     </Link>

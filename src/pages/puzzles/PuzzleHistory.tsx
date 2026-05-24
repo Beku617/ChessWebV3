@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Chessboard } from "react-chessboard";
 import { ChevronLeft, ChevronRight, Loader2, Search } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
 import { fetchPuzzleHistory } from "./api";
 import type { PuzzleHistoryItem } from "./types";
 import { formatTime } from "../puzzleTrainer/utils";
@@ -288,7 +288,7 @@ export default function PuzzleHistory() {
                     <h3 className="font-semibold text-white truncate">
                       {item.puzzleTitle}
                     </h3>
-                    <p className="text-xs text-slate-400">{item.puzzleRating} Elo</p>
+                    <p className="text-xs text-slate-400">{item.puzzleRating} <Trans>Elo</Trans></p>
                   </div>
                   <span
                     className={`px-2 py-1 rounded-md border text-[11px] font-semibold ${resultClass(

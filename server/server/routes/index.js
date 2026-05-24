@@ -3,6 +3,7 @@ import historyRoutes from "./history.js";
 import puzzleRoutes from "./puzzles.js";
 import gameConfigRoutes from "./gameConfig.js";
 import botsRoutes from "./bots.js";
+import pgnRoutes from "./pgn.js";
 import adminRoutes from "./admin.js";
 import adminUsersRoutes from "./adminUsers.js";
 import adminGamesRoutes from "./adminGames.js";
@@ -37,6 +38,7 @@ export {
   puzzleRoutes,
   gameConfigRoutes,
   botsRoutes,
+  pgnRoutes,
   adminRoutes,
   adminUsersRoutes,
   adminGamesRoutes,

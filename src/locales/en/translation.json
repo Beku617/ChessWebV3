@@ -1,861 +1,456 @@
 {
-  "brand": {
-    "name": "NeonGambit"
-  },
-  "settingsLang": {
-    "title": "Language",
-    "helper": "Choose your preferred language"
-  },
-  "practice": {
-    "description": "Set up custom positions and analyze them."
-  },
-  "language": {
-    "label": "Language"
-  },
-  "common": {
-    "user": "User",
-    "userInitial": "U",
-    "toggleTheme": "Toggle theme"
-  },
-  "nav": {
-    "tournaments": "Tournaments",
-    "puzzles": "Puzzles",
-    "learn": "Learn",
-    "watch": "Watch",
-    "community": "Community",
-    "viewProfile": "View Profile",
-    "messages": "Messages",
-    "friends": "Friends",
-    "settings": "Settings",
-    "logout": "Log Out"
-  },
-  "auth": {
-    "welcomeBack": "Welcome Back",
-    "accountBannedTitle": "Account Banned",
-    "accountBannedReason": "Your account has been banned. Reason: {{reason}}",
-    "email": "Email Address",
-    "emailPlaceholder": "you@example.com",
-    "password": "Password",
-    "forgotPassword": "Forgot password?",
-    "rememberMe": "Remember me for 30 days",
-    "signIn": "Sign In",
-    "orContinue": "Or continue with",
-    "noAccount": "Don't have an account?",
-    "signUp": "Sign up",
-    "loginFailed": "Login failed",
-    "googleLoginFailed": "Google login failed",
-    "googleNotConfigured": "Google sign-in is not configured yet.",
-    "createAccount": "Create Account",
-    "fullName": "Full Name",
-    "namePlaceholder": "John Doe",
-    "minimumChars": "Minimum 8 characters",
-    "orSignup": "Or sign up with",
-    "haveAccount": "Already have an account?",
-    "signInCta": "Sign in",
-    "registrationFailed": "Registration failed",
-    "facebookLoginFailed": "Facebook login failed",
-    "continueWithGoogle": "Continue with Google",
-    "continueWithFacebook": "Continue with Facebook",
-    "socialNotConfigured": "Social sign-in is not configured yet."
-  },
-  "settings": {
-    "header": {
-      "title": "Settings",
-      "subtitle": "Manage your account & preferences"
+  "quickMatch": {
+    "leave": {
+      "redirectAlreadyInGameWithContext": "You were redirected because you already have an active online game in progress.",
+      "redirectAlreadyInGame": "You already have an active game in progress.",
+      "title": "Leave Current Game?",
+      "description": "You are currently in a game. Leaving now may forfeit the match. Do you want to resign and leave?",
+      "stay": "Stay",
+      "leaving": "Leaving...",
+      "resignAndLeave": "Resign & Leave"
+    },
+    "gameOver": {
+      "title": {
+        "default": "Game Over",
+        "youResigned": "You Resigned",
+        "draw": "Draw",
+        "youBeat": "You Beat {{opponent}}",
+        "youWon": "You Won",
+        "youLost": "You Lost",
+        "gameAborted": "Game Aborted"
+      },
+      "reason": {
+        "resignation": "Resignation"
+      },
+      "byReason": "by {{reason}}",
+      "victoryByReason": "Victory by {{reason}}",
+      "eloChange": "Elo {{old}}->{{new}} ({{delta}})"
     },
     "actions": {
-      "reset": "Reset",
-      "saveChanges": "Save Changes",
-      "change": "Change",
-      "manage": "Manage"
+      "gameAnalyze": "Game Analyze",
+      "preparingAnalyze": "Preparing Analyze...",
+      "backToTournament": "Back to Tournament",
+      "tryAgain": "Try Again",
+      "newGame": "New Game",
+      "analyze": "Analyze"
     },
-    "toasts": {
-      "saved": "Settings saved successfully!",
-      "reset": "Settings reset to last saved state",
-      "passwordChanged": "Password changed successfully!",
-      "deletionRequested": "Account deletion requested",
-      "unblocked": "User unblocked."
+    "tabs": {
+      "moves": "Moves"
     },
-    "errors": {
-      "fillPasswordFields": "Fill in all password fields.",
-      "passwordTooShort": "New password must be at least 8 characters.",
-      "passwordMismatch": "New passwords do not match.",
-      "changePasswordFailed": "Failed to change password",
-      "blockedUsersLoad": "Loading blocked users...",
-      "noBlockedUsers": "No blocked users.",
-      "blockedSince": "Blocked since {{date}}",
-      "blocked": "Blocked",
-      "unblockFailed": "Unable to unblock user.",
-      "unblocking": "Unblocking...",
-      "unblock": "Unblock",
-      "passwordUpdating": "Updating..."
+    "chat": {
+      "emptyMessages": "No messages yet.",
+      "typeMessage": "Type a message...",
+      "send": "Send"
     },
-    "profile": {
-      "title": "Profile & Account",
-      "subtitle": "Your personal information and security",
-      "username": "Username",
-      "email": "Email",
-      "changePassword": "Change Password",
-      "changePasswordHelper": "Update your account password",
-      "linkedAccounts": "Linked Accounts",
-      "linkedAccountsHelper": "Connect third-party services",
-      "google": "Google",
-      "facebook": "Facebook"
-    },
-    "appearance": {
-      "title": "Appearance",
-      "subtitle": "Customize how NeonGambit looks",
-      "theme": "Theme",
-      "themeHelper": "Choose your preferred color scheme",
-      "themeNames": {
-        "dark-neon": "Default",
-        "midnight-blue": "Midnight Blue",
-        "forest-green": "Forest Green",
-        "light-classic": "Light Classic",
-        "violet_storm": "Violet Storm",
-        "aurora": "Aurora Borealis",
-        "solar_gold": "Solar Gold",
-        "arctic_ice": "Arctic Ice",
-        "ember": "Ember & Ash",
-        "sakura": "Sakura Night",
-        "toxic_lime": "Toxic Lime",
-        "obsidian_rose": "Obsidian Rose"
-      },
-      "themeDescriptions": {
-        "dark-neon": "Signature NeonGambit dark theme with crisp cyan accents",
-        "midnight-blue": "Deep navy surfaces with cool blue highlights",
-        "forest-green": "Dark botanical tones with fresh green contrast",
-        "light-classic": "Clean light layout with classic tournament clarity",
-        "violet_storm": "Deep space with electric violet strikes",
-        "aurora": "Northern lights dance across dark skies",
-        "solar_gold": "Premium dark with molten gold accents",
-        "arctic_ice": "Razor sharp whites on absolute zero dark",
-        "ember": "Volcanic dark with smoldering orange fire",
-        "sakura": "Cherry blossoms glowing in the dark",
-        "toxic_lime": "Terminal green on pitch black with raw power",
-        "obsidian_rose": "Dark opulence with deep rose undertones"
-      },
-      "themes": {
-        "dark": "Dark",
-        "dim": "Dim",
-        "amoled": "AMOLED"
-      },
-      "accentColor": "Accent Color",
-      "accentHelper": "Primary highlight color",
-      "accent": {
-        "teal": "Teal",
-        "purple": "Purple",
-        "blue": "Blue"
-      },
-      "boardTheme": "Board Theme",
-      "boardThemeHelper": "Choose board color scheme",
-      "boardThemeNames": {
-        "classic": "Classic",
-        "modern-gray": "Modern Gray",
-        "blue-ocean": "Blue Ocean",
-        "warm-wood": "Warm Wood",
-        "purple-night": "Purple Night",
-        "neon-green": "Neon Green",
-        "neon-cyber": "Neon Cyber",
-        "neon-purple": "Neon Purple",
-        "soft-dark": "Soft Dark",
-        "high-contrast-minimal": "High Contrast Minimal"
-      },
-      "boardThemes": {
-        "green": "Green",
-        "brown": "Brown",
-        "blue": "Blue",
-        "purple": "Purple",
-        "gray": "Gray",
-        "neon": "Neon"
-      },
-      "pieceStyle": "Piece Style",
-      "pieceStyleHelper": "Visual style of chess pieces",
-      "pieces": {
-        "neo": "Neo",
-        "classic": "Classic",
-        "alpha": "Alpha",
-        "merida": "Merida"
-      },
-      "reducedMotion": "Reduced Motion",
-      "reducedMotionHelper": "Minimize animations"
-    },
-    "gameplay": {
-      "title": "Gameplay",
-      "subtitle": "Tweak your playing experience",
-      "defaultTime": "Default Time Control",
-      "defaultTimeHelper": "Starting time format for new games",
-      "timeControls": {
-        "bullet": "Bullet",
-        "blitz": "Blitz",
-        "rapid": "Rapid",
-        "classical": "Classical",
-        "custom": "Custom"
-      },
-      "autoQueen": "Auto-Queen",
-      "autoQueenHelper": "Automatically promote pawns to queen",
-      "moveInput": "Move Input",
-      "moveInputHelper": "How you make moves on the board",
-      "input": {
-        "click": "Click",
-        "drag": "Drag",
-        "both": "Both"
-      },
-      "legalMoves": "Show Legal Moves",
-      "legalMovesHelper": "Highlight available squares",
-      "confirmMove": "Confirm Move",
-      "confirmMoveHelper": "Require explicit confirmation before moving",
-      "premoves": "Premoves",
-      "premovesHelper": "Queue your next move while waiting"
-    },
-    "notifications": {
-      "title": "Notifications",
-      "subtitle": "Control what alerts you receive",
-      "email": "Email Notifications",
-      "emailHelper": "Receive emails about activity",
-      "push": "Push Notifications",
-      "pushHelper": "Browser push alerts",
-      "challengeRequests": "Challenge Requests",
-      "challengeHelper": "Get notified when someone challenges you",
-      "tournamentUpdates": "Tournament Updates",
-      "tournamentHelper": "Upcoming events and results",
-      "soundEffects": "Sound Effects",
-      "soundEffectsHelper": "In-game sounds and alerts",
-      "soundVolume": "Sound Volume",
-      "soundVolumeHelper": "Adjust effect volume"
-    },
-    "privacy": {
-      "title": "Privacy & Safety",
-      "subtitle": "Control who sees your information",
-      "visibility": "Profile Visibility",
-      "visibilityHelper": "Who can see your profile",
-      "options": {
-        "public": "Public",
-        "friends": "Friends",
-        "private": "Private"
-      },
-      "onlineStatus": "Show Online Status",
-      "onlineStatusHelper": "Let others see when you're online",
-      "lastSeen": "Show Last Seen",
-      "lastSeenHelper": "Display when you were last active",
-      "blockedUsers": "Blocked Users",
-      "blockedUsersHelper": "Manage your block list"
-    },
-    "ai": {
-      "title": "AI & Analysis",
-      "subtitle": "Configure AI-powered features",
-      "explanations": "AI Move Explanations",
-      "explanationsHelper": "Use the admin-selected model. If that provider fails and Groq is configured, Groq is used as fallback.",
-      "groqConnected": "Groq API connected",
-      "groqMissing": "VITE_GROQ_API_KEY missing — add it to .env",
-      "providerStatus": "AI Provider Status",
-      "providerConnected": "AI provider configured",
-      "providerMissing": "No AI provider configured",
-      "providerHelperPrimary": "Primary: Claude Haiku 4.5 (Bedrock). Fallback: Groq Llama 3.3 70B.",
-      "providerHelperFallbackOnly": "Bedrock token missing. Using Groq fallback only.",
-      "providerHelperSetup": "Add provider keys (for example VITE_AWS_BEARER_TOKEN_BEDROCK, VITE_OPENAI_API_KEY, VITE_XAI_API_KEY, VITE_DEEPSEEK_API_KEY, or VITE_GROQ_API_KEY) in .env and restart the app.",
-      "providerHelperSelected": "Selected model: {{model}}. Change model from Admin > Bots.",
-      "explanationLevel": "Explanation Level",
-      "explanationLevelHelper": "How detailed AI commentary should be",
-      "levels": {
-        "brief": "Brief",
-        "normal": "Normal",
-        "deep": "Deep"
-      },
-      "postGame": "Post-Game Analysis",
-      "postGameHelper": "Allow engine analysis after games",
-      "engineStrength": "Engine Strength",
-      "engineStrengthHelper": "Stockfish difficulty level",
-      "levelLabel": "Lvl"
-    },
-    "stats": {
-      "bullet": "Bullet",
-      "blitz": "Blitz",
-      "rapid": "Rapid",
-      "classical": "Classical",
-      "gamesPlayed": "Games Played",
-      "gamesWon": "Games Won"
-    },
-    "quickActions": {
-      "title": "Quick Actions",
-      "exportPgn": "Export Games (PGN)",
-      "downloadData": "Download Account Data"
-    },
-    "danger": {
-      "title": "Danger Zone",
-      "subtitle": "Irreversible actions",
-      "signOutAll": "Sign Out All Devices",
-      "deleteAccount": "Delete Account"
-    },
-    "modals": {
-      "changePassword": {
-        "title": "Change Password",
-        "current": "Current Password",
-        "currentPlaceholder": "Enter current password",
-        "new": "New Password",
-        "newPlaceholder": "Enter new password",
-        "confirm": "Confirm Password",
-        "confirmPlaceholder": "Confirm new password",
-        "cta": "Update Password"
-      },
-      "delete": {
-        "title": "Delete Account",
-        "warning": "This action is permanent and cannot be undone. All your games, ratings, and data will be lost.",
-        "confirmLabel": "Type {{name}} to confirm",
-        "username": "username",
-        "cta": "Permanently Delete Account"
-      }
-    }
-  },
-  "puzzles": {
-    "difficulty": {
-      "easy": "Easy",
-      "medium": "Medium",
-      "hard": "Hard"
-    },
-    "status": {
-      "all": "All",
-      "new": "New",
-      "seen": "Seen",
-      "solved": "Solved",
-      "failed": "Failed",
-      "failedBefore": "Failed Before",
-      "reviewDue": "Review Due",
-      "mastered": "Mastered",
-      "bookmarked": "Bookmarked",
-      "archived": "Archived",
-      "unseen": "Unseen",
-      "unknown": "Unknown"
-    },
-    "results": {
-      "solved": "Solved",
-      "failed": "Failed",
-      "skipped": "Skipped",
-      "abandoned": "Abandoned"
-    },
-    "modeLabels": {
-      "rated": "Rated",
-      "review": "Review",
-      "random": "Random",
-      "library": "Library"
-    },
-    "library": {
-      "title": "Browse Puzzles",
-      "searchLabel": "Search",
-      "searchPlaceholder": "Search title",
-      "statusLabel": "Status",
-      "difficultyLabel": "Difficulty",
-      "ratingSeparator": "to",
-      "includeMastered": "Include mastered",
-      "grid": "Grid",
-      "list": "List",
-      "loading": "Loading puzzle library...",
-      "loadFailed": "Failed to load puzzle library",
-      "emptyReviewDue": "No reviews due. Failed or gave-up rated puzzles will appear here immediately.",
-      "emptyFiltered": "No puzzles match your filters.",
-      "bookmarked": "Bookmarked",
-      "noDescription": "No description",
-      "attempts": "{{count}} attempts",
-      "start": "Start",
-      "noMotifs": "No motifs",
-      "pagination": "Showing {{start}} - {{end}} of {{total}}"
+    "resignConfirm": {
+      "title": "Resign Game?",
+      "description": "Are you sure you want to resign this game? This will count as a loss."
     },
     "history": {
-      "eyebrow": "Puzzle History",
-      "searchLabel": "Search",
-      "searchPlaceholder": "Search title",
-      "loading": "Loading puzzle history...",
-      "loadFailed": "Failed to load puzzle history",
-      "empty": "No history items match your search.",
-      "summary": "{{mode}} • {{result}} • {{date}} • {{time}}"
+      "saving": "Saving game to history...",
+      "shortGameAnalyzeUnavailable": "Game analyze is unavailable for very short games.",
+      "notSavedAnalyzeUnavailable": "Game analyze is unavailable because this game was not saved."
     },
-    "trainer": {
-      "historyTab": "History",
-      "loading": "Loading puzzle...",
-      "noReviewTitle": "No review puzzles right now",
-      "noReviewDescription": "You are all caught up. Failed or gave-up rated puzzles are added here immediately.",
-      "noPuzzleTitle": "No puzzle available",
-      "noPuzzleDescription": "Please try again in a moment.",
-      "loadFailed": "Failed to load puzzle",
-      "submitFailed": "Failed to submit attempt",
-      "puzzleElo": "Puzzle Elo",
-      "streak": "Streak",
-      "sideToMove": "Side to move",
-      "whiteToMove": "White to move",
-      "blackToMove": "Black to move",
-      "playFirstMoveWhite": "Play the first move for White.",
-      "playFirstMoveBlack": "Play the first move for Black.",
-      "waitingForPuzzle": "Waiting for puzzle...",
-      "timer": "Timer",
-      "bookmark": "Bookmark",
-      "bookmarked": "Bookmarked",
-      "useHint": "Use Hint",
-      "hintUsed": "Hint Used",
-      "showSolution": "Show Solution",
-      "tryAgain": "Try Again",
-      "shufflePuzzle": "Shuffle Puzzle",
-      "nextPuzzle": "Next Puzzle",
-      "line": "Line",
-      "revealLine": "Click Show Solution to reveal the line.",
-      "noStoredLine": "No stored line.",
-      "invalidFen": "Invalid FEN for this puzzle"
+    "draw": {
+      "offerSent": "Draw offer sent.",
+      "opponentOffered": "Your opponent offered a draw.",
+      "offerAccepted": "Draw offer accepted.",
+      "offerDeclinedByMove": "Draw offer declined by move.",
+      "offerDeclined": "Draw offer declined.",
+      "offerExpired": "Draw offer expired.",
+      "unableToOffer": "Unable to offer draw.",
+      "offerSentWaitingReconnect": "Draw offer sent. Waiting for opponent to reconnect.",
+      "unableToRespond": "Unable to respond to draw offer.",
+      "offered": "Draw offered",
+      "received": "Draw offer received",
+      "acceptOrDeclineNow": "Accept or decline now.",
+      "pending": "Draw offer pending",
+      "offer": "Offer draw",
+      "acceptDraw": "Accept Draw",
+      "offeredShort": "Offered",
+      "offerButton": "Offer Draw"
+    },
+    "opening": {
+      "startingPosition": "Starting Position",
+      "detecting": "Detecting opening..."
+    },
+    "result": {
+      "rating": "Rating",
+      "gameComplete": "Game complete",
+      "win": "Win",
+      "draw": "Draw",
+      "loss": "Loss"
+    },
+    "moves": {
+      "empty": "No moves yet"
+    },
+    "checks_one": "Checks {{count}}/3",
+    "checks_other": "Checks {{count}}/3",
+    "tournament": {
+      "startsInSeconds_one": "Starts in {{count}}s",
+      "startsInSeconds_other": "Starts in {{count}}s",
+      "startsInMinutes_one": "Starts in {{count}} min",
+      "startsInMinutes_other": "Starts in {{count}} min",
+      "ready": "Ready",
+      "waitingForPairing": "Waiting for pairing",
+      "joined": "Joined",
+      "timeEnded": "Time ended",
+      "registrationClosed": "Registration is closed.",
+      "registrationStartsOneHour": "Registration begins 1 hour before the event starts.",
+      "failedToLoad": "Failed to load tournament.",
+      "joiningReadyPool": "Joining ready pool...",
+      "failedToJoinReadyPool": "Failed to join ready pool.",
+      "joining": "Joining...",
+      "failedToJoinTournament": "Failed to join tournament.",
+      "headerFallback": "Arena Tournament",
+      "headerSummary_one": "Standard - {{count}} players",
+      "headerSummary_other": "Standard - {{count}} players",
+      "headerPairing": "Pairing: Rating-based"
+    },
+    "focus": {
+      "exit": "Exit focus mode",
+      "enter": "Enter focus mode",
+      "title": "Focus mode"
+    },
+    "standings": {
+      "loading": "Standings are loading..."
+    },
+    "games": {
+      "empty": "No games yet.",
+      "roundBoard": "Round {{round}} - Board {{board}}"
+    },
+    "modal": {
+      "closeResult": "Close result dialog",
+      "closeArenaResults": "Close arena results"
+    },
+    "arena": {
+      "over": "Arena Over"
+    },
+    "search": {
+      "searchingForOpponent": "Searching for opponent...",
+      "waitingForOpponent": "Waiting for opponent...",
+      "waitingTournamentOpponent": "Waiting for your tournament opponent to open the game link...",
+      "tournamentPairingInfo": "This is a tournament pairing. The game will start automatically once both players join this link. You can keep this tab open; no extra matchmaking is needed.",
+      "statusSearching": "Searching...",
+      "statusSearchingLabel": "Searching"
     }
   },
-  "learn": {
-    "stats": {
-      "completed": "Completed",
-      "inProgress": "In Progress",
-      "dayStreak": "Day Streak"
-    },
-    "searchPlaceholder": "Search courses, openings, or grandmasters...",
-    "difficulty": {
-      "all": "All Difficulty",
-      "beginner": "Beginner",
-      "intermediate": "Intermediate",
-      "advanced": "Advanced"
-    },
-    "progress": {
-      "all": "All Progress",
-      "notStarted": "Not Started",
-      "inProgress": "In Progress",
-      "completed": "Completed"
-    },
-    "categories": {
-      "openings": "Openings",
-      "middlegame": "Middlegame",
-      "endgame": "Endgame",
-      "strategy": "Strategy"
-    },
-    "loading": "Loading learn catalog...",
-    "loadFailed": "Failed to load learn catalog.",
-    "empty": "No courses matched your filters.",
-    "clearFilters": "Clear search and filters",
-    "courseProgress": "Course Progress",
-    "quickLessons": "Quick Lessons",
-    "lessonProgress": "{{completed}}/{{total}} lessons",
-    "lessonProgressCompleted": "{{completed}}/{{total}} lessons completed",
-    "moreLessons_one": "+{{count}} more lesson",
-    "moreLessons_other": "+{{count}} more lessons",
-    "retryCourse": "Retry Course",
-    "continueLesson": "Continue Lesson",
-    "startCourse": "Start Course",
-    "instructorFallback": "NeonGambit Instructor",
-    "lessonNotFound": "Lesson Not Found",
-    "lessonNotFoundDescription": "The requested lesson could not be loaded.",
-    "lessonLoadFailed": "Failed to load lesson.",
-    "submitMoveFailed": "Failed to submit lesson move.",
-    "backToLearn": "Back to Learn",
-    "hint": "Hint",
-    "lessonComplete": "Lesson complete.",
-    "hideHint": "Hide Hint",
-    "showHint": "Show Hint",
-    "retryStep": "Retry Step",
-    "checkingMove": "Checking move...",
-    "previous": "Previous",
-    "nextLesson": "Next Lesson",
-    "retryLesson": "Retry Lesson",
-    "courseProgressLabel": "Course progress",
-    "courseLessons": "Course Lessons"
+  "pagination": {
+    "showingRange": "",
+    "first": "First",
+    "previousPage": "Previous page",
+    "pageOf": "",
+    "nextPage": "Next page",
+    "last": "Last",
+    "goToPage": ""
   },
-  "analysis": {
-    "back": "Back",
-    "opening": "Opening",
-    "moveExplanation": "Move Explanation",
-    "moveExplanationHint": "Click on any move in the move list to see why it's good or bad.",
-    "startingPositionTitle": "Starting Position",
-    "startingPositionDescription": "The game begins from the standard starting position.",
-    "startingPositionDetails": "Select a move to see its analysis and explanation.",
-    "moveAnalysisTitle": "Move Analysis",
-    "movePlayed": "{{san}} was played.",
-    "moveAnalysisUnavailable": "No analysis data available for this move.",
-    "aiLoading": "Getting AI explanation...",
-    "aiLoadFailed": "Failed to get AI explanations",
-    "aiLoadTimedOut": "AI explanation timed out. Showing the built-in analysis instead.",
-    "aiProviderMissingForModel": "Selected AI model is not configured. Add the required provider key and try again.",
-    "aiNoExplanationsReturned": "AI model returned no structured explanations for this game. Try another model.",
-    "bestMove": "Best move",
-    "bestMovePlayed": "You played this!",
-    "tip": "Tip:",
-    "none": "None",
-    "capturedByWhite": "Captured by White",
-    "capturedByBlack": "Captured by Black",
-    "moves": "Moves",
-    "moveListWhite": "White",
-    "moveListBlack": "Black",
-    "noMovesRecorded": "No moves yet",
-    "moveListHints": "← → Navigate • Space Play • F Flip",
-    "qualityBreakdown": {
-      "white": "White",
-      "black": "Black"
+  "admin": {
+    "sidebar": {
+      "brandAlt": "NeonGambit logo",
+      "brandName": "NeonGambit",
+      "adminBadge": "Admin",
+      "adminFallbackName": "Admin",
+      "adminRole": "Administrator",
+      "localeOption": {
+        "en": "English",
+        "mn": "Mongolian"
+      },
+      "logOut": "Log Out",
+      "languageLabel": "Admin language"
     },
-    "qualityLabels": {
-      "Brilliant": "Brilliant",
-      "Great": "Great",
-      "Best": "Best move",
-      "Excellent": "Excellent",
-      "Good": "Good move",
-      "Book": "Book",
-      "Inaccuracy": "Inaccuracy",
-      "Mistake": "Mistake",
-      "Miss": "Miss",
-      "Blunder": "Blunder",
-      "Unknown": "?"
+    "actions": {
+      "viewAdminProfile": "View admin profile",
+      "edit": "Edit",
+      "delete": "Delete",
+      "viewProfile": "View profile",
+      "deleteUser": "Delete user",
+      "analyze": "Analyze",
+      "useRecordedSolution": "Use Record Solution to set moves"
     },
-    "colors": {
-      "white": "White",
-      "black": "Black"
+    "search": {
+      "bots": "Search bots...",
+      "communityPosts": "Search by author, caption, file name, or game info...",
+      "users": "Search users...",
+      "events": "Search events...",
+      "games": "Search by players, event, ECO...",
+      "groups": "Search groups by name, topic, or description...",
+      "lessons": "Search lessons...",
+      "steps": "Search steps...",
+      "courses": "Search courses...",
+      "puzzles": "Search puzzles...",
+      "usersByNameOrEmail": "Search by name or email..."
     },
-    "moveExplanations": {
-      "brilliant": {
-        "title": "Brilliant Move!",
-        "description": "{{san}} is a brilliant sacrifice! This move demonstrates deep calculation and turns the position decisively in {{mover}}'s favor.",
-        "details": "This move improved the position significantly ({{swing}} swing) through a tactical sacrifice that the opponent cannot easily refute.",
-        "suggestion": "This is exactly the kind of move that separates strong players!"
+    "bots": {
+      "modal": {
+        "editBot": "Edit Bot",
+        "createNewBot": "Create New Bot"
       },
-      "great": {
-        "title": "Great Move!",
-        "description": "{{san}} is a great move that significantly improved {{mover}}'s position.",
-        "details": "Win probability shifted from {{before}} to {{after}} — a {{gain}} improvement.",
-        "suggestion": "This move found a critical resource in the position."
+      "placeholders": {
+        "botName": "Enter bot name",
+        "categoryExample": "e.g., general, historical, sports",
+        "titleExample": "e.g., GM, IM, FM",
+        "quote": "Bot's signature quote...",
+        "description": "Describe this bot..."
       },
-      "best": {
-        "title": "Best Move",
-        "description": "{{san}} is the best move in this position, maintaining or improving the evaluation.",
-        "details": "Position evaluation stayed strong at {{after}} win probability."
+      "labels": {
+        "title": "Title (GM, IM, etc.)",
+        "quoteCount_one": "{{count}}/200",
+        "quoteCount_other": "{{count}}/200",
+        "percentValue": "{{value}}%"
       },
-      "excellent": {
-        "title": "Excellent Move",
-        "description": "{{san}} is an excellent move, very close to the engine's top choice.",
-        "details": "Only a tiny {{loss}} loss compared to the absolute best move."
-      },
-      "good": {
-        "title": "Good Move",
-        "description": "{{san}} is a good, solid move that keeps the position playable.",
-        "details": "About {{loss}} accuracy loss — not perfect but reasonable."
-      },
-      "book": {
-        "title": "Book Move",
-        "description": "{{san}} is a standard opening move, following established theory.",
-        "details": "This move is part of well-known opening theory. Both sides are following established lines."
-      },
-      "inaccuracy": {
-        "title": "Inaccuracy",
-        "description": "{{san}} is an inaccuracy — not the best choice in this position.",
-        "details": "Win probability dropped from {{before}} to {{after}} ({{loss}} loss).",
-        "suggestion": "Look for moves that maintain piece activity and do not give your opponent free tempos."
-      },
-      "mistake": {
-        "title": "Mistake",
-        "description": "{{san}} is a mistake that significantly hurts {{mover}}'s position.",
-        "details": "Win probability dropped from {{before}} to {{after}} — that is a {{loss}} swing!",
-        "suggestion": "Before moving, check for tactics: captures, checks, and threats. Ask yourself what your opponent wants to do."
-      },
-      "miss": {
-        "title": "Missed Opportunity",
-        "description": "{{san}} missed a chance to capitalize on the opponent's previous error.",
-        "details": "Your opponent made a mistake, but this move did not punish it effectively. The advantage was not fully converted.",
-        "suggestion": "When your opponent blunders, slow down and look for the tactical punishment."
-      },
-      "blunder": {
-        "title": "Blunder",
-        "description": "{{san}} is a serious blunder that dramatically changes the game.",
-        "details": "Win probability crashed from {{before}} to {{after}} — a devastating {{loss}} loss.",
-        "suggestion": "Always check for hanging pieces and tactical threats before finalizing your move. Ask: is my piece safe and what can my opponent attack?"
-      },
-      "unknown": {
-        "title": "Move",
-        "description": "{{san}} was played.",
-        "details": "Analysis not available for this move."
+      "actions": {
+        "saving": "Saving...",
+        "updateBot": "Update Bot",
+        "createBot": "Create Bot"
       }
     },
-    "loadingTitle": "Loading analysis...",
-    "adminLoadingTitle": "Loading analysis...",
-    "loadingDescription": "Stockfish is evaluating each position to calculate accuracy and move quality",
-    "progress": "Progress",
-    "evaluatingPositions": "Evaluating positions",
-    "calculatingAccuracy": "Calculating accuracy",
-    "gameNotFound": "Game Not Found",
-    "backToProfile": "Back to Profile",
-    "errors": {
-      "noGameId": "No game ID provided",
-      "fetchGame": "Failed to fetch game",
-      "loadGame": "Failed to load game",
-      "unableToLoadGame": "Unable to load game"
+    "community": {
+      "filter": {
+        "select": "Select"
+      },
+      "actions": {
+        "close": "Close",
+        "newPost": "New Post",
+        "creating": "Creating...",
+        "createPost": "Create Post",
+        "disableUnlimitedPosting": "Disable unlimited posting",
+        "enableUnlimitedPosting": "Enable unlimited posting",
+        "saving": "Saving...",
+        "applyRestriction": "Apply restriction"
+      },
+      "aria": {
+        "statusFilter": "Status filter",
+        "mediaFilter": "Media filter",
+        "createPostStatus": "Create post status",
+        "editPostStatus": "Edit post status"
+      },
+      "placeholders": {
+        "rejectionReason": "Rejection reason",
+        "editPostText": "Edit post text...",
+        "optionalRestrictionReason": "Optional restriction reason...",
+        "optionalRejectionReason": "Optional rejection reason...",
+        "postText": "Post text..."
+      },
+      "labels": {
+        "chessPlayer": "Chess Player",
+        "reviewedAt": "Reviewed {{time}}",
+        "awaitingReview": "Awaiting review"
+      },
+      "media": {
+        "postMediaAlt": "Community post media",
+        "postImageAlt": "Community post image",
+        "imageSet": "Image set",
+        "imagePreview": "Image preview"
+      }
     },
-    "title": "Analysis",
-    "summary": "Summary",
-    "accuracy": "Accuracy",
-    "analyzedBy": "Analyzed by",
-    "engineEvaluation": "Engine evaluation",
-    "noMovesYet": "No moves yet",
-    "check": "Check!",
-    "checkmate": "Checkmate!",
-    "stalemate": "Stalemate"
-  },
-  "presence": {
-    "unknown": "unknown",
-    "justNow": "just now",
-    "minutesAgo": "{{count}}m ago",
-    "hoursAgo": "{{count}}h ago",
-    "daysAgo": "{{count}}d ago",
-    "lastSeen": "Last seen {{time}}",
-    "status": {
-      "inGame": "In game",
-      "searchingMatch": "Searching for match",
-      "away": "Away",
-      "online": "Online",
-      "offline": "Offline"
-    }
-  },
-  "messages": {
-    "search": "Search conversations",
-    "tabConversations": "Conversations",
-    "tabArchived": "Archived",
-    "loading": "Loading conversations...",
-    "archivedEmpty": "No archived chats.",
-    "conversationsEmpty": "No conversations yet.",
-    "noMessages": "No messages yet.",
-    "deleteConfirmTitle": "Delete conversation?",
-    "deleteConfirmBody": "This will remove the conversation from your messages. It will not erase it for the other participant.",
-    "confirmDelete": "Delete",
-    "archivedReadOnly": "This conversation is archived. Unarchive to reply.",
-    "unarchive": "Unarchive",
-    "clearAttachments": "Remove all",
-    "composePlaceholder": "Type a message...",
-    "archived": "Conversation moved to Archived.",
-    "unarchived": "Conversation restored to Conversations.",
-    "conversation": "Conversation",
-    "loadingConversation": "Loading conversations...",
-    "openingLatest": "Opening your latest conversation...",
-    "emptyTitle": "No conversations",
-    "emptySubtitle": "Choose a player from your list to start a focused, real-time chat.",
-    "archive": "Archive",
-    "action": "Working...",
-    "delete": "Delete",
-    "startConversation": "No messages yet. Start the conversation.",
-    "errors": {
-      "send": "Failed to send message.",
-      "archive": "Unable to archive this conversation right now.",
-      "unarchive": "Unable to unarchive this conversation right now.",
-      "delete": "Unable to delete this conversation right now."
-    }
-  },
-  "communityComposer": {
-    "group": "Group",
-    "selectedGroup": "Selected group",
-    "generalCommunity": "General community",
-    "image": "Image",
-    "video": "Video",
-    "shareGame": "Share Game",
-    "changeGame": "Change Game",
-    "submitting": "Submitting...",
-    "unavailable": "Unavailable",
-    "submit": "Submit",
-    "chooseGame": "Choose a game",
-    "chooseGameDescription": "Share one of your recent games with a caption and mini-board replay.",
-    "closeGamePicker": "Close game picker",
-    "gameSearchPlaceholder": "Search by opponent, opening, result, or time control...",
-    "noGamesFound": "No games found",
-    "noGamesFoundDescription": "Finish a few games first, or try a broader search.",
-    "vsOpponent": "vs {{opponent}}",
-    "movesCount_one": "{{count}} move",
-    "movesCount_other": "{{count}} moves",
-    "change": "Change",
-    "remove": "Remove",
-    "removeMedia": "Remove media",
-    "selectedPreview": "Selected preview",
-    "imageSet": "Image Set",
-    "imagesSelected_one": "{{count}} image selected",
-    "imagesSelected_other": "{{count}} images selected",
-    "clearAll": "Clear all",
-    "selectedImageAlt": "Selected image {{index}}",
-    "removeImageAria": "Remove image {{index}}",
-    "errors": {
-      "supportedImage": "Please choose a supported image file.",
-      "imageTooLarge": "Image is too large. Maximum size is 8MB.",
-      "supportedVideo": "Please choose a supported video file.",
-      "videoTooLarge": "Video is too large. Maximum size is 50MB.",
-      "restrictedWithReason": "Posting is restricted by moderation. Reason: {{reason}}",
-      "restricted": "Posting is currently restricted by moderation.",
-      "temporarilyRestrictedUntil": "Posting is temporarily restricted until {{until}}.",
-      "temporarilyRestricted": "Posting is temporarily restricted by moderation.",
-      "temporarilyRestrictedWithReason": "{{base}} Reason: {{reason}}",
-      "tryAgainIn": " Try again in {{duration}}.",
-      "rateLimited": "You've reached the posting limit ({{maxPosts}} posts every 3 hours).{{waitText}}",
-      "unavailable": "Posting is unavailable right now.",
-      "loadSelectedGame": "Failed to load the selected game.",
-      "loadGamesFailed": "Failed to load shareable games.",
-      "submitFailed": "Failed to submit post.",
-      "imageLimit": "You can upload up to {{count}} images.",
-      "totalImageTooLarge": "Total image size is too large. Maximum combined size is 40MB."
+    "dashboard": {
+      "errors": {
+        "loadStats": "Failed to load dashboard stats"
+      },
+      "pageTitle": "Dashboard",
+      "stats": {
+        "totalUsers": "Total Users",
+        "totalGames": "Total Games",
+        "newUsers7d": "New Users (7d)",
+        "games7d": "Games (7d)"
+      },
+      "usersSectionTitle": "Users"
     },
-    "addCaption": "Add a caption for this game...",
-    "composePlaceholder": "Share a game idea, opening line, clip, puzzle moment, tournament update, or one of your games...",
-    "submittedForReview": "Your post was submitted for review.",
-    "vsLabel": "{{white}} vs {{black}}"
+    "users": {
+      "empty": "No users found",
+      "table": {
+        "user": "User",
+        "rating": "Rating",
+        "games": "Games",
+        "winRate": "Win Rate",
+        "joined": "Joined",
+        "actions": "Actions",
+        "wld": "W/L/D",
+        "status": "Status"
+      },
+      "itemLabel": "users",
+      "errors": {
+        "fetchUser": "Failed to fetch user",
+        "loadUser": "Failed to load user",
+        "notFound": "User not found"
+      },
+      "backToDashboard": "Back to Dashboard",
+      "timelineUnavailable": "Timeline is unavailable in admin view for this player.",
+      "pageTitle": "User Management",
+      "exportCsv": "Export CSV",
+      "confirm": {
+        "actionWhenPlaying": "This user is currently in an active game. Their account will be deleted automatically when the match ends. Continue?"
+      },
+      "csv": {
+        "name": "Name",
+        "email": "Email",
+        "gamesPlayed": "Games Played"
+      },
+      "status": {
+        "playing": "Playing",
+        "active": "Active",
+        "offline": "Offline"
+      },
+      "unknownUser": "Unknown User",
+      "pendingDeletion": "Pending deletion",
+      "ban": {
+        "reasonPlaceholder": "Ban reason (optional)",
+        "unban": "Unban",
+        "ban": "Ban",
+        "unbanUser": "Unban user",
+        "banUser": "Ban user"
+      },
+      "sortBy": "Sort by:",
+      "sort": {
+        "date": "Date",
+        "rating": "Rating",
+        "games": "Games"
+      },
+      "clearSearch": "Clear search",
+      "stats": {
+        "totalUsers": "Total Users",
+        "newThisWeek": "New This Week",
+        "bannedUsers": "Banned Users",
+        "topRating": "Top Rating",
+        "totalGames": "Total Games"
+      }
+    },
+    "modal": {
+      "editEvent": "Edit Event",
+      "addNewEvent": "Add New Event",
+      "saveChanges": "Save Changes",
+      "createEvent": "Create Event",
+      "editCourse": "Edit course",
+      "createCourse": "Create course",
+      "editPuzzle": "Edit Puzzle",
+      "createPuzzle": "Create Puzzle"
+    },
+    "form": {
+      "ownerUserPlaceholder": "Paste user id or pick from list",
+      "pgnPlaceholder": "[Event \"NeonGambit\"] ...",
+      "pasteFen": "Paste FEN here",
+      "studentPrompt": "Ask the student what to play",
+      "successMessage": "Great move.",
+      "retryMessage": "Try again.",
+      "acceptedMovesExample": "Example: e4, Nf3"
+    },
+    "groups": {
+      "actions": {
+        "closeForm": "Close form",
+        "createGroup": "Create group",
+        "creating": "Creating...",
+        "saving": "Saving...",
+        "saveChanges": "Save changes"
+      },
+      "placeholders": {
+        "groupName": "Group name",
+        "description": "Describe what this group is for...",
+        "topic": "Topic"
+      },
+      "labels": {
+        "noDescription": "No description yet.",
+        "justNow": "Just now",
+        "unknown": "Unknown",
+        "groups": "groups"
+      }
+    },
+    "aria": {
+      "editGroup": "Edit {{name}}",
+      "deleteGroup": "Delete {{name}}",
+      "removeMove": "Remove move {{token}}"
+    },
+    "confirm": {
+      "deleteLesson": "Delete lesson \"{{title}}\"?",
+      "deleteStep": "Delete step {{index}}?",
+      "deleteCourseWithLessons": "Delete \"{{title}}\" and all lessons?"
+    },
+    "learn": {
+      "labels": {
+        "loadingCourse": "Loading course...",
+        "noSubtitle": "No subtitle.",
+        "lessonMeta": "{{steps}} steps - {{minutes}} min - /learn/{{courseSlug}}/{{lessonSlug}}",
+        "loadingLesson": "Loading lesson...",
+        "noInstructions": "No instructions yet.",
+        "courseSingular": "course",
+        "coursePlural": "courses",
+        "lessonSingular": "lesson",
+        "lessonPlural": "lessons"
+      },
+      "status": {
+        "published": "Published",
+        "draft": "Draft"
+      },
+      "actions": {
+        "unpublish": "Unpublish",
+        "publish": "Publish",
+        "editLesson": "Edit lesson",
+        "createLesson": "Create lesson",
+        "saveChanges": "Save Changes",
+        "createLessonTitle": "Create Lesson",
+        "editStepWithIndex": "Edit Step {{index}}",
+        "createStep": "Create Step",
+        "saveStep": "Save Step",
+        "stopBoardRecording": "Stop board recording",
+        "recordFromBoard": "Record from board",
+        "createCourse": "Create Course"
+      },
+      "placeholders": {
+        "pairId": "10423",
+        "instructorExample": "IM Viktor Asanov"
+      },
+      "hints": {
+        "recordingActive": "Recording active: drag a legal move to add it to accepted moves.",
+        "previewUsage": "Preview uses current FEN and side to move selection."
+      },
+      "media": {
+        "coverPreviewAlt": "Course cover preview"
+      }
+    },
+    "profile": {
+      "fallback": {
+        "administrator": "Administrator",
+        "noEmail": "No email available"
+      },
+      "stats": {
+        "totalUsers": "Total Users",
+        "thisWeekDelta_one": "+{{count}} this week",
+        "thisWeekDelta_other": "+{{count}} this week",
+        "totalGames": "Total Games",
+        "newUsers7d": "New Users (7d)",
+        "gamesThisWeek": "Games This Week"
+      },
+      "actions": {
+        "close": "Close",
+        "changePassword": "Change Password"
+      },
+      "password": {
+        "current": "Current Password",
+        "new": "New Password",
+        "confirm": "Confirm New Password"
+      }
+    },
+    "puzzles": {
+      "pagination": {
+        "items": "puzzles"
+      }
+    }
   },
   "communityGameViewer": {
-    "whiteWon": "White won",
-    "blackWon": "Black won",
-    "draw": "Draw",
-    "resultUnavailable": "Result unavailable",
     "previewUnavailable": "Game preview unavailable.",
     "analyzeGame": "Analyze game",
     "useArrowKeys": "Use arrow keys"
   },
-  "profileGames": {
-    "allGames": "All Games ({{count}})",
-    "recentGames": "Recent Games",
-    "viewAll": "View All",
-    "tournamentHistory": "Tournament History ({{count}})",
-    "noTournamentHistory": "No tournament history yet.",
-    "range": "{{start}}-{{end}} of {{total}} games",
-    "gamesCount": "{{count}} games",
-    "provisionalGames": "Provisional ({{count}}/{{total}})",
-    "noGamesFound": "No games found",
-    "noGamesFoundDescription": "Try changing your filters or play a new game.",
-    "results": {
-      "win": "Win",
-      "loss": "Loss",
-      "draw": "Draw"
-    },
-    "pools": {
-      "bullet": "Bullet",
-      "blitz": "Blitz",
-      "rapid": "Rapid",
-      "classical": "Classical"
-    },
-    "formats": {
-      "bullet": "Bullet",
-      "blitz": "Blitz",
-      "rapid": "Rapid",
-      "classical": "Classical",
-      "chess960": "Chess960",
-      "arena": "Arena",
-      "swiss": "Swiss"
-    },
-    "termination": {
-      "checkmate": "Checkmate",
-      "resignation": "Resignation",
-      "stalemate": "Stalemate",
-      "time_forfeit": "Time forfeit",
-      "timeout": "Timeout",
-      "draw": "Draw",
-      "draw_by_agreement": "Draw by agreement",
-      "repetition": "Repetition",
-      "threefold_repetition": "Threefold repetition",
-      "insufficient_material": "Insufficient material",
-      "fifty_move_rule": "50-move rule",
-      "aborted": "Aborted",
-      "abort": "Aborted",
-      "abandoned": "Abandoned"
-    },
-    "card": {
-      "gameNumber": "Game #{{index}}",
-      "duration": "Duration",
-      "moves": "Moves",
-      "shareGame": "Share game",
-      "opening": "Opening",
-      "timeControl": "Time Control",
-      "termination": "Termination",
-      "opponentLevel": "Opponent Level",
-      "notAvailable": "N/A",
-      "threeCheck": "3-Check",
-      "threeCheckScore": "{{white}} {{whiteChecks}}/3 • {{black}} {{blackChecks}}/3",
-      "white": "White",
-      "black": "Black",
-      "moveHistory": "Move History",
-      "analyze": "Analyze",
-      "pgnCopied": "PGN Copied",
-      "copyPgn": "Copy PGN",
-      "downloadFile": "Download File",
-      "unlimited": "Unlimited"
-    },
-    "filters": {
-      "all": "All",
-      "wins": "Wins",
-      "losses": "Losses",
-      "draws": "Draws"
-    },
-    "columns": {
-      "tournament": "Tournament",
-      "format": "Format",
-      "placement": "Placement",
-      "score": "Score",
-      "eloChange": "ELO Change",
-      "date": "Date"
-    }
-  },
-  "tournamentProfile": {
-    "unavailable": "Tournament profile data is unavailable.",
-    "description": "Global ELO, tournament record, and placements.",
-    "currentElo": "Current ELO",
-    "record": "W / D / L",
-    "allTournaments": "All tournaments",
-    "tournamentsCreated": "Tournaments Created",
-    "organizerActivity": "Organizer activity",
-    "eloHistory": "ELO History",
-    "noEloEvents": "No tournament ELO events yet.",
-    "elo": "ELO",
-    "delta": "Delta",
-    "dateLabel": "Date: {{label}}",
-    "historyTitle": "Tournament History",
-    "title": "Tournament Profile"
-  },
-  "communityCommon": {
-    "sharedGame": "Shared game",
-    "videoPost": "Video post",
-    "imageSet": "Image set",
-    "imagePost": "Image post",
-    "communityPost": "Community post",
-    "won": "Won",
-    "lost": "Lost",
-    "draw": "Draw",
-    "resultUnavailable": "Result unavailable",
-    "neonGambitGame": "NeonGambit Game",
-    "white": "White",
-    "black": "Black",
-    "defaultOpponent": "Opponent"
-  },
-  "communityPage": {
-    "tabs": {
-      "feed": "Feed",
-      "myPosts": "My Posts"
-    },
-    "groups": {
-      "loading": "Loading groups..."
-    },
-    "empty": {
-      "noApprovedTitle": "No approved posts yet",
-      "noApprovedDescription": "Submit the first chess post. It will appear here after moderation.",
-      "noPostsTitle": "No posts yet",
-      "noPostsDescription": "Your submissions will appear here with their moderation status.",
-      "noGroups": "No groups yet. Create the first one from here."
-    },
-    "pagination": {
-      "showing": "Showing {{start}} - {{end}} of {{total}}"
-    },
-    "errors": {
-      "loadFeed": "Failed to load feed.",
-      "loadMyPosts": "Failed to load your posts.",
-      "loadPostingAccess": "Failed to load posting access.",
-      "loadTrending": "Failed to load trending posts.",
-      "loadGroups": "Failed to load groups.",
-      "loadJoinedGroups": "Failed to load joined groups.",
-      "deletePost": "Failed to delete post.",
-      "updateGroup": "Failed to update group.",
-      "createGroup": "Failed to create group."
-    }
-  },
+  ") vs": ") vs",
   "communityGroups": {
-    "membersCount": "{{count}} members",
-    "defaultDescription": "A public NeonGambit group for chess discussion and shared games.",
-    "createdBy": "Created by",
     "actions": {
       "saving": "Saving...",
-      "join": "Join",
-      "leave": "Leave"
+      "leave": "Leave",
+      "join": "Join"
     },
+    "membersCount_one": "",
+    "membersCount_other": "",
+    "defaultDescription": "A public NeonGambit group for chess discussion and shared games.",
+    "createdBy": "Created by",
     "sidebar": {
       "title": "Groups",
       "allGroups": "All groups",
@@ -877,45 +472,27 @@
       "create": "Create group"
     }
   },
-  "communityGroupsPage": {
-    "title": "Find your chess circle",
-    "createGroup": "Create group",
-    "searchPlaceholder": "Search by group name, topic, or description...",
-    "backToCommunity": "Back to Community",
-    "noGroupsTitle": "No groups found",
-    "noGroupsDescription": "Start the first public group for your chess community.",
-    "pagination": {
-      "showing": "Showing {{start}} - {{end}} of {{total}} discover groups"
-    }
+  "common": {
+    "cancel": "Cancel",
+    "moveNumberDot": "{{num}}.",
+    "back": "Back",
+    "close": "",
+    "user": "User",
+    "userInitial": "U",
+    "preview": "Preview",
+    "closeImagePreview": "Close image preview",
+    "confirm": "Confirm",
+    "notAvailable": "-",
+    "searchByUsername": "Search by username"
   },
-  "shareGameModal": {
-    "title": "Share Game",
-    "vs": "vs",
-    "searchFriends": "Search friends...",
-    "noFriends": "No friends yet.",
-    "noMatchingFriends": "No matching friends.",
-    "sent": "Sent",
-    "send": "Send",
-    "errors": {
-      "shareFailed": "Failed to share game.",
-      "shareFailedTryAgain": "Failed to share game. Please try again."
-    }
-  },
+  "Verified": "Verified",
+  "Following": "",
+  "Follow": "",
   "profileHeader": {
     "chessPlayer": "Chess Player",
-    "joined": "Joined",
-    "tabs": {
-      "overview": "Overview",
-      "gameHistory": "Game History"
-    },
-    "status": {
-      "blocked": "Blocked",
-      "friends": "Friends",
-      "requestSent": "Request sent"
-    },
     "actions": {
-      "block": "Block",
       "unblock": "Unblock",
+      "block": "Block",
       "editProfile": "Edit Profile",
       "watchTitle": "Watch this player's live multiplayer game",
       "watch": "Watch",
@@ -928,119 +505,21 @@
       "addFriend": "Add Friend",
       "moreActions": "More profile actions",
       "processing": "{{action}}ing..."
-    }
-  },
-  "profilePage": {
-    "noGamesTitle": "No games yet",
-    "noGamesDescription": "Play your first game to start tracking your progress!",
-    "playNow": "Play Now",
-    "unknown": "Unknown",
-    "errors": {
-      "fetchGamesFailed": "Failed to fetch games",
-      "loadGamesFailed": "Failed to load games",
-      "loadProfileFailed": "Failed to load profile"
-    }
-  },
-  "profileWidgets": {
-    "formatRatingsTitle": "Format Ratings",
-    "ratingTimelineTitle": "Rating Timeline",
-    "timelineUnavailable": "Timeline is only available for the signed-in player.",
-    "loadingTimeline": "Loading timeline...",
-    "noRatedGamesInRange": "No rated games in this range yet.",
-    "current": "Current",
-    "plusMinus": "+/-",
-    "rating": "Rating",
-    "low": "Low",
-    "high": "High",
-    "leaderboardTitle": "Leaderboard",
-    "loadingLeaderboard": "Loading leaderboard...",
-    "noRatedPlayers": "No rated players yet.",
-    "youTag": "you",
-    "topPlayersHint": "Showing top {{top}} players in this pool (minimum {{minimum}} rated games).",
-    "yourPosition": "Your position",
-    "unranked": "Unranked",
-    "unrankedGamesSuffix": "({{count}}/{{total}} games)",
-    "quickStatsTitle": "Quick Stats",
-    "favoriteOpening": "Favorite Opening",
-    "averageGameDuration": "Avg. Game Duration",
-    "bestWinStreak": "Best Win Streak"
-  },
-  "friendsPage": {
-    "relationshipStates": "Relationship states",
-    "filterPlaceholder": "Filter friends by name or handle",
-    "totalCount": "{{count}} total",
-    "fetchingCircle": "Fetching your circle.",
-    "emptyListTitle": "Your friends list is empty",
-    "emptyListDescription": "Add players to start challenging and chatting.",
-    "incomingRequests": "Incoming requests",
-    "outgoingRequests": "Outgoing requests",
-    "newestFirst": "Newest first",
-    "loadingIncoming": "Loading incoming requests...",
-    "loadingOutgoing": "Loading outgoing requests...",
-    "noIncoming": "No incoming requests",
-    "noOutgoing": "No outgoing requests",
-    "noIncomingDescription": "You'll see friend invites here as they arrive.",
-    "noOutgoingDescription": "Send an invite to start a new connection.",
-    "addFriends": "Add friends",
-    "addFriendsDescription": "Search by username or email. Invite players into your circle.",
-    "findByNameOrEmail": "Find by name or email",
-    "searchingAcrossPlatform": "Looking for players across NeonGambit.",
-    "findPlayers": "Find players",
-    "findPlayersDescription": "Search to add new friends. Your results will appear here.",
-    "noEmailProvided": "No email provided",
+    },
     "status": {
-      "thatsYou": "That's you"
+      "blocked": "Blocked",
+      "friends": "Friends",
+      "requestSent": "Request sent"
     },
-    "time": {
-      "earlier": "Earlier"
-    },
-    "requestSubtitle": {
-      "wantsToConnect": "Wants to connect",
-      "awaitingResponse": "Awaiting response"
-    },
-    "requestStatus": {
-      "accepted": "Accepted",
-      "denied": "Denied",
-      "ignored": "Ignored",
-      "canceled": "Canceled",
-      "pending": "Pending"
-    },
-    "actions": {
-      "deny": "Deny",
-      "challenge": "Challenge",
-      "challengeFriend": "Challenge this friend",
-      "sendDirectMessage": "Send a direct message",
-      "watchLiveTitle": "Playing a live multiplayer game",
-      "watchCurrentGame": "Watch this friend's current game"
-    },
-    "errors": {
-      "searchFailed": "Search failed",
-      "searchFailedRetry": "Search failed. Try again.",
-      "cannotSendRequestBlocked": "You cannot send a friend request to this player.",
-      "sendRequestFailed": "Failed to send request",
-      "acceptFailed": "Failed to accept request",
-      "denyFailed": "Failed to deny request",
-      "cancelFailed": "Failed to cancel request",
-      "unfriendFailed": "Failed to remove friend",
-      "messageUnavailable": "Unable to send message.",
-      "challengeUnavailable": "You cannot challenge this player."
+    "joined": "Joined",
+    "tabs": {
+      "overview": "Overview",
+      "gameHistory": "Game History"
     }
   },
   "postCard": {
-    "imagesCount": "{{count}} images",
-    "deleteYourPost": "Delete your post",
-    "reasonLabel": "Reason",
-    "mediaAlt": "Community post media",
-    "imageAlt": "Community post image",
-    "imageAltIndexed": "Community post image {{index}}",
-    "cannotLikeOwnPost": "You can't like your own post.",
-    "likePost": "Like post",
-    "unlikePost": "Unlike post",
-    "deletePostTitle": "Delete post?",
-    "deletePostDescription": "This removes your post from the community feed.",
-    "deleting": "Deleting...",
-    "closeImagePreview": "Close image preview",
-    "keyboardArrowsHint": "Use keyboard arrows to browse",
+    "imagesCount_one": "",
+    "imagesCount_other": "",
     "status": {
       "pending": "Pending",
       "approved": "Approved",
@@ -1050,28 +529,83 @@
     "errors": {
       "updateLike": "Failed to update like.",
       "deletePost": "Failed to delete post."
-    }
+    },
+    "deleteYourPost": "Delete your post",
+    "reasonLabel": "Reason",
+    "mediaAlt": "Community post media",
+    "imageAlt": "Community post image",
+    "cannotLikeOwnPost": "You can't like your own post.",
+    "unlikePost": "Unlike post",
+    "likePost": "Like post",
+    "deletePostTitle": "Delete post?",
+    "deletePostDescription": "This removes your post from the community feed.",
+    "deleting": "Deleting...",
+    "closeImagePreview": "Close image preview",
+    "keyboardArrowsHint": "Use keyboard arrows to browse",
+    "imageAltIndexed": "Community post image {{index}}"
   },
-  "watchPage": {
-    "featuredTournaments": "Featured Tournaments",
-    "previousFeaturedSlide": "Previous featured slide",
-    "nextFeaturedSlide": "Next featured slide",
-    "goToFeaturedSlide": "Go to featured slide {{index}}",
-    "fallback": {
-      "live": "LIVE",
-      "tournament": "TOURNAMENT",
-      "speedChess": "SPEED CHESS",
-      "worldChampionshipTitle": "World Chess Championships",
-      "worldChampionshipDescription": "Candidates tournament will happen and the challenger will fight with World Champion Gukesh.",
-      "grandPrixTitle": "FIDE Grand Prix Series",
-      "grandPrixDescription": "Top 16 elite players battle across four legs for qualification spots with sharp opening preparation and classical precision.",
-      "speedChessTitle": "Speed Chess Championship",
-      "speedChessDescription": "The fastest chess on the planet: bullet, blitz, and rapid in one bracket with constant tactical swings.",
-      "featuredEvent": "Featured Event",
-      "details": "Details",
-      "event": "EVENT"
-    }
+  "Delete": "Delete",
+  "communityComposer": {
+    "errors": {
+      "restrictedWithReason": "Posting is restricted by moderation. Reason: {{reason}}",
+      "restricted": "Posting is currently restricted by moderation.",
+      "temporarilyRestrictedUntil": "Posting is temporarily restricted until {{until}}.",
+      "temporarilyRestricted": "Posting is temporarily restricted by moderation.",
+      "temporarilyRestrictedWithReason": "{{base}} Reason: {{reason}}",
+      "tryAgainIn": " Try again in {{duration}}.",
+      "rateLimited": "You've reached the posting limit ({{maxPosts}} posts every 3 hours).{{waitText}}",
+      "unavailable": "Posting is unavailable right now.",
+      "loadGamesFailed": "Failed to load shareable games.",
+      "imageLimit_one": "",
+      "imageLimit_other": "",
+      "totalImageTooLarge": "Total image size is too large. Maximum combined size is 40MB.",
+      "loadSelectedGame": "Failed to load the selected game.",
+      "submitFailed": "Failed to submit post.",
+      "supportedImage": "Please choose a supported image file.",
+      "imageTooLarge": "Image is too large. Maximum size is 8MB.",
+      "supportedVideo": "Please choose a supported video file.",
+      "videoTooLarge": "Video is too large. Maximum size is 50MB."
+    },
+    "submittedForReview": "Your post was submitted for review.",
+    "addCaption": "Add a caption for this game...",
+    "composePlaceholder": "Share a game idea, opening line, clip, puzzle moment, tournament update, or one of your games...",
+    "removeMedia": "Remove media",
+    "selectedPreview": "Selected preview",
+    "imageSet": "Image Set",
+    "imagesSelected_one": "{{count}} image selected",
+    "imagesSelected_other": "{{count}} images selected",
+    "clearAll": "Clear all",
+    "selectedImageAlt": "Selected image {{index}}",
+    "removeImageAria": "Remove image {{index}}",
+    "shareGame": "Share Game",
+    "vsOpponent": "vs {{opponent}}",
+    "change": "Change",
+    "remove": "Remove",
+    "chooseGame": "Choose a game",
+    "chooseGameDescription": "Share one of your recent games with a caption and mini-board replay.",
+    "closeGamePicker": "Close game picker",
+    "gameSearchPlaceholder": "Search by opponent, opening, result, or time control...",
+    "noGamesFound": "No games found",
+    "noGamesFoundDescription": "Finish a few games first, or try a broader search.",
+    "vsLabel": "{{white}} vs {{black}}",
+    "movesCount_one": "{{count}} move",
+    "movesCount_other": "{{count}} moves",
+    "group": "Group",
+    "selectedGroup": "Selected group",
+    "generalCommunity": "General community",
+    "image": "Image",
+    "video": "Video",
+    "changeGame": "Change Game",
+    "submitting": "Submitting...",
+    "unavailable": "Unavailable",
+    "submit": "Submit"
   },
+  "Chess960": "Chess960",
+  "King of the Hill": "",
+  "Three-Check": "",
+  "Standard": "Standard",
+  "vs": "vs",
+  "Trending in chess": "",
   "communitySidebar": {
     "trendingMode": {
       "likes": "Most liked",
@@ -1085,7 +619,992 @@
     "noteTwo": "Off-topic, spam, or abusive content is declined.",
     "noteThree": "Tournament moments, ideas, clips, analysis, and tasteful memes welcome."
   },
+  "communityPage": {
+    "empty": {
+      "noApprovedTitle": "No approved posts yet",
+      "noApprovedDescription": "Submit the first chess post. It will appear here after moderation.",
+      "noPostsTitle": "No posts yet",
+      "noPostsDescription": "Your submissions will appear here with their moderation status.",
+      "noGroups": "No groups yet. Create the first one from here."
+    },
+    "errors": {
+      "loadFeed": "Failed to load feed.",
+      "loadMyPosts": "Failed to load your posts.",
+      "loadPostingAccess": "Failed to load posting access.",
+      "loadTrending": "Failed to load trending posts.",
+      "loadGroups": "Failed to load groups.",
+      "loadJoinedGroups": "Failed to load joined groups.",
+      "deletePost": "Failed to delete post.",
+      "updateGroup": "Failed to update group.",
+      "createGroup": "Failed to create group."
+    },
+    "tabs": {
+      "feed": "Feed",
+      "myPosts": "My Posts"
+    },
+    "pagination": {
+      "showing": "Showing {{start}} - {{end}} of {{total}}"
+    },
+    "groups": {
+      "loading": "Loading groups..."
+    }
+  },
+  "Live Now": "",
+  "games": "games",
+  "Top Players": "",
+  "Puzzle Leaders": "",
+  "Full board": "",
+  "solved": "",
+  "Who to Follow": "",
+  "followers": "followers",
+  "Upcoming Events": "",
+  "Daily Puzzle": "",
+  "Solve Today's Puzzle": "",
+  "presence": {
+    "justNow": "just now",
+    "minutesAgo_one": "",
+    "minutesAgo_other": "",
+    "hoursAgo_one": "",
+    "hoursAgo_other": "",
+    "daysAgo_one": "",
+    "daysAgo_other": "",
+    "status": {
+      "online": "Online",
+      "inGame": "In game",
+      "searchingMatch": "Searching for match",
+      "away": "Away",
+      "offline": "Offline"
+    }
+  },
+  "communityCommon": {
+    "sharedGame": "Shared game",
+    "videoPost": "Video post",
+    "imageSet": "Image set",
+    "imagePost": "Image post",
+    "communityPost": "Community post",
+    "won": "Won",
+    "lost": "Lost",
+    "draw": "Draw",
+    "resultUnavailable": "Result unavailable",
+    "neonGambitGame": "NeonGambit Game",
+    "white": "White",
+    "black": "Black",
+    "defaultOpponent": "Opponent"
+  },
+  "Custom": "",
+  "Format Ratings": "",
+  "Hot": "",
+  "Rising": "",
+  "Stable": "",
+  "Win Rate": "",
+  "Games": "",
+  "Streak": "",
+  "Live Games": "",
+  "active": "active",
+  "Refresh live games": "",
+  "View All": "",
+  "Watch": "Watch",
+  "Open puzzle training": "",
+  "Puzzles": "Puzzles",
+  "No puzzles available yet": "",
+  "Browse All": "",
+  "Solve Puzzle": "",
+  "Just now": "",
+  "min ago": "",
+  "hours ago": "",
+  "hour ago": "",
+  "days ago": "",
+  "day ago": "",
+  "Recent Matches": "",
+  "No games played yet": "",
+  "Start a game to see your history here": "",
+  "Tournaments": "",
+  "Unable to load tournaments": "",
+  "Please try again in a moment": "",
+  "Retry": "",
+  "Active": "Active",
+  "Upcoming": "Upcoming",
+  "tournamentsPage": {
+    "detail": {
+      "roundOf": "",
+      "playersCount_one": "{{count}} players",
+      "playersCount_other": "{{count}} players"
+    },
+    "actions": {
+      "join": "Join",
+      "startGame": "Start Game",
+      "nextGame": "Next Game",
+      "result": "Result",
+      "open": "Open",
+      "continue": "Continue",
+      "endTournament": "End Tournament",
+      "delete": "Delete"
+    },
+    "finalStandings": {
+      "title": "Final Standings"
+    },
+    "tabs": {
+      "standings": "Standings"
+    },
+    "units": {
+      "secAbbr": "s",
+      "minAbbr": "min",
+      "hourAbbr": "hr",
+      "dayAbbr": "day",
+      "hourShort": "h"
+    },
+    "status": {
+      "startsSoon": "Starts soon",
+      "startsIn": "Starts in {{duration}}",
+      "resultsAvailable": "Results available",
+      "ended": "Ended",
+      "timeLeft": "{{duration}} left",
+      "inProgress": "In progress"
+    },
+    "hints": {
+      "registrationStartsOneHourBefore": "Registration begins 1 hour before the event starts"
+    },
+    "empty": {
+      "createOrCheckBack": "Create one or check back when registration opens."
+    },
+    "table": {
+      "type": "Type",
+      "gameTime": "Game Time",
+      "duration": "Duration",
+      "status": "Status",
+      "players": "Players",
+      "action": "Action"
+    },
+    "filters": {
+      "allStatuses": "All Statuses",
+      "searchPlaceholder": "Search by name",
+      "allFormats": "All Formats"
+    },
+    "schedule": {
+      "previousDay": "Previous day",
+      "nextDay": "Next day",
+      "today": "Today",
+      "scheduledCount_one": "{{count}} scheduled tournaments in next 7 days",
+      "scheduledCount_other": "{{count}} scheduled tournaments in next 7 days",
+      "emptyTitle": "No tournaments in this 7-day window",
+      "emptyDescription": "Try another day or loosen the format/status filters."
+    },
+    "errors": {
+      "serverReconnect": "Unable to reach server. Reconnecting...",
+      "realtimeReconnect": "Realtime disconnected. Reconnecting...",
+      "realtimeFailed": "Realtime connection failed. Reconnecting...",
+      "fetchTournaments": "Failed to fetch tournaments",
+      "fetchTournament": "Failed to fetch tournament",
+      "serverUnavailable": "Server unavailable",
+      "requestFailed": "Request failed",
+      "startTimeTooSoon": "Start time must be at least 5 minutes from now."
+    },
+    "confirm": {
+      "deleteDraftMessage": "Delete this draft tournament permanently?",
+      "title": "Confirm Action"
+    },
+    "createChoice": {
+      "title": "Please select the kind of event you'd like to create:",
+      "shareable": "Tournaments",
+      "swissDescription": "Invite players into a round-based Swiss event with standings by score and tie-breaks.",
+      "arenaDescription": "Create a continuous arena where players score as many points as possible in a set duration."
+    },
+    "create": {
+      "arenaTitle": "New Arena Tournament",
+      "swissTitle": "New Swiss Tournament",
+      "fields": {
+        "arenaName": "Arena Name",
+        "tournamentName": "Tournament Name",
+        "pairingLogic": "Pairing Logic",
+        "gameType": "Game Type",
+        "timeControl": "Time Control",
+        "duration": "Duration",
+        "setup": "Setup",
+        "startDate": "Start Date",
+        "startTime": "Start Time",
+        "timezonePrefix": "Timezone:",
+        "hour": "Hour",
+        "minute": "Minute"
+      },
+      "game": "Game",
+      "rated": "Rated",
+      "chess960UnratedNotice": "Chess960 tournaments are always unrated.",
+      "pairing": {
+        "ratingBased": "Rating-based",
+        "pointBased": "Point-based"
+      },
+      "gameTypes": {
+        "standard": "Standard",
+        "chess960": "Chess960"
+      },
+      "setup": {
+        "standard": "Standard"
+      },
+      "submit": "Create",
+      "pendingMessage": "Creating tournament. You will be redirected to the real tournament ID once it is ready."
+    },
+    "modal": {
+      "placeholders": {
+        "name": "Title"
+      },
+      "fields": {
+        "rounds": "Rounds",
+        "maxPlayers": "Max Players"
+      },
+      "creating": "Creating..."
+    },
+    "pagination": {
+      "showingRange": ""
+    }
+  },
+  "tournamentCommon": {
+    "status": {
+      "registrationOpen": "Registration Open",
+      "live": "Live",
+      "finished": "Finished",
+      "cancelled": "Cancelled",
+      "draft": "Draft"
+    },
+    "roundStatus": {
+      "completed": "Completed",
+      "inProgress": "In Progress"
+    },
+    "badges": {
+      "roundClosed": "Round closed"
+    },
+    "rating": {
+      "none": "None"
+    },
+    "formats": {
+      "swiss": "Swiss Tournament",
+      "arena": "Arena"
+    },
+    "generic": {
+      "optional": "Optional"
+    }
+  },
+  "players joined": "",
+  "No tournaments available": "",
+  "Create a tournament or check back for the next event": "",
+  "Friend Challenge": "Friend Challenge",
+  "challenged you to play": "challenged you to play.",
+  "Decline": "Decline",
+  "Accept": "Accept",
+  "game": {
+    "sidebar": {
+      "status": {
+        "gameOver": "Game over",
+        "inProgress": "In progress",
+        "waiting": "Waiting"
+      },
+      "opening": {
+        "detecting": "Detecting opening...",
+        "makeMoveToDetect": "Make a move to detect",
+        "waitingFirstMove": "Waiting for your first move",
+        "ecoLabel": "ECO {{eco}}",
+        "bookPending": "Book pending",
+        "nextMoves": " • Next: {{moves}}"
+      },
+      "log": {
+        "firstMovePrompt": "Make your first move to populate the log.",
+        "startPrompt": "Start a game to see your move list."
+      }
+    },
+    "chat": {
+      "yourMessage": "Your message",
+      "opponentMessage": "Opponent message"
+    },
+    "aria": {
+      "choosePromotionPiece": "Choose promotion piece",
+      "promoteTo": "Promote to {{piece}}",
+      "resignGame": "Resign game"
+    },
+    "actions": {
+      "resign": "Resign"
+    },
+    "waitingToStart": "Waiting to start"
+  },
+  "Game log": "Game log",
+  "Moves & opening": "Moves & opening",
+  "A clean timeline of your current game": "A clean timeline of your current game.",
+  "Messages": "",
+  "Choose Promotion": "Choose Promotion",
+  "Cancel": "Cancel",
+  "Difficulty Category": "Difficulty Category",
+  "Choose Your Opponent": "Choose Your Opponent",
+  "Rating:": "Rating:",
+  "Difficulty: Level": "Difficulty: Level",
+  "Easy": "Easy",
+  "Hard": "Hard",
+  "New Game": "New Game",
+  "Play As": "Play As",
+  "Play vs Bot": "Play vs Bot",
+  "Custom Level": "Custom Level",
+  "Time Control": "Time Control",
+  "language": {
+    "label": "Language"
+  },
+  "settingsLang": {
+    "mnUnavailableTooltip": "This section is only available in English for now.",
+    "mnUnavailable": "Mongolian is currently unavailable",
+    "title": "Language",
+    "helper": "Choose your preferred language"
+  },
+  "learn": {
+    "retryCourse": "Retry Course",
+    "continueLesson": "Continue Lesson",
+    "startCourse": "Start Course",
+    "categories": {
+      "openings": "Openings",
+      "middlegame": "Middlegame",
+      "endgame": "Endgame",
+      "strategy": "Strategy"
+    },
+    "difficulty": {
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced",
+      "all": "All Difficulty"
+    },
+    "instructorFallback": "NeonGambit Instructor",
+    "courseProgress": "Course Progress",
+    "lessonProgress": "{{completed}}/{{total}} lessons",
+    "quickLessons": "Quick Lessons",
+    "backToLearn": "Back to Learn",
+    "courseProgressLabel": "Course progress",
+    "lessonProgressCompleted": "{{completed}}/{{total}} lessons completed",
+    "courseLessons": "Course Lessons",
+    "previous": "Previous",
+    "nextLesson": "Next Lesson",
+    "retryLesson": "Retry Lesson",
+    "loadFailed": "Failed to load learn catalog.",
+    "stats": {
+      "completed": "Completed",
+      "inProgress": "In Progress",
+      "dayStreak": "Day Streak"
+    },
+    "searchPlaceholder": "Search courses, openings, or grandmasters...",
+    "progress": {
+      "all": "All Progress",
+      "notStarted": "Not Started",
+      "inProgress": "In Progress",
+      "completed": "Completed"
+    },
+    "loading": "Loading learn catalog...",
+    "empty": "No courses matched your filters.",
+    "clearFilters": "Clear search and filters",
+    "lessonLoadFailed": "Failed to load lesson.",
+    "submitMoveFailed": "Failed to submit lesson move.",
+    "lessonNotFound": "Lesson Not Found",
+    "lessonNotFoundDescription": "The requested lesson could not be loaded.",
+    "hint": "Hint",
+    "lessonComplete": "Lesson complete.",
+    "hideHint": "Hide Hint",
+    "showHint": "Show Hint"
+  },
+  "profileGames": {
+    "card": {
+      "analyze": "Analyze",
+      "pgnCopied": "PGN Copied",
+      "copyPgn": "Copy PGN",
+      "downloadFile": "Download File",
+      "opening": "Opening",
+      "timeControl": "Time Control",
+      "unlimited": "Unlimited",
+      "termination": "Termination",
+      "opponentLevel": "Opponent Level",
+      "notAvailable": "N/A",
+      "threeCheck": "3-Check",
+      "threeCheckScore": "{{white}} {{whiteChecks}}/3 • {{black}} {{blackChecks}}/3",
+      "white": "White",
+      "black": "Black",
+      "gameNumber": "Game #{{index}}",
+      "duration": "Duration",
+      "moves": "Moves",
+      "shareGame": "Share game",
+      "moveHistory": "Move History"
+    },
+    "columns": {
+      "date": "Date",
+      "tournament": "Tournament",
+      "format": "Format",
+      "placement": "Placement",
+      "score": "Score",
+      "eloChange": "ELO Change"
+    },
+    "pools": {
+      "bullet": "Bullet",
+      "blitz": "Blitz",
+      "rapid": "Rapid",
+      "classical": "Classical"
+    },
+    "filters": {
+      "all": "All",
+      "wins": "Wins",
+      "losses": "Losses",
+      "draws": "Draws"
+    },
+    "results": {
+      "win": "Win",
+      "loss": "Loss",
+      "draw": "Draw"
+    },
+    "provisionalGames_one": "Provisional ({{count}}/{{total}})",
+    "provisionalGames_other": "Provisional ({{count}}/{{total}})",
+    "gamesCount_one": "{{count}} games",
+    "gamesCount_other": "{{count}} games",
+    "allGames_one": "",
+    "allGames_other": "",
+    "tournamentHistory_one": "",
+    "tournamentHistory_other": "",
+    "noTournamentHistory": "No tournament history yet.",
+    "range": "{{start}}-{{end}} of {{total}} games",
+    "noGamesFound": "No games found",
+    "noGamesFoundDescription": "Try changing your filters or play a new game.",
+    "recentGames": "Recent Games",
+    "viewAll": "View All"
+  },
+  "profilePage": {
+    "unknown": "Unknown",
+    "noGamesTitle": "No games yet",
+    "noGamesDescription": "Play your first game to start tracking your progress!",
+    "playNow": "Play Now",
+    "errors": {
+      "fetchGamesFailed": "Failed to fetch games",
+      "loadGamesFailed": "Failed to load games",
+      "loadProfileFailed": "Failed to load profile"
+    }
+  },
+  "profileWidgets": {
+    "formatRatingsTitle": "Format Ratings",
+    "leaderboardTitle": "Leaderboard",
+    "loadingLeaderboard": "Loading leaderboard...",
+    "noRatedPlayers": "No rated players yet.",
+    "youTag": "you",
+    "topPlayersHint": "Showing top {{top}} players in this pool (minimum {{minimum}} rated games).",
+    "yourPosition": "Your position",
+    "unranked": "Unranked",
+    "unrankedGamesSuffix_one": "({{count}}/{{total}} games)",
+    "unrankedGamesSuffix_other": "({{count}}/{{total}} games)",
+    "quickStatsTitle": "Quick Stats",
+    "favoriteOpening": "Favorite Opening",
+    "averageGameDuration": "Avg. Game Duration",
+    "bestWinStreak": "Best Win Streak",
+    "ratingTimelineTitle": "Rating Timeline",
+    "timelineUnavailable": "Timeline is only available for the signed-in player.",
+    "loadingTimeline": "Loading timeline...",
+    "noRatedGamesInRange": "No rated games in this range yet.",
+    "current": "Current",
+    "plusMinus": "+/-",
+    "rating": "Rating",
+    "low": "Low",
+    "high": "High"
+  },
+  "Performance by Color": "Performance by Color",
+  "Playing White": "Playing White",
+  "Playing Black": "Playing Black",
+  "profile": {
+    "avatar": {
+      "change": "Change avatar"
+    },
+    "stats": {
+      "totalGames": "Total Games",
+      "winRate": "Win Rate",
+      "currentStreak": "Current Streak",
+      "averageMoves": "Avg. Moves"
+    }
+  },
+  "Update Profile Picture": "Update Profile Picture",
+  "Clear selection": "Clear selection",
+  "Choose Image": "Choose Image",
+  "Save Avatar": "Save Avatar",
+  "Remove Avatar": "Remove Avatar",
+  "Supported formats: JPG, PNG, GIF": {
+    " Max size: 2MB": "Supported formats: JPG, PNG, GIF. Max size: 2MB"
+  },
+  "tournamentProfile": {
+    "title": "Tournament Profile",
+    "unavailable": "Tournament profile data is unavailable.",
+    "description": "Global ELO, tournament record, and placements.",
+    "currentElo": "Current ELO",
+    "record": "W / D / L",
+    "allTournaments": "All tournaments",
+    "tournamentsCreated": "Tournaments Created",
+    "organizerActivity": "Organizer activity",
+    "eloHistory": "ELO History",
+    "noEloEvents": "No tournament ELO events yet.",
+    "elo": "ELO",
+    "delta": "Delta",
+    "dateLabel": "Date: {{label}}",
+    "historyTitle": "Tournament History"
+  },
+  "No engine data yet": "No engine data yet",
+  "analysis": {
+    "none": "None",
+    "capturedByWhite": "Captured by White",
+    "capturedByBlack": "Captured by Black",
+    "bestMove": "Best move",
+    "bestMovePlayed": "You played this!",
+    "moveExplanation": "Move Explanation",
+    "moveExplanationHint": "Click on any move in the move list to see why it's good or bad.",
+    "analyzedBy": "Analyzed by",
+    "aiLoading": "Getting AI explanation...",
+    "startingPositionTitle": "Starting Position",
+    "startingPositionDescription": "The game begins from the standard starting position.",
+    "startingPositionDetails": "Select a move to see its analysis and explanation.",
+    "tip": "Tip:",
+    "aiLoadTimedOut": "AI explanation timed out. Showing the built-in analysis instead.",
+    "aiNoExplanationsReturned": "AI model returned no structured explanations for this game. Try another model.",
+    "aiLoadFailed": "Failed to get AI explanations",
+    "summary": "Summary",
+    "opening": "Opening",
+    "accuracy": "Accuracy",
+    "qualityBreakdown": {
+      "white": "White",
+      "black": "Black"
+    },
+    "checkmate": "Checkmate!",
+    "stalemate": "Stalemate",
+    "check": "Check!",
+    "engineEvaluation": "Engine evaluation",
+    "eval": "Eval",
+    "moves": "Moves",
+    "moveListWhite": "White",
+    "moveListBlack": "Black",
+    "noMovesYet": "No moves yet",
+    "moveListHints": "← → Navigate • Space Play • F Flip",
+    "adminLoadingTitle": "Loading analysis...",
+    "loadingDescription": "Stockfish is evaluating each position to calculate accuracy and move quality",
+    "progress": "Progress",
+    "evaluatingPositions": "Evaluating positions",
+    "calculatingAccuracy": "Calculating accuracy",
+    "back": "Back",
+    "title": "Analysis",
+    "aiModelSelectorTitle": "AI Model Selector",
+    "loadingTitle": "Loading analysis...",
+    "errors": {
+      "noGameId": "No game ID provided",
+      "fetchGame": "Failed to fetch game",
+      "loadGame": "Failed to load game",
+      "unableToLoadGame": "Unable to load game"
+    },
+    "gameNotFound": "Game Not Found",
+    "backToProfile": "Back to Profile"
+  },
+  "settings": {
+    "appearance": {
+      "theme": "Theme",
+      "themeHelper": "Choose your preferred color scheme",
+      "title": "Appearance",
+      "subtitle": "Customize how NeonGambit looks",
+      "boardTheme": "Board Theme",
+      "boardThemeHelper": "Choose board color scheme"
+    },
+    "profile": {
+      "google": "Google",
+      "facebook": "Facebook",
+      "title": "Profile & Account",
+      "subtitle": "Your personal information and security",
+      "email": "Email",
+      "changePassword": "Change Password",
+      "changePasswordHelper": "Update your account password",
+      "linkedAccounts": "Linked Accounts"
+    },
+    "ai": {
+      "providerConnected": "AI provider configured",
+      "providerMissing": "No AI provider configured",
+      "providerHelperSelected": "Selected model: {{model}}. Change model from Admin > Bots.",
+      "providerHelperSetup": "Add provider keys (for example VITE_AWS_BEARER_TOKEN_BEDROCK, VITE_OPENAI_API_KEY, VITE_XAI_API_KEY, VITE_DEEPSEEK_API_KEY, or VITE_GROQ_API_KEY) in .env and restart the app.",
+      "title": "AI & Analysis",
+      "subtitle": "Configure AI-powered features",
+      "explanations": "AI Move Explanations",
+      "explanationsHelper": "Use the admin-selected model. If that provider fails and Groq is configured, Groq is used as fallback.",
+      "explanationLevel": "Explanation Level",
+      "explanationLevelHelper": "How detailed AI commentary should be",
+      "levels": {
+        "brief": "Brief",
+        "normal": "Normal",
+        "deep": "Deep"
+      },
+      "postGame": "Post-Game Analysis",
+      "postGameHelper": "Allow engine analysis after games",
+      "providerStatus": "AI Provider Status"
+    },
+    "toasts": {
+      "saved": "Settings saved successfully!",
+      "reset": "Settings reset to last saved state",
+      "unblocked": "User unblocked.",
+      "passwordChanged": "Password changed successfully!"
+    },
+    "errors": {
+      "unblockFailed": "Unable to unblock user.",
+      "fillPasswordFields": "Fill in all password fields.",
+      "passwordTooShort": "New password must be at least 8 characters.",
+      "passwordMismatch": "New passwords do not match.",
+      "changePasswordFailed": "Failed to change password",
+      "blockedUsersLoad": "Loading blocked users...",
+      "noBlockedUsers": "No blocked users.",
+      "blockedSince": "Blocked since {{date}}",
+      "blocked": "Blocked",
+      "unblocking": "Unblocking...",
+      "unblock": "Unblock",
+      "passwordUpdating": "Updating..."
+    },
+    "header": {
+      "title": "Settings"
+    },
+    "actions": {
+      "reset": "Reset",
+      "saveChanges": "Save Changes",
+      "change": "Change",
+      "manage": "Manage"
+    },
+    "gameplay": {
+      "title": "Gameplay",
+      "subtitle": "Tweak your playing experience",
+      "defaultTime": "Default Time Control",
+      "defaultTimeHelper": "Starting time format for new games",
+      "timeControls": {
+        "bullet": "Bullet",
+        "blitz": "Blitz",
+        "rapid": "Rapid",
+        "classical": "Classical",
+        "custom": "Custom"
+      },
+      "autoQueen": "Auto-Queen",
+      "autoQueenHelper": "Automatically promote pawns to queen",
+      "autoQueenAria": "Auto-queen",
+      "moveInput": "Move Input",
+      "moveInputHelper": "How you make moves on the board",
+      "input": {
+        "click": "Click",
+        "drag": "Drag",
+        "both": "Both"
+      },
+      "legalMoves": "Show Legal Moves",
+      "legalMovesHelper": "Highlight available squares",
+      "showLegalMovesAria": "Show legal moves",
+      "premoves": "Premoves",
+      "premovesHelper": "Queue your next move while waiting",
+      "premovesAria": "Premoves"
+    },
+    "privacy": {
+      "title": "Privacy & Safety",
+      "blockedUsers": "Blocked Users",
+      "blockedUsersHelper": "Manage your block list"
+    },
+    "modals": {
+      "changePassword": {
+        "title": "Change Password",
+        "current": "Current Password",
+        "currentPlaceholder": "Enter current password",
+        "new": "New Password",
+        "newPlaceholder": "Enter new password",
+        "confirm": "Confirm Password",
+        "confirmPlaceholder": "Confirm new password",
+        "cta": "Update Password"
+      }
+    }
+  },
+  "shareGameModal": {
+    "errors": {
+      "shareFailed": "Failed to share game.",
+      "shareFailedTryAgain": "Failed to share game. Please try again."
+    },
+    "title": "Share Game",
+    "vs": "vs",
+    "searchFriends": "Search friends...",
+    "noFriends": "No friends yet.",
+    "noMatchingFriends": "No matching friends.",
+    "sent": "Sent",
+    "send": "Send"
+  },
+  "nav": {
+    "tournaments": "Tournaments",
+    "puzzles": "Puzzles",
+    "learn": "Learn",
+    "watch": "Watch",
+    "community": "Community",
+    "messages": "Messages",
+    "friends": "Friends",
+    "settings": "Settings",
+    "logout": "Log Out",
+    "viewProfile": "View Profile"
+  },
+  "NeonGambit": "NeonGambit",
+  "Go Back": "Go Back",
+  "Bot Management": "Bot Management",
+  "Export CSV": "Export CSV",
+  "Create Bot": "Create Bot",
+  "Total Bots": "Total Bots",
+  "Inactive": "Inactive",
+  "Masters": "Masters",
+  "All Difficulties": "All Difficulties",
+  "All Categories": "All Categories",
+  "All Status": "All Status",
+  "No bots found": "No bots found",
+  "Create your first bot": "Create your first bot",
+  "Bot": "Bot",
+  "Difficulty": "Difficulty",
+  "Category": "Category",
+  "Quote": "Quote",
+  "Status": "Status",
+  "Actions": "Actions",
+  "Edit": "Edit",
+  "Showing": "Showing",
+  "to": "to",
+  "of": "of",
+  "bots": "bots",
+  "Previous": "Previous",
+  "Page": "Page",
+  "Next": "Next",
+  "Selected model is applied to all game analysis views (User Analyze, Analyze960, and Admin Analyze), including AI explanations for Mistake, Blunder, and Brilliant moves": "Selected model is applied to all game analysis views (User Analyze, Analyze960, and Admin Analyze), including AI explanations for Mistake, Blunder, and Brilliant moves.",
+  "Providers": "Providers",
+  "Models": "Models",
+  "Input:": "Input:",
+  "Output:": "Output:",
+  "Max input:": "Max input:",
+  "Close": "Close",
+  "Bot Name *": "Bot Name *",
+  "Avatar Image (optional)": "Avatar Image (optional)",
+  "Image": "Image",
+  "Upload Image": "Upload Image",
+  "Max 5MB, JPG/PNG/GIF/WebP": "Max 5MB, JPG/PNG/GIF/WebP",
+  "ELO Rating *": "ELO Rating *",
+  "Difficulty *": "Difficulty *",
+  "Quote/Tagline": "Quote/Tagline",
+  "Description": "Description",
+  "Play Style": "Play Style",
+  "Skill Level:": "Skill Level:",
+  "0 (Weakest)": "0 (Weakest)",
+  "20 (Strongest)": "20 (Strongest)",
+  "Blunder Chance:": "Blunder Chance:",
+  "Use Opening Book": "Use Opening Book",
+  "Delete Bot": "Delete Bot",
+  "Are you sure you want to delete": "Are you sure you want to delete",
+  "ELO -": "ELO -",
+  "This bot is currently active and visible to users": "This bot is currently active and visible to users.",
+  "This action cannot be undone": {
+    " The bot will be permanently removed from the system": "This action cannot be undone. The bot will be permanently removed from the system."
+  },
+  "Use keyboard arrows to browse": "Use keyboard arrows to browse",
+  "Delete this post permanently?": "Delete this post permanently?",
+  "The uploaded media will be removed too": {
+    " This action cannot be undone": "The uploaded media will be removed too. This action cannot be undone."
+  },
+  "No posts found": "No posts found",
+  "Try a different status or search filter": "Try a different status or search filter.",
+  "Submitted": "Submitted",
+  "Updated": "Updated",
+  "Preview": "Preview",
+  "Caption": "Caption",
+  "Group": "Group",
+  "Edit Submission": "Edit Submission",
+  "Shared game snapshot is locked for moderation edits": {
+    " You can update the caption, status, and rejection reason here": "Shared game snapshot is locked for moderation edits. You can update the caption, status, and rejection reason here."
+  },
+  "Remove existing media": "Remove existing media",
+  "Save changes": "Save changes",
+  "Video preview": "Video preview",
+  "Review": "Review",
+  "Content type": "Content type",
+  "Result": "Result",
+  "Time control": "Time control",
+  "Opening": "Opening",
+  "Reviewed by": "Reviewed by",
+  "Posting access": "Posting access",
+  "Clear": "Clear",
+  "Rejection note": "Rejection note",
+  "Review actions": "Review actions",
+  "Approve": "Approve",
+  "Reject": "Reject",
+  "Confirm reject": "Confirm reject",
+  "Featured Events": "Featured Events",
+  "Import from EN": "Import from EN",
+  "Add Event": "Add Event",
+  "Live": "Live",
+  "Completed": "Completed",
+  "No events found": "No events found",
+  "Create your first event": "Create your first event",
+  "Event": "Event",
+  "Type": "Type",
+  "Date": "Date",
+  "Featured": "Featured",
+  "Pair ID:": "Pair ID:",
+  "\\u2013": "\\u2013",
+  "events": "events",
+  "\\u2026": "\\u2026",
+  "No events available to import": "No events available to import.",
+  "All": "All",
+  "Pair ID": "Pair ID",
+  "Import Selected": "Import Selected",
+  "Title *": "Title *",
+  "Generate": "Generate",
+  "Tournament": "Tournament",
+  "Match": "Match",
+  "Broadcast": "Broadcast",
+  "Main Button Label": "Main Button Label",
+  "Main Button URL": "Main Button URL",
+  "Secondary Button URL": "Secondary Button URL",
+  "Background Type": "Background Type",
+  "Default Gradient": "Default Gradient",
+  "Custom Color": "Custom Color",
+  "Custom Image": "Custom Image",
+  "Background Color": "Background Color",
+  "Background Image URL": "Background Image URL",
+  "Upload Background Image": "Upload Background Image",
+  "Import from МН": "Import from МН",
+  "Games Management": "Games Management",
+  "Total Games": "Total Games",
+  "Rated": "Rated",
+  "% of all games": "% of all games",
+  "Standard / 960": "Standard / 960",
+  "Last 24 Hours": "Last 24 Hours",
+  "All Variants": "All Variants",
+  "All Results": "All Results",
+  "All Types": "All Types",
+  "Casual": "Casual",
+  "No games found with current filters": "No games found with current filters.",
+  "Players": "Players",
+  "Variant": "Variant",
+  "Owner": "Owner",
+  "Moves": "Moves",
+  "Created": "Created",
+  "Delete Game": "Delete Game",
+  "This will permanently remove the game record and cannot be undone": "This will permanently remove the game record and cannot be undone.",
+  "Edit Game": "Edit Game",
+  "Manage game data and make it ready for admin analysis": "Manage game data and make it ready for admin analysis.",
+  "Owner User ID *": "Owner User ID *",
+  "White *": "White *",
+  "Black *": "Black *",
+  "Result *": "Result *",
+  "Play As *": "Play As *",
+  "White": "White",
+  "Black": "Black",
+  "White Elo": "White Elo",
+  "Black Elo": "Black Elo",
+  "Opponent": "Opponent",
+  "Opponent Level": "Opponent Level",
+  "Site": "Site",
+  "Date (PGN)": "Date (PGN)",
+  "Rated Game": "Rated Game",
+  "Termination": "Termination",
+  "Moves (space/newline separated SAN)": "Moves (space/newline separated SAN)",
+  "Move Text (optional)": "Move Text (optional)",
+  "PGN (optional)": "PGN (optional)",
+  "Save Changes": "Save Changes",
+  "Community Groups": "Community Groups",
+  "No groups yet": "No groups yet",
+  "Create the first public community group": "Create the first public community group.",
+  "members": "members",
+  "/community/groups/": "/community/groups/",
+  "Members": "Members",
+  "Approved Posts": "Approved Posts",
+  "Creator:": "Creator:",
+  "Back to Learn Admin": "Back to Learn Admin",
+  "Add Lesson": "Add Lesson",
+  "Topic / Level": "Topic / Level",
+  "/": "/",
+  "Lessons": "Lessons",
+  "All status": "All status",
+  "Published": "Published",
+  "Unpublished": "Unpublished",
+  "No lessons found": "No lessons found.",
+  "Lesson": "Lesson",
+  "Up": "Up",
+  "Down": "Down",
+  "Step Editor": "Step Editor",
+  "Lesson name": "Lesson name",
+  "Show lesson": "Show lesson",
+  "Back to Course": "Back to Course",
+  "Steps": "Steps",
+  "New": "New",
+  "No steps yet": "No steps yet.",
+  "Step": "Step",
+  "Step Info": "Step Info",
+  "Board": "Board",
+  "Board position": "Board position",
+  "Move color": "Move color",
+  "White to move": "White to move",
+  "Black to move": "Black to move",
+  "Instructions": "Instructions",
+  "Feedback": "Feedback",
+  "Correct feedback": "Correct feedback",
+  "Wrong feedback": "Wrong feedback",
+  "Correct Moves": "Correct Moves",
+  "Correct moves": "Correct moves",
+  "Clear moves": "Clear moves",
+  "Drag or click a legal move on the preview board to add it": "Drag or click a legal move on the preview board to add it.",
+  "x": "x",
+  "Show step": "Show step",
+  "Position Preview": "Position Preview",
+  "Learn Course Management": "Learn Course Management",
+  "New Course": "New Course",
+  "Total Courses": "Total Courses",
+  "Total Lessons": "Total Lessons",
+  "Published Courses": "Published Courses",
+  "All categories": "All categories",
+  "All difficulties": "All difficulties",
+  "No courses found for the current filters": "No courses found for the current filters.",
+  "Course": "Course",
+  "Topic": "Topic",
+  "Level": "Level",
+  "/learn/": "/learn/",
+  "total /": "total /",
+  "published": "published",
+  "Open": "Open",
+  "in current result": "in current result.",
+  "No courses available to import": "No courses available to import.",
+  "Course name": "Course name",
+  "Cover image": "Cover image",
+  "Cover": "Cover",
+  "No image selected": "No image selected",
+  "Summary": "Summary",
+  "Instructor": "Instructor",
+  "Show course": "Show course",
+  "Credential Security": "Credential Security",
+  "Manage the current admin password": "Manage the current admin password.",
+  "Update Password": "Update Password",
+  "Admin interface language": "Admin interface language",
+  "Add Puzzle": "Add Puzzle",
+  "All active states": "All active states",
+  "Active only": "Active only",
+  "Inactive only": "Inactive only",
+  "Duplicates": "Duplicates",
+  "Puzzle": "Puzzle",
+  "Rating": "Rating",
+  "Quality": "Quality",
+  "State": "State",
+  "Attempts:": "Attempts:",
+  "Solve / Fail:": "Solve / Fail:",
+  "Avg Time:": "Avg Time:",
+  "s": "s",
+  "Duplicate ×": "Duplicate ×",
+  "No puzzles found": "No puzzles found",
+  "Starting": "Starting",
+  "Tool": "Tool",
+  "Record Solution": "Record Solution",
+  "Stop Recording": "Stop Recording",
+  "Undo": "Undo",
+  "Click a piece to highlight its legal moves, then click a highlighted square to record": {
+    " Dragging still works": "Click a piece to highlight its legal moves, then click a highlighted square to record. Dragging still works."
+  },
+  "Recorded Moves:": "Recorded Moves:",
+  "Move Number": "Move Number",
+  "Who to Move": "Who to Move",
+  "White to Move": "White to Move",
+  "Black to Move": "Black to Move",
+  "Title": "Title",
+  "Medium": "Medium",
+  "FEN Position": "FEN Position",
+  "Solution (comma-separated moves)": "Solution (comma-separated moves)",
   "communityGroupDetail": {
+    "errors": {
+      "loadGroup": "Failed to load group.",
+      "loadGroupPosts": "Failed to load group posts.",
+      "toggleMembership": "Failed to {{action}} group.",
+      "updateGroup": "Failed to update group."
+    },
     "notFoundTitle": "Group not found",
     "notFoundDescription": "This group may have been removed.",
     "createdPrefix": "created {{time}}",
@@ -1095,12 +1614,557 @@
     "groupFeed": "Group Feed",
     "emptyTitle": "No approved posts yet",
     "emptyJoined": "Share the first post for this group. It will appear here after moderation.",
-    "emptyNotJoined": "Join the group and help start the conversation.",
-    "errors": {
-      "loadGroup": "Failed to load group.",
-      "loadGroupPosts": "Failed to load group posts.",
-      "toggleMembership": "Failed to {{action}} group.",
-      "updateGroup": "Failed to update group."
+    "emptyNotJoined": "Join the group and help start the conversation."
+  },
+  "communityGroupsPage": {
+    "title": "Find your chess circle",
+    "createGroup": "Create group",
+    "searchPlaceholder": "Search by group name, topic, or description...",
+    "backToCommunity": "Back to Community",
+    "noGroupsTitle": "No groups found",
+    "noGroupsDescription": "Start the first public group for your chess community.",
+    "pagination": {
+      "showing": "Showing {{start}} - {{end}} of {{total}} discover groups"
     }
-  }
+  },
+  "friendsPage": {
+    "time": {
+      "earlier": "Earlier"
+    },
+    "requestStatus": {
+      "accepted": "Accepted",
+      "denied": "Denied",
+      "ignored": "Ignored",
+      "canceled": "Canceled",
+      "pending": "Pending"
+    },
+    "errors": {
+      "searchFailed": "Search failed",
+      "searchFailedRetry": "Search failed. Try again.",
+      "cannotSendRequestBlocked": "You cannot send a friend request to this player.",
+      "sendRequestFailed": "Failed to send request",
+      "acceptFailed": "Failed to accept request",
+      "messageUnavailable": "Unable to send message.",
+      "challengeUnavailable": "You cannot challenge this player.",
+      "denyFailed": "Failed to deny request",
+      "cancelFailed": "Failed to cancel request",
+      "unfriendFailed": "Failed to remove friend"
+    },
+    "requestSubtitle": {
+      "wantsToConnect": "Wants to connect",
+      "awaitingResponse": "Awaiting response"
+    },
+    "incomingRequests": "Incoming requests",
+    "outgoingRequests": "Outgoing requests",
+    "actions": {
+      "deny": "Deny",
+      "watchLiveTitle": "Playing a live multiplayer game",
+      "watchCurrentGame": "Watch this friend's current game",
+      "sendDirectMessage": "Send a direct message",
+      "challengeFriend": "Challenge this friend",
+      "challenge": "Challenge"
+    },
+    "status": {
+      "thatsYou": "That's you"
+    },
+    "relationshipStates": "Relationship states",
+    "filterPlaceholder": "Filter friends by name or handle",
+    "totalCount_one": "",
+    "totalCount_other": "",
+    "fetchingCircle": "Fetching your circle.",
+    "emptyListTitle": "Your friends list is empty",
+    "emptyListDescription": "Add players to start challenging and chatting.",
+    "newestFirst": "Newest first",
+    "loadingIncoming": "Loading incoming requests...",
+    "noIncoming": "No incoming requests",
+    "noIncomingDescription": "You'll see friend invites here as they arrive.",
+    "loadingOutgoing": "Loading outgoing requests...",
+    "noOutgoing": "No outgoing requests",
+    "noOutgoingDescription": "Send an invite to start a new connection.",
+    "addFriends": "Add friends",
+    "addFriendsDescription": "Search by username or email. Invite players into your circle.",
+    "findByNameOrEmail": "Find by name or email",
+    "searchingLabel": "Searching...",
+    "searchingAcrossPlatform": "Looking for players across NeonGambit.",
+    "findPlayers": "Find players",
+    "findPlayersDescription": "Search to add new friends. Your results will appear here.",
+    "noEmailProvided": "No email provided"
+  },
+  "Friends since": "",
+  "Message": "",
+  "Unfriend": "",
+  "Friends": "Friends",
+  "Add Friend": "",
+  "Loading friends": {
+    "": ""
+  },
+  "Search": "",
+  "Play Chess": "Play Chess",
+  "auth": {
+    "loginFailed": "Login failed",
+    "googleLoginFailed": "Google login failed",
+    "facebookLoginFailed": "Facebook login failed",
+    "quickTestLoginFailed": "Quick test login failed",
+    "quickTestLoginRetry": "Could not create a unique test account. Please try again.",
+    "welcomeBack": "Welcome Back",
+    "accountBannedTitle": "Account Banned",
+    "accountBannedReason": "Your account has been banned. Reason: {{reason}}",
+    "email": "Email Address",
+    "emailPlaceholder": "you@example.com",
+    "password": "Password",
+    "rememberMe": "Remember me for 30 days",
+    "signIn": "Sign In",
+    "quickTestLogin": "Quick Test Login (Dev Only)",
+    "orContinue": "Or continue with",
+    "continueWithGoogle": "Continue with Google",
+    "continueWithFacebook": "Continue with Facebook",
+    "socialNotConfigured": "Social sign-in is not configured yet.",
+    "noAccount": "Don't have an account?",
+    "signUp": "Sign up",
+    "registrationFailed": "Registration failed",
+    "createAccount": "Create Account",
+    "fullName": "Full Name",
+    "namePlaceholder": "John Doe",
+    "minimumChars": "Minimum 8 characters",
+    "orSignup": "Or sign up with",
+    "haveAccount": "Already have an account?",
+    "signInCta": "Sign in"
+  },
+  "messages": {
+    "videoFileFallback": "Video",
+    "attachmentFallback": "attachment",
+    "search": "Search conversations",
+    "tabConversations": "Conversations",
+    "tabArchived": "Archived",
+    "loading": "Loading conversations...",
+    "archivedEmpty": "No archived chats.",
+    "conversationsEmpty": "No conversations yet.",
+    "noMessages": "No messages yet.",
+    "deleteConfirmTitle": "Delete conversation?",
+    "deleteConfirmBody": "This will remove the conversation from your messages. It will not erase it for the other participant.",
+    "confirmDelete": "Delete",
+    "photoFileFallback": "Photo",
+    "archivedReadOnly": "This conversation is archived. Unarchive to reply.",
+    "unarchive": "Unarchive",
+    "clearAttachments": "Remove all",
+    "imageSelected": "image selected",
+    "imagesSelected": "images selected",
+    "composePlaceholder": "Type a message...",
+    "media": {
+      "video": "Video",
+      "attachment": "attachment",
+      "imageSelected": "image selected",
+      "imagesSelected": "images selected",
+      "photo": "Photo"
+    },
+    "errors": {
+      "send": "Failed to send message.",
+      "archive": "Unable to archive this conversation right now.",
+      "unarchive": "Unable to unarchive this conversation right now.",
+      "delete": "Unable to delete this conversation right now."
+    },
+    "archived": "Conversation moved to Archived.",
+    "unarchived": "Conversation restored to Conversations.",
+    "conversation": "Conversation",
+    "loadingConversation": "Loading conversations...",
+    "openingLatest": "Opening your latest conversation...",
+    "emptyTitle": "No conversations",
+    "emptySubtitle": "Choose a player from your list to start a focused, real-time chat.",
+    "archive": "Archive",
+    "action": "Working...",
+    "delete": "Delete",
+    "startConversation": "No messages yet. Start the conversation.",
+    "gameResult": {
+      "whiteWins": "White wins",
+      "blackWins": "Black wins",
+      "draw": "Draw"
+    }
+  },
+  "1 video selected ·": "1 video selected ·",
+  "/game1": "/game1",
+  "/game2": "/game2",
+  ", etc": {
+    " to share a game from your profile history": ", etc. to share a game from your profile history"
+  },
+  "moves": "moves",
+  "View Game": "View Game",
+  "Page not found": "Page not found",
+  "The page you requested could not be found": "The page you requested could not be found.",
+  "fourPlayer": {
+    "youSuffix": " (You)",
+    "playerFallback": "Player",
+    "colors": {
+      "red": "Red",
+      "blue": "Blue",
+      "yellow": "Yellow",
+      "green": "Green"
+    },
+    "searchingMatch": "Searching 4-player match...",
+    "defaultTimeControl": "5+0",
+    "searchMatchButton": "Search Match",
+    "gameOver": {
+      "youWin": "You Win",
+      "winnerWins": "{{winner}} Wins",
+      "eliminated": "You Were Eliminated",
+      "matchOver": "Match Over",
+      "reason": "Reason: {{reason}}",
+      "playerRunEnded": "Your run has ended in this match.",
+      "matchFinished": "Match finished."
+    },
+    "reviewingTurn": "Review: {{color}} to move",
+    "status": {
+      "yourTurn": "Your Turn",
+      "colorToMove": "{{color}} to move"
+    },
+    "you": "You",
+    "reviewingMoveCount": ". Reviewing move {{current}} of {{total}}.",
+    "period": ".",
+    "moveLog": {
+      "empty": "No moves yet"
+    }
+  },
+  "4-Player Online": "4-Player Online",
+  "Queue with 3 more players and start instantly": "Queue with 3 more players and start instantly.",
+  "Server Offline": "",
+  "Play Again": "Play Again",
+  "New Search": "New Search",
+  "Variants": "Variants",
+  "4-Player Chess Online": "4-Player Chess Online",
+  "Match Info": "Match Info",
+  "Playing as": "Playing as",
+  "Move Log": "Move Log",
+  "Leave": "Leave",
+  "practice": {
+    "workspace": {
+      "modes": {
+        "freeMove": {
+          "title": "Free Move",
+          "desc": "Move pieces freely, alternating turns",
+          "open": "Open Free Move"
+        },
+        "positionBuilder": {
+          "title": "Position Builder",
+          "desc": "Set up any custom position",
+          "open": "Open Position Builder"
+        }
+      },
+      "notices": {
+        "invalidFenStart": "Invalid FEN received. Loaded start position.",
+        "loadedFromBuilder": "Loaded position from Position Builder ({{side}} to move).",
+        "queuedPreMoveNoLongerLegal": "Queued pre-move is no longer legal.",
+        "preMovePlayed": "Pre-move played.",
+        "queuedPreMoveInvalid": "Queued pre-move was invalid.",
+        "selectLegalPreMoveTarget": "Select a legal pre-move target.",
+        "chooseHighlightedLegalMove": "Choose one of the highlighted legal moves.",
+        "promotionPremovesQueuedAsQueen": "Promotion pre-moves are queued as a queen.",
+        "preMoveQueued": "Pre-move queued.",
+        "positionBuilderNoPieceOnSquare": "No piece on that square.",
+        "positionBuilderInvalidSetup": "Invalid setup. Keep legal piece counts and only one king per side.",
+        "positionBuilderInvalidPlacement": "Invalid placement for this position.",
+        "positionBuilderInvalidFenString": "Invalid FEN string.",
+        "positionBuilderPositionLoaded": "Position loaded.",
+        "positionBuilderEnterFenFirst": "Enter a FEN string first.",
+        "positionBuilderClipboardUnavailableFenShown": "Clipboard unavailable. FEN shown below.",
+        "positionBuilderFenCopiedToClipboard": "FEN copied to clipboard.",
+        "positionBuilderClipboardBlockedFenShown": "Clipboard blocked. FEN shown below.",
+        "positionBuilderCannotUpdateSideToMove": "Cannot update side to move.",
+        "positionBuilderTurnSetTo": "Turn set to {{side}}.",
+        "positionBuilderLoadedStartPosition": "Loaded start position.",
+        "positionBuilderBoardCleared": "Board cleared.",
+        "noMovesToUndo": "No moves to undo.",
+        "lastMoveUndone": "Last move undone.",
+        "noMovesToRedo": "No moves to redo.",
+        "cannotRedoFromCurrentPosition": "Cannot redo from current position.",
+        "moveRestored": "Move restored.",
+        "positionResetToBuilderStart": "Position reset to builder start.",
+        "positionResetToStart": "Position reset to start.",
+        "noMovesToExportYet": "No moves to export yet.",
+        "clipboardUnavailablePgnShown": "Clipboard unavailable. PGN displayed below.",
+        "pgnCopiedToClipboard": "PGN copied to clipboard.",
+        "clipboardBlockedPgnShown": "Clipboard blocked. PGN displayed below."
+      },
+      "turn": {
+        "white": "White",
+        "black": "Black"
+      },
+      "positionBuilderValidation": {
+        "invalidTitle": "Invalid Position",
+        "couldNotValidate": "Could not validate this position. Try rebuilding it.",
+        "fenValidationFailed": "FEN validation failed.",
+        "boardMustContainKings": "Board must contain exactly 1 White king and 1 Black king.",
+        "kingsCannotBeAdjacent": "Kings cannot be adjacent.",
+        "sideInCheckButNotToMove": "{{side}} king is in check, but {{side}} is not the side to move.",
+        "checkmateTitle": "Checkmate",
+        "checkmateNoLegalMoves": "Checkmate: No legal moves for {{side}}",
+        "stalemateTitle": "Stalemate",
+        "stalemateNoLegalMoves": "Stalemate: No legal moves for {{side}}",
+        "okButton": "OK"
+      },
+      "back": "Back",
+      "moveHistory": "Move History",
+      "moveHistoryEmpty": "Make a legal move to start your PGN list.",
+      "freeMove": {
+        "openingUnavailable": "Opening data unavailable",
+        "topFiveMoves": "Top 5 Moves",
+        "whiteToMove": "White to move",
+        "blackToMove": "Black to move",
+        "analyzingTopMoves": "Analyzing top moves...",
+        "topMovesPlaceholder": "Top moves will appear here.",
+        "startPosition": "Start Position",
+        "plyCount_one": "",
+        "plyCount_other": "",
+        "resetToStart": "Reset to Start",
+        "flipBoard": "Flip Board",
+        "queuedPreMove": "Queued pre-move",
+        "startPositionButton": "Start Position"
+      },
+      "exportPgn": "Export PGN",
+      "turnToMove": "Turn to Move",
+      "positionBuilderPanel": {
+        "piecePalette": "Piece Palette",
+        "whitePiece": "White Piece",
+        "blackPiece": "Black Piece",
+        "eraserHelp": "Eraser (click board square to remove)",
+        "fenString": "FEN String",
+        "loadFen": "Load FEN",
+        "copyFen": "Copy FEN",
+        "boardActions": "Board Actions",
+        "clearBoard": "Clear Board",
+        "startFromThisPosition": "Start from This Position"
+      },
+      "title": "Practice Workspace",
+      "subtitle": "Choose a training mode to set your next session.",
+      "currentSelection": "Current Selection",
+      "importUploadPgn": "Import / Upload PGN"
+    },
+    "pgn": {
+      "status": {
+        "loadedFile": "Loaded {{fileName}}.",
+        "parsedPlies_one": "",
+        "parsedPlies_other": "",
+        "parsedSuccess": "PGN parsed successfully."
+      },
+      "errors": {
+        "unableToReadFile": "Unable to read the selected PGN file.",
+        "emptyInput": "Paste PGN text or upload a PGN file first.",
+        "parseFailed": "PGN parsing failed. Please verify the file.",
+        "noGamePayload": "PGN parsed but no analysis game payload was returned."
+      },
+      "backToPractice": "Back to Practice",
+      "title": "PGN Import / Analysis",
+      "close": "Close PGN window",
+      "pasteLabel": "Paste PGN",
+      "uploadButton": "Upload .pgn",
+      "placeholder": "[Event \"Practice\"]\\n[Site \"NeonGambit\"]\\n\\n1. e4 e5 2. Nf3 Nc6 3. Bb5 a6",
+      "sourceFile": "Source file: {{fileName}}",
+      "parsing": "Parsing PGN...",
+      "openInAnalysisBoard": "Open in Analysis Board",
+      "clearInput": "Clear Input",
+      "importOptions": "Import Options",
+      "importHelp": "Paste PGN text directly or upload a .pgn file, then parse it into the analysis board."
+    }
+  },
+  "4-Player Board": "",
+  "You": "",
+  "Start Variant": "",
+  "botGame": {
+    "notFound": "Bot not found",
+    "backToBotSelection": "Back to Bot Selection",
+    "aiOpponent": "AI opponent"
+  },
+  "Resign": "Resign",
+  "Back to Bot Selection": "Back to Bot Selection",
+  "Back": "Back",
+  "Play with Bot": "Play with Bot",
+  "Select a bot to play against": "Select a bot to play against",
+  "Play as": "Play as",
+  "Random": "",
+  "playWithBot": {
+    "playVs": "Play vs {{name}}",
+    "selectBot": "Select a Bot"
+  },
+  "Failed to fetch bots": "",
+  "Failed to load bots": "",
+  "Select Bot": "",
+  "Play Bots": "",
+  "Loading bots": {
+    "": ""
+  },
+  "bot": "",
+  "Play": "",
+  "Friend": "",
+  "Failed to load friends list": "",
+  "Select Time": "",
+  "Friend match": "",
+  "Select friend": "",
+  "No friends found": "",
+  "Play vs": "",
+  "Change Friend": "",
+  "Game Type": "",
+  "Base (min)": "",
+  "Increment (sec)": "",
+  "Apply Custom": "",
+  "Friend games are always unrated": {
+    " Elo does not change": ""
+  },
+  "I play as": "I play as",
+  "Sending": {
+    "": ""
+  },
+  "Send Challenge": "",
+  "Choose Friend First": "",
+  "Search puzzle title, theme, or motif": {
+    "": ""
+  },
+  "puzzles": {
+    "difficulty": {
+      "easy": "Easy",
+      "hard": "Hard",
+      "medium": "Medium"
+    },
+    "modeLabels": {
+      "review": "Review",
+      "random": "Random",
+      "library": "Library",
+      "rated": "Rated"
+    },
+    "history": {
+      "summary": "{{mode}} • {{result}} • {{date}} • {{time}}",
+      "loadFailed": "Failed to load puzzle history",
+      "eyebrow": "Puzzle History",
+      "searchLabel": "Search",
+      "searchPlaceholder": "Search title",
+      "loading": "Loading puzzle history...",
+      "empty": "No history items match your search."
+    },
+    "library": {
+      "start": "Start",
+      "pagination": "Showing {{start}} - {{end}} of {{total}}",
+      "loadFailed": "Failed to load puzzle library",
+      "title": "Browse Puzzles",
+      "searchLabel": "Search",
+      "searchPlaceholder": "Search title",
+      "statusLabel": "Status",
+      "difficultyLabel": "Difficulty",
+      "ratingSeparator": "to",
+      "grid": "Grid",
+      "list": "List",
+      "loading": "Loading puzzle library...",
+      "emptyReviewDue": "No reviews due. Failed or gave-up rated puzzles will appear here immediately.",
+      "emptyFiltered": "No puzzles match your filters.",
+      "bookmarked": "Bookmarked",
+      "noDescription": "No description",
+      "attempts_one": "{{count}} attempts",
+      "attempts_other": "{{count}} attempts",
+      "noMotifs": "No motifs"
+    },
+    "status": {
+      "all": "All",
+      "new": "New",
+      "solved": "Solved",
+      "failedBefore": "Failed Before",
+      "reviewDue": "Review Due",
+      "bookmarked": "Bookmarked"
+    },
+    "trainer": {
+      "historyTab": "History",
+      "whiteToMove": "White to move",
+      "blackToMove": "Black to move",
+      "loading": "Loading puzzle...",
+      "noReviewTitle": "No review puzzles right now",
+      "noPuzzleTitle": "No puzzle available",
+      "noPuzzleDescription": "Please try again in a moment.",
+      "puzzleElo": "Puzzle Elo",
+      "streak": "Streak",
+      "sideToMove": "Side to move",
+      "waitingForPuzzle": "Waiting for puzzle...",
+      "timer": "Timer",
+      "bookmarked": "Bookmarked",
+      "bookmark": "Bookmark",
+      "hintUsed": "Hint Used",
+      "useHint": "Use Hint",
+      "showSolution": "Show Solution",
+      "tryAgain": "Try Again",
+      "shufflePuzzle": "Shuffle Puzzle",
+      "nextPuzzle": "Next Puzzle",
+      "revealLine": "Click Show Solution to reveal the line.",
+      "noStoredLine": "No stored line.",
+      "loadFailed": "Failed to load puzzle",
+      "submitFailed": "Failed to submit attempt",
+      "invalidFen": "Invalid FEN for this puzzle"
+    }
+  },
+  "Elo": "Elo",
+  "Solve": "",
+  "Puzzle Library": "",
+  "shown": "",
+  "No puzzles available": "",
+  "Puzzle Rating": "",
+  "Best:": "",
+  "Solved Today": "",
+  "solved overall": "",
+  "Day": "",
+  "Days": "",
+  "Consecutive solve days": "",
+  "Next Puzzle": "Next Puzzle",
+  "to move": "to move",
+  "Puzzle Elo": "Puzzle Elo",
+  "Correct!": "Correct!",
+  "Solved in": "Solved in",
+  "Wrong move": "Wrong move",
+  "Try again or view solution": "Try again or view solution",
+  "Solution": "Solution",
+  "Hint": "Hint",
+  "First move:": "First move:",
+  "Winner": "",
+  "Atomic Chess": "",
+  "Game": "",
+  "Rating range:": "",
+  "Arena Over": "Arena Over",
+  "min": "min",
+  "Featured Match": "",
+  "View all events": "",
+  "UPCOMING": "",
+  "watching": "",
+  "Watch Now": "",
+  "Lichess": "Lichess",
+  "via Lichess": "",
+  "View all tournaments": "",
+  "Watch on Lichess": "",
+  "No featured events at the moment": "",
+  "watch": {
+    "liveGames": {
+      "categorySummary": "{{label}} - {{time}}",
+      "rangeSummary": "{{start}}-{{end}} of {{total}} games"
+    }
+  },
+  "Refresh": "",
+  "No live games in this category right now": "",
+  "Check back soon or try another category": "",
+  "Watch Live": "",
+  "Search players or events": {
+    "": ""
+  },
+  "watchPage": {
+    "fallback": {
+      "live": "LIVE",
+      "tournament": "TOURNAMENT",
+      "worldChampionshipTitle": "World Chess Championships",
+      "worldChampionshipDescription": "Candidates tournament will happen and the challenger will fight with World Champion Gukesh.",
+      "grandPrixTitle": "FIDE Grand Prix Series",
+      "grandPrixDescription": "Top 16 elite players battle across four legs for qualification spots with sharp opening preparation and classical precision.",
+      "speedChess": "SPEED CHESS",
+      "speedChessTitle": "Speed Chess Championship",
+      "speedChessDescription": "The fastest chess on the planet: bullet, blitz, and rapid in one bracket with constant tactical swings.",
+      "event": "EVENT",
+      "featuredEvent": "Featured Event",
+      "details": "Details"
+    },
+    "featuredTournaments": "Featured Tournaments",
+    "previousFeaturedSlide": "Previous featured slide",
+    "nextFeaturedSlide": "Next featured slide",
+    "goToFeaturedSlide": "Go to featured slide {{index}}"
+  },
+  "Continue Watching Moves": "Continue Watching Moves",
+  "Back to Watch": "Back to Watch"
 }

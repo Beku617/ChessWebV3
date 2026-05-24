@@ -23,7 +23,7 @@ import {
   formatRelativeTime,
   summarizeCommunityPost,
 } from "./types";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
 
 /* ─── Trending Topics ─── */
 interface TrendingWidgetProps {
@@ -319,8 +319,7 @@ export function WhoToFollowWidget() {
                 </span>
               </div>
               <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5 truncate">
-                {su.bio} · {su.followers} followers
-              </p>
+                {su.bio} · {su.followers} <Trans>followers</Trans> </p>
             </div>
             <FollowButton compact />
           </div>

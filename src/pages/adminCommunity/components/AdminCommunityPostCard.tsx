@@ -1,3 +1,4 @@
+import { Trans, useTranslation } from "react-i18next";
 import { Check, X } from "lucide-react";
 import { Avatar } from "../../../components/community/CommunityUI";
 import {
@@ -21,6 +22,11 @@ import {
   formatStatusLabel,
   inferRestrictionDuration,
 } from "../utils";
+
+const SECONDARY_ACTION_GRID_CLASS = {
+  single: "grid-cols-1",
+  double: "grid-cols-2",
+} as const;
 
 interface AdminCommunityPostCardProps {
   post: AdminCommunityPost;
@@ -93,7 +99,10 @@ export function AdminCommunityPostCard({
   onClearRestriction,
   onToggleUnlimitedPosting,
 }: AdminCommunityPostCardProps) {
-  const authorName = post.author?.fullName || "Chess Player";
+  const { t } = useTranslation();
+  const authorName =
+    post.author?.fullName ||
+    t("admin.community.labels.chessPlayer", "Chess Player");
   const authorId = String(post.author?.id || "");
   const mediaItems = getCommunityMediaItems(post);
   const mediaUrl = resolveAssetUrl(mediaItems[0]?.url || post.mediaUrl);
@@ -115,13 +124,18 @@ export function AdminCommunityPostCard({
   const contentTypeLabel = formatAdminContentType(post);
   const reviewStatusLabel = formatStatusLabel(post.status);
   const reviewStateLabel = post.reviewedAt
-    ? `Reviewed ${formatRelativeTime(post.reviewedAt)}`
-    : "Awaiting review";
+    ? t("admin.community.labels.reviewedAt", {
+        defaultValue: "Reviewed {{time}}",
+        time: formatRelativeTime(post.reviewedAt),
+      })
+    : t("admin.community.labels.awaitingReview", "Awaiting review");
   const showApproveAction = post.status !== "approved";
   const showRejectAction = post.status !== "rejected";
   const showSecondaryActionRow = !isEditing || showRejectBox || showRejectAction;
   const secondaryActionGridClass =
-    !isEditing && (showRejectBox || showRejectAction) ? "grid-cols-2" : "grid-cols-1";
+    !isEditing && (showRejectBox || showRejectAction)
+      ? SECONDARY_ACTION_GRID_CLASS.double
+      : SECONDARY_ACTION_GRID_CLASS.single;
 
   return (
     <article className="group overflow-hidden rounded-[24px] border border-gray-200 dark:border-white/[0.05] bg-[#0c1728]/88 shadow-[0_22px_60px_rgba(0,0,0,0.24)] backdrop-blur-xl">
@@ -134,27 +148,23 @@ export function AdminCommunityPostCard({
                 <div className="min-w-0">
                   <h3 className="truncate text-[15px] font-semibold text-white">{authorName}</h3>
                   <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
-                    <span>Submitted {formatRelativeTime(post.createdAt)}</span>
+                    <span><Trans>Submitted</Trans> {formatRelativeTime(post.createdAt)}</span>
                     {post.updatedAt && (
-                      <span>Updated {formatRelativeTime(post.updatedAt)}</span>
+                      <span><Trans>Updated</Trans> {formatRelativeTime(post.updatedAt)}</span>
                     )}
                   </div>
                 </div>
               </div>
 
               <div className="shrink-0 text-right">
-                <div className="text-[10px] uppercase tracking-[0.22em] text-gray-500">
-                  Preview
-                </div>
+                <div className="text-[10px] uppercase tracking-[0.22em] text-gray-500"> <Trans>Preview</Trans> </div>
                 <div className="mt-1 text-xs text-gray-400">{contentTypeLabel}</div>
               </div>
             </div>
 
             {post.text && (
               <div className="rounded-[18px] border border-gray-200 dark:border-white/[0.04] bg-white/[0.025] px-4 py-3.5">
-                <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500">
-                  Caption
-                </div>
+                <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500"> <Trans>Caption</Trans> </div>
                 <div className="mt-2 whitespace-pre-wrap text-sm leading-6 text-gray-100/90">
                   {post.text}
                 </div>
@@ -163,9 +173,7 @@ export function AdminCommunityPostCard({
 
             {post.group && (
               <div className="rounded-[18px] border border-gray-200 dark:border-white/[0.04] bg-white/[0.02] px-4 py-3 text-sm text-gray-300">
-                <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500">
-                  Group
-                </div>
+                <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500"> <Trans>Group</Trans> </div>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   <span className="rounded-full bg-brand-500/10 px-2.5 py-1 text-[11px] font-semibold text-brand-100">
                     {post.group.name}
@@ -181,18 +189,16 @@ export function AdminCommunityPostCard({
 
             {isEditing && (
               <div className="space-y-3 rounded-[18px] border border-gray-200 dark:border-white/[0.05] bg-[#091321]/78 p-4">
-                <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500">
-                  Edit Submission
-                </div>
+                <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500"> <Trans>Edit Submission</Trans> </div>
                 <textarea
                   value={editText}
                   onChange={(event) => onEditTextChange(event.target.value)}
-                  placeholder="Edit post text..."
+                  placeholder={t("admin.community.placeholders.editPostText", "Edit post text...")}
                   className="min-h-[120px] w-full rounded-xl bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                 />
                 <div className="max-w-[220px]">
                   <FilterDropdown
-                    ariaLabel="Edit post status"
+                    ariaLabel={t("admin.community.aria.editPostStatus", "Edit post status")}
                     value={editStatus}
                     options={postStatusOptions}
                     onChange={onEditStatusChange}
@@ -202,15 +208,12 @@ export function AdminCommunityPostCard({
                   <input
                     value={editRejectionReason}
                     onChange={(event) => onEditRejectionReasonChange(event.target.value)}
-                    placeholder="Rejection reason"
+                    placeholder={t("admin.community.placeholders.rejectionReason", "Rejection reason")}
                     className="w-full rounded-xl bg-white/[0.05] px-4 py-2.5 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                   />
                 )}
                 {isGamePost ? (
-                  <div className="rounded-xl bg-white/[0.04] px-4 py-3 text-sm leading-6 text-gray-400">
-                    Shared game snapshot is locked for moderation edits. You can update the caption,
-                    status, and rejection reason here.
-                  </div>
+                  <div className="rounded-xl bg-white/[0.04] px-4 py-3 text-sm leading-6 text-gray-400"> <Trans>Shared game snapshot is locked for moderation edits. You can update the caption, status, and rejection reason here.</Trans> </div>
                 ) : (
                   <>
                     <input
@@ -226,9 +229,7 @@ export function AdminCommunityPostCard({
                           checked={editRemoveMedia}
                           onChange={(event) => onEditRemoveMediaChange(event.target.checked)}
                           className="rounded border-white/20 bg-transparent text-brand-500 focus:ring-brand-500/30"
-                        />
-                        Remove existing media
-                      </label>
+                        /> <Trans>Remove existing media</Trans> </label>
                     )}
                   </>
                 )}
@@ -238,18 +239,14 @@ export function AdminCommunityPostCard({
                     onClick={onCancelEdit}
                     className="inline-flex items-center gap-2 rounded-xl bg-white/[0.08] px-4 py-2.5 text-sm text-gray-200 hover:bg-white/[0.14]"
                   >
-                    <X className="h-4 w-4" />
-                    Cancel
-                  </button>
+                    <X className="h-4 w-4" /> <Trans>Cancel</Trans> </button>
                   <button
                     type="button"
                     disabled={isBusy}
                     onClick={onSaveEdit}
                     className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-500 disabled:opacity-50"
                   >
-                    <Check className="h-4 w-4" />
-                    Save changes
-                  </button>
+                    <Check className="h-4 w-4" /> <Trans>Save changes</Trans> </button>
                 </div>
               </div>
             )}

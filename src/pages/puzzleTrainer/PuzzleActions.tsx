@@ -1,3 +1,4 @@
+import { Trans } from "react-i18next";
 import { ChevronRight, Lightbulb, ChevronLeft, Settings } from "lucide-react";
 import { PuzzleStatus } from "./types";
 import { formatTime } from "./utils";
@@ -33,8 +34,7 @@ export function PuzzleActions({
           <button
             onClick={onNextPuzzle}
             className="w-full flex items-center justify-center gap-1 py-2 rounded-lg font-bold text-sm bg-brand-600 hover:bg-brand-500 transition-colors"
-          >
-            Next Puzzle <ChevronRight size={18} />
+          > <Trans>Next Puzzle</Trans> <ChevronRight size={18} />
           </button>
         ) : (
           <button

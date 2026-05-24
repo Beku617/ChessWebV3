@@ -1,3 +1,4 @@
+import { Trans } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 
@@ -14,17 +15,13 @@ function NotFoundContent() {
         <div className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-500">
           404
         </div>
-        <h1 className="mt-3 text-3xl font-bold">Page not found</h1>
-        <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-          The page you requested could not be found.
-        </p>
+        <h1 className="mt-3 text-3xl font-bold"><Trans>Page not found</Trans></h1>
+        <p className="mt-2 text-sm text-gray-500 dark:text-gray-400"> <Trans>The page you requested could not be found.</Trans> </p>
         <button
           type="button"
           onClick={() => navigate(-1)}
           className="mt-5 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-700"
-        >
-          Go Back
-        </button>
+        > <Trans>Go Back</Trans> </button>
       </div>
     </div>
   );

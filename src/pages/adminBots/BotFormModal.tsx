@@ -1,3 +1,4 @@
+import { Trans, useTranslation } from "react-i18next";
 import { useState, useRef, useEffect } from "react";
 import type { BotFormData, BotData } from "./types";
 import {
@@ -35,6 +36,7 @@ export function BotFormModal({
   editingBot,
   saving,
 }: BotFormModalProps) {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState<BotFormData>(DEFAULT_BOT_FORM);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [previewUrl, setPreviewUrl] = useState<string>("");
@@ -132,14 +134,14 @@ export function BotFormModal({
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-            {editingBot ? "Edit Bot" : "Create New Bot"}
+            {editingBot
+              ? t("admin.bots.modal.editBot", "Edit Bot")
+              : t("admin.bots.modal.createNewBot", "Create New Bot")}
           </h2>
           <button
             onClick={onClose}
             className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-          >
-            Close
-          </button>
+          > <Trans>Close</Trans> </button>
         </div>
 
         {/* Form */}
@@ -152,9 +154,7 @@ export function BotFormModal({
             <div className="space-y-4">
               {/* Name */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Bot Name *
-                </label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"> <Trans>Bot Name *</Trans> </label>
                 <input
                   type="text"
                   value={formData.name}
@@ -162,7 +162,7 @@ export function BotFormModal({
                     setFormData({ ...formData, name: e.target.value })
                   }
                   className={`w-full px-4 py-2 rounded-lg border ${errors.name ? "border-red-500" : "border-gray-300 dark:border-gray-600"} bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-transparent`}
-                  placeholder="Enter bot name"
+                  placeholder={t("admin.bots.placeholders.botName", "Enter bot name")}
                 />
                 {errors.name && (
                   <p className="text-red-500 text-xs mt-1">{errors.name}</p>
@@ -171,9 +171,7 @@ export function BotFormModal({
 
               {/* Avatar Image Upload */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Avatar Image (optional)
-                </label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"> <Trans>Avatar Image (optional)</Trans> </label>
                 <div className="flex items-center gap-4">
                   <div
                     onClick={() => fileInputRef.current?.click()}
@@ -182,13 +180,11 @@ export function BotFormModal({
                     {previewUrl ? (
                       <img
                         src={previewUrl}
-                        alt="Preview"
+                        alt={t("common.preview", "Preview")}
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-                        Image
-                      </span>
+                      <span className="text-xs font-semibold uppercase tracking-wide text-gray-400"> <Trans>Image</Trans> </span>
                     )}
                   </div>
                   <div className="flex-1">
@@ -203,12 +199,8 @@ export function BotFormModal({
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
                       className="px-4 py-2 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors flex items-center gap-2"
-                    >
-                      Upload Image
-                    </button>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Max 5MB, JPG/PNG/GIF/WebP
-                    </p>
+                    > <Trans>Upload Image</Trans> </button>
+                    <p className="text-xs text-gray-500 mt-1"> <Trans>Max 5MB, JPG/PNG/GIF/WebP</Trans> </p>
                   </div>
                 </div>
                 {errors.avatarFile && (
@@ -220,9 +212,7 @@ export function BotFormModal({
 
               {/* ELO Rating */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  ELO Rating *
-                </label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"> <Trans>ELO Rating *</Trans> </label>
                 <input
                   type="number"
                   min={100}
@@ -245,9 +235,7 @@ export function BotFormModal({
 
               {/* Difficulty */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Difficulty *
-                </label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"> <Trans>Difficulty *</Trans> </label>
                 <select
                   value={formData.difficulty}
                   onChange={(e) =>
@@ -268,9 +256,7 @@ export function BotFormModal({
 
               {/* Category */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Category
-                </label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"> <Trans>Category</Trans> </label>
                 <input
                   type="text"
                   value={formData.category}
@@ -278,14 +264,14 @@ export function BotFormModal({
                     setFormData({ ...formData, category: e.target.value })
                   }
                   className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500"
-                  placeholder="e.g., general, historical, sports"
+                  placeholder={t("admin.bots.placeholders.categoryExample", "e.g., general, historical, sports")}
                 />
               </div>
 
               {/* Title */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Title (GM, IM, etc.)
+                  {t("admin.bots.labels.title", "Title (GM, IM, etc.)")}
                 </label>
                 <input
                   type="text"
@@ -294,7 +280,7 @@ export function BotFormModal({
                     setFormData({ ...formData, title: e.target.value })
                   }
                   className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500"
-                  placeholder="e.g., GM, IM, FM"
+                  placeholder={t("admin.bots.placeholders.titleExample", "e.g., GM, IM, FM")}
                 />
               </div>
             </div>
@@ -303,9 +289,7 @@ export function BotFormModal({
             <div className="space-y-4">
               {/* Quote */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Quote/Tagline
-                </label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"> <Trans>Quote/Tagline</Trans> </label>
                 <textarea
                   value={formData.quote}
                   onChange={(e) =>
@@ -314,18 +298,19 @@ export function BotFormModal({
                   rows={2}
                   maxLength={200}
                   className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 resize-none"
-                  placeholder="Bot's signature quote..."
+                  placeholder={t("admin.bots.placeholders.quote", "Bot's signature quote...")}
                 />
                 <p className="text-xs text-gray-500 text-right">
-                  {formData.quote.length}/200
+                  {t("admin.bots.labels.quoteCount", {
+                    defaultValue: "{{count}}/200",
+                    count: formData.quote.length,
+                  })}
                 </p>
               </div>
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Description
-                </label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"> <Trans>Description</Trans> </label>
                 <textarea
                   value={formData.description}
                   onChange={(e) =>
@@ -333,15 +318,13 @@ export function BotFormModal({
                   }
                   rows={3}
                   className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 resize-none"
-                  placeholder="Describe this bot..."
+                  placeholder={t("admin.bots.placeholders.description", "Describe this bot...")}
                 />
               </div>
 
               {/* Play Style */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Play Style
-                </label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"> <Trans>Play Style</Trans> </label>
                 <select
                   value={formData.playStyle}
                   onChange={(e) =>
@@ -362,8 +345,7 @@ export function BotFormModal({
 
               {/* Skill Level Slider */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Skill Level: {formData.skillLevel}
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"> <Trans>Skill Level:</Trans> {formData.skillLevel}
                 </label>
                 <input
                   type="range"
@@ -379,15 +361,19 @@ export function BotFormModal({
                   className="w-full"
                 />
                 <div className="flex justify-between text-xs text-gray-500">
-                  <span>0 (Weakest)</span>
-                  <span>20 (Strongest)</span>
+                  <span><Trans>0 (Weakest)</Trans></span>
+                  <span><Trans>20 (Strongest)</Trans></span>
                 </div>
               </div>
 
               {/* Blunder Chance */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Blunder Chance: {Math.round(formData.blunderChance * 100)}%
+                  <Trans>Blunder Chance:</Trans>{" "}
+                  {t("admin.bots.labels.percentValue", {
+                    defaultValue: "{{value}}%",
+                    value: Math.round(formData.blunderChance * 100),
+                  })}
                 </label>
                 <input
                   type="range"
@@ -418,9 +404,7 @@ export function BotFormModal({
                     }
                     className="w-4 h-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
                   />
-                  <span className="text-sm text-gray-700 dark:text-gray-300">
-                    Use Opening Book
-                  </span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300"> <Trans>Use Opening Book</Trans> </span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -431,9 +415,7 @@ export function BotFormModal({
                     }
                     className="w-4 h-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
                   />
-                  <span className="text-sm text-gray-700 dark:text-gray-300">
-                    Active
-                  </span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300"> <Trans>Active</Trans> </span>
                 </label>
               </div>
             </div>
@@ -445,15 +427,17 @@ export function BotFormModal({
               type="button"
               onClick={onClose}
               className="px-6 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-            >
-              Cancel
-            </button>
+            > <Trans>Cancel</Trans> </button>
             <button
               type="submit"
               disabled={saving}
               className="px-6 py-2.5 rounded-lg bg-gradient-to-r from-brand-500 to-brand-500 text-white font-medium hover:from-brand-600 hover:to-brand-600 transition-colors disabled:opacity-50"
             >
-              {saving ? "Saving..." : editingBot ? "Update Bot" : "Create Bot"}
+              {saving
+                ? t("admin.bots.actions.saving", "Saving...")
+                : editingBot
+                  ? t("admin.bots.actions.updateBot", "Update Bot")
+                  : t("admin.bots.actions.createBot", "Create Bot")}
             </button>
           </div>
         </form>

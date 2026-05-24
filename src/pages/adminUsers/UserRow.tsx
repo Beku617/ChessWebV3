@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   Mail,
   Calendar,
@@ -37,6 +38,7 @@ export function UserRow({
   onDelete,
   onBan,
 }: UserRowProps) {
+  const { t } = useTranslation();
   const winRate =
     user.gamesPlayed > 0
       ? Math.round((user.gamesWon / user.gamesPlayed) * 100)
@@ -61,13 +63,13 @@ export function UserRow({
         : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300";
   const statusLabel =
     accountStatus === "playing"
-      ? "Playing"
+      ? t("admin.users.status.playing")
       : accountStatus === "active"
-        ? "Active"
-        : "Offline";
+        ? t("admin.users.status.active")
+        : t("admin.users.status.offline");
   const fullName = String(user.fullName || "").trim();
   const email = String(user.email || "").trim();
-  const displayName = fullName || email.split("@")[0] || "Unknown User";
+  const displayName = fullName || email.split("@")[0] || t("admin.users.unknownUser");
   const avatarInitial = displayName.charAt(0).toUpperCase();
   const createdAtLabel = user.createdAt
     ? new Date(user.createdAt).toLocaleDateString()
@@ -130,7 +132,7 @@ export function UserRow({
           </span>
           {user.pendingDeletion ? (
             <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-700 dark:bg-red-900/30 dark:text-red-400">
-              Pending deletion
+              {t("admin.users.pendingDeletion")}
             </span>
           ) : null}
         </div>
@@ -173,6 +175,8 @@ function UserRowActions({
   onDelete,
   onBan,
 }: UserRowProps) {
+  const { t } = useTranslation();
+
   if (deleteConfirm === user._id) {
     return (
       <div className="flex items-center justify-end gap-2">
@@ -181,13 +185,13 @@ function UserRowActions({
           disabled={deleting}
           className="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded-lg text-sm disabled:opacity-50 transition-colors"
         >
-          {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Delete"}
+          {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : t("admin.actions.delete")}
         </button>
         <button
           onClick={() => onDeleteConfirm(null)}
           className="px-3 py-1.5 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg text-sm transition-colors"
         >
-          Cancel
+          {t("common.cancel")}
         </button>
       </div>
     );
@@ -201,7 +205,7 @@ function UserRowActions({
             type="text"
             value={banReason}
             onChange={(e) => onBanReasonChange(e.target.value)}
-            placeholder="Ban reason (optional)"
+            placeholder={t("admin.users.ban.reasonPlaceholder")}
             className="w-48 px-2 py-1 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:border-brand-500"
           />
         )}
@@ -214,9 +218,9 @@ function UserRowActions({
             {banning ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : user.banned ? (
-              "Unban"
+              t("admin.users.ban.unban")
             ) : (
-              "Ban"
+              t("admin.users.ban.ban")
             )}
           </button>
           <button
@@ -226,7 +230,7 @@ function UserRowActions({
             }}
             className="px-3 py-1.5 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg text-sm transition-colors"
           >
-            Cancel
+            {t("common.cancel")}
           </button>
         </div>
       </div>
@@ -238,14 +242,14 @@ function UserRowActions({
       <Link
         to={`/admin/users/${user._id}`}
         className="p-2 text-gray-400 hover:text-brand-500 hover:bg-brand-100 dark:hover:bg-brand-900/20 rounded-lg transition-colors"
-        title="View profile"
+        title={t("admin.actions.viewProfile")}
       >
         <Eye className="w-4 h-4" />
       </Link>
       <button
         onClick={() => onBanConfirm(user._id)}
         className={`p-2 rounded-lg transition-colors ${user.banned ? "text-green-500 hover:text-green-600 hover:bg-green-100 dark:hover:bg-green-900/20" : "text-orange-400 hover:text-orange-500 hover:bg-orange-100 dark:hover:bg-orange-900/20"}`}
-        title={user.banned ? "Unban user" : "Ban user"}
+        title={user.banned ? t("admin.users.ban.unbanUser") : t("admin.users.ban.banUser")}
       >
         {user.banned ? (
           <ShieldOff className="w-4 h-4" />
@@ -256,7 +260,7 @@ function UserRowActions({
       <button
         onClick={() => onDeleteConfirm(user._id)}
         className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-        title="Delete user"
+        title={t("admin.actions.deleteUser")}
       >
         <Trash2 className="w-4 h-4" />
       </button>

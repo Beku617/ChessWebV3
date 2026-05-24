@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
 import {
   BotPersonality,
   botPersonalities,
@@ -36,13 +36,9 @@ export function BotSelectionGrid({
         <button
           onClick={() => navigate("/play/quick")}
           className="px-3 py-2 rounded-lg text-sm font-medium bg-white/80 dark:bg-slate-800/80 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
-        >
-          Back
-        </button>
+        > <Trans>Back</Trans> </button>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Play with Bot
-          </h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white"> <Trans>Play with Bot</Trans> </h1>
         </div>
       </div>
 

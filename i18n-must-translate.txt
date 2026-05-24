@@ -1,0 +1,351 @@
+﻿C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\game\GameSidebar.tsx:73:25	openingLoading
+                      ? "Detecting opening..."
+                      : "Make a move to detect"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\game\GameSidebar.tsx:74:23	gameStarted
+                    ? openingLoading
+                      ? "Detecting opening..."
+                      : "Make a move to detect"
+                    : "Waiting for your first move"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\game\GameSidebar.tsx:81:54	opening?.eco ? `ECO ${opening.eco}` : "Book pending"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\game\GameSidebar.tsx:99:17	gameStarted
+              ? "Make your first move to populate the log."
+              : "Start a game to see your move list."
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\game\GameSidebar.tsx:100:17	gameStarted
+              ? "Make your first move to populate the log."
+              : "Start a game to see your move list."
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\game\setup\GameSetupModal.tsx:92:15	activeTab === "bots" && selectedBot
+            ? `Play vs ${selectedBot.name}`
+            : "Start Game"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\ProfileAvatarUpload.tsx:160:32	userName || "Profile"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\ProfileAvatarUpload.tsx:216:27	alt="Preview"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\ProfileAvatarUpload.tsx:222:27	alt="Current"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\Sidebar.tsx:118:15	alt="NeonGambit"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminAnalyze\AdminAnalyze.tsx:76:23	error || "Game not found"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminBots\AdminBots.tsx:175:50	notification.type === "success" ? "Success" : "Error"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminBots\AdminBots.tsx:175:62	notification.type === "success" ? "Success" : "Error"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminBots\AnalysisAiModelSelector.tsx:131:43	isConfigured ? "Connected" : "Need Key"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminBots\AnalysisAiModelSelector.tsx:131:57	isConfigured ? "Connected" : "Need Key"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminBots\BotFormModal.tsx:136:27	editingBot ? "Edit Bot" : "Create New Bot"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminBots\BotFormModal.tsx:136:40	editingBot ? "Edit Bot" : "Create New Bot"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminBots\BotFormModal.tsx:162:31	placeholder="Enter bot name"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminBots\BotFormModal.tsx:180:29	alt="Preview"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminBots\BotFormModal.tsx:264:31	placeholder="e.g., general, historical, sports"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminBots\BotFormModal.tsx:280:31	placeholder="e.g., GM, IM, FM"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminBots\BotFormModal.tsx:425:52	editingBot ? "Update Bot" : "Create Bot"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminBots\BotFormModal.tsx:425:67	editingBot ? "Update Bot" : "Create Bot"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminBots\DeleteConfirmModal.tsx:76:41	deleting ? "Deleting..." : "Delete Bot"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\AdminCommunity.tsx:87:56	selected?.label || "Select"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\AdminCommunity.tsx:1133:33	isCreateOpen ? "Close" : "New Post"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\AdminCommunity.tsx:1133:43	isCreateOpen ? "Close" : "New Post"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\AdminCommunity.tsx:1154:27	ariaLabel="Status filter"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\AdminCommunity.tsx:1164:27	ariaLabel="Media filter"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\AdminCommunity.tsx:1184:31	ariaLabel="Create post status"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\AdminCommunity.tsx:1194:33	placeholder="Rejection reason"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\AdminCommunity.tsx:1212:51	isCreating ? "Creating..." : "Create Post"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\AdminCommunity.tsx:1243:61	post.author?.fullName || "Chess Player"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\AdminCommunity.tsx:1277:21	post.reviewedAt
+                  ? `Reviewed ${formatRelativeTime(post.reviewedAt)}`
+                  : "Awaiting review"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\AdminCommunity.tsx:1283:23	!isEditing && (showRejectBox || showRejectAction)
+                    ? "grid-cols-2"
+                    : "grid-cols-1"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\AdminCommunity.tsx:1284:23	!isEditing && (showRejectBox || showRejectAction)
+                    ? "grid-cols-2"
+                    : "grid-cols-1"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\AdminCommunity.tsx:1359:45	ariaLabel="Edit post status"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\AdminCommunity.tsx:1369:47	placeholder="Rejection reason"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\AdminCommunity.tsx:1442:72	imageItems[0].originalName || "Community post media"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\AdminCommunity.tsx:1464:65	item.originalName || "Community post image"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\AdminCommunity.tsx:1469:67	item.originalName || "Community post media"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\AdminCommunity.tsx:1493:45	imageItems.length > 1
+                                          ? "Image set"
+                                          : "Image preview"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\AdminCommunity.tsx:1494:45	imageItems.length > 1
+                                          ? "Image set"
+                                          : "Image preview"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\AdminCommunity.tsx:1608:39	restrictionDraft.unlimitedPosts
+                                    ? "Disable unlimited posting"
+                                    : "Enable unlimited posting"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\AdminCommunity.tsx:1609:39	restrictionDraft.unlimitedPosts
+                                    ? "Disable unlimited posting"
+                                    : "Enable unlimited posting"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\AdminCommunity.tsx:1647:70	isRestrictionBusy ? "Saving..." : "Apply restriction"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\AdminCommunityMediaPreview.tsx:66:48	imageItems[0].originalName || "Community post media"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\AdminCommunityMediaPreview.tsx:76:41	item.originalName || "Community post image"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\AdminCommunityMediaPreview.tsx:96:46	imageItems.length > 1 ? "Image set" : "Image preview"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\AdminCommunityMediaPreview.tsx:96:60	imageItems.length > 1 ? "Image set" : "Image preview"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\AdminCommunityPostCard.tsx:188:31	ariaLabel="Edit post status"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\AdminCommunityPostCard.tsx:198:33	placeholder="Rejection reason"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\AdminCommunityReviewSidebar.tsx:169:23	restrictionDraft.unlimitedPosts
+                    ? "Disable unlimited posting"
+                    : "Enable unlimited posting"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\AdminCommunityReviewSidebar.tsx:170:23	restrictionDraft.unlimitedPosts
+                    ? "Disable unlimited posting"
+                    : "Enable unlimited posting"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\AdminCommunityReviewSidebar.tsx:200:54	isRestrictionBusy ? "Saving..." : "Apply restriction"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\AdminCommunityToolbar.tsx:95:29	isCreateOpen ? "Close" : "New Post"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\AdminCommunityToolbar.tsx:95:39	isCreateOpen ? "Close" : "New Post"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\AdminCommunityToolbar.tsx:113:23	ariaLabel="Status filter"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\AdminCommunityToolbar.tsx:120:23	ariaLabel="Media filter"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\AdminCommunityToolbar.tsx:137:27	ariaLabel="Create post status"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\AdminCommunityToolbar.tsx:149:29	placeholder="Rejection reason"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\AdminCommunityToolbar.tsx:169:47	isCreating ? "Creating..." : "Create Post"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\FilterDropdown.tsx:52:56	selected?.label || "Select"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminEventsMn\AdminEventsMn.tsx:962:35	placeholder="Watch Now"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminFeaturedEvents\AdminFeaturedEvents.tsx:965:35	placeholder="Watch Now"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminGames\AdminGames.tsx:338:42	game.event || "NeonGambit Game"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminGames\AdminGames.tsx:356:41	game.rated ? "Rated" : "Casual"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminGames\AdminGames.tsx:356:51	game.rated ? "Rated" : "Casual"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminGames\AdminGames.tsx:365:44	game.variant || "standard"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminGames\AdminGames.tsx:373:47	owner?.fullName || "Unknown"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminGames\GameFormModal.tsx:215:29	placeholder="e.g. 300+0"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminGroups\AdminGroups.tsx:195:33	isCreateOpen ? "Close form" : "Create group"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminGroups\AdminGroups.tsx:195:48	isCreateOpen ? "Close form" : "Create group"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminGroups\AdminGroups.tsx:223:35	placeholder="Group name"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminGroups\AdminGroups.tsx:245:35	placeholder="Topic"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminGroups\AdminGroups.tsx:254:53	isCreating ? "Creating..." : "Create group"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminGroups\AdminGroups.tsx:372:53	isBusy ? "Saving..." : "Save changes"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminGroups\AdminGroups.tsx:379:49	group.description || "No description yet."
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminGroups\AdminGroups.tsx:397:88	group.createdAt ? formatRelativeTime(group.createdAt) : "Just now"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminGroups\AdminGroups.tsx:404:57	group.creator?.fullName || "Unknown"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminGroups\AdminGroups.tsx:420:25	itemLabel="groups"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearn\AdminLearnCourse.tsx:370:55	lesson.isPublished ? "Published" : "Draft"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearn\AdminLearnCourse.tsx:370:69	lesson.isPublished ? "Published" : "Draft"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearn\AdminLearnCourse.tsx:377:73	lesson.subtitle || lesson.description || "No subtitle."
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearn\AdminLearnCourse.tsx:431:55	lesson.isPublished ? "Unpublish" : "Publish"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearn\AdminLearnCourse.tsx:431:69	lesson.isPublished ? "Unpublish" : "Publish"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearn\AdminLearnCourse.tsx:458:36	editingLesson ? "Edit lesson" : "Create lesson"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearn\AdminLearnCourse.tsx:458:52	editingLesson ? "Edit lesson" : "Create lesson"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearn\AdminLearnCourse.tsx:530:36	editingLesson ? "Save Changes" : "Create Lesson"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearn\AdminLearnCourse.tsx:530:53	editingLesson ? "Save Changes" : "Create Lesson"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearn\AdminLearnLesson.tsx:599:56	step.instructionText || "No instructions yet."
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearn\AdminLearnLesson.tsx:643:84	selectedStep ? `Edit Step ${selectedStep.orderIndex + 1}` : "Create Step"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearn\AdminLearnLesson.tsx:655:39	selectedStep ? "Save Step" : "Create Step"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearn\AdminLearnLesson.tsx:655:53	selectedStep ? "Save Step" : "Create Step"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearn\AdminLearnLesson.tsx:796:35	isRecordingAcceptedMoves
+                                ? "Stop board recording"
+                                : "Record from board"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearn\AdminLearnLesson.tsx:797:35	isRecordingAcceptedMoves
+                                ? "Stop board recording"
+                                : "Record from board"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearn\AdminLearnLesson.tsx:874:31	isRecordingAcceptedMoves
+                            ? "Recording active: drag a legal move to add it to accepted moves."
+                            : "Preview uses current FEN and side to move selection."
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearn\AdminLearnLesson.tsx:875:31	isRecordingAcceptedMoves
+                            ? "Recording active: drag a legal move to add it to accepted moves."
+                            : "Preview uses current FEN and side to move selection."
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearn\AdminLearnOverview.tsx:619:55	course.isPublished ? "Published" : "Draft"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearn\AdminLearnOverview.tsx:619:69	course.isPublished ? "Published" : "Draft"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearn\AdminLearnOverview.tsx:653:59	course.isPublished ? "Unpublish" : "Publish"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearn\AdminLearnOverview.tsx:653:73	course.isPublished ? "Unpublish" : "Publish"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearn\AdminLearnOverview.tsx:676:173	courses.length === 1 ? "" : "s"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearn\AdminLearnOverview.tsx:677:90	totalLessonsLabel === 1 ? "" : "s"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearn\AdminLearnOverview.tsx:869:27	alt="Course cover preview"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearn\AdminLearnOverview.tsx:927:31	placeholder="IM Viktor Asanov"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearn\AdminLearnOverview.tsx:959:36	editingCourse ? "Save Changes" : "Create Course"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearn\AdminLearnOverview.tsx:959:53	editingCourse ? "Save Changes" : "Create Course"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearnMn\AdminLearnCourse.tsx:370:55	lesson.isPublished ? "Published" : "Draft"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearnMn\AdminLearnCourse.tsx:370:69	lesson.isPublished ? "Published" : "Draft"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearnMn\AdminLearnCourse.tsx:377:73	lesson.subtitle || lesson.description || "No subtitle."
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearnMn\AdminLearnCourse.tsx:431:55	lesson.isPublished ? "Unpublish" : "Publish"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearnMn\AdminLearnCourse.tsx:431:69	lesson.isPublished ? "Unpublish" : "Publish"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearnMn\AdminLearnCourse.tsx:458:36	editingLesson ? "Edit lesson" : "Create lesson"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearnMn\AdminLearnCourse.tsx:458:52	editingLesson ? "Edit lesson" : "Create lesson"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearnMn\AdminLearnCourse.tsx:530:36	editingLesson ? "Save Changes" : "Create Lesson"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearnMn\AdminLearnCourse.tsx:530:53	editingLesson ? "Save Changes" : "Create Lesson"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearnMn\AdminLearnLesson.tsx:599:56	step.instructionText || "No instructions yet."
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearnMn\AdminLearnLesson.tsx:643:84	selectedStep ? `Edit Step ${selectedStep.orderIndex + 1}` : "Create Step"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearnMn\AdminLearnLesson.tsx:655:39	selectedStep ? "Save Step" : "Create Step"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearnMn\AdminLearnLesson.tsx:655:53	selectedStep ? "Save Step" : "Create Step"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearnMn\AdminLearnLesson.tsx:796:35	isRecordingAcceptedMoves
+                                ? "Stop board recording"
+                                : "Record from board"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearnMn\AdminLearnLesson.tsx:797:35	isRecordingAcceptedMoves
+                                ? "Stop board recording"
+                                : "Record from board"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearnMn\AdminLearnLesson.tsx:874:31	isRecordingAcceptedMoves
+                            ? "Recording active: drag a legal move to add it to accepted moves."
+                            : "Preview uses current FEN and side to move selection."
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearnMn\AdminLearnLesson.tsx:875:31	isRecordingAcceptedMoves
+                            ? "Recording active: drag a legal move to add it to accepted moves."
+                            : "Preview uses current FEN and side to move selection."
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearnMn\AdminLearnOverview.tsx:619:55	course.isPublished ? "Published" : "Draft"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearnMn\AdminLearnOverview.tsx:619:69	course.isPublished ? "Published" : "Draft"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearnMn\AdminLearnOverview.tsx:653:59	course.isPublished ? "Unpublish" : "Publish"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearnMn\AdminLearnOverview.tsx:653:73	course.isPublished ? "Unpublish" : "Publish"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearnMn\AdminLearnOverview.tsx:676:173	courses.length === 1 ? "" : "s"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearnMn\AdminLearnOverview.tsx:677:90	totalLessonsLabel === 1 ? "" : "s"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearnMn\AdminLearnOverview.tsx:869:27	alt="Course cover preview"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearnMn\AdminLearnOverview.tsx:927:31	placeholder="IM Viktor Asanov"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearnMn\AdminLearnOverview.tsx:959:36	editingCourse ? "Save Changes" : "Create Course"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminLearnMn\AdminLearnOverview.tsx:959:53	editingCourse ? "Save Changes" : "Create Course"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminProfile\index.tsx:225:48	admin?.username || "Administrator"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminProfile\index.tsx:235:41	admin?.username || "Administrator"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminProfile\index.tsx:238:38	admin?.email || "No email available"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminProfile\index.tsx:259:27	label="Total Users"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminProfile\index.tsx:264:27	label="Total Games"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminProfile\index.tsx:269:27	label="New Users (7d)"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminProfile\index.tsx:273:27	label="Games This Week"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminProfile\index.tsx:296:29	pwOpen ? "Close" : "Change Password"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminProfile\index.tsx:296:39	pwOpen ? "Close" : "Change Password"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminProfile\index.tsx:302:22	["current", "next", "confirm"]
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminProfile\index.tsx:302:33	["current", "next", "confirm"]
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminProfile\index.tsx:302:41	["current", "next", "confirm"]
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminProfile\index.tsx:304:32	current: "Current Password"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminProfile\index.tsx:305:29	next: "New Password"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminProfile\index.tsx:306:32	confirm: "Confirm New Password"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\AdminPuzzles.tsx:1120:27	isRecordingSolution
+                        ? "Record Solution"
+                        : "Setup Position"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\AdminPuzzles.tsx:1121:27	isRecordingSolution
+                        ? "Record Solution"
+                        : "Setup Position"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\AdminPuzzles.tsx:1350:35	placeholder="tactics / endgame / opening / mate"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\AdminPuzzles.tsx:1434:35	placeholder="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\AdminPuzzles.tsx:1446:35	placeholder="Qh7+, Kf8, Qh8#"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminUsers\UsersTableHeader.tsx:48:23	sortMarker("createdAt", sortBy, sortOrder)
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminUsers\UsersTableHeader.tsx:62:23	sortMarker("gamesPlayed", sortBy, sortOrder)
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\friends\Friends.tsx:757:46	renderRequestCard(req, "incoming")
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\friends\Friends.tsx:784:46	renderRequestCard(req, "outgoing")
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\game\Game.tsx:121:24	opponentName="Opponent"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\Login.tsx:287:21	alt="NeonGambit"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\components\AttachmentGrid.tsx:50:61	videos[0].filename || "Video"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\components\AttachmentGrid.tsx:66:37	return "grid-cols-1";
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\components\AttachmentGrid.tsx:67:37	return "grid-cols-2";
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\components\AttachmentGrid.tsx:68:37	return "grid-cols-2 grid-rows-2";
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\components\AttachmentGrid.tsx:69:37	return "grid-cols-2";
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\components\AttachmentGrid.tsx:70:20	return "grid-cols-3";
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\components\AttachmentGrid.tsx:80:23	count === 1
+                    ? "aspect-[4/3] md:aspect-[16/10]"
+                    : count === 3 && index === 0
+                      ? "row-span-2 aspect-[3/4] md:aspect-[2/3]"
+                      : count >= 3
+                        ? "aspect-square"
+                        : "aspect-[4/3]"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\components\AttachmentGrid.tsx:82:25	count === 3 && index === 0
+                      ? "row-span-2 aspect-[3/4] md:aspect-[2/3]"
+                      : count >= 3
+                        ? "aspect-square"
+                        : "aspect-[4/3]"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\components\AttachmentGrid.tsx:84:27	count >= 3
+                        ? "aspect-square"
+                        : "aspect-[4/3]"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\components\AttachmentGrid.tsx:85:27	count >= 3
+                        ? "aspect-square"
+                        : "aspect-[4/3]"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\components\AttachmentGrid.tsx:96:51	attachment.filename || "attachment"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\components\ConversationSidebar.tsx:124:41	presence?.status || "offline"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\components\MediaViewerModal.tsx:61:39	current?.filename || "attachment"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\components\MediaViewerModal.tsx:67:44	video ? "Video" : "Photo"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\components\MediaViewerModal.tsx:67:54	video ? "Video" : "Photo"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\components\MessageComposer.tsx:161:47	pendingImages.length === 1 ? "image selected" : "images selected"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\components\MessageComposer.tsx:161:66	pendingImages.length === 1 ? "image selected" : "images selected"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\Messages.tsx:807:63	videos[0].filename || "Video"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\Messages.tsx:821:39	return "grid-cols-1";
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\Messages.tsx:822:39	return "grid-cols-2";
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\Messages.tsx:823:39	return "grid-cols-2 grid-rows-2";
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\Messages.tsx:824:39	return "grid-cols-2";
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\Messages.tsx:825:22	return "grid-cols-3";
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\Messages.tsx:835:25	count === 1
+                      ? "aspect-[4/3] md:aspect-[16/10]"
+                      : count === 3 && idx === 0
+                        ? "row-span-2 aspect-[3/4] md:aspect-[2/3]"
+                        : count >= 3
+                          ? "aspect-square"
+                          : "aspect-[4/3]"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\Messages.tsx:837:27	count === 3 && idx === 0
+                        ? "row-span-2 aspect-[3/4] md:aspect-[2/3]"
+                        : count >= 3
+                          ? "aspect-square"
+                          : "aspect-[4/3]"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\Messages.tsx:839:29	count >= 3
+                          ? "aspect-square"
+                          : "aspect-[4/3]"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\Messages.tsx:840:29	count >= 3
+                          ? "aspect-square"
+                          : "aspect-[4/3]"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\Messages.tsx:851:46	att.filename || "attachment"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\Messages.tsx:1195:80	presence?.status || "offline"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\Messages.tsx:1419:51	index === 0 ? "mt-0" : grouped ? "mt-1.5" : "mt-4"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\Messages.tsx:1419:81	grouped ? "mt-1.5" : "mt-4"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\Messages.tsx:1448:53	sg.result === "1-0" ? "White wins" : sg.result === "0-1" ? "Black wins" : sg.result === "1/2-1/2" ? "Draw" : sg.result || "â€”"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\Messages.tsx:1448:90	sg.result === "0-1" ? "Black wins" : sg.result === "1/2-1/2" ? "Draw" : sg.result || "â€”"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\Messages.tsx:1448:131	sg.result === "1/2-1/2" ? "Draw" : sg.result || "â€”"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\Messages.tsx:1611:59	pendingImages.length === 1 ? "image selected" : "images selected"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\Messages.tsx:1611:78	pendingImages.length === 1 ? "image selected" : "images selected"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\Messages.tsx:1762:49	current?.filename || "attachment"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\Messages.tsx:1768:54	video ? "Video" : "Photo"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\Messages.tsx:1768:64	video ? "Video" : "Photo"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playFourPlayer\FourPlayerChess.tsx:546:10	["red", "blue", "yellow", "green"]
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playFourPlayer\FourPlayerChess.tsx:546:17	["red", "blue", "yellow", "green"]
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playFourPlayer\FourPlayerChess.tsx:546:25	["red", "blue", "yellow", "green"]
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playFourPlayer\FourPlayerChess.tsx:546:35	["red", "blue", "yellow", "green"]
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playFourPlayer\FourPlayerChess.tsx:560:26	isYou ? " (You)" : ""
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playFourPlayer\FourPlayerChess.tsx:869:32	perspectiveColor="red"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playFourPlayer\FourPlayerChess.tsx:964:36	isConnected ? "Search Match" : "Server Offline"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playFourPlayer\FourPlayerChess.tsx:964:53	isConnected ? "Search Match" : "Server Offline"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playFourPlayer\FourPlayerChess.tsx:1048:21	isMyTurn
+                  ? "Your Turn"
+                  : `${displayedState.turn.toUpperCase()} to move`
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playFourPlayer\FourPlayerChess.tsx:1081:145	players[playerColor]?.name || user?.fullName || "You"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playFourPlayer\FourPlayerChess.tsx:1116:32	emptyMessage="No moves yet"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playPractice\PlayPractice.tsx:2348:27	positionBuilderModeIcon?.(
+                          "rgb(var(--color-brand-500-rgb))",
+                        )
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithBot\BotGameView.tsx:116:59	gameSettings.selectedBot?.name || "Stockfish"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithBot\BotGameView.tsx:128:60	gameSettings.selectedBot?.title || "AI opponent"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithBot\BotGameView.tsx:198:56	gameSettings.selectedBot?.name || "Stockfish"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithBot\BotGameView.tsx:206:136	gameSettings.selectedBot?.rating || "N/A"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithBot\BotGameView.tsx:218:32	emptyMessage="No moves yet"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithBot\GameSettingsPanel.tsx:66:39	color === "random" ? " Random" : color
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithBot\GameSettingsPanel.tsx:104:58	selectedBot ? `Play vs ${selectedBot.name}` : "Select a Bot"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithBot\PlayWithBot.tsx:326:47	selectedBot?.title || "AI opponent"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithBot\PlayWithBot.tsx:481:41	isExpanded ? "Hide" : "Show"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithBot\PlayWithBot.tsx:481:50	isExpanded ? "Hide" : "Show"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\puzzles\Puzzles.tsx:496:54	puzzle.userState?.badge || "new"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\puzzles\Puzzles.tsx:598:54	puzzle.userState?.badge || "new"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\puzzleTrainer\PuzzleActions.tsx:53:25	showHint ? "Hint Used" : "Hint"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\puzzleTrainer\PuzzleActions.tsx:53:39	showHint ? "Hint Used" : "Hint"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\quickMatch\QuickMatchGameView.tsx:1036:43	opponentName || "Opponent"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\quickMatch\QuickMatchGameView.tsx:1081:37	isFocusMode ? "focus" : "default"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\quickMatch\QuickMatchGameView.tsx:1081:47	isFocusMode ? "focus" : "default"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\quickMatch\QuickMatchGameView.tsx:1171:37	isFocusMode ? "focus" : "default"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\quickMatch\QuickMatchGameView.tsx:1171:47	isFocusMode ? "focus" : "default"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\Register.tsx:160:21	alt="NeonGambit"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\Settings.tsx:471:49	update("defaultTimeControl", value)
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\Settings.tsx:473:93	value: "bullet"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\Settings.tsx:474:91	value: "blitz"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\Settings.tsx:475:91	value: "rapid"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\Settings.tsx:476:99	value: "classical"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\Settings.tsx:477:93	value: "custom"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\Settings.tsx:491:49	update("autoQueen", value)
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\Settings.tsx:492:31	ariaLabel="Auto-queen"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\Settings.tsx:502:84	value: "click"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\Settings.tsx:503:82	value: "drag"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\Settings.tsx:504:82	value: "both"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\Settings.tsx:507:49	update("moveInput", value as "click" | "drag" | "both")
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\Settings.tsx:517:49	update("showLegalMoves", value)
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\Settings.tsx:518:31	ariaLabel="Show legal moves"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\Settings.tsx:529:49	update("premoves", value)
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\Settings.tsx:530:31	ariaLabel="Premoves"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\Settings.tsx:552:49	update("enableAiExplanations", value)
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\Settings.tsx:571:32	value: "brief"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\Settings.tsx:575:32	value: "normal"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\Settings.tsx:579:32	value: "deep"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\Settings.tsx:585:25	update(
+                        "explanationLevel",
+                        value as "brief" | "normal" | "deep",
+                      )
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\Settings.tsx:601:49	update("postGameAnalysis", value)
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\tournaments\Tournaments.tsx:679:73	tournament.name || "Tournament"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\UserProfile.tsx:400:25	error || "User not found"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\UserProfile.tsx:455:44	timelineUnavailableMessage="Timeline is only available on the player's own account."
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\watch\LiveGamesGrid.tsx:207:13	["Top Rated", "Blitz", "Rapid", "Classical"]
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\watch\LiveGamesGrid.tsx:207:26	["Top Rated", "Blitz", "Rapid", "Classical"]
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\watch\LiveGamesGrid.tsx:207:35	["Top Rated", "Blitz", "Rapid", "Classical"]
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\watch\LiveGamesGrid.tsx:207:44	["Top Rated", "Blitz", "Rapid", "Classical"]
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\watch\LiveGamesGrid.tsx:220:28	layoutId="activeTab"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\watch\WatchFeaturedCarousel.tsx:268:43	slideStyle.backgroundSize = "cover"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\watch\WatchFeaturedCarousel.tsx:269:47	slideStyle.backgroundPosition = "center"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\watch\WatchSpectatorGame.tsx:517:34	historyPersistenceStatus="idle"
+C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\watch\WatchSpectatorGame.tsx:544:30	sidebarTitleOverride="Spectating"

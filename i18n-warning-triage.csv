@@ -1,0 +1,935 @@
+﻿"File","Line","Literal","Category"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\AdminSidebar.tsx","135","<span className=""text-xs font-bold text-white"">AD</span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\ShareGameModal.tsx","133","<span>Â·</span>","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\ShareGameModal.tsx","134","game.timeControl || ""â€”""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\ShareGameModal.tsx","137","<span>Â·</span>","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\Sidebar.tsx","118","alt=""NeonGambit""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\community\CommunityGameViewer.tsx","331","backgroundColor: ""#90a4b5""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\community\CommunityGameViewer.tsx","332","backgroundColor: ""#c6d0d8""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\community\CommunityGameViewer.tsx","334","borderRadius: ""15px""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\community\CommunityGameViewer.tsx","335","boxShadow: ""0 18px 38px rgba(0,0,0,0.24)""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\community\CommunityGameViewer.tsx","347","<div className=""truncate text-[13px] font-semibold text-gray-100 sm:text-sm"">
+                {game.white} ({game.whiteElo}<Trans>) vs</Trans> {game.black} ({game.blackElo})
+              </div>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\community\CommunityGameViewer.tsx","347","<div className=""truncate text-[13px] font-semibold text-gray-100 sm:text-sm"">
+                {game.white} ({game.whiteElo}<Trans>) vs</Trans> {game.black} ({game.blackElo})
+              </div>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\community\CommunityGameViewer.tsx","347","<div className=""truncate text-[13px] font-semibold text-gray-100 sm:text-sm"">
+                {game.white} ({game.whiteElo}<Trans>) vs</Trans> {game.black} ({game.blackElo})
+              </div>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\community\CommunityImageGrid.tsx","60","<span className=""text-[28px] font-semibold tracking-tight text-white"">
+            +{hiddenCount}
+          </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\community\FeedPagination.tsx","61","<span
+            key={`dots-${index}`}
+            className=""w-9 h-9 flex items-center justify-center text-gray-500 text-sm select-none""
+          >
+            ...
+          </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\community\PostCard.tsx","314","ease: ""easeOut""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\community\PostCard.tsx","377","<span className=""font-semibold"">{t(""postCard.reasonLabel"")}:</span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\community\PostCard.tsx","572","<span>
+                    {activeImageIndex + 1} / {imageItems.length}
+                  </span>","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\community\PostComposer.tsx","1034","<span className=""text-xs tabular-nums text-gray-500"">
+                  {content.length}/{MAX_CHARS}
+                </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\community\SidebarWidgets.tsx","82","[
+              `${t(""communitySidebar.byAuthor"", { author: authorLabel })}`,
+              post.group?.name || """",
+              formatRelativeTime(post.createdAt),
+            ]
+              .filter(Boolean)
+              .join("" Â· "")","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\community\SidebarWidgets.tsx","91","<div className=""flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/[0.05] text-[11px] font-semibold text-gray-300"">
+                  #{index + 1}
+                </div>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\community\SidebarWidgets.tsx","183","<span className=""text-gray-400 text-[10px]"">
+                    ({game.white.rating})
+                  </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\community\SidebarWidgets.tsx","184","<span className=""text-gray-400 text-[10px]"">
+                    ({game.white.rating})
+                  </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\community\SidebarWidgets.tsx","196","<span className=""text-gray-400 text-[10px]"">
+                    ({game.black.rating})
+                  </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\community\SidebarWidgets.tsx","197","<span className=""text-gray-400 text-[10px]"">
+                    ({game.black.rating})
+                  </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\community\SidebarWidgets.tsx","293","<span className=""text-[10px] text-gray-500 dark:text-gray-400 tabular-nums"">
+                {leader.rating} Â· {formatCount(leader.solved)} {t(""solved"")}
+              </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\community\SidebarWidgets.tsx","322","<p className=""text-[10px] text-gray-500 dark:text-gray-400 mt-0.5 truncate"">
+                {su.bio} Â· {su.followers} <Trans>followers</Trans> </p>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\community\SidebarWidgets.tsx","355","<span>Â·</span>","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\dashboardComponents\FormatRatingsCard.tsx","168","<div className=""text-sm font-medium text-gray-900 dark:text-white"">
+                {stats.winRate}%
+              </div>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\dashboardComponents\LiveGamesSection.tsx","62","<button
+              onClick={() => navigate(""/watch"")}
+              className=""text-sm text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 transition-colors font-medium""
+            >
+              {t(""View All"")} &gt;
+            </button>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\dashboardComponents\LiveGamesSection.tsx","120","<span className=""text-gray-400 dark:text-gray-500 ml-1 font-normal text-xs"">
+                          ({game.whiteRating})
+                        </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\dashboardComponents\LiveGamesSection.tsx","121","<span className=""text-gray-400 dark:text-gray-500 ml-1 font-normal text-xs"">
+                          ({game.whiteRating})
+                        </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\dashboardComponents\LiveGamesSection.tsx","132","<span className=""text-gray-400 dark:text-gray-500 ml-1 font-normal text-xs"">
+                          ({game.blackRating})
+                        </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\dashboardComponents\LiveGamesSection.tsx","133","<span className=""text-gray-400 dark:text-gray-500 ml-1 font-normal text-xs"">
+                          ({game.blackRating})
+                        </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\dashboardComponents\PuzzlesSection.tsx","88","backgroundColor: ""#8ea8bb""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\dashboardComponents\PuzzlesSection.tsx","89","backgroundColor: ""#dde7ee""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\dashboardComponents\RecentMatchesCard.tsx","163","<div className=""text-xs text-gray-500 dark:text-gray-400"">
+                    {match.date} â€¢ {match.timeControl}
+                  </div>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\dashboardComponents\RecentMatchesCard.tsx","176","match.ratingChange > 0 ? ""+"" : """"","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\game\ChessMoveList.tsx","93","textClassName=""truncate""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\game\ChessMoveList.tsx","200","<span
+            className={joinClasses(
+              ""w-9 text-gray-400 dark:text-gray-500"",
+              moveNumberClassName,
+            )}
+          >
+            {row.moveNumber}.
+          </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\game\GameBoard.tsx","160","borderRadius: ""8px""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\game\GameBoard.tsx","161","boxShadow: ""0 4px 20px rgba(0, 0, 0, 0.3)""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\game\GameOverModal.tsx","306","ease: ""easeOut""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\game\GameOverModal.tsx","307","role=""dialog""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\game\GameSidebar.tsx","72","openingLoading
+                      ? ""Detecting opening...""
+                      : ""Make a move to detect""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\game\GameSidebar.tsx","73","openingLoading
+                      ? ""Detecting opening...""
+                      : ""Make a move to detect""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\game\GameSidebar.tsx","74","gameStarted
+                    ? openingLoading
+                      ? ""Detecting opening...""
+                      : ""Make a move to detect""
+                    : ""Waiting for your first move""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\game\GameSidebar.tsx","81","opening?.eco ? `ECO ${opening.eco}` : ""Book pending""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\game\GameSidebar.tsx","83","opening.nextMoves.join("" â€¢ "")","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\game\GameSidebar.tsx","99","gameStarted
+              ? ""Make your first move to populate the log.""
+              : ""Start a game to see your move list.""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\game\GameSidebar.tsx","100","gameStarted
+              ? ""Make your first move to populate the log.""
+              : ""Start a game to see your move list.""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\game\GameSidebar.tsx","109","<span className=""text-xs font-semibold text-gray-500 dark:text-gray-400"">
+                {i + 1}.
+              </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\game\MoveListTabs.tsx","221","unreadMessageCount > 99 ? ""99+"" : unreadMessageCount","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\game\MoveListTabs.tsx","245","message.senderUsername || message.sender || ""System""","ignore_candidate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\game\MoveListTabs.tsx","246","String(
+                    message.senderUsername || message.sender || ""System"",
+                  ).trim() || ""System""","ignore_candidate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\game\MoveListTabs.tsx","262","content || ""-""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\game\MoveListTabs.tsx","300","content || ""-""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\game\PlayerInfo.tsx","107","<span className={ratingTextClass}>
+                ({displayRating})
+              </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\game\PlayerInfo.tsx","108","<span className={ratingTextClass}>
+                ({displayRating})
+              </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\game\setup\BotSelector.tsx","125","<p className=""text-sm text-gray-600 dark:text-gray-400 italic mb-1"">
+            ""{bot.personality}""
+          </p>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\game\setup\BotSelector.tsx","126","<p className=""text-sm text-gray-600 dark:text-gray-400 italic mb-1"">
+            ""{bot.personality}""
+          </p>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\game\setup\BotSelector.tsx","135","<span
+              className={`text-xs px-2 py-0.5 rounded-full ${categoryColors[bot.category]} text-white`}
+            >
+              {bot.rating} ELO
+            </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\game\setup\GameSetupModal.tsx","62","mode=""wait""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\game\setup\GameSetupModal.tsx","92","activeTab === ""bots"" && selectedBot
+            ? `Play vs ${selectedBot.name}`
+            : ""Start Game""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\learn\LearnCourseCard.tsx","124","<span>{progressPercent}%</span>","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\learn\LessonPanel.tsx","67","<span>{courseProgress.percentComplete}%</span>","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\FormatStatsCard.tsx","99","dataKey=""x""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\FormatStatsCard.tsx","115","dataKey=""rating""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\FormatStatsCard.tsx","229","format.delta >= 0 ? ""+"" : ""-""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\FormatStatsCard.tsx","229","format.delta >= 0 ? ""+"" : ""-""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\GamesTabContent.tsx","112","[""all"", ""wins"", ""losses"", ""draws""]","ignore_candidate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\GamesTabContent.tsx","112","[""all"", ""wins"", ""losses"", ""draws""]","ignore_candidate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\GamesTabContent.tsx","112","[""all"", ""wins"", ""losses"", ""draws""]","ignore_candidate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\GamesTabContent.tsx","164","row.placement ? `#${row.placement}` : ""-""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\GamesTabContent.tsx","176","row.eloChange >= 0 ? ""+"" : """"","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\GamesTabContent.tsx","182","i18n.resolvedLanguage || i18n.language || ""en""","ignore_candidate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\GamesTabContent.tsx","255","<span
+                key={`dots-${i}`}
+                className=""w-9 h-9 flex items-center justify-center text-gray-400 dark:text-gray-600 text-sm select-none""
+              >
+                â€¦
+              </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\PerformanceByColorCard.tsx","25","<span className=""text-sm font-bold"">{stats.whiteWinRate}%</span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\PerformanceByColorCard.tsx","40","<span className=""text-sm font-bold"">{stats.blackWinRate}%</span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\PoolLeaderboardCard.tsx","119","<span
+                        className={`text-sm font-bold tabular-nums ${
+                          accent
+                            ? accent.text
+                            : ""text-gray-500 dark:text-gray-500""
+                        }`}
+                      >
+                        #{entry.rank}
+                      </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\PoolLeaderboardCard.tsx","191","<>
+                {t(""profileWidgets.yourPosition"", ""Your position"")}:{"" ""}
+                <span className=""font-semibold text-brand-600 dark:text-brand-400"">
+                  #{currentUser.rank}
+                </span>{"" ""}
+                ({currentUser.rating})
+              </>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\PoolLeaderboardCard.tsx","192","<span className=""font-semibold text-brand-600 dark:text-brand-400"">
+                  #{currentUser.rank}
+                </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\PoolLeaderboardCard.tsx","194","<>
+                {t(""profileWidgets.yourPosition"", ""Your position"")}:{"" ""}
+                <span className=""font-semibold text-brand-600 dark:text-brand-400"">
+                  #{currentUser.rank}
+                </span>{"" ""}
+                ({currentUser.rating})
+              </>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\PoolLeaderboardCard.tsx","195","<>
+                {t(""profileWidgets.yourPosition"", ""Your position"")}:{"" ""}
+                <span className=""font-semibold text-brand-600 dark:text-brand-400"">
+                  #{currentUser.rank}
+                </span>{"" ""}
+                ({currentUser.rating})
+              </>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\PoolLeaderboardCard.tsx","199","<>
+                {t(""profileWidgets.yourPosition"", ""Your position"")}:{"" ""}
+                <span className=""font-semibold text-gray-500 dark:text-gray-400"">
+                  {t(""profileWidgets.unranked"", ""Unranked"")}
+                </span>{"" ""}
+                {t(""profileWidgets.unrankedGamesSuffix"", {
+                  count: currentUser.games,
+                  total: 10,
+                  defaultValue: ""({{count}}/{{total}} games)"",
+                })}
+              </>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\ProfileAvatarUpload.tsx","160","userName || ""Profile""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\ProfileAvatarUpload.tsx","216","alt=""Preview""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\ProfileAvatarUpload.tsx","222","alt=""Current""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\ProfileAvatarUpload.tsx","273","<>
+                        <Loader2 size={18} className=""animate-spin"" />
+                        Uploading...
+                      </>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\ProfileAvatarUpload.tsx","291","<>
+                        <Loader2 size={18} className=""animate-spin"" />
+                        Removing...
+                      </>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\RatingTimelineCard.tsx","265","ease: ""easeOut""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\RatingTimelineCard.tsx","270","<span className=""text-[11px] font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400"">
+                {selectedPoolLabel} | {selectedRangeLabel}
+              </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\RatingTimelineCard.tsx","273","<span className=""text-[12px] font-semibold text-gray-700 dark:text-gray-200"">
+                {t(""profileWidgets.current"", ""Current"")}: {chart.last}
+                {typeof chart.lastPoint?.rd === ""number""
+                  ? ` ${t(""profileWidgets.plusMinus"", ""+/-"")} ${Math.round(chart.lastPoint.rd)}`
+                  : """"}
+              </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\RatingTimelineCard.tsx","297","strokeDasharray=""2 6""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\RatingTimelineCard.tsx","298","stroke=""#475569""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\RatingTimelineCard.tsx","302","dataKey=""x""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\RatingTimelineCard.tsx","303","fill: ""#94a3b8""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\RatingTimelineCard.tsx","308","value.lastIndexOf(""#"")","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\RatingTimelineCard.tsx","316","fill: ""#94a3b8""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\RatingTimelineCard.tsx","325","stroke: ""#0f766e""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\RatingTimelineCard.tsx","327","strokeDasharray: ""4 4""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\RatingTimelineCard.tsx","330","background: ""rgba(15, 23, 42, 0.96)""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\RatingTimelineCard.tsx","331","border: ""1px solid rgba(100, 116, 139, 0.35)""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\RatingTimelineCard.tsx","332","borderRadius: ""12px""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\RatingTimelineCard.tsx","333","color: ""#e2e8f0""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\RatingTimelineCard.tsx","334","fontSize: ""12px""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\RatingTimelineCard.tsx","335","padding: ""8px 10px""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\RatingTimelineCard.tsx","336","boxShadow: ""0 8px 24px rgba(0,0,0,0.25)""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\RatingTimelineCard.tsx","338","color: ""#cbd5e1""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\RatingTimelineCard.tsx","338","marginBottom: ""4px""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\RatingTimelineCard.tsx","349","dataKey=""rating""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\RatingTimelineCard.tsx","350","stroke=""#14b8a6""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\RatingTimelineCard.tsx","353","fill=""url(#ratingFill)""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\RatingTimelineCard.tsx","387","stroke: ""#0f766e""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\RatingTimelineCard.tsx","389","fill: ""#14b8a6""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\RecentGames.tsx","51","<button
+          onClick={() => setActiveTab(""games"")}
+          className=""text-sm text-brand-600 dark:text-brand-400 hover:underline font-medium""
+        >
+          {t(""profileGames.viewAll"", ""View All"")} â†’
+        </button>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\TournamentProfileSection.tsx","115","<div className=""text-lg font-bold text-gray-900 dark:text-gray-100"">
+            {data.record.wins} / {data.record.draws} / {data.record.losses}
+          </div>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\TournamentProfileSection.tsx","115","<div className=""text-lg font-bold text-gray-900 dark:text-gray-100"">
+            {data.record.wins} / {data.record.draws} / {data.record.losses}
+          </div>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\TournamentProfileSection.tsx","144","width=""100%""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\TournamentProfileSection.tsx","144","height=""100%""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\TournamentProfileSection.tsx","146","dataKey=""label""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\TournamentProfileSection.tsx","147","[""auto"", ""auto""]","ignore_candidate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\TournamentProfileSection.tsx","147","[""auto"", ""auto""]","ignore_candidate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\TournamentProfileSection.tsx","161","dataKey=""elo""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\TournamentProfileSection.tsx","162","stroke=""#10b981""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\TournamentProfileSection.tsx","195","row.placement ? `#${row.placement}` : ""-""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profilePage\TournamentProfileSection.tsx","205","row.eloChange >= 0 ? ""+"" : """"","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profile\GameCardHeader.tsx","63","<span className=""text-xs text-gray-400"">({game.whiteElo})</span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profile\GameCardHeader.tsx","63","<span className=""text-xs text-gray-400"">({game.whiteElo})</span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profile\GameCardHeader.tsx","74","<span className=""text-xs text-gray-400"">({game.blackElo})</span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profile\GameCardHeader.tsx","74","<span className=""text-xs text-gray-400"">({game.blackElo})</span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profile\ProgressBar.tsx","21","<span className=""text-gray-400 font-normal"">({percentage}%)</span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profile\ProgressBar.tsx","21","<span className=""text-gray-400 font-normal"">({percentage}%)</span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\profile\ProgressBar.tsx","28","ease: ""easeOut""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\replay\AccuracyBadge.tsx","24","accuracy !== null ? `${accuracy.toFixed(1)}%` : ""â€”""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\replay\MoveQualityPill.tsx","48","<span className=""inline-flex items-center rounded-full border border-violet-400/50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-violet-600 dark:text-violet-300"">
+          AI
+        </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\replay\ReplayBoard.tsx","72","borderRadius: ""8px""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\replay\ReplayBoard.tsx","73","boxShadow: ""0 8px 32px rgba(0,0,0,0.15)""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\replay\ReplayHeader.tsx","33","<div className=""text-sm text-gray-500"">
+          {game.date} â€¢ {game.timeControl} â€¢{"" ""}
+          <span className={`font-semibold ${resultColor}`}>{game.result}</span>
+        </div>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\replay\ReplayHeader.tsx","33","<div className=""text-sm text-gray-500"">
+          {game.date} â€¢ {game.timeControl} â€¢{"" ""}
+          <span className={`font-semibold ${resultColor}`}>{game.result}</span>
+        </div>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\replay\ReplayHeader.tsx","54","<span className=""hidden sm:inline"">PGN</span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\replay\ReplayMoveList.tsx","95","<div className=""px-3 py-2"">#</div>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\replay\ReplayMoveList.tsx","112","rowClassName=""rounded-sm py-0.5 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\replay\ReplayMoveList.tsx","113","moveNumberClassName=""w-10 px-3 py-2 text-sm""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\replay\ReplayMoveList.tsx","114","moveCellClassName=""rounded-md px-3 py-2 text-sm""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\replay\ReplayMoveList.tsx","115","activeMoveClassName=""bg-brand-500/20 text-brand-700 dark:text-brand-300""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\replay\ReplayMoveList.tsx","116","inactiveMoveClassName=""text-gray-800 dark:text-gray-200""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\replay\explanation\ExplanationHeader.tsx","38","<span className=""inline-flex items-center rounded-full border border-violet-400/50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-violet-600 dark:text-violet-300"">
+                AI
+              </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\components\settings\Modal.tsx","34","type: ""spring""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\AdminPuzzles.tsx","937","puzzle.category || ""tactics""","ignore_candidate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\AdminPuzzles.tsx","957","<span className=""font-medium text-emerald-600 dark:text-emerald-300"">
+                            {puzzle.quality?.solveRate ?? 0}%
+                          </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\AdminPuzzles.tsx","958","<div> <Trans>Solve / Fail:</Trans>{"" ""}
+                          <span className=""font-medium text-emerald-600 dark:text-emerald-300"">
+                            {puzzle.quality?.solveRate ?? 0}%
+                          </span>{"" ""}
+                          /{"" ""}
+                          <span className=""font-medium text-rose-600 dark:text-rose-300"">
+                            {puzzle.quality?.failRate ?? 0}%
+                          </span>
+                        </div>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\AdminPuzzles.tsx","961","<span className=""font-medium text-rose-600 dark:text-rose-300"">
+                            {puzzle.quality?.failRate ?? 0}%
+                          </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\AdminPuzzles.tsx","984","puzzle.isActive !== false ? ""Active"" : ""Inactive""","ignore_candidate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\AdminPuzzles.tsx","984","puzzle.isActive !== false ? ""Active"" : ""Inactive""","ignore_candidate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\AdminPuzzles.tsx","1040","<div className=""text-sm text-gray-500 dark:text-gray-400"">
+                    {rangeStart}-{rangeEnd} <Trans>of</Trans> {filteredPuzzles.length}{"" ""}
+                    {t(""admin.puzzles.pagination.items"", ""puzzles"")}
+                  </div>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\AdminPuzzles.tsx","1059","<span
+                            key={`dots-${i}`}
+                            className=""w-9 h-9 flex items-center justify-center text-gray-400 dark:text-gray-600 text-sm select-none""
+                          >
+                                ...
+                          </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\AdminPuzzles.tsx","1120","isRecordingSolution
+                        ? ""Record Solution""
+                        : ""Setup Position""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\AdminPuzzles.tsx","1121","isRecordingSolution
+                        ? ""Record Solution""
+                        : ""Setup Position""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\AdminPuzzles.tsx","1279","solutionMoves.join("", "")","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\AdminPuzzles.tsx","1350","placeholder=""tactics / endgame / opening / mate""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\AdminPuzzles.tsx","1434","placeholder=""rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\AdminPuzzles.tsx","1446","placeholder=""Qh7+, Kf8, Qh8#""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\Learn.tsx","270","<span className=""ml-1.5 text-xs opacity-80"">({categoryCount})</span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\Learn.tsx","270","<span className=""ml-1.5 text-xs opacity-80"">({categoryCount})</span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\LearnLesson.tsx","542","borderRadius: ""10px""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\LearnLesson.tsx","542","touchAction: ""none""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\LearnLesson.tsx","555","navigate(""/learn"")","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\LearnLesson.tsx","576","<div className=""rounded-xl border border-cyan-400/35 bg-cyan-500/10 px-3 py-2 text-sm text-cyan-200"">
+                  {t(""learn.hint"", ""Hint"")}: {currentStep.hintText}
+                </div>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\LearnLessonMN.tsx","571","borderRadius: ""10px""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\LearnLessonMN.tsx","571","touchAction: ""none""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\LearnLessonMN.tsx","584","navigate(""/learn"")","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\LearnLessonMN.tsx","605","<div className=""rounded-xl border border-cyan-400/35 bg-cyan-500/10 px-3 py-2 text-sm text-cyan-200"">
+                  {t(""learn.hint"", ""Hint"")}: {translateLessonText(currentStep.hintText)}
+                </div>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\LearnMN.tsx","270","<span className=""ml-1.5 text-xs opacity-80"">({categoryCount})</span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\LearnMN.tsx","270","<span className=""ml-1.5 text-xs opacity-80"">({categoryCount})</span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\Login.tsx","287","alt=""NeonGambit""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\Login.tsx","348","placeholder=""********""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\Login.tsx","425","scope=""public_profile,email""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\NotFound.tsx","15","<div className=""text-sm font-semibold uppercase tracking-[0.18em] text-brand-500"">
+          404
+        </div>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\Register.tsx","160","alt=""NeonGambit""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\Register.tsx","223","placeholder=""********""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\Register.tsx","295","scope=""public_profile,email""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\Settings.tsx","695","<button
+                    type=""button""
+                    onClick={() => setBlockedUsersModal(true)}
+                    className=""rounded-lg bg-gray-100 px-4 py-2 text-sm font-bold text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700""
+                  >
+                    {t(""settings.actions.manage"", ""Manage"")} ({blockedUsers.length})
+                  </button>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\Settings.tsx","695","<button
+                    type=""button""
+                    onClick={() => setBlockedUsersModal(true)}
+                    className=""rounded-lg bg-gray-100 px-4 py-2 text-sm font-bold text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700""
+                  >
+                    {t(""settings.actions.manage"", ""Manage"")} ({blockedUsers.length})
+                  </button>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\Settings.tsx","734","blockedUser.fullName?.slice(0, 2).toUpperCase() || ""U""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\UserProfile.tsx","400","error || ""User not found""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\UserProfile.tsx","455","timelineUnavailableMessage=""Timeline is only available on the player's own account.""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminAnalyze\AdminAnalysisLoadingOverlay.tsx","30","<span>{progress}%</span>","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminAnalyze\AdminAnalyze.tsx","76","error || ""Game not found""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminAnalyze\AdminReplayContent.tsx","112","orientation=""vertical""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminBots\AdminBots.tsx","175","notification.type === ""success"" ? ""Success"" : ""Error""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminBots\AdminBots.tsx","175","notification.type === ""success"" ? ""Success"" : ""Error""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminBots\AdminBots.tsx","306","<span className=""text-sm font-medium text-gray-500 dark:text-gray-400"">
+                Loading bots...
+              </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminBots\AdminBots.tsx","331","<th className=""px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"">
+                    ELO
+                  </th>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminBots\AdminBots.tsx","385","bot.quote || ""-""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminBots\AdminBots.tsx","397","bot.isActive ? ""Active"" : ""Inactive""","ignore_candidate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminBots\AdminBots.tsx","397","bot.isActive ? ""Active"" : ""Inactive""","ignore_candidate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminBots\AnalysisAiModelSelector.tsx","131","isConfigured ? ""Connected"" : ""Need Key""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminBots\AnalysisAiModelSelector.tsx","131","isConfigured ? ""Connected"" : ""Need Key""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminBots\BotFormModal.tsx","136","editingBot ? ""Edit Bot"" : ""Create New Bot""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminBots\BotFormModal.tsx","136","editingBot ? ""Edit Bot"" : ""Create New Bot""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminBots\BotFormModal.tsx","162","placeholder=""Enter bot name""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminBots\BotFormModal.tsx","180","alt=""Preview""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminBots\BotFormModal.tsx","264","placeholder=""e.g., general, historical, sports""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminBots\BotFormModal.tsx","270","<label className=""block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"">
+                  Title (GM, IM, etc.)
+                </label>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminBots\BotFormModal.tsx","280","placeholder=""e.g., GM, IM, FM""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminBots\BotFormModal.tsx","298","placeholder=""Bot's signature quote...""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminBots\BotFormModal.tsx","301","<p className=""text-xs text-gray-500 text-right"">
+                  {formData.quote.length}/200
+                </p>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminBots\BotFormModal.tsx","315","placeholder=""Describe this bot...""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminBots\BotFormModal.tsx","365","<label className=""block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1""> <Trans>Blunder Chance:</Trans> {Math.round(formData.blunderChance * 100)}%
+                </label>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminBots\BotFormModal.tsx","425","saving ? ""Saving..."" : editingBot ? ""Update Bot"" : ""Create Bot""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminBots\BotFormModal.tsx","425","editingBot ? ""Update Bot"" : ""Create Bot""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminBots\BotFormModal.tsx","425","editingBot ? ""Update Bot"" : ""Create Bot""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminBots\DeleteConfirmModal.tsx","40","<p className=""text-gray-600 dark:text-gray-400 mb-4""> <Trans>Are you sure you want to delete</Trans>{"" ""}
+            <strong className=""text-gray-900 dark:text-white"">
+              {bot.name}
+            </strong>
+            ?
+          </p>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminBots\DeleteConfirmModal.tsx","76","deleting ? ""Deleting..."" : ""Delete Bot""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminBots\DeleteConfirmModal.tsx","76","deleting ? ""Deleting..."" : ""Delete Bot""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\AdminCommunity.tsx","1023","<span>
+                  {previewGallery.index + 1} / {previewGallery.items.length}
+                </span>","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\AdminCommunity.tsx","1080","deleteTargetPost.text.length > 140 ? ""..."" : """"","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\AdminCommunity.tsx","1189","placeholder=""Post text...""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\AdminCommunity.tsx","1371","placeholder=""Edit post text...""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\AdminCommunity.tsx","1630","isRateLimitBypassBusy
+                                  ? ""Saving...""
+                                  : restrictionDraft.unlimitedPosts
+                                    ? t(""admin.community.actions.disableUnlimitedPosting"", ""Disable unlimited posting"")
+                                    : t(""admin.community.actions.enableUnlimitedPosting"", ""Enable unlimited posting"")","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\AdminCommunity.tsx","1654","placeholder=""Optional restriction reason...""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\AdminCommunity.tsx","1714","placeholder=""Optional rejection reason...""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\AdminCommunity.tsx","1791","<p className=""text-xs text-gray-500 text-center""> <Trans>Showing</Trans> {(page - 1) * 8 + 1} - {Math.min(page * 8, total)} <Trans>of</Trans> {total}
+              </p>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\AdminCommunityMediaPreview.tsx","66","imageItems[0].originalName || ""Community post media""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\AdminCommunityMediaPreview.tsx","76","item.originalName || ""Community post image""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\AdminCommunityMediaPreview.tsx","96","imageItems.length > 1 ? ""Image set"" : ""Image preview""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\AdminCommunityMediaPreview.tsx","96","imageItems.length > 1 ? ""Image set"" : ""Image preview""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\AdminCommunityPostCard.tsx","183","placeholder=""Edit post text...""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\AdminCommunityPostCard.tsx","188","ariaLabel=""Edit post status""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\AdminCommunityPostCard.tsx","198","placeholder=""Rejection reason""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\AdminCommunityReviewSidebar.tsx","167","isRateLimitBypassBusy
+                  ? ""Saving...""
+                  : restrictionDraft.unlimitedPosts
+                    ? ""Disable unlimited posting""
+                    : ""Enable unlimited posting""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\AdminCommunityReviewSidebar.tsx","169","restrictionDraft.unlimitedPosts
+                    ? ""Disable unlimited posting""
+                    : ""Enable unlimited posting""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\AdminCommunityReviewSidebar.tsx","170","restrictionDraft.unlimitedPosts
+                    ? ""Disable unlimited posting""
+                    : ""Enable unlimited posting""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\AdminCommunityReviewSidebar.tsx","187","placeholder=""Optional restriction reason...""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\AdminCommunityReviewSidebar.tsx","200","isRestrictionBusy ? ""Saving..."" : ""Apply restriction""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\AdminCommunityReviewSidebar.tsx","200","isRestrictionBusy ? ""Saving..."" : ""Apply restriction""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\AdminCommunityReviewSidebar.tsx","230","placeholder=""Optional rejection reason...""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\AdminCommunityToolbar.tsx","95","isCreateOpen ? ""Close"" : ""New Post""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\AdminCommunityToolbar.tsx","95","isCreateOpen ? ""Close"" : ""New Post""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\AdminCommunityToolbar.tsx","113","ariaLabel=""Status filter""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\AdminCommunityToolbar.tsx","120","ariaLabel=""Media filter""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\AdminCommunityToolbar.tsx","132","placeholder=""Post text...""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\AdminCommunityToolbar.tsx","137","ariaLabel=""Create post status""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\AdminCommunityToolbar.tsx","149","placeholder=""Rejection reason""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\AdminCommunityToolbar.tsx","169","isCreating ? ""Creating..."" : ""Create Post""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\AdminCommunityToolbar.tsx","169","isCreating ? ""Creating..."" : ""Create Post""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\FilterDropdown.tsx","52","selected?.label || ""Select""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminCommunity\components\PreviewGalleryModal.tsx","48","<span>
+              {gallery.index + 1} / {gallery.items.length}
+            </span>","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminDashboard\DashboardStats.tsx","16","isLoading ? ""..."" : value === null ? ""--"" : value.toLocaleString()","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminDashboard\DashboardStats.tsx","16","value === null ? ""--"" : value.toLocaleString()","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminDashboard\DashboardUsersTable.tsx","121","user.gamesPlayed > 0
+                      ? `${Math.round((user.gamesWon / user.gamesPlayed) * 100)}%`
+                      : ""-""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminDashboard\DashboardUsersTable.tsx","134","deleting ? ""..."" : t(""common.confirm"")","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminEventsMn\AdminEventsMn.tsx","525","importWarnings.join("" | "")","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminEventsMn\AdminEventsMn.tsx","555","<div className=""text-center py-12 text-gray-500 dark:text-gray-400"">
+            Loading...
+          </div>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminEventsMn\AdminEventsMn.tsx","623","event.startDate
+                        ? new Date(event.startDate).toLocaleDateString()
+                        : ""-""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminEventsMn\AdminEventsMn.tsx","743","<div className=""py-16 text-center text-gray-500 dark:text-gray-400"">
+                      Loading...
+                    </div>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminEventsMn\AdminEventsMn.tsx","789","event.pairId || ""-""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminEventsMn\AdminEventsMn.tsx","884","placeholder=""10423""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminEventsMn\AdminEventsMn.tsx","962","placeholder=""Watch Now""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminEventsMn\AdminEventsMn.tsx","977","placeholder=""https://...""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminEventsMn\AdminEventsMn.tsx","995","placeholder=""https://...""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminEventsMn\AdminEventsMn.tsx","1080","placeholder=""https://...""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminFeaturedEvents\AdminFeaturedEvents.tsx","528","importWarnings.join("" | "")","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminFeaturedEvents\AdminFeaturedEvents.tsx","558","<div className=""text-center py-12 text-gray-500 dark:text-gray-400"">
+            Loading...
+          </div>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminFeaturedEvents\AdminFeaturedEvents.tsx","626","event.startDate
+                        ? new Date(event.startDate).toLocaleDateString()
+                        : ""-""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminFeaturedEvents\AdminFeaturedEvents.tsx","746","<div className=""py-16 text-center text-gray-500 dark:text-gray-400"">
+                      Loading...
+                    </div>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminFeaturedEvents\AdminFeaturedEvents.tsx","792","event.pairId || ""-""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminFeaturedEvents\AdminFeaturedEvents.tsx","887","placeholder=""10423""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminFeaturedEvents\AdminFeaturedEvents.tsx","965","placeholder=""Watch Now""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminFeaturedEvents\AdminFeaturedEvents.tsx","980","placeholder=""https://...""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminFeaturedEvents\AdminFeaturedEvents.tsx","998","placeholder=""https://...""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminFeaturedEvents\AdminFeaturedEvents.tsx","1083","placeholder=""https://...""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminGames\AdminGames.tsx","221","<p className=""mt-1 text-2xl font-bold"">
+                {stats.byVariant.standard} / {stats.byVariant.chess960}
+              </p>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminGames\AdminGames.tsx","338","game.event || ""NeonGambit Game""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminGames\AdminGames.tsx","356","game.rated ? ""Rated"" : ""Casual""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminGames\AdminGames.tsx","356","game.rated ? ""Rated"" : ""Casual""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminGames\AdminGames.tsx","365","game.variant || ""standard""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminGames\AdminGames.tsx","368","game.timeControl || ""-""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminGames\AdminGames.tsx","373","owner?.fullName || ""Unknown""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminGames\GameFormModal.tsx","215","placeholder=""e.g. 300+0""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminGames\GameFormModal.tsx","297","placeholder=""YYYY.MM.DD""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminGames\GameFormModal.tsx","323","placeholder=""checkmate, resign, timeout...""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminGames\GameFormModal.tsx","339","placeholder=""e4 e5 Nf3 Nc6 ...""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminGames\GameFormModal.tsx","355","placeholder=""1. e4 e5 2. Nf3 ...""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminUsers\UserRow.tsx","91","email || ""-""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminUsers\UserRow.tsx","107","{"" / ""}","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminUsers\UserRow.tsx","109","{"" / ""}","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\adminUsers\UserRow.tsx","122","<span className=""text-sm text-gray-600 dark:text-gray-400"">
+            {winRate}%
+          </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\analyze960\ReplayContent960.tsx","108","orientation=""vertical""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\analyze\AnalysisLoadingOverlay.tsx","27","<span>{progress}%</span>","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\analyze\ReplayContent.tsx","118","orientation=""vertical""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\friends\Friends.tsx","460","<span className=""text-slate-600"">â€¢</span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\friends\Friends.tsx","555","<span className=""text-slate-500"">
+                  â€¢ {t(""Friends since"")} {new Date(friend.since).toLocaleDateString()}
+                </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\game\Game.tsx","135","avatarLetter=""?""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\game\Game.tsx","136","avatarStyle=""opponent""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\game\Game.tsx","182","user?.fullName?.substring(0, 2).toUpperCase() || ""U""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\game\Game.tsx","185","avatarStyle=""player""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\Messages.tsx","890","<div className=""absolute inset-0 flex items-center justify-center bg-black/60 text-lg font-semibold text-white backdrop-blur-sm"">
+                          +{extra}
+                        </div>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\Messages.tsx","1286","c.unreadCount > 99 ? ""99+"" : c.unreadCount","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\Messages.tsx","1493","sg.result || ""â€”""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\Messages.tsx","1498","sg.variant === ""chess960"" ? ""960"" : """"","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\Messages.tsx","1513","<span className={`text-[11px] font-normal ${mine ? ""text-cyan-100/70"" : ""text-slate-500""}`}>({sg.whiteElo})</span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\Messages.tsx","1513","<span className={`text-[11px] font-normal ${mine ? ""text-cyan-100/70"" : ""text-slate-500""}`}>({sg.whiteElo})</span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\Messages.tsx","1516","<span className={`text-[11px] font-normal ${mine ? ""text-cyan-100/70"" : ""text-slate-500""}`}>({sg.blackElo})</span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\Messages.tsx","1516","<span className={`text-[11px] font-normal ${mine ? ""text-cyan-100/70"" : ""text-slate-500""}`}>({sg.blackElo})</span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\Messages.tsx","1522","<span className={mine ? ""text-cyan-100/40"" : ""text-slate-600""}>Â·</span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\Messages.tsx","1528","<span className={mine ? ""text-cyan-100/40"" : ""text-slate-600""}>Â·</span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\Messages.tsx","1534","<span className={mine ? ""text-cyan-100/40"" : ""text-slate-600""}>Â·</span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\Messages.tsx","1540","<span className={mine ? ""text-cyan-100/40"" : ""text-slate-600""}>Â·</span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\Messages.tsx","1660","<span>
+                            {pendingImages.length}{"" ""}
+                            {pendingImages.length === 1
+                              ? t(""messages.media.imageSelected"", ""image selected"")
+                              : t(""messages.media.imagesSelected"", ""images selected"")} -{"" ""}
+                            {formatBytes(totalPendingImageBytes)}
+                          </span>","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\Messages.tsx","1706","<span className=""text-xs text-brand-300/90""> <Trans>Type</Trans> <span className=""font-mono font-semibold""><Trans>/game1</Trans></span>, <span className=""font-mono font-semibold""><Trans>/game2</Trans></span><Trans>, etc. to share a game from your profile history</Trans> </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\components\AttachmentGrid.tsx","50","videos[0].filename || ""Video""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\components\AttachmentGrid.tsx","96","attachment.filename || ""attachment""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\components\AttachmentGrid.tsx","101","<div className=""absolute inset-0 flex items-center justify-center bg-black/60 text-lg font-semibold text-white backdrop-blur-sm"">
+                        +{extra}
+                      </div>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\components\ConversationSidebar.tsx","193","conversation.unreadCount > 99
+                                    ? ""99+""
+                                    : conversation.unreadCount","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\components\MediaViewerModal.tsx","61","current?.filename || ""attachment""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\components\MediaViewerModal.tsx","67","video ? ""Video"" : ""Photo""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\components\MediaViewerModal.tsx","67","video ? ""Video"" : ""Photo""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\components\MessageComposer.tsx","161","pendingImages.length === 1 ? ""image selected"" : ""images selected""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\components\MessageComposer.tsx","161","pendingImages.length === 1 ? ""image selected"" : ""images selected""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\components\MessageComposer.tsx","161","<span>
+                {pendingImages.length}{"" ""}
+                {pendingImages.length === 1 ? ""image selected"" : ""images selected""} -{"" ""}
+                {formatBytes(totalPendingImageBytes)}
+              </span>","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\components\MessageComposer.tsx","210","<span className=""text-xs text-brand-300/90""> <Trans>Type</Trans> <span className=""font-mono font-semibold""><Trans>/game1</Trans></span>,{"" ""}
+              <span className=""font-mono font-semibold""><Trans>/game2</Trans></span><Trans>, etc. to share a game from your profile history</Trans> </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\components\SharedGameCard.tsx","50","<span
+                className={`text-[11px] font-normal ${
+                  mine ? ""text-cyan-100/70"" : ""text-slate-500""
+                }`}
+              >
+                ({game.whiteElo})
+              </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\components\SharedGameCard.tsx","51","<span
+                className={`text-[11px] font-normal ${
+                  mine ? ""text-cyan-100/70"" : ""text-slate-500""
+                }`}
+              >
+                ({game.whiteElo})
+              </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\components\SharedGameCard.tsx","63","<span
+                className={`text-[11px] font-normal ${
+                  mine ? ""text-cyan-100/70"" : ""text-slate-500""
+                }`}
+              >
+                ({game.blackElo})
+              </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\components\SharedGameCard.tsx","64","<span
+                className={`text-[11px] font-normal ${
+                  mine ? ""text-cyan-100/70"" : ""text-slate-500""
+                }`}
+              >
+                ({game.blackElo})
+              </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\components\SharedGameCard.tsx","78","<span className={mine ? ""text-cyan-100/40"" : ""text-slate-600""}>
+                  Â·
+                </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\components\SharedGameCard.tsx","89","<span className={mine ? ""text-cyan-100/40"" : ""text-slate-600""}>
+                  Â·
+                </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\components\SharedGameCard.tsx","97","<span className={mine ? ""text-cyan-100/40"" : ""text-slate-600""}>
+                  Â·
+                </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\messages\components\SharedGameCard.tsx","105","<span className={mine ? ""text-cyan-100/40"" : ""text-slate-600""}>
+                  Â·
+                </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playFourPlayer\FourPlayerChess.tsx","546","[""red"", ""blue"", ""yellow"", ""green""]","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playFourPlayer\FourPlayerChess.tsx","546","[""red"", ""blue"", ""yellow"", ""green""]","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playFourPlayer\FourPlayerChess.tsx","546","[""red"", ""blue"", ""yellow"", ""green""]","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playFourPlayer\FourPlayerChess.tsx","546","[""red"", ""blue"", ""yellow"", ""green""]","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playFourPlayer\FourPlayerChess.tsx","560","isYou ? "" (You)"" : """"","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playFourPlayer\FourPlayerChess.tsx","869","perspectiveColor=""red""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playFourPlayer\FourPlayerChess.tsx","892","queueStatus || ""Searching 4-player match...""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playFourPlayer\FourPlayerChess.tsx","910","selectedTimeOption?.label || ""5+0""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playFourPlayer\FourPlayerChess.tsx","964","isConnected ? ""Search Match"" : ""Server Offline""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playFourPlayer\FourPlayerChess.tsx","964","isConnected ? ""Search Match"" : ""Server Offline""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playFourPlayer\FourPlayerChess.tsx","1048","isMyTurn
+                  ? ""Your Turn""
+                  : `${displayedState.turn.toUpperCase()} to move`","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playFourPlayer\FourPlayerChess.tsx","1081","players[playerColor]?.name || user?.fullName || ""You""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playFourPlayer\FourPlayerChess.tsx","1084","isReviewingPastMove
+                ? `. Reviewing move ${selectedPly} of ${latestPly}.`
+                : "".""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playFourPlayer\FourPlayerChess.tsx","1130","rowClassName=""rounded-lg bg-gray-100 dark:bg-slate-800/70 py-1""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playFourPlayer\FourPlayerChess.tsx","1131","moveNumberClassName=""w-10 px-2 text-gray-500 dark:text-gray-400""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playFourPlayer\FourPlayerChess.tsx","1132","moveCellClassName=""rounded px-2 py-1 text-sm font-mono transition-colors""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playFourPlayer\FourPlayerChess.tsx","1133","activeMoveClassName=""bg-[#00e5a0]/20 text-[#00e5a0] font-semibold""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playFourPlayer\FourPlayerChess.tsx","1134","inactiveMoveClassName=""text-gray-700 dark:text-gray-200""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playPractice\PlayPractice.tsx","1761","transition: ""background-color 160ms ease""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playPractice\PlayPractice.tsx","1765","transition: ""background-color 160ms ease""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playPractice\PlayPractice.tsx","1768","borderRadius: ""8px""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playPractice\PlayPractice.tsx","1769","boxShadow: ""0 8px 24px rgba(2, 6, 23, 0.45)""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playPractice\PlayPractice.tsx","1809","mode=""wait""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playPractice\PlayPractice.tsx","1816","ease: ""easeOut""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playPractice\PlayPractice.tsx","1949","rowClassName=""grid grid-cols-[30px_minmax(0,1fr)_minmax(0,1fr)] gap-1.5 items-center text-sm""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playPractice\PlayPractice.tsx","1950","moveNumberClassName=""text-[#334155]""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playPractice\PlayPractice.tsx","1951","moveCellClassName=""font-medium rounded-[5px] px-2 py-1 bg-[#1a2640] text-[#94a3b8]""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playPractice\PlayPractice.tsx","1952","activeMoveClassName=""bg-[linear-gradient(135deg,rgb(var(--color-brand-500-rgb)),rgb(var(--color-brand-600-rgb)))] text-white shadow-[0_2px_8px_rgb(var(--color-brand-500-rgb)/0.28)]""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playPractice\PlayPractice.tsx","1953","inactiveMoveClassName=""text-[#94a3b8]""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playPractice\PlayPractice.tsx","1955","missingMoveText=""--""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playPractice\PlayPractice.tsx","2098","<span style={{ color: ""#64748b"" }}>#{line.rank}</span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playPractice\PlayPractice.tsx","2259","<div
+                        style={{
+                          padding: ""0 12px 10px"",
+                          fontSize: 11,
+                          color: ""#f59e0b"",
+                          fontFamily: '""Roboto Mono"", monospace',
+                        }}
+                      >
+                        {t(""practice.workspace.freeMove.queuedPreMove"", ""Queued pre-move"")}:{"" ""}
+                        {preMove.from}{""->""}
+                        {preMove.to}
+                        {preMove.promotion ?? """"}
+                      </div>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playPractice\PlayPractice.tsx","2260","{""->""}","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playPractice\PlayPractice.tsx","2306","ease: ""easeOut""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playPractice\PlayPractice.tsx","2348","positionBuilderModeIcon?.(
+                          ""rgb(var(--color-brand-500-rgb))"",
+                        )","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playPractice\PlayPractice.tsx","2990","ease: ""easeOut""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playPractice\PlayPractice.tsx","3075","isActive ? ""rgb(var(--color-brand-500-rgb))"" : ""#94a3b8""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playPractice\PlayPractice.tsx","3075","isActive ? ""rgb(var(--color-brand-500-rgb))"" : ""#94a3b8""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playVariants\PlayVariants.tsx","357","avatarLetter=""V""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playVariants\PlayVariants.tsx","358","avatarStyle=""opponent""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playVariants\PlayVariants.tsx","386","boxShadow:
+                            ""inset 0 0 0 9999px rgba(250, 204, 21, 0.16)""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playVariants\PlayVariants.tsx","390","boxShadow:
+                            ""inset 0 0 0 9999px rgba(250, 204, 21, 0.16)""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playVariants\PlayVariants.tsx","394","boxShadow:
+                            ""inset 0 0 0 9999px rgba(250, 204, 21, 0.16)""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playVariants\PlayVariants.tsx","398","boxShadow:
+                            ""inset 0 0 0 9999px rgba(250, 204, 21, 0.16)""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playVariants\PlayVariants.tsx","405","transition: ""background-color 160ms ease""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playVariants\PlayVariants.tsx","409","transition: ""background-color 160ms ease""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playVariants\PlayVariants.tsx","424","user?.fullName?.substring(0, 2).toUpperCase() || ""Y""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playVariants\PlayVariants.tsx","426","avatarStyle=""player""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithBot\BotGamePage.tsx","338","avatarStyle=""opponent""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithBot\BotGamePage.tsx","380","user?.fullName?.substring(0, 2).toUpperCase() || ""Y""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithBot\BotGamePage.tsx","382","avatarStyle=""player""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithBot\BotGamePage.tsx","427","<div className=""text-sm text-gray-500 dark:text-gray-400"">
+                        {t(""quickMatch.result.rating"", ""Rating"")}: {bot.rating}
+                      </div>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithBot\BotGamePage.tsx","449","moveCellClassName=""rounded px-2 py-1 transition-colors""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithBot\BotGamePage.tsx","450","activeMoveClassName=""bg-[#00e5a0]/20 text-[#00e5a0] font-semibold""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithBot\BotGamePage.tsx","451","inactiveMoveClassName=""text-gray-800 dark:text-gray-200""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithBot\BotGameView.tsx","128","gameSettings.selectedBot?.title || ""AI opponent""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithBot\BotGameView.tsx","130","avatarStyle=""opponent""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithBot\BotGameView.tsx","171","user?.fullName?.substring(0, 2).toUpperCase() || ""U""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithBot\BotGameView.tsx","174","avatarStyle=""player""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithBot\BotGameView.tsx","198","gameSettings.selectedBot?.name || ""Stockfish""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithBot\BotGameView.tsx","206","gameSettings.selectedBot?.rating || ""N/A""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithBot\BotGameView.tsx","220","inactiveMoveClassName=""text-gray-800 dark:text-gray-200""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithBot\GameSettingsPanel.tsx","44","<p className=""text-sm text-gray-600 dark:text-gray-400 mt-3 italic"">
+              ""{selectedBot.personality}""
+            </p>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithBot\GameSettingsPanel.tsx","45","<p className=""text-sm text-gray-600 dark:text-gray-400 mt-3 italic"">
+              ""{selectedBot.personality}""
+            </p>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithBot\GameSettingsPanel.tsx","56","[""white"", ""black"", ""random""]","ignore_candidate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithBot\GameSettingsPanel.tsx","66","color === ""random"" ? "" Random"" : color","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithBot\GameSettingsPanel.tsx","104","selectedBot ? `Play vs ${selectedBot.name}` : ""Select a Bot""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithBot\PlayWithBot.tsx","326","selectedBot?.title || ""AI opponent""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithBot\PlayWithBot.tsx","330","avatarStyle=""opponent""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithBot\PlayWithBot.tsx","352","transition: ""background-color 160ms ease""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithBot\PlayWithBot.tsx","356","transition: ""background-color 160ms ease""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithBot\PlayWithBot.tsx","370","user?.fullName?.substring(0, 2).toUpperCase() || ""Y""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithBot\PlayWithBot.tsx","372","avatarStyle=""player""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithBot\PlayWithBot.tsx","418","<p className=""text-xs text-gray-700 dark:text-gray-300 italic line-clamp-2"">
+                      ""{selectedBot.personality}""
+                    </p>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithBot\PlayWithBot.tsx","419","<p className=""text-xs text-gray-700 dark:text-gray-300 italic line-clamp-2"">
+                      ""{selectedBot.personality}""
+                    </p>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithBot\PlayWithBot.tsx","481","isExpanded ? ""Hide"" : ""Show""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithBot\PlayWithBot.tsx","481","isExpanded ? ""Hide"" : ""Show""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithFriend\FriendGameSetup.tsx","388","opponentLabel.substring(0, 2).toUpperCase() || ""F""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithFriend\FriendGameSetup.tsx","390","avatarStyle=""opponent""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithFriend\FriendGameSetup.tsx","415","boxShadow:
+                          ""inset 0 0 0 9999px rgba(250, 204, 21, 0.16)""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithFriend\FriendGameSetup.tsx","419","boxShadow:
+                          ""inset 0 0 0 9999px rgba(250, 204, 21, 0.16)""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithFriend\FriendGameSetup.tsx","423","boxShadow:
+                          ""inset 0 0 0 9999px rgba(250, 204, 21, 0.16)""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithFriend\FriendGameSetup.tsx","427","boxShadow:
+                          ""inset 0 0 0 9999px rgba(250, 204, 21, 0.16)""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithFriend\FriendGameSetup.tsx","434","transition: ""background-color 160ms ease""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithFriend\FriendGameSetup.tsx","438","transition: ""background-color 160ms ease""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithFriend\FriendGameSetup.tsx","452","user?.fullName?.substring(0, 2).toUpperCase() || ""Y""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithFriend\FriendGameSetup.tsx","454","avatarStyle=""player""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithFriend\FriendGameSetup.tsx","541","<span className=""ml-1 text-[11px] font-normal text-gray-500 dark:text-gray-400"">
+                                  ({friend.rating})
+                                </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithFriend\FriendGameSetup.tsx","542","<span className=""ml-1 text-[11px] font-normal text-gray-500 dark:text-gray-400"">
+                                  ({friend.rating})
+                                </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithFriend\FriendGameSetup.tsx","580","<span className=""ml-1 text-[12px] font-normal text-gray-500 dark:text-gray-400"">
+                          ({selectedFriend.rating})
+                        </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\playWithFriend\FriendGameSetup.tsx","581","<span className=""ml-1 text-[12px] font-normal text-gray-500 dark:text-gray-400"">
+                          ({selectedFriend.rating})
+                        </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\puzzleTrainer\PuzzleActions.tsx","53","showHint ? ""Hint Used"" : ""Hint""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\puzzleTrainer\PuzzleActions.tsx","53","showHint ? ""Hint Used"" : ""Hint""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\puzzleTrainer\PuzzleProgressBar.tsx","25","<span className=""font-bold text-sm"">5</span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\puzzleTrainer\PuzzleStatusArea.tsx","74","<span className=""font-mono font-bold"">
+            {solutionMoves[0]?.slice(0, 2)}...
+          </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\puzzleTrainer\PuzzleTrainer.tsx","248","backgroundColor: ""#7f9f59""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\puzzleTrainer\PuzzleTrainer.tsx","251","backgroundColor: ""#e7e3c7""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\puzzleTrainer\PuzzleTrainer.tsx","289","<span
+                            className={`text-base font-medium ${ratingDeltaClass(
+                              ratingDelta,
+                            )}`}
+                          >
+                            ({ratingDelta > 0 ? ""+"" : """"}
+                            {ratingDelta})
+                          </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\puzzleTrainer\PuzzleTrainer.tsx","290","ratingDelta > 0 ? ""+"" : """"","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\puzzleTrainer\PuzzleTrainer.tsx","291","<span
+                            className={`text-base font-medium ${ratingDeltaClass(
+                              ratingDelta,
+                            )}`}
+                          >
+                            ({ratingDelta > 0 ? ""+"" : """"}
+                            {ratingDelta})
+                          </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\puzzles\PuzzleHistory.tsx","130","backgroundColor: ""#8ea8bb""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\puzzles\PuzzleHistory.tsx","131","backgroundColor: ""#dde7ee""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\puzzles\PuzzleHistory.tsx","332","<div className=""text-[11px] text-slate-400"">
+                    {new Date(item.date).toLocaleDateString(locale)} -{"" ""}
+                    {formatTime(Math.floor(item.timeSpent / 1000))}
+                  </div>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\puzzles\PuzzleHistory.tsx","372","<span
+                      key={`dots-${index}`}
+                      className=""w-9 h-9 inline-flex items-center justify-center text-slate-500 text-sm select-none""
+                    >
+                      ...
+                    </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\puzzles\Puzzles.tsx","163","backgroundColor: ""#8ea8bb""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\puzzles\Puzzles.tsx","164","backgroundColor: ""#dde7ee""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\puzzles\Puzzles.tsx","400","[""Easy"", ""Medium"", ""Hard""]","ignore_candidate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\puzzles\Puzzles.tsx","400","[""Easy"", ""Medium"", ""Hard""]","ignore_candidate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\puzzles\Puzzles.tsx","400","[""Easy"", ""Medium"", ""Hard""]","ignore_candidate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\puzzles\Puzzles.tsx","520","fill=""currentColor""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\puzzles\Puzzles.tsx","610","fill=""currentColor""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\puzzles\Puzzles.tsx","615","mergedMotifs(puzzle).join("" â€¢ "")","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\puzzles\Puzzles.tsx","674","<span className=""text-sm text-slate-300"">
+              {safePage} / {totalPages}
+            </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\puzzles\PuzzlesGrid.tsx","183","<span
+                key={`dots-${i}`}
+                className=""w-9 h-9 flex items-center justify-center text-gray-400 dark:text-gray-600 text-sm select-none""
+              >
+                â€¦
+              </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\quickMatch\QuickMatch.tsx","1113","queueStatus || ""Waiting for your tournament opponent...""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\quickMatch\QuickMatchGameView.tsx","1063","opponentNameForInfo.substring(0, 1).toUpperCase() || ""O""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\quickMatch\QuickMatchGameView.tsx","1065","avatarStyle=""opponent""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\quickMatch\QuickMatchGameView.tsx","1152","playerNameForInfo.substring(0, 2).toUpperCase() || ""U""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\quickMatch\QuickMatchGameView.tsx","1155","avatarStyle=""player""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\quickMatch\QuickMatchGameView.tsx","1236","<span className=""text-[1.45rem] font-semibold leading-none"">1/2</span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\quickMatch\QuickMatchGameView.tsx","1363","moveCellClassName=""rounded px-2 py-1 transition-colors""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\quickMatch\QuickMatchGameView.tsx","1364","activeMoveClassName=""bg-[#00e5a0]/20 text-[#00e5a0] font-semibold""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\quickMatch\QuickMatchGameView.tsx","1365","inactiveMoveClassName=""text-gray-800 dark:text-gray-200""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\quickMatch\QuickMatchGameView.tsx","1418","<div
+                            className={`w-8 text-right text-xs font-semibold ${
+                              Number(row.rank) === 1
+                                ? ""text-amber-400""
+                                : Number(row.rank) === 2
+                                  ? ""text-slate-300""
+                                  : Number(row.rank) === 3
+                                    ? ""text-orange-400""
+                                    : ""text-gray-500 dark:text-gray-400""
+                            }`}
+                          >
+                            #{row.rank}
+                          </div>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\quickMatch\QuickMatchGameView.tsx","1436","<div className=""text-[11px] text-gray-500 dark:text-gray-400"">
+                              ELO {row.elo}
+                            </div>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\quickMatch\QuickMatchGameView.tsx","1533","moveCellClassName=""rounded px-2 py-1 transition-colors""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\quickMatch\QuickMatchGameView.tsx","1534","activeMoveClassName=""bg-[#00e5a0]/20 text-[#00e5a0] font-semibold""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\quickMatch\QuickMatchGameView.tsx","1535","inactiveMoveClassName=""text-gray-800 dark:text-gray-200""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\quickMatch\QuickMatchGameView.tsx","1682","<span>
+                  {t(""Winner"")}: {winnerLabel}
+                </span>","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\quickMatch\QuickMatchGameView.tsx","1687","<span>
+                  {t(""tournamentsPage.actions.result"", ""Result"")}: {viewerOutcomeLabel}
+                </span>","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\quickMatch\QuickMatchGameView.tsx","1692","<span className={ratingDeltaTextClass(viewerTournamentRatingDelta)}>
+                  {t(""quickMatch.result.rating"", ""Rating"")}: {viewerTournamentRatingLabel}
+                </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\quickMatch\QuickMatchGameView.tsx","1765","<span className=""text-sm font-semibold text-white/55"">
+                        / {Number(row.games || row.gamesPlayed || 0)}
+                      </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\quickMatch\QuickMatchGameView.tsx","1796","<div className=""text-xs text-white/55"">({viewerStanding.elo})</div>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\quickMatch\QuickMatchGameView.tsx","1796","<div className=""text-xs text-white/55"">({viewerStanding.elo})</div>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\quickMatch\QuickMatchGameView.tsx","1801","<div className=""text-sm font-semibold text-white/60"">
+                  / {Number(viewerStanding.games || viewerStanding.gamesPlayed || 0)}
+                </div>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\quickMatch\QuickMatchSetup.tsx","350","avatarLetter=""?""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\quickMatch\QuickMatchSetup.tsx","351","avatarStyle=""opponent""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\quickMatch\QuickMatchSetup.tsx","376","boxShadow:
+                          ""inset 0 0 0 9999px rgba(250, 204, 21, 0.16)""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\quickMatch\QuickMatchSetup.tsx","380","boxShadow:
+                          ""inset 0 0 0 9999px rgba(250, 204, 21, 0.16)""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\quickMatch\QuickMatchSetup.tsx","384","boxShadow:
+                          ""inset 0 0 0 9999px rgba(250, 204, 21, 0.16)""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\quickMatch\QuickMatchSetup.tsx","388","boxShadow:
+                          ""inset 0 0 0 9999px rgba(250, 204, 21, 0.16)""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\quickMatch\QuickMatchSetup.tsx","395","transition: ""background-color 160ms ease""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\quickMatch\QuickMatchSetup.tsx","399","transition: ""background-color 160ms ease""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\quickMatch\QuickMatchSetup.tsx","413","user?.fullName?.substring(0, 2).toUpperCase() || ""Y""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\quickMatch\QuickMatchSetup.tsx","415","avatarStyle=""player""","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\tournaments\Tournaments.tsx","679","tournament.name || ""Tournament""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\tournaments\Tournaments.tsx","711","<span className=""text-sm font-semibold text-white/55"">/ {getStandingGames(row)}</span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\tournaments\Tournaments.tsx","741","<div className=""text-xs text-white/55"">({viewerRow.elo})</div>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\tournaments\Tournaments.tsx","741","<div className=""text-xs text-white/55"">({viewerRow.elo})</div>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\tournaments\Tournaments.tsx","744","<div className=""text-sm font-semibold text-white/60"">/ {getStandingGames(viewerRow)}</div>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\tournaments\Tournaments.tsx","782","<span className=""inline-flex h-9 w-9 items-center justify-center rounded-lg border border-violet-400/25 bg-violet-500/10 text-[11px] font-bold text-violet-200"">
+        960
+      </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\tournaments\Tournaments.tsx","1617","<span className=""shrink-0 font-mono text-[10px] font-black leading-none"">960</span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\tournaments\Tournaments.tsx","1820","<span className=""font-mono uppercase tracking-[0.22em]"">
+          {formatScheduleDayLabel(scheduleDay)} - {formatScheduleDayLabel(scheduleRangeEnd)}
+        </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\tournaments\Tournaments.tsx","1943","<span className=""shrink-0 font-mono text-[10px] text-slate-300"">...</span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\tournaments\Tournaments.tsx","1957","<span className=""shrink-0 font-mono text-[10px] text-slate-300"">...</span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\watch\FeaturedMatch.tsx","63","<span className=""px-2 py-1 bg-red-500 text-white text-xs font-bold rounded animate-pulse"">
+                  LIVE
+                </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\watch\FeaturedMatch.tsx","113","<div className=""text-4xl font-black text-gray-400 dark:text-gray-600"">
+                  VS
+                </div>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\watch\FeaturedMatch.tsx","226","<div className=""text-sm font-bold text-red-500 tracking-widest mb-2 animate-pulse"">
+                LIVE
+              </div>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\watch\FeaturedMatch.tsx","229","<div className=""text-4xl font-black text-gray-400 dark:text-gray-600"">
+                VS
+              </div>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\watch\FeaturedMatch.tsx","234","(fallbackGame.category || fallbackGame.type) +
+                  "" â€¢ ""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\watch\LiveGamesGrid.tsx","41","<span>
+            {label} - {game.time}
+          </span>","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\watch\LiveGamesGrid.tsx","207","[""Top Rated"", ""Blitz"", ""Rapid"", ""Classical""]","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\watch\LiveGamesGrid.tsx","207","[""Top Rated"", ""Blitz"", ""Rapid"", ""Classical""]","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\watch\LiveGamesGrid.tsx","207","[""Top Rated"", ""Blitz"", ""Rapid"", ""Classical""]","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\watch\LiveGamesGrid.tsx","207","[""Top Rated"", ""Blitz"", ""Rapid"", ""Classical""]","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\watch\LiveGamesGrid.tsx","220","layoutId=""activeTab""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\watch\LiveGamesGrid.tsx","241","<div className=""text-sm text-gray-500 dark:text-gray-400 mb-4"">
+          {rangeStart}-{rangeEnd} {t(""of"")} {filteredGames.length} {t(""games"")}
+        </div>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\watch\LiveGamesGrid.tsx","280","<span
+                key={`dots-${i}`}
+                className=""w-9 h-9 flex items-center justify-center text-gray-400 dark:text-gray-600 text-sm select-none""
+              >
+                ...
+              </span>","safe_technical"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\watch\WatchFeaturedCarousel.tsx","268","slideStyle.backgroundSize = ""cover""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\watch\WatchFeaturedCarousel.tsx","269","slideStyle.backgroundPosition = ""center""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\watch\WatchSpectatorGame.tsx","517","historyPersistenceStatus=""idle""","must_translate"
+"C:\Users\User\OneDrive\Desktop\Diploma Code V2\ChessWebV3 - Copy\src\pages\watch\WatchSpectatorGame.tsx","544","sidebarTitleOverride=""Spectating""","must_translate"

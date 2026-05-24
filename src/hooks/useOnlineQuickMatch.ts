@@ -35,6 +35,7 @@ import {
 } from "../utils/ratingPool";
 import { useGameplayPreferences } from "./useGameplayPreferences";
 import { SOCKET_URL } from "../config/network";
+import i18n from "../i18n";
 const ACTIVE_GAME_STORAGE_KEY = "neongambit:activeGameId";
 const BOARD_FILES = ["a", "b", "c", "d", "e", "f", "g", "h"] as const;
 const KING_OF_HILL_CENTER_SQUARES = new Set(["d4", "e4", "d5", "e5"]);
@@ -1326,7 +1327,7 @@ export function useOnlineQuickMatch() {
         offeredBy: payload.offeredBy || playerColorRef.current,
         expiresAt: Number(payload.expiresAt || 0) || null,
       });
-      setQueueStatus("Draw offer sent.");
+      setQueueStatus(i18n.t("quickMatch.draw.offerSent", "Draw offer sent."));
     });
 
     socket.on("drawOfferReceived", (payload: DrawOfferPayload) => {
@@ -1344,13 +1345,20 @@ export function useOnlineQuickMatch() {
         offeredBy: payload.offeredBy || null,
         expiresAt: Number(payload.expiresAt || 0) || null,
       });
-      setQueueStatus("Opponent offered a draw.");
+      setQueueStatus(
+        i18n.t(
+          "quickMatch.draw.opponentOffered",
+          "Your opponent offered a draw.",
+        ),
+      );
     });
 
     socket.on("drawOfferAccepted", (payload: DrawOfferPayload) => {
       if (payload.gameId !== gameIdRef.current) return;
       setDrawOfferState(idleDrawOfferState);
-      setQueueStatus("Draw offer accepted.");
+      setQueueStatus(
+        i18n.t("quickMatch.draw.offerAccepted", "Draw offer accepted."),
+      );
     });
 
     socket.on("drawOfferDeclined", (payload: DrawOfferPayload) => {
@@ -1358,15 +1366,18 @@ export function useOnlineQuickMatch() {
       setDrawOfferState(idleDrawOfferState);
       setQueueStatus(
         payload.reason === "move"
-          ? "Draw offer declined by move."
-          : "Draw offer declined.",
+          ? i18n.t(
+              "quickMatch.draw.offerDeclinedByMove",
+              "Draw offer declined by move.",
+            )
+          : i18n.t("quickMatch.draw.offerDeclined", "Draw offer declined."),
       );
     });
 
     socket.on("drawOfferExpired", (payload: DrawOfferPayload) => {
       if (payload.gameId !== gameIdRef.current) return;
       setDrawOfferState(idleDrawOfferState);
-      setQueueStatus("Draw offer expired.");
+      setQueueStatus(i18n.t("quickMatch.draw.offerExpired", "Draw offer expired."));
     });
 
     socket.on("gameOver", (payload: GameOverPayload) => {
@@ -2062,7 +2073,10 @@ export function useOnlineQuickMatch() {
     emitIfConnected("offerDraw", { gameId }, (response) => {
       const ack = response as SocketAckResponse | undefined;
       if (ack?.success === false) {
-        setQueueStatus(ack.error || "Unable to offer draw.");
+        setQueueStatus(
+          ack.error ||
+            i18n.t("quickMatch.draw.unableToOffer", "Unable to offer draw."),
+        );
         return;
       }
       setDrawOfferState({
@@ -2071,7 +2085,12 @@ export function useOnlineQuickMatch() {
         expiresAt: Number(ack?.expiresAt || 0) || null,
       });
       if (ack?.delivered === false) {
-        setQueueStatus("Draw offer sent. Waiting for opponent to reconnect.");
+        setQueueStatus(
+          i18n.t(
+            "quickMatch.draw.offerSentWaitingReconnect",
+            "Draw offer sent. Waiting for opponent to reconnect.",
+          ),
+        );
       }
     });
   }, [emitIfConnected, gameId, gameOver]);
@@ -2085,7 +2104,13 @@ export function useOnlineQuickMatch() {
         (response) => {
           const ack = response as SocketAckResponse | undefined;
           if (ack?.success === false) {
-            setQueueStatus(ack.error || "Unable to respond to draw offer.");
+            setQueueStatus(
+              ack.error ||
+                i18n.t(
+                  "quickMatch.draw.unableToRespond",
+                  "Unable to respond to draw offer.",
+                ),
+            );
             return;
           }
           if (!accept) {

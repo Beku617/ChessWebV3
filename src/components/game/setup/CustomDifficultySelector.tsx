@@ -1,3 +1,4 @@
+import { Trans } from "react-i18next";
 import { motion } from "framer-motion";
 
 interface CustomDifficultySelectorProps {
@@ -17,8 +18,7 @@ export function CustomDifficultySelector({
       exit={{ opacity: 0, x: -20 }}
     >
       <div className="mb-6">
-        <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-          Difficulty: Level {difficulty}
+        <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block"> <Trans>Difficulty: Level</Trans> {difficulty}
         </label>
         <input
           type="range"
@@ -29,8 +29,8 @@ export function CustomDifficultySelector({
           className="w-full accent-brand-600"
         />
         <div className="flex justify-between text-xs text-gray-500 mt-1">
-          <span>Easy</span>
-          <span>Hard</span>
+          <span><Trans>Easy</Trans></span>
+          <span><Trans>Hard</Trans></span>
         </div>
       </div>
     </motion.div>

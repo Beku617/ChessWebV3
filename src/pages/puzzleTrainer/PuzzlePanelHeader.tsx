@@ -1,3 +1,4 @@
+import { Trans } from "react-i18next";
 import { ArrowLeft } from "lucide-react";
 
 interface PuzzlePanelHeaderProps {
@@ -17,7 +18,7 @@ export function PuzzlePanelHeader({ onBack }: PuzzlePanelHeaderProps) {
         <div className="w-7 h-7 bg-amber-600 rounded flex items-center justify-center">
           <span className="text-white font-bold text-xs"></span>
         </div>
-        <span className="text-lg font-bold">Puzzles</span>
+        <span className="text-lg font-bold"><Trans>Puzzles</Trans></span>
       </div>
       <div className="w-5" /> {/* Spacer */}
     </div>

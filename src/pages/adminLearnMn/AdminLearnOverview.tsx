@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation, Trans } from "react-i18next";
 import {
   BookOpen,
   Eye,
@@ -25,6 +26,12 @@ import type { AdminLearnCourse, CoursePayload } from "./types";
 import { useAdminGuard } from "./useAdminGuard";
 
 type PublishFilter = "all" | "published" | "unpublished";
+const PUBLISH_FILTER_VALUE = {
+  all: "all",
+  published: "published",
+  unpublished: "unpublished",
+} as const;
+const IMPORT_WARNING_SEPARATOR = " | ";
 
 type CourseDraft = {
   title: string;
@@ -84,6 +91,7 @@ function toDraft(course: AdminLearnCourse): CourseDraft {
 }
 
 export default function AdminLearnOverview() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { isDarkMode } = useThemeStore();
   const { isAuthenticated, isLoading: authLoading } = useAdminGuard();
@@ -180,7 +188,9 @@ export default function AdminLearnOverview() {
     };
   }, [isAuthenticated, search, category, difficulty, status]);
 
-  const modalTitle = editingCourse ? "Edit course" : "Create course";
+  const modalTitle = editingCourse
+    ? t("admin.modal.editCourse")
+    : t("admin.modal.createCourse");
 
   const handleOpenCreate = () => {
     setEditingCourse(null);
@@ -292,7 +302,9 @@ export default function AdminLearnOverview() {
   };
 
   const handleDelete = async (course: AdminLearnCourse) => {
-    const confirmed = window.confirm(`Delete "${course.title}" and all lessons?`);
+    const confirmed = window.confirm(
+      t("admin.confirm.deleteCourseWithLessons", { title: course.title }),
+    );
     if (!confirmed) return;
 
     setProcessingCourseId(course.id);
@@ -445,9 +457,7 @@ export default function AdminLearnOverview() {
             >
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <h1 className="text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
-                    Learn Course Management
-                  </h1>
+                  <h1 className="text-3xl font-semibold tracking-tight text-gray-900 dark:text-white"> <Trans>Learn Course Management</Trans> </h1>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
@@ -455,41 +465,31 @@ export default function AdminLearnOverview() {
                     type="button"
                     onClick={() => void handleOpenImport()}
                     className="rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
-                  >
-                    Import from EN
-                  </button>
+                  > <Trans>Import from EN</Trans> </button>
                   <button
                     type="button"
                     onClick={handleOpenCreate}
                     className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-500"
                   >
-                    <Plus className="h-4 w-4" />
-                    New Course
-                  </button>
+                    <Plus className="h-4 w-4" /> <Trans>New Course</Trans> </button>
                 </div>
               </div>
 
               <div className="mt-5 grid gap-3 sm:grid-cols-3">
                 <div className="rounded-2xl border border-gray-200 bg-gray-50/90 px-4 py-4 dark:border-slate-800 dark:bg-slate-900/70">
-                  <div className="text-[11px] uppercase tracking-[0.2em] text-gray-500">
-                    Total Courses
-                  </div>
+                  <div className="text-[11px] uppercase tracking-[0.2em] text-gray-500"> <Trans>Total Courses</Trans> </div>
                   <div className="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">
                     {stats.totalCourses}
                   </div>
                 </div>
                 <div className="rounded-2xl border border-gray-200 bg-gray-50/90 px-4 py-4 dark:border-slate-800 dark:bg-slate-900/70">
-                  <div className="text-[11px] uppercase tracking-[0.2em] text-gray-500">
-                    Total Lessons
-                  </div>
+                  <div className="text-[11px] uppercase tracking-[0.2em] text-gray-500"> <Trans>Total Lessons</Trans> </div>
                   <div className="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">
                     {stats.totalLessons}
                   </div>
                 </div>
                 <div className="rounded-2xl border border-gray-200 bg-gray-50/90 px-4 py-4 dark:border-slate-800 dark:bg-slate-900/70">
-                  <div className="text-[11px] uppercase tracking-[0.2em] text-gray-500">
-                    Published Courses
-                  </div>
+                  <div className="text-[11px] uppercase tracking-[0.2em] text-gray-500"> <Trans>Published Courses</Trans> </div>
                   <div className="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">
                     {stats.totalPublished}
                   </div>
@@ -506,7 +506,7 @@ export default function AdminLearnOverview() {
                   <input
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
-                    placeholder="Search courses..."
+                    placeholder={t("admin.search.courses")}
                     className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 py-2 pl-10 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                   />
                 </label>
@@ -516,7 +516,7 @@ export default function AdminLearnOverview() {
                   onChange={(event) => setCategory(event.target.value)}
                   className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                 >
-                  <option value="">All categories</option>
+                  <option value=""><Trans>All categories</Trans></option>
                   {options.categories.map((entry) => (
                     <option key={entry} value={entry}>
                       {entry}
@@ -529,7 +529,7 @@ export default function AdminLearnOverview() {
                   onChange={(event) => setDifficulty(event.target.value)}
                   className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                 >
-                  <option value="">All difficulties</option>
+                  <option value=""><Trans>All difficulties</Trans></option>
                   {options.difficulties.map((entry) => (
                     <option key={entry} value={entry}>
                       {entry}
@@ -542,9 +542,9 @@ export default function AdminLearnOverview() {
                   onChange={(event) => setStatus(event.target.value as PublishFilter)}
                   className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                 >
-                  <option value="all">All status</option>
-                  <option value="published">Published</option>
-                  <option value="unpublished">Unpublished</option>
+                  <option value={PUBLISH_FILTER_VALUE.all}><Trans>All status</Trans></option>
+                  <option value={PUBLISH_FILTER_VALUE.published}><Trans>Published</Trans></option>
+                  <option value={PUBLISH_FILTER_VALUE.unpublished}><Trans>Unpublished</Trans></option>
                 </select>
               </div>
             </section>
@@ -557,7 +557,7 @@ export default function AdminLearnOverview() {
 
             {importWarnings.length > 0 && (
               <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-200">
-                {importWarnings.join(" | ")}
+                {importWarnings.join(IMPORT_WARNING_SEPARATOR)}
               </div>
             )}
 
@@ -571,22 +571,20 @@ export default function AdminLearnOverview() {
               ) : courses.length === 0 ? (
                 <div className="py-20 text-center">
                   <BookOpen className="mx-auto h-9 w-9 text-gray-500" />
-                  <p className="mt-3 text-gray-500 dark:text-gray-400">
-                    No courses found for the current filters.
-                  </p>
+                  <p className="mt-3 text-gray-500 dark:text-gray-400"> <Trans>No courses found for the current filters.</Trans> </p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[980px]">
                     <thead>
                       <tr className="text-left text-xs uppercase tracking-[0.14em] text-gray-500 dark:text-gray-500">
-                        <th className="px-3 py-3">Course</th>
-                        <th className="px-3 py-3">Topic</th>
-                        <th className="px-3 py-3">Level</th>
-                        <th className="px-3 py-3">Lessons</th>
-                        <th className="px-3 py-3">Status</th>
-                        <th className="px-3 py-3">Updated</th>
-                        <th className="px-3 py-3 text-right">Actions</th>
+                        <th className="px-3 py-3"><Trans>Course</Trans></th>
+                        <th className="px-3 py-3"><Trans>Topic</Trans></th>
+                        <th className="px-3 py-3"><Trans>Level</Trans></th>
+                        <th className="px-3 py-3"><Trans>Lessons</Trans></th>
+                        <th className="px-3 py-3"><Trans>Status</Trans></th>
+                        <th className="px-3 py-3"><Trans>Updated</Trans></th>
+                        <th className="px-3 py-3 text-right"><Trans>Actions</Trans></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -601,12 +599,10 @@ export default function AdminLearnOverview() {
                               <div className="font-medium text-gray-900 dark:text-white">
                                 {course.title}
                               </div>
-                              <div className="mt-1 text-xs text-gray-500">
-                                /learn/{course.slug}
+                              <div className="mt-1 text-xs text-gray-500"> <Trans>/learn/</Trans>{course.slug}
                               </div>
                               {course.pairId && (
-                                <div className="mt-1 inline-flex rounded-full bg-gray-200 px-2 py-0.5 text-[10px] font-medium text-gray-600 dark:bg-slate-800 dark:text-slate-300">
-                                  Pair ID: {course.pairId}
+                                <div className="mt-1 inline-flex rounded-full bg-gray-200 px-2 py-0.5 text-[10px] font-medium text-gray-600 dark:bg-slate-800 dark:text-slate-300"> <Trans>Pair ID:</Trans> {course.pairId}
                                 </div>
                               )}
                             </td>
@@ -617,8 +613,7 @@ export default function AdminLearnOverview() {
                               {course.difficulty}
                             </td>
                             <td className="px-3 py-4 text-sm text-gray-600 dark:text-gray-300">
-                              {course.totalLessons} total / {course.publishedLessons} published
-                            </td>
+                              {course.totalLessons} <Trans>total /</Trans> {course.publishedLessons} <Trans>published</Trans> </td>
                             <td className="px-3 py-4">
                               <span
                                 className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] ${
@@ -627,13 +622,15 @@ export default function AdminLearnOverview() {
                                     : "bg-gray-500/15 text-gray-400"
                                 }`}
                               >
-                                {course.isPublished ? "Published" : "Draft"}
+                                {course.isPublished
+                                  ? t("admin.learn.status.published", "Published")
+                                  : t("admin.learn.status.draft", "Draft")}
                               </span>
                             </td>
                             <td className="px-3 py-4 text-sm text-gray-500">
                               {course.updatedAt
                                 ? new Date(course.updatedAt).toLocaleDateString()
-                                : "-"}
+                                : t("common.notAvailable", "-")}
                             </td>
                             <td className="px-3 py-4">
                               <div className="flex justify-end gap-2">
@@ -642,17 +639,13 @@ export default function AdminLearnOverview() {
                                     navigate(`/admin/learn-mn/courses/${course.id}`)
                                   }
                                   className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${openActionClass}`}
-                                >
-                                  Open
-                                </button>
+                                > <Trans>Open</Trans> </button>
                                 <button
                                   onClick={() => handleOpenEdit(course)}
                                   className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${editActionClass}`}
                                 >
                                   <span className="inline-flex items-center gap-1">
-                                    <PencilLine className="h-3.5 w-3.5" />
-                                    Edit
-                                  </span>
+                                    <PencilLine className="h-3.5 w-3.5" /> <Trans>Edit</Trans> </span>
                                 </button>
                                 <button
                                   disabled={busy}
@@ -665,7 +658,9 @@ export default function AdminLearnOverview() {
                                     ) : (
                                       <Eye className="h-3.5 w-3.5" />
                                     )}
-                                    {course.isPublished ? "Unpublish" : "Publish"}
+                                    {course.isPublished
+                                      ? t("admin.learn.actions.unpublish", "Unpublish")
+                                      : t("admin.learn.actions.publish", "Publish")}
                                   </span>
                                 </button>
                                 <button
@@ -674,9 +669,7 @@ export default function AdminLearnOverview() {
                                   className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-60 ${deleteActionClass}`}
                                 >
                                   <span className="inline-flex items-center gap-1">
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                    Delete
-                                  </span>
+                                    <Trash2 className="h-3.5 w-3.5" /> <Trans>Delete</Trans> </span>
                                 </button>
                               </div>
                             </td>
@@ -691,9 +684,15 @@ export default function AdminLearnOverview() {
 
             {!isBusy && (
               <div className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                Showing {courses.length} course{courses.length === 1 ? "" : "s"} /{" "}
-                {totalLessonsLabel} lesson{totalLessonsLabel === 1 ? "" : "s"} in
-                current result.
+                <Trans>Showing</Trans> {courses.length}{" "}
+                {courses.length === 1
+                  ? t("admin.learn.labels.courseSingular", "course")
+                  : t("admin.learn.labels.coursePlural", "courses")}{" "}
+                <Trans>/</Trans> {totalLessonsLabel}{" "}
+                {totalLessonsLabel === 1
+                  ? t("admin.learn.labels.lessonSingular", "lesson")
+                  : t("admin.learn.labels.lessonPlural", "lessons")}{" "}
+                <Trans>in current result.</Trans>
               </div>
             )}
           </div>
@@ -703,17 +702,13 @@ export default function AdminLearnOverview() {
           <div className="fixed inset-0 z-[105] bg-black/55 backdrop-blur-sm px-4 py-8 overflow-y-auto">
             <div className="mx-auto w-full max-w-4xl rounded-2xl border border-gray-200 bg-white p-6 shadow-[0_24px_60px_rgba(15,23,42,0.25)] dark:border-slate-700 dark:bg-slate-900">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  Import from EN
-                </h2>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white"> <Trans>Import from EN</Trans> </h2>
                 <button
                   type="button"
                   onClick={closeImportModal}
                   disabled={importSaving}
                   className="rounded-lg border border-gray-200 bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
-                >
-                  Close
-                </button>
+                > <Trans>Close</Trans> </button>
               </div>
 
               {importError && (
@@ -728,9 +723,7 @@ export default function AdminLearnOverview() {
                     <Loader2 className="mx-auto h-7 w-7 animate-spin text-brand-400" />
                   </div>
                 ) : importSourceCourses.length === 0 ? (
-                  <div className="py-12 text-center text-sm text-gray-500 dark:text-gray-400">
-                    No courses available to import.
-                  </div>
+                  <div className="py-12 text-center text-sm text-gray-500 dark:text-gray-400"> <Trans>No courses available to import.</Trans> </div>
                 ) : (
                   <div className="max-h-[52vh] overflow-auto">
                     <table className="w-full min-w-[920px]">
@@ -743,15 +736,13 @@ export default function AdminLearnOverview() {
                                 checked={allImportSelected}
                                 onChange={handleToggleImportAll}
                                 className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500/30"
-                              />
-                              All
-                            </label>
+                              /> <Trans>All</Trans> </label>
                           </th>
-                          <th className="px-3 py-3">Course</th>
-                          <th className="px-3 py-3">Topic</th>
-                          <th className="px-3 py-3">Level</th>
-                          <th className="px-3 py-3">Lessons</th>
-                          <th className="px-3 py-3">Pair ID</th>
+                          <th className="px-3 py-3"><Trans>Course</Trans></th>
+                          <th className="px-3 py-3"><Trans>Topic</Trans></th>
+                          <th className="px-3 py-3"><Trans>Level</Trans></th>
+                          <th className="px-3 py-3"><Trans>Lessons</Trans></th>
+                          <th className="px-3 py-3"><Trans>Pair ID</Trans></th>
                         </tr>
                       </thead>
                       <tbody>
@@ -781,7 +772,7 @@ export default function AdminLearnOverview() {
                               {course.totalLessons}
                             </td>
                             <td className="px-3 py-3 text-xs text-gray-600 dark:text-slate-300">
-                              {course.pairId || "-"}
+                              {course.pairId || t("common.notAvailable", "-")}
                             </td>
                           </tr>
                         ))}
@@ -797,18 +788,14 @@ export default function AdminLearnOverview() {
                   onClick={closeImportModal}
                   disabled={importSaving}
                   className="rounded-xl border border-gray-200 bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-                >
-                  Cancel
-                </button>
+                > <Trans>Cancel</Trans> </button>
                 <button
                   type="button"
                   onClick={() => void handleImportSelected()}
                   disabled={importSaving || selectedImportCourseIds.length === 0}
                   className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-500 disabled:opacity-60"
                 >
-                  {importSaving && <Loader2 className="h-4 w-4 animate-spin" />}
-                  Import Selected
-                </button>
+                  {importSaving && <Loader2 className="h-4 w-4 animate-spin" />} <Trans>Import Selected</Trans> </button>
               </div>
             </div>
           </div>
@@ -827,16 +814,12 @@ export default function AdminLearnOverview() {
                     setCoverFile(null);
                   }}
                   className="rounded-lg border border-gray-200 bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
-                >
-                  Close
-                </button>
+                > <Trans>Close</Trans> </button>
               </div>
 
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 <label className="space-y-1">
-                  <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                    Course name
-                  </span>
+                  <span className="text-xs uppercase tracking-[0.14em] text-gray-500"> <Trans>Course name</Trans> </span>
                   <input
                     value={draft.title}
                     onChange={(event) =>
@@ -846,9 +829,7 @@ export default function AdminLearnOverview() {
                   />
                 </label>
                 <label className="space-y-1">
-                  <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                    Topic
-                  </span>
+                  <span className="text-xs uppercase tracking-[0.14em] text-gray-500"> <Trans>Topic</Trans> </span>
                   <select
                     value={draft.category}
                     onChange={(event) =>
@@ -867,9 +848,7 @@ export default function AdminLearnOverview() {
                   </select>
                 </label>
                 <label className="space-y-1">
-                  <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                    Level
-                  </span>
+                  <span className="text-xs uppercase tracking-[0.14em] text-gray-500"> <Trans>Level</Trans> </span>
                   <select
                     value={draft.difficulty}
                     onChange={(event) =>
@@ -888,9 +867,7 @@ export default function AdminLearnOverview() {
                   </select>
                 </label>
                 <label className="space-y-1">
-                  <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                    Cover image
-                  </span>
+                  <span className="text-xs uppercase tracking-[0.14em] text-gray-500"> <Trans>Cover image</Trans> </span>
                   <input
                     type="file"
                     accept="image/png,image/jpeg,image/webp,image/gif"
@@ -903,28 +880,22 @@ export default function AdminLearnOverview() {
               </div>
 
               <div className="mt-4">
-                <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                  Cover
-                </span>
+                <span className="text-xs uppercase tracking-[0.14em] text-gray-500"> <Trans>Cover</Trans> </span>
                 <div className="mt-1.5 h-36 w-full overflow-hidden rounded-xl border border-gray-200 bg-gray-100 dark:border-slate-700 dark:bg-slate-900">
                   {coverPreviewUrl ? (
                     <img
                       src={coverPreviewUrl}
-                      alt="Course cover preview"
+                      alt={t("admin.learn.media.coverPreviewAlt", "Course cover preview")}
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center text-xs text-gray-500 dark:text-gray-400">
-                      No image selected
-                    </div>
+                    <div className="flex h-full w-full items-center justify-center text-xs text-gray-500 dark:text-gray-400"> <Trans>No image selected</Trans> </div>
                   )}
                 </div>
               </div>
 
               <label className="mt-4 block space-y-1">
-                <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                  Summary
-                </span>
+                <span className="text-xs uppercase tracking-[0.14em] text-gray-500"> <Trans>Summary</Trans> </span>
                 <input
                   value={draft.subtitle}
                   onChange={(event) =>
@@ -935,9 +906,7 @@ export default function AdminLearnOverview() {
               </label>
 
               <label className="mt-4 block space-y-1">
-                <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                  Pair ID
-                </span>
+                <span className="text-xs uppercase tracking-[0.14em] text-gray-500"> <Trans>Pair ID</Trans> </span>
                 <div className="flex gap-2">
                   <input
                     type="text"
@@ -951,7 +920,7 @@ export default function AdminLearnOverview() {
                         pairId: event.target.value.replace(/\D/g, "").slice(0, 5),
                       }))
                     }
-                    placeholder="10423"
+                    placeholder={t("admin.learn.placeholders.pairId", "10423")}
                     className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                   />
                   <button
@@ -960,16 +929,12 @@ export default function AdminLearnOverview() {
                       setDraft((current) => ({ ...current, pairId: generatePairId() }))
                     }
                     className="rounded-xl border border-gray-200 bg-gray-100 px-4 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-                  >
-                    Generate
-                  </button>
+                  > <Trans>Generate</Trans> </button>
                 </div>
               </label>
 
               <label className="mt-4 block space-y-1">
-                <span className="text-xs uppercase tracking-[0.14em] text-gray-500">
-                  Instructor
-                </span>
+                <span className="text-xs uppercase tracking-[0.14em] text-gray-500"> <Trans>Instructor</Trans> </span>
                 <input
                   value={draft.instructorName}
                   onChange={(event) =>
@@ -978,7 +943,7 @@ export default function AdminLearnOverview() {
                       instructorName: event.target.value,
                     }))
                   }
-                  placeholder="IM Viktor Asanov"
+                  placeholder={t("admin.learn.placeholders.instructorExample", "IM Viktor Asanov")}
                   className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
                 />
               </label>
@@ -994,9 +959,7 @@ export default function AdminLearnOverview() {
                     }))
                   }
                   className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-400/40"
-                />
-                Show course
-              </label>
+                /> <Trans>Show course</Trans> </label>
 
               <div className="mt-6 flex justify-end gap-3">
                 <button
@@ -1005,16 +968,16 @@ export default function AdminLearnOverview() {
                     setCoverFile(null);
                   }}
                   className="rounded-xl border border-gray-200 bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-                >
-                  Cancel
-                </button>
+                > <Trans>Cancel</Trans> </button>
                 <button
                   disabled={saving}
                   onClick={() => void handleSave()}
                   className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-500 disabled:opacity-60"
                 >
                   {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-                  {editingCourse ? "Save Changes" : "Create Course"}
+                  {editingCourse
+                    ? t("admin.learn.actions.saveChanges", "Save Changes")
+                    : t("admin.learn.actions.createCourse", "Create Course")}
                 </button>
               </div>
             </div>

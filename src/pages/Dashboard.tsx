@@ -53,11 +53,11 @@ export default function Dashboard() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45 }}
-        className="grid grid-cols-1 2xl:grid-cols-[minmax(0,_1fr)_380px] gap-6"
+        className="flex flex-col xl:flex-row items-stretch gap-5 xl:min-h-max"
       >
-        <div className="theme-glass-panel rounded-xl">
-          <div className="p-4 sm:p-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+        <div className="theme-glass-panel rounded-xl flex flex-1 flex-col self-stretch min-h-0">
+          <div className="p-3 sm:p-4 flex flex-1 min-h-0">
+            <div className="grid h-full min-h-0 flex-1 items-stretch grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2 sm:gap-2.5 xl:grid-rows-[repeat(4,minmax(0,1fr))]">
               {pairingOptions.map((option) => (
                 <Link
                   key={option.label}
@@ -75,12 +75,12 @@ export default function Dashboard() {
                         }
                       : undefined
                   }
-                  className="theme-glass-panel-soft rounded-xl min-h-[124px] p-4 sm:p-5 flex flex-col items-center justify-center text-center hover:border-teal-300/60 hover:bg-white/70 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                  className="theme-glass-panel-soft rounded-xl min-h-[92px] h-full min-w-0 px-3 py-2.5 sm:px-3.5 sm:py-3 flex flex-col items-center justify-center text-center hover:border-teal-300/60 hover:bg-white/70 dark:hover:bg-white/10 transition-colors cursor-pointer"
                 >
-                  <p className="text-4xl sm:text-[2.65rem] leading-none font-light text-gray-900 dark:text-white tracking-tight">
-                    {option.label}
+                  <p className="text-3xl sm:text-[2.2rem] leading-none font-light text-gray-900 dark:text-white tracking-tight">
+                    {option.label === "Custom" ? t("Custom") : option.label}
                   </p>
-                  <p className="mt-3 text-lg font-medium text-gray-600 dark:text-gray-300">
+                  <p className="mt-1.5 text-sm sm:text-base font-medium text-gray-600 dark:text-gray-300">
                     {t(option.category)}
                   </p>
                 </Link>
@@ -89,7 +89,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <aside className="theme-glass-panel rounded-xl p-4 sm:p-5 flex flex-col">
+        <aside className="theme-glass-panel rounded-xl p-4 sm:p-5 flex flex-col w-full xl:w-[380px] xl:shrink-0 self-stretch h-full">
           <div className="space-y-3">
             {QUICK_ACTIONS.map((item) => {
               const Icon = iconMap[item.icon];
@@ -132,16 +132,6 @@ export default function Dashboard() {
           <PuzzlesSection showTopDivider={false} />
 
           <div className="mt-6 pt-4 border-t border-theme-glass">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
-                  {t("Tournaments")}
-                </h2>
-              </div>
-              <button className="text-sm text-teal-600 dark:text-teal-400 hover:text-teal-500 dark:hover:text-teal-300 transition-colors">
-                {t("Browse All")}
-              </button>
-            </div>
             <TournamentsSection />
           </div>
         </motion.section>

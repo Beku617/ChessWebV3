@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { MessageAttachment } from "../types";
 import { formatBytes, isVideoAttachment, resolveMediaUrl } from "../utils";
 
@@ -14,6 +15,7 @@ export function AttachmentGrid({
   mine,
   onOpenViewer,
 }: AttachmentGridProps) {
+  const { t } = useTranslation();
   if (attachments.length === 0) return null;
 
   const videos = attachments.filter(isVideoAttachment);
@@ -47,7 +49,9 @@ export function AttachmentGrid({
           <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/45 via-black/15 to-transparent" />
         </div>
         <div className="mt-2 flex items-center justify-between gap-2 text-[12px] text-slate-200/90">
-          <span className="truncate">{videos[0].filename || "Video"}</span>
+          <span className="truncate">
+            {videos[0].filename || t("messages.videoFileFallback", "Video")}
+          </span>
           <span className="text-slate-400">
             {formatBytes(videos[0].size || 0)}
           </span>
@@ -93,7 +97,10 @@ export function AttachmentGrid({
                   >
                     <img
                       src={resolveMediaUrl(attachment.url)}
-                      alt={attachment.filename || "attachment"}
+                      alt={
+                        attachment.filename ||
+                        t("messages.attachmentFallback", "attachment")
+                      }
                       loading="lazy"
                       className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                     />

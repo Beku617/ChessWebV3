@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation, Trans } from "react-i18next";
 import AdminSidebar from "../../components/AdminSidebar";
 import { useAdminStore } from "../../store/adminStore";
 import { useAdminBots } from "./useAdminBots";
@@ -10,6 +11,7 @@ import type { BotData, BotFormData } from "./types";
 import { DIFFICULTY_OPTIONS } from "./types";
 
 export default function AdminBots() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { isAuthenticated, checkAuth } = useAdminStore();
 
@@ -179,24 +181,18 @@ export default function AdminBots() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              Bot Management
-            </h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white"> <Trans>Bot Management</Trans> </h1>
           </div>
           <div className="flex items-center gap-3">
             <AnalysisAiModelSelector />
             <button
               onClick={handleExport}
               className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center gap-2"
-            >
-              Export CSV
-            </button>
+            > <Trans>Export CSV</Trans> </button>
             <button
               onClick={handleCreate}
               className="px-4 py-2 rounded-lg bg-gradient-to-r from-brand-500 to-brand-500 text-white font-medium hover:from-brand-600 hover:to-brand-600 transition-colors flex items-center gap-2"
-            >
-              Create Bot
-            </button>
+            > <Trans>Create Bot</Trans> </button>
           </div>
         </div>
 
@@ -206,9 +202,7 @@ export default function AdminBots() {
             <div className="bg-white dark:bg-slate-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Total Bots
-                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400"> <Trans>Total Bots</Trans> </p>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
                     {stats.total}
                   </p>
@@ -218,9 +212,7 @@ export default function AdminBots() {
             <div className="bg-white dark:bg-slate-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Active
-                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400"> <Trans>Active</Trans> </p>
                   <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                     {stats.active}
                   </p>
@@ -230,9 +222,7 @@ export default function AdminBots() {
             <div className="bg-white dark:bg-slate-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Inactive
-                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400"> <Trans>Inactive</Trans> </p>
                   <p className="text-2xl font-bold text-gray-600 dark:text-gray-400">
                     {stats.inactive}
                   </p>
@@ -242,9 +232,7 @@ export default function AdminBots() {
             <div className="bg-white dark:bg-slate-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Masters
-                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400"> <Trans>Masters</Trans> </p>
                   <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
                     {stats.byDifficulty?.master || 0}
                   </p>
@@ -260,13 +248,13 @@ export default function AdminBots() {
             {/* Search */}
             <div className="flex-1 min-w-[200px]">
               <div className="relative">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search bots..."
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500"
-                />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder={t("admin.search.bots")}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500"
+                  />
               </div>
             </div>
 
@@ -276,7 +264,7 @@ export default function AdminBots() {
               onChange={(e) => setDifficultyFilter(e.target.value)}
               className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500"
             >
-              <option value="">All Difficulties</option>
+              <option value=""><Trans>All Difficulties</Trans></option>
               {DIFFICULTY_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
@@ -290,7 +278,7 @@ export default function AdminBots() {
               onChange={(e) => setCategoryFilter(e.target.value)}
               className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500"
             >
-              <option value="">All Categories</option>
+              <option value=""><Trans>All Categories</Trans></option>
               {categories.map((cat) => (
                 <option key={cat} value={cat}>
                   {cat}
@@ -304,9 +292,9 @@ export default function AdminBots() {
               onChange={(e) => setActiveFilter(e.target.value)}
               className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500"
             >
-              <option value="">All Status</option>
-              <option value="true">Active</option>
-              <option value="false">Inactive</option>
+              <option value=""><Trans>All Status</Trans></option>
+              <option value="true"><Trans>Active</Trans></option>
+              <option value="false"><Trans>Inactive</Trans></option>
             </select>
           </div>
         </div>
@@ -321,13 +309,11 @@ export default function AdminBots() {
             </div>
           ) : bots.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-gray-500">
-              <p>No bots found</p>
+              <p><Trans>No bots found</Trans></p>
               <button
                 onClick={handleCreate}
                 className="mt-4 px-4 py-2 rounded-lg bg-brand-500 text-white hover:bg-brand-600 transition-colors"
-              >
-                Create your first bot
-              </button>
+              > <Trans>Create your first bot</Trans> </button>
             </div>
           ) : (
             <table className="w-full">
@@ -341,27 +327,15 @@ export default function AdminBots() {
                       className="w-4 h-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
                     />
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
-                    Bot
-                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"> <Trans>Bot</Trans> </th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
                     ELO
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
-                    Difficulty
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
-                    Category
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
-                    Quote
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
-                    Status
-                  </th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
-                    Actions
-                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"> <Trans>Difficulty</Trans> </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"> <Trans>Category</Trans> </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"> <Trans>Quote</Trans> </th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"> <Trans>Status</Trans> </th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"> <Trans>Actions</Trans> </th>
                 </tr>
               </thead>
               <tbody>
@@ -428,17 +402,13 @@ export default function AdminBots() {
                         <button
                           onClick={() => handleEdit(bot)}
                           className="px-3 py-1.5 rounded-lg text-sm text-gray-500 hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"
-                          title="Edit"
-                        >
-                          Edit
-                        </button>
+                          title={t("admin.actions.edit")}
+                        > <Trans>Edit</Trans> </button>
                         <button
                           onClick={() => setDeleteBot(bot)}
                           className="px-3 py-1.5 rounded-lg text-sm text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                          title="Delete"
-                        >
-                          Delete
-                        </button>
+                          title={t("admin.actions.delete")}
+                        > <Trans>Delete</Trans> </button>
                       </div>
                     </td>
                   </tr>
@@ -450,29 +420,21 @@ export default function AdminBots() {
           {/* Pagination */}
           {pagination.pages > 1 && (
             <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-800">
-              <div className="text-sm text-gray-500 dark:text-gray-400">
-                Showing {(pagination.page - 1) * pagination.limit + 1} to{" "}
-                {Math.min(pagination.page * pagination.limit, pagination.total)}{" "}
-                of {pagination.total} bots
-              </div>
+              <div className="text-sm text-gray-500 dark:text-gray-400"> <Trans>Showing</Trans> {(pagination.page - 1) * pagination.limit + 1} <Trans>to</Trans>{" "}
+                {Math.min(pagination.page * pagination.limit, pagination.total)}{" "} <Trans>of</Trans> {pagination.total} <Trans>bots</Trans> </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setPage(pagination.page - 1)}
                   disabled={pagination.page <= 1}
                   className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Previous
-                </button>
-                <span className="px-3 py-1 text-sm text-gray-600 dark:text-gray-400">
-                  Page {pagination.page} of {pagination.pages}
+                > <Trans>Previous</Trans> </button>
+                <span className="px-3 py-1 text-sm text-gray-600 dark:text-gray-400"> <Trans>Page</Trans> {pagination.page} <Trans>of</Trans> {pagination.pages}
                 </span>
                 <button
                   onClick={() => setPage(pagination.page + 1)}
                   disabled={pagination.page >= pagination.pages}
                   className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Next
-                </button>
+                > <Trans>Next</Trans> </button>
               </div>
             </div>
           )}
