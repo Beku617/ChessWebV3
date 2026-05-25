@@ -993,6 +993,7 @@
     "previous": "Previous",
     "nextLesson": "Next Lesson",
     "retryLesson": "Retry Lesson",
+    "goToNextStep": "Go to next step",
     "loadFailed": "Failed to load learn catalog.",
     "stats": {
       "completed": "Completed",

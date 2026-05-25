@@ -104,6 +104,7 @@ export default function LearnLesson() {
   const [boardSize, setBoardSize] = useState(560);
   const [isSubmittingMove, setIsSubmittingMove] = useState(false);
   const [isAdvancingStep, setIsAdvancingStep] = useState(false);
+  const [pendingNextStepIndex, setPendingNextStepIndex] = useState<number | null>(null);
   const [feedback, setFeedback] = useState<FeedbackState | null>(null);
   const [showHint, setShowHint] = useState(false);
   const [moveFrom, setMoveFrom] = useState<string | null>(null);
@@ -174,6 +175,7 @@ export default function LearnLesson() {
         setFeedback(null);
         setShowHint(false);
         setIsAdvancingStep(false);
+        setPendingNextStepIndex(null);
         setMoveFrom(null);
         setMoveSquares({});
         setLastMove(null);
@@ -213,6 +215,7 @@ export default function LearnLesson() {
     setBoardFen(currentStep.fen);
     setShowHint(false);
     setIsAdvancingStep(false);
+    setPendingNextStepIndex(null);
     setMoveFrom(null);
     setMoveSquares({});
     setLastMove(null);
@@ -347,7 +350,13 @@ export default function LearnLesson() {
   };
 
   const onDrop = (sourceSquare: string, targetSquare: string) => {
-    if (isSubmittingMove || isAdvancingStep || !currentStep || lessonCompleted) {
+    if (
+      isSubmittingMove ||
+      isAdvancingStep ||
+      pendingNextStepIndex !== null ||
+      !currentStep ||
+      lessonCompleted
+    ) {
       return false;
     }
     const activeFen = boardFen || currentStep.fen;
@@ -381,27 +390,20 @@ export default function LearnLesson() {
           });
         }
 
-        if (
-          !result.lessonCompleted &&
-          result.nextStepIndex > currentStepIndex
-        ) {
-          setIsAdvancingStep(true);
+        if (!result.lessonCompleted && result.nextStepIndex > currentStepIndex) {
           clearAdvanceTimer();
-          advanceTimerRef.current = setTimeout(() => {
-            setCurrentStepIndex(
-              clampIndex(result.nextStepIndex, Math.max(0, (lessonData?.steps.length || 1) - 1)),
-            );
-            setFeedback(null);
-            setIsAdvancingStep(false);
-            advanceTimerRef.current = null;
-          }, 650);
+          setPendingNextStepIndex(
+            clampIndex(result.nextStepIndex, Math.max(0, (lessonData?.steps.length || 1) - 1)),
+          );
         } else {
-          setIsAdvancingStep(false);
+          setPendingNextStepIndex(null);
         }
+        setIsAdvancingStep(false);
       } else {
         playGameplaySound("illegal");
         setFeedback({ kind: "wrong", message: result.feedback });
         setIsAdvancingStep(false);
+        setPendingNextStepIndex(null);
 
         if (result.keepPositionOnWrong) {
           setBoardFen(result.boardFenAfterMove || probe.fen());
@@ -417,7 +419,15 @@ export default function LearnLesson() {
 
   const onSquareClick = (square: string) => {
     if (!allowClickInput) return;
-    if (isSubmittingMove || isAdvancingStep || !currentStep || lessonCompleted) return;
+    if (
+      isSubmittingMove ||
+      isAdvancingStep ||
+      pendingNextStepIndex !== null ||
+      !currentStep ||
+      lessonCompleted
+    ) {
+      return;
+    }
 
     if (!moveFrom) {
       void highlightMoveOptions(square);
@@ -461,14 +471,36 @@ export default function LearnLesson() {
 
   const retryLesson = () => {
     if (!lessonData || lessonData.steps.length === 0) return;
+    setProgress((prev) =>
+      prev
+        ? {
+            ...prev,
+            lessonCompleted: false,
+            currentStepIndex: 0,
+            completedStepIndexes: [],
+          }
+        : prev,
+    );
     setCurrentStepIndex(0);
     setBoardFen(lessonData.steps[0].fen);
     setIsAdvancingStep(false);
+    setPendingNextStepIndex(null);
     clearAdvanceTimer();
     setFeedback(null);
     setShowHint(false);
     setMoveFrom(null);
     setMoveSquares({});
+    setLastMove(null);
+  };
+
+  const goToNextStep = () => {
+    if (!lessonData || pendingNextStepIndex == null) return;
+    setCurrentStepIndex(
+      clampIndex(pendingNextStepIndex, Math.max(0, lessonData.steps.length - 1)),
+    );
+    setPendingNextStepIndex(null);
+    setFeedback(null);
+    clearMoveSelection();
     setLastMove(null);
   };
 
@@ -523,7 +555,7 @@ export default function LearnLesson() {
                 id={`learn-lesson-board-${lessonBoardId}`}
                 position={boardFen}
                 onPieceDrop={(sourceSquare, targetSquare) => {
-                  if (!allowDragInput || isAdvancingStep) return false;
+                  if (!allowDragInput || isAdvancingStep || pendingNextStepIndex !== null) return false;
                   return onDrop(sourceSquare, targetSquare);
                 }}
                 onSquareClick={(square) => {
@@ -537,6 +569,7 @@ export default function LearnLesson() {
                   allowDragInput &&
                   !isSubmittingMove &&
                   !isAdvancingStep &&
+                  pendingNextStepIndex == null &&
                   !lessonCompleted
                 }
                 customBoardStyle={{ borderRadius: "10px", touchAction: "none" }}
@@ -602,6 +635,15 @@ export default function LearnLesson() {
                     {showHint
                       ? t("learn.hideHint", "Hide Hint")
                       : t("learn.showHint", "Show Hint")}
+                  </button>
+                )}
+                {!lessonCompleted && pendingNextStepIndex != null && (
+                  <button
+                    onClick={goToNextStep}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-brand-500/20 border border-brand-400/35 text-brand-200 text-xs hover:bg-brand-500/30"
+                  >
+                    <ChevronRight className="w-3.5 h-3.5" />
+                    {t("learn.goToNextStep", "Go to next step")}
                   </button>
                 )}
               </div>

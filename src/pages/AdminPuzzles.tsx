@@ -39,7 +39,9 @@ import type {
 } from "react-chessboard/dist/chessboard/types";
 import { Chess } from "chess.js";
 import AdminSidebar from "../components/AdminSidebar";
+import ChessPositionBuilderModal from "../components/admin/ChessPositionBuilderModal";
 import { useAdminStore } from "../store/adminStore";
+import { validateLegalChessPosition } from "../utils/chessPositionValidation";
 import bishopIcon from "../assets/pieces/cburnett/bishop.svg";
 import kingIcon from "../assets/pieces/cburnett/king.svg";
 import knightIcon from "../assets/pieces/cburnett/knight.svg";
@@ -185,10 +187,12 @@ function withFenSideToMove(fen: string, isWhiteToMove: boolean): string {
 function getPuzzleDraftError(formData: PuzzleFormData): string {
   if (!formData.title.trim()) return "Puzzle title is required.";
   if (!formData.fen.trim()) return "FEN position is required.";
-  try {
-    new Chess(withFenSideToMove(formData.fen, formData.isWhiteToMove));
-  } catch {
-    return "FEN position is invalid.";
+  const fenValidation = validateLegalChessPosition(
+    formData.fen,
+    formData.isWhiteToMove ? "w" : "b",
+  );
+  if (!fenValidation.valid) {
+    return fenValidation.message;
   }
 
   const solution = formData.solution
@@ -272,6 +276,7 @@ export default function AdminPuzzles() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [showPositionBuilder, setShowPositionBuilder] = useState(false);
   const [editingPuzzle, setEditingPuzzle] = useState<Puzzle | null>(null);
   const [formData, setFormData] = useState<PuzzleFormData>(defaultFormData);
   const [saving, setSaving] = useState(false);
@@ -320,6 +325,7 @@ export default function AdminPuzzles() {
   };
 
   const handleCreate = () => {
+    setShowPositionBuilder(false);
     setEditingPuzzle(null);
     setFormData(defaultFormData);
     setSaveError("");
@@ -515,7 +521,10 @@ export default function AdminPuzzles() {
       return;
     }
 
-    if (!selectedPiece) return;
+    if (!selectedPiece) {
+      setShowPositionBuilder(true);
+      return;
+    }
 
     setFormData((prevForm) => {
       const nextPosition = fenToPosition(prevForm.fen);
@@ -652,6 +661,7 @@ export default function AdminPuzzles() {
   };
 
   const handleEdit = (puzzle: Puzzle) => {
+    setShowPositionBuilder(false);
     setEditingPuzzle(puzzle);
     setSaveError("");
     setSelectedPiece(null);
@@ -701,19 +711,26 @@ export default function AdminPuzzles() {
       setSaveError(validationError);
       return;
     }
+    const fenValidation = validateLegalChessPosition(
+      formData.fen,
+      formData.isWhiteToMove ? "w" : "b",
+    );
+    if (!fenValidation.valid) {
+      setSaveError(fenValidation.message);
+      return;
+    }
 
     setSaving(true);
     setSaveError("");
 
     try {
-      const isWhiteToMove = getFenSideToMove(formData.fen, formData.isWhiteToMove);
-      const normalizedFen = withFenSideToMove(formData.fen, isWhiteToMove);
+      const isWhiteToMove = fenValidation.normalizedFen.split(" ")[1] !== "b";
       const payload = {
         title: formData.title.trim(),
         difficulty: formData.difficulty,
         category: formData.category.trim() || "tactics",
         description: formData.description.trim(),
-        fen: normalizedFen,
+        fen: fenValidation.normalizedFen,
         solution: formData.solution
           .split(",")
           .map((s) => s.trim())
@@ -741,6 +758,7 @@ export default function AdminPuzzles() {
       }
 
       setShowModal(false);
+      setShowPositionBuilder(false);
       fetchPuzzles();
     } catch (error) {
       console.error("Failed to save puzzle:", error);
@@ -1103,7 +1121,10 @@ export default function AdminPuzzles() {
                   : t("admin.modal.createPuzzle")}
               </h2>
               <button
-                onClick={() => setShowModal(false)}
+                onClick={() => {
+                  setShowModal(false);
+                  setShowPositionBuilder(false);
+                }}
                 className="p-2 hover:bg-theme-surface rounded-lg"
               >
                 <X size={20} />
@@ -1238,6 +1259,11 @@ export default function AdminPuzzles() {
                       dropOffBoardAction="snapback"
                     />
                   </div>
+                  {!isRecordingSolution && (
+                    <p className="text-xs text-theme-muted">
+                      <Trans>Click the board to open Position Builder.</Trans>
+                    </p>
+                  )}
 
                   {/* Solution Recording Controls */}
                   <div className="flex items-center gap-2">
@@ -1458,7 +1484,10 @@ export default function AdminPuzzles() {
                   <div className="flex justify-end gap-3 pt-4">
                     <button
                       type="button"
-                      onClick={() => setShowModal(false)}
+                      onClick={() => {
+                        setShowModal(false);
+                        setShowPositionBuilder(false);
+                      }}
                       className="px-4 py-2 text-theme-muted hover:bg-theme-surface rounded-lg transition-colors"
                     > <Trans>Cancel</Trans> </button>
                     <button
@@ -1478,9 +1507,23 @@ export default function AdminPuzzles() {
           </div>
         </div>
       )}
+      <ChessPositionBuilderModal
+        open={showModal && showPositionBuilder}
+        title={t("admin.positionBuilder.title", "Position Builder")}
+        applyLabel={t("admin.positionBuilder.apply", "Use this position")}
+        initialFen={formData.fen}
+        initialSideToMove={formData.isWhiteToMove ? "w" : "b"}
+        onClose={() => setShowPositionBuilder(false)}
+        onApply={({ fen, sideToMove }) => {
+          setFormData((prev) => ({
+            ...prev,
+            fen,
+            isWhiteToMove: sideToMove === "w",
+          }));
+          setShowPositionBuilder(false);
+          setSaveError("");
+        }}
+      />
     </div>
   );
 }
-
-
-

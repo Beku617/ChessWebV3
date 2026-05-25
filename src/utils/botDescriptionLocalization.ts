@@ -42,3 +42,26 @@ export function resolveLocalizedBotDescription(
 
   return normalized;
 }
+
+export function resolveLocalizedBotText(
+  rawText: string,
+  language: string,
+  options: { hideUnlocalizedMongolian?: boolean } = {},
+): string {
+  const normalized = String(rawText || "").trim();
+  if (!normalized) return "";
+
+  const parsed = parseBilingualBotDescription(normalized);
+  const normalizedLang = String(language || "").trim().toLowerCase();
+  const useMongolian = normalizedLang.startsWith("mn");
+
+  if (parsed) {
+    return useMongolian ? parsed.mn || parsed.en : parsed.en || parsed.mn;
+  }
+
+  if (useMongolian && options.hideUnlocalizedMongolian) {
+    return "";
+  }
+
+  return normalized;
+}

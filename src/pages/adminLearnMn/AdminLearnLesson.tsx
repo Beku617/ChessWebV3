@@ -18,6 +18,11 @@ import {
 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import AdminSidebar from "../../components/AdminSidebar";
+import ChessPositionBuilderModal from "../../components/admin/ChessPositionBuilderModal";
+import {
+  validateLegalChessPosition,
+  withFenSideToMove,
+} from "../../utils/chessPositionValidation";
 import {
   createAdminLearnStep,
   deleteAdminLearnStep,
@@ -33,6 +38,7 @@ import type {
 import { useAdminGuard } from "./useAdminGuard";
 
 type StepDraft = {
+  title: string;
   instructionText: string;
   fen: string;
   sideToMove: "white" | "black";
@@ -53,6 +59,7 @@ const BOARD_PREVIEW_FALLBACK_POSITION = "start";
 const BOARD_PREVIEW_DROP_ACTION = "snapback";
 
 const EMPTY_STEP_DRAFT: StepDraft = {
+  title: "",
   instructionText: "",
   fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
   sideToMove: "white",
@@ -65,6 +72,7 @@ const EMPTY_STEP_DRAFT: StepDraft = {
 
 function toStepDraft(step: AdminLearnStep): StepDraft {
   return {
+    title: step.title || "",
     instructionText: step.instructionText || "",
     fen: step.fen,
     sideToMove: step.sideToMove,
@@ -113,6 +121,7 @@ export default function AdminLearnLesson() {
   const [savingStep, setSavingStep] = useState(false);
   const [processingStepId, setProcessingStepId] = useState<string | null>(null);
   const [isRecordingAcceptedMoves, setIsRecordingAcceptedMoves] = useState(false);
+  const [isPositionBuilderOpen, setIsPositionBuilderOpen] = useState(false);
   const [recordFromSquare, setRecordFromSquare] = useState<string | null>(null);
   const [previewMoveSquares, setPreviewMoveSquares] = useState<
     Record<string, React.CSSProperties>
@@ -125,13 +134,13 @@ export default function AdminLearnLesson() {
   );
 
   const previewValidation = useMemo(() => {
-    try {
-      new Chess(stepDraft.fen);
-      return { valid: true, message: "" };
-    } catch {
-      return { valid: false, message: "Invalid FEN format." };
+    const sideToMove = stepDraft.sideToMove === SIDE_TO_MOVE_VALUE.black ? "b" : "w";
+    const validation = validateLegalChessPosition(stepDraft.fen, sideToMove);
+    if (!validation.valid) {
+      return { valid: false, message: validation.message, fen: stepDraft.fen };
     }
-  }, [stepDraft.fen]);
+    return { valid: true, message: "", fen: validation.normalizedFen };
+  }, [stepDraft.fen, stepDraft.sideToMove]);
 
   const acceptedMoveTokens = useMemo(
     () => splitAcceptedMoves(stepDraft.acceptedMoves),
@@ -197,12 +206,14 @@ export default function AdminLearnLesson() {
 
   const handleSelectStep = (step: AdminLearnStep) => {
     setIsRecordingAcceptedMoves(false);
+    setIsPositionBuilderOpen(false);
     setSelectedStepId(step.id);
     setStepDraft(toStepDraft(step));
   };
 
   const handleNewStep = () => {
     setIsRecordingAcceptedMoves(false);
+    setIsPositionBuilderOpen(false);
     setSelectedStepId(null);
     setStepDraft(EMPTY_STEP_DRAFT);
   };
@@ -212,14 +223,22 @@ export default function AdminLearnLesson() {
     setSavingStep(true);
     setError("");
     try {
+      const sideToMove = stepDraft.sideToMove === SIDE_TO_MOVE_VALUE.black ? "b" : "w";
+      const positionValidation = validateLegalChessPosition(stepDraft.fen, sideToMove);
+      if (!positionValidation.valid) {
+        setError(positionValidation.message);
+        return;
+      }
+
       const normalizedSuccessMessage =
         stepDraft.successMessage.trim() || DEFAULT_SUCCESS_MESSAGE;
       const normalizedWrongMoveMessage =
         stepDraft.wrongMoveMessage.trim() || DEFAULT_WRONG_MOVE_MESSAGE;
 
       const basePayload: StepPayload = {
+        title: stepDraft.title,
         instructionText: stepDraft.instructionText,
-        fen: stepDraft.fen,
+        fen: positionValidation.normalizedFen,
         sideToMove: stepDraft.sideToMove,
         boardOrientation: stepDraft.boardOrientation,
         correctMoves: stepDraft.acceptedMoves,
@@ -289,6 +308,7 @@ export default function AdminLearnLesson() {
     try {
       const preservedMoves = (step.correctMoves || step.acceptedMoves || []).join(", ");
       const payload: StepPayload = {
+        title: step.title || "",
         instructionText: step.instructionText || "",
         explanationBeforeMove: step.explanationBeforeMove || step.explanationText || "",
         fen: step.fen,
@@ -379,7 +399,7 @@ export default function AdminLearnLesson() {
       return false;
     }
 
-    const game = new Chess(stepDraft.fen);
+    const game = new Chess(previewValidation.fen);
     const piece = game.get(sourceSquare as Square);
     if (!piece || piece.color !== game.turn()) {
       clearAcceptedMoveSelection();
@@ -417,7 +437,7 @@ export default function AdminLearnLesson() {
     if (!isRecordingAcceptedMoves || !previewValidation.valid) return false;
 
     try {
-      const game = new Chess(stepDraft.fen);
+      const game = new Chess(previewValidation.fen);
       const move = game.move({
         from: sourceSquare,
         to: targetSquare,
@@ -436,7 +456,11 @@ export default function AdminLearnLesson() {
   };
 
   const handlePreviewSquareClick = (square: string) => {
-    if (!isRecordingAcceptedMoves || !previewValidation.valid) return;
+    if (!isRecordingAcceptedMoves) {
+      setIsPositionBuilderOpen(true);
+      return;
+    }
+    if (!previewValidation.valid) return;
 
     if (!recordFromSquare) {
       void highlightAcceptedMoveOptions(square);
@@ -448,7 +472,7 @@ export default function AdminLearnLesson() {
       return;
     }
 
-    const game = new Chess(stepDraft.fen);
+    const game = new Chess(previewValidation.fen);
     const clickedPiece = game.get(square as Square);
     if (clickedPiece && clickedPiece.color === game.turn()) {
       void highlightAcceptedMoveOptions(square);
@@ -582,8 +606,9 @@ export default function AdminLearnLesson() {
                             <div className="text-[11px] uppercase tracking-[0.14em] text-theme-muted"> <Trans>Step</Trans> {step.orderIndex + 1}
                             </div>
                             <div className={`mt-1 text-sm ${headingTextClass} line-clamp-2`}>
-                              {step.instructionText ||
-                                t("admin.learn.labels.noInstructions", "No instructions yet.")}
+                              {step.title ||
+                                step.instructionText ||
+                                t("admin.learn.labels.noStepName", "No step name yet.")}
                             </div>
                           </button>
                           <div className="mt-2 flex flex-wrap gap-1.5">
@@ -654,6 +679,23 @@ export default function AdminLearnLesson() {
                     <div className="space-y-5">
                       <div>
                         <h3 className="text-xs uppercase tracking-[0.14em] text-theme-muted"> <Trans>Step Info</Trans> </h3>
+                        <div className="mt-2">
+                          <label className="block space-y-1">
+                            <span className={fieldLabelClass}><Trans>Step name</Trans></span>
+                            <input
+                              type="text"
+                              value={stepDraft.title}
+                              onChange={(event) =>
+                                setStepDraft((current) => ({
+                                  ...current,
+                                  title: event.target.value,
+                                }))
+                              }
+                              placeholder={t("admin.form.stepName", "Step name")}
+                              className={fullInputClass}
+                            />
+                          </label>
+                        </div>
                       </div>
 
                       <div>
@@ -678,14 +720,18 @@ export default function AdminLearnLesson() {
                               <span className={fieldLabelClass}><Trans>Move color</Trans></span>
                               <select
                                 value={stepDraft.sideToMove}
-                                onChange={(event) =>
+                                onChange={(event) => {
+                                  const nextSide = event.target.value as "white" | "black";
                                   setStepDraft((current) => ({
                                     ...current,
-                                    sideToMove: event.target.value as "white" | "black",
-                                    boardOrientation:
-                                      event.target.value as "white" | "black",
-                                  }))
-                                }
+                                    sideToMove: nextSide,
+                                    boardOrientation: nextSide,
+                                    fen: withFenSideToMove(
+                                      current.fen,
+                                      nextSide === SIDE_TO_MOVE_VALUE.black ? "b" : "w",
+                                    ),
+                                  }));
+                                }}
                                 className={fullInputClass}
                               >
                                 <option value={SIDE_TO_MOVE_VALUE.white}><Trans>White to move</Trans></option>
@@ -849,7 +895,7 @@ export default function AdminLearnLesson() {
                             allowDragOutsideBoard={false}
                             position={
                               previewValidation.valid
-                                ? stepDraft.fen
+                                ? previewValidation.fen
                                 : BOARD_PREVIEW_FALLBACK_POSITION
                             }
                             boardOrientation={stepDraft.boardOrientation}
@@ -878,6 +924,14 @@ export default function AdminLearnLesson() {
                                 "Preview uses current FEN and side to move selection.",
                               )}
                         </p>
+                        {!isRecordingAcceptedMoves && (
+                          <p className={`mt-2 text-xs ${mutedTextClass}`}>
+                            {t(
+                              "admin.learn.hints.clickPreviewToOpenBuilder",
+                              "Click the board to open Position Builder.",
+                            )}
+                          </p>
+                        )}
                       </div>
                     </aside>
                   </div>
@@ -886,8 +940,31 @@ export default function AdminLearnLesson() {
             </section>
           </div>
         </main>
+        <ChessPositionBuilderModal
+          open={isPositionBuilderOpen}
+          title={t("admin.learn.positionBuilder.title", "Position Builder")}
+          applyLabel={t(
+            "admin.learn.positionBuilder.apply",
+            "Use this position",
+          )}
+          initialFen={stepDraft.fen}
+          initialSideToMove={
+            stepDraft.sideToMove === SIDE_TO_MOVE_VALUE.black ? "b" : "w"
+          }
+          onClose={() => setIsPositionBuilderOpen(false)}
+          onApply={({ fen, sideToMove }) => {
+            const nextSide = sideToMove === "b" ? SIDE_TO_MOVE_VALUE.black : SIDE_TO_MOVE_VALUE.white;
+            setStepDraft((current) => ({
+              ...current,
+              fen,
+              sideToMove: nextSide,
+              boardOrientation: nextSide,
+            }));
+            setIsPositionBuilderOpen(false);
+            setError("");
+          }}
+        />
       </div>
     </div>
   );
 }
-

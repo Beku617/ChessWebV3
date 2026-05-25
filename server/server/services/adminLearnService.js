@@ -57,8 +57,16 @@ function normalizeSlug(raw, fallback = "") {
   const base = ensureString(raw) || ensureString(fallback);
   return base
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/[^\p{Letter}\p{Number}]+/gu, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+function buildFallbackSlug(prefix, seed = "") {
+  const normalizedSeed = normalizeSlug(seed);
+  if (normalizedSeed) return normalizedSeed;
+  return `${prefix}-${Date.now().toString(36)}-${Math.random()
+    .toString(36)
+    .slice(2, 8)}`;
 }
 
 function normalizeTags(rawTags) {
@@ -571,11 +579,12 @@ async function createAdminCourse(payload = {}) {
   const title = ensureString(payload.title);
   const category = ensureString(payload.category);
   const difficulty = ensureString(payload.difficulty);
-  const slug = normalizeSlug(payload.slug, title);
+  const slug =
+    normalizeSlug(payload.slug, title) ||
+    buildFallbackSlug("course", payload.pairId);
   const pairId = normalizePairId(payload.pairId);
 
   if (!title) throw new AdminLearnError("Course title is required.", 400);
-  if (!slug) throw new AdminLearnError("Course slug is required.", 400);
   assertCategory(category);
   assertDifficulty(difficulty);
 
@@ -607,8 +616,10 @@ async function updateAdminCourse(courseId, payload = {}) {
   const course = await fetchCourseOrThrow(courseId);
 
   if (payload.slug !== undefined || payload.title !== undefined) {
-    const slug = normalizeSlug(payload.slug, payload.title || course.title);
-    if (!slug) throw new AdminLearnError("Course slug is required.", 400);
+    const slug =
+      normalizeSlug(payload.slug, payload.title || course.title) ||
+      ensureString(course.slug) ||
+      buildFallbackSlug("course", course._id);
     if (slug.toLowerCase() !== String(course.slug || "").toLowerCase()) {
       await ensureUniqueCourseSlug(slug, course._id);
     }
@@ -753,11 +764,12 @@ async function listAdminLessons({
 async function createAdminLesson(courseId, payload = {}) {
   const course = await fetchCourseOrThrow(courseId);
   const title = ensureString(payload.title);
-  const slug = normalizeSlug(payload.slug, title);
+  const slug =
+    normalizeSlug(payload.slug, title) ||
+    buildFallbackSlug("lesson", payload.pairId);
   const pairId = normalizePairId(payload.pairId);
 
   if (!title) throw new AdminLearnError("Lesson title is required.", 400);
-  if (!slug) throw new AdminLearnError("Lesson slug is required.", 400);
   await ensureUniqueLessonSlug({ courseId: course._id, slug });
   await ensureUniqueLessonPairId(pairId);
 
@@ -792,8 +804,10 @@ async function updateAdminLesson(lessonId, payload = {}) {
   const lesson = await fetchLessonOrThrow(lessonId);
 
   if (payload.slug !== undefined || payload.title !== undefined) {
-    const slug = normalizeSlug(payload.slug, payload.title || lesson.title);
-    if (!slug) throw new AdminLearnError("Lesson slug is required.", 400);
+    const slug =
+      normalizeSlug(payload.slug, payload.title || lesson.title) ||
+      ensureString(lesson.slug) ||
+      buildFallbackSlug("lesson", lesson._id);
     if (slug.toLowerCase() !== String(lesson.slug || "").toLowerCase()) {
       await ensureUniqueLessonSlug({
         courseId: lesson.courseId,

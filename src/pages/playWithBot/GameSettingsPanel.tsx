@@ -1,6 +1,7 @@
 import { Trans, useTranslation } from "react-i18next";
 import { BotPersonality } from "../../data/botPersonalities";
 import { TIME_OPTIONS } from "./types";
+import { resolveLocalizedBotText } from "../../utils/botDescriptionLocalization";
 
 interface GameSettingsPanelProps {
   selectedBot: BotPersonality | null;
@@ -25,7 +26,12 @@ export function GameSettingsPanel({
   onTimeControlChange,
   onStart,
 }: GameSettingsPanelProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const selectedBotPersonality = selectedBot
+    ? resolveLocalizedBotText(selectedBot.personality, i18n.language, {
+        hideUnlocalizedMongolian: true,
+      })
+    : "";
 
   return (
     <div className="lg:col-span-1">
@@ -49,9 +55,11 @@ export function GameSettingsPanel({
                 </div>
               </div>
             </div>
-            <p className="text-sm text-theme-muted mt-3 italic">
-              "{selectedBot.personality}"
-            </p>
+            {selectedBotPersonality && (
+              <p className="text-sm text-theme-muted mt-3 italic">
+                "{selectedBotPersonality}"
+              </p>
+            )}
           </div>
         ) : (
           <div className="mb-6 pb-4 border-b border-theme-glass/60 text-center text-theme-muted"> <Trans>Select a bot to play against</Trans> </div>

@@ -10,7 +10,10 @@ import {
   categoryLabels,
   categoryColors,
 } from "./constants";
-import { resolveLocalizedBotDescription } from "../../../utils/botDescriptionLocalization";
+import {
+  resolveLocalizedBotDescription,
+  resolveLocalizedBotText,
+} from "../../../utils/botDescriptionLocalization";
 
 interface BotSelectorProps {
   selectedCategory: BotCategory;
@@ -110,6 +113,12 @@ function BotInfoCard({
   bot: BotPersonality;
   language: string;
 }) {
+  const localizedPersonality = resolveLocalizedBotText(
+    bot.personality,
+    language,
+    { hideUnlocalizedMongolian: true },
+  );
+
   return (
     <div className="mb-4 p-4 bg-theme-surface rounded-lg">
       <div className="flex items-start gap-3">
@@ -122,9 +131,11 @@ function BotInfoCard({
             )}
             {bot.name}
           </h3>
-          <p className="text-sm text-theme-muted italic mb-1">
-            "{bot.personality}"
-          </p>
+          {localizedPersonality && (
+            <p className="text-sm text-theme-muted italic mb-1">
+              "{localizedPersonality}"
+            </p>
+          )}
           <p className="text-xs text-theme-muted">
             {resolveLocalizedBotDescription(bot.description, language)}
           </p>

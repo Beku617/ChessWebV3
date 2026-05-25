@@ -7,7 +7,10 @@ import { PlayerInfo } from "../../components/game";
 import type { BotPersonality } from "../../data/botPersonalities";
 import { BOARD_FRAME } from "./types";
 import { useBoardTheme } from "../../hooks/useBoardTheme";
-import { resolveLocalizedBotDescription } from "../../utils/botDescriptionLocalization";
+import {
+  resolveLocalizedBotDescription,
+  resolveLocalizedBotText,
+} from "../../utils/botDescriptionLocalization";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
 
@@ -303,6 +306,12 @@ export default function PlayWithBot() {
     setExpandedCategory(expandedCategory === cat ? null : cat);
   };
 
+  const selectedBotPersonality = selectedBot
+    ? resolveLocalizedBotText(selectedBot.personality, i18n.language, {
+        hideUnlocalizedMongolian: true,
+      })
+    : "";
+
   // Bot selection screen - Chess.com inspired layout
   return (
     <div
@@ -414,12 +423,14 @@ export default function PlayWithBot() {
                   )}
                 </div>
                 <div className="flex-1 space-y-2">
-                  <div className="relative bg-theme-surface rounded-lg p-2">
-                    <p className="text-xs text-theme-muted italic line-clamp-2">
-                      "{selectedBot.personality}"
-                    </p>
-                    <div className="absolute -bottom-2 left-6 w-0 h-0 border-l-6 border-r-6 border-t-6 border-transparent border-t-gray-100" />
-                  </div>
+                  {selectedBotPersonality && (
+                    <div className="relative bg-theme-surface rounded-lg p-2">
+                      <p className="text-xs text-theme-muted italic line-clamp-2">
+                        "{selectedBotPersonality}"
+                      </p>
+                      <div className="absolute -bottom-2 left-6 w-0 h-0 border-l-6 border-r-6 border-t-6 border-transparent border-t-gray-100" />
+                    </div>
+                  )}
                   <div className="flex items-center gap-2">
                     <span className="font-semibold text-theme-foreground ">
                       {selectedBot.name}
