@@ -75,5 +75,5 @@ export function presenceDotClass(status: PresenceStatus) {
   if (status === "in_game") return "bg-amber-500";
   if (status === "searching_match") return "bg-brand-500";
   if (status === "away") return "bg-yellow-500";
-  return "bg-gray-400";
+  return "bg-theme-surface";
 }

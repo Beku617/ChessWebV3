@@ -39,8 +39,8 @@ export function CommunityGroupActionButton({
       onClick={() => onToggle?.(group)}
       className={`inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold transition-colors disabled:opacity-55 ${
         group.joined
-          ? "bg-white/[0.06] text-gray-200 hover:bg-white/[0.12]"
-          : "bg-brand-600 text-white hover:bg-brand-500"
+          ? "bg-theme-panel/[0.06] text-theme-muted hover:bg-theme-panel/[0.12]"
+          : "bg-brand-600 text-theme-on-accent hover:bg-brand-500"
       }`}
     >
       {busy
@@ -63,14 +63,14 @@ export function CommunityGroupMiniRow({
 }) {
   const { t } = useTranslation();
   return (
-    <div className="flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-white/[0.04]">
+    <div className="flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-theme-panel/[0.04]">
       <Link to={`/community/groups/${group.slug}`} className="flex min-w-0 flex-1 items-center gap-3">
         <CommunityGroupAvatar group={group} size="sm" />
         <div className="min-w-0">
-          <div className="truncate text-sm font-semibold text-white">
+          <div className="truncate text-sm font-semibold text-theme-foreground">
             {group.name}
           </div>
-          <div className="mt-0.5 flex items-center gap-2 text-[11px] text-gray-500">
+          <div className="mt-0.5 flex items-center gap-2 text-[11px] text-theme-muted">
             <span>
               {t("communityGroups.membersCount", {
                 count: formatCount(group.memberCount),
@@ -100,7 +100,7 @@ export function CommunityGroupCard({
   const { t } = useTranslation();
   return (
     <div
-      className={`rounded-2xl border border-white/[0.05] bg-[#0c1728]/82 shadow-[0_18px_50px_rgba(0,0,0,0.2)] ${
+      className={`rounded-2xl border border-theme-glass bg-theme-panel shadow-[0_18px_50px_rgba(0,0,0,0.2)] ${
         compact ? "p-4" : "p-5"
       }`}
     >
@@ -109,11 +109,11 @@ export function CommunityGroupCard({
         <div className="min-w-0 flex-1">
           <Link
             to={`/community/groups/${group.slug}`}
-            className="block truncate text-base font-semibold text-white hover:text-brand-200 transition-colors"
+            className="block truncate text-base font-semibold text-theme-foreground hover:text-brand-200 transition-colors"
           >
             {group.name}
           </Link>
-          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-500">
+          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-theme-muted">
             <span className="inline-flex items-center gap-1">
               <Users className="h-3.5 w-3.5 text-brand-300/80" />
               {t("communityGroups.membersCount", {
@@ -121,7 +121,7 @@ export function CommunityGroupCard({
               })}
             </span>
             {group.topic && (
-              <span className="rounded-full bg-white/[0.04] px-2.5 py-1 text-[11px] text-gray-400">
+              <span className="rounded-full bg-theme-panel/[0.04] px-2.5 py-1 text-[11px] text-theme-muted">
                 {group.topic}
               </span>
             )}
@@ -131,14 +131,14 @@ export function CommunityGroupCard({
         <CommunityGroupActionButton group={group} busy={busy} onToggle={onToggle} />
       </div>
 
-      <p className="mt-3 max-h-[4.5rem] overflow-hidden text-sm leading-6 text-gray-400">
+      <p className="mt-3 max-h-[4.5rem] overflow-hidden text-sm leading-6 text-theme-muted">
         {group.description || t("communityGroups.defaultDescription")}
       </p>
 
       {group.creator && (
-        <div className="mt-4 border-t border-white/[0.05] pt-3 text-xs text-gray-500">
+        <div className="mt-4 border-t border-theme-glass pt-3 text-xs text-theme-muted">
           {t("communityGroups.createdBy")}{" "}
-          <span className="text-gray-300">{group.creator.fullName}</span>
+          <span className="text-theme-muted">{group.creator.fullName}</span>
         </div>
       )}
     </div>
@@ -174,7 +174,7 @@ export const CommunityGroupsSidebarSection = memo(function CommunityGroupsSideba
           <button
             type="button"
             onClick={onOpenCreate}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/[0.05] text-gray-300 transition-colors hover:bg-white/[0.1] hover:text-white"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-theme-panel/[0.05] text-theme-muted transition-colors hover:bg-theme-panel/[0.1] hover:text-theme-foreground"
             aria-label={t("communityGroups.sidebar.createGroup")}
           >
             <Plus className="h-4 w-4" />
@@ -185,7 +185,7 @@ export const CommunityGroupsSidebarSection = memo(function CommunityGroupsSideba
       <div className="space-y-4">
         {joinedGroups.length > 0 && (
           <div>
-            <div className="mb-2 text-[10px] uppercase tracking-[0.2em] text-gray-500">
+            <div className="mb-2 text-[10px] uppercase tracking-[0.2em] text-theme-muted">
               {t("communityGroups.sidebar.joinedGroups")}
             </div>
             <div className="space-y-1.5">
@@ -202,7 +202,7 @@ export const CommunityGroupsSidebarSection = memo(function CommunityGroupsSideba
         )}
 
         <div>
-          <div className="mb-2 text-[10px] uppercase tracking-[0.2em] text-gray-500">
+          <div className="mb-2 text-[10px] uppercase tracking-[0.2em] text-theme-muted">
             {t("communityGroups.sidebar.discover")}
           </div>
           {discoverGroups.length > 0 && (
@@ -284,17 +284,17 @@ export function CommunityGroupCreateModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="community-group-modal-title"
-        className="w-full max-w-xl overflow-hidden rounded-[28px] border border-white/[0.1] bg-[linear-gradient(180deg,rgba(12,22,38,0.92),rgba(8,15,27,0.9))] shadow-[0_32px_90px_rgba(0,0,0,0.48)] backdrop-blur-xl"
+        className="w-full max-w-xl overflow-hidden rounded-[28px] border border-theme-glass bg-theme-panel/95 shadow-[0_32px_90px_rgba(0,0,0,0.48)] backdrop-blur-xl"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-white/[0.08] px-6 py-5">
+        <div className="flex items-center justify-between border-b border-theme-glass px-6 py-5">
           <div>
             <div className="text-[10px] uppercase tracking-[0.22em] text-brand-100/80">
               {t("communityGroups.modal.eyebrow")}
             </div>
             <div
               id="community-group-modal-title"
-              className="mt-1 text-lg font-semibold text-white"
+              className="mt-1 text-lg font-semibold text-theme-foreground"
             >
               {t("communityGroups.modal.title")}
             </div>
@@ -303,7 +303,7 @@ export function CommunityGroupCreateModal({
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.08] text-gray-200 transition-colors hover:bg-white/[0.14] hover:text-white disabled:opacity-50"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-theme-panel/[0.08] text-theme-muted transition-colors hover:bg-theme-panel/[0.14] hover:text-theme-foreground disabled:opacity-50"
             aria-label={t("communityGroups.modal.close")}
           >
             <X className="h-5 w-5" />
@@ -312,7 +312,7 @@ export function CommunityGroupCreateModal({
 
         <div className="max-h-[min(78vh,720px)] overflow-y-auto px-6 py-5 premium-scrollbar">
           <label className="block">
-            <div className="mb-2 text-xs font-semibold text-gray-200">
+            <div className="mb-2 text-xs font-semibold text-theme-muted">
               {t("communityGroups.modal.groupName")}
             </div>
             <input
@@ -320,31 +320,31 @@ export function CommunityGroupCreateModal({
               value={name}
               onChange={(event) => setName(event.target.value)}
               placeholder={t("communityGroups.modal.groupNamePlaceholder")}
-              className="w-full rounded-2xl border border-white/[0.08] bg-black/30 px-4 py-3 text-sm text-white placeholder:text-gray-400 focus:border-brand-400/35 focus:outline-none focus:ring-2 focus:ring-brand-400/25"
+              className="w-full rounded-2xl border border-theme-glass bg-theme-panel/30 px-4 py-3 text-sm text-theme-foreground placeholder:text-theme-disabled focus:border-brand-400/35 focus:outline-none focus:ring-2 focus:ring-brand-400/25"
             />
           </label>
 
           <label className="mt-4 block">
-            <div className="mb-2 text-xs font-semibold text-gray-200">
+            <div className="mb-2 text-xs font-semibold text-theme-muted">
               {t("communityGroups.modal.description")}
             </div>
             <textarea
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               placeholder={t("communityGroups.modal.descriptionPlaceholder")}
-              className="min-h-[120px] w-full rounded-2xl border border-white/[0.08] bg-black/30 px-4 py-3 text-sm leading-6 text-white placeholder:text-gray-400 focus:border-brand-400/35 focus:outline-none focus:ring-2 focus:ring-brand-400/25 premium-scrollbar"
+              className="min-h-[120px] w-full rounded-2xl border border-theme-glass bg-theme-panel/30 px-4 py-3 text-sm leading-6 text-theme-foreground placeholder:text-theme-disabled focus:border-brand-400/35 focus:outline-none focus:ring-2 focus:ring-brand-400/25 premium-scrollbar"
             />
           </label>
 
           <label className="mt-4 block">
-            <div className="mb-2 text-xs font-semibold text-gray-200">
+            <div className="mb-2 text-xs font-semibold text-theme-muted">
               {t("communityGroups.modal.topic")}
             </div>
             <input
               value={topic}
               onChange={(event) => setTopic(event.target.value)}
               placeholder={t("communityGroups.modal.topicPlaceholder")}
-              className="w-full rounded-2xl border border-white/[0.08] bg-black/30 px-4 py-3 text-sm text-white placeholder:text-gray-400 focus:border-brand-400/35 focus:outline-none focus:ring-2 focus:ring-brand-400/25"
+              className="w-full rounded-2xl border border-theme-glass bg-theme-panel/30 px-4 py-3 text-sm text-theme-foreground placeholder:text-theme-disabled focus:border-brand-400/35 focus:outline-none focus:ring-2 focus:ring-brand-400/25"
             />
           </label>
 
@@ -355,12 +355,12 @@ export function CommunityGroupCreateModal({
           )}
         </div>
 
-        <div className="flex items-center justify-end gap-3 border-t border-white/[0.08] px-6 py-5">
+        <div className="flex items-center justify-end gap-3 border-t border-theme-glass px-6 py-5">
           <button
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="rounded-xl bg-white/[0.08] px-4 py-2.5 text-sm font-semibold text-gray-100 transition-colors hover:bg-white/[0.14] disabled:opacity-50"
+            className="rounded-xl bg-theme-panel/[0.08] px-4 py-2.5 text-sm font-semibold text-theme-foreground transition-colors hover:bg-theme-panel/[0.14] disabled:opacity-50"
           >
             {t("common.cancel")}
           </button>
@@ -368,7 +368,7 @@ export function CommunityGroupCreateModal({
             type="button"
             disabled={busy}
             onClick={() => onSubmit({ name, description, topic })}
-            className="rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-500 disabled:opacity-50"
+            className="rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-theme-on-accent transition-colors hover:bg-brand-500 disabled:opacity-50"
           >
             {busy ? t("communityGroups.modal.creating") : t("communityGroups.modal.create")}
           </button>

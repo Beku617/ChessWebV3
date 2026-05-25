@@ -8,7 +8,7 @@ import { useGameplayPreferences } from "./useGameplayPreferences";
 /**
  * Extract a single-char promotion key ("q", "r", "b", "n") from the piece
  * string that react-chessboard passes (e.g. "wQ", "bN") or from an already
- * lowercase char.  Falls back to "q".
+ * lowercase char. Falls back to "q".
  */
 function extractPromotion(piece?: string): "q" | "r" | "b" | "n" {
   if (!piece) return "q";

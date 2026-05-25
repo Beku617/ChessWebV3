@@ -29,16 +29,16 @@ const CARD_THEME: Record<
   }
 > = {
   rapid: {
-    lineColor: "#7dd3fc",
+    lineColor: "rgb(var(--accent-muted-rgb))",
   },
   blitz: {
-    lineColor: "#7dd3fc",
+    lineColor: "rgb(var(--accent-rgb))",
   },
   bullet: {
-    lineColor: "#67e8f9",
+    lineColor: "rgb(var(--accent-hover-rgb))",
   },
   classical: {
-    lineColor: "#93c5fd",
+    lineColor: "rgb(var(--accent-muted-rgb))",
   },
 };
 
@@ -50,19 +50,31 @@ function buildSparkline(points: RatingTimelinePoint[], fallbackRating: number) {
     }));
   }
 
+  if (points.length === 1) {
+    const only = points[0];
+    const endRating = Number.isFinite(Number(only.rating))
+      ? Number(only.rating)
+      : fallbackRating;
+    const delta = Number.isFinite(Number(only.delta)) ? Number(only.delta) : 0;
+    const startRating = endRating - delta;
+    return [
+      { x: 0, rating: startRating },
+      { x: 1, rating: endRating },
+    ];
+  }
+
   const stride = Math.max(1, Math.ceil(points.length / 20));
   const sampled = points
     .filter((_, index) => index % stride === 0 || index === points.length - 1)
     .map((point, idx) => ({ x: idx, rating: point.rating }));
 
-  if (sampled.length === 1) {
-    sampled.push({ x: 1, rating: sampled[0].rating });
-  }
-
   return sampled;
 }
 
 function ratingChange(points: RatingTimelinePoint[]) {
+  if (points.length === 1) {
+    return Number.isFinite(Number(points[0].delta)) ? Number(points[0].delta) : 0;
+  }
   if (points.length < 2) return 0;
   return points[points.length - 1].rating - points[0].rating;
 }
@@ -85,10 +97,10 @@ function FormatSparkline({
   return (
     <div
       ref={chart.ref}
-      className="mt-3 h-14 w-full min-w-0 overflow-hidden rounded-lg bg-slate-100/95 dark:bg-slate-900/45"
+      className="mt-3 h-14 w-full min-w-0 overflow-hidden rounded-lg bg-theme-surface/95"
     >
       {loading || !chart.hasSize ? (
-        <div className="h-full w-full animate-pulse bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 dark:from-slate-700/20 dark:via-slate-600/20 dark:to-slate-700/20" />
+        <div className="h-full w-full animate-pulse bg-gradient-to-r from-theme-surface via-theme-panel to-theme-surface" />
       ) : (
         <AreaChart
           width={chart.width}
@@ -199,9 +211,9 @@ export function FormatStatsCard({
   );
 
   return (
-    <div className="bg-white/85 dark:bg-slate-900/70 rounded-2xl p-5 border border-gray-200/70 dark:border-white/10 shadow-[0_10px_30px_rgba(15,23,42,0.08)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.4)] backdrop-blur">
+    <div className="bg-theme-panel/85 rounded-2xl p-5 border border-theme-glass/70 shadow-[0_10px_30px_rgba(15,23,42,0.08)] backdrop-blur">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+        <h3 className="text-lg font-semibold text-theme-foreground ">
           {t("profileWidgets.formatRatingsTitle", "Format Ratings")}
         </h3>
       </div>
@@ -209,21 +221,21 @@ export function FormatStatsCard({
         {cards.map((format) => (
           <div
             key={format.id}
-            className="group min-w-0 rounded-2xl border border-slate-200/90 bg-[linear-gradient(140deg,rgba(255,255,255,0.96),rgba(241,245,249,0.94))] p-4 shadow-[0_12px_28px_rgba(15,23,42,0.08)] transition-all hover:-translate-y-[1px] hover:shadow-[0_18px_34px_rgba(15,23,42,0.14)] dark:border-white/10 dark:bg-[linear-gradient(140deg,rgba(31,41,55,0.94),rgba(28,33,45,0.9))] dark:shadow-[0_14px_30px_rgba(0,0,0,0.32)] dark:hover:shadow-[0_18px_38px_rgba(0,0,0,0.42)]"
+            className="group min-w-0 rounded-2xl border border-theme-border/90 bg-theme-card p-4 shadow-[0_12px_28px_rgba(15,23,42,0.08)] transition-all hover:-translate-y-[1px] hover:shadow-[0_18px_34px_rgba(15,23,42,0.14)]"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-start gap-3">
                 <div>
-                  <div className="text-sm text-slate-500 dark:text-gray-300">
+                  <div className="text-sm text-theme-muted">
                     {t(`profileGames.pools.${format.pool}`, format.pool)}
                   </div>
                   <div className="mt-0.5 flex items-end gap-2">
-                    <span className="text-[42px] font-bold leading-none tracking-tight text-slate-900 dark:text-white">
+                    <span className="text-[42px] font-bold leading-none tracking-tight text-theme-foreground ">
                       {format.rating}
                     </span>
                     <span
                       className={`inline-flex items-center gap-1 text-sm font-semibold pb-1 ${
-                        format.delta >= 0 ? "text-brand-400" : "text-red-400"
+                        format.delta >= 0 ? "text-brand-400" : "text-theme-muted"
                       }`}
                     >
                       {format.delta >= 0 ? "+" : "-"}
@@ -233,7 +245,7 @@ export function FormatStatsCard({
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-[11px] text-slate-500 dark:text-gray-400">
+                <div className="text-[11px] text-theme-muted">
                   {format.games < 10
                     ? t("profileGames.provisionalGames", {
                         count: format.games,

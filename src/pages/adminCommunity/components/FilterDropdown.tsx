@@ -49,20 +49,20 @@ export function FilterDropdown({
         aria-label={ariaLabel}
         aria-expanded={isOpen}
         onClick={() => setIsOpen((open) => !open)}
-        className="w-full inline-flex items-center justify-between gap-2 rounded-lg bg-white/[0.06] px-4 py-3 text-sm text-white hover:bg-white/[0.1] focus:outline-none focus:ring-2 focus:ring-brand-500/30 transition-colors"
+        className="w-full inline-flex items-center justify-between gap-2 rounded-lg bg-theme-panel/[0.06] px-4 py-3 text-sm text-theme-foreground hover:bg-theme-panel/[0.1] focus:outline-none focus:ring-2 focus:ring-brand-500/30 transition-colors"
       >
         <span className="truncate">
           {selected?.label || t("admin.community.filter.select", "Select")}
         </span>
         <ChevronDown
-          className={`w-4 h-4 text-gray-400 transition-transform ${
+          className={`w-4 h-4 text-theme-muted transition-transform ${
             isOpen ? "rotate-180" : ""
           }`}
         />
       </button>
 
       {isOpen && (
-        <div className="absolute z-[180] mt-2 w-full rounded-xl border border-gray-200 dark:border-white/10 bg-[#0f1a2d] shadow-[0_18px_48px_rgba(0,0,0,0.35)] p-1">
+        <div className="absolute z-[180] mt-2 w-full rounded-xl border border-theme-glass bg-theme-panel shadow-[0_18px_48px_rgba(0,0,0,0.35)] p-1">
           {options.map((option) => {
             const active = option.value === value;
             return (
@@ -76,7 +76,7 @@ export function FilterDropdown({
                 className={`w-full text-left rounded-lg px-3 py-2 text-sm transition-colors ${
                   active
                     ? "bg-brand-500/20 text-brand-100"
-                    : "text-gray-200 hover:bg-white/[0.08]"
+                    : "text-theme-muted hover:bg-theme-panel/[0.08]"
                 }`}
               >
                 {option.label}

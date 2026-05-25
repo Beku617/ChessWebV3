@@ -113,7 +113,7 @@ export function ChessTimer({
 
   return (
     <div
-      className={`h-12 min-w-[108px] px-3 rounded-xl font-mono text-base sm:text-lg font-semibold text-white text-center shadow-inner shadow-black/20 flex items-center justify-center transition-colors ${
+      className={`h-12 min-w-[108px] px-3 rounded-xl font-mono text-base sm:text-lg font-semibold text-theme-on-accent text-center shadow-inner shadow-black/20 flex items-center justify-center transition-colors ${
         isLowTime && isActive
           ? "bg-gradient-to-r from-amber-500 to-rose-500 animate-pulse"
           : "bg-gradient-to-r from-brand-500 to-brand-500"

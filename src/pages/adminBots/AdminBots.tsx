@@ -158,7 +158,7 @@ export default function AdminBots() {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#f5f5f7] dark:bg-gray-950">
+    <div className="flex min-h-screen bg-theme-panel ">
       <AdminSidebar />
 
       <div className="flex-1 ml-72 p-8">
@@ -167,8 +167,8 @@ export default function AdminBots() {
           <div
             className={`fixed top-6 right-6 z-50 px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 ${
               notification.type === "success"
-                ? "bg-green-500 text-white"
-                : "bg-red-500 text-white"
+                ? "bg-green-500 text-theme-on-accent"
+                : "bg-red-500 text-theme-on-accent"
             }`}
           >
             <span className="text-sm font-semibold uppercase tracking-wide">
@@ -181,17 +181,17 @@ export default function AdminBots() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white"> <Trans>Bot Management</Trans> </h1>
+            <h1 className="text-3xl font-bold text-theme-foreground "> <Trans>Bot Management</Trans> </h1>
           </div>
           <div className="flex items-center gap-3">
             <AnalysisAiModelSelector />
             <button
               onClick={handleExport}
-              className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center gap-2"
+              className="px-4 py-2 rounded-lg border border-theme-glass text-theme-muted hover:bg-theme-surface transition-colors flex items-center gap-2"
             > <Trans>Export CSV</Trans> </button>
             <button
               onClick={handleCreate}
-              className="px-4 py-2 rounded-lg bg-gradient-to-r from-brand-500 to-brand-500 text-white font-medium hover:from-brand-600 hover:to-brand-600 transition-colors flex items-center gap-2"
+              className="px-4 py-2 rounded-lg bg-gradient-to-r from-brand-500 to-brand-500 text-theme-on-accent font-medium hover:from-brand-600 hover:to-brand-600 transition-colors flex items-center gap-2"
             > <Trans>Create Bot</Trans> </button>
           </div>
         </div>
@@ -199,41 +199,41 @@ export default function AdminBots() {
         {/* Stats Cards */}
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white dark:bg-slate-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800">
+            <div className="bg-theme-panel rounded-xl p-4 border border-theme-glass ">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400"> <Trans>Total Bots</Trans> </p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  <p className="text-sm text-theme-muted"> <Trans>Total Bots</Trans> </p>
+                  <p className="text-2xl font-bold text-theme-foreground ">
                     {stats.total}
                   </p>
                 </div>
               </div>
             </div>
-            <div className="bg-white dark:bg-slate-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800">
+            <div className="bg-theme-panel rounded-xl p-4 border border-theme-glass ">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400"> <Trans>Active</Trans> </p>
-                  <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                  <p className="text-sm text-theme-muted"> <Trans>Active</Trans> </p>
+                  <p className="text-2xl font-bold text-green-600">
                     {stats.active}
                   </p>
                 </div>
               </div>
             </div>
-            <div className="bg-white dark:bg-slate-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800">
+            <div className="bg-theme-panel rounded-xl p-4 border border-theme-glass ">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400"> <Trans>Inactive</Trans> </p>
-                  <p className="text-2xl font-bold text-gray-600 dark:text-gray-400">
+                  <p className="text-sm text-theme-muted"> <Trans>Inactive</Trans> </p>
+                  <p className="text-2xl font-bold text-theme-muted">
                     {stats.inactive}
                   </p>
                 </div>
               </div>
             </div>
-            <div className="bg-white dark:bg-slate-900 rounded-xl p-4 border border-gray-200 dark:border-gray-800">
+            <div className="bg-theme-panel rounded-xl p-4 border border-theme-glass ">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400"> <Trans>Masters</Trans> </p>
-                  <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
+                  <p className="text-sm text-theme-muted"> <Trans>Masters</Trans> </p>
+                  <p className="text-2xl font-bold text-amber-600">
                     {stats.byDifficulty?.master || 0}
                   </p>
                 </div>
@@ -243,7 +243,7 @@ export default function AdminBots() {
         )}
 
         {/* Filters */}
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4 mb-6">
+        <div className="bg-theme-panel rounded-xl border border-theme-glass p-4 mb-6">
           <div className="flex flex-wrap items-center gap-4">
             {/* Search */}
             <div className="flex-1 min-w-[200px]">
@@ -253,7 +253,7 @@ export default function AdminBots() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder={t("admin.search.bots")}
-                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500"
+                    className="w-full px-4 py-2 rounded-lg border border-theme-glass bg-theme-panel text-theme-foreground focus:ring-2 focus:ring-brand-500"
                   />
               </div>
             </div>
@@ -262,7 +262,7 @@ export default function AdminBots() {
             <select
               value={difficultyFilter}
               onChange={(e) => setDifficultyFilter(e.target.value)}
-              className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500"
+              className="px-4 py-2 rounded-lg border border-theme-glass bg-theme-panel text-theme-foreground focus:ring-2 focus:ring-brand-500"
             >
               <option value=""><Trans>All Difficulties</Trans></option>
               {DIFFICULTY_OPTIONS.map((opt) => (
@@ -276,7 +276,7 @@ export default function AdminBots() {
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500"
+              className="px-4 py-2 rounded-lg border border-theme-glass bg-theme-panel text-theme-foreground focus:ring-2 focus:ring-brand-500"
             >
               <option value=""><Trans>All Categories</Trans></option>
               {categories.map((cat) => (
@@ -290,7 +290,7 @@ export default function AdminBots() {
             <select
               value={activeFilter}
               onChange={(e) => setActiveFilter(e.target.value)}
-              className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500"
+              className="px-4 py-2 rounded-lg border border-theme-glass bg-theme-panel text-theme-foreground focus:ring-2 focus:ring-brand-500"
             >
               <option value=""><Trans>All Status</Trans></option>
               <option value="true"><Trans>Active</Trans></option>
@@ -300,75 +300,75 @@ export default function AdminBots() {
         </div>
 
         {/* Table */}
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+        <div className="bg-theme-panel rounded-xl border border-theme-glass overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center py-20">
-              <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+              <span className="text-sm font-medium text-theme-muted">
                 Loading bots...
               </span>
             </div>
           ) : bots.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-gray-500">
+            <div className="flex flex-col items-center justify-center py-20 text-theme-muted">
               <p><Trans>No bots found</Trans></p>
               <button
                 onClick={handleCreate}
-                className="mt-4 px-4 py-2 rounded-lg bg-brand-500 text-white hover:bg-brand-600 transition-colors"
+                className="mt-4 px-4 py-2 rounded-lg bg-brand-500 text-theme-on-accent hover:bg-brand-600 transition-colors"
               > <Trans>Create your first bot</Trans> </button>
             </div>
           ) : (
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-slate-800/50">
+                <tr className="border-b border-theme-glass bg-theme-surface">
                   <th className="px-4 py-3 text-left">
                     <input
                       type="checkbox"
                       checked={selectedBots.length === bots.length}
                       onChange={toggleSelectAll}
-                      className="w-4 h-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                      className="w-4 h-4 rounded border-theme-glass text-brand-500 focus:ring-brand-500"
                     />
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"> <Trans>Bot</Trans> </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-theme-muted uppercase"> <Trans>Bot</Trans> </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-theme-muted uppercase">
                     ELO
                   </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"> <Trans>Difficulty</Trans> </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"> <Trans>Category</Trans> </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"> <Trans>Quote</Trans> </th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"> <Trans>Status</Trans> </th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase"> <Trans>Actions</Trans> </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-theme-muted uppercase"> <Trans>Difficulty</Trans> </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-theme-muted uppercase"> <Trans>Category</Trans> </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-theme-muted uppercase"> <Trans>Quote</Trans> </th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-theme-muted uppercase"> <Trans>Status</Trans> </th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-theme-muted uppercase"> <Trans>Actions</Trans> </th>
                 </tr>
               </thead>
               <tbody>
                 {bots.map((bot) => (
                   <tr
                     key={bot._id}
-                    className="border-b border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors"
+                    className="border-b border-theme-glass hover:bg-theme-surface/50 transition-colors"
                   >
                     <td className="px-4 py-3">
                       <input
                         type="checkbox"
                         checked={selectedBots.includes(bot._id)}
                         onChange={() => toggleSelectBot(bot._id)}
-                        className="w-4 h-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                        className="w-4 h-4 rounded border-theme-glass text-brand-500 focus:ring-brand-500"
                       />
                     </td>
                     <td className="px-4 py-3">
                       <div>
-                        <div className="font-medium text-gray-900 dark:text-white flex items-center gap-2">
+                        <div className="font-medium text-theme-foreground flex items-center gap-2">
                           {bot.name}
                           {bot.title && (
-                            <span className="px-1.5 py-0.5 text-[10px] font-bold bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded">
+                            <span className="px-1.5 py-0.5 text-[10px] font-bold bg-amber-500/20 text-amber-600 rounded">
                               {bot.title}
                             </span>
                           )}
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-theme-muted">
                           {bot.playStyle}
                         </div>
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="font-semibold text-gray-900 dark:text-white">
+                      <span className="font-semibold text-theme-foreground ">
                         {bot.eloRating}
                       </span>
                     </td>
@@ -376,12 +376,12 @@ export default function AdminBots() {
                       {getDifficultyBadge(bot.difficulty)}
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                      <span className="text-sm text-theme-muted">
                         {bot.category}
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="text-sm text-gray-600 dark:text-gray-400 italic line-clamp-1 max-w-[200px]">
+                      <span className="text-sm text-theme-muted italic line-clamp-1 max-w-[200px]">
                         {bot.quote || "-"}
                       </span>
                     </td>
@@ -390,8 +390,8 @@ export default function AdminBots() {
                         onClick={() => handleToggleActive(bot)}
                         className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                           bot.isActive
-                            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                            : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-theme-surface text-theme-muted"
                         }`}
                       >
                         {bot.isActive ? "Active" : "Inactive"}
@@ -401,12 +401,12 @@ export default function AdminBots() {
                       <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => handleEdit(bot)}
-                          className="px-3 py-1.5 rounded-lg text-sm text-gray-500 hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"
+                          className="px-3 py-1.5 rounded-lg text-sm text-theme-muted hover:text-brand-500 hover:bg-brand-50 transition-colors"
                           title={t("admin.actions.edit")}
                         > <Trans>Edit</Trans> </button>
                         <button
                           onClick={() => setDeleteBot(bot)}
-                          className="px-3 py-1.5 rounded-lg text-sm text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                          className="px-3 py-1.5 rounded-lg text-sm text-theme-muted hover:text-red-500 hover:bg-red-50 transition-colors"
                           title={t("admin.actions.delete")}
                         > <Trans>Delete</Trans> </button>
                       </div>
@@ -419,21 +419,21 @@ export default function AdminBots() {
 
           {/* Pagination */}
           {pagination.pages > 1 && (
-            <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-800">
-              <div className="text-sm text-gray-500 dark:text-gray-400"> <Trans>Showing</Trans> {(pagination.page - 1) * pagination.limit + 1} <Trans>to</Trans>{" "}
+            <div className="flex items-center justify-between px-4 py-3 border-t border-theme-glass ">
+              <div className="text-sm text-theme-muted"> <Trans>Showing</Trans> {(pagination.page - 1) * pagination.limit + 1} <Trans>to</Trans>{" "}
                 {Math.min(pagination.page * pagination.limit, pagination.total)}{" "} <Trans>of</Trans> {pagination.total} <Trans>bots</Trans> </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setPage(pagination.page - 1)}
                   disabled={pagination.page <= 1}
-                  className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-2 rounded-lg border border-theme-glass text-sm text-theme-muted hover:bg-theme-surface disabled:opacity-50 disabled:cursor-not-allowed"
                 > <Trans>Previous</Trans> </button>
-                <span className="px-3 py-1 text-sm text-gray-600 dark:text-gray-400"> <Trans>Page</Trans> {pagination.page} <Trans>of</Trans> {pagination.pages}
+                <span className="px-3 py-1 text-sm text-theme-muted"> <Trans>Page</Trans> {pagination.page} <Trans>of</Trans> {pagination.pages}
                 </span>
                 <button
                   onClick={() => setPage(pagination.page + 1)}
                   disabled={pagination.page >= pagination.pages}
-                  className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-2 rounded-lg border border-theme-glass text-sm text-theme-muted hover:bg-theme-surface disabled:opacity-50 disabled:cursor-not-allowed"
                 > <Trans>Next</Trans> </button>
               </div>
             </div>

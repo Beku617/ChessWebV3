@@ -321,14 +321,14 @@ export function getQualityColor(quality: MoveQuality): string {
     Best: "text-green-500",
     Excellent: "text-green-400",
     Good: "text-green-300",
-    Book: "text-gray-400",
+    Book: "text-theme-muted",
     Inaccuracy: "text-yellow-500",
     Mistake: "text-orange-500",
     Miss: "text-orange-400",
     Blunder: "text-red-500",
-    Unknown: "text-gray-400",
+    Unknown: "text-theme-muted",
   };
-  return colors[quality] || "text-gray-400";
+  return colors[quality] || "text-theme-muted";
 }
 
 export function getQualityBgColor(quality: MoveQuality): string {
@@ -338,14 +338,14 @@ export function getQualityBgColor(quality: MoveQuality): string {
     Best: "bg-green-500/20 border-green-500/50",
     Excellent: "bg-green-500/15 border-green-500/40",
     Good: "bg-green-500/10 border-green-500/30",
-    Book: "bg-gray-500/10 border-gray-500/30",
+    Book: "bg-theme-surface/10 border-theme-border/30",
     Inaccuracy: "bg-yellow-500/20 border-yellow-500/50",
     Mistake: "bg-orange-500/20 border-orange-500/50",
     Miss: "bg-orange-500/15 border-orange-500/40",
     Blunder: "bg-red-500/20 border-red-500/50",
-    Unknown: "bg-gray-500/10 border-gray-500/30",
+    Unknown: "bg-theme-surface/10 border-theme-border/30",
   };
-  return colors[quality] || "bg-gray-500/10 border-gray-500/30";
+  return colors[quality] || "bg-theme-surface/10 border-theme-border/30";
 }
 
 export function getQualityKey(quality: MoveQuality): string {

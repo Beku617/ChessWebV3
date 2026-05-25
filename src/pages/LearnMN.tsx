@@ -45,13 +45,13 @@ interface StatTileProps {
 
 function StatTile({ label, value }: StatTileProps) {
   return (
-    <article className="rounded-2xl border border-gray-800 bg-gray-900/70 px-4 py-4 sm:px-5 sm:py-4 shadow-[0_14px_32px_-26px_rgba(15,23,42,0.9)]">
+    <article className="rounded-2xl border border-theme-border bg-theme-panel/70 px-4 py-4 sm:px-5 sm:py-4 shadow-[0_14px_32px_-26px_rgba(15,23,42,0.9)]">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <p className="text-[11px] uppercase tracking-[0.12em] text-slate-400/70">
+          <p className="text-[11px] uppercase tracking-[0.12em] text-theme-muted/70">
             {label}
           </p>
-          <p className="mt-2 text-4xl leading-none font-semibold font-sans text-slate-100">
+          <p className="mt-2 text-4xl leading-none font-semibold font-sans text-theme-foreground">
             {value}
           </p>
         </div>
@@ -178,7 +178,7 @@ export default function Learn() {
   };
 
   return (
-    <div className="space-y-6 lg:space-y-7">
+    <div className="learn-page space-y-6 lg:space-y-7">
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <StatTile
           label={t("learn.stats.completed", "Completed")}
@@ -194,10 +194,10 @@ export default function Learn() {
         />
       </section>
 
-      <section className="space-y-4 rounded-2xl border border-gray-800 bg-gray-900/70 px-4 py-4 shadow-[0_24px_48px_-46px_rgba(8,145,178,0.45)] sm:px-5 sm:py-5">
+      <section className="space-y-4 rounded-2xl border border-theme-border bg-theme-panel/70 px-4 py-4 shadow-[0_24px_48px_-46px_rgba(8,145,178,0.45)] sm:px-5 sm:py-5">
         <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_220px_220px]">
           <label className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-theme-muted" />
             <input
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
@@ -205,7 +205,7 @@ export default function Learn() {
                 "learn.searchPlaceholder",
                 "Search courses, openings, or grandmasters...",
               )}
-              className="h-11 w-full rounded-xl border border-gray-800 bg-gray-950/70 pl-12 pr-4 text-base text-gray-100 placeholder:text-gray-500 focus:outline-none focus:border-brand-300/50"
+              className="h-11 w-full rounded-xl border border-theme-border bg-theme-panel/70 pl-12 pr-4 text-base text-theme-foreground placeholder:text-theme-disabled focus:outline-none focus:border-brand-300/50"
             />
           </label>
 
@@ -213,7 +213,7 @@ export default function Learn() {
             <select
               value={difficulty}
               onChange={(event) => setDifficulty(event.target.value as DifficultyFilter)}
-              className="h-11 w-full appearance-none rounded-xl border border-gray-800 bg-gray-950/70 px-4 pr-10 text-sm text-gray-100 focus:outline-none focus:border-brand-300/50"
+              className="h-11 w-full appearance-none rounded-xl border border-theme-border bg-theme-panel/70 px-4 pr-10 text-sm text-theme-foreground focus:outline-none focus:border-brand-300/50"
             >
               <option value="all">{t("learn.difficulty.all", "All Difficulty")}</option>
               <option value="Beginner">
@@ -226,7 +226,7 @@ export default function Learn() {
                 {t("learn.difficulty.advanced", "Advanced")}
               </option>
             </select>
-            <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+            <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-theme-muted" />
           </div>
 
           <div className="relative">
@@ -235,7 +235,7 @@ export default function Learn() {
               onChange={(event) =>
                 setProgressFilter(event.target.value as ProgressFilter)
               }
-              className="h-11 w-full appearance-none rounded-xl border border-gray-800 bg-gray-950/70 px-4 pr-10 text-sm text-gray-100 focus:outline-none focus:border-brand-300/50"
+              className="h-11 w-full appearance-none rounded-xl border border-theme-border bg-theme-panel/70 px-4 pr-10 text-sm text-theme-foreground focus:outline-none focus:border-brand-300/50"
             >
               <option value="all">{t("learn.progress.all", "All Progress")}</option>
               <option value="not_started">
@@ -248,7 +248,7 @@ export default function Learn() {
                 {t("learn.progress.completed", "Completed")}
               </option>
             </select>
-            <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+            <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-theme-muted" />
           </div>
         </div>
 
@@ -262,8 +262,8 @@ export default function Learn() {
                 onClick={() => setActiveCategory(category)}
                 className={`min-w-[132px] h-11 rounded-full px-5 text-sm font-medium border transition-all ${
                   active
-                    ? "border-brand-400/50 bg-brand-500/15 text-brand-100 shadow-[0_10px_18px_-16px_rgba(20,184,166,0.9)]"
-                    : "border-gray-800 bg-gray-900/70 text-gray-200 hover:border-brand-300/40 hover:text-brand-100"
+                    ? "border-brand-400/50 bg-brand-500/15 text-theme-foreground shadow-[0_10px_18px_-16px_rgba(20,184,166,0.9)]"
+                    : "border-theme-border bg-theme-panel/70 text-theme-muted hover:border-brand-300/40 hover:text-brand-700"
                 }`}
               >
                 <span>{categoryLabel(category, translateDefault)}</span>
@@ -275,18 +275,18 @@ export default function Learn() {
       </section>
 
       {error && (
-        <div className="rounded-2xl border border-rose-400/25 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+        <div className="rounded-2xl border border-rose-400/25 bg-rose-500/10 px-4 py-3 text-sm text-rose-700">
           {error}
         </div>
       )}
 
       {loading ? (
-        <div className="rounded-2xl border border-gray-800 bg-gray-900/70 px-4 py-16 text-center text-gray-400">
+        <div className="rounded-2xl border border-theme-border bg-theme-panel/70 px-4 py-16 text-center text-theme-muted">
           {t("learn.loading", "Loading learn catalog...")}
         </div>
       ) : courses.length === 0 ? (
-        <div className="rounded-2xl border border-gray-800 bg-gray-900/70 px-4 py-16 text-center">
-          <p className="text-gray-300">
+        <div className="rounded-2xl border border-theme-border bg-theme-panel/70 px-4 py-16 text-center">
+          <p className="text-theme-muted">
             {t("learn.empty", "No courses matched your filters.")}
           </p>
           <button
@@ -295,7 +295,7 @@ export default function Learn() {
               setDifficulty("all");
               setProgressFilter("all");
             }}
-            className="mt-4 inline-flex h-11 items-center rounded-xl border border-brand-400/35 bg-brand-500/12 px-5 text-sm text-brand-100 hover:bg-brand-500/20"
+            className="mt-4 inline-flex h-11 items-center rounded-xl border border-brand-400/35 bg-brand-500/12 px-5 text-sm text-theme-foreground hover:bg-brand-500/20"
           >
             {t("learn.clearFilters", "Clear search and filters")}
           </button>

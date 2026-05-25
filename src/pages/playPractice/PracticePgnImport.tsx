@@ -158,7 +158,7 @@ export function PracticePgnImport({
 
   const containerClass = embedded
     ? "h-full min-h-0 overflow-y-auto bg-transparent"
-    : "h-full min-h-0 overflow-y-auto bg-slate-100 dark:bg-slate-950";
+    : "h-full min-h-0 overflow-y-auto bg-theme-surface ";
   const shellClass = embedded
     ? "relative w-full h-full px-3 py-3 sm:px-4 sm:py-4"
     : "mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8";
@@ -171,12 +171,12 @@ export function PracticePgnImport({
             <button
               type="button"
               onClick={() => navigate("/play/practice")}
-              className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+              className="inline-flex items-center gap-2 rounded-lg border border-theme-border bg-theme-panel px-3 py-2 text-sm font-medium text-theme-foreground transition-colors hover:bg-theme-surface/80 "
             >
               <ArrowLeft size={16} />
               {t("practice.pgn.backToPractice", "Back to Practice")}
             </button>
-            <h1 className="text-base font-semibold text-slate-900 dark:text-slate-100 sm:text-lg">
+            <h1 className="text-base font-semibold text-theme-foreground sm:text-lg">
               {t("practice.pgn.title", "PGN Import / Analysis")}
             </h1>
           </div>
@@ -187,14 +187,14 @@ export function PracticePgnImport({
             className={
               embedded
                 ? "relative flex h-full min-h-0 flex-col p-4 sm:p-5"
-                : "rounded-2xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-4"
+                : "rounded-2xl border border-theme-border bg-theme-panel p-3 shadow-sm sm:p-4"
             }
           >
             {embedded && (
               <button
                 type="button"
                 onClick={onRequestClose}
-                className="absolute right-3 top-3 inline-flex h-7 w-7 items-center justify-center rounded-md border border-slate-600 bg-[#0b1220] text-slate-300 transition-colors hover:bg-slate-800 hover:text-slate-100"
+                className="absolute right-3 top-3 inline-flex h-7 w-7 items-center justify-center rounded-md border border-theme-border bg-theme-panel text-theme-muted transition-colors hover:bg-theme-surface hover:text-theme-foreground"
                 aria-label={t("practice.pgn.close", "Close PGN window")}
               >
                 <X size={14} />
@@ -202,14 +202,14 @@ export function PracticePgnImport({
             )}
 
             <div className={embedded ? "mb-3 flex items-center justify-between gap-3 pr-9" : "mb-3 flex items-center justify-between gap-3"}>
-              <p className={embedded ? "text-base font-semibold text-slate-100" : "text-sm font-semibold text-slate-900 dark:text-slate-100"}>
+              <p className={embedded ? "text-base font-semibold text-theme-foreground" : "text-sm font-semibold text-theme-foreground"}>
                 {t("practice.pgn.pasteLabel", "Paste PGN")}
               </p>
               <label
                 className={
                   embedded
-                    ? "inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-600 bg-[#0b1220] px-3 py-1.5 text-xs font-medium text-slate-200 transition-colors hover:bg-slate-800"
-                    : "inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                    ? "inline-flex cursor-pointer items-center gap-2 rounded-lg border border-theme-border bg-theme-panel px-3 py-1.5 text-xs font-medium text-theme-foreground transition-colors hover:bg-theme-surface"
+                    : "inline-flex cursor-pointer items-center gap-2 rounded-lg border border-theme-border px-3 py-1.5 text-xs font-semibold text-theme-foreground transition-colors hover:bg-theme-surface/80 "
                 }
               >
                 <FileUp size={14} />
@@ -233,13 +233,13 @@ export function PracticePgnImport({
               spellCheck={false}
               className={
                 embedded
-                  ? "h-[250px] w-full resize-none overflow-y-auto rounded-xl border border-slate-700 bg-[#020617] p-4 font-mono text-sm text-slate-100 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30"
-                  : "h-[360px] w-full resize-none rounded-xl border border-slate-300 bg-slate-50 p-3 font-mono text-xs text-slate-900 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 sm:h-[420px]"
+                  ? "h-[250px] w-full resize-none overflow-y-auto rounded-xl border border-theme-glass bg-theme-panel p-4 font-mono text-sm text-theme-foreground outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30"
+                  : "h-[360px] w-full resize-none rounded-xl border border-theme-border bg-theme-surface p-3 font-mono text-xs text-theme-foreground outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/30 sm:h-[420px]"
               }
             />
 
             {sourceFileName && (
-              <p className={embedded ? "mt-2 text-xs text-slate-400" : "mt-2 text-xs text-slate-500 dark:text-slate-400"}>
+              <p className={embedded ? "mt-2 text-xs text-theme-muted" : "mt-2 text-xs text-theme-muted"}>
                 {t("practice.pgn.sourceFile", {
                   fileName: sourceFileName,
                   defaultValue: `Source file: ${sourceFileName}`,
@@ -252,7 +252,7 @@ export function PracticePgnImport({
                 className={
                   embedded
                     ? "mt-3 rounded-lg border border-red-900/50 bg-red-950/30 px-3 py-2 text-xs font-medium text-red-300"
-                    : "mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300"
+                    : "mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700"
                 }
               >
                 {error}
@@ -264,7 +264,7 @@ export function PracticePgnImport({
                 className={
                   embedded
                     ? "mt-3 rounded-lg border border-emerald-900/50 bg-emerald-950/30 px-3 py-2 text-xs font-medium text-emerald-300"
-                    : "mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-300"
+                    : "mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700"
                 }
               >
                 {status}
@@ -277,7 +277,7 @@ export function PracticePgnImport({
                   type="button"
                   onClick={handleParsePgn}
                   disabled={!canSubmit}
-                  className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#0e7490] px-3 text-sm font-medium text-white transition hover:bg-[#0f85a7] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-theme-panel px-3 text-sm font-medium text-theme-foreground transition hover:bg-theme-panel disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isParsing ? (
                     <>
@@ -298,7 +298,7 @@ export function PracticePgnImport({
                     setStatus(null);
                     setSourceFileName(null);
                   }}
-                  className="inline-flex h-11 w-full items-center justify-center rounded-xl border border-slate-600 bg-[#0b1220] px-3 text-sm font-medium text-slate-200 transition-colors hover:bg-slate-800"
+                  className="inline-flex h-11 w-full items-center justify-center rounded-xl border border-theme-border bg-theme-panel px-3 text-sm font-medium text-theme-foreground transition-colors hover:bg-theme-surface"
                 >
                   {t("practice.pgn.clearInput", "Clear Input")}
                 </button>
@@ -307,11 +307,11 @@ export function PracticePgnImport({
           </section>
 
           {!embedded && (
-            <aside className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-              <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+            <aside className="rounded-2xl border border-theme-border bg-theme-panel p-4 shadow-sm">
+              <h2 className="text-sm font-semibold text-theme-foreground">
                 {t("practice.pgn.importOptions", "Import Options")}
               </h2>
-              <p className="mt-2 text-xs leading-5 text-slate-600 dark:text-slate-400">
+              <p className="mt-2 text-xs leading-5 text-theme-muted">
                 {t(
                   "practice.pgn.importHelp",
                   "Paste PGN text directly or upload a .pgn file, then parse it into the analysis board.",
@@ -322,7 +322,7 @@ export function PracticePgnImport({
                 type="button"
                 onClick={handleParsePgn}
                 disabled={!canSubmit}
-                className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-brand-600 px-3 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-500 disabled:cursor-not-allowed disabled:opacity-60"
+                className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-brand-600 px-3 py-2.5 text-sm font-semibold text-theme-on-accent transition hover:bg-brand-500 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isParsing ? (
                   <>
@@ -343,7 +343,7 @@ export function PracticePgnImport({
                   setStatus(null);
                   setSourceFileName(null);
                 }}
-                className="mt-2 inline-flex w-full items-center justify-center rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                className="mt-2 inline-flex w-full items-center justify-center rounded-lg border border-theme-border px-3 py-2 text-sm font-medium text-theme-foreground transition-colors hover:bg-theme-surface/80 "
               >
                 {t("practice.pgn.clearInput", "Clear Input")}
               </button>

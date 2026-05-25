@@ -149,17 +149,17 @@ export default function CommunityGroups() {
   };
 
   return (
-    <div className="min-h-screen bg-[#060f1d] text-white flex transition-colors duration-300">
+    <div className="min-h-screen bg-theme-panel text-theme-foreground flex transition-colors duration-300">
       <Sidebar />
 
       <main className="relative flex-1 ml-[60px] md:ml-72 min-h-screen overflow-x-hidden">
-        <div className="pointer-events-none absolute inset-x-0 top-0 z-0 h-24 bg-gradient-to-b from-[#060f1d] via-[#060f1d]/96 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-0 h-24 bg-gradient-to-b from-theme-panel via-theme-surface to-transparent" />
 
         <div className="relative z-10 mx-auto max-w-[1500px] px-6 py-7">
-          <section className="rounded-[28px] bg-[#0c1728]/84 p-6 shadow-[0_22px_65px_rgba(0,0,0,0.24)]">
+          <section className="rounded-[28px] bg-theme-panel p-6 shadow-[0_22px_65px_rgba(0,0,0,0.24)]">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <h1 className="text-3xl font-semibold tracking-tight text-white">
+                <h1 className="text-3xl font-semibold tracking-tight text-theme-foreground">
                   {t("communityGroupsPage.title")}
                 </h1>
               </div>
@@ -167,7 +167,7 @@ export default function CommunityGroups() {
               <button
                 type="button"
                 onClick={() => setIsCreateOpen(true)}
-                className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-500"
+                className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-theme-on-accent transition-colors hover:bg-brand-500"
               >
                 <Users className="h-4 w-4" />
                 {t("communityGroupsPage.createGroup")}
@@ -176,7 +176,7 @@ export default function CommunityGroups() {
 
             <div className="mt-5 flex flex-wrap items-center gap-3">
               <div className="relative min-w-[280px] flex-1">
-                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-theme-muted" />
                 <input
                   value={search}
                   onChange={(event) => {
@@ -184,13 +184,13 @@ export default function CommunityGroups() {
                     setDiscoverPage(1);
                   }}
                   placeholder={t("communityGroupsPage.searchPlaceholder")}
-                  className="w-full rounded-2xl bg-white/[0.05] py-3 pl-11 pr-4 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+                  className="w-full rounded-2xl bg-theme-panel/[0.05] py-3 pl-11 pr-4 text-sm text-theme-foreground placeholder:text-theme-disabled focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                 />
               </div>
 
               <Link
                 to="/community"
-                className="rounded-xl bg-white/[0.05] px-4 py-2.5 text-sm font-medium text-gray-200 transition-colors hover:bg-white/[0.1]"
+                className="rounded-xl bg-theme-panel/[0.05] px-4 py-2.5 text-sm font-medium text-theme-muted transition-colors hover:bg-theme-panel/[0.1]"
               >
                 {t("communityGroupsPage.backToCommunity")}
               </Link>
@@ -205,7 +205,7 @@ export default function CommunityGroups() {
 
           {joinedGroups.length > 0 && (
             <section className="mt-6">
-              <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-gray-500">
+              <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-theme-muted">
                 {t("communityGroups.sidebar.joinedGroups")}
               </div>
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -222,21 +222,21 @@ export default function CommunityGroups() {
           )}
 
           <section className="mt-6">
-            <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-gray-500">
+            <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-theme-muted">
               {t("communityGroups.sidebar.discover")}
             </div>
 
             {loading ? (
-              <div className="rounded-2xl bg-[#0c1728]/82 py-20 shadow-[0_22px_65px_rgba(0,0,0,0.22)] flex items-center justify-center">
+              <div className="rounded-2xl bg-theme-panel py-20 shadow-[0_22px_65px_rgba(0,0,0,0.22)] flex items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin text-brand-400" />
               </div>
             ) : discoverGroups.length === 0 ? (
-              <div className="rounded-2xl bg-[#0c1728]/82 px-6 py-20 text-center shadow-[0_22px_65px_rgba(0,0,0,0.22)]">
-                <Users className="mx-auto h-10 w-10 text-gray-500" />
-                <div className="mt-4 text-lg font-semibold text-white">
+              <div className="rounded-2xl bg-theme-panel px-6 py-20 text-center shadow-[0_22px_65px_rgba(0,0,0,0.22)]">
+                <Users className="mx-auto h-10 w-10 text-theme-muted" />
+                <div className="mt-4 text-lg font-semibold text-theme-foreground">
                   {t("communityGroupsPage.noGroupsTitle")}
                 </div>
-                <p className="mt-2 text-sm leading-7 text-gray-500">
+                <p className="mt-2 text-sm leading-7 text-theme-muted">
                   {t("communityGroupsPage.noGroupsDescription")}
                 </p>
               </div>
@@ -255,7 +255,7 @@ export default function CommunityGroups() {
 
                 {discoverTotalPages > 1 && (
                   <div className="mt-6 flex flex-col gap-3">
-                    <div className="text-center text-sm text-gray-400">
+                    <div className="text-center text-sm text-theme-muted">
                       {t("communityGroupsPage.pagination.showing", {
                         start: (discoverPage - 1) * DISCOVER_GROUPS_PAGE_SIZE + 1,
                         end: Math.min(
@@ -292,4 +292,3 @@ export default function CommunityGroups() {
     </div>
   );
 }
-

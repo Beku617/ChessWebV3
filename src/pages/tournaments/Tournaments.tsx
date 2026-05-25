@@ -625,7 +625,7 @@ function formatSignedRatingDelta(delta: number) {
 function ratingDeltaTextClass(delta: number) {
   if (delta > 0) return "text-emerald-300";
   if (delta < 0) return "text-rose-300";
-  return "text-slate-300";
+  return "text-theme-muted";
 }
 
 function getStandingGames(row: StandingRow) {
@@ -664,20 +664,20 @@ function ArenaResultsModal({
     Number(ratingDeltaByUserId.get(String(userId || "")) || 0);
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/70 p-4">
-      <div className="w-full max-w-[430px] overflow-hidden rounded-2xl border border-brand-400/30 bg-slate-950/95 text-white shadow-[0_28px_80px_rgba(0,0,0,0.65)]">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-theme-panel/70 p-4">
+      <div className="w-full max-w-[430px] overflow-hidden rounded-2xl border border-brand-400/30 bg-theme-panel/95 text-theme-foreground shadow-[0_28px_80px_rgba(0,0,0,0.65)]">
         <div className="relative border-b border-brand-400/20 bg-brand-500/10 px-6 pb-8 pt-7 text-center">
           <button
             type="button"
             onClick={onClose}
-            className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-md text-white/60 transition hover:bg-white/10 hover:text-white"
+            className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-md text-theme-muted transition hover:bg-theme-panel/10 hover:text-theme-foreground"
             aria-label="Close tournament results"
           >
             <X size={18} />
           </button>
           <h3 className="text-2xl font-semibold leading-tight"><Trans>Arena Over</Trans></h3>
-          <p className="mt-1 text-sm text-white/80">{tournament.name || "Tournament"}</p>
-          <p className="mt-0.5 text-xs text-white/55">
+          <p className="mt-1 text-sm text-theme-muted">{tournament.name || "Tournament"}</p>
+          <p className="mt-0.5 text-xs text-theme-muted">
             {tournament.timeControlLabel || formatTimeCategory(tournament)}
           </p>
         </div>
@@ -691,13 +691,13 @@ function ArenaResultsModal({
                   index === 0
                     ? "border-amber-300 bg-gradient-to-br from-amber-200 to-amber-600 text-amber-950"
                     : index === 1
-                      ? "border-slate-200 bg-gradient-to-br from-slate-100 to-slate-500 text-slate-950"
+                      ? "border-theme-border bg-gradient-to-br from-theme-surface to-theme-panel text-theme-foreground"
                       : "border-orange-300 bg-gradient-to-br from-orange-200 to-orange-700 text-orange-950",
                 )}
               >
                 {index + 1}
               </div>
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-md border-2 border-brand-400/70 bg-slate-800 text-base font-semibold text-white/80">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-md border-2 border-brand-400/70 bg-theme-surface text-base font-semibold text-theme-muted">
                 {row.avatar ? (
                   <img src={row.avatar} alt={row.username} className="h-full w-full object-cover" />
                 ) : (
@@ -705,10 +705,10 @@ function ArenaResultsModal({
                 )}
               </div>
               <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-semibold text-white">{row.username}</div>
+                <div className="truncate text-sm font-semibold text-theme-foreground">{row.username}</div>
                 <div className="mt-0.5 flex items-baseline gap-1">
                   <span className="text-2xl font-black">{formatArenaScore(Number(row.points || 0))}</span>
-                  <span className="text-sm font-semibold text-white/55">/ {getStandingGames(row)}</span>
+                  <span className="text-sm font-semibold text-theme-muted">/ {getStandingGames(row)}</span>
                   {isRatedTournament ? (
                     <span
                       className={`text-sm font-semibold ${ratingDeltaTextClass(
@@ -726,10 +726,10 @@ function ArenaResultsModal({
 
         {viewerRow ? (
           <div className="flex items-center gap-3 border-t border-brand-400/20 bg-brand-500/10 px-4 py-3">
-            <div className="w-12 shrink-0 text-right text-sm font-semibold text-white/70">
+            <div className="w-12 shrink-0 text-right text-sm font-semibold text-theme-muted">
               {viewerRow.rank}
             </div>
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-md bg-slate-800 text-xs font-semibold">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-md bg-theme-surface text-xs font-semibold">
               {viewerRow.avatar ? (
                 <img src={viewerRow.avatar} alt={viewerRow.username} className="h-full w-full object-cover" />
               ) : (
@@ -738,10 +738,10 @@ function ArenaResultsModal({
             </div>
             <div className="min-w-0 flex-1">
               <div className="truncate text-sm font-semibold">{viewerRow.username}</div>
-              <div className="text-xs text-white/55">({viewerRow.elo})</div>
+              <div className="text-xs text-theme-muted">({viewerRow.elo})</div>
             </div>
             <div className="text-lg font-black">{formatArenaScore(Number(viewerRow.points || 0))}</div>
-            <div className="text-sm font-semibold text-white/60">/ {getStandingGames(viewerRow)}</div>
+            <div className="text-sm font-semibold text-theme-muted">/ {getStandingGames(viewerRow)}</div>
             {isRatedTournament ? (
               <div
                 className={`text-sm font-semibold ${ratingDeltaTextClass(
@@ -814,14 +814,14 @@ function TournamentStatusBadge({
       ? "bg-amber-400"
       : "bg-emerald-400";
   const tone = isResults || status === "REGISTRATION_OPEN"
-    ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-300"
+    ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700"
     : isEnded || status === "CANCELLED"
-      ? "border-rose-500/30 bg-rose-500/10 text-rose-700 dark:border-rose-400/25 dark:bg-rose-500/10 dark:text-rose-300"
+      ? "border-rose-500/30 bg-rose-500/10 text-rose-700"
       : isLive
-        ? "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:border-amber-400/25 dark:bg-amber-400/10 dark:text-amber-300"
+        ? "border-amber-500/30 bg-amber-500/10 text-amber-700"
         : status === "FINISHED"
-          ? "border-slate-400/35 bg-slate-500/10 text-slate-600 dark:text-slate-300"
-          : "border-gray-400/35 bg-gray-500/10 text-gray-600 dark:text-gray-300";
+          ? "border-theme-border/35 bg-theme-surface/10 text-theme-muted"
+          : "border-theme-glass/35 bg-theme-surface/10 text-theme-muted";
 
   return (
     <span
@@ -919,8 +919,8 @@ function TournamentRow({
       className={classNames(
         "border-t border-theme-glass transition-colors duration-200 ease-out",
         selected
-          ? "bg-brand-500/15 dark:bg-brand-500/20"
-          : "hover:bg-gray-900/[0.025] dark:hover:bg-white/[0.035]",
+          ? "bg-brand-500/15"
+          : "hover:bg-theme-panel/[0.025]",
       )}
     >
       <td className="align-middle px-5 py-3">
@@ -931,22 +931,22 @@ function TournamentRow({
         >
           <TournamentTypeIcon speed={speed} />
           <span className="min-w-0">
-            <span className="block truncate text-[13px] font-semibold text-gray-900 group-hover:text-brand-700 dark:text-white dark:group-hover:text-brand-300">
+            <span className="block truncate text-[13px] font-semibold text-theme-foreground group-hover:text-brand-700">
               {getTournamentDisplayName(item)}
             </span>
-            <span className="mt-1 block truncate text-[11px] text-gray-500/85 dark:text-gray-400/85">
+            <span className="mt-1 block truncate text-[11px] text-theme-muted/85">
               {getTournamentMetaLine(item)}
             </span>
           </span>
         </button>
       </td>
       <td className="align-middle px-5 py-3 text-left whitespace-nowrap">
-        <span className="text-[12px] font-semibold text-gray-800 dark:text-gray-100">
+        <span className="text-[12px] font-semibold text-theme-foreground ">
           {gameTimeLabel}
         </span>
       </td>
       <td className="align-middle px-5 py-3 text-left whitespace-nowrap">
-        <span className="inline-flex rounded-full border border-theme-glass bg-gray-900/[0.04] px-2.5 py-1 text-[11px] font-medium text-gray-700 dark:bg-white/[0.06] dark:text-gray-200">
+        <span className="inline-flex rounded-full border border-theme-glass bg-theme-panel/[0.04] px-2.5 py-1 text-[11px] font-medium text-theme-muted ">
           {durationText}
         </span>
       </td>
@@ -954,8 +954,8 @@ function TournamentRow({
         <TournamentStatusBadge status={item.status} label={statusText} />
       </td>
       <td className="align-middle px-5 py-3 text-left whitespace-nowrap">
-        <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-gray-700 dark:text-gray-200">
-          <Users className="h-3.5 w-3.5 text-gray-400 dark:text-gray-500" aria-hidden="true" />
+        <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-theme-muted ">
+          <Users className="h-3.5 w-3.5 text-theme-muted" aria-hidden="true" />
           {formatPlayersCount(item)}
         </span>
       </td>
@@ -968,7 +968,7 @@ function TournamentRow({
               disabled={!!busyAction || !item.myPendingGameId}
               className={classNames(
                 actionButtonClass,
-                "min-w-[92px] bg-emerald-500 text-white hover:bg-emerald-400",
+                "min-w-[92px] bg-emerald-500 text-theme-on-accent hover:bg-emerald-400",
               )}
             >
               {t("tournamentsPage.actions.continue", "Continue")}
@@ -980,7 +980,7 @@ function TournamentRow({
               disabled={!!busyAction}
               className={classNames(
                 actionButtonClass,
-                "bg-emerald-500 text-white hover:bg-emerald-400",
+                "bg-emerald-500 text-theme-on-accent hover:bg-emerald-400",
               )}
             >
               {isBusy ? (
@@ -996,7 +996,7 @@ function TournamentRow({
               disabled={!!busyAction}
               className={classNames(
                 actionButtonClass,
-                "bg-emerald-500 text-white hover:bg-emerald-400",
+                "bg-emerald-500 text-theme-on-accent hover:bg-emerald-400",
               )}
             >
               {t("tournamentsPage.actions.continue", "Continue")}
@@ -1007,7 +1007,7 @@ function TournamentRow({
               disabled
               className={classNames(
                 actionButtonClass,
-                "bg-gray-300 text-gray-600 dark:bg-gray-700 dark:text-gray-300",
+                "bg-theme-surface text-theme-muted",
               )}
             >
               {t("tournamentsPage.actions.join", "Join")}
@@ -1019,15 +1019,15 @@ function TournamentRow({
               className={classNames(
                 actionButtonClass,
                 hasEnded
-                  ? "bg-brand-500 text-white hover:bg-brand-400 dark:text-gray-950"
-                  : "bg-brand-500 text-white hover:bg-brand-400 dark:text-gray-950",
+                  ? "bg-brand-500 text-theme-on-accent hover:bg-brand-400"
+                  : "bg-brand-500 text-theme-on-accent hover:bg-brand-400",
               )}
             >
               {actionLabel}
             </button>
           )}
           {registrationHint && (
-            <span className="max-w-[220px] text-right text-[11px] leading-tight text-gray-500 dark:text-gray-400">
+            <span className="max-w-[220px] text-right text-[11px] leading-tight text-theme-muted">
               {registrationHint}
             </span>
           )}
@@ -1074,7 +1074,7 @@ function TournamentTable({
           {Array.from({ length: 6 }).map((_, index) => (
             <div
               key={index}
-              className="h-14 animate-pulse rounded-lg border border-theme-glass bg-gray-100/70 dark:bg-white/5"
+              className="h-14 animate-pulse rounded-lg border border-theme-glass bg-theme-surface/70"
             />
           ))}
         </div>
@@ -1091,13 +1091,13 @@ function TournamentTable({
             : "theme-glass-panel rounded-xl px-6 py-12 text-center"
         }
       >
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl border border-theme-glass bg-white/60 text-brand-500 dark:bg-white/5">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl border border-theme-glass bg-theme-panel/60 text-brand-500">
           <Trophy className="h-6 w-6" aria-hidden="true" />
         </div>
-        <h2 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">
+        <h2 className="mt-4 text-lg font-semibold text-theme-foreground ">
           {t("No tournaments available")}
         </h2>
-        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+        <p className="mt-2 text-sm text-theme-muted">
           {t(
             "tournamentsPage.empty.createOrCheckBack",
             "Create one or check back when registration opens.",
@@ -1111,7 +1111,7 @@ function TournamentTable({
     <>
       <div
         className={classNames(
-          "hidden overflow-hidden rounded-xl border border-theme-glass bg-white/60 shadow-[0_14px_40px_rgba(15,23,42,0.08)] dark:bg-gray-950/45 dark:shadow-[0_18px_50px_rgba(0,0,0,0.24)] lg:block",
+          "hidden overflow-hidden rounded-xl border border-theme-glass bg-theme-panel/60 shadow-[0_14px_40px_rgba(15,23,42,0.08)] lg:block",
           embedded ? "mt-3" : "",
         )}
       >
@@ -1125,7 +1125,7 @@ function TournamentTable({
             <col className="w-[12%]" />
             <col className="w-[10%]" />
           </colgroup>
-          <thead className="bg-gray-900/[0.04] text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500 dark:bg-white/[0.035] dark:text-gray-400">
+          <thead className="bg-theme-panel/[0.04] text-[10px] font-semibold uppercase tracking-[0.22em] text-theme-muted">
             <tr>
               <th className="px-5 py-3 text-left">
                 {t("tournamentsPage.table.type", "Type")}
@@ -1168,7 +1168,7 @@ function TournamentTable({
 
       <div
         className={classNames(
-          "overflow-hidden rounded-xl border border-theme-glass bg-white/60 dark:bg-gray-950/45 lg:hidden",
+          "overflow-hidden rounded-xl border border-theme-glass bg-theme-panel/45 lg:hidden",
           embedded ? "mt-3" : "",
         )}
       >
@@ -1189,7 +1189,7 @@ function TournamentTable({
               key={item.id}
               className={classNames(
                 "border-t border-theme-glass p-4 transition-colors duration-200 ease-out first:border-t-0",
-                selectedId === item.id ? "bg-brand-500/15 dark:bg-brand-500/20" : "",
+                selectedId === item.id ? "bg-brand-500/15" : "",
               )}
             >
               <div className="flex items-start gap-3">
@@ -1198,47 +1198,47 @@ function TournamentTable({
                   <button
                     type="button"
                     onClick={() => onSelect(item.id)}
-                    className="block w-full truncate text-left text-sm font-semibold text-gray-900 dark:text-white"
+                    className="block w-full truncate text-left text-sm font-semibold text-theme-foreground "
                   >
                     {getTournamentDisplayName(item)}
                   </button>
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  <p className="mt-1 text-xs text-theme-muted">
                     {getTournamentMetaLine(item)}
                   </p>
                 </div>
                 <TournamentStatusBadge status={item.status} label={statusText} />
               </div>
-              <div className="mt-3 grid grid-cols-3 gap-2 rounded-xl border border-theme-glass bg-white/40 p-3 dark:bg-white/[0.03]">
+              <div className="mt-3 grid grid-cols-3 gap-2 rounded-xl border border-theme-glass bg-theme-panel/40 p-3">
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gray-400 dark:text-gray-500">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-theme-muted">
                     {t("tournamentsPage.table.gameTime", "Game Time")}
                   </p>
-                  <p className="mt-1 text-sm font-medium text-gray-800 dark:text-gray-100">
+                  <p className="mt-1 text-sm font-medium text-theme-foreground ">
                     {gameTimeLabel}
                   </p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gray-400 dark:text-gray-500">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-theme-muted">
                     {t("tournamentsPage.table.duration", "Duration")}
                   </p>
-                  <p className="mt-1 text-sm font-medium text-gray-800 dark:text-gray-100">
+                  <p className="mt-1 text-sm font-medium text-theme-foreground ">
                     {durationText}
                   </p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gray-400 dark:text-gray-500">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-theme-muted">
                     {t("tournamentsPage.table.players", "Players")}
                   </p>
-                  <p className="mt-1 text-sm font-medium text-gray-800 dark:text-gray-100">
+                  <p className="mt-1 text-sm font-medium text-theme-foreground ">
                     <span className="inline-flex items-center gap-1.5">
-                      <Users className="h-3.5 w-3.5 text-gray-400" aria-hidden="true" />
+                      <Users className="h-3.5 w-3.5 text-theme-muted" aria-hidden="true" />
                       {formatPlayersCount(item)}
                     </span>
                   </p>
                 </div>
               </div>
               {registrationLocked && (
-                <p className="mt-2 text-[11px] text-gray-500 dark:text-gray-400">
+                <p className="mt-2 text-[11px] text-theme-muted">
                   {t(
                     "tournamentsPage.hints.registrationStartsOneHourBefore",
                     "Registration begins 1 hour before the event starts",
@@ -1251,7 +1251,7 @@ function TournamentTable({
                     type="button"
                     onClick={() => onOpenGame(String(item.myPendingGameId || ""))}
                     disabled={!!busyAction || !item.myPendingGameId}
-                    className="inline-flex h-8 min-w-[104px] items-center justify-center rounded-md bg-emerald-500 px-3 text-[12px] font-semibold text-white transition-colors hover:bg-emerald-400 disabled:opacity-60"
+                    className="inline-flex h-8 min-w-[104px] items-center justify-center rounded-md bg-emerald-500 px-3 text-[12px] font-semibold text-theme-on-accent transition-colors hover:bg-emerald-400 disabled:opacity-60"
                   >
                     {t("tournamentsPage.actions.continue", "Continue")}
                   </button>
@@ -1260,7 +1260,7 @@ function TournamentTable({
                     type="button"
                     onClick={() => onRegister(item.id)}
                     disabled={!!busyAction}
-                    className="inline-flex h-8 min-w-[76px] items-center justify-center rounded-md bg-emerald-500 px-3 text-[12px] font-semibold text-white transition-colors hover:bg-emerald-400 disabled:opacity-60"
+                    className="inline-flex h-8 min-w-[76px] items-center justify-center rounded-md bg-emerald-500 px-3 text-[12px] font-semibold text-theme-on-accent transition-colors hover:bg-emerald-400 disabled:opacity-60"
                   >
                     {isBusy ? (
                       <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
@@ -1273,7 +1273,7 @@ function TournamentTable({
                     type="button"
                     onClick={() => onRegister(item.id)}
                     disabled={!!busyAction}
-                    className="inline-flex h-8 min-w-[104px] items-center justify-center rounded-md bg-emerald-500 px-3 text-[12px] font-semibold text-white transition-colors hover:bg-emerald-400 disabled:opacity-60"
+                    className="inline-flex h-8 min-w-[104px] items-center justify-center rounded-md bg-emerald-500 px-3 text-[12px] font-semibold text-theme-on-accent transition-colors hover:bg-emerald-400 disabled:opacity-60"
                   >
                     {t("tournamentsPage.actions.continue", "Continue")}
                   </button>
@@ -1281,7 +1281,7 @@ function TournamentTable({
                   <button
                     type="button"
                     disabled
-                    className="inline-flex h-8 min-w-[76px] items-center justify-center rounded-md bg-gray-300 px-3 text-[12px] font-semibold text-gray-600 transition-colors disabled:opacity-70 dark:bg-gray-700 dark:text-gray-300"
+                    className="inline-flex h-8 min-w-[76px] items-center justify-center rounded-md bg-theme-surface px-3 text-[12px] font-semibold text-theme-muted transition-colors disabled:opacity-70"
                   >
                     {t("tournamentsPage.actions.join", "Join")}
                   </button>
@@ -1290,7 +1290,7 @@ function TournamentTable({
                     type="button"
                     onClick={() => (hasEnded ? onOpenResult(item.id) : onSelect(item.id))}
                     disabled={!!busyAction}
-                    className="inline-flex h-8 min-w-[76px] items-center justify-center rounded-md bg-brand-500 px-3 text-[12px] font-semibold text-white transition-colors hover:bg-brand-400 disabled:opacity-60 dark:text-gray-950"
+                    className="inline-flex h-8 min-w-[76px] items-center justify-center rounded-md bg-brand-500 px-3 text-[12px] font-semibold text-theme-on-accent transition-colors hover:bg-brand-400 disabled:opacity-60"
                   >
                     {isBusy ? (
                       <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
@@ -1725,14 +1725,14 @@ function TournamentScheduleTimeline({
     return (
       <div
         ref={containerRef}
-        className="bg-[#07111f]/90 p-4"
+        className="bg-theme-panel p-4"
         style={timelineContainerHeight > 0 ? { height: timelineContainerHeight } : undefined}
       >
         <div className="space-y-3">
           {Array.from({ length: 8 }).map((_, index) => (
             <div
               key={index}
-              className="h-12 animate-pulse rounded-xl border border-white/10 bg-white/[0.04]"
+              className="h-12 animate-pulse rounded-xl border border-theme-glass bg-theme-panel/[0.04]"
             />
           ))}
         </div>
@@ -1743,18 +1743,18 @@ function TournamentScheduleTimeline({
   return (
     <div
       ref={containerRef}
-      className="flex min-h-0 flex-col bg-[#07111f]/95 text-slate-100"
+      className="flex min-h-0 flex-col bg-theme-panel text-theme-foreground"
       style={timelineContainerHeight > 0 ? { height: timelineContainerHeight } : undefined}
     >
       <div
         ref={controlsRef}
-        className="flex flex-col gap-3 border-b border-white/10 px-4 py-3 xl:flex-row xl:items-center xl:justify-between"
+        className="flex flex-col gap-3 border-b border-theme-glass px-4 py-3 xl:flex-row xl:items-center xl:justify-between"
       >
         <div className="flex flex-wrap items-center gap-2">
           <select
             value={formatFilter}
             onChange={(event) => onFormatFilterChange(event.target.value as ScheduleFormatFilter)}
-            className="rounded-lg border border-white/10 bg-[#0b1727] px-3 py-2 text-sm font-medium text-slate-100 outline-none transition-colors focus:border-brand-400"
+            className="rounded-lg border border-theme-glass bg-theme-panel px-3 py-2 text-sm font-medium text-theme-foreground outline-none transition-colors focus:border-brand-400"
           >
             {SCHEDULE_FORMAT_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -1765,7 +1765,7 @@ function TournamentScheduleTimeline({
           <select
             value={statusFilter}
             onChange={(event) => onStatusFilterChange(event.target.value as StatusFilter)}
-            className="rounded-lg border border-white/10 bg-[#0b1727] px-3 py-2 text-sm font-medium text-slate-100 outline-none transition-colors focus:border-brand-400"
+            className="rounded-lg border border-theme-glass bg-theme-panel px-3 py-2 text-sm font-medium text-theme-foreground outline-none transition-colors focus:border-brand-400"
           >
             <option value="all">{t("tournamentsPage.filters.allStatuses")}</option>
             <option value="REGISTRATION_OPEN">
@@ -1780,24 +1780,24 @@ function TournamentScheduleTimeline({
           <button
             type="button"
             onClick={() => moveDay(-1)}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-slate-300 transition-colors hover:bg-white/[0.08] hover:text-white"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-theme-glass bg-theme-panel/[0.04] text-theme-muted transition-colors hover:bg-theme-panel/[0.08] hover:text-theme-foreground"
             aria-label={t("tournamentsPage.schedule.previousDay", "Previous day")}
           >
             <ChevronLeft className="h-4 w-4" aria-hidden="true" />
           </button>
           <label className="relative">
-            <CalendarDays className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" aria-hidden="true" />
+            <CalendarDays className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-theme-muted" aria-hidden="true" />
             <input
               type="date"
               value={scheduleDayValue}
               onChange={(event) => onScheduleDateChange(event.target.value)}
-              className="h-10 rounded-lg border border-white/10 bg-[#0b1727] pl-9 pr-3 font-mono text-sm text-slate-100 outline-none transition-colors focus:border-brand-400"
+              className="h-10 rounded-lg border border-theme-glass bg-theme-panel pl-9 pr-3 font-mono text-sm text-theme-foreground outline-none transition-colors focus:border-brand-400"
             />
           </label>
           <button
             type="button"
             onClick={() => moveDay(1)}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-slate-300 transition-colors hover:bg-white/[0.08] hover:text-white"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-theme-glass bg-theme-panel/[0.04] text-theme-muted transition-colors hover:bg-theme-panel/[0.08] hover:text-theme-foreground"
             aria-label={t("tournamentsPage.schedule.nextDay", "Next day")}
           >
             <ChevronRight className="h-4 w-4" aria-hidden="true" />
@@ -1814,7 +1814,7 @@ function TournamentScheduleTimeline({
 
       <div
         ref={summaryRef}
-        className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-3 text-xs text-slate-400"
+        className="flex items-center justify-between gap-3 border-b border-theme-glass px-4 py-3 text-xs text-theme-muted"
       >
         <span className="font-mono uppercase tracking-[0.22em]">
           {formatScheduleDayLabel(scheduleDay)} - {formatScheduleDayLabel(scheduleRangeEnd)}
@@ -1830,16 +1830,16 @@ function TournamentScheduleTimeline({
       {timelineItems.length === 0 ? (
         <div className="flex flex-1 items-center justify-center px-6 py-14 text-center">
           <div>
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-brand-300">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl border border-theme-glass bg-theme-panel/[0.04] text-brand-300">
               <CalendarDays className="h-5 w-5" aria-hidden="true" />
             </div>
-            <h2 className="mt-4 text-base font-semibold text-white">
+            <h2 className="mt-4 text-base font-semibold text-theme-foreground">
               {t(
                 "tournamentsPage.schedule.emptyTitle",
                 "No tournaments in this 7-day window",
               )}
             </h2>
-            <p className="mt-2 text-sm text-slate-400">
+            <p className="mt-2 text-sm text-theme-muted">
               {t(
                 "tournamentsPage.schedule.emptyDescription",
                 "Try another day or loosen the format/status filters.",
@@ -1851,7 +1851,7 @@ function TournamentScheduleTimeline({
         <div className="min-h-0 flex-1">
           <div ref={scrollerRef} className="h-full overflow-x-auto overflow-y-hidden premium-scrollbar">
             <div
-              className="relative bg-[#081220]"
+              className="relative bg-theme-panel"
               style={{
                 width: timelineWidth,
                 minWidth: timelineWidth,
@@ -1860,17 +1860,17 @@ function TournamentScheduleTimeline({
               }}
             >
               <div
-                className="absolute left-0 right-0 border-b border-white/10 bg-[#081220]/95"
+                className="absolute left-0 right-0 border-b border-theme-glass bg-theme-panel"
                 style={{ top: 0, height: SCHEDULE_TIMELINE_HEADER_HEIGHT }}
               />
 
               {timelineData.hourTicks.map((tick) => (
                 <div
                   key={tick.key}
-                  className="pointer-events-none absolute top-0 bottom-0 border-l border-white/[0.055]"
+                  className="pointer-events-none absolute top-0 bottom-0 border-l border-theme-glass"
                   style={{ left: tick.left }}
                 >
-                  <span className="absolute left-2 top-7 whitespace-nowrap font-mono text-[11px] font-semibold text-slate-500">
+                  <span className="absolute left-2 top-7 whitespace-nowrap font-mono text-[11px] font-semibold text-theme-muted">
                     {tick.label}
                   </span>
                 </div>
@@ -1940,13 +1940,13 @@ function TournamentScheduleTimeline({
                       <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-300" />
                     )}
                     {clippedStart && (
-                      <span className="shrink-0 font-mono text-[10px] text-slate-300">...</span>
+                      <span className="shrink-0 font-mono text-[10px] text-theme-muted">...</span>
                     )}
                     <span className="min-w-0 flex-1">
                       <span className="block truncate font-semibold">
                         {getTournamentDisplayName(item)}
                       </span>
-                      <span className="block truncate font-mono text-[11px] text-slate-300/80">
+                      <span className="block truncate font-mono text-[11px] text-theme-muted/80">
                         {t("tournamentsPage.detail.playersCount", {
                           count: item.registeredCount,
                           defaultValue: "{{count}} players",
@@ -1954,7 +1954,7 @@ function TournamentScheduleTimeline({
                       </span>
                     </span>
                     {clippedEnd && (
-                      <span className="shrink-0 font-mono text-[10px] text-slate-300">...</span>
+                      <span className="shrink-0 font-mono text-[10px] text-theme-muted">...</span>
                     )}
                     {isBusy && <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" aria-hidden="true" />}
                   </button>
@@ -2667,19 +2667,19 @@ export default function Tournaments() {
       label: `${preset.baseMinutes}+${preset.incrementSeconds}`,
     };
   }, [timePreset]);
-  const formLabelClass = "text-sm font-medium text-gray-700 dark:text-gray-300";
+  const formLabelClass = "text-sm font-medium text-theme-muted";
   const formInputClass =
-    "w-full rounded-lg border border-theme-glass bg-white/70 px-3 py-2 text-sm text-gray-900 outline-none focus:border-brand-400 dark:bg-gray-950/35 dark:text-gray-100";
+    "w-full rounded-lg border border-theme-glass bg-theme-panel/70 px-3 py-2 text-sm text-theme-foreground outline-none focus:border-brand-400/35 ";
   const formInlineInputClass =
-    "rounded-lg border border-theme-glass bg-white/70 px-3 py-2 text-sm text-gray-900 outline-none focus:border-brand-400 dark:bg-gray-950/35 dark:text-gray-100";
+    "rounded-lg border border-theme-glass bg-theme-panel/70 px-3 py-2 text-sm text-theme-foreground outline-none focus:border-brand-400/35 ";
   const secondaryButtonClass =
-    "rounded-lg border border-theme-glass px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200";
+    "rounded-lg border border-theme-glass px-4 py-2 text-sm font-semibold text-theme-muted ";
   const tournamentListSurfaceClass =
     pageTab === "create" || pageTab === "schedule"
       ? "theme-glass-panel-soft mt-3 mx-3 min-h-[calc(100vh-8rem)] overflow-hidden rounded-xl"
       : "mt-3 mx-3 min-h-[calc(100vh-8rem)] overflow-visible";
   const filterControlClass =
-    "h-[34px] rounded-lg border border-theme-glass bg-white/75 px-3 text-[13px] font-medium text-gray-900 outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-400/15 dark:bg-gray-950/45 dark:text-gray-100";
+    "h-[34px] rounded-lg border border-theme-glass bg-theme-panel/75 px-3 text-[13px] font-medium text-theme-foreground outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-400/15";
 
   async function runAction(
     key: string,
@@ -2979,7 +2979,7 @@ export default function Tournaments() {
       </section>
 
       {error && (
-        <div className="mt-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-300">
+        <div className="mt-3 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-700">
           {error}
         </div>
       )}
@@ -2989,13 +2989,13 @@ export default function Tournaments() {
           <div className="px-4 py-6 md:px-6">
             {false ? (
               <div className="mx-auto max-w-4xl">
-                <p className="text-center text-xl font-semibold text-gray-900 dark:text-gray-100">
+                <p className="text-center text-xl font-semibold text-theme-foreground ">
                   {t(
                     "tournamentsPage.createChoice.title",
                     "Please select the kind of event you'd like to create:",
                   )}
                 </p>
-                <p className="mt-8 text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
+                <p className="mt-8 text-xs font-semibold uppercase tracking-[0.2em] text-theme-muted">
                   {t("tournamentsPage.createChoice.shareable", "Tournaments")}
                 </p>
 
@@ -3003,59 +3003,59 @@ export default function Tournaments() {
                   <button
                     type="button"
                     onClick={() => beginCreateFlow("swiss")}
-                    className="group flex w-full items-center gap-4 rounded-xl border border-theme-glass bg-white/65 px-5 py-5 text-left transition-colors hover:bg-white/80 dark:bg-gray-950/25 dark:hover:bg-gray-900/45"
+                    className="group flex w-full items-center gap-4 rounded-xl border border-theme-glass bg-theme-panel/65 px-5 py-5 text-left transition-colors hover:bg-theme-panel/80"
                   >
-                    <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-theme-glass bg-white/80 text-brand-500 dark:bg-white/10">
+                    <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-theme-glass bg-theme-panel/80 text-brand-500">
                       <Trophy className="h-5 w-5" aria-hidden="true" />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block text-2xl font-semibold text-gray-900 dark:text-white">
+                      <span className="block text-2xl font-semibold text-theme-foreground ">
                         {t("tournamentCommon.formats.swiss", "Swiss Tournament")}
                       </span>
-                      <span className="mt-1 block text-sm text-gray-600 dark:text-gray-300">
+                      <span className="mt-1 block text-sm text-theme-muted">
                         {t(
                           "tournamentsPage.createChoice.swissDescription",
                           "Invite players into a round-based Swiss event with standings by score and tie-breaks.",
                         )}
                       </span>
                     </span>
-                    <ChevronRight className="h-5 w-5 shrink-0 text-gray-400 transition-colors group-hover:text-brand-500" />
+                    <ChevronRight className="h-5 w-5 shrink-0 text-theme-muted transition-colors group-hover:text-brand-500" />
                   </button>
 
                   <button
                     type="button"
                     onClick={() => beginCreateFlow("arena")}
-                    className="group flex w-full items-center gap-4 rounded-xl border border-theme-glass bg-white/65 px-5 py-5 text-left transition-colors hover:bg-white/80 dark:bg-gray-950/25 dark:hover:bg-gray-900/45"
+                    className="group flex w-full items-center gap-4 rounded-xl border border-theme-glass bg-theme-panel/65 px-5 py-5 text-left transition-colors hover:bg-theme-panel/80"
                   >
-                    <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-theme-glass bg-white/80 text-brand-500 dark:bg-white/10">
+                    <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-theme-glass bg-theme-panel/80 text-brand-500">
                       <Rocket className="h-5 w-5" aria-hidden="true" />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block text-2xl font-semibold text-gray-900 dark:text-white">
+                      <span className="block text-2xl font-semibold text-theme-foreground ">
                         {t("tournamentCommon.formats.arena", "Arena")}
                       </span>
-                      <span className="mt-1 block text-sm text-gray-600 dark:text-gray-300">
+                      <span className="mt-1 block text-sm text-theme-muted">
                         {t(
                           "tournamentsPage.createChoice.arenaDescription",
                           "Create a continuous arena where players score as many points as possible in a set duration.",
                         )}
                       </span>
                     </span>
-                    <ChevronRight className="h-5 w-5 shrink-0 text-gray-400 transition-colors group-hover:text-brand-500" />
+                    <ChevronRight className="h-5 w-5 shrink-0 text-theme-muted transition-colors group-hover:text-brand-500" />
                   </button>
                 </div>
               </div>
             ) : (
               <form onSubmit={onCreateTournament} className="mx-auto max-w-4xl space-y-5">
                 <div className="flex items-center gap-3">
-                  <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-theme-glass bg-white/80 text-brand-500 dark:bg-white/10">
+                  <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-theme-glass bg-theme-panel/80 text-brand-500">
                     {createType === "arena" ? (
                       <Rocket className="h-5 w-5" aria-hidden="true" />
                     ) : (
                       <Trophy className="h-5 w-5" aria-hidden="true" />
                     )}
                   </span>
-                  <h3 className="text-2xl font-semibold text-gray-900 dark:text-white">
+                  <h3 className="text-2xl font-semibold text-theme-foreground ">
                     {createType === "arena"
                       ? t(
                           "tournamentsPage.create.arenaTitle",
@@ -3085,12 +3085,12 @@ export default function Tournaments() {
 
                 <div className="h-px bg-theme-glass" />
 
-                <h4 className="text-2xl font-semibold text-gray-900 dark:text-white">
+                <h4 className="text-2xl font-semibold text-theme-foreground ">
                   {t("tournamentsPage.create.game", "Game")}
                 </h4>
 
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div className="md:col-span-2 flex items-center justify-between rounded-lg border border-theme-glass bg-white/65 px-3 py-2 dark:bg-gray-950/25">
+                  <div className="md:col-span-2 flex items-center justify-between rounded-lg border border-theme-glass bg-theme-panel/65 px-3 py-2">
                     <span className={formLabelClass}>{t("tournamentsPage.create.rated", "Rated")}</span>
                     <button
                       type="button"
@@ -3105,19 +3105,19 @@ export default function Tournaments() {
                         "relative inline-flex h-7 w-12 items-center rounded-full border border-theme-glass transition-colors disabled:cursor-not-allowed disabled:opacity-60",
                         effectiveCreateRated
                           ? "bg-brand-500"
-                          : "bg-gray-300/70 dark:bg-gray-800/80",
+                          : "bg-theme-surface/75",
                       )}
                     >
                       <span
                         className={classNames(
-                          "inline-block h-5 w-5 transform rounded-full bg-white transition-transform",
+                          "inline-block h-5 w-5 transform rounded-full bg-theme-panel transition-transform",
                           effectiveCreateRated ? "translate-x-6" : "translate-x-1",
                         )}
                       />
                     </button>
                   </div>
                   {isCreateChess960 && (
-                    <p className="md:col-span-2 text-xs text-gray-500 dark:text-gray-400">
+                    <p className="md:col-span-2 text-xs text-theme-muted">
                       {t(
                         "tournamentsPage.create.chess960UnratedNotice",
                         "Chess960 tournaments are always unrated.",
@@ -3251,10 +3251,10 @@ export default function Tournaments() {
                   </div>
 
                   <div className="space-y-1 md:col-span-2">
-                    <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                    <p className="text-sm font-semibold text-theme-foreground ">
                       {t("tournamentsPage.create.fields.startTime", "Start Time")}
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                    <p className="text-xs text-theme-muted">
                       {t(
                         "tournamentsPage.create.fields.timezonePrefix",
                         "Timezone:",
@@ -3302,7 +3302,7 @@ export default function Tournaments() {
                       </div>
                     </div>
                     {createStartTimeError && (
-                      <p className="mt-2 text-sm font-medium text-red-600 dark:text-red-300">
+                      <p className="mt-2 text-sm font-medium text-red-600">
                         {createStartTimeError}
                       </p>
                     )}
@@ -3336,7 +3336,7 @@ export default function Tournaments() {
                   <button
                     type="submit"
                     disabled={busyAction === "create"}
-                    className="rounded-lg bg-brand-500 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-400 disabled:opacity-60 dark:text-gray-950"
+                    className="rounded-lg bg-brand-500 px-5 py-2 text-sm font-semibold text-theme-on-accent transition-colors hover:bg-brand-400 disabled:opacity-60"
                   >
                     {busyAction === "create"
                       ? t("tournamentsPage.modal.creating", "Creating...")
@@ -3369,7 +3369,7 @@ export default function Tournaments() {
         ) : (
           <>
             {pendingCreateId && (
-              <div className="mx-4 mt-4 inline-flex items-center gap-2 rounded-lg border border-brand-400/25 bg-brand-500/10 px-3 py-2 text-sm font-medium text-brand-700 dark:text-brand-300">
+              <div className="mx-4 mt-4 inline-flex items-center gap-2 rounded-lg border border-brand-400/25 bg-brand-500/10 px-3 py-2 text-sm font-medium text-brand-700">
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                 {t(
                   "tournamentsPage.create.pendingMessage",
@@ -3380,7 +3380,7 @@ export default function Tournaments() {
             <div className="py-1">
               <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
                 <label className="relative sm:w-[300px]">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" aria-hidden="true" />
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-theme-muted" aria-hidden="true" />
                   <input
                     value={search}
                     onChange={(event) => {
@@ -3442,7 +3442,7 @@ export default function Tournaments() {
 
             {listTotalPages > 1 && listTotal > listPageSize && (
               <div className="border-t border-theme-glass px-4 py-3">
-                <div className="mb-3 text-center text-xs text-gray-600 dark:text-gray-400">
+                <div className="mb-3 text-center text-xs text-theme-muted">
                   {t("tournamentsPage.pagination.showingRange", {
                     start: (listPage - 1) * listPageSize + 1,
                     end: Math.min(listPage * listPageSize, listTotal),
@@ -3465,12 +3465,12 @@ export default function Tournaments() {
       </section>
 
       {confirmDialog && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4">
-          <div className="w-full max-w-md rounded-2xl border border-theme-glass bg-white/90 p-5 shadow-2xl backdrop-blur dark:bg-gray-950/90">
-            <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-theme-panel/70 p-4">
+          <div className="w-full max-w-md rounded-2xl border border-theme-glass bg-theme-panel/90 p-5 shadow-2xl backdrop-blur">
+            <h4 className="text-sm font-semibold text-theme-foreground ">
               {t("tournamentsPage.confirm.title", "Confirm Action")}
             </h4>
-            <p className="mt-2 text-sm text-gray-700 dark:text-gray-300">{confirmDialog.message}</p>
+            <p className="mt-2 text-sm text-theme-muted">{confirmDialog.message}</p>
             <div className="mt-5 flex justify-end gap-2">
               <button
                 type="button"

@@ -215,13 +215,13 @@ function getCardClasses(status: TournamentStatus) {
 function getStatusTone(status: TournamentStatus) {
   if (status === "running") {
     return {
-      badge: "text-amber-600 dark:text-amber-300",
+      badge: "text-amber-600",
       button: "bg-amber-500 hover:bg-amber-400",
     };
   }
 
   return {
-    badge: "text-teal-600 dark:text-teal-300",
+    badge: "text-teal-600",
     button: "bg-teal-600 hover:bg-teal-500",
   };
 }
@@ -256,18 +256,18 @@ function LoadingCards() {
       {[0, 1].map((index) => (
         <div
           key={index}
-          className="animate-pulse rounded-xl border border-gray-200 dark:border-gray-700/50 bg-gray-50 dark:bg-gray-800/35 p-4 sm:p-5"
+          className="animate-pulse rounded-xl border border-theme-glass/50 bg-theme-surface p-4 sm:p-5"
         >
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1 space-y-2">
-              <div className="h-4 w-40 rounded bg-gray-200 dark:bg-gray-700/70" />
-              <div className="h-3 w-28 rounded bg-gray-200 dark:bg-gray-700/60" />
+              <div className="h-4 w-40 rounded bg-theme-surface" />
+              <div className="h-3 w-28 rounded bg-theme-surface" />
             </div>
-            <div className="h-5 w-24 rounded-full bg-gray-200 dark:bg-gray-700/60" />
+            <div className="h-5 w-24 rounded-full bg-theme-surface" />
           </div>
           <div className="mt-6 flex items-center justify-between gap-3">
-            <div className="h-3 w-32 rounded bg-gray-200 dark:bg-gray-700/60" />
-            <div className="h-8 w-20 rounded-md bg-gray-200 dark:bg-gray-700/60" />
+            <div className="h-3 w-32 rounded bg-theme-surface" />
+            <div className="h-8 w-20 rounded-md bg-theme-surface" />
           </div>
         </div>
       ))}
@@ -353,14 +353,14 @@ export function TournamentsSection() {
 
   const sectionHeader = (
     <div className="mb-4 flex items-center justify-between gap-3">
-      <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
+      <h2 className="text-2xl font-semibold text-theme-foreground ">
         {t("Tournaments")}
       </h2>
       {hasMoreTournaments ? (
         <button
           type="button"
           onClick={() => navigate("/tournaments")}
-          className="text-sm text-teal-600 dark:text-teal-400 hover:text-teal-500 dark:hover:text-teal-300 transition-colors"
+          className="text-sm text-teal-600 hover:text-teal-500 transition-colors"
         >
           {t("Browse All")}
         </button>
@@ -385,17 +385,17 @@ export function TournamentsSection() {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3 min-w-0">
               <div className="min-w-0">
-                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                <p className="text-sm font-medium text-theme-foreground ">
                   {t("Unable to load tournaments")}
                 </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="text-sm text-theme-muted">
                   {t("Please try again in a moment.")}
                 </p>
               </div>
             </div>
             <button
               onClick={() => setReloadKey((value) => value + 1)}
-              className="inline-flex items-center justify-center rounded-lg border border-gray-300 dark:border-gray-700 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="inline-flex items-center justify-center rounded-lg border border-theme-glass px-3 py-1.5 text-sm font-medium text-theme-muted hover:bg-theme-surface transition-colors"
             >
               {t("Retry")}
             </button>
@@ -418,7 +418,7 @@ export function TournamentsSection() {
             return (
               <div
                 key={tournament.id}
-                className={`min-w-0 rounded-xl border dark:border-gray-700/50 p-4 sm:p-5 shadow-sm ${getCardClasses(
+                className={`min-w-0 rounded-xl p-4 sm:p-5 shadow-sm ${getCardClasses(
                   tournament.status,
                 )}`}
               >
@@ -431,13 +431,13 @@ export function TournamentsSection() {
                         {tournament.status === "running" ? t("Active") : t("Upcoming")}
                       </span>
                     </div>
-                    <h3 className="mt-2 text-lg font-semibold leading-tight text-gray-900 dark:text-white break-words">
+                    <h3 className="mt-2 text-lg font-semibold leading-tight text-theme-foreground break-words">
                       {tournament.name}
                     </h3>
-                    <p className="mt-2 text-sm text-gray-600 dark:text-gray-300 break-words">
+                    <p className="mt-2 text-sm text-theme-muted break-words">
                       {timeControlLabel(tournament.timeControl, t)}
                     </p>
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 break-words">
+                    <p className="mt-1 text-xs text-theme-muted break-words">
                       {tournament.status === "running"
                         ? t("tournamentsPage.detail.roundOf", {
                             current: Math.max(1, tournament.currentRound),
@@ -456,7 +456,7 @@ export function TournamentsSection() {
                 </div>
 
                 <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="inline-flex min-w-0 items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                  <div className="inline-flex min-w-0 items-center gap-2 text-xs text-theme-muted">
                     <span className="truncate">
                       {tournament.registeredCount} {t("players joined")}
                     </span>
@@ -464,9 +464,9 @@ export function TournamentsSection() {
 
                   <button
                     onClick={() => navigate(buildTournamentUrl(tournament.id))}
-                    className={`inline-flex items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium text-white transition-colors ${tone.button}`}
+                    className={`inline-flex items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium text-theme-on-accent transition-colors ${tone.button}`}
                   >
-                    {t(getActionLabel(tournament))}
+                    {t(getActionLabel(tournament), getActionLabel(tournament))}
                   </button>
                 </div>
               </div>
@@ -480,11 +480,11 @@ export function TournamentsSection() {
   return (
     <div>
       {sectionHeader}
-      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/20 px-4 py-8 text-center">
-        <p className="mt-3 text-sm font-medium text-gray-900 dark:text-white">
+      <div className="rounded-xl border border-theme-glass bg-theme-surface px-4 py-8 text-center">
+        <p className="mt-3 text-sm font-medium text-theme-foreground ">
           {t("No tournaments available")}
         </p>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        <p className="mt-1 text-sm text-theme-muted">
           {t("Create a tournament or check back for the next event.")}
         </p>
       </div>

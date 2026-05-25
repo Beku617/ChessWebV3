@@ -23,7 +23,7 @@ export function MediaViewerModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-theme-panel/80 backdrop-blur-sm"
       onClick={onClose}
     >
       <button
@@ -32,7 +32,7 @@ export function MediaViewerModal({
           event.stopPropagation();
           onClose();
         }}
-        className="absolute right-6 top-6 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white shadow-lg backdrop-blur transition hover:bg-white/20"
+        className="absolute right-6 top-6 inline-flex h-10 w-10 items-center justify-center rounded-full bg-theme-panel/10 text-theme-foreground shadow-lg backdrop-blur transition hover:bg-theme-panel/20"
       >
         <X className="h-5 w-5" />
       </button>
@@ -43,7 +43,7 @@ export function MediaViewerModal({
             event.stopPropagation();
             onStep(-1);
           }}
-          className="absolute left-6 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white shadow-lg backdrop-blur transition hover:bg-white/20"
+          className="absolute left-6 top-1/2 -translate-y-1/2 rounded-full bg-theme-panel/10 p-3 text-theme-foreground shadow-lg backdrop-blur transition hover:bg-theme-panel/20"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
@@ -55,23 +55,23 @@ export function MediaViewerModal({
             poster={current?.thumbnail ? resolveMediaUrl(current.thumbnail) : undefined}
             controls
             preload="metadata"
-            className="max-h-[80vh] w-full rounded-2xl border border-white/10 bg-black/70 object-contain shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
+            className="max-h-[80vh] w-full rounded-2xl border border-theme-glass bg-theme-panel/70 object-contain shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
           />
         ) : (
           <img
             src={resolveMediaUrl(current?.url)}
             alt={current?.filename || t("messages.attachmentFallback", "attachment")}
-            className="max-h-[80vh] w-full rounded-2xl border border-white/10 bg-[#0b1424] object-contain shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
+            className="max-h-[80vh] w-full rounded-2xl border border-theme-glass bg-theme-panel object-contain shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
           />
         )}
-        <div className="mt-3 flex items-center justify-center gap-3 text-sm text-slate-200">
+        <div className="mt-3 flex items-center justify-center gap-3 text-sm text-theme-foreground">
           <span className="max-w-[60vw] truncate">
             {current?.filename ||
               (video
                 ? t("messages.videoFileFallback", "Video")
                 : t("messages.photoFileFallback", "Photo"))}
           </span>
-          <span className="text-slate-400">{formatBytes(current?.size || 0)}</span>
+          <span className="text-theme-muted">{formatBytes(current?.size || 0)}</span>
         </div>
       </div>
       {viewer.attachments.length > 1 && (
@@ -81,7 +81,7 @@ export function MediaViewerModal({
             event.stopPropagation();
             onStep(1);
           }}
-          className="absolute right-6 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white shadow-lg backdrop-blur transition hover:bg-white/20"
+          className="absolute right-6 top-1/2 -translate-y-1/2 rounded-full bg-theme-panel/10 p-3 text-theme-foreground shadow-lg backdrop-blur transition hover:bg-theme-panel/20"
         >
           <ChevronRight className="h-5 w-5" />
         </button>

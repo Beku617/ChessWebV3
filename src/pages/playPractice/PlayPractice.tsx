@@ -164,24 +164,47 @@ const FREE_MOVE_ARROW_BUTTON_STYLE: CSSProperties = {
   width: 36,
   height: 36,
   borderRadius: 9,
-  background: "#1a2540",
-  border: "1px solid #263045",
-  color: "#64748b",
+  background: "rgba(var(--bg-panel-rgb), 0.88)",
+  border: "1px solid rgba(var(--color-brand-500-rgb), 0.62)",
+  color: "var(--text-primary)",
   cursor: "pointer",
   fontSize: 14,
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
+  boxShadow: "inset 0 1px 0 rgba(var(--text-primary-rgb), 0.06)",
 };
 
 const FREE_MOVE_BASE_BUTTON_STYLE: CSSProperties = {
   padding: 10,
   borderRadius: 9,
-  border: "1px solid #263045",
+  border: "1px solid rgba(var(--color-brand-500-rgb), 0.62)",
   fontSize: 12.5,
   fontWeight: 600,
   cursor: "pointer",
 };
+
+const PRACTICE_CARD_STYLE: CSSProperties = {
+  background: "rgba(var(--bg-panel-rgb), 0.66)",
+  border: "1px solid rgba(var(--text-primary-rgb), 0.1)",
+  borderRadius: 16,
+  overflow: "hidden",
+};
+
+const PRACTICE_CARD_BODY_STYLE: CSSProperties = {
+  padding: "14px 16px",
+};
+
+const PRACTICE_RIGHT_PANEL_STYLE: CSSProperties = {
+  background: "rgba(var(--bg-panel-rgb), 0.62)",
+  border: "1px solid rgba(var(--text-primary-rgb), 0.1)",
+  borderRadius: 12,
+  padding: 16,
+  backdropFilter: "blur(4px)",
+  WebkitBackdropFilter: "blur(4px)",
+};
+
+const FREE_MOVE_HISTORY_LIST_HEIGHT = 252;
 
 const PRACTICE_MODES: PracticeMode[] = [
   {
@@ -478,7 +501,7 @@ export default function PlayPractice() {
     error: topMovesError,
   } = usePositionTopMoves(fen, {
     enabled: isFreeMoveActive,
-    multiPv: 5,
+    multiPv: 3,
     depth: 14,
   });
   const moveRows = useMemo(() => buildChessMoveRows(sanMoves), [sanMoves]);
@@ -1665,24 +1688,36 @@ export default function PlayPractice() {
   };
 
   return (
-    <div className="relative h-full min-h-0 w-full bg-slate-100 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 overflow-hidden">
+    <div
+      className={`relative h-full min-h-0 w-full bg-theme-surface ${
+        isPositionBuilderActive
+          ? "overflow-y-auto overflow-x-hidden lg:overflow-hidden"
+          : "overflow-hidden"
+      }`}
+    >
       <div
         className={`h-full grid ${
-          isFreeMoveActive && showEvalBar
-            ? "grid-cols-[minmax(0,1.08fr)_38px_minmax(0,0.92fr)]"
-            : "grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)]"
+          isPositionBuilderActive
+            ? "grid-cols-1 lg:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)]"
+            : isFreeMoveActive && showEvalBar
+              ? "grid-cols-[minmax(0,1.08fr)_38px_minmax(0,0.92fr)]"
+              : "grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)]"
         }`}
       >
         <div
           ref={leftRef}
-          className="min-w-0 flex items-center justify-center p-3 lg:p-4 h-full"
+          className={`min-w-0 flex justify-center p-3 lg:p-4 ${
+            isPositionBuilderActive
+              ? "items-start lg:items-center h-auto lg:h-full"
+              : "items-center h-full"
+          }`}
         >
           <div
-            className="relative inline-flex rounded-[30px] border border-gray-200/80 dark:border-slate-300/15 bg-white/75 dark:bg-slate-900/55 p-2.5 lg:p-3 shadow-[0_24px_58px_-30px_rgba(8,47,73,0.65)]"
+            className="relative inline-flex rounded-[30px] border border-theme-glass/80 bg-theme-panel/75 p-2.5 lg:p-3 shadow-[0_24px_58px_-30px_rgba(8,47,73,0.65)]"
           >
-            <div className="pointer-events-none absolute inset-0 rounded-[30px] dark:bg-[radial-gradient(circle_at_top,rgb(var(--color-brand-500-rgb)/0.16),transparent_58%)]" />
+            <div className="pointer-events-none absolute inset-0 rounded-[30px]" />
             <div
-              className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-200/65 dark:border-white/12"
+              className="relative rounded-2xl overflow-hidden shadow-2xl border border-theme-glass/65"
               style={{ width: boardWidth, height: boardWidth }}
             >
               <Chessboard
@@ -1780,20 +1815,20 @@ export default function PlayPractice() {
 
         {isFreeMoveActive && showEvalBar && (
           <div className="h-full flex items-center justify-center py-4">
-            <div className="h-full rounded-2xl border border-gray-200/70 dark:border-white/10 bg-white/70 dark:bg-slate-900/70 px-1.5 py-2 flex flex-col items-center shadow-[0_14px_36px_-26px_rgba(6,95,70,0.8)]">
-              <div className="mb-1 px-1.5 py-1 rounded bg-slate-900 text-white text-[10px] font-semibold text-center leading-none">
+            <div className="h-full rounded-2xl bg-theme-panel/70 px-1.5 py-2 flex flex-col items-center shadow-[0_14px_36px_-26px_rgba(6,95,70,0.8)]">
+              <div className="mb-1 px-1.5 py-1 rounded bg-theme-panel text-theme-foreground text-[10px] font-semibold text-center leading-none">
                 {evalState.label}
               </div>
-              <div className="relative flex-1 w-4 rounded overflow-hidden border border-gray-400/70 dark:border-slate-600 bg-slate-200 dark:bg-slate-800">
+              <div className="relative flex-1 w-4 rounded overflow-hidden border border-theme-glass/70 bg-theme-surface">
                 <div
-                  className="absolute left-0 right-0 bottom-0 bg-white transition-all duration-300 ease-out"
+                  className="absolute left-0 right-0 bottom-0 bg-theme-panel transition-all duration-300 ease-out"
                   style={{ height: `${evalState.percent}%` }}
                 />
                 <div
-                  className="absolute left-0 right-0 top-0 bg-slate-950 transition-all duration-300 ease-out"
+                  className="absolute left-0 right-0 top-0 bg-theme-panel transition-all duration-300 ease-out"
                   style={{ height: `${100 - evalState.percent}%` }}
                 />
-                <div className="absolute left-0 right-0 top-1/2 h-px bg-slate-400/60" />
+                <div className="absolute left-0 right-0 top-1/2 h-px bg-theme-border/60" />
               </div>
             </div>
           </div>
@@ -1802,8 +1837,10 @@ export default function PlayPractice() {
         <div
           className={`min-w-0 w-full overflow-hidden ${
             isSessionModeActive
-              ? "h-full bg-transparent border-l-0"
-              : "h-full bg-white/90 dark:bg-slate-900/95 border-l border-gray-200/60 dark:border-white/10"
+              ? isPositionBuilderActive
+                ? "h-auto lg:h-full bg-transparent border-l-0"
+                : "h-full bg-transparent border-l-0"
+              : "h-full bg-transparent border-l border-theme-glass/60"
           }`}
         >
           <AnimatePresence mode="wait" initial={false}>
@@ -1814,23 +1851,24 @@ export default function PlayPractice() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -16 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}
-                className="h-full min-h-0 p-3 lg:p-4 flex items-center justify-center"
+                className="h-full min-h-0 p-3 lg:p-4 flex items-start justify-center"
               >
                 <div
+                  className="premium-scrollbar"
                   style={{
-                    background: "#0f1117",
+                    ...PRACTICE_RIGHT_PANEL_STYLE,
                     width: "100%",
                     maxWidth: 560,
                     height: freeMovePanelHeight,
+                    minHeight: 0,
                     maxHeight: "100%",
                     display: "flex",
                     flexDirection: "column",
-                    padding: "14px 12px",
-                    gap: 10,
+                    gap: 16,
                     fontFamily: "inherit",
-                    borderRadius: 18,
-                    border: "1px solid #1e2d45",
                     boxShadow: "0 24px 58px -30px rgba(6,95,70,0.58)",
+                    overflowY: "auto",
+                    overflowX: "hidden",
                   }}
                 >
                   <div
@@ -1856,7 +1894,7 @@ export default function PlayPractice() {
                         style={{
                           fontSize: 16,
                           fontWeight: 700,
-                          color: "#f1f5f9",
+                          color: "var(--text-primary)",
                           letterSpacing: "-0.01em",
                         }}
                       >
@@ -1871,13 +1909,13 @@ export default function PlayPractice() {
                             : "/play/practice",
                         )
                       }
-                      className="transition-colors hover:text-slate-100"
+                      className="transition-colors hover:text-theme-foreground"
                       style={{
                         fontSize: 12,
                         fontWeight: 500,
-                        color: "#64748b",
-                        background: "#1a2235",
-                        border: "1px solid #263045",
+                        color: "var(--text-secondary)",
+                        background: "var(--bg-surface)",
+                        border: "1px solid rgba(var(--color-brand-500-rgb), 0.62)",
                         borderRadius: 7,
                         padding: "5px 13px",
                         cursor: "pointer",
@@ -1889,12 +1927,9 @@ export default function PlayPractice() {
 
                   <div
                     style={{
-                      background: "#141c2e",
-                      border: "1px solid #1e2d45",
-                      borderRadius: 14,
-                      flex: 1,
-                      minHeight: 0,
-                      overflow: "hidden",
+                      ...PRACTICE_CARD_STYLE,
+                      flex: "0 0 auto",
+                      minHeight: 158,
                       display: "flex",
                       flexDirection: "column",
                     }}
@@ -1904,9 +1939,9 @@ export default function PlayPractice() {
                         display: "flex",
                         alignItems: "center",
                         gap: 8,
-                        padding: "11px 14px",
-                        borderBottom: "1px solid #1a2640",
-                        background: "#111827",
+                        padding: "13px 16px",
+                        borderBottom: "1px solid rgba(var(--text-primary-rgb), 0.1)",
+                        background: "rgba(var(--bg-base-rgb), 0.38)",
                       }}
                     >
                       <div
@@ -1914,14 +1949,14 @@ export default function PlayPractice() {
                           width: 6,
                           height: 6,
                           borderRadius: "50%",
-                          background: "#334155",
+                          background: "rgba(var(--text-primary-rgb), 0.85)",
                         }}
                       />
                       <span
                         style={{
                           fontSize: 10,
                           fontWeight: 700,
-                          color: "#64748b",
+                          color: "var(--text-primary)",
                           letterSpacing: "0.1em",
                           textTransform: "uppercase",
                         }}
@@ -1932,10 +1967,11 @@ export default function PlayPractice() {
                     <div
                       className="practice-history-scroll"
                       style={{
-                        flex: 1,
-                        minHeight: 0,
+                        flex: "0 0 auto",
+                        minHeight: FREE_MOVE_HISTORY_LIST_HEIGHT,
+                        maxHeight: FREE_MOVE_HISTORY_LIST_HEIGHT,
                         overflowY: "auto",
-                        padding: "10px 12px",
+                        padding: "14px 16px",
                         fontFamily: '"Roboto Mono", monospace',
                       }}
                     >
@@ -1946,11 +1982,11 @@ export default function PlayPractice() {
                           "Make a legal move to start your PGN list.",
                         )}
                         activePly={sanMoves.length || null}
-                        rowClassName="grid grid-cols-[30px_minmax(0,1fr)_minmax(0,1fr)] gap-1.5 items-center text-sm"
-                        moveNumberClassName="text-[#334155]"
-                        moveCellClassName="font-medium rounded-[5px] px-2 py-1 bg-[#1a2640] text-[#94a3b8]"
-                        activeMoveClassName="bg-[linear-gradient(135deg,rgb(var(--color-brand-500-rgb)),rgb(var(--color-brand-600-rgb)))] text-white shadow-[0_2px_8px_rgb(var(--color-brand-500-rgb)/0.28)]"
-                        inactiveMoveClassName="text-[#94a3b8]"
+                        rowClassName="grid grid-cols-[34px_minmax(0,1fr)_minmax(0,1fr)] gap-2 items-center text-[12px] py-0.5"
+                        moveNumberClassName="text-theme-accent"
+                        moveCellClassName="font-medium rounded-md px-2.5 py-1.5 bg-theme-panel text-theme-foreground text-[11px] overflow-hidden text-ellipsis whitespace-nowrap"
+                        activeMoveClassName="bg-[linear-gradient(135deg,rgb(var(--color-brand-500-rgb)),rgb(var(--color-brand-600-rgb)))] text-theme-on-accent shadow-[0_2px_8px_rgb(var(--color-brand-500-rgb)/0.28)]"
+                        inactiveMoveClassName="text-theme-foreground/90"
                         showMissingMoveCell
                         missingMoveText="--"
                         footer={<div ref={movesEndRef} />}
@@ -1960,18 +1996,15 @@ export default function PlayPractice() {
 
                   <div
                     style={{
-                      background: "#141c2e",
-                      border: "1px solid #1e2d45",
-                      borderRadius: 14,
-                      overflow: "hidden",
+                      ...PRACTICE_CARD_STYLE,
                     }}
                   >
                     <div
                       style={{
-                        padding: "10px 12px",
+                        ...PRACTICE_CARD_BODY_STYLE,
                         display: "flex",
                         flexDirection: "column",
-                        gap: 10,
+                        gap: 12,
                       }}
                     >
                       {opening && (
@@ -1985,9 +2018,10 @@ export default function PlayPractice() {
                         >
                           <div
                             style={{
-                              fontSize: 12.5,
-                              fontWeight: 600,
-                              color: "#cbd5e1",
+                             fontSize: 12.5,
+                             fontWeight: 600,
+                             color: "var(--text-primary)",
+                             lineHeight: 1.35,
                             }}
                           >
                             {opening.variation
@@ -1996,8 +2030,8 @@ export default function PlayPractice() {
                           </div>
                           <div
                             style={{
-                              fontSize: 11,
-                              color: "#64748b",
+                             fontSize: 11,
+                             color: "rgba(var(--text-secondary-rgb), 0.96)",
                             }}
                           >
                             {opening.eco ? `ECO ${opening.eco}` : ""}
@@ -2009,7 +2043,7 @@ export default function PlayPractice() {
                         <div
                           style={{
                             fontSize: 11,
-                            color: "#64748b",
+                            color: "var(--text-secondary)",
                             padding: "0 2px",
                           }}
                         >
@@ -2023,9 +2057,10 @@ export default function PlayPractice() {
                       <div
                         style={{
                           borderRadius: 10,
-                          border: "1px solid #24324d",
-                          background: "#111827",
-                          padding: "8px 10px",
+                          border: "1px solid rgba(var(--text-primary-rgb), 0.12)",
+                          background: "rgba(var(--bg-base-rgb), 0.46)",
+                          padding: "11px 12px",
+                          boxShadow: "inset 0 1px 0 rgba(var(--text-primary-rgb), 0.05)",
                         }}
                       >
                         <div
@@ -2041,19 +2076,22 @@ export default function PlayPractice() {
                             style={{
                               fontSize: 10.5,
                               fontWeight: 700,
-                              color: "#64748b",
+                              color: "var(--text-primary)",
                               letterSpacing: "0.08em",
                               textTransform: "uppercase",
                             }}
                           >
-                            {t("practice.workspace.freeMove.topFiveMoves", "Top 5 Moves")}
+                            {t("practice.workspace.freeMove.topFiveMoves", "Top 5 Moves").replace(
+                              "5",
+                              "3",
+                            )}
                           </div>
-                          <div
-                            style={{
-                              fontSize: 10.5,
-                              color: "#64748b",
-                            }}
-                          >
+                           <div
+                             style={{
+                               fontSize: 10.5,
+                               color: "rgba(var(--text-secondary-rgb), 0.96)",
+                             }}
+                           >
                             {createGameFromFen(fen).turn() === "w"
                               ? t("practice.workspace.freeMove.whiteToMove", "White to move")
                               : t("practice.workspace.freeMove.blackToMove", "Black to move")}
@@ -2064,7 +2102,7 @@ export default function PlayPractice() {
                           <div
                             style={{
                               fontSize: 11.5,
-                              color: "#64748b",
+                              color: "var(--text-secondary)",
                             }}
                           >
                             {topMovesLoading
@@ -2080,27 +2118,34 @@ export default function PlayPractice() {
                                   )}
                           </div>
                         ) : (
-                          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                            {topMoves.map((line) => (
+                          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                            {topMoves.slice(0, 3).map((line) => (
                               <div
                                 key={`${line.rank}-${line.uci}`}
+                                className="practice-top-move-row"
                                 style={{
                                   display: "grid",
                                   gridTemplateColumns: "24px minmax(0,1fr) auto",
-                                  gap: 8,
+                                  gap: 10,
                                   alignItems: "center",
-                                  padding: "2px 0",
+                                  padding: "7px 8px",
+                                  borderRadius: 8,
+                                  background:
+                                    line.rank % 2 === 0
+                                      ? "rgba(var(--bg-base-rgb), 0.56)"
+                                      : "rgba(var(--text-primary-rgb), 0.045)",
                                   fontFamily: '"Roboto Mono", monospace',
-                                  fontSize: 11.5,
-                                  color: "#cbd5e1",
+                                  fontSize: 11,
+                                  color: "var(--text-primary)",
                                 }}
                               >
-                                <span style={{ color: "#64748b" }}>#{line.rank}</span>
+                                <span style={{ color: "rgba(var(--text-secondary-rgb), 0.98)" }}>#{line.rank}</span>
                                 <span
                                   style={{
                                     overflow: "hidden",
                                     textOverflow: "ellipsis",
                                     whiteSpace: "nowrap",
+                                    color: "rgba(var(--text-primary-rgb), 0.96)",
                                   }}
                                 >
                                   {line.san}
@@ -2108,7 +2153,26 @@ export default function PlayPractice() {
                                     ? ` • ${line.pvSan.slice(0, 4).join(" ")}`
                                     : ""}
                                 </span>
-                                <span style={{ color: "#94a3b8" }}>
+                                <span
+                                  style={{
+                                    color:
+                                      typeof line.scoreMate === "number"
+                                        ? line.scoreMate > 0
+                                          ? "#4ade80"
+                                          : line.scoreMate < 0
+                                            ? "#fb7185"
+                                            : "rgba(var(--text-secondary-rgb), 0.98)"
+                                        : typeof line.scoreCp === "number"
+                                          ? line.scoreCp > 0
+                                            ? "#4ade80"
+                                            : line.scoreCp < 0
+                                              ? "#fb7185"
+                                              : "rgba(var(--text-secondary-rgb), 0.98)"
+                                          : "rgba(var(--text-secondary-rgb), 0.98)",
+                                    fontWeight: 700,
+                                    fontVariantNumeric: "tabular-nums",
+                                  }}
+                                >
                                   {formatTopMoveScore(line.scoreCp, line.scoreMate)}
                                 </span>
                               </div>
@@ -2121,39 +2185,37 @@ export default function PlayPractice() {
 
                   <div
                     style={{
-                      background: "#141c2e",
-                      border: "1px solid #1e2d45",
-                      borderRadius: 14,
-                      overflow: "hidden",
+                      ...PRACTICE_CARD_STYLE,
                     }}
                   >
 
                     <div
                       style={{
-                        padding: "10px 12px",
-                        borderBottom: "1px solid #1a2640",
+                        ...PRACTICE_CARD_BODY_STYLE,
                       }}
                     >
                       <div
                         style={{
                           display: "flex",
                           alignItems: "center",
-                          gap: 8,
-                          padding: 6,
+                          justifyContent: "center",
+                          gap: 12,
+                          padding: 8,
                           borderRadius: 12,
-                          border: "1px solid #1e2d45",
-                          background: "#141c2e",
+                          border: "1px solid rgba(var(--text-primary-rgb), 0.12)",
+                          background: "rgba(var(--bg-base-rgb), 0.42)",
+                          boxShadow: "inset 0 1px 0 rgba(var(--text-primary-rgb), 0.05)",
                         }}
                       >
                         <button
                           onClick={handleUndo}
                           disabled={sanMoves.length === 0}
-                          className="transition-colors hover:text-slate-300"
+                          className="practice-free-move-nav-button transition-colors hover:text-theme-muted"
                           style={{
                             ...FREE_MOVE_ARROW_BUTTON_STYLE,
-                            width: 32,
-                            height: 32,
-                            background: "#1a2540",
+                            width: 38,
+                            height: 38,
+                            background: "rgba(var(--bg-surface-rgb), 0.9)",
                             opacity: sanMoves.length === 0 ? 0.5 : 1,
                             cursor: sanMoves.length === 0 ? "not-allowed" : "pointer",
                           }}
@@ -2165,11 +2227,13 @@ export default function PlayPractice() {
                         <span
                           style={{
                             fontSize: 12,
-                            color: "#334155",
-                            flex: 1,
+                            color: "rgba(var(--text-secondary-rgb), 0.96)",
+                            flex: "0 1 180px",
+                            minWidth: 118,
+                            maxWidth: 220,
                             textAlign: "center",
                             padding: "0 8px",
-                            fontWeight: 500,
+                            fontWeight: 600,
                           }}
                         >
                           {sanMoves.length === 0
@@ -2182,12 +2246,12 @@ export default function PlayPractice() {
                         <button
                           onClick={handleRedo}
                           disabled={redoStack.length === 0}
-                          className="transition-colors hover:text-slate-300"
+                          className="practice-free-move-nav-button transition-colors hover:text-theme-muted"
                           style={{
                             ...FREE_MOVE_ARROW_BUTTON_STYLE,
-                            width: 32,
-                            height: 32,
-                            background: "#1a2540",
+                            width: 38,
+                            height: 38,
+                            background: "rgba(var(--bg-surface-rgb), 0.9)",
                             opacity: redoStack.length === 0 ? 0.5 : 1,
                             cursor: redoStack.length === 0 ? "not-allowed" : "pointer",
                           }}
@@ -2198,15 +2262,26 @@ export default function PlayPractice() {
                         </button>
                       </div>
                     </div>
+                  </div>
 
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 7, padding: "10px 12px" }}>
+                  <div
+                    style={{
+                      ...PRACTICE_CARD_STYLE,
+                    }}
+                  >
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9, padding: "14px 16px" }}>
                       <button
                         onClick={handleReset}
-                        className="transition-colors hover:text-slate-300"
+                        className="transition-colors hover:text-theme-muted"
                         style={{
                           ...FREE_MOVE_BASE_BUTTON_STYLE,
-                          background: "#1a2540",
-                          color: "#64748b",
+                          background: "var(--bg-surface)",
+                          color: "var(--text-secondary)",
+                          minHeight: 50,
+                          fontSize: 13,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
                         }}
                       >
                         {t("practice.workspace.freeMove.resetToStart", "Reset to Start")}
@@ -2218,9 +2293,14 @@ export default function PlayPractice() {
                           ...FREE_MOVE_BASE_BUTTON_STYLE,
                           background:
                             "linear-gradient(135deg, rgb(var(--color-brand-500-rgb)), rgb(var(--color-brand-600-rgb)))",
-                          color: "#fff",
+                          color: "var(--text-primary)",
                           border: "none",
                           fontWeight: 600,
+                          minHeight: 50,
+                          fontSize: 13,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
                           boxShadow:
                             "0 2px 8px rgb(var(--color-brand-500-rgb) / 0.25)",
                         }}
@@ -2228,19 +2308,19 @@ export default function PlayPractice() {
                         {t("practice.workspace.exportPgn", "Export PGN")}
                       </button>
                     </div>
-                    <div style={{ padding: "0 12px 12px" }}>
+                    <div style={{ padding: "0 16px 14px" }}>
                       <button
                         onClick={handleFlipBoard}
-                        className="transition-colors hover:text-slate-300"
+                        className="transition-colors hover:text-theme-muted"
                         style={{
                           width: "100%",
                           padding: 10,
                           borderRadius: 9,
                           fontSize: 12.5,
                           fontWeight: 500,
-                          background: "#141c2e",
-                          color: "#4a5f80",
-                          border: "1px dashed #1e2d45",
+                          background: "var(--bg-surface)",
+                          color: "var(--text-secondary)",
+                          border: "1px dashed rgba(var(--color-brand-500-rgb), 0.72)",
                           cursor: "pointer",
                         }}
                       >
@@ -2250,10 +2330,12 @@ export default function PlayPractice() {
                     {preMove && (
                       <div
                         style={{
-                          padding: "0 12px 10px",
-                          fontSize: 11,
-                          color: "#f59e0b",
+                          padding: "0 16px 12px",
+                          fontSize: 11.5,
+                          color: "var(--accent-muted)",
+                          fontWeight: 700,
                           fontFamily: '"Roboto Mono", monospace',
+                          textShadow: "0 0 10px rgba(var(--accent-rgb), 0.24)",
                         }}
                       >
                         {t("practice.workspace.freeMove.queuedPreMove", "Queued pre-move")}:{" "}
@@ -2265,9 +2347,9 @@ export default function PlayPractice() {
                     {panelNotice && (
                       <div
                         style={{
-                          padding: "0 12px 10px",
+                          padding: "0 16px 10px",
                           fontSize: 11,
-                          color: "#64748b",
+                          color: "var(--text-secondary)",
                         }}
                       >
                         {panelNotice}
@@ -2275,7 +2357,7 @@ export default function PlayPractice() {
                     )}
 
                     {exportFallback && (
-                      <div style={{ padding: "0 12px 12px" }}>
+                      <div style={{ padding: "0 16px 14px" }}>
                         <textarea
                           readOnly
                           value={exportFallback}
@@ -2283,9 +2365,9 @@ export default function PlayPractice() {
                             width: "100%",
                             height: 112,
                             borderRadius: 8,
-                            border: "1px solid #263045",
-                            background: "#111827",
-                            color: "#94a3b8",
+                            border: "1px solid rgba(var(--text-primary-rgb), 0.12)",
+                            background: "rgba(var(--bg-base-rgb), 0.52)",
+                            color: "var(--text-secondary)",
                             padding: 8,
                             fontSize: 12,
                             fontFamily: '"Roboto Mono", monospace',
@@ -2304,24 +2386,25 @@ export default function PlayPractice() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -16 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}
-                className="h-full min-h-0 p-3 lg:p-4 flex items-stretch justify-center"
+                className="min-h-0 p-3 lg:p-4 flex items-start lg:items-stretch justify-center"
               >
                 <div
+                  className="premium-scrollbar"
                   style={{
-                    background: "#0f1117",
+                    ...PRACTICE_RIGHT_PANEL_STYLE,
                     width: "100%",
                     maxWidth: 620,
-                    height: "100%",
+                    height: freeMovePanelHeight,
+                    maxHeight: freeMovePanelHeight,
                     display: "flex",
                     flexDirection: "column",
-                    padding: "12px",
-                    gap: 8,
+                    gap: 16,
                     fontFamily: "inherit",
-                    borderRadius: 18,
-                    border: "1px solid #1e2d45",
-                    boxShadow: "0 24px 58px -30px rgba(6,95,70,0.58)",
+                    boxShadow:
+                      "0 20px 48px -30px rgba(6,95,70,0.64), inset 0 0 0 1px rgba(var(--border-color-rgb), 0.45)",
                     overflowY: "auto",
                     overflowX: "hidden",
+                    scrollbarGutter: "stable",
                   }}
                 >
                   <div
@@ -2329,7 +2412,7 @@ export default function PlayPractice() {
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "space-between",
-                      padding: "0 2px 6px",
+                      padding: "0 2px 8px",
                     }}
                   >
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -2352,7 +2435,7 @@ export default function PlayPractice() {
                         style={{
                           fontSize: 16,
                           fontWeight: 700,
-                          color: "#f1f5f9",
+                          color: "var(--text-primary)",
                           letterSpacing: "-0.01em",
                         }}
                       >
@@ -2361,15 +2444,15 @@ export default function PlayPractice() {
                     </div>
                     <button
                       onClick={() => navigate("/play/practice")}
-                      className="transition-colors hover:text-slate-100"
+                      className="transition-colors hover:text-theme-foreground"
                       style={{
-                        fontSize: 12,
-                        fontWeight: 500,
-                        color: "#64748b",
-                        background: "#1a2235",
-                        border: "1px solid #263045",
-                        borderRadius: 7,
-                        padding: "5px 13px",
+                        fontSize: 12.5,
+                        fontWeight: 600,
+                        color: "var(--text-secondary)",
+                        background: "rgba(var(--bg-panel-rgb), 0.88)",
+                        border: "1px solid rgba(var(--border-color-rgb), 0.72)",
+                        borderRadius: 9,
+                        padding: "6px 14px",
                         cursor: "pointer",
                       }}
                     >
@@ -2379,78 +2462,59 @@ export default function PlayPractice() {
 
                   <div
                     style={{
-                      background: "#141c2e",
-                      border: "1px solid #1e2d45",
-                      borderRadius: 14,
-                      overflow: "hidden",
+                      ...PRACTICE_CARD_STYLE,
                     }}
                   >
                     <div
                       style={{
-                        display: "flex",
-                        alignItems: "center",
+                        display: "grid",
+                        gridTemplateColumns: "1fr 1fr",
                         gap: 8,
-                        padding: "10px 14px",
-                        borderBottom: "1px solid #1a2640",
-                        background: "#111827",
+                        ...PRACTICE_CARD_BODY_STYLE,
                       }}
                     >
-                      <div
-                        style={{
-                          width: 6,
-                          height: 6,
-                          borderRadius: "50%",
-                          background: "#334155",
-                        }}
-                      />
-                      <span
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 700,
-                          color: "#94a3b8",
-                          letterSpacing: "0.11em",
-                          textTransform: "uppercase",
-                        }}
-                      >
-                        {t("practice.workspace.turnToMove", "Turn to Move")}
-                      </span>
-                    </div>
-                    <div style={{ display: "flex", gap: 6, padding: "10px 12px" }}>
                       <button
                         type="button"
                         onClick={() => handlePositionBuilderSideChange("w")}
                         style={{
-                          flex: 1,
-                          padding: 9,
+                          minHeight: 42,
                           borderRadius: 9,
-                          fontSize: 12.5,
+                          fontSize: 13,
                           fontWeight: 600,
                           cursor: "pointer",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
                           gap: 8,
-                          border:
+                          border: `1px solid ${
                             positionBuilderSideToMove === "w"
-                              ? "1px solid #f8fafc"
-                              : "1px solid #263045",
+                              ? "rgb(var(--color-brand-500-rgb) / 0.75)"
+                              : "rgba(var(--border-color-rgb), 0.72)"
+                          }`,
                           color:
                             positionBuilderSideToMove === "w"
-                              ? "#0f172a"
-                              : "#94a3b8",
+                              ? "var(--text-primary)"
+                              : "var(--text-secondary)",
                           background:
                             positionBuilderSideToMove === "w"
-                              ? "#f8fafc"
-                              : "#1a2540",
+                              ? "rgb(var(--color-brand-500-rgb) / 0.2)"
+                              : "rgba(var(--bg-base-rgb), 0.45)",
                         }}
                       >
                         <span
                           style={{
-                            width: 10,
-                            height: 10,
+                            width: 12,
+                            height: 12,
                             borderRadius: "50%",
-                            background: "#f8fafc",
-                            border: "1.5px solid #cbd5e1",
+                            background:
+                              positionBuilderSideToMove === "w"
+                                ? "rgb(var(--color-brand-500-rgb))"
+                                : "transparent",
+                            border: `1.6px solid ${
+                              positionBuilderSideToMove === "w"
+                                ? "rgb(var(--color-brand-500-rgb))"
+                                : "rgba(var(--border-color-rgb), 0.78)"
+                            }`,
                           }}
                         />
                         {t("practice.workspace.turn.white", "White")}
@@ -2459,37 +2523,44 @@ export default function PlayPractice() {
                         type="button"
                         onClick={() => handlePositionBuilderSideChange("b")}
                         style={{
-                          flex: 1,
-                          padding: 9,
+                          minHeight: 42,
                           borderRadius: 9,
-                          fontSize: 12.5,
+                          fontSize: 13,
                           fontWeight: 600,
                           cursor: "pointer",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
                           gap: 8,
-                          border:
+                          border: `1px solid ${
                             positionBuilderSideToMove === "b"
-                              ? "1px solid #f8fafc"
-                              : "1px solid #263045",
+                              ? "rgb(var(--color-brand-500-rgb) / 0.75)"
+                              : "rgba(var(--border-color-rgb), 0.72)"
+                          }`,
                           color:
                             positionBuilderSideToMove === "b"
-                              ? "#0f172a"
-                              : "#94a3b8",
+                              ? "var(--text-primary)"
+                              : "var(--text-secondary)",
                           background:
                             positionBuilderSideToMove === "b"
-                              ? "#f8fafc"
-                              : "#1a2540",
+                              ? "rgb(var(--color-brand-500-rgb) / 0.2)"
+                              : "rgba(var(--bg-base-rgb), 0.45)",
                         }}
                       >
                         <span
                           style={{
-                            width: 10,
-                            height: 10,
+                            width: 12,
+                            height: 12,
                             borderRadius: "50%",
-                            background: "#0f172a",
-                            border: "1.5px solid #475569",
+                            background:
+                              positionBuilderSideToMove === "b"
+                                ? "rgb(var(--color-brand-500-rgb))"
+                                : "transparent",
+                            border: `1.6px solid ${
+                              positionBuilderSideToMove === "b"
+                                ? "rgb(var(--color-brand-500-rgb))"
+                                : "rgba(var(--border-color-rgb), 0.78)"
+                            }`,
                           }}
                         />
                         {t("practice.workspace.turn.black", "Black")}
@@ -2499,61 +2570,21 @@ export default function PlayPractice() {
 
                   <div
                     style={{
-                      background: "#141c2e",
-                      border: "1px solid #1e2d45",
-                      borderRadius: 14,
-                      overflow: "hidden",
+                      ...PRACTICE_CARD_STYLE,
+                      display: "flex",
+                      flexDirection: "column",
                     }}
                   >
                     <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 8,
-                        padding: "10px 14px",
-                        borderBottom: "1px solid #1a2640",
-                        background: "#111827",
-                      }}
+                      className="premium-scrollbar"
+                      style={{ padding: "14px 16px", overflowY: "auto" }}
                     >
-                      <span
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 700,
-                          color: "#94a3b8",
-                          letterSpacing: "0.11em",
-                          textTransform: "uppercase",
-                        }}
-                      >
-                        {t(
-                          "practice.workspace.positionBuilderPanel.piecePalette",
-                          "Piece Palette",
-                        )}
-                      </span>
-                    </div>
-
-                    <div style={{ paddingTop: 8 }}>
-                      <div
-                        style={{
-                          fontSize: 10,
-                          color: "#7f93b0",
-                          textAlign: "center",
-                          padding: "0 12px 6px",
-                          fontWeight: 700,
-                          letterSpacing: "0.08em",
-                          textTransform: "uppercase",
-                        }}
-                      >
-                        {t(
-                          "practice.workspace.positionBuilderPanel.whitePiece",
-                          "White Piece",
-                        )}
-                      </div>
                       <div
                         style={{
                           display: "grid",
-                          gridTemplateColumns: "repeat(6, 1fr)",
-                          gap: 5,
-                          padding: "0 12px 10px",
+                          gridTemplateColumns: "repeat(6, minmax(0, 1fr))",
+                          gap: 6,
+                          padding: "0 0 10px",
                         }}
                       >
                         {POSITION_BUILDER_WHITE_PIECES.map((pieceId) => {
@@ -2565,14 +2596,14 @@ export default function PlayPractice() {
                               type="button"
                               onClick={() => setPositionBuilderSelectedPiece(pieceId)}
                               style={{
-                                height: 56,
-                                borderRadius: 9,
+                                height: 44,
+                                borderRadius: 8,
                                 background: isSelected
-                                  ? "rgb(var(--color-brand-500-rgb) / 0.18)"
-                                  : "#1a2540",
+                                  ? "rgb(var(--color-brand-500-rgb) / 0.2)"
+                                  : "rgba(var(--bg-base-rgb), 0.42)",
                                 border: isSelected
-                                  ? "1.5px solid rgb(var(--color-brand-500-rgb) / 0.6)"
-                                  : "1.5px solid #263045",
+                                  ? "1px solid rgb(var(--color-brand-500-rgb) / 0.85)"
+                                  : "1px solid rgba(255,255,255,0.28)",
                                 cursor: "pointer",
                                 display: "flex",
                                 alignItems: "center",
@@ -2582,9 +2613,9 @@ export default function PlayPractice() {
                               <span
                                 aria-hidden="true"
                                 style={{
-                                  fontSize: 36,
+                                  fontSize: 30,
                                   lineHeight: 1,
-                                  color: "#ffffff",
+                                  color: "var(--text-primary)",
                                   textShadow: "0 0 1px rgba(0,0,0,0.9)",
                                   userSelect: "none",
                                 }}
@@ -2599,33 +2630,17 @@ export default function PlayPractice() {
                       <div
                         style={{
                           height: 1,
-                          background: "#1a2640",
-                          margin: "0 12px 6px",
+                          background: "rgba(var(--border-color-rgb), 0.45)",
+                          margin: "0 0 8px",
                         }}
                       />
 
                       <div
                         style={{
-                          fontSize: 10,
-                          color: "#7f93b0",
-                          textAlign: "center",
-                          padding: "0 12px 6px",
-                          fontWeight: 700,
-                          letterSpacing: "0.08em",
-                          textTransform: "uppercase",
-                        }}
-                      >
-                        {t(
-                          "practice.workspace.positionBuilderPanel.blackPiece",
-                          "Black Piece",
-                        )}
-                      </div>
-                      <div
-                        style={{
                           display: "grid",
-                          gridTemplateColumns: "repeat(6, 1fr)",
-                          gap: 5,
-                          padding: "0 12px 8px",
+                          gridTemplateColumns: "repeat(6, minmax(0, 1fr))",
+                          gap: 6,
+                          padding: "0 0 10px",
                         }}
                       >
                         {POSITION_BUILDER_BLACK_PIECES.map((pieceId) => {
@@ -2637,14 +2652,14 @@ export default function PlayPractice() {
                               type="button"
                               onClick={() => setPositionBuilderSelectedPiece(pieceId)}
                               style={{
-                                height: 56,
-                                borderRadius: 9,
+                                height: 44,
+                                borderRadius: 8,
                                 background: isSelected
-                                  ? "rgb(var(--color-brand-500-rgb) / 0.18)"
-                                  : "#1a2540",
+                                  ? "rgb(var(--color-brand-500-rgb) / 0.2)"
+                                  : "rgba(var(--bg-base-rgb), 0.42)",
                                 border: isSelected
-                                  ? "1.5px solid rgb(var(--color-brand-500-rgb) / 0.6)"
-                                  : "1.5px solid #263045",
+                                  ? "1px solid rgb(var(--color-brand-500-rgb) / 0.85)"
+                                  : "1px solid rgba(255,255,255,0.28)",
                                 cursor: "pointer",
                                 display: "flex",
                                 alignItems: "center",
@@ -2654,10 +2669,10 @@ export default function PlayPractice() {
                               <span
                                 aria-hidden="true"
                                 style={{
-                                  fontSize: 36,
+                                  fontSize: 30,
                                   lineHeight: 1,
-                                  color: "#0f172a",
-                                  textShadow: "0 0 1px rgba(255,255,255,0.7)",
+                                  color: "var(--practice-piece-black-color)",
+                                  textShadow: "var(--practice-piece-black-shadow)",
                                   userSelect: "none",
                                 }}
                               >
@@ -2671,19 +2686,20 @@ export default function PlayPractice() {
                       <div
                         style={{
                           height: 1,
-                          background: "#1a2640",
-                          margin: "2px 12px 8px",
+                          background: "rgba(var(--border-color-rgb), 0.45)",
+                          margin: "2px 0 10px",
                         }}
                       />
-                      <div style={{ padding: "0 12px 12px" }}>
+                      <div style={{ padding: 0 }}>
                         <button
                           type="button"
                           onClick={() => setPositionBuilderSelectedPiece("eraser")}
                           style={{
                             width: "100%",
-                            padding: "9px 10px",
+                            minHeight: 38,
+                            padding: "8px 10px",
                             borderRadius: 9,
-                            fontSize: 12,
+                            fontSize: 12.5,
                             fontWeight: 600,
                             cursor: "pointer",
                             display: "flex",
@@ -2692,16 +2708,16 @@ export default function PlayPractice() {
                             gap: 7,
                             border:
                               positionBuilderSelectedPiece === "eraser"
-                                ? "1px solid rgba(239,68,68,0.34)"
-                                : "1px solid #263045",
+                                ? "1px solid rgba(239,68,68,0.5)"
+                                : "1px solid rgba(var(--border-color-rgb), 0.7)",
                             background:
                               positionBuilderSelectedPiece === "eraser"
                                 ? "rgba(239,68,68,0.14)"
-                                : "#1a2540",
+                                : "rgba(var(--bg-base-rgb), 0.42)",
                             color:
                               positionBuilderSelectedPiece === "eraser"
-                                ? "#f87171"
-                                : "#64748b",
+                                ? "var(--accent-hover)"
+                                : "var(--text-secondary)",
                           }}
                         >
                           <svg
@@ -2725,51 +2741,15 @@ export default function PlayPractice() {
 
                   <div
                     style={{
-                      background: "#141c2e",
-                      border: "1px solid #1e2d45",
-                      borderRadius: 14,
-                      overflow: "hidden",
+                      ...PRACTICE_CARD_STYLE,
                     }}
                   >
                     <div
                       style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 8,
-                        padding: "10px 14px",
-                        borderBottom: "1px solid #1a2640",
-                        background: "#111827",
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: 6,
-                          height: 6,
-                          borderRadius: "50%",
-                          background: "#334155",
-                        }}
-                      />
-                      <span
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 700,
-                          color: "#94a3b8",
-                          letterSpacing: "0.11em",
-                          textTransform: "uppercase",
-                        }}
-                      >
-                        {t(
-                          "practice.workspace.positionBuilderPanel.fenString",
-                          "FEN String",
-                        )}
-                      </span>
-                    </div>
-                    <div
-                      style={{
-                        padding: "10px 12px",
+                        ...PRACTICE_CARD_BODY_STYLE,
                         display: "flex",
                         flexDirection: "column",
-                        gap: 6,
+                        gap: 8,
                       }}
                     >
                       <textarea
@@ -2782,20 +2762,21 @@ export default function PlayPractice() {
                         spellCheck={false}
                         style={{
                           width: "100%",
-                          background: "#0f1723",
+                          boxSizing: "border-box",
+                          background: "rgba(var(--bg-base-rgb), 0.75)",
                           border: isPositionBuilderFenFocused
-                            ? "1px solid rgba(16,185,129,0.7)"
-                            : "1px solid #1e2d45",
-                          borderRadius: 8,
-                          color: "#94a3b8",
-                          fontSize: 11,
+                            ? "1px solid rgb(var(--color-brand-500-rgb) / 0.85)"
+                            : "1px solid rgba(var(--border-color-rgb), 0.72)",
+                          borderRadius: 9,
+                          color: "var(--text-primary)",
+                          fontSize: 12,
                           fontFamily: '"Roboto Mono", monospace',
-                          padding: "8px 10px",
+                          padding: "10px 12px",
                           outline: "none",
                           resize: "none",
-                          height: 50,
+                          minHeight: 58,
                           boxShadow: isPositionBuilderFenFocused
-                            ? "0 0 0 2px rgba(16,185,129,0.2), 0 0 10px rgba(16,185,129,0.25)"
+                            ? "0 0 0 2px rgb(var(--color-brand-500-rgb) / 0.22), 0 0 10px rgb(var(--color-brand-500-rgb) / 0.22)"
                             : "none",
                           transition: "border-color 140ms ease, box-shadow 140ms ease",
                         }}
@@ -2804,7 +2785,7 @@ export default function PlayPractice() {
                         style={{
                           display: "grid",
                           gridTemplateColumns: "1fr 1fr",
-                          gap: 6,
+                          gap: 8,
                         }}
                       >
                         <button
@@ -2812,12 +2793,16 @@ export default function PlayPractice() {
                           onClick={handlePositionBuilderLoadFen}
                           style={{
                             ...FREE_MOVE_BASE_BUTTON_STYLE,
-                            background: "#1a2540",
-                            color: "#94a3b8",
-                            border: "1px solid #263045",
-                            padding: 8,
-                            fontSize: 11.5,
+                            minHeight: 40,
+                            background: "rgba(var(--bg-base-rgb), 0.42)",
+                            color: "var(--text-secondary)",
+                            border: "1px solid rgba(var(--border-color-rgb), 0.72)",
+                            padding: 9,
+                            fontSize: 12,
                             borderRadius: 8,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
                           }}
                         >
                           {t(
@@ -2830,14 +2815,18 @@ export default function PlayPractice() {
                           onClick={handlePositionBuilderCopyFen}
                           style={{
                             ...FREE_MOVE_BASE_BUTTON_STYLE,
+                            minHeight: 40,
                             background:
-                              "linear-gradient(135deg, #10b981, #059669)",
-                            color: "#ffffff",
+                              "linear-gradient(135deg, rgb(var(--color-brand-500-rgb)), rgb(var(--color-brand-600-rgb)))",
+                            color: "var(--text-primary)",
                             border: "none",
-                            padding: 8,
-                            fontSize: 11.5,
+                            padding: 9,
+                            fontSize: 12,
                             borderRadius: 8,
-                            boxShadow: "0 2px 8px rgba(16,185,129,0.28)",
+                            boxShadow: "0 3px 10px rgb(var(--color-brand-500-rgb) / 0.28)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
                           }}
                         >
                           {t(
@@ -2851,52 +2840,16 @@ export default function PlayPractice() {
 
                   <div
                     style={{
-                      background: "#141c2e",
-                      border: "1px solid #1e2d45",
-                      borderRadius: 14,
-                      overflow: "hidden",
+                      ...PRACTICE_CARD_STYLE,
                     }}
                   >
                     <div
                       style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 8,
-                        padding: "10px 14px",
-                        borderBottom: "1px solid #1a2640",
-                        background: "#111827",
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: 6,
-                          height: 6,
-                          borderRadius: "50%",
-                          background: "#334155",
-                        }}
-                      />
-                      <span
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 700,
-                          color: "#94a3b8",
-                          letterSpacing: "0.11em",
-                          textTransform: "uppercase",
-                        }}
-                      >
-                        {t(
-                          "practice.workspace.positionBuilderPanel.boardActions",
-                          "Board Actions",
-                        )}
-                      </span>
-                    </div>
-                    <div
-                      style={{
                         display: "grid",
                         gridTemplateColumns: "1fr 1fr",
-                        columnGap: 10,
-                        rowGap: 12,
-                        padding: "12px 12px 14px",
+                        columnGap: 8,
+                        rowGap: 8,
+                        padding: "14px 16px",
                       }}
                     >
                       <button
@@ -2904,9 +2857,13 @@ export default function PlayPractice() {
                         onClick={handlePositionBuilderStartPosition}
                         style={{
                           ...FREE_MOVE_BASE_BUTTON_STYLE,
-                          background: "#1a2540",
-                          color: "#94a3b8",
-                          border: "1px solid #263045",
+                          minHeight: 40,
+                          background: "rgba(var(--bg-base-rgb), 0.42)",
+                          color: "var(--text-secondary)",
+                          border: "1px solid rgba(var(--border-color-rgb), 0.72)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
                         }}
                       >
                         {t(
@@ -2919,9 +2876,13 @@ export default function PlayPractice() {
                         onClick={handlePositionBuilderClearBoard}
                         style={{
                           ...FREE_MOVE_BASE_BUTTON_STYLE,
+                          minHeight: 40,
                           background: "transparent",
-                          color: "#f87171",
-                          border: "1px solid rgba(248,113,113,0.45)",
+                          color: "var(--accent-hover)",
+                          border: "1px solid rgba(var(--accent-hover-rgb),0.45)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
                         }}
                       >
                         {t(
@@ -2935,11 +2896,12 @@ export default function PlayPractice() {
                         style={{
                           ...FREE_MOVE_BASE_BUTTON_STYLE,
                           gridColumn: "span 2",
+                          minHeight: 42,
                           background:
-                            "linear-gradient(135deg, #10b981, #059669)",
-                          color: "#fff",
+                            "linear-gradient(135deg, rgb(var(--color-brand-500-rgb)), rgb(var(--color-brand-600-rgb)))",
+                          color: "var(--text-primary)",
                           border: "none",
-                          boxShadow: "0 4px 14px rgba(16,185,129,0.34)",
+                          boxShadow: "0 4px 14px rgb(var(--color-brand-500-rgb) / 0.34)",
                         }}
                       >
                         {t(
@@ -2952,9 +2914,9 @@ export default function PlayPractice() {
                   {panelNotice && (
                     <div
                       style={{
-                        padding: "0 4px 2px",
-                        fontSize: 11,
-                        color: "#64748b",
+                        padding: "0 4px 4px",
+                        fontSize: 11.5,
+                        color: "var(--text-secondary)",
                       }}
                     >
                       {panelNotice}
@@ -2967,12 +2929,13 @@ export default function PlayPractice() {
                       value={positionBuilderFenFallback}
                       style={{
                         width: "100%",
+                        boxSizing: "border-box",
                         height: 74,
                         borderRadius: 8,
-                        border: "1px solid #263045",
-                        background: "#111827",
-                        color: "#94a3b8",
-                        padding: 8,
+                        border: "1px solid rgba(var(--border-color-rgb), 0.72)",
+                        background: "rgba(var(--bg-base-rgb), 0.62)",
+                        color: "var(--text-secondary)",
+                        padding: 10,
                         fontSize: 12,
                         fontFamily: '"Roboto Mono", monospace',
                         resize: "none",
@@ -2992,26 +2955,26 @@ export default function PlayPractice() {
               >
                 <div
                   style={{
-                    background: "#161d2e",
+                    background: "var(--bg-surface)",
                     width: "100%",
                     height: "100%",
                     display: "flex",
                     flexDirection: "column",
-                    borderLeft: "1px solid rgba(255,255,255,0.07)",
+                    borderLeft: "1px solid rgba(var(--glass-border-rgb), 0.55)",
                   }}
                 >
                   <div
                     style={{
                       padding: "20px 20px 16px",
-                      borderBottom: "1px solid rgba(255,255,255,0.07)",
+                      borderBottom: "1px solid rgba(var(--glass-border-rgb), 0.55)",
                     }}
                   >
                     <p
-                      style={{ fontSize: 15, fontWeight: 600, color: "#f1f5f9" }}
+                      style={{ fontSize: 15, fontWeight: 600, color: "var(--text-primary)" }}
                     >
                       {t("practice.workspace.title", "Practice Workspace")}
                     </p>
-                    <p style={{ fontSize: 12, color: "#64748b", marginTop: 3 }}>
+                    <p style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 3 }}>
                       {t(
                         "practice.workspace.subtitle",
                         "Choose a training mode to set your next session.",
@@ -3065,14 +3028,14 @@ export default function PlayPractice() {
                               flexShrink: 0,
                               background: isActive
                                 ? "rgb(var(--color-brand-500-rgb) / 0.22)"
-                                : "#1e2a3a",
+                                : "var(--bg-surface)",
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
                             }}
                           >
                             {mode.icon(
-                              isActive ? "rgb(var(--color-brand-500-rgb))" : "#94a3b8",
+                              isActive ? "rgb(var(--color-brand-500-rgb))" : "var(--text-secondary)",
                             )}
                           </div>
                           <div style={{ flex: 1, minWidth: 0 }}>
@@ -3080,7 +3043,7 @@ export default function PlayPractice() {
                               style={{
                                 fontSize: 13.5,
                                 fontWeight: 500,
-                                color: "#e2e8f0",
+                                color: "var(--text-primary)",
                               }}
                             >
                               {modeCopy.title}
@@ -3088,7 +3051,7 @@ export default function PlayPractice() {
                             <p
                               style={{
                                 fontSize: 12,
-                                color: "#64748b",
+                                color: "var(--text-secondary)",
                                 marginTop: 2,
                                 overflow: "hidden",
                                 textOverflow: "ellipsis",
@@ -3106,14 +3069,14 @@ export default function PlayPractice() {
                   <div
                     style={{
                       padding: "14px 16px 18px",
-                      borderTop: "1px solid rgba(255,255,255,0.07)",
+                      borderTop: "1px solid rgba(var(--glass-border-rgb), 0.55)",
                     }}
                   >
                     <p
                       style={{
                         fontSize: 10,
                         fontWeight: 600,
-                        color: "#475569",
+                        color: "var(--text-secondary)",
                         letterSpacing: "0.08em",
                         textTransform: "uppercase",
                         marginBottom: 6,
@@ -3125,7 +3088,7 @@ export default function PlayPractice() {
                       style={{
                         fontSize: 14,
                         fontWeight: 600,
-                        color: "#f1f5f9",
+                        color: "var(--text-primary)",
                         marginBottom: 2,
                       }}
                     >
@@ -3134,7 +3097,7 @@ export default function PlayPractice() {
                     <p
                       style={{
                         fontSize: 12,
-                        color: "#64748b",
+                        color: "var(--text-secondary)",
                         marginBottom: 14,
                       }}
                     >
@@ -3153,8 +3116,8 @@ export default function PlayPractice() {
                         padding: "12px",
                         background: activeModeIsLive
                           ? "rgb(var(--color-brand-500-rgb))"
-                          : "#1e293b",
-                        color: activeModeIsLive ? "#fff" : "#94a3b8",
+                          : "var(--bg-surface)",
+                        color: activeModeIsLive ? "var(--text-primary)" : "var(--text-secondary)",
                         border: "none",
                         borderRadius: 10,
                         fontSize: 14,
@@ -3173,8 +3136,8 @@ export default function PlayPractice() {
                         padding: "10px",
                         marginTop: 8,
                         background: "transparent",
-                        color: "#94a3b8",
-                        border: "1px solid #334155",
+                        color: "var(--text-secondary)",
+                        border: "1px solid var(--border-color)",
                         borderRadius: 10,
                         fontSize: 13,
                         fontWeight: 600,
@@ -3215,8 +3178,8 @@ export default function PlayPractice() {
               height: "min(520px, 92vh)",
               maxHeight: 520,
               borderRadius: 16,
-              border: "1px solid #334155",
-              background: "#111827",
+              border: "1px solid var(--border-color)",
+              background: "var(--bg-panel)",
               boxShadow: "0 22px 56px -24px rgba(2,6,23,0.95)",
               overflow: "hidden",
             }}
@@ -3250,8 +3213,8 @@ export default function PlayPractice() {
               width: "100%",
               maxWidth: 420,
               borderRadius: 14,
-              background: "#111827",
-              border: "1px solid #1e2d45",
+              background: "var(--bg-panel)",
+              border: "1px solid var(--border-color)",
               boxShadow: "0 20px 56px -20px rgba(2,6,23,0.9)",
               overflow: "hidden",
               pointerEvents: "auto",
@@ -3260,7 +3223,7 @@ export default function PlayPractice() {
             <div
               style={{
                 padding: "14px 16px 10px",
-                borderBottom: "1px solid #1a2640",
+                borderBottom: "1px solid var(--border-color)",
                 display: "flex",
                 alignItems: "center",
                 gap: 8,
@@ -3279,7 +3242,7 @@ export default function PlayPractice() {
                   margin: 0,
                   fontSize: 15,
                   fontWeight: 700,
-                  color: "#e2e8f0",
+                  color: "var(--text-primary)",
                 }}
               >
                 {positionBuilderValidationModal.title}
@@ -3291,7 +3254,7 @@ export default function PlayPractice() {
                   margin: 0,
                   fontSize: 13,
                   lineHeight: 1.6,
-                  color: "#94a3b8",
+                  color: "var(--text-secondary)",
                 }}
               >
                 {positionBuilderValidationModal.message}
@@ -3304,10 +3267,11 @@ export default function PlayPractice() {
                     ...FREE_MOVE_BASE_BUTTON_STYLE,
                     padding: "8px 14px",
                     fontSize: 12,
-                    background: "linear-gradient(135deg, #10b981, #059669)",
-                    color: "#fff",
+                    background:
+                      "linear-gradient(135deg, rgb(var(--accent-rgb)), rgb(var(--accent-hover-rgb)))",
+                    color: "var(--text-primary)",
                     border: "none",
-                    boxShadow: "0 2px 10px rgba(16,185,129,0.28)",
+                    boxShadow: "0 2px 10px rgba(var(--accent-rgb),0.28)",
                   }}
                 >
                   {t("practice.workspace.positionBuilderValidation.okButton", "OK")}
@@ -3320,4 +3284,3 @@ export default function PlayPractice() {
     </div>
   );
 }
-

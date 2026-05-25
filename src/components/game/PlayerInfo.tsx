@@ -61,11 +61,13 @@ export function PlayerInfo({
   const avatarToneClass =
     avatarStyle === "opponent"
       ? isMatchLayout
-        ? "bg-gradient-to-b from-slate-500 to-slate-800 ring-1 ring-white/12"
-        : "bg-gradient-to-br from-slate-600 to-slate-800 ring-1 ring-white/10"
+        ? "bg-gradient-to-b from-theme-surface to-theme-panel ring-1 ring-theme-border/40"
+        : "bg-gradient-to-br from-theme-panel to-theme-base ring-1 ring-theme-border/30"
       : isMatchLayout
         ? "bg-gradient-to-b from-cyan-300 to-sky-500 ring-1 ring-cyan-200/75 shadow-cyan-500/25"
-        : "bg-gradient-to-br from-brand-500 to-cyan-400 ring-2 ring-cyan-200/55 dark:ring-cyan-400/40 shadow-cyan-500/25";
+        : "bg-gradient-to-br from-brand-500 to-cyan-400 ring-2 ring-cyan-200/55 shadow-cyan-500/25";
+  const avatarTextColorClass =
+    avatarStyle === "opponent" ? "text-theme-foreground" : "text-theme-on-accent";
 
   useEffect(() => {
     setHasImageError(false);
@@ -73,11 +75,11 @@ export function PlayerInfo({
 
   const compactRowSpacingClass = compactTimer ? "py-1.5" : "py-1";
   const nameTextClass = isMatchLayout
-    ? "truncate text-[1.02rem] font-semibold text-slate-100"
-    : "truncate text-sm font-semibold text-gray-900 dark:text-white sm:text-base";
+    ? "truncate text-[1.02rem] font-semibold text-theme-foreground"
+    : "truncate text-sm font-semibold text-theme-foreground sm:text-base";
   const ratingTextClass = isMatchLayout
-    ? "shrink-0 text-xs font-medium text-slate-300"
-    : "shrink-0 text-xs font-medium text-gray-600 dark:text-slate-300 sm:text-sm";
+    ? "shrink-0 text-xs font-medium text-theme-muted"
+    : "shrink-0 text-xs font-medium text-theme-muted sm:text-sm";
 
   return (
     <div
@@ -85,7 +87,7 @@ export function PlayerInfo({
     >
       <div className="flex min-w-0 flex-1 items-center gap-3">
         <div
-          className={`${avatarSizeClass} flex shrink-0 items-center justify-center overflow-hidden rounded-[14px] text-sm font-bold text-white shadow-[0_10px_24px_rgba(2,6,23,0.28)] ${avatarToneClass}`}
+          className={`${avatarSizeClass} flex shrink-0 items-center justify-center overflow-hidden rounded-[14px] text-sm font-bold shadow-[0_10px_24px_rgba(2,6,23,0.28)] ${avatarTextColorClass} ${avatarToneClass}`}
         >
           {avatarImage && !hasImageError ? (
             <img
@@ -110,14 +112,14 @@ export function PlayerInfo({
             )}
           </div>
           {subtitle && !shouldShowTimer ? (
-            <div className="mt-0.5 flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400">
+            <div className="mt-0.5 flex items-center gap-1.5 text-xs text-theme-muted">
               <span className="truncate">{subtitle}</span>
             </div>
           ) : null}
           {isFocusLayout && (showConnectionDots || Boolean(flag)) && !shouldShowTimer ? (
-            <div className="mt-2 flex items-center gap-2 text-[11px] text-gray-500 dark:text-slate-400">
+            <div className="mt-2 flex items-center gap-2 text-[11px] text-theme-muted">
               {flag ? (
-                <span className="inline-flex h-5 min-w-[30px] items-center justify-center rounded-md border border-white/10 bg-white/5 px-1.5 text-[10px] font-medium tracking-wide text-gray-600 dark:text-gray-200">
+                <span className="inline-flex h-5 min-w-[30px] items-center justify-center rounded-md border border-theme-glass bg-theme-panel/5 px-1.5 text-[10px] font-medium tracking-wide text-theme-muted ">
                   {flag}
                 </span>
               ) : null}
@@ -129,7 +131,7 @@ export function PlayerInfo({
                       className={`h-1.5 w-1.5 rounded-full ${
                         index < normalizedConnectionStrength
                           ? "bg-emerald-400"
-                          : "bg-white/20"
+                          : "bg-theme-panel/20"
                       }`}
                     />
                   ))}

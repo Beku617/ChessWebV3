@@ -18,7 +18,6 @@ import {
 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import AdminSidebar from "../../components/AdminSidebar";
-import { useThemeStore } from "../../store/themeStore";
 import {
   createAdminLearnStep,
   deleteAdminLearnStep,
@@ -102,7 +101,6 @@ export default function AdminLearnLesson() {
     lessonId: string;
   }>();
   const navigate = useNavigate();
-  const { isDarkMode } = useThemeStore();
   const { isAuthenticated, isLoading: authLoading } = useAdminGuard();
 
   const [lesson, setLesson] = useState<AdminLearnLesson | null>(null);
@@ -465,67 +463,48 @@ export default function AdminLearnLesson() {
 
   if (authLoading) {
     return (
-      <div
-        className={`min-h-screen flex items-center justify-center ${
-          isDarkMode ? "bg-slate-950" : "bg-[#f5f5f7]"
-        }`}
-      >
+      <div className="min-h-screen flex items-center justify-center bg-theme-panel">
         <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
       </div>
     );
   }
 
-  const pageToneClass = isDarkMode
-    ? "bg-slate-950 text-white"
-    : "bg-[#f5f5f7] text-gray-900";
-  const surfaceClass = isDarkMode
-    ? "border-slate-800 bg-slate-900/80 shadow-[0_20px_60px_rgba(0,0,0,0.22)]"
-    : "border-gray-200/80 bg-white/95 shadow-[0_18px_44px_rgba(15,23,42,0.08)]";
-  const neutralButtonClass = isDarkMode
-    ? "inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-medium text-slate-200 hover:bg-slate-800"
-    : "inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-800 hover:bg-gray-100";
-  const compactNeutralButtonClass = isDarkMode
-    ? "rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-[11px] font-medium text-slate-200 hover:bg-slate-800 disabled:opacity-55"
-    : "rounded-md border border-gray-300 bg-white px-2 py-1 text-[11px] font-medium text-gray-800 hover:bg-gray-100 disabled:opacity-55";
-  const duplicateButtonClass = isDarkMode
-    ? "rounded-md border border-indigo-400/25 bg-indigo-500/10 px-2 py-1 text-[11px] font-medium text-indigo-200 hover:bg-indigo-500/20 disabled:opacity-55"
-    : "rounded-md border border-indigo-300 bg-indigo-100 px-2 py-1 text-[11px] font-medium text-indigo-800 hover:bg-indigo-200 disabled:opacity-55";
-  const deleteButtonClass = isDarkMode
-    ? "rounded-md border border-red-400/25 bg-red-500/10 px-2 py-1 text-[11px] font-medium text-red-200 hover:bg-red-500/20 disabled:opacity-55"
-    : "rounded-md border border-red-300 bg-red-100 px-2 py-1 text-[11px] font-medium text-red-800 hover:bg-red-200 disabled:opacity-55";
-  const alertClass = isDarkMode
-    ? "rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-200"
-    : "rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700";
-  const headingTextClass = isDarkMode ? "text-white" : "text-gray-900";
-  const mutedTextClass = isDarkMode ? "text-slate-400" : "text-gray-500";
-  const secondaryTextClass = isDarkMode ? "text-slate-300" : "text-gray-600";
+  const pageToneClass = "bg-theme-panel text-theme-foreground";
+  const surfaceClass =
+    "border-theme-glass bg-theme-panel/85 shadow-[0_18px_44px_rgba(15,23,42,0.12)]";
+  const neutralButtonClass =
+    "inline-flex items-center gap-2 rounded-lg border border-theme-glass bg-theme-panel px-3 py-1.5 text-xs font-medium text-theme-foreground hover:bg-theme-hover";
+  const compactNeutralButtonClass =
+    "rounded-md border border-theme-glass bg-theme-panel px-2 py-1 text-[11px] font-medium text-theme-foreground hover:bg-theme-hover disabled:opacity-55";
+  const duplicateButtonClass =
+    "rounded-md border border-theme-border bg-theme-surface px-2 py-1 text-[11px] font-medium text-theme-accent hover:bg-theme-hover disabled:opacity-55";
+  const deleteButtonClass =
+    "rounded-md border border-theme-glass bg-theme-surface px-2 py-1 text-[11px] font-medium text-theme-muted hover:bg-theme-hover disabled:opacity-55";
+  const alertClass =
+    "rounded-xl border border-theme-glass bg-theme-surface px-4 py-3 text-sm text-theme-muted";
+  const headingTextClass = "text-theme-foreground";
+  const mutedTextClass = "text-theme-muted";
+  const secondaryTextClass = "text-theme-muted";
   const checkboxLabelClass = `inline-flex items-center gap-2 text-sm ${secondaryTextClass}`;
-  const interactiveFieldToneClass = isDarkMode
-    ? "border-slate-700 bg-slate-900 text-slate-100 placeholder:text-slate-400"
-    : "border-gray-200 bg-gray-50 text-gray-900 placeholder:text-gray-400";
+  const interactiveFieldToneClass =
+    "border-theme-glass bg-theme-surface text-theme-foreground placeholder:text-theme-disabled";
   const searchInputClass = `h-10 w-full rounded-xl border py-2 pl-10 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30 ${interactiveFieldToneClass}`;
   const fullInputClass = `h-10 w-full rounded-xl border px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30 ${interactiveFieldToneClass}`;
   const textareaClass = `w-full rounded-xl border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30 ${interactiveFieldToneClass}`;
-  const fieldLabelClass = "text-xs font-medium text-gray-500 dark:text-slate-400";
-  const inactiveStepCardClass = isDarkMode
-    ? "border-slate-800 bg-slate-900/70 hover:border-slate-700"
-    : "border-gray-200 bg-gray-50/90 hover:border-gray-300";
-  const previewSurfaceClass = isDarkMode
-    ? "rounded-2xl border border-slate-700 bg-slate-900/70 p-3"
-    : "rounded-2xl border border-gray-200 bg-gray-50/90 p-3";
-  const previewBoardBorderClass = isDarkMode ? "border-slate-700" : "border-gray-200";
-  const invalidFenClass = isDarkMode
-    ? "mt-3 rounded-lg border border-red-500/25 bg-red-500/10 px-3 py-2 text-xs text-red-200"
-    : "mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700";
-  const recordMovesButtonClass = isDarkMode
-    ? "inline-flex items-center gap-1.5 rounded-md border border-brand-400/30 bg-brand-500/15 px-2.5 py-1.5 text-[11px] font-semibold text-brand-200 hover:bg-brand-500/25"
-    : "inline-flex items-center gap-1.5 rounded-md border border-brand-300 bg-brand-100 px-2.5 py-1.5 text-[11px] font-semibold text-brand-800 hover:bg-brand-200";
-  const moveChipClass = isDarkMode
-    ? "inline-flex items-center gap-1 rounded-full border border-slate-700 bg-slate-900 px-2 py-1 text-[11px] text-slate-200"
-    : "inline-flex items-center gap-1 rounded-full border border-gray-300 bg-white px-2 py-1 text-[11px] text-gray-700";
-  const moveChipRemoveClass = isDarkMode
-    ? "rounded-full px-1 text-slate-400 hover:bg-slate-800 hover:text-slate-200"
-    : "rounded-full px-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700";
+  const fieldLabelClass = "text-xs font-medium text-theme-muted";
+  const inactiveStepCardClass =
+    "border-theme-glass bg-theme-surface/90 hover:bg-theme-hover";
+  const previewSurfaceClass =
+    "rounded-2xl border border-theme-glass bg-theme-surface/90 p-3";
+  const previewBoardBorderClass = "border-theme-glass";
+  const invalidFenClass =
+    "mt-3 rounded-lg border border-theme-glass bg-theme-surface px-3 py-2 text-xs text-theme-muted";
+  const recordMovesButtonClass =
+    "inline-flex items-center gap-1.5 rounded-md border border-theme-border bg-theme-surface px-2.5 py-1.5 text-[11px] font-semibold text-theme-accent hover:bg-theme-hover";
+  const moveChipClass =
+    "inline-flex items-center gap-1 rounded-full border border-theme-glass bg-theme-panel px-2 py-1 text-[11px] text-theme-foreground";
+  const moveChipRemoveClass =
+    "rounded-full px-1 text-theme-muted hover:bg-theme-hover hover:text-theme-foreground";
 
   return (
     <div>
@@ -558,16 +537,16 @@ export default function AdminLearnLesson() {
             <section className="grid gap-5 xl:grid-cols-[330px_minmax(0,1fr)]">
               <div className={`rounded-[24px] border p-4 ${surfaceClass}`}>
                 <div className="flex items-center justify-between gap-2">
-                  <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-gray-500"> <Trans>Steps</Trans> </h2>
+                  <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-theme-muted"> <Trans>Steps</Trans> </h2>
                   <button
                     onClick={handleNewStep}
-                    className="inline-flex items-center gap-1 rounded-lg bg-brand-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-brand-500"
+                    className="inline-flex items-center gap-1 rounded-lg bg-brand-600 px-2.5 py-1.5 text-xs font-semibold text-theme-on-accent hover:bg-brand-500"
                   >
                     <Plus className="h-3.5 w-3.5" /> <Trans>New</Trans> </button>
                 </div>
 
                 <label className="relative mt-3 block">
-                  <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+                  <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-theme-muted" />
                   <input
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
@@ -600,7 +579,7 @@ export default function AdminLearnLesson() {
                             onClick={() => handleSelectStep(step)}
                             className="w-full text-left"
                           >
-                            <div className="text-[11px] uppercase tracking-[0.14em] text-gray-500"> <Trans>Step</Trans> {step.orderIndex + 1}
+                            <div className="text-[11px] uppercase tracking-[0.14em] text-theme-muted"> <Trans>Step</Trans> {step.orderIndex + 1}
                             </div>
                             <div className={`mt-1 text-sm ${headingTextClass} line-clamp-2`}>
                               {step.instructionText ||
@@ -647,7 +626,7 @@ export default function AdminLearnLesson() {
               <div className="space-y-5">
                 <section className={`rounded-[24px] border p-5 ${surfaceClass}`}>
                   <div className="flex items-center justify-between gap-2">
-                    <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-gray-500">
+                    <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-theme-muted">
                       {selectedStep
                         ? t("admin.learn.actions.editStepWithIndex", {
                             defaultValue: "Edit Step {{index}}",
@@ -658,7 +637,7 @@ export default function AdminLearnLesson() {
                     <button
                       disabled={savingStep}
                       onClick={() => void handleSaveStep()}
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-500 disabled:opacity-50"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-theme-on-accent hover:bg-brand-500 disabled:opacity-50"
                     >
                       {savingStep ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -674,11 +653,11 @@ export default function AdminLearnLesson() {
                   <div className="mt-4 grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
                     <div className="space-y-5">
                       <div>
-                        <h3 className="text-xs uppercase tracking-[0.14em] text-gray-500"> <Trans>Step Info</Trans> </h3>
+                        <h3 className="text-xs uppercase tracking-[0.14em] text-theme-muted"> <Trans>Step Info</Trans> </h3>
                       </div>
 
                       <div>
-                        <h3 className="text-xs uppercase tracking-[0.14em] text-gray-500"> <Trans>Board</Trans> </h3>
+                        <h3 className="text-xs uppercase tracking-[0.14em] text-theme-muted"> <Trans>Board</Trans> </h3>
                         <div className="mt-2 space-y-3">
                           <label className="block space-y-1">
                             <span className={fieldLabelClass}><Trans>Board position</Trans></span>
@@ -718,7 +697,7 @@ export default function AdminLearnLesson() {
                       </div>
 
                       <div>
-                        <h3 className="text-xs uppercase tracking-[0.14em] text-gray-500"> <Trans>Instructions</Trans> </h3>
+                        <h3 className="text-xs uppercase tracking-[0.14em] text-theme-muted"> <Trans>Instructions</Trans> </h3>
                         <div className="mt-2 space-y-3">
                           <div className="block">
                             <textarea
@@ -738,7 +717,7 @@ export default function AdminLearnLesson() {
                       </div>
 
                       <div>
-                        <h3 className="text-xs uppercase tracking-[0.14em] text-gray-500"> <Trans>Feedback</Trans> </h3>
+                        <h3 className="text-xs uppercase tracking-[0.14em] text-theme-muted"> <Trans>Feedback</Trans> </h3>
                         <div className="mt-2 grid gap-3 sm:grid-cols-2">
                           <label className="block space-y-1">
                             <span className={fieldLabelClass}><Trans>Correct feedback</Trans></span>
@@ -772,7 +751,7 @@ export default function AdminLearnLesson() {
                       </div>
 
                       <div>
-                        <h3 className="text-xs uppercase tracking-[0.14em] text-gray-500"> <Trans>Correct Moves</Trans> </h3>
+                        <h3 className="text-xs uppercase tracking-[0.14em] text-theme-muted"> <Trans>Correct Moves</Trans> </h3>
                         <div className="mt-2 space-y-3">
                           <label className="block space-y-1">
                             <span className={fieldLabelClass}><Trans>Correct moves</Trans></span>
@@ -852,7 +831,7 @@ export default function AdminLearnLesson() {
                                     isPublished: event.target.checked,
                                   }))
                                 }
-                                className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-400/40"
+                                className="h-4 w-4 rounded border-theme-glass text-brand-500 focus:ring-brand-400/40"
                               /> <Trans>Show step</Trans> </label>
                           </div>
                         </div>
@@ -860,7 +839,7 @@ export default function AdminLearnLesson() {
                     </div>
 
                     <aside className="space-y-3">
-                      <h3 className="text-xs uppercase tracking-[0.14em] text-gray-500"> <Trans>Position Preview</Trans> </h3>
+                      <h3 className="text-xs uppercase tracking-[0.14em] text-theme-muted"> <Trans>Position Preview</Trans> </h3>
                       <div className={previewSurfaceClass}>
                         <div
                           className={`mx-auto w-[280px] max-w-full rounded-xl overflow-hidden border ${previewBoardBorderClass}`}
@@ -911,5 +890,4 @@ export default function AdminLearnLesson() {
     </div>
   );
 }
-
 

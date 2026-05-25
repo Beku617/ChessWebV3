@@ -44,7 +44,7 @@ export function AdminReplayContent({ game }: AdminReplayContentProps) {
   }
 
   return (
-    <div className="h-screen bg-[#f5f5f7] dark:bg-gray-950 text-gray-900 dark:text-white flex">
+    <div className="h-screen bg-theme-panel text-theme-foreground flex">
       <AdminSidebar />
 
       <div className="flex-1 ml-72 flex flex-col overflow-hidden pt-4">
@@ -53,12 +53,12 @@ export function AdminReplayContent({ game }: AdminReplayContentProps) {
           <div className="flex items-center gap-3">
             <button
               onClick={() => navigate(-1)}
-              className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+              className="flex items-center gap-1.5 text-sm text-theme-muted hover:text-theme-foreground transition-colors"
             >
               <ArrowLeft size={16} />
               <span>{t("analysis.back")}</span>
             </button>
-            <h1 className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+            <h1 className="text-sm font-semibold text-theme-foreground ">
               {t("analysis.title", "Analysis")}
             </h1>
           </div>
@@ -143,7 +143,7 @@ export function AdminReplayContent({ game }: AdminReplayContentProps) {
             </div>
 
               {/* Move list */}
-              <div className="flex-1 min-h-0 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 flex flex-col overflow-hidden">
+              <div className="flex-1 min-h-0 bg-theme-panel rounded-lg border border-theme-glass flex flex-col overflow-hidden">
                 <div className="flex-1 overflow-hidden">
                   <ReplayMoveList
                     moveRows={replay.moveRows}

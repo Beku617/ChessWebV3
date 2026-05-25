@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import type { WatchLiveGame } from "../pages/watch/types";
 import { useFriendChallengeStore } from "../store/friendChallengeStore";
 import { useAuthStore } from "../store/authStore";
@@ -53,7 +53,7 @@ type PreferredLanguage = "en" | "mn";
 
 function normalizePreferredLanguage(value: unknown): PreferredLanguage | null {
   const normalized = String(value || "").trim().toLowerCase();
-  if (normalized.startsWith("mn")) return "mn";
+  if (normalized.startsWith("mn") || normalized.startsWith("mgl")) return "mn";
   if (normalized.startsWith("en")) return "en";
   return null;
 }
@@ -233,22 +233,23 @@ export function useWatchLiveGames() {
 // Hook for fetching featured events from our backend
 export function useFeaturedEvents() {
   const userPreferredLanguage = useAuthStore((state) =>
-    state.user?.preferredLanguage === "mn" ? "mn" : state.user?.preferredLanguage === "en" ? "en" : null,
+    normalizePreferredLanguage(state.user?.preferredLanguage),
   );
   const setEventsMnUnavailable = useLanguageAvailabilityStore(
     (state) => state.setEventsMnUnavailable,
   );
   const { i18n } = useTranslation();
+  const fetchSequenceRef = useRef(0);
   const [events, setEvents] = useState<FeaturedEvent[]>([]);
   const [featuredEvent, setFeaturedEvent] = useState<FeaturedEvent | null>(
     null,
   );
-  const [language, setLanguage] = useState<PreferredLanguage>(() => {
-    if (userPreferredLanguage) return userPreferredLanguage;
-    const storedLanguage = readStoredPreferredLanguage();
-    if (storedLanguage) return storedLanguage;
-    return "mn";
-  });
+  const [language, setLanguage] = useState<PreferredLanguage>(() =>
+    normalizePreferredLanguage(i18n.resolvedLanguage || i18n.language) ||
+    userPreferredLanguage ||
+    readStoredPreferredLanguage() ||
+    "mn",
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -289,10 +290,12 @@ export function useFeaturedEvents() {
   }, []);
 
   const fetchEvents = useCallback(async () => {
+    const sequence = ++fetchSequenceRef.current;
     try {
       setLoading(true);
       if (language === "en") {
         const englishEvents = await fetchFeaturedEventsFromApi(EVENTS_ENDPOINT);
+        if (sequence !== fetchSequenceRef.current) return;
         applyEventsState(englishEvents);
         setEventsMnUnavailable(false);
         setError(null);
@@ -300,6 +303,7 @@ export function useFeaturedEvents() {
       }
 
       const mongolianEvents = await fetchFeaturedEventsFromApi(EVENTS_MN_ENDPOINT);
+      if (sequence !== fetchSequenceRef.current) return;
       if (mongolianEvents.length > 0) {
         applyEventsState(mongolianEvents);
         setEventsMnUnavailable(false);
@@ -308,6 +312,7 @@ export function useFeaturedEvents() {
       }
 
       const englishEvents = await fetchFeaturedEventsFromApi(EVENTS_ENDPOINT);
+      if (sequence !== fetchSequenceRef.current) return;
       applyEventsState(englishEvents);
       setEventsMnUnavailable(true);
       setError(null);
@@ -315,6 +320,7 @@ export function useFeaturedEvents() {
       if (language === "mn") {
         try {
           const englishEvents = await fetchFeaturedEventsFromApi(EVENTS_ENDPOINT);
+          if (sequence !== fetchSequenceRef.current) return;
           applyEventsState(englishEvents);
           setEventsMnUnavailable(true);
           setError(null);
@@ -331,6 +337,7 @@ export function useFeaturedEvents() {
       setError("Failed to fetch featured events");
       console.error(err);
     } finally {
+      if (sequence !== fetchSequenceRef.current) return;
       setLoading(false);
     }
   }, [applyEventsState, language, setEventsMnUnavailable]);

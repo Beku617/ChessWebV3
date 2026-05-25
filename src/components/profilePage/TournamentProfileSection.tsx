@@ -65,17 +65,17 @@ export default function TournamentProfileSection({
 
   if (isLoading) {
     return (
-      <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 space-y-3">
-        <div className="h-5 w-40 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
-        <div className="h-28 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
-        <div className="h-24 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
+      <div className="rounded-2xl border border-theme-glass bg-theme-panel p-4 space-y-3">
+        <div className="h-5 w-40 animate-pulse rounded bg-theme-surface" />
+        <div className="h-28 animate-pulse rounded bg-theme-surface" />
+        <div className="h-24 animate-pulse rounded bg-theme-surface" />
       </div>
     );
   }
 
   if (!data) {
     return (
-      <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 text-sm text-gray-500 dark:text-gray-400">
+      <div className="rounded-2xl border border-theme-glass bg-theme-panel p-4 text-sm text-theme-muted">
         {t("tournamentProfile.unavailable")}
       </div>
     );
@@ -89,56 +89,56 @@ export default function TournamentProfileSection({
   }));
 
   return (
-    <section className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 space-y-4">
+    <section className="rounded-2xl border border-theme-glass bg-theme-panel p-4 space-y-4">
       <div>
-        <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+        <h3 className="text-base font-semibold text-theme-foreground ">
           {resolvedTitle}
         </h3>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+        <p className="text-xs text-theme-muted mt-1">
           {t("tournamentProfile.description")}
         </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950/40 px-3 py-2">
-          <div className="text-xs text-gray-500 dark:text-gray-400">
+        <div className="rounded-xl border border-theme-glass bg-theme-surface/40 px-3 py-2">
+          <div className="text-xs text-theme-muted">
             {t("tournamentProfile.currentElo")}
           </div>
-          <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
+          <div className="text-lg font-bold text-theme-foreground ">
             {data.currentElo}
           </div>
-          <div className="text-xs text-emerald-600 dark:text-emerald-400">{data.eloTier}</div>
+          <div className="text-xs text-emerald-600">{data.eloTier}</div>
         </div>
-        <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950/40 px-3 py-2">
-          <div className="text-xs text-gray-500 dark:text-gray-400">
+        <div className="rounded-xl border border-theme-glass bg-theme-surface/40 px-3 py-2">
+          <div className="text-xs text-theme-muted">
             {t("tournamentProfile.record")}
           </div>
-          <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
+          <div className="text-lg font-bold text-theme-foreground ">
             {data.record.wins} / {data.record.draws} / {data.record.losses}
           </div>
-          <div className="text-xs text-gray-500 dark:text-gray-400">
+          <div className="text-xs text-theme-muted">
             {t("tournamentProfile.allTournaments")}
           </div>
         </div>
-        <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950/40 px-3 py-2">
-          <div className="text-xs text-gray-500 dark:text-gray-400">
+        <div className="rounded-xl border border-theme-glass bg-theme-surface/40 px-3 py-2">
+          <div className="text-xs text-theme-muted">
             {t("tournamentProfile.tournamentsCreated")}
           </div>
-          <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
+          <div className="text-lg font-bold text-theme-foreground ">
             {data.tournamentsCreated.length}
           </div>
-          <div className="text-xs text-gray-500 dark:text-gray-400">
+          <div className="text-xs text-theme-muted">
             {t("tournamentProfile.organizerActivity")}
           </div>
         </div>
       </div>
 
-      <div className="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-950/40 px-3 py-3">
-        <div className="mb-2 text-sm font-semibold text-gray-800 dark:text-gray-200">
+      <div className="rounded-xl border border-theme-glass bg-theme-surface/40 px-3 py-3">
+        <div className="mb-2 text-sm font-semibold text-theme-foreground ">
           {t("tournamentProfile.eloHistory")}
         </div>
         {history.length === 0 ? (
-          <div className="text-xs text-gray-500 dark:text-gray-400">
+          <div className="text-xs text-theme-muted">
             {t("tournamentProfile.noEloEvents")}
           </div>
         ) : (
@@ -161,7 +161,7 @@ export default function TournamentProfileSection({
                 <Line
                   type="monotone"
                   dataKey="elo"
-                  stroke="#10b981"
+                  stroke="rgb(var(--accent-rgb))"
                   strokeWidth={2}
                   dot={false}
                   isAnimationActive={false}
@@ -173,12 +173,12 @@ export default function TournamentProfileSection({
       </div>
 
       <div className="space-y-2">
-        <div className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+        <div className="text-sm font-semibold text-theme-foreground ">
           {t("tournamentProfile.historyTitle")}
         </div>
-        <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-800">
+        <div className="overflow-x-auto rounded-xl border border-theme-glass ">
           <table className="w-full text-left text-xs sm:text-sm">
-            <thead className="bg-gray-50 dark:bg-gray-950/50 text-gray-500 dark:text-gray-400">
+            <thead className="bg-theme-surface/50 text-theme-muted">
               <tr>
                 <th className="px-3 py-2">{t("profileGames.columns.tournament")}</th>
                 <th className="px-3 py-2">{t("profileGames.columns.format")}</th>
@@ -190,24 +190,24 @@ export default function TournamentProfileSection({
             </thead>
             <tbody>
               {data.tournamentHistory.slice(0, 20).map((row) => (
-                <tr key={`${row.tournamentId}:${row.date || ""}`} className="border-t border-gray-200 dark:border-gray-800">
-                  <td className="px-3 py-2 text-gray-900 dark:text-gray-100">{row.tournamentName}</td>
-                  <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{row.format}</td>
-                  <td className="px-3 py-2 text-gray-700 dark:text-gray-300">
+                <tr key={`${row.tournamentId}:${row.date || ""}`} className="border-t border-theme-glass ">
+                  <td className="px-3 py-2 text-theme-foreground ">{row.tournamentName}</td>
+                  <td className="px-3 py-2 text-theme-muted">{row.format}</td>
+                  <td className="px-3 py-2 text-theme-muted">
                     {row.placement ? `#${row.placement}` : "-"}
                   </td>
-                  <td className="px-3 py-2 text-gray-700 dark:text-gray-300">{row.score}</td>
+                  <td className="px-3 py-2 text-theme-muted">{row.score}</td>
                   <td
                     className={`px-3 py-2 font-semibold ${
                       row.eloChange >= 0
-                        ? "text-emerald-600 dark:text-emerald-400"
-                        : "text-red-600 dark:text-red-400"
+                        ? "text-emerald-600"
+                        : "text-red-600"
                     }`}
                   >
                     {row.eloChange >= 0 ? "+" : ""}
                     {row.eloChange}
                   </td>
-                  <td className="px-3 py-2 text-gray-500 dark:text-gray-400">
+                  <td className="px-3 py-2 text-theme-muted">
                     {formatDateLabel(row.date)}
                   </td>
                 </tr>
@@ -216,7 +216,7 @@ export default function TournamentProfileSection({
                 <tr>
                   <td
                     colSpan={6}
-                    className="px-3 py-6 text-center text-sm text-gray-500 dark:text-gray-400"
+                    className="px-3 py-6 text-center text-sm text-theme-muted"
                   >
                     {t("profileGames.noTournamentHistory")}
                   </td>

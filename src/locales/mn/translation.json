@@ -156,7 +156,19 @@
         "mn": "Монгол"
       },
       "logOut": "Гарах",
-      "languageLabel": "Админ хэл"
+      "languageLabel": "Админ хэл",
+      "nav": {
+        "users": "Хэрэглэгчид",
+        "bots": "Ботууд",
+        "puzzles": "Бодлогууд",
+        "learn": "Сургалт",
+        "learnMn": "Сургалт (MN)",
+        "events": "Мэдээ",
+        "eventsMn": "Мэдээ (MN)",
+        "games": "Тоглолтууд",
+        "community": "Нийгэмлэг",
+        "groups": "Бүлгүүд"
+      }
     },
     "actions": {
       "viewAdminProfile": "Админ профайлыг харах",
@@ -438,7 +450,11 @@
   "communityGameViewer": {
     "previewUnavailable": "Тоглолцооны урьдчилсан харагдац боломжгүй байна.",
     "analyzeGame": "Тоглолцоо шинжлэх",
-    "useArrowKeys": "Сумтай товч ашиглана уу"
+    "useArrowKeys": "Сумтай товч ашиглана уу",
+    "whiteWon": "Цагаан хожсон",
+    "blackWon": "Хар хожсон",
+    "draw": "Тэнцээ",
+    "resultUnavailable": "Үр дүн тодорхойгүй"
   },
   ") vs": ") vs",
   "communityGroups": {
@@ -447,8 +463,8 @@
       "leave": "Орхих",
       "join": "Нэгдэх"
     },
-    "membersCount_one": "{{count}} ??????",
-    "membersCount_other": "{{count}} ??????",
+    "membersCount_one": "",
+    "membersCount_other": "",
     "defaultDescription": "Олон нийтийн NeonGambit групп шатрын хэлэлцүүлэг, хуваалцсан тоглоомууд.",
     "createdBy": "үүсгэсэн",
     "sidebar": {
@@ -518,8 +534,8 @@
     }
   },
   "postCard": {
-    "imagesCount_one": "{{count}} ?????",
-    "imagesCount_other": "{{count}} ?????",
+    "imagesCount_one": "",
+    "imagesCount_other": "",
     "status": {
       "pending": "Хүлээгдэж байна",
       "approved": "Зөвшөөрөгдсөн",
@@ -556,8 +572,8 @@
       "rateLimited": "Нийтлэх хязгаарт хүрлээ (3 цаг тутамд {{maxPosts}} нийтлэл).{{waitText}}",
       "unavailable": "Одоогоор нийтлэх боломжгүй байна.",
       "loadGamesFailed": "Хуваалцах боломжтой тоглоомуудыг ачаалж чадсангүй.",
-      "imageLimit_one": "?? ??? ???????? ???? ??? ?? {{count}} ????? ??????? ?????????.",
-      "imageLimit_other": "?? ??? ???????? ???? ??? ?? {{count}} ????? ??????? ?????????.",
+      "imageLimit_one": "",
+      "imageLimit_other": "",
       "totalImageTooLarge": "Зургийн нийт хэмжээ хэт том байна. Хамгийн дээд хэмжээ нь 40MB байна.",
       "loadSelectedGame": "Сонгосон тоглолцоог ачаалж чадсангүй.",
       "submitFailed": "Нийтлэл илгээж чадсангүй.",
@@ -639,7 +655,7 @@
       "createGroup": "Бүлэг үүсгэж чадсангүй."
     },
     "tabs": {
-      "feed": "Тэжээл",
+      "feed": "Нийтлэлүүд",
       "myPosts": "Миний нийтлэлүүд"
     },
     "pagination": {
@@ -662,12 +678,12 @@
   "Solve Today's Puzzle": "Өнөөдрийн бодлого бодох",
   "presence": {
     "justNow": "дөнгөж сая",
-    "minutesAgo_one": "{{count}} ??????? ????",
-    "minutesAgo_other": "{{count}} ??????? ????",
-    "hoursAgo_one": "{{count}} ?????? ????",
-    "hoursAgo_other": "{{count}} ?????? ????",
-    "daysAgo_one": "{{count}} ?????? ????",
-    "daysAgo_other": "{{count}} ?????? ????",
+    "minutesAgo_one": "",
+    "minutesAgo_other": "",
+    "hoursAgo_one": "",
+    "hoursAgo_other": "",
+    "daysAgo_one": "",
+    "daysAgo_other": "",
     "status": {
       "online": "Онлайн",
       "inGame": "Тоглож байна",
@@ -702,11 +718,12 @@
   "Live Games": "Шууд тоглолтууд",
   "active": "идэвхтэй",
   "Refresh live games": "Шууд тоглолтуудыг шинэчлэх",
+  "View": "Үзэх",
   "View All": "Бүгдийг үзэх",
   "Watch": "Үзэх",
   "Open puzzle training": "Бодлогын бэлтгэлийг нээх",
   "Puzzles": "Puzzles",
-  "No puzzles available yet": "???????? ??????? ??????? ?????.",
+  "No puzzles available yet": "",
   "Browse All": "Бүгдийг үзэх",
   "Solve Puzzle": "Бодлого бодох",
   "Just now": "Дөнгөж сая",
@@ -720,7 +737,7 @@
   "Start a game to see your history here": "Энд түүхээ харахын тулд тоглолт эхлүүлнэ үү",
   "Tournaments": "Тэмцээнүүд",
   "Unable to load tournaments": "Тэмцээнүүдийг ачаалж чадсангүй",
-  "Please try again in a moment": "??? ????????? ????? ???????? ??.",
+  "Please try again in a moment": "",
   "Retry": "Дахин оролдох",
   "Active": "Active",
   "Upcoming": "Upcoming",
@@ -885,9 +902,9 @@
   },
   "players joined": "тоглогч нэгдсэн",
   "No tournaments available": "Тэмцээн байхгүй байна",
-  "Create a tournament or check back for the next event": "??????? ?????? ????? ????????? ???? ??????? ????????? ????? ??????? ??.",
-  "Friend Challenge": "Friend Challenge",
-  "challenged you to play": "challenged you to play.",
+  "Create a tournament or check back for the next event": "",
+  "Friend Challenge": "Найзын урилга",
+  "challenged you to play": "таныг тоглоход урьж байна.",
   "Decline": "Decline",
   "Accept": "Accept",
   "game": {
@@ -1053,10 +1070,10 @@
     "provisionalGames_other": "Provisional ({{count}}/{{total}})",
     "gamesCount_one": "{{count}} games",
     "gamesCount_other": "{{count}} games",
-    "allGames_one": "{{count}} ???????",
-    "allGames_other": "{{count}} ???????",
-    "tournamentHistory_one": "{{count}} ????????? ????",
-    "tournamentHistory_other": "{{count}} ????????? ????",
+    "allGames_one": "{{count}} тоглолт",
+    "allGames_other": "{{count}} тоглолт",
+    "tournamentHistory_one": "{{count}} тэмцээний түүх",
+    "tournamentHistory_other": "{{count}} тэмцээний түүх",
     "noTournamentHistory": "Тэмцээний түүх одоогоор байхгүй байна.",
     "range": "{{total}}-аас {{start}}–{{end}}",
     "noGamesFound": "Тоглолт олдсонгүй",
@@ -1173,7 +1190,7 @@
     "moveListBlack": "Хар",
     "noMovesYet": "Одоогоор нүүдэл байхгүй",
     "moveListHints": "← → товчоор шилжих • Зай дарж тоглуулах • F дарж эргүүлэх",
-    "adminLoadingTitle": "Тоглолцоог шинжилж байна",
+    "adminLoadingTitle": "Тоглолтыг шинжилж байна",
     "loadingDescription": "Stockfish байрлал бүрийг үнэлж, нарийвчлал болон нүүдлийн чанарыг тооцоолж байна",
     "progress": "Явц",
     "evaluatingPositions": "Байрлалуудыг үнэлж байна",
@@ -1181,7 +1198,7 @@
     "back": "Буцах",
     "title": "Шинжилгээ",
     "aiModelSelectorTitle": "AI загвар сонгогч",
-    "loadingTitle": "Таны тоглолцоог шинжилж байна",
+    "loadingTitle": "Таны тоглолтыг шинжилж байна",
     "errors": {
       "noGameId": "Тоглолцооны ID өгөгдөөгүй байна",
       "fetchGame": "Тоглолцоог татаж чадсангүй",
@@ -1189,7 +1206,104 @@
       "unableToLoadGame": "Тоглолцоог ачаалах боломжгүй байна"
     },
     "gameNotFound": "Тоглолцоо олдсонгүй",
-    "backToProfile": "Профайл руу буцах"
+    "backToProfile": "Профайл руу буцах",
+    "moveAnalysisTitle": "Нүүдлийн шинжилгээ",
+    "movePlayed": "{{san}} нүүгдлээ.",
+    "moveAnalysisUnavailable": "Энэ нүүдэлд шинжилгээний мэдээлэл байхгүй байна.",
+    "aiProviderMissingForModel": "Сонгосон AI загвар тохируулагдаагүй байна. Шаардлагатай provider key-г нэмээд дахин оролдоно уу.",
+    "noMovesRecorded": "Бүртгэсэн нүүдэл байхгүй байна",
+    "qualityLabels": {
+      "Brilliant": "Гайхалтай",
+      "Great": "Маш сайн",
+      "Best": "Шилдэг",
+      "Excellent": "Онц сайн",
+      "Good": "Сайн",
+      "Book": "Онолын",
+      "Inaccuracy": "Нарийвчлал дутсан",
+      "Mistake": "Алдаа",
+      "Miss": "Боломж алдсан",
+      "Blunder": "Ноцтой алдаа",
+      "Unknown": "?"
+    },
+    "colors": {
+      "white": "цагаан",
+      "black": "хар"
+    },
+    "moveExplanations": {
+      "brilliant": {
+        "title": "Гайхалтай нүүдэл!",
+        "description": "{{san}} бол гайхалтай золиос агуулсан нүүдэл юм. Энэ нүүдэл {{mover}} талд шийдвэрлэх давуу байдал авчиржээ.",
+        "details": "Тактикийн золиосын ачаар байрлал {{swing}}-иар сайжирч, өрсөлдөгч хялбархан няцааж чадахгүй болов.",
+        "suggestion": "Ийм нүүдэл л хүчтэй тоглогчдыг бусдаас ялгаруулдаг."
+      },
+      "great": {
+        "title": "Маш сайн нүүдэл!",
+        "description": "{{san}} нь {{mover}} талын байрлалыг мэдэгдэхүйц сайжруулсан нүүдэл юм.",
+        "details": "Хожих магадлал {{before}}-аас {{after}} болж, {{gain}}-иар өссөн байна.",
+        "suggestion": "Энэ нүүдэл байрлалын гол нөөцийг зөв ашигласан байна."
+      },
+      "best": {
+        "title": "Шилдэг нүүдэл",
+        "description": "{{san}} бол энэ байрлал дахь хамгийн оновчтой нүүдэл бөгөөд үнэлгээг хадгалж буй эсвэл сайжруулж байна.",
+        "details": "Байрлалын үнэлгээ {{after}} хожих магадлалтайгаар хэвээр байна."
+      },
+      "excellent": {
+        "title": "Онц сайн нүүдэл",
+        "description": "{{san}} нь хөдөлгүүрийн хамгийн сайн сонголтод маш ойрхон, онц сайн нүүдэл юм.",
+        "details": "Хамгийн сайн нүүдэлтэй харьцуулахад зөвхөн {{loss}} алдагдалтай байна."
+      },
+      "good": {
+        "title": "Сайн нүүдэл",
+        "description": "{{san}} нь байрлалыг тоглоход тохиромжтой хэвээр үлдээсэн тогтвортой нүүдэл юм.",
+        "details": "{{loss}} орчим нарийвчлалын алдагдалтай ч гэсэн хүлээн зөвшөөрөгдөх нүүдэл."
+      },
+      "book": {
+        "title": "Онолын нүүдэл",
+        "description": "{{san}} нь тогтсон онолыг дагасан стандарт нээлтийн нүүдэл юм.",
+        "details": "Энэ нүүдэл бол олонд танигдсан нээлтийн онолын бүрэлдэхүүн хэсэг. Хоёр тал тогтсон хувилбараар явж байна."
+      },
+      "inaccuracy": {
+        "title": "Нарийвчлал дутсан",
+        "description": "{{san}} нь энэ байрлалд хамгийн оновчтой сонголт байсангүй.",
+        "details": "Хожих магадлал {{before}}-аас {{after}} болж, {{loss}}-иар буурсан байна.",
+        "suggestion": "Хөлгийн идэвхийг хадгалж, өрсөлдөгчдөө давуу тал бэлэглэхгүй нүүдэл хайгаарай."
+      },
+      "mistake": {
+        "title": "Алдаа",
+        "description": "{{san}} нь {{mover}} талын байрлалд мэдэгдэхүйц хохирол учруулсан алдаа юм.",
+        "details": "Хожих магадлал {{before}}-аас {{after}} болж, нийт {{loss}}-ийн савлагаа үүслээ.",
+        "suggestion": "Нүүхийн өмнө авах, шахах болон аюул занал байгаа эсэхийг шалга. Өрсөлдөгч чинь юу зорьж байгааг өөрөөсөө асуугаарай."
+      },
+      "miss": {
+        "title": "Боломж алдсан",
+        "description": "{{san}} нь өрсөлдөгчийн алдааг ашиглах боломжийг алдаж орхив.",
+        "details": "Өрсөлдөгч алдаа гаргасан ч энэ нүүдэл түүнийг хангалттай шийтгэсэнгүй. Давуу тал бүрэн дүүрэн хэрэгжсэнгүй.",
+        "suggestion": "Өрсөлдөгч тасрахад яарахгүйгээр тактикийн шийтгэлийг хайгаарай."
+      },
+      "blunder": {
+        "title": "Ноцтой алдаа",
+        "description": "{{san}} нь тоглолтын явцыг огцом өөрчилсөн ноцтой алдаа байв.",
+        "details": "Хожих магадлал {{before}}-аас {{after}} болж, {{loss}} алдагдал үүсгэлээ.",
+        "suggestion": "Нүүдлийг батлахын өмнө ил зогсож буй хөлгүүд болон тактикийн аюулыг заавал шалгаарай. \"Миний хөлөг аюулгүй юу? Өрсөлдөгч юу хийж чадах вэ?\" гэж өөрөөсөө асуугаарай."
+      },
+      "unknown": {
+        "title": "Нүүдэл",
+        "description": "{{san}} нүүгдлээ.",
+        "details": "Энэ нүүдэлд шинжилгээний мэдээлэл байхгүй байна."
+      }
+    },
+    "openingNames": {
+      "london_system": "Лондоны гараа",
+      "d4_d5_setup": "d4 d5 хувилбар",
+      "ruy_lopez": "Рүй Лопез",
+      "italian_game": "Итали тоглолт",
+      "sicilian_defense": "Сицилийн хамгаалалт",
+      "french_defense": "Франц хамгаалалт",
+      "caro_kann_defense": "Каро-Канн хамгаалалт",
+      "queen_s_gambit": "Хатангийн гамбит",
+      "king_s_indian_defense": "Хааны Энэтхэг хамгаалалт",
+      "english_opening": "Англи гараа"
+    }
   },
   "settings": {
     "appearance": {
@@ -1611,7 +1725,7 @@
     "joinPromptTitle": "Энд нийтлэхийн тулд энэ группт нэгдээрэй",
     "joinPromptDescription": "Та зөвшөөрөгдсөн нийтлэлүүдийг үзэж болно, гэхдээ бүлгийн нийтлэл нь зөвхөн гишүүдэд зориулагдсан.",
     "createAnotherGroup": "Өөр бүлэг үүсгэх",
-    "groupFeed": "Бүлгийн тэжээл",
+    "groupFeed": "Бүлгийн нийтлэлүүд",
     "emptyTitle": "Одоогоор батлагдсан нийтлэл байхгүй байна",
     "emptyJoined": "Энэ бүлгийн эхний бичлэгийг хуваалцаарай. Энэ нь тохируулсны дараа энд гарч ирнэ.",
     "emptyNotJoined": "Бүлэгт нэгдэж, яриа эхлүүлэхэд тусална уу."
@@ -1669,8 +1783,8 @@
     },
     "relationshipStates": "Харилцааны төлөв",
     "filterPlaceholder": "Найзуудаа нэр эсвэл бариулаар нь шүүнэ үү",
-    "totalCount_one": "{{count}} ????",
-    "totalCount_other": "{{count}} ????",
+    "totalCount_one": "",
+    "totalCount_other": "",
     "fetchingCircle": "Таны тойргийг татаж байна.",
     "emptyListTitle": "Таны найзуудын жагсаалт хоосон байна",
     "emptyListDescription": "Тоглогчдыг нэмж, сорьж, чатлаж эхлэх.",
@@ -1696,7 +1810,7 @@
   "Friends": "Friends",
   "Add Friend": "Найз нэмэх",
   "Loading friends": {
-    "": "????????? ?????? ?????..."
+    "": ""
   },
   "Search": "Хайх",
   "Play Chess": "Play Chess",
@@ -1787,7 +1901,7 @@
     " to share a game from your profile history": ", etc. to share a game from your profile history"
   },
   "moves": "moves",
-  "View Game": "View Game",
+  "View Game": "Тоглолт үзэх",
   "Page not found": "Page not found",
   "The page you requested could not be found": "The page you requested could not be found.",
   "fourPlayer": {
@@ -1841,8 +1955,8 @@
           "title": "Дурын нүүдэл",
           "desc": "Дурын бодыг ээлжлэн хөдөлгөнө",
           "open": "Дурын нүүдэл турших",
-          "plyCount_one": "{{count}} ????? ??????",
-          "plyCount_other": "{{count}} ????? ??????"
+          "plyCount_one": "{{count}} хагас нүүдэл",
+          "plyCount_other": "{{count}} хагас нүүдэл"
         },
         "positionBuilder": {
           "title": "Байрлал үүсгэх",
@@ -1913,8 +2027,8 @@
         "analyzingTopMoves": "Шилдэг нүүдлүүдийг шинжилж байна...",
         "topMovesPlaceholder": "Шилдэг нүүдлүүд энд гарна.",
         "startPosition": "Анхны байрлал",
-        "plyCount_one": "{{count}} ????? ??????",
-        "plyCount_other": "{{count}} ????? ??????",
+        "plyCount_one": "{{count}} хагас нүүдэл",
+        "plyCount_other": "{{count}} хагас нүүдэл",
         "resetToStart": "Анхны байрлал руу явах",
         "flipBoard": "Хөлгийг эргүүлэх",
         "queuedPreMove": "Дараалсан урьдчилсан нүүдэл",
@@ -1942,8 +2056,8 @@
     "pgn": {
       "status": {
         "loadedFile": "{{fileName}} ачааллаа.",
-        "parsedPlies_one": "{{count}} ????? ?????? ????????????.",
-        "parsedPlies_other": "{{count}} ????? ?????? ????????????.",
+        "parsedPlies_one": "{{count}} хагас нүүдэл боловсруулагдлаа.",
+        "parsedPlies_other": "{{count}} хагас нүүдэл боловсруулагдлаа.",
         "parsedSuccess": "PGN амжилттай боловсруулагдлаа."
       },
       "errors": {
@@ -1990,16 +2104,16 @@
   "Select Bot": "Бот сонгох",
   "Play Bots": "Боттой тоглох",
   "Loading bots": {
-    "": "???????? ?????? ?????..."
+    "": ""
   },
   "bot": "бот",
   "Play": "Тоглох",
   "Friend": "Найз",
-  "Failed to load friends list": "????????? ?????????? ?????? ?????????",
+  "Failed to load friends list": "",
   "Select Time": "Цаг сонгох",
   "Friend match": "Найзтай тоглолт",
   "Select friend": "Найзаа сонгох",
-  "No friends found": "???? ?????????",
+  "No friends found": "",
   "Play vs": "Эсрэг тоглох",
   "Change Friend": "Найзаа солих",
   "Game Type": "Тоглолтын төрөл",
@@ -2007,16 +2121,16 @@
   "Increment (sec)": "Нэмэлт секунд",
   "Apply Custom": "дурын цаг ашиглах",
   "Friend games are always unrated": {
-    " Elo does not change": "Elo ?????????????."
+    " Elo does not change": ""
   },
   "I play as": "I play as",
   "Sending": {
-    "": "?????? ?????..."
+    "": ""
   },
   "Send Challenge": "Урилга илгээх",
   "Choose Friend First": "Эхлээд найзаа сонгоно уу",
   "Search puzzle title, theme, or motif": {
-    "": "???????? ???, ????? ????? ????????? ????..."
+    "": ""
   },
   "puzzles": {
     "difficulty": {
@@ -2145,7 +2259,7 @@
   "Check back soon or try another category": "Удалгүй дахин шалгах эсвэл өөр ангилал туршиж үзнэ үү",
   "Watch Live": "Шууд үзэх",
   "Search players or events": {
-    "": "??????? ????? ??? ????? ????..."
+    "": ""
   },
   "watchPage": {
     "fallback": {
@@ -2170,7 +2284,7 @@
   "Continue Watching Moves": "Continue Watching Moves",
   "Back to Watch": "Back to Watch",
   "friends": {
-    "totalCount_one": "{{count}} ????",
-    "totalCount_other": "{{count}} ????"
+    "totalCount_one": "{{count}} friends",
+    "totalCount_other": "{{count}} friends"
   }
 }

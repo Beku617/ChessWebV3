@@ -152,7 +152,7 @@ export function ProfileAvatarUpload({
       {/* Avatar with edit button */}
       <div className="relative group">
         <div
-          className={`${avatarSizeClass} rounded-2xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-lg ring-4 ring-white dark:ring-gray-900 overflow-hidden`}
+          className={`${avatarSizeClass} rounded-2xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-lg ring-4 ring-theme-border/70 overflow-hidden`}
         >
           {currentAvatar ? (
             <img
@@ -161,7 +161,7 @@ export function ProfileAvatarUpload({
               className="w-full h-full object-cover"
             />
           ) : (
-            <span className={`text-white font-bold ${initialsClass}`}>
+            <span className={`text-theme-on-accent font-bold ${initialsClass}`}>
               {getInitials(userName)}
             </span>
           )}
@@ -171,10 +171,10 @@ export function ProfileAvatarUpload({
         {editable && (
           <button
             onClick={() => setIsModalOpen(true)}
-            className={`absolute bottom-0 right-0 ${editButtonClass} bg-white dark:bg-gray-800 rounded-full shadow-lg flex items-center justify-center border-2 border-white dark:border-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors group-hover:scale-110`}
+            className={`absolute bottom-0 right-0 ${editButtonClass} bg-theme-panel rounded-full shadow-lg flex items-center justify-center border-2 border-theme-glass hover:bg-theme-surface transition-colors group-hover:scale-110`}
             title={t("profile.avatar.change")}
           >
-            <Camera size={16} className="text-gray-700 dark:text-gray-300" />
+            <Camera size={16} className="text-theme-muted" />
           </button>
         )}
       </div>
@@ -186,7 +186,7 @@ export function ProfileAvatarUpload({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-theme-panel/50 flex items-center justify-center z-50 p-4"
             onClick={closeModal}
           >
             <motion.div
@@ -194,22 +194,22 @@ export function ProfileAvatarUpload({
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md p-6"
+              className="bg-theme-panel rounded-2xl shadow-2xl w-full max-w-md p-6"
             >
               {/* Header */}
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white"> <Trans>Update Profile Picture</Trans> </h3>
+                <h3 className="text-xl font-bold text-theme-foreground "> <Trans>Update Profile Picture</Trans> </h3>
                 <button
                   onClick={closeModal}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+                  className="p-2 hover:bg-theme-surface rounded-full transition-colors"
                 >
-                  <X size={20} className="text-gray-500" />
+                  <X size={20} className="text-theme-muted" />
                 </button>
               </div>
 
               {/* Preview Area */}
               <div className="flex flex-col items-center mb-6">
-                <div className="w-32 h-32 rounded-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center overflow-hidden ring-4 ring-gray-200 dark:ring-gray-700">
+                <div className="w-32 h-32 rounded-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center overflow-hidden ring-4 ring-theme-border">
                   {previewUrl ? (
                     <img
                       src={previewUrl}
@@ -223,7 +223,7 @@ export function ProfileAvatarUpload({
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <span className="text-white font-bold text-3xl">
+                    <span className="text-theme-on-accent font-bold text-3xl">
                       {getInitials(userName)}
                     </span>
                   )}
@@ -240,7 +240,7 @@ export function ProfileAvatarUpload({
 
               {/* Error Message */}
               {error && (
-                <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg text-sm">
+                <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm">
                   {error}
                 </div>
               )}
@@ -258,7 +258,7 @@ export function ProfileAvatarUpload({
               <div className="space-y-3">
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full py-3 px-4 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-xl text-gray-700 dark:text-gray-200 font-medium flex items-center justify-center gap-2 transition-colors"
+                  className="w-full py-3 px-4 bg-theme-surface hover:bg-theme-surface/80 rounded-xl text-theme-muted font-medium flex items-center justify-center gap-2 transition-colors"
                 >
                   <Upload size={18} /> <Trans>Choose Image</Trans> </button>
 
@@ -266,7 +266,7 @@ export function ProfileAvatarUpload({
                   <button
                     onClick={handleUpload}
                     disabled={isUploading}
-                    className="w-full py-3 px-4 bg-brand-500 hover:bg-brand-600 disabled:bg-brand-400 rounded-xl text-white font-medium flex items-center justify-center gap-2 transition-colors"
+                    className="w-full py-3 px-4 bg-brand-500 hover:bg-brand-600 disabled:bg-brand-400 rounded-xl text-theme-on-accent font-medium flex items-center justify-center gap-2 transition-colors"
                   >
                     {isUploading ? (
                       <>
@@ -284,7 +284,7 @@ export function ProfileAvatarUpload({
                   <button
                     onClick={handleRemoveAvatar}
                     disabled={isUploading}
-                    className="w-full py-3 px-4 border border-red-300 dark:border-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl text-red-600 dark:text-red-400 font-medium flex items-center justify-center gap-2 transition-colors"
+                    className="w-full py-3 px-4 border border-red-300 hover:bg-red-50 rounded-xl text-red-600 font-medium flex items-center justify-center gap-2 transition-colors"
                   >
                     {isUploading ? (
                       <>
@@ -300,7 +300,7 @@ export function ProfileAvatarUpload({
               </div>
 
               {/* Help text */}
-              <p className="mt-4 text-center text-sm text-gray-500 dark:text-gray-400"> <Trans>Supported formats: JPG, PNG, GIF. Max size: 2MB</Trans> </p>
+              <p className="mt-4 text-center text-sm text-theme-muted"> <Trans>Supported formats: JPG, PNG, GIF. Max size: 2MB</Trans> </p>
             </motion.div>
           </motion.div>
         )}

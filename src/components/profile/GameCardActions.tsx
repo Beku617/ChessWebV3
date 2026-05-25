@@ -19,14 +19,14 @@ export function GameCardActions({
     <div className="flex justify-end gap-3">
       <button
         onClick={onAnalyze}
-        className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-purple-600 text-white rounded-lg hover:bg-purple-500 transition-colors shadow-lg shadow-purple-500/20"
+        className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-purple-600 text-theme-on-accent rounded-lg hover:bg-purple-500 transition-colors shadow-lg shadow-purple-500/20"
       >
         <BarChart2 size={16} />
         {t("profileGames.card.analyze", "Analyze")}
       </button>
       <button
         onClick={onCopyPgn}
-        className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300"
+        className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-theme-panel border border-theme-glass rounded-lg hover:bg-theme-surface transition-colors text-theme-muted"
       >
         {copied ? (
           <Check size={16} className="text-green-500" />
@@ -39,7 +39,7 @@ export function GameCardActions({
       </button>
       <button
         onClick={onDownloadPgn}
-        className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-brand-600 text-white rounded-lg hover:bg-brand-500 transition-colors shadow-lg shadow-brand-500/20"
+        className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-brand-600 text-theme-on-accent rounded-lg hover:bg-brand-500 transition-colors shadow-lg shadow-brand-500/20"
       >
         <Download size={16} />
         {t("profileGames.card.downloadFile", "Download File")}

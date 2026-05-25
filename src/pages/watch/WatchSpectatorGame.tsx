@@ -551,7 +551,7 @@ export function WatchSpectatorGame({ gameId }: WatchSpectatorGameProps) {
               type="button"
               onClick={() => setViewIndex((prev) => Math.max(0, prev - 1))}
               disabled={!canStepBackward}
-              className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-gray-800 dark:text-gray-200 font-medium transition-colors disabled:opacity-50"
+              className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-theme-panel/10 hover:bg-theme-panel/15 text-theme-foreground font-medium transition-colors disabled:opacity-50"
             >
               <ChevronLeft className="w-4 h-4" /> <Trans>Previous</Trans> </button>
             <button
@@ -560,7 +560,7 @@ export function WatchSpectatorGame({ gameId }: WatchSpectatorGameProps) {
                 setViewIndex((prev) => Math.min(latestMoveIndex, prev + 1))
               }
               disabled={!canStepForward}
-              className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-gray-800 dark:text-gray-200 font-medium transition-colors disabled:opacity-50"
+              className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-theme-panel/10 hover:bg-theme-panel/15 text-theme-foreground font-medium transition-colors disabled:opacity-50"
             > <Trans>Next</Trans> <ChevronRight className="w-4 h-4" />
             </button>
           </div>
@@ -568,38 +568,38 @@ export function WatchSpectatorGame({ gameId }: WatchSpectatorGameProps) {
       />
 
       {isResultModalOpen && resultDetails ? (
-        <div className="fixed inset-0 z-[85] flex items-center justify-center bg-black/55 p-4 backdrop-blur-[2px]">
+        <div className="fixed inset-0 z-[85] flex items-center justify-center bg-theme-panel/55 p-4 backdrop-blur-[2px]">
           <div
             role="dialog"
             aria-modal="true"
             aria-label="Game result"
-            className="relative w-full max-w-[500px] overflow-hidden rounded-[22px] border border-slate-700/80 bg-slate-950/95 shadow-[0_24px_70px_rgba(2,6,23,0.75)]"
+            className="relative w-full max-w-[500px] overflow-hidden rounded-[22px] border border-theme-glass/80 bg-theme-panel/95 shadow-[0_24px_70px_rgba(2,6,23,0.75)]"
           >
             <button
               type="button"
               onClick={closeResultModal}
               aria-label="Close result modal"
-              className="absolute right-4 top-4 inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-500/50 bg-slate-900/70 text-slate-200 transition-colors hover:bg-slate-800"
+              className="absolute right-4 top-4 inline-flex h-8 w-8 items-center justify-center rounded-full border border-theme-border/50 bg-theme-panel/70 text-theme-foreground transition-colors hover:bg-theme-surface"
             >
               <X className="h-4 w-4" />
             </button>
 
-            <div className="bg-gradient-to-br from-slate-900 via-slate-950 to-blue-950/70 px-6 pb-6 pt-12 text-center">
+            <div className="bg-gradient-to-br from-theme-panel via-theme-surface to-theme-base px-6 pb-6 pt-12 text-center">
               <h2 className="text-4xl font-semibold leading-tight text-rose-100">
                 {resultDetails.title}
               </h2>
-              <p className="mt-3 text-sm text-slate-300">{resultDetails.subtitle}</p>
+              <p className="mt-3 text-sm text-theme-muted">{resultDetails.subtitle}</p>
 
               <div className="mt-8 space-y-3">
                 <button
                   type="button"
                   onClick={closeResultModal}
-                  className="w-full rounded-xl bg-sky-600 px-5 py-3 font-semibold text-white transition-colors hover:bg-sky-500"
+                  className="w-full rounded-xl bg-sky-600 px-5 py-3 font-semibold text-theme-on-accent transition-colors hover:bg-sky-500"
                 > <Trans>Continue Watching Moves</Trans> </button>
                 <button
                   type="button"
                   onClick={() => navigate("/watch")}
-                  className="w-full rounded-xl border border-slate-600 bg-slate-800/70 px-5 py-3 font-semibold text-slate-100 transition-colors hover:bg-slate-700"
+                  className="w-full rounded-xl border border-theme-border bg-theme-surface/70 px-5 py-3 font-semibold text-theme-foreground transition-colors hover:bg-theme-surface"
                 > <Trans>Back to Watch</Trans> </button>
               </div>
             </div>

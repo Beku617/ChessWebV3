@@ -20,7 +20,7 @@ export function BoardThemePicker({
           className={`w-10 h-10 rounded-lg overflow-hidden border-2 transition-all duration-150 ${
             value === opt.value
               ? "border-brand-500 ring-1 ring-brand-400/35 scale-105 shadow-[0_8px_18px_rgba(20,184,166,0.3)]"
-              : "border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500"
+              : "border-theme-glass hover:border-theme-glass"
           }`}
         >
           <div className="flex h-full">

@@ -32,27 +32,27 @@ const LIST_PAGE_SIZE = 14;
 
 function difficultyClass(difficulty: string) {
   if (difficulty === "Easy") {
-    return "border-emerald-300/50 bg-emerald-400/15 text-emerald-100";
+    return "border-emerald-400/45 bg-emerald-500/12 text-emerald-600";
   }
   if (difficulty === "Hard") {
-    return "border-red-300/50 bg-red-400/15 text-red-100";
+    return "border-rose-400/45 bg-rose-500/12 text-rose-600";
   }
-  return "border-amber-300/50 bg-amber-400/15 text-amber-100";
+  return "border-amber-400/45 bg-amber-500/12 text-amber-700";
 }
 
 function badgeClass(badge: string) {
-  if (badge === "new") return "border-cyan-300/60 bg-cyan-400/15 text-cyan-100";
+  if (badge === "new") return "border-cyan-400/45 bg-cyan-500/12 text-cyan-700";
   if (badge === "solved")
-    return "border-emerald-300/60 bg-emerald-400/15 text-emerald-100";
+    return "border-emerald-400/45 bg-emerald-500/12 text-emerald-600";
   if (badge === "failed_before")
-    return "border-rose-300/60 bg-rose-400/15 text-rose-100";
+    return "border-rose-400/45 bg-rose-500/12 text-rose-600";
   if (badge === "review_due")
-    return "border-amber-300/60 bg-amber-400/15 text-amber-100";
+    return "border-amber-400/45 bg-amber-500/12 text-amber-700";
   if (badge === "mastered")
-    return "border-slate-400/50 bg-slate-400/10 text-slate-200";
+    return "border-theme-border/50 bg-theme-surface/10 text-theme-foreground";
   if (badge === "bookmarked")
-    return "border-fuchsia-300/60 bg-fuchsia-400/15 text-fuchsia-100";
-  return "border-slate-400/40 bg-slate-400/10 text-slate-200";
+    return "border-fuchsia-400/45 bg-fuchsia-500/12 text-fuchsia-700";
+  return "border-theme-border/40 bg-theme-surface/10 text-theme-foreground";
 }
 
 function badgeLabel(badge: string) {
@@ -96,16 +96,16 @@ function statusTranslationKey(status?: string) {
 
 function statusPillClass(status?: string) {
   if (status === "solved")
-    return "border-emerald-300/60 bg-emerald-400/15 text-emerald-100";
+    return "border-emerald-400/45 bg-emerald-500/12 text-emerald-600";
   if (status === "failed")
-    return "border-rose-300/60 bg-rose-400/15 text-rose-100";
+    return "border-rose-400/45 bg-rose-500/12 text-rose-600";
   if (status === "review_due")
-    return "border-amber-300/60 bg-amber-400/15 text-amber-100";
+    return "border-amber-400/45 bg-amber-500/12 text-amber-700";
   if (status === "mastered")
-    return "border-slate-400/50 bg-slate-400/10 text-slate-200";
+    return "border-theme-border/50 bg-theme-surface/10 text-theme-foreground";
   if (status === "seen")
-    return "border-indigo-300/60 bg-indigo-400/15 text-indigo-100";
-  return "border-cyan-300/60 bg-cyan-400/15 text-cyan-100";
+    return "border-indigo-400/45 bg-indigo-500/12 text-indigo-700";
+  return "border-cyan-400/45 bg-cyan-500/12 text-cyan-700";
 }
 
 function PuzzlePreviewBoard({
@@ -151,7 +151,7 @@ function PuzzlePreviewBoard({
   return (
     <div
       ref={containerRef}
-      className="aspect-square w-full rounded-lg overflow-hidden border border-[#2d3f63] shadow-sm"
+      className="aspect-square w-full rounded-lg overflow-hidden border border-theme-glass shadow-sm"
     >
       {boardWidth > 0 ? (
         <Chessboard
@@ -320,10 +320,10 @@ export default function Puzzles() {
 
   return (
     <div className="space-y-5 max-w-full">
-      <section className="rounded-2xl border border-[#243250] bg-[#0f172a] px-5 py-5 shadow-[0_25px_80px_-55px_rgba(20,184,166,0.45)]">
+      <section className="rounded-2xl border border-theme-glass bg-theme-panel px-5 py-5 shadow-[0_25px_80px_-55px_rgba(20,184,166,0.45)]">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0">
-            <h1 className="text-2xl font-semibold text-white">
+            <h1 className="text-2xl font-semibold text-theme-foreground">
               {t("puzzles.library.title", "Browse Puzzles")}
             </h1>
           </div>
@@ -331,13 +331,13 @@ export default function Puzzles() {
             <button
               type="button"
             onClick={() => navigate(-1)}
-            className="inline-flex items-center rounded-lg border border-[#304464] bg-[#111b31] px-3 py-2 text-xs font-medium text-slate-100 transition-colors hover:bg-[#162541]"
+            className="inline-flex items-center rounded-lg border border-theme-glass bg-theme-panel px-3 py-2 text-xs font-medium text-theme-foreground transition-colors hover:bg-theme-panel"
           >
             {t("analysis.back", "Back")}
           </button>
             <Link
               to="/puzzles/history"
-              className="inline-flex items-center gap-1.5 rounded-lg border border-[#304464] bg-[#111b31] px-3 py-2 text-xs font-semibold text-slate-100 hover:border-cyan-300/60"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-theme-glass bg-theme-panel px-3 py-2 text-xs font-semibold text-theme-foreground hover:border-cyan-300/60"
             >
               <BookOpen className="h-3.5 w-3.5" />
               {t("puzzles.trainer.historyTab", "History")}
@@ -346,10 +346,10 @@ export default function Puzzles() {
         </div>
 
         <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-2">
-          <label className="rounded-xl border border-[#304464] bg-[#111b31] px-3 py-2 text-xs text-slate-200">
+          <label className="rounded-xl border border-theme-glass bg-theme-panel px-3 py-2 text-xs text-theme-foreground">
             {t("puzzles.library.searchLabel", "Search")}
             <div className="mt-1 flex items-center gap-2">
-              <Search className="h-3.5 w-3.5 text-slate-400" />
+              <Search className="h-3.5 w-3.5 text-theme-muted" />
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
@@ -357,12 +357,12 @@ export default function Puzzles() {
                   "puzzles.library.searchPlaceholder",
                   "Search title",
                 )}
-                className="w-full bg-transparent outline-none text-sm placeholder:text-slate-500"
+                className="w-full bg-transparent outline-none text-sm placeholder:text-theme-disabled"
               />
             </div>
           </label>
 
-          <label className="rounded-xl border border-[#304464] bg-[#111b31] px-3 py-2 text-xs text-slate-200">
+          <label className="rounded-xl border border-theme-glass bg-theme-panel px-3 py-2 text-xs text-theme-foreground">
             {t("puzzles.library.statusLabel", "Status")}
             <select
               value={status}
@@ -375,7 +375,7 @@ export default function Puzzles() {
                 <option
                   key={option.value}
                   value={option.value}
-                  className="bg-[#0d1322] text-slate-100"
+                  className="bg-theme-panel text-theme-foreground"
                 >
                   {option.label}
                 </option>
@@ -383,7 +383,7 @@ export default function Puzzles() {
             </select>
           </label>
 
-          <label className="rounded-xl border border-[#304464] bg-[#111b31] px-3 py-2 text-xs text-slate-200">
+          <label className="rounded-xl border border-theme-glass bg-theme-panel px-3 py-2 text-xs text-theme-foreground">
             {t("puzzles.library.difficultyLabel", "Difficulty")}
             <select
               value={difficulty}
@@ -394,14 +394,14 @@ export default function Puzzles() {
               }
               className="mt-1 w-full bg-transparent text-sm outline-none"
             >
-              <option value="" className="bg-[#0d1322] text-slate-100">
+              <option value="" className="bg-theme-panel text-theme-foreground">
                 {t("puzzles.status.all", "All")}
               </option>
               {["Easy", "Medium", "Hard"].map((item) => (
                 <option
                   key={item}
                   value={item}
-                  className="bg-[#0d1322] text-slate-100"
+                  className="bg-theme-panel text-theme-foreground"
                 >
                   {difficultyLabel(item, translateDefault)}
                 </option>
@@ -411,8 +411,8 @@ export default function Puzzles() {
         </div>
 
         <div className="mt-3 flex flex-wrap items-center gap-2">
-          <div className="inline-flex items-center gap-1 rounded-lg border border-[#304464] bg-[#111b31] px-2 py-1">
-            <SlidersHorizontal className="h-3.5 w-3.5 text-slate-400" />
+          <div className="inline-flex items-center gap-1 rounded-lg border border-theme-glass bg-theme-panel px-2 py-1">
+            <SlidersHorizontal className="h-3.5 w-3.5 text-theme-muted" />
             <input
               type="number"
               value={minRating}
@@ -423,7 +423,7 @@ export default function Puzzles() {
               min={100}
               max={maxRating}
             />
-            <span className="text-xs text-slate-500">
+            <span className="text-xs text-theme-muted">
               {t("puzzles.library.ratingSeparator", "to")}
             </span>
             <input
@@ -438,14 +438,14 @@ export default function Puzzles() {
             />
           </div>
 
-          <div className="ml-auto inline-flex rounded-lg border border-[#304464] bg-[#111b31] p-1">
+          <div className="ml-auto inline-flex rounded-lg border border-theme-glass bg-theme-panel p-1">
             <button
               type="button"
               onClick={() => setViewMode("grid")}
               className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold ${
                 viewMode === "grid"
-                  ? "bg-emerald-400/20 text-emerald-100"
-                  : "text-slate-300"
+                  ? "bg-theme-surface text-theme-foreground"
+                  : "text-theme-muted"
               }`}
             >
               <Grid2X2 className="h-3.5 w-3.5" />
@@ -456,8 +456,8 @@ export default function Puzzles() {
               onClick={() => setViewMode("list")}
               className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold ${
                 viewMode === "list"
-                  ? "bg-emerald-400/20 text-emerald-100"
-                  : "text-slate-300"
+                  ? "bg-theme-surface text-theme-foreground"
+                  : "text-theme-muted"
               }`}
             >
               <List className="h-3.5 w-3.5" />
@@ -468,18 +468,18 @@ export default function Puzzles() {
       </section>
 
       {loading ? (
-        <div className="rounded-2xl border border-[#243250] bg-[#0f172a] px-4 py-12 flex justify-center">
-          <div className="flex flex-col items-center gap-2 text-sm text-slate-300">
-            <Loader2 className="w-8 h-8 animate-spin text-emerald-300" />
+        <div className="rounded-2xl border border-theme-glass bg-theme-panel px-4 py-12 flex justify-center">
+          <div className="flex flex-col items-center gap-2 text-sm text-theme-muted">
+            <Loader2 className="w-8 h-8 animate-spin text-brand-500" />
             <span>{t("puzzles.library.loading", "Loading puzzle library...")}</span>
           </div>
         </div>
       ) : error ? (
-        <div className="rounded-2xl border border-red-400/50 bg-red-500/10 px-4 py-4 text-sm text-red-100">
+        <div className="rounded-2xl border border-red-400/50 bg-red-500/10 px-4 py-4 text-sm text-red-700">
           {error}
         </div>
       ) : items.length === 0 ? (
-        <div className="rounded-2xl border border-[#243250] bg-[#0f172a] px-4 py-6 text-sm text-slate-300">
+        <div className="rounded-2xl border border-theme-glass bg-theme-panel px-4 py-6 text-sm text-theme-muted">
           {status === "review_due"
             ? t(
                 "puzzles.library.emptyReviewDue",
@@ -498,22 +498,22 @@ export default function Puzzles() {
             return (
               <article
                 key={puzzle._id}
-                className={`rounded-xl border border-[#273655] bg-[#101a30] p-3 transition-all ${
+                className={`rounded-xl border border-theme-glass bg-theme-panel p-3 transition-all ${
                   mastered ? "opacity-65" : "opacity-100"
-                } hover:border-[#3d547f] hover:shadow-md`}
+                } hover:border-theme-glass hover:shadow-md`}
               >
                 <PuzzlePreviewBoard puzzleId={puzzle._id} fen={puzzle.fen} />
 
                 <div className="mt-2.5 flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <h3 className="font-semibold text-white truncate">{puzzle.title}</h3>
-                    <p className="text-xs text-slate-400">{puzzle.rating} <Trans>Elo</Trans></p>
+                    <h3 className="font-semibold text-theme-foreground truncate">{puzzle.title}</h3>
+                    <p className="text-xs text-theme-muted">{puzzle.rating} <Trans>Elo</Trans></p>
                   </div>
                   {puzzle.userState?.isBookmarked ? (
                     <button
                       type="button"
                       onClick={() => onBookmark(puzzle)}
-                      className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-fuchsia-300/60 bg-fuchsia-500/15 text-fuchsia-200 hover:bg-fuchsia-500/25"
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-fuchsia-400/45 bg-fuchsia-500/12 text-fuchsia-700 hover:bg-fuchsia-500/20"
                       title={t("puzzles.library.bookmarked", "Bookmarked")}
                       aria-label={t("puzzles.library.bookmarked", "Bookmarked")}
                     >
@@ -559,20 +559,20 @@ export default function Puzzles() {
                     .map((motif) => (
                       <span
                         key={`${puzzle._id}-${motif}`}
-                        className="px-2 py-1 rounded-md border border-[#31446d] bg-[#0d1629] text-[11px] text-slate-200"
+                        className="px-2 py-1 rounded-md border border-theme-glass bg-theme-panel text-[11px] text-theme-foreground"
                       >
                         {motif}
                       </span>
                     ))}
                 </div>
 
-                <p className="mt-2 text-xs text-slate-300 line-clamp-2">
+                <p className="mt-2 text-xs text-theme-muted line-clamp-2">
                   {puzzle.description ||
                     t("puzzles.library.noDescription", "No description")}
                 </p>
 
                 <div className="mt-3 flex items-center justify-between gap-2">
-                  <div className="text-[11px] text-slate-400">
+                  <div className="text-[11px] text-theme-muted">
                     {t("puzzles.library.attempts", {
                       defaultValue: "{{count}} attempts",
                       count: puzzle.quality?.attempts || 0,
@@ -583,7 +583,7 @@ export default function Puzzles() {
                     onClick={() =>
                       navigate(`/puzzles/train/${puzzle._id}?mode=library`)
                     }
-                    className="rounded-lg border border-emerald-300/70 bg-emerald-500/20 px-3 py-1.5 text-[11px] font-semibold text-emerald-100 hover:bg-emerald-500/30"
+                    className="rounded-lg border border-emerald-400/50 bg-emerald-500/15 px-3 py-1.5 text-[11px] font-semibold text-theme-foreground hover:bg-emerald-500/25"
                   >
                     {t("puzzles.library.start", "Start")}
                   </button>
@@ -593,25 +593,25 @@ export default function Puzzles() {
           })}
         </div>
       ) : (
-        <div className="rounded-2xl border border-[#243250] bg-[#0f172a] overflow-hidden">
+        <div className="rounded-2xl border border-theme-glass bg-theme-panel overflow-hidden">
           {pagedItems.map((puzzle) => {
             const badge = puzzle.userState?.badge || "new";
             const mastered = puzzle.userState?.mastered === true;
             return (
               <div
                 key={puzzle._id}
-                className={`px-3 py-3 border-b border-[#1e2a44] last:border-b-0 flex items-center gap-3 ${
+                className={`px-3 py-3 border-b border-theme-glass last:border-b-0 flex items-center gap-3 ${
                   mastered ? "opacity-65" : ""
                 }`}
               >
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-white truncate inline-flex items-center gap-1.5">
+                  <p className="text-sm font-semibold text-theme-foreground truncate inline-flex items-center gap-1.5">
                     {puzzle.userState?.isBookmarked ? (
-                      <Bookmark className="h-3.5 w-3.5 text-fuchsia-200 shrink-0" fill="currentColor" />
+                      <Bookmark className="h-3.5 w-3.5 text-fuchsia-700 shrink-0" fill="currentColor" />
                     ) : null}
                     {puzzle.title}
                   </p>
-                  <p className="text-xs text-slate-400 truncate">
+                  <p className="text-xs text-theme-muted truncate">
                     {mergedMotifs(puzzle).join(" • ") ||
                       t("puzzles.library.noMotifs", "No motifs")}
                   </p>
@@ -633,7 +633,7 @@ export default function Puzzles() {
                 >
                   {difficultyLabel(puzzle.difficulty, translateDefault)}
                 </span>
-                <span className="text-xs text-slate-300 w-14 text-right shrink-0">
+                <span className="text-xs text-theme-muted w-14 text-right shrink-0">
                   {puzzle.rating}
                 </span>
                 <button
@@ -641,7 +641,7 @@ export default function Puzzles() {
                   onClick={() =>
                     navigate(`/puzzles/train/${puzzle._id}?mode=library`)
                   }
-                  className="rounded-lg border border-emerald-300/70 bg-emerald-500/20 px-3 py-1.5 text-[11px] font-semibold text-emerald-100 hover:bg-emerald-500/30 shrink-0"
+                  className="rounded-lg border border-emerald-400/50 bg-emerald-500/15 px-3 py-1.5 text-[11px] font-semibold text-theme-foreground hover:bg-emerald-500/25 shrink-0"
                 >
                   {t("puzzles.library.start", "Start")}
                 </button>
@@ -652,8 +652,8 @@ export default function Puzzles() {
       )}
 
       {items.length > 0 && totalPages > 1 ? (
-        <div className="rounded-xl border border-[#243250] bg-[#0f172a] p-4 flex items-center justify-between">
-          <p className="text-sm text-slate-400">
+        <div className="rounded-xl border border-theme-glass bg-theme-panel p-4 flex items-center justify-between">
+          <p className="text-sm text-theme-muted">
             {t("puzzles.library.pagination", {
               defaultValue: "Showing {{start}} - {{end}} of {{total}}",
               start: pageStart + 1,
@@ -666,18 +666,18 @@ export default function Puzzles() {
               type="button"
               onClick={() => setPage((prev) => Math.max(1, prev - 1))}
               disabled={safePage <= 1}
-              className="p-2 bg-slate-100/10 hover:bg-slate-100/20 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-2 bg-theme-surface/10 hover:bg-theme-surface/20 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="text-sm text-slate-300">
+            <span className="text-sm text-theme-muted">
               {safePage} / {totalPages}
             </span>
             <button
               type="button"
               onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
               disabled={safePage >= totalPages}
-              className="p-2 bg-slate-100/10 hover:bg-slate-100/20 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-2 bg-theme-surface/10 hover:bg-theme-surface/20 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <ChevronRight className="w-4 h-4" />
             </button>

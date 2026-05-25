@@ -55,7 +55,7 @@ export function ResignConfirmButton({
   }, [isOpen]);
 
   const confirmDialog = isOpen ? (
-    <div className="fixed inset-0 z-[180] flex items-center justify-center bg-black/65 p-4 backdrop-blur-[2px]">
+    <div className="fixed inset-0 z-[180] flex items-center justify-center bg-theme-panel/65 p-4 backdrop-blur-[2px]">
       <div
         role="dialog"
         aria-modal="true"
@@ -66,13 +66,13 @@ export function ResignConfirmButton({
         <div className="px-6 pt-6 pb-5">
           <h2
             id={titleId}
-            className="text-lg font-semibold text-gray-900 dark:text-white"
+            className="text-lg font-semibold text-theme-foreground "
           >
             {t("quickMatch.resignConfirm.title", "Resign Game?")}
           </h2>
           <p
             id={descriptionId}
-            className="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300"
+            className="mt-2 text-sm leading-6 text-theme-muted"
           >
             {t(
               "quickMatch.resignConfirm.description",
@@ -84,14 +84,14 @@ export function ResignConfirmButton({
           <button
             type="button"
             onClick={handleClose}
-            className="rounded-lg border border-theme-glass bg-white/70 px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-white/80 dark:bg-white/5 dark:text-gray-200 dark:hover:bg-white/10"
+            className="rounded-lg border border-theme-glass bg-theme-panel/70 px-4 py-2 text-sm font-semibold text-theme-muted transition-colors hover:bg-theme-panel/80"
           >
             {t("Cancel")}
           </button>
           <button
             type="button"
             onClick={handleConfirm}
-            className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-500"
+            className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-theme-on-accent transition-colors hover:bg-red-500"
           >
             {t("game.actions.resign", "Resign")}
           </button>

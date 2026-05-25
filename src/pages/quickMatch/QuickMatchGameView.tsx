@@ -45,7 +45,7 @@ const KING_OF_HILL_SQUARE_STYLES: Record<string, CSSProperties> = {
 };
 const ARENA_MEDAL_CLASSES = [
   "border-amber-300 bg-gradient-to-br from-amber-200 to-amber-600 text-amber-950",
-  "border-slate-200 bg-gradient-to-br from-slate-100 to-slate-500 text-slate-950",
+  "border-theme-border bg-gradient-to-br from-theme-surface to-theme-panel text-theme-foreground",
   "border-orange-300 bg-gradient-to-br from-orange-200 to-orange-700 text-orange-950",
 ];
 
@@ -271,11 +271,43 @@ function getViewerOutcome(
 
 function getTournamentResultTitle(
   result: string | null | undefined,
-  fallbackLabel: string,
+  t: (key: string, defaultValueOrOptions?: unknown, options?: unknown) => string,
 ): string {
+  const fallbackLabel = t("quickMatch.result.gameComplete", "Game complete");
   const normalized = String(result || fallbackLabel).trim();
   if (!normalized) return fallbackLabel;
-  return normalized.replace(/\s*\([^)]*\)\s*/g, " ").replace(/\s+/g, " ").trim();
+
+  const cleaned = normalized
+    .replace(/\s*\([^)]*\)\s*/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const lower = cleaned.toLowerCase();
+
+  if (lower.includes("you resigned")) {
+    return t("quickMatch.gameOver.title.youResigned", "You Resigned");
+  }
+  if (lower.includes("draw")) {
+    return t("quickMatch.gameOver.title.draw", "Draw");
+  }
+  if (
+    lower.includes("you win") ||
+    lower.includes("you won") ||
+    lower.includes("you beat")
+  ) {
+    return t("quickMatch.gameOver.title.youWon", "You Won");
+  }
+  if (
+    lower.includes("you lose") ||
+    lower.includes("you lost") ||
+    lower.includes("stockfish wins")
+  ) {
+    return t("quickMatch.gameOver.title.youLost", "You Lost");
+  }
+  if (lower.includes("aborted")) {
+    return t("quickMatch.gameOver.title.gameAborted", "Game Aborted");
+  }
+
+  return cleaned;
 }
 
 function getWinnerLabel(
@@ -330,9 +362,9 @@ function formatSignedRatingDelta(delta: number): string {
 }
 
 function ratingDeltaTextClass(delta: number): string {
-  if (delta > 0) return "text-emerald-300";
-  if (delta < 0) return "text-rose-300";
-  return "text-slate-300";
+  if (delta > 0) return "text-emerald-600";
+  if (delta < 0) return "text-rose-600";
+  return "text-theme-muted";
 }
 
 function buildPlayerRatingChange(
@@ -730,10 +762,7 @@ export function QuickMatchGameView({
     null;
   const activeTournamentHistoryRow =
     tournamentHistory.find((row) => row.gameId === activeTournamentGameId) || null;
-  const tournamentResultTitle = getTournamentResultTitle(
-    gameResult,
-    t("quickMatch.result.gameComplete", "Game complete"),
-  );
+  const tournamentResultTitle = getTournamentResultTitle(gameResult, t);
   const viewerOutcome = getViewerOutcome(activeTournamentHistoryRow, viewerUserId);
   const viewerOutcomeLabel =
     viewerOutcome === "win"
@@ -825,7 +854,7 @@ export function QuickMatchGameView({
     if (!hasIncomingDrawOffer || !gameStarted || gameOver) return null;
 
     return (
-      <div className="mx-auto mt-2 w-full max-w-sm rounded-2xl border border-brand-400/35 bg-slate-950/95 p-4 text-white shadow-[0_18px_55px_rgba(0,0,0,0.45)]">
+      <div className="mx-auto mt-2 w-full max-w-sm rounded-2xl border border-brand-400/35 bg-theme-panel/95 p-4 text-theme-foreground shadow-[0_18px_55px_rgba(0,0,0,0.45)]">
         <div className="flex items-start gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-500/15 text-brand-200">
             <Handshake size={18} />
@@ -834,7 +863,7 @@ export function QuickMatchGameView({
             <div className="text-sm font-semibold">
               {t("quickMatch.draw.offered", "Draw offered")}
             </div>
-            <p className="mt-1 text-xs text-slate-300">
+            <p className="mt-1 text-xs text-theme-muted">
               {t("quickMatch.draw.opponentOffered", "Your opponent offered a draw.")}
             </p>
           </div>
@@ -844,7 +873,7 @@ export function QuickMatchGameView({
             type="button"
             onClick={() => onRespondDrawOffer?.(true)}
             disabled={!onRespondDrawOffer}
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-brand-600 text-sm font-semibold text-white transition-colors hover:bg-brand-500 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-brand-600 text-sm font-semibold text-theme-on-accent transition-colors hover:bg-brand-500 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Check size={15} />
             {t("Accept")}
@@ -853,7 +882,7 @@ export function QuickMatchGameView({
             type="button"
             onClick={() => onRespondDrawOffer?.(false)}
             disabled={!onRespondDrawOffer}
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.06] text-sm font-semibold text-slate-100 transition-colors hover:bg-white/[0.1] disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-theme-glass bg-theme-panel/[0.06] text-sm font-semibold text-theme-foreground transition-colors hover:bg-theme-panel/[0.1] disabled:cursor-not-allowed disabled:opacity-60"
           >
             <X size={15} />
             {t("Decline")}
@@ -1020,7 +1049,7 @@ export function QuickMatchGameView({
 
   return (
     <div
-      className={`quickmatch-game-root relative h-screen w-full bg-transparent overflow-hidden ${
+      className={`quickmatch-game-root relative h-screen w-full bg-theme-primary overflow-hidden ${
         isFocusMode ? "focus-mode" : ""
       }`}
     >
@@ -1043,7 +1072,7 @@ export function QuickMatchGameView({
         {/* Main Board Area */}
         <div
           ref={leftRef}
-          className="quickmatch-main-board min-w-0 flex flex-col items-center justify-center p-4 gap-4 h-full overflow-hidden"
+          className="quickmatch-main-board min-w-0 flex flex-col items-center justify-center p-4 gap-4 h-full overflow-hidden bg-theme-primary"
         >
           {/* Opponent Info */}
           <div
@@ -1053,6 +1082,7 @@ export function QuickMatchGameView({
               width: isFocusMode
                 ? focusPlayerPanelWidth
                 : boardWidth,
+              backgroundColor: "var(--bg-panel)",
             }}
           >
             <PlayerInfo
@@ -1092,10 +1122,10 @@ export function QuickMatchGameView({
               <button
                 type="button"
                 onClick={() => setIsFocusMode((prev) => !prev)}
-                className={`quickmatch-focus-toggle absolute -right-9 top-1 z-30 inline-flex h-8 w-8 items-center justify-center rounded-lg border text-white shadow-lg transition-colors ${
+                className={`quickmatch-focus-toggle absolute -right-9 top-1 z-30 inline-flex h-8 w-8 items-center justify-center rounded-lg border text-theme-on-accent shadow-lg transition-colors ${
                   isFocusMode
                     ? "border-brand-300/65 bg-brand-500/55"
-                    : "border-white/20 bg-slate-900/35 hover:bg-slate-800/50"
+                    : "border-theme-glass bg-theme-panel/35 hover:bg-theme-surface/50"
                 }`}
                 aria-label={
                   isFocusMode
@@ -1142,6 +1172,7 @@ export function QuickMatchGameView({
               width: isFocusMode
                 ? focusPlayerPanelWidth
                 : boardWidth,
+              backgroundColor: "var(--bg-panel)",
             }}
           >
             <PlayerInfo
@@ -1177,7 +1208,7 @@ export function QuickMatchGameView({
             <div className="quickmatch-focus-actions">
               {hasIncomingDrawOffer ? (
                 <div
-                  className="quickmatch-focus-draw-offer w-[220px] rounded-xl border border-cyan-300/45 bg-[#0b1f2e]/95 p-2.5 text-white shadow-[0_16px_46px_rgba(8,145,178,0.35)]"
+                  className="quickmatch-focus-draw-offer w-[220px] rounded-xl border border-cyan-300/45 bg-theme-panel p-2.5 text-theme-foreground shadow-[0_16px_46px_rgba(8,145,178,0.35)]"
                   role="alert"
                   aria-live="assertive"
                 >
@@ -1197,7 +1228,7 @@ export function QuickMatchGameView({
                       type="button"
                       onClick={() => onRespondDrawOffer?.(true)}
                       disabled={!onRespondDrawOffer}
-                      className="inline-flex h-8 items-center justify-center gap-1 rounded-md bg-emerald-600 text-[11px] font-semibold text-white transition-colors hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-55"
+                      className="inline-flex h-8 items-center justify-center gap-1 rounded-md bg-emerald-600 text-[11px] font-semibold text-theme-on-accent transition-colors hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-55"
                     >
                       <Check size={12} />
                       {t("Accept")}
@@ -1206,7 +1237,7 @@ export function QuickMatchGameView({
                       type="button"
                       onClick={() => onRespondDrawOffer?.(false)}
                       disabled={!onRespondDrawOffer}
-                      className="inline-flex h-8 items-center justify-center gap-1 rounded-md border border-white/20 bg-white/10 text-[11px] font-semibold text-slate-100 transition-colors hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-55"
+                      className="inline-flex h-8 items-center justify-center gap-1 rounded-md border border-theme-glass bg-theme-panel/10 text-[11px] font-semibold text-theme-foreground transition-colors hover:bg-theme-panel/15 disabled:cursor-not-allowed disabled:opacity-55"
                     >
                       <X size={12} />
                       {t("Decline")}
@@ -1256,24 +1287,24 @@ export function QuickMatchGameView({
             {tournamentMode || sidebarTitle || sidebarHeaderRightOverride ? (
               <div className="p-4 border-b border-theme-glass">
                 {tournamentMode ? (
-                  <div className="rounded-xl border border-cyan-500/20 bg-[#081a33]/95 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+                  <div className="rounded-xl border border-theme-glass bg-theme-panel p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex min-w-0 items-center gap-3">
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md border border-cyan-300/25 bg-cyan-400/15 text-cyan-100">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md border border-theme-glass bg-theme-surface text-theme-foreground">
                           <Zap className="h-5 w-5" />
                         </div>
                         <div className="min-w-0">
-                          <h2 className="truncate text-base font-semibold text-slate-100">
+                          <h2 className="truncate text-base font-semibold text-theme-foreground">
                             {tournamentPanelData?.tournament?.name ||
                               t("quickMatch.tournament.headerFallback", "Arena Tournament")}
                           </h2>
-                          <p className="truncate text-xs text-cyan-100/75">
+                          <p className="truncate text-xs text-theme-muted">
                             {t("quickMatch.tournament.headerSummary", {
                               count: tournamentStandings.length,
                               defaultValue: "Standard - {{count}} players",
                             })}
                           </p>
-                          <p className="truncate text-xs text-cyan-100/65">
+                          <p className="truncate text-xs text-theme-muted">
                             {t(
                               "quickMatch.tournament.headerPairing",
                               "Pairing: Rating-based",
@@ -1282,7 +1313,7 @@ export function QuickMatchGameView({
                         </div>
                       </div>
                       {arenaClockLabel ? (
-                        <div className="rounded-md border border-cyan-200/20 bg-cyan-200/10 px-3 py-2 text-lg font-semibold tracking-wide text-cyan-100">
+                        <div className="rounded-md border border-theme-glass bg-theme-surface px-3 py-2 text-lg font-semibold tracking-wide text-theme-foreground">
                           {arenaClockLabel}
                         </div>
                       ) : null}
@@ -1290,11 +1321,11 @@ export function QuickMatchGameView({
                   </div>
                 ) : (
                   <div className="flex items-center justify-between gap-3">
-                    <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                    <h2 className="text-lg font-bold text-theme-foreground ">
                       {sidebarTitle}
                     </h2>
                     {sidebarHeaderRightOverride ? (
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                      <span className="text-xs text-theme-muted">
                         {sidebarHeaderRightOverride}
                       </span>
                     ) : null}
@@ -1309,8 +1340,8 @@ export function QuickMatchGameView({
                   onClick={() => setTournamentTab("standings")}
                   className={`flex-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors ${
                     tournamentTab === "standings"
-                      ? "bg-emerald-500/20 text-emerald-300"
-                      : "text-gray-600 hover:bg-gray-200/70 dark:text-gray-300 dark:hover:bg-slate-700/60"
+                      ? "border border-theme-glass bg-theme-panel text-theme-foreground"
+                      : "text-theme-muted hover:bg-theme-surface/60"
                   }`}
                 >
                   {t("tournamentsPage.tabs.standings", "Standings")}
@@ -1319,8 +1350,8 @@ export function QuickMatchGameView({
                   onClick={() => setTournamentTab("games")}
                   className={`flex-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors ${
                     tournamentTab === "games"
-                      ? "bg-emerald-500/20 text-emerald-300"
-                      : "text-gray-600 hover:bg-gray-200/70 dark:text-gray-300 dark:hover:bg-slate-700/60"
+                      ? "border border-theme-glass bg-theme-panel text-theme-foreground"
+                      : "text-theme-muted hover:bg-theme-surface/60"
                   }`}
                 >
                   {t("Games")}
@@ -1329,8 +1360,8 @@ export function QuickMatchGameView({
                   onClick={() => setTournamentTab("moves")}
                   className={`flex-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors ${
                     tournamentTab === "moves"
-                      ? "bg-emerald-500/20 text-emerald-300"
-                      : "text-gray-600 hover:bg-gray-200/70 dark:text-gray-300 dark:hover:bg-slate-700/60"
+                      ? "border border-theme-glass bg-theme-panel text-theme-foreground"
+                      : "text-theme-muted hover:bg-theme-surface/60"
                   }`}
                 >
                   {t("quickMatch.tabs.moves", "Moves")}
@@ -1339,7 +1370,7 @@ export function QuickMatchGameView({
             )}
 
             {filteredTournamentStatusMessage && (
-              <div className="px-4 pt-2 text-xs text-gray-500 dark:text-gray-400">
+              <div className="px-4 pt-2 text-xs text-theme-muted">
                 {filteredTournamentStatusMessage}
               </div>
             )}
@@ -1351,7 +1382,7 @@ export function QuickMatchGameView({
                   movesContent={
                     <div className="space-y-2">
                       {openingDisplayLabel ? (
-                        <div className="px-2 text-xs text-gray-500 dark:text-gray-400">
+                        <div className="px-2 text-xs text-theme-muted">
                           {openingDisplayLabel}
                         </div>
                       ) : null}
@@ -1361,11 +1392,11 @@ export function QuickMatchGameView({
                         onSelectPly={handleSelectPly}
                         emptyMessage={t("quickMatch.moves.empty", "No moves yet")}
                         moveCellClassName="rounded px-2 py-1 transition-colors"
-                        activeMoveClassName="bg-[#00e5a0]/20 text-[#00e5a0] font-semibold"
-                        inactiveMoveClassName="text-gray-800 dark:text-gray-200"
+                        activeMoveClassName="bg-theme-panel text-theme-accent font-semibold"
+                        inactiveMoveClassName="text-theme-foreground "
                         footer={
                           moveLogFooterMessage ? (
-                            <div className="mt-3 pt-3 border-t border-gray-200/70 dark:border-white/10 text-xs font-semibold text-emerald-600 dark:text-emerald-300">
+                            <div className="mt-3 pt-3 border-t border-theme-glass/70 text-xs font-semibold text-emerald-600">
                               {moveLogFooterMessage}
                             </div>
                           ) : null
@@ -1386,12 +1417,12 @@ export function QuickMatchGameView({
               {tournamentMode && tournamentTab === "standings" && (
                 <div className="h-full overflow-auto p-2">
                   {isTournamentFinished ? (
-                    <div className="mb-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs font-semibold text-emerald-200">
+                    <div className="mb-2 rounded-lg border border-theme-glass bg-theme-surface px-3 py-2 text-xs font-semibold text-theme-foreground">
                       {t("tournamentsPage.finalStandings.title", "Final Standings")}
                     </div>
                   ) : null}
                   {tournamentStandings.length === 0 ? (
-                    <div className="text-center text-gray-400 dark:text-gray-500 text-xs py-6">
+                    <div className="text-center text-theme-muted text-xs py-6">
                       {t("quickMatch.standings.loading", "Standings are loading...")}
                     </div>
                   ) : (
@@ -1402,7 +1433,7 @@ export function QuickMatchGameView({
                           className={`flex items-center gap-2 rounded-lg border px-2.5 py-2 ${
                             Number(row.rank) === 1
                               ? "border-amber-500/30 bg-amber-500/5"
-                              : "border-gray-200/70 bg-white/50 dark:border-white/10 dark:bg-slate-900/60"
+                              : "border-theme-glass/70 bg-theme-panel/50"
                           }`}
                         >
                           <div
@@ -1410,15 +1441,15 @@ export function QuickMatchGameView({
                               Number(row.rank) === 1
                                 ? "text-amber-400"
                                 : Number(row.rank) === 2
-                                  ? "text-slate-300"
+                                  ? "text-theme-muted"
                                   : Number(row.rank) === 3
                                     ? "text-orange-400"
-                                    : "text-gray-500 dark:text-gray-400"
+                                    : "text-theme-muted"
                             }`}
                           >
                             #{row.rank}
                           </div>
-                          <div className="h-7 w-7 overflow-hidden rounded-full border border-emerald-400/25 bg-emerald-500/10 flex items-center justify-center text-[11px] font-semibold text-emerald-300">
+                          <div className="h-7 w-7 overflow-hidden rounded-full border border-theme-glass bg-theme-surface flex items-center justify-center text-[11px] font-semibold text-theme-foreground">
                             {row.avatar ? (
                               <img
                                 src={row.avatar}
@@ -1430,15 +1461,15 @@ export function QuickMatchGameView({
                             )}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <div className="truncate text-xs font-medium text-gray-900 dark:text-gray-100">
+                            <div className="truncate text-xs font-medium text-theme-foreground ">
                               {row.username}
                             </div>
-                            <div className="text-[11px] text-gray-500 dark:text-gray-400">
+                            <div className="text-[11px] text-theme-muted">
                               ELO {row.elo}
                             </div>
                           </div>
                           <div className="text-right">
-                            <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                            <div className="text-sm font-semibold text-theme-foreground ">
                               {row.points}
                             </div>
                           </div>
@@ -1452,7 +1483,7 @@ export function QuickMatchGameView({
               {tournamentMode && tournamentTab === "games" && (
                 <div className="h-full overflow-auto p-2">
                   {tournamentHistory.length === 0 ? (
-                    <div className="text-center text-gray-400 dark:text-gray-500 text-xs py-6">
+                    <div className="text-center text-theme-muted text-xs py-6">
                       {t("quickMatch.games.empty", "No games yet.")}
                     </div>
                   ) : (
@@ -1464,10 +1495,10 @@ export function QuickMatchGameView({
                             activeTournamentGameId &&
                             row.gameId === activeTournamentGameId
                               ? "border-emerald-500/40 bg-emerald-500/10"
-                              : "border-gray-200/70 bg-white/50 dark:border-white/10 dark:bg-slate-900/60"
+                              : "border-theme-glass/70 bg-theme-panel/50"
                           }`}
                         >
-                          <div className="flex items-center justify-between text-[11px] text-gray-500 dark:text-gray-400">
+                          <div className="flex items-center justify-between text-[11px] text-theme-muted">
                             <span>
                               {t("quickMatch.games.roundBoard", {
                                 round: row.roundNumber,
@@ -1478,8 +1509,8 @@ export function QuickMatchGameView({
                             <span
                               className={`rounded-full px-2 py-0.5 font-semibold ${
                                 row.status === "completed"
-                                  ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
-                                  : "bg-amber-500/15 text-amber-700 dark:text-amber-300"
+                                  ? "bg-emerald-500/15 text-theme-foreground"
+                                  : "bg-amber-500/15 text-theme-foreground"
                               }`}
                             >
                               {row.status === "completed"
@@ -1488,13 +1519,13 @@ export function QuickMatchGameView({
                             </span>
                           </div>
                           <div className="mt-1.5 flex items-center justify-between gap-2 text-xs">
-                            <div className="min-w-0 flex-1 truncate text-gray-900 dark:text-gray-100">
+                            <div className="min-w-0 flex-1 truncate text-theme-foreground ">
                               {row.white}
                             </div>
-                            <div className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">
+                            <div className="text-[11px] font-semibold text-theme-foreground">
                               {row.result}
                             </div>
-                            <div className="min-w-0 flex-1 truncate text-right text-gray-900 dark:text-gray-100">
+                            <div className="min-w-0 flex-1 truncate text-right text-theme-foreground ">
                               {row.black}
                             </div>
                           </div>
@@ -1503,7 +1534,7 @@ export function QuickMatchGameView({
                               <button
                                 type="button"
                                 onClick={() => handleTournamentHistoryAnalyze(row)}
-                                className="inline-flex h-7 items-center gap-1.5 rounded-md border border-brand-400/35 bg-brand-500/10 px-2.5 text-[11px] font-semibold text-brand-700 transition-colors hover:bg-brand-500/20 dark:text-brand-200"
+                                className="inline-flex h-7 items-center gap-1.5 rounded-md border border-brand-400/35 bg-brand-500/10 px-2.5 text-[11px] font-semibold text-brand-700 transition-colors hover:bg-brand-500/20"
                               >
                                 <BarChart3 size={13} />
                                 {t("quickMatch.actions.analyze", "Analyze")}
@@ -1521,7 +1552,7 @@ export function QuickMatchGameView({
                 <div className="h-full overflow-auto p-2">
                   <div className="space-y-2">
                     {openingDisplayLabel ? (
-                      <div className="px-2 text-xs text-gray-500 dark:text-gray-400">
+                      <div className="px-2 text-xs text-theme-muted">
                         {openingDisplayLabel}
                       </div>
                     ) : null}
@@ -1531,11 +1562,11 @@ export function QuickMatchGameView({
                       onSelectPly={handleSelectPly}
                       emptyMessage={t("quickMatch.moves.empty", "No moves yet")}
                       moveCellClassName="rounded px-2 py-1 transition-colors"
-                      activeMoveClassName="bg-[#00e5a0]/20 text-[#00e5a0] font-semibold"
-                      inactiveMoveClassName="text-gray-800 dark:text-gray-200"
+                      activeMoveClassName="bg-theme-panel text-theme-accent font-semibold"
+                      inactiveMoveClassName="text-theme-foreground "
                       footer={
                         moveLogFooterMessage ? (
-                          <div className="mt-3 pt-3 border-t border-gray-200/70 dark:border-white/10 text-xs font-semibold text-emerald-600 dark:text-emerald-300">
+                          <div className="mt-3 pt-3 border-t border-theme-glass/70 text-xs font-semibold text-emerald-600">
                             {moveLogFooterMessage}
                           </div>
                         ) : null
@@ -1559,7 +1590,7 @@ export function QuickMatchGameView({
                         <button
                           type="button"
                           onClick={() => onRespondDrawOffer?.(true)}
-                          className="flex h-11 items-center justify-center gap-2 rounded-xl bg-emerald-500 text-sm font-semibold text-white transition-colors hover:bg-emerald-400"
+                          className="flex h-11 items-center justify-center gap-2 rounded-xl bg-emerald-500 text-sm font-semibold text-theme-on-accent transition-colors hover:bg-emerald-400"
                         >
                           <Check size={16} />
                           {t("quickMatch.draw.acceptDraw", "Accept Draw")}
@@ -1567,7 +1598,7 @@ export function QuickMatchGameView({
                         <button
                           type="button"
                           onClick={() => onRespondDrawOffer?.(false)}
-                          className="flex h-11 items-center justify-center gap-2 rounded-xl bg-white/10 text-sm font-semibold text-gray-800 transition-colors hover:bg-white/15 dark:text-gray-100"
+                          className="flex h-11 items-center justify-center gap-2 rounded-xl bg-theme-panel/10 text-sm font-semibold text-theme-foreground transition-colors hover:bg-theme-panel/15 "
                         >
                           <X size={16} />
                           {t("Decline")}
@@ -1578,7 +1609,7 @@ export function QuickMatchGameView({
                         <ResignConfirmButton
                           type="button"
                           onConfirm={onResign}
-                          className="flex h-11 items-center justify-center gap-2 rounded-xl bg-red-500/10 text-sm font-semibold text-red-600 transition-colors hover:bg-red-500/20 dark:text-red-300"
+                          className="flex h-11 items-center justify-center gap-2 rounded-xl bg-red-500/10 text-sm font-semibold text-red-600 transition-colors hover:bg-red-500/20"
                         >
                           <Flag size={16} />
                           {t("game.actions.resign")}
@@ -1587,7 +1618,7 @@ export function QuickMatchGameView({
                           type="button"
                           onClick={onOfferDraw}
                           disabled={drawOfferPending}
-                          className="flex h-11 items-center justify-center gap-2 rounded-xl bg-white/10 text-sm font-semibold text-gray-800 transition-colors hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-100"
+                          className="flex h-11 items-center justify-center gap-2 rounded-xl bg-theme-panel/10 text-sm font-semibold text-theme-foreground transition-colors hover:bg-theme-panel/15 disabled:cursor-not-allowed disabled:opacity-50 "
                           title={
                             drawOfferPending
                               ? t("quickMatch.draw.pending", "Draw offer pending")
@@ -1609,8 +1640,8 @@ export function QuickMatchGameView({
                       disabled={!canUseTournamentGameAction}
                       className={`w-full py-3 rounded-xl font-semibold transition-colors ${
                         canUseTournamentGameAction
-                          ? "bg-emerald-500 hover:bg-emerald-400 text-white"
-                          : "bg-gray-300/70 text-gray-500 dark:bg-gray-700 dark:text-gray-300 cursor-not-allowed"
+                          ? "bg-emerald-500 hover:bg-emerald-400 text-theme-on-accent"
+                          : "bg-theme-surface/75 text-theme-muted cursor-not-allowed"
                       }`}
                     >
                       {tournamentActionDisplayLabel}
@@ -1624,7 +1655,7 @@ export function QuickMatchGameView({
                       type="button"
                       onConfirm={onResign}
                       disabled={gameOver}
-                      className="flex h-11 items-center justify-center gap-2 rounded-xl bg-red-500/10 text-sm font-semibold text-red-600 transition-colors hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50 dark:text-red-400"
+                      className="flex h-11 items-center justify-center gap-2 rounded-xl bg-red-500/10 text-sm font-semibold text-red-600 transition-colors hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <Flag size={16} />
                       {t("game.actions.resign")}
@@ -1638,7 +1669,7 @@ export function QuickMatchGameView({
                         hasIncomingDrawOffer ||
                         !onOfferDraw
                       }
-                      className="flex h-11 items-center justify-center gap-2 rounded-xl bg-white/10 text-sm font-semibold text-gray-800 transition-colors hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-100"
+                      className="flex h-11 items-center justify-center gap-2 rounded-xl bg-theme-panel/10 text-sm font-semibold text-theme-foreground transition-colors hover:bg-theme-panel/15 disabled:cursor-not-allowed disabled:opacity-50 "
                       title={
                         drawOfferPending
                           ? t("quickMatch.draw.pending", "Draw offer pending")
@@ -1660,23 +1691,24 @@ export function QuickMatchGameView({
         </div>
       </div>
       {tournamentMode && showTournamentResultModal && (
-        <div className="pointer-events-none absolute inset-0 z-[85] flex items-center justify-center bg-black/45 px-4 py-6">
-          <div className="pointer-events-auto w-full max-w-[560px] rounded-2xl border border-cyan-400/35 bg-[#031829]/95 p-5 shadow-[0_24px_70px_rgba(3,10,26,0.75)]">
+        <div className="pointer-events-none absolute inset-0 z-[85] flex items-center justify-center bg-black/35 px-4 py-6 backdrop-blur-[2px]">
+          <div className="pointer-events-auto theme-glass-panel-strong w-full max-w-[560px] rounded-2xl border border-theme-glass p-5">
+            <div className="mb-3 h-1 w-full rounded-full bg-gradient-to-r from-brand-500/30 via-brand-400/10 to-transparent" />
             <div className="flex items-start justify-between gap-3">
-              <h3 className="text-[28px] font-semibold leading-tight text-cyan-50">
+              <h3 className="text-[28px] font-semibold leading-tight text-theme-foreground">
                 {tournamentResultTitle}
               </h3>
               <button
                 type="button"
                 onClick={() => setShowTournamentResultModal(false)}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-cyan-200/20 bg-cyan-200/10 text-cyan-100 transition-colors hover:bg-cyan-200/20"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-theme-glass bg-theme-panel/70 text-theme-muted transition-colors hover:bg-theme-surface hover:text-theme-foreground"
                 aria-label={t("quickMatch.modal.closeResult", "Close result dialog")}
               >
                 <X size={16} />
               </button>
             </div>
 
-            <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-cyan-100/75">
+            <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-theme-muted">
               {winnerLabel ? (
                 <span>
                   {t("Winner")}: {winnerLabel}
@@ -1699,7 +1731,7 @@ export function QuickMatchGameView({
                 type="button"
                 onClick={handleTournamentAnalyze}
                 disabled={!savedGameId}
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-emerald-500 px-4 text-sm font-semibold text-white transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-emerald-500 px-4 text-sm font-semibold text-theme-on-accent transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <BarChart3 size={16} />
                 {t("quickMatch.actions.analyze", "Analyze")}
@@ -1709,13 +1741,13 @@ export function QuickMatchGameView({
         </div>
       )}
       {tournamentMode && showArenaOverModal && (
-        <div className="pointer-events-none absolute inset-0 z-[95] flex items-center justify-center bg-black/55 px-4 py-6">
-          <div className="pointer-events-auto w-full max-w-[430px] overflow-hidden rounded-2xl border border-brand-400/30 bg-slate-950/95 text-white shadow-[0_28px_80px_rgba(0,0,0,0.65)]">
+        <div className="pointer-events-none absolute inset-0 z-[95] flex items-center justify-center bg-theme-panel/55 px-4 py-6">
+          <div className="pointer-events-auto w-full max-w-[430px] overflow-hidden rounded-2xl border border-brand-400/30 bg-theme-panel/95 text-theme-foreground shadow-[0_28px_80px_rgba(0,0,0,0.65)]">
             <div className="relative border-b border-brand-400/20 bg-brand-500/10 px-6 pb-9 pt-7 text-center">
               <button
                 type="button"
                 onClick={() => setShowArenaOverModal(false)}
-                className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-md text-white/55 transition hover:bg-white/10 hover:text-white"
+                className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-md text-theme-muted transition hover:bg-theme-panel/10 hover:text-theme-foreground"
                 aria-label={t("quickMatch.modal.closeArenaResults", "Close arena results")}
               >
                 <X size={18} />
@@ -1723,11 +1755,11 @@ export function QuickMatchGameView({
               <h3 className="text-2xl font-semibold leading-tight">
                 {t("quickMatch.arena.over", "Arena Over")}
               </h3>
-              <p className="mt-1 text-sm text-white/80">
+              <p className="mt-1 text-sm text-theme-muted">
                 {tournamentPanelData?.tournament?.name || t("Tournament")}
               </p>
               {arenaFormatLabel ? (
-                <p className="mt-0.5 text-xs text-white/55">{arenaFormatLabel}</p>
+                <p className="mt-0.5 text-xs text-theme-disabled">{arenaFormatLabel}</p>
               ) : null}
             </div>
 
@@ -1741,7 +1773,7 @@ export function QuickMatchGameView({
                   >
                     {index + 1}
                   </div>
-                  <div className="h-14 w-14 shrink-0 overflow-hidden rounded-md border-2 border-emerald-400/70 bg-slate-700">
+                  <div className="h-14 w-14 shrink-0 overflow-hidden rounded-md border-2 border-emerald-400/70 bg-theme-surface">
                     {row.avatar ? (
                       <img
                         src={row.avatar}
@@ -1749,20 +1781,20 @@ export function QuickMatchGameView({
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      <div className="flex h-full w-full items-center justify-center text-base font-semibold text-white/80">
+                      <div className="flex h-full w-full items-center justify-center text-base font-semibold text-theme-muted">
                         {getInitials(row.username)}
                       </div>
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-semibold text-white">
+                    <div className="truncate text-sm font-semibold text-theme-foreground">
                       {row.username}
                     </div>
                     <div className="mt-0.5 flex items-baseline gap-1">
                       <span className="text-2xl font-black">
                         {formatArenaModalScore(row.points)}
                       </span>
-                      <span className="text-sm font-semibold text-white/55">
+                      <span className="text-sm font-semibold text-theme-muted">
                         / {Number(row.games || row.gamesPlayed || 0)}
                       </span>
                     </div>
@@ -1773,10 +1805,10 @@ export function QuickMatchGameView({
 
             {viewerStanding ? (
               <div className="flex items-center gap-3 border-t border-brand-400/20 bg-brand-500/10 px-4 py-3">
-                <div className="w-12 shrink-0 text-right text-sm font-semibold text-white/70">
+                <div className="w-12 shrink-0 text-right text-sm font-semibold text-theme-muted">
                   {viewerStanding.rank}
                 </div>
-                <div className="h-9 w-9 shrink-0 overflow-hidden rounded-md bg-slate-700">
+                <div className="h-9 w-9 shrink-0 overflow-hidden rounded-md bg-theme-surface">
                   {viewerStanding.avatar || user?.avatar ? (
                     <img
                       src={viewerStanding.avatar || user?.avatar}
@@ -1793,12 +1825,12 @@ export function QuickMatchGameView({
                   <div className="truncate text-sm font-semibold">
                     {viewerStanding.username}
                   </div>
-                  <div className="text-xs text-white/55">({viewerStanding.elo})</div>
+                  <div className="text-xs text-theme-muted">({viewerStanding.elo})</div>
                 </div>
                 <div className="text-lg font-black">
                   {formatArenaModalScore(viewerStanding.points)}
                 </div>
-                <div className="text-sm font-semibold text-white/60">
+                <div className="text-sm font-semibold text-theme-muted">
                   / {Number(viewerStanding.games || viewerStanding.gamesPlayed || 0)}
                 </div>
               </div>
@@ -1809,4 +1841,3 @@ export function QuickMatchGameView({
     </div>
   );
 }
-

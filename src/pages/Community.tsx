@@ -405,11 +405,11 @@ export default function Community() {
   }, [minePage, mineTotalPosts]);
 
   return (
-    <div className="min-h-screen bg-[#060f1d] text-white flex transition-colors duration-300">
+    <div className="min-h-screen bg-theme-panel text-theme-foreground flex transition-colors duration-300">
       <Sidebar />
 
       <main className="relative flex-1 ml-[60px] md:ml-72 min-h-screen overflow-x-hidden">
-        <div className="pointer-events-none absolute inset-x-0 top-0 z-0 h-24 bg-gradient-to-b from-[#060f1d] via-[#060f1d]/96 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-0 h-24 bg-gradient-to-b from-theme-panel via-theme-surface to-transparent" />
 
         <div className="relative z-10 max-w-[1500px] mx-auto flex justify-center gap-5 px-5 py-7">
           <section className="flex-1 min-w-0 max-w-[860px] space-y-5">
@@ -420,15 +420,15 @@ export default function Community() {
               onSubmitted={handleRefreshAfterSubmit}
             />
 
-            <div className="flex items-center justify-between gap-3 rounded-xl bg-[#0c1728]/80 px-3 py-2.5 shadow-[0_14px_38px_rgba(0,0,0,0.2)]">
-              <div className="inline-flex rounded-lg bg-white/[0.04] p-1">
+            <div className="flex items-center justify-between gap-3 rounded-xl bg-theme-panel px-3 py-2.5 shadow-[0_14px_38px_rgba(0,0,0,0.2)]">
+              <div className="inline-flex rounded-lg bg-theme-panel/[0.04] p-1">
                 <button
                   type="button"
                   onClick={() => setActiveTab("feed")}
                   className={`rounded-md px-4 py-2 text-sm font-semibold transition-colors ${
                     activeTab === "feed"
                       ? "bg-brand-500/25 text-brand-100"
-                      : "text-gray-300 hover:bg-white/[0.06]"
+                      : "text-theme-muted hover:bg-theme-panel/[0.06]"
                   }`}
                 >
                   {t("communityPage.tabs.feed")}
@@ -439,7 +439,7 @@ export default function Community() {
                   className={`rounded-md px-4 py-2 text-sm font-semibold transition-colors ${
                     activeTab === "my_posts"
                       ? "bg-brand-500/25 text-brand-100"
-                      : "text-gray-300 hover:bg-white/[0.06]"
+                      : "text-theme-muted hover:bg-theme-panel/[0.06]"
                   }`}
                 >
                   {t("communityPage.tabs.myPosts")}
@@ -449,7 +449,7 @@ export default function Community() {
 
             {activeTab === "feed" ? (
               feedLoading ? (
-                <div className="rounded-2xl bg-[#0c1728]/82 py-24 flex items-center justify-center shadow-[0_22px_65px_rgba(0,0,0,0.22)]">
+                <div className="rounded-2xl bg-theme-panel py-24 flex items-center justify-center shadow-[0_22px_65px_rgba(0,0,0,0.22)]">
                   <Loader2 className="w-8 h-8 text-brand-400 animate-spin" />
                 </div>
               ) : feedError ? (
@@ -457,12 +457,12 @@ export default function Community() {
                   {feedError}
                 </div>
               ) : feedPosts.length === 0 ? (
-                <div className="rounded-2xl bg-[#0c1728]/82 py-24 flex flex-col items-center justify-center text-center shadow-[0_22px_65px_rgba(0,0,0,0.22)]">
-                  <Search className="w-10 h-10 mb-4 text-gray-500" />
-                  <p className="text-base font-medium text-white">
+                <div className="rounded-2xl bg-theme-panel py-24 flex flex-col items-center justify-center text-center shadow-[0_22px_65px_rgba(0,0,0,0.22)]">
+                  <Search className="w-10 h-10 mb-4 text-theme-muted" />
+                  <p className="text-base font-medium text-theme-foreground">
                     {t("communityPage.empty.noApprovedTitle")}
                   </p>
-                  <p className="mt-2 max-w-sm text-sm leading-7 text-gray-500">
+                  <p className="mt-2 max-w-sm text-sm leading-7 text-theme-muted">
                     {t("communityPage.empty.noApprovedDescription")}
                   </p>
                 </div>
@@ -483,7 +483,7 @@ export default function Community() {
 
                   {feedTotalPages > 1 && (
                     <div className="pt-2 pb-4 space-y-2.5">
-                      <p className="text-center text-xs text-gray-500">
+                      <p className="text-center text-xs text-theme-muted">
                         {t("communityPage.pagination.showing", {
                           start: feedRange.start,
                           end: feedRange.end,
@@ -500,7 +500,7 @@ export default function Community() {
                 </>
               )
             ) : mineLoading ? (
-              <div className="rounded-2xl bg-[#0c1728]/82 py-24 flex items-center justify-center shadow-[0_22px_65px_rgba(0,0,0,0.22)]">
+              <div className="rounded-2xl bg-theme-panel py-24 flex items-center justify-center shadow-[0_22px_65px_rgba(0,0,0,0.22)]">
                 <Loader2 className="w-8 h-8 text-brand-400 animate-spin" />
               </div>
             ) : mineError ? (
@@ -508,12 +508,12 @@ export default function Community() {
                 {mineError}
               </div>
             ) : minePosts.length === 0 ? (
-              <div className="rounded-2xl bg-[#0c1728]/82 py-24 flex flex-col items-center justify-center text-center shadow-[0_22px_65px_rgba(0,0,0,0.22)]">
-                <Search className="w-10 h-10 mb-4 text-gray-500" />
-                <p className="text-base font-medium text-white">
+              <div className="rounded-2xl bg-theme-panel py-24 flex flex-col items-center justify-center text-center shadow-[0_22px_65px_rgba(0,0,0,0.22)]">
+                <Search className="w-10 h-10 mb-4 text-theme-muted" />
+                <p className="text-base font-medium text-theme-foreground">
                   {t("communityPage.empty.noPostsTitle")}
                 </p>
-                <p className="mt-2 max-w-sm text-sm leading-7 text-gray-500">
+                <p className="mt-2 max-w-sm text-sm leading-7 text-theme-muted">
                   {t("communityPage.empty.noPostsDescription")}
                 </p>
               </div>
@@ -536,7 +536,7 @@ export default function Community() {
 
                 {mineTotalPages > 1 && (
                   <div className="pt-2 pb-4 space-y-2.5">
-                    <p className="text-center text-xs text-gray-500">
+                    <p className="text-center text-xs text-theme-muted">
                       {t("communityPage.pagination.showing", {
                         start: mineRange.start,
                         end: mineRange.end,
@@ -563,7 +563,7 @@ export default function Community() {
                 error={trendingError}
               />
               {groupsLoading ? (
-                <div className="rounded-2xl bg-[#0c1728]/82 px-5 py-10 text-center text-sm text-gray-500 shadow-[0_18px_55px_rgba(0,0,0,0.22)]">
+                <div className="rounded-2xl bg-theme-panel px-5 py-10 text-center text-sm text-theme-muted shadow-[0_18px_55px_rgba(0,0,0,0.22)]">
                   {t("communityPage.groups.loading")}
                 </div>
               ) : (
@@ -581,7 +581,7 @@ export default function Community() {
                 </div>
               )}
               {!groupsLoading && joinedGroups.length === 0 && discoverGroups.length === 0 && (
-                <div className="rounded-2xl bg-[#0c1728]/82 px-5 py-5 text-sm text-gray-400 shadow-[0_18px_55px_rgba(0,0,0,0.22)]">
+                <div className="rounded-2xl bg-theme-panel px-5 py-5 text-sm text-theme-muted shadow-[0_18px_55px_rgba(0,0,0,0.22)]">
                   {t("communityPage.empty.noGroups")}
                 </div>
               )}
@@ -604,4 +604,3 @@ export default function Community() {
     </div>
   );
 }
-

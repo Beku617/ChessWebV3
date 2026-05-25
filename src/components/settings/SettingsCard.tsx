@@ -30,11 +30,11 @@ export function SettingsCard({
         {/* Header */}
         <div className="flex items-center gap-3 px-6 pt-5 pb-4 border-b border-theme-glass">
           <div>
-            <h3 className="text-base font-bold text-gray-900 dark:text-white leading-tight">
+            <h3 className="text-base font-bold text-theme-foreground leading-tight">
               {title}
             </h3>
             {subtitle && (
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              <p className="text-xs text-theme-muted mt-0.5">
                 {subtitle}
               </p>
             )}

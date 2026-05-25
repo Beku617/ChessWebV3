@@ -38,8 +38,8 @@ export function FeedPagination({
     "inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus:outline-none disabled:pointer-events-none disabled:opacity-40";
   const btnPage = (active: boolean) =>
     active
-      ? `${btnBase} w-9 h-9 bg-brand-500 text-white shadow-[0_10px_24px_rgba(13,148,136,0.28)]`
-      : `${btnBase} w-9 h-9 bg-white/[0.04] text-gray-300 hover:bg-white/[0.08] hover:text-brand-300`;
+      ? `${btnBase} w-9 h-9 bg-brand-500 text-theme-on-accent shadow-[0_10px_24px_rgba(13,148,136,0.28)]`
+      : `${btnBase} w-9 h-9 bg-theme-panel/[0.04] text-theme-muted hover:bg-theme-panel/[0.08] hover:text-brand-300`;
 
   return (
     <div className={`flex items-center gap-1.5 ${className}`}>
@@ -48,7 +48,7 @@ export function FeedPagination({
         aria-label={t("pagination.previousPage", "Previous page")}
         disabled={currentPage <= 1}
         onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-        className={`${btnBase} w-9 h-9 bg-white/[0.04] text-gray-400 hover:bg-white/[0.08] hover:text-brand-300`}
+        className={`${btnBase} w-9 h-9 bg-theme-panel/[0.04] text-theme-muted hover:bg-theme-panel/[0.08] hover:text-brand-300`}
       >
         <ChevronLeft size={16} />
       </button>
@@ -57,7 +57,7 @@ export function FeedPagination({
         pageNum === "..." ? (
           <span
             key={`dots-${index}`}
-            className="w-9 h-9 flex items-center justify-center text-gray-500 text-sm select-none"
+            className="w-9 h-9 flex items-center justify-center text-theme-muted text-sm select-none"
           >
             ...
           </span>
@@ -82,7 +82,7 @@ export function FeedPagination({
         aria-label={t("pagination.nextPage", "Next page")}
         disabled={currentPage >= totalPages}
         onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-        className={`${btnBase} w-9 h-9 bg-white/[0.04] text-gray-400 hover:bg-white/[0.08] hover:text-brand-300`}
+        className={`${btnBase} w-9 h-9 bg-theme-panel/[0.04] text-theme-muted hover:bg-theme-panel/[0.08] hover:text-brand-300`}
       >
         <ChevronRight size={16} />
       </button>

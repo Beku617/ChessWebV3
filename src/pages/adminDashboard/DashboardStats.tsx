@@ -9,13 +9,13 @@ interface StatCardProps {
 
 export function StatCard({ label, value, isLoading }: StatCardProps) {
   return (
-    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4">
+    <div className="bg-theme-panel border border-theme-glass rounded-xl p-4">
       <div className="flex items-center gap-3">
         <div>
-          <div className="text-2xl font-bold text-gray-900 dark:text-white">
+          <div className="text-2xl font-bold text-theme-foreground ">
             {isLoading ? "..." : value === null ? "--" : value.toLocaleString()}
           </div>
-          <div className="text-sm text-gray-500 dark:text-gray-400">
+          <div className="text-sm text-theme-muted">
             {label}
           </div>
         </div>
@@ -35,7 +35,7 @@ export function DashboardStats({ stats, isLoading, error }: DashboardStatsProps)
   return (
     <>
       {error && (
-        <div className="mb-4 rounded-lg border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/30 px-4 py-3 text-sm text-red-700 dark:text-red-300">
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
         </div>
       )}

@@ -40,7 +40,7 @@ export default function Analyze960() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#f5f5f7] dark:bg-gray-950">
+      <div className="flex items-center justify-center min-h-screen bg-theme-primary">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-500"></div>
       </div>
     );
@@ -48,9 +48,9 @@ export default function Analyze960() {
 
   if (error || !game) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-[#f5f5f7] dark:bg-gray-950 text-gray-900 dark:text-white">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-theme-primary text-theme-foreground">
         <h2 className="text-2xl font-bold mb-4">{t("analysis.gameNotFound")}</h2>
-        <p className="text-gray-500 mb-6">
+        <p className="text-theme-muted mb-6">
           {error || t("analysis.errors.unableToLoadGame")}
         </p>
         <button

@@ -199,8 +199,8 @@ export function MoveListTabs({
             className={joinClasses(
               "flex-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors",
               tab === "moves"
-                ? "bg-emerald-500/20 text-emerald-300"
-                : "text-gray-600 hover:bg-gray-200/70 dark:text-gray-300 dark:hover:bg-slate-700/60",
+                ? "border border-theme-glass bg-theme-panel text-theme-foreground"
+                : "text-theme-muted hover:bg-theme-surface/60",
             )}
           >
             {resolvedMovesLabel}
@@ -211,13 +211,13 @@ export function MoveListTabs({
             className={joinClasses(
               "flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors",
               tab === "messages"
-                ? "bg-emerald-500/20 text-emerald-300"
-                : "text-gray-600 hover:bg-gray-200/70 dark:text-gray-300 dark:hover:bg-slate-700/60",
+                ? "border border-theme-glass bg-theme-panel text-theme-foreground"
+                : "text-theme-muted hover:bg-theme-surface/60",
             )}
           >
             <span>{resolvedMessagesLabel}</span>
             {unreadMessageCount > 0 ? (
-              <span className="inline-flex min-w-[1.1rem] items-center justify-center rounded-full bg-emerald-500 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">
+              <span className="inline-flex min-w-[1.1rem] items-center justify-center rounded-full bg-emerald-500 px-1.5 py-0.5 text-[10px] font-bold leading-none text-theme-on-accent">
                 {unreadMessageCount > 99 ? "99+" : unreadMessageCount}
               </span>
             ) : null}
@@ -236,7 +236,7 @@ export function MoveListTabs({
             >
               {messagesTopContent ? <div>{messagesTopContent}</div> : null}
               {safeMessages.length === 0 && !messagesTopContent ? (
-                <div className="text-center text-gray-400 dark:text-gray-500 text-xs py-6">
+                <div className="text-center text-theme-muted text-xs py-6">
                   {resolvedEmptyMessagesText}
                 </div>
               ) : (
@@ -258,7 +258,7 @@ export function MoveListTabs({
                   if (isSystemMessage) {
                     return (
                       <div key={message.id} className="px-2 py-1 text-center">
-                        <p className="text-[11px] text-gray-400 dark:text-gray-500">
+                        <p className="text-[11px] text-theme-muted">
                           {content || "-"}
                         </p>
                       </div>
@@ -282,8 +282,8 @@ export function MoveListTabs({
                         className={joinClasses(
                           "max-w-[85%] rounded-xl border px-2.5 py-2",
                           isOwnMessage
-                            ? "border-emerald-400/25 bg-emerald-500/15 text-emerald-50"
-                            : "border-white/10 bg-slate-900/70 text-gray-100",
+                            ? "border-brand-400/35 bg-brand-500/12 text-theme-foreground"
+                            : "border-theme-glass bg-theme-panel/70 text-theme-foreground",
                         )}
                       >
                         {timeLabel ? (
@@ -307,7 +307,7 @@ export function MoveListTabs({
             </div>
 
             {canShowComposer ? (
-              <div className="border-t border-white/10 p-2">
+              <div className="border-t border-theme-glass p-2">
                 <div className="flex items-center gap-2">
                   <input
                     type="text"
@@ -320,13 +320,13 @@ export function MoveListTabs({
                     }}
                     disabled={disableMessageInput}
                     placeholder={resolvedMessageInputPlaceholder}
-                    className="flex-1 rounded-lg border border-white/10 bg-slate-900/65 px-3 py-2 text-xs text-gray-100 placeholder:text-gray-400 focus:border-emerald-400/50 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
+                    className="flex-1 rounded-lg border border-theme-glass bg-theme-panel/65 px-3 py-2 text-xs text-theme-foreground placeholder:text-theme-disabled focus:border-brand-400/45 focus:outline-none disabled:cursor-not-allowed disabled:opacity-60"
                   />
                   <button
                     type="button"
                     onClick={submitDraftMessage}
                     disabled={disableMessageInput || !draftMessage.trim()}
-                    className="rounded-lg bg-emerald-500/85 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="rounded-lg bg-brand-500 px-3 py-2 text-xs font-semibold text-theme-on-accent transition-colors hover:bg-brand-400 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {resolvedSendButtonLabel}
                   </button>

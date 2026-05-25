@@ -64,7 +64,7 @@ export function AdminCommunityToolbar({
 
   return (
     <>
-      <section className="relative z-30 rounded-2xl bg-[#0c1728]/82 backdrop-blur p-5 mb-6 shadow-[0_18px_55px_rgba(0,0,0,0.22)]">
+      <section className="relative z-30 rounded-2xl bg-theme-panel backdrop-blur p-5 mb-6 shadow-[0_18px_55px_rgba(0,0,0,0.22)]">
         <div className="flex items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2">
             {statPills.map((pill) => (
@@ -76,12 +76,12 @@ export function AdminCommunityToolbar({
                   pill.tone
                 } ${
                   statusFilter === pill.filterValue
-                    ? "ring-1 ring-white/25"
+                    ? "ring-1 ring-theme-glass/80"
                     : "opacity-85 hover:opacity-100"
                 }`}
               >
-                <span className="text-gray-400">{pill.label}</span>
-                <span className="font-semibold text-white">{pill.value}</span>
+                <span className="text-current">{pill.label}</span>
+                <span className="font-semibold text-current">{pill.value}</span>
               </button>
             ))}
           </div>
@@ -89,7 +89,7 @@ export function AdminCommunityToolbar({
           <button
             type="button"
             onClick={onToggleCreate}
-            className="inline-flex items-center gap-2 rounded-full bg-white/[0.08] px-3.5 py-2 text-sm text-gray-200 hover:bg-white/[0.14] transition-colors shrink-0"
+            className="inline-flex items-center gap-2 rounded-full border border-theme-glass bg-theme-surface/90 px-3.5 py-2 text-sm font-medium text-theme-foreground hover:bg-theme-surface transition-colors shrink-0"
           >
             {isCreateOpen ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
             {isCreateOpen
@@ -101,12 +101,12 @@ export function AdminCommunityToolbar({
         <div className="mt-5 flex flex-wrap gap-3">
           <div className="flex-1 min-w-[260px]">
             <div className="relative">
-              <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
+              <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-theme-muted" />
               <input
                 value={search}
                 onChange={(event) => onSearchChange(event.target.value)}
                 placeholder={t("admin.search.communityPosts")}
-                className="w-full rounded-lg bg-white/[0.06] pl-11 pr-4 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+                className="w-full rounded-lg bg-theme-panel/[0.06] pl-11 pr-4 py-3 text-sm text-theme-foreground placeholder:text-theme-disabled focus:outline-none focus:ring-2 focus:ring-brand-500/30"
               />
             </div>
           </div>
@@ -132,7 +132,7 @@ export function AdminCommunityToolbar({
               value={createText}
               onChange={(event) => onCreateTextChange(event.target.value)}
               placeholder={t("admin.community.placeholders.postText", "Post text...")}
-              className="w-full min-h-[120px] rounded-xl bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+              className="w-full min-h-[120px] rounded-xl bg-theme-panel/[0.05] px-4 py-3 text-sm text-theme-foreground placeholder:text-theme-disabled focus:outline-none focus:ring-2 focus:ring-brand-500/30"
             />
             <div className="max-w-[220px]">
               <FilterDropdown
@@ -149,7 +149,7 @@ export function AdminCommunityToolbar({
                   onCreateRejectionReasonChange(event.target.value)
                 }
                 placeholder={t("admin.community.placeholders.rejectionReason", "Rejection reason")}
-                className="w-full rounded-lg bg-white/[0.06] px-4 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+                className="w-full rounded-lg bg-theme-panel/[0.06] px-4 py-3 text-sm text-theme-foreground placeholder:text-theme-disabled focus:outline-none focus:ring-2 focus:ring-brand-500/30"
               />
             )}
             <input
@@ -158,14 +158,14 @@ export function AdminCommunityToolbar({
               onChange={(event) =>
                 onCreateMediaFileChange(event.target.files?.[0] || null)
               }
-              className="block w-full text-sm text-gray-300 file:mr-3 file:rounded-lg file:border-0 file:bg-white/[0.1] file:px-3 file:py-2 file:text-sm file:text-gray-100 hover:file:bg-white/[0.16]"
+              className="block w-full text-sm text-theme-muted file:mr-3 file:rounded-lg file:border-0 file:bg-theme-panel/[0.1] file:px-3 file:py-2 file:text-sm file:text-theme-foreground hover:file:bg-theme-panel/[0.16]"
             />
             <div className="flex justify-end">
               <button
                 type="button"
                 onClick={onCreatePost}
                 disabled={isCreating}
-                className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-500 disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-theme-on-accent hover:bg-brand-500 disabled:opacity-50"
               >
                 <Plus className="w-4 h-4" />
                 {isCreating
@@ -185,4 +185,3 @@ export function AdminCommunityToolbar({
     </>
   );
 }
-

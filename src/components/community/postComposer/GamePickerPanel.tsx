@@ -41,13 +41,13 @@ export function GamePickerPanel({
   if (!isOpen) return null;
 
   return (
-    <div className="mt-3 overflow-hidden rounded-2xl border border-gray-200 dark:border-white/[0.08] bg-[#0b1424]/96 shadow-[0_20px_50px_rgba(0,0,0,0.28)]">
-      <div className="flex items-center justify-between gap-3 border-b border-white/[0.06] px-4 py-3">
+    <div className="mt-3 overflow-hidden rounded-2xl border border-theme-glass bg-theme-panel shadow-[0_20px_50px_rgba(0,0,0,0.28)]">
+      <div className="flex items-center justify-between gap-3 border-b border-theme-glass px-4 py-3">
         <div>
-          <div className="text-sm font-semibold text-white">
+          <div className="text-sm font-semibold text-theme-foreground">
             {t("communityComposer.chooseGame")}
           </div>
-          <div className="mt-1 text-xs text-gray-500">
+          <div className="mt-1 text-xs text-theme-muted">
             {t("communityComposer.chooseGameDescription")}
           </div>
         </div>
@@ -55,22 +55,22 @@ export function GamePickerPanel({
           type="button"
           onClick={onClose}
           disabled={isSubmitting}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white/[0.06] text-gray-300 hover:bg-white/[0.12] disabled:cursor-not-allowed disabled:opacity-45"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-theme-panel/[0.06] text-theme-muted hover:bg-theme-panel/[0.12] disabled:cursor-not-allowed disabled:opacity-45"
           aria-label={t("communityComposer.closeGamePicker")}
         >
           <X className="h-4 w-4" />
         </button>
       </div>
 
-      <div className="border-b border-white/[0.06] px-4 py-3">
+      <div className="border-b border-theme-glass px-4 py-3">
         <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-theme-muted" />
           <input
             value={gameSearch}
             disabled={isSubmitting}
             onChange={(event) => onGameSearchChange(event.target.value)}
             placeholder={t("communityComposer.gameSearchPlaceholder")}
-            className="w-full rounded-xl bg-white/[0.05] py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 disabled:cursor-not-allowed disabled:opacity-45"
+            className="w-full rounded-xl bg-theme-panel/[0.05] py-2.5 pl-10 pr-4 text-sm text-theme-foreground placeholder:text-theme-disabled focus:outline-none focus:ring-2 focus:ring-brand-500/30 disabled:cursor-not-allowed disabled:opacity-45"
           />
         </div>
       </div>
@@ -81,7 +81,7 @@ export function GamePickerPanel({
             {Array.from({ length: 4 }, (_, index) => (
               <div
                 key={`game-skeleton-${index}`}
-                className="h-24 animate-pulse rounded-2xl bg-white/[0.05]"
+                className="h-24 animate-pulse rounded-2xl bg-theme-panel/[0.05]"
               />
             ))}
           </div>
@@ -90,11 +90,11 @@ export function GamePickerPanel({
             {gamesError}
           </div>
         ) : availableGames.length === 0 ? (
-          <div className="rounded-2xl bg-white/[0.04] px-4 py-8 text-center">
-            <div className="text-sm font-medium text-white">
+          <div className="rounded-2xl bg-theme-panel/[0.04] px-4 py-8 text-center">
+            <div className="text-sm font-medium text-theme-foreground">
               {t("communityComposer.noGamesFound")}
             </div>
-            <div className="mt-2 text-xs leading-6 text-gray-500">
+            <div className="mt-2 text-xs leading-6 text-theme-muted">
               {t("communityComposer.noGamesFoundDescription")}
             </div>
           </div>
@@ -116,13 +116,13 @@ export function GamePickerPanel({
                   className={`w-full rounded-2xl border px-4 py-3 text-left transition-all ${
                     isSelected
                       ? "border-brand-400/35 bg-brand-500/10"
-                      : "border-white/[0.06] bg-white/[0.03] hover:border-white/[0.12] hover:bg-white/[0.05]"
+                      : "border-theme-glass bg-theme-panel/[0.03] hover:border-theme-border hover:bg-theme-panel/[0.05]"
                   } disabled:opacity-60`}
                 >
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="truncate text-sm font-semibold text-white">
+                        <span className="truncate text-sm font-semibold text-theme-foreground">
                           {t("communityComposer.vsOpponent", {
                             opponent: gameOption.opponent,
                           })}
@@ -135,12 +135,12 @@ export function GamePickerPanel({
                           {formatCommunityPerspectiveResult(gameOption.perspectiveResult)}
                         </span>
                       </div>
-                      <div className="mt-1 text-xs text-gray-400">
+                      <div className="mt-1 text-xs text-theme-muted">
                         {gameOption.white} <Trans>vs</Trans> {gameOption.black}
                       </div>
                     </div>
 
-                    <div className="shrink-0 text-right text-xs text-gray-500">
+                    <div className="shrink-0 text-right text-xs text-theme-muted">
                       <div>{formatGamePlayedAt(gameOption.playedAt)}</div>
                       <div className="mt-1">
                         {t("communityComposer.movesCount", {
@@ -150,11 +150,11 @@ export function GamePickerPanel({
                     </div>
                   </div>
 
-                  <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-gray-400">
-                    <span className="rounded-full bg-white/[0.05] px-2.5 py-1">
+                  <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-theme-muted">
+                    <span className="rounded-full bg-theme-panel/[0.05] px-2.5 py-1">
                       {formatCommunityTimeControl(gameOption.timeControl)}
                     </span>
-                    <span className="rounded-full bg-white/[0.05] px-2.5 py-1">
+                    <span className="rounded-full bg-theme-panel/[0.05] px-2.5 py-1">
                       {gameOption.variant === "chess960"
                         ? t("Chess960")
                         : gameOption.variant === "kingOfHill"
@@ -164,7 +164,7 @@ export function GamePickerPanel({
                           : t("Standard")}
                     </span>
                     {optionOpening && (
-                      <span className="rounded-full bg-white/[0.05] px-2.5 py-1">
+                      <span className="rounded-full bg-theme-panel/[0.05] px-2.5 py-1">
                         {optionOpening}
                       </span>
                     )}

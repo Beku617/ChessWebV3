@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import {
   APP_THEMES,
   getThemeDefinition,
@@ -11,11 +11,6 @@ export function useTheme() {
   const isDarkMode = useThemeStore((state) => state.isDarkMode);
   const setThemeInStore = useThemeStore((state) => state.setTheme);
   const toggleTheme = useThemeStore((state) => state.toggleTheme);
-  const syncFromStorage = useThemeStore((state) => state.syncFromStorage);
-
-  useEffect(() => {
-    syncFromStorage();
-  }, [syncFromStorage]);
 
   const setTheme = useCallback(
     (name: string) => {

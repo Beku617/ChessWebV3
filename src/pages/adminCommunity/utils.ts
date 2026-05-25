@@ -13,7 +13,7 @@ function statusClass(status: string) {
     return "bg-red-500/12 text-red-200";
   }
   if (status === "removed") {
-    return "bg-gray-500/15 text-gray-300";
+    return "bg-theme-surface/15 text-theme-muted";
   }
   return "bg-amber-500/12 text-amber-200";
 }

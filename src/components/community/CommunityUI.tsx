@@ -17,7 +17,7 @@ export function TitleBadge({ title }: { title: string }) {
   return (
     <span
       className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-black tracking-wider border ${
-        colors[title] || "bg-gray-500/15 text-gray-400 border-gray-500/20"
+        colors[title] || "bg-theme-surface/15 text-theme-muted border-theme-border/20"
       }`}
     >
       {title}
@@ -36,7 +36,7 @@ export function VerifiedBadge() {
 export function RatingPill({ rating }: { rating: number }) {
   if (!rating) return null;
   return (
-    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-white/[0.06] text-[10px] font-bold text-gray-300 tabular-nums">
+    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-theme-panel/[0.06] text-[10px] font-bold text-theme-muted tabular-nums">
       {rating}
     </span>
   );
@@ -60,7 +60,7 @@ export function Avatar({ initials, src, size = "md", online }: AvatarProps) {
   return (
     <div className="relative shrink-0">
       <div
-        className={`${sizeMap[size]} rounded-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center text-white font-bold shadow-lg shadow-brand-900/10 overflow-hidden ring-2 ring-black/25`}
+        className={`${sizeMap[size]} rounded-full bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center text-theme-on-accent font-bold shadow-lg shadow-brand-900/10 overflow-hidden ring-2 ring-black/25`}
       >
         {resolvedSrc ? (
           <img
@@ -73,7 +73,7 @@ export function Avatar({ initials, src, size = "md", online }: AvatarProps) {
         )}
       </div>
       {online && (
-        <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-950" />
+        <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-theme-panel" />
       )}
     </div>
   );
@@ -102,10 +102,10 @@ export function SidebarCard({
   action,
 }: SidebarCardProps) {
   return (
-    <div className="rounded-2xl bg-[#0c1728]/82 backdrop-blur-xl shadow-[0_18px_55px_rgba(0,0,0,0.22)] overflow-hidden">
+    <div className="rounded-2xl bg-theme-panel backdrop-blur-xl shadow-[0_18px_55px_rgba(0,0,0,0.22)] overflow-hidden">
       <div className="flex items-center justify-between px-5 pt-4 pb-3">
         <div className="flex items-center gap-2">
-          <h3 className="text-sm font-semibold text-white">
+          <h3 className="text-sm font-semibold text-theme-foreground">
             {title}
           </h3>
         </div>
@@ -136,7 +136,7 @@ export function StatusDot({
   return (
     <span className="inline-flex items-center gap-1">
       <span className={`w-1.5 h-1.5 rounded-full ${map[status]}`} />
-      <span className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">
+      <span className="text-[10px] text-theme-muted font-medium">
         {t(labels[status])}
       </span>
     </span>
@@ -159,8 +159,8 @@ export function FollowButton({
       onClick={onClick}
       className={`rounded-full font-bold transition-all duration-200 ${
         following
-          ? "bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-red-100 dark:hover:bg-red-900/20 hover:text-red-500"
-          : "bg-brand-600 hover:bg-brand-500 text-white shadow-md shadow-brand-900/20 hover:shadow-lg"
+          ? "bg-theme-surface text-theme-muted hover:bg-red-100 hover:text-red-500"
+          : "bg-brand-600 hover:bg-brand-500 text-theme-on-accent shadow-md shadow-brand-900/20 hover:shadow-lg"
       } ${compact ? "text-[11px] px-3 py-1" : "text-xs px-4 py-1.5"}`}
     >
       {following ? t("Following") : t("Follow")}

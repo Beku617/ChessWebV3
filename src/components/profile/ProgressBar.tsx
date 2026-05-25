@@ -13,15 +13,15 @@ export function ProgressBar({ label, value, total, color }: ProgressBarProps) {
   return (
     <div className="mb-4">
       <div className="flex justify-between text-sm mb-2">
-        <span className="text-gray-600 dark:text-gray-400 font-medium">
+        <span className="text-theme-muted font-medium">
           {label}
         </span>
-        <span className="text-gray-900 dark:text-white font-bold">
+        <span className="text-theme-foreground font-bold">
           {value}{" "}
-          <span className="text-gray-400 font-normal">({percentage}%)</span>
+          <span className="text-theme-muted font-normal">({percentage}%)</span>
         </span>
       </div>
-      <div className="h-2.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+      <div className="h-2.5 bg-theme-surface rounded-full overflow-hidden">
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${percentage}%` }}

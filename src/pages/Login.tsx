@@ -72,7 +72,7 @@ function GoogleSignInButton({
       type="button"
       onClick={() => googleLogin()}
       disabled={isLoading}
-      className="w-full relative flex items-center py-3 px-4 rounded-xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800/60 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200 font-medium text-sm transition-all hover:scale-[1.02] active:scale-[0.98] hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed group"
+      className="w-full relative flex items-center py-3 px-4 rounded-xl border border-theme-glass/80 bg-theme-panel hover:bg-theme-surface text-theme-muted font-medium text-sm transition-all hover:scale-[1.02] active:scale-[0.98] hover:border-theme-glass hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed group"
     >
       <span className="absolute left-4">
         <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -256,10 +256,10 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-theme-primary flex items-center justify-center p-4 transition-colors duration-300">
       <div
-        className="fixed inset-0 opacity-[0.025] dark:opacity-[0.04] pointer-events-none"
+        className="fixed inset-0 opacity-[0.025] pointer-events-none"
         style={{
           backgroundImage:
-            "repeating-conic-gradient(#64748b 0% 25%, transparent 0% 50%)",
+            "repeating-conic-gradient(rgb(var(--text-secondary-rgb) / 0.45) 0% 25%, transparent 0% 50%)",
           backgroundSize: "48px 48px",
         }}
       />
@@ -276,31 +276,31 @@ export default function Login() {
       </div>
 
       <div className="relative max-w-md w-full my-8">
-        <div className="absolute -inset-1 rounded-3xl bg-gradient-to-br from-brand-500/20 via-transparent to-brand-600/10 dark:from-brand-500/10 dark:to-brand-600/5 blur-xl pointer-events-none" />
+        <div className="absolute -inset-1 rounded-3xl bg-gradient-to-br from-brand-500/20 via-transparent to-brand-600/10 blur-xl pointer-events-none" />
 
         <div className="theme-glass-panel-strong relative rounded-2xl p-8">
           <div className="text-center mb-7">
             <div className="relative inline-block">
-              <div className="absolute inset-0 bg-brand-500/10 dark:bg-brand-400/10 rounded-full blur-xl scale-150" />
+              <div className="absolute inset-0 bg-brand-500/10 rounded-full blur-xl scale-150" />
               <img
                 src={logoSrc}
                 alt="NeonGambit"
                 className="relative w-28 h-28 object-contain mx-auto"
               />
             </div>
-            <h1 className="mt-3 text-4xl font-bold text-gray-900 dark:text-white tracking-tight"> <Trans>NeonGambit</Trans> </h1>
-            <p className="mt-1 text-sm font-medium text-gray-500 dark:text-gray-400">
+            <h1 className="mt-3 text-4xl font-bold text-theme-foreground tracking-tight"> <Trans>NeonGambit</Trans> </h1>
+            <p className="mt-1 text-sm font-medium text-theme-muted">
               {t("auth.welcomeBack", "Welcome Back")}
             </p>
           </div>
 
           {banReason && (
-            <div className="mb-5 p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/60">
-              <div className="flex items-center gap-2 text-red-700 dark:text-red-400 font-semibold mb-1 text-sm">
+            <div className="mb-5 p-4 rounded-xl bg-red-50 border border-red-200">
+              <div className="flex items-center gap-2 text-red-700 font-semibold mb-1 text-sm">
                 <ShieldAlert className="w-4 h-4" />
                 {t("auth.accountBannedTitle", "Account Banned")}
               </div>
-              <p className="text-red-600 dark:text-red-400 text-sm">
+              <p className="text-red-600 text-sm">
                 {t("auth.accountBannedReason", {
                   defaultValue: "Reason: {{reason}}",
                   reason: banReason,
@@ -310,23 +310,23 @@ export default function Login() {
           )}
 
           {error && !banReason && (
-            <div className="mb-5 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/60 text-red-600 dark:text-red-400 text-sm">
+            <div className="mb-5 p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm">
               {error}
             </div>
           )}
 
           <form onSubmit={handleLogin} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              <label className="block text-sm font-medium text-theme-muted mb-1.5">
                 {t("auth.email", "Email Address")}
               </label>
               <div className="relative group">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-brand-500 transition-colors w-[18px] h-[18px]" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-theme-muted group-focus-within:text-brand-500 transition-colors w-[18px] h-[18px]" />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-gray-50 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all text-sm placeholder:text-gray-400"
+                  className="w-full bg-theme-surface border border-theme-glass text-theme-foreground pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all text-sm placeholder:text-theme-disabled"
                   placeholder={t("auth.emailPlaceholder", "you@example.com")}
                   required
                   disabled={isLoading}
@@ -335,16 +335,16 @@ export default function Login() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+              <label className="block text-sm font-medium text-theme-muted mb-1.5">
                 {t("auth.password", "Password")}
               </label>
               <div className="relative group">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-brand-500 transition-colors w-[18px] h-[18px]" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-theme-muted group-focus-within:text-brand-500 transition-colors w-[18px] h-[18px]" />
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-gray-50 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all text-sm placeholder:text-gray-400"
+                  className="w-full bg-theme-surface border border-theme-glass text-theme-foreground pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all text-sm placeholder:text-theme-disabled"
                   placeholder="********"
                   required
                   disabled={isLoading}
@@ -365,10 +365,10 @@ export default function Login() {
                     onChange={(e) => setRememberMe(e.target.checked)}
                     className="peer sr-only"
                   />
-                  <span className="absolute inset-0 rounded-[4px] border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 peer-checked:bg-brand-500 peer-checked:border-brand-500 transition-colors" />
-                  <Check className="relative z-10 w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
+                  <span className="absolute inset-0 rounded-[4px] border border-theme-glass bg-theme-panel peer-checked:bg-brand-500 peer-checked:border-brand-500 transition-colors" />
+                  <Check className="relative z-10 w-3.5 h-3.5 text-theme-on-accent opacity-0 peer-checked:opacity-100 transition-opacity" />
                 </span>
-                <span className="text-[15px] font-medium text-gray-600 dark:text-gray-400">
+                <span className="text-[15px] font-medium text-theme-muted">
                   {t("auth.rememberMe", "Remember me for 30 days")}
                 </span>
               </label>
@@ -377,10 +377,10 @@ export default function Login() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-brand-600 hover:bg-brand-500 disabled:bg-brand-800 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-all shadow-lg shadow-brand-900/20 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] text-sm"
+              className="w-full bg-brand-600 hover:bg-brand-500 disabled:bg-brand-800 disabled:cursor-not-allowed text-theme-on-accent font-semibold py-3 rounded-xl transition-all shadow-lg shadow-brand-900/20 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] text-sm"
             >
               {isLoading ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-theme-border border-t-transparent rounded-full animate-spin" />
               ) : (
                 <>
                   <span>{t("auth.signIn", "Sign In")}</span>
@@ -394,7 +394,7 @@ export default function Login() {
                 type="button"
                 onClick={() => void handleQuickTestLogin()}
                 disabled={isLoading}
-                className="w-full border border-dashed border-gray-400/70 dark:border-gray-500/70 text-gray-600 dark:text-gray-300 bg-gray-100/70 dark:bg-gray-800/50 hover:bg-gray-200/70 dark:hover:bg-gray-700/60 disabled:opacity-50 disabled:cursor-not-allowed font-medium py-3 rounded-xl transition-colors text-sm"
+                className="w-full border border-dashed border-theme-glass/70 text-theme-muted bg-theme-surface/70 hover:bg-theme-surface/80 disabled:opacity-50 disabled:cursor-not-allowed font-medium py-3 rounded-xl transition-colors text-sm"
               >
                 {t("auth.quickTestLogin", "Quick Test Login (Dev Only)")}
               </button>
@@ -402,11 +402,11 @@ export default function Login() {
           </form>
 
           <div className="my-6 relative flex items-center">
-            <div className="flex-1 border-t border-gray-200 dark:border-gray-700/60" />
-            <span className="mx-3 text-xs text-gray-400 dark:text-gray-500 bg-transparent px-1">
+            <div className="flex-1 border-t border-theme-glass/60" />
+            <span className="mx-3 text-xs text-theme-muted bg-transparent px-1">
               {t("auth.orContinue", "Or continue with")}
             </span>
-            <div className="flex-1 border-t border-gray-200 dark:border-gray-700/60" />
+            <div className="flex-1 border-t border-theme-glass/60" />
           </div>
 
           <div className="flex flex-col gap-3">
@@ -430,7 +430,7 @@ export default function Login() {
                     type="button"
                     onClick={onClick}
                     disabled={isLoading}
-                    className="w-full relative flex items-center py-3 px-4 rounded-xl border border-[#1877F2]/30 bg-[#1877F2]/10 hover:bg-[#1877F2]/20 dark:bg-[#1877F2]/10 dark:hover:bg-[#1877F2]/20 text-[#1877F2] dark:text-[#4299ff] font-medium text-sm transition-all hover:scale-[1.02] active:scale-[0.98] hover:border-[#1877F2]/50 hover:shadow-md hover:shadow-[#1877F2]/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full relative flex items-center py-3 px-4 rounded-xl border border-theme-border bg-theme-panel hover:bg-theme-panel hover:bg-theme-panel text-theme-accent font-medium text-sm transition-all hover:scale-[1.02] active:scale-[0.98] hover:border-theme-border hover:shadow-md hover:shadow-[0_10px_24px_rgba(var(--accent-rgb),0.2)] disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <span className="absolute left-4">
                       <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
@@ -446,17 +446,17 @@ export default function Login() {
             )}
 
             {!googleClientId && !facebookAppId && !isOAuthConfigLoading && (
-              <p className="text-center text-xs text-amber-600 dark:text-amber-400">
+              <p className="text-center text-xs text-amber-600">
                 {t("auth.socialNotConfigured", "Social sign-in is not configured yet.")}
               </p>
             )}
           </div>
 
-          <p className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
+          <p className="mt-6 text-center text-sm text-theme-muted">
             {t("auth.noAccount", "Don't have an account?")} {" "}
             <Link
               to="/register"
-              className="font-semibold text-brand-600 dark:text-brand-400 hover:underline"
+              className="font-semibold text-brand-600 hover:underline"
             >
               {t("auth.signUp", "Sign up")}
             </Link>

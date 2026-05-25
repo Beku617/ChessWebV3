@@ -20,13 +20,13 @@ export function PreviewGalleryModal({
 
   return (
     <div
-      className="fixed inset-0 z-[130] bg-black/90 backdrop-blur-sm p-4 sm:p-8 flex items-center justify-center"
+      className="fixed inset-0 z-[130] bg-theme-panel/90 backdrop-blur-sm p-4 sm:p-8 flex items-center justify-center"
       onClick={onClose}
     >
       <button
         type="button"
         onClick={onClose}
-        className="absolute top-4 right-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
+        className="absolute top-4 right-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-theme-panel/10 text-theme-foreground hover:bg-theme-panel/20 transition-colors"
         aria-label={t("common.closeImagePreview")}
       >
         <X className="w-5 h-5" />
@@ -43,7 +43,7 @@ export function PreviewGalleryModal({
           className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/88 to-transparent px-4 pb-5 pt-12"
           onClick={(event) => event.stopPropagation()}
         >
-          <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 text-xs text-gray-400">
+          <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 text-xs text-theme-muted">
             <span>
               {gallery.index + 1} / {gallery.items.length}
             </span>

@@ -15,21 +15,21 @@ const POOLS: Array<{ id: RatingPool; label: string }> = [
 function rankAccent(rank: number) {
   if (rank === 1)
     return {
-      bg: "bg-amber-500/10 dark:bg-amber-500/10",
-      ring: "ring-1 ring-amber-400/30",
-      text: "text-amber-400",
+      bg: "bg-brand-500/10",
+      ring: "ring-1 ring-brand-400/30",
+      text: "text-theme-accent",
     };
   if (rank === 2)
     return {
-      bg: "bg-gray-300/10 dark:bg-gray-400/10",
-      ring: "ring-1 ring-gray-400/20",
-      text: "text-slate-500 dark:text-gray-300",
+      bg: "bg-brand-500/10",
+      ring: "ring-1 ring-brand-400/20",
+      text: "text-theme-accent",
     };
   if (rank === 3)
     return {
-      bg: "bg-orange-400/10 dark:bg-orange-500/10",
-      ring: "ring-1 ring-orange-400/20",
-      text: "text-orange-400",
+      bg: "bg-brand-400/10",
+      ring: "ring-1 ring-brand-400/20",
+      text: "text-theme-accent",
     };
   return null;
 }
@@ -42,10 +42,10 @@ export function PoolLeaderboardCard() {
   const navigate = useNavigate();
 
   return (
-    <div className="h-full bg-white dark:bg-gray-800/80 rounded-2xl p-6 border border-gray-200/60 dark:border-gray-700/40 shadow-lg dark:shadow-[0_8px_30px_rgba(0,0,0,0.35)] flex flex-col min-h-0">
+    <div className="h-full bg-theme-panel rounded-2xl p-6 border border-theme-glass/40 shadow-lg flex flex-col min-h-0">
       {/* Header */}
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white tracking-tight">
+        <h3 className="text-lg font-semibold text-theme-foreground tracking-tight">
           {t("profileWidgets.leaderboardTitle", "Leaderboard")}
         </h3>
       </div>
@@ -59,8 +59,8 @@ export function PoolLeaderboardCard() {
             onClick={() => setPool(option.id)}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 ${
               pool === option.id
-                ? "bg-amber-500 text-white shadow-md shadow-amber-500/25"
-                : "bg-gray-100 dark:bg-gray-700/60 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                ? "bg-brand-500 text-theme-on-accent shadow-md shadow-brand-500/25"
+                : "bg-theme-surface text-theme-muted hover:bg-theme-surface/80"
             }`}
           >
             {t(`profileGames.pools.${option.id}`, option.label)}
@@ -69,15 +69,15 @@ export function PoolLeaderboardCard() {
       </div>
 
       {/* List container — softer border, inner glow */}
-      <div className="mt-4 rounded-xl border border-gray-200/50 dark:border-gray-700/30 bg-gray-50 dark:bg-gray-900/40 overflow-hidden shadow-inner dark:shadow-[inset_0_1px_4px_rgba(0,0,0,0.2)] flex-1 min-h-0">
+      <div className="mt-4 rounded-xl border border-theme-glass/30 bg-theme-surface overflow-hidden shadow-inner flex-1 min-h-0">
         {loading ? (
-          <div className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+          <div className="py-8 text-center text-sm text-theme-muted">
             {t("profileWidgets.loadingLeaderboard", "Loading leaderboard...")}
           </div>
         ) : error ? (
           <div className="py-8 text-center text-sm text-red-500">{error}</div>
         ) : entries.length === 0 ? (
-          <div className="py-8 text-center text-sm text-gray-500 dark:text-gray-400">
+          <div className="py-8 text-center text-sm text-theme-muted">
             {t("profileWidgets.noRatedPlayers", "No rated players yet.")}
           </div>
         ) : (
@@ -96,14 +96,12 @@ export function PoolLeaderboardCard() {
                     className={[
                       "grid grid-cols-[48px_1fr_auto] items-center gap-2 px-3 py-2.5",
                       "transition-all duration-200 ease-out",
-                      "hover:bg-white/5 hover:translate-x-[2px]",
+                      "hover:bg-theme-panel/5 hover:translate-x-[2px]",
                       isYou
-                        ? "bg-brand-50 dark:bg-brand-500/10 ring-1 ring-brand-400/20"
+                        ? "bg-brand-50 ring-1 ring-brand-400/20"
                         : "",
                       accent ? `${accent.bg} ${accent.ring}` : "",
-                      !isLast
-                        ? "border-b border-gray-200/40 dark:border-gray-700/20"
-                        : "",
+                      !isLast ? "border-b border-theme-glass/20" : "",
                     ]
                       .filter(Boolean)
                       .join(" ")}
@@ -114,7 +112,7 @@ export function PoolLeaderboardCard() {
                         className={`text-sm font-bold tabular-nums ${
                           accent
                             ? accent.text
-                            : "text-gray-500 dark:text-gray-500"
+                            : "text-theme-muted"
                         }`}
                       >
                         #{entry.rank}
@@ -135,16 +133,16 @@ export function PoolLeaderboardCard() {
                       <div
                         className={`truncate text-sm ${
                           accent ? "font-semibold" : "font-medium"
-                        } text-gray-900 dark:text-white group-hover/name:text-brand-500 dark:group-hover/name:text-brand-400 transition-colors`}
+                        } text-theme-foreground group-hover/name:text-brand-500 transition-colors`}
                       >
                         {entry.name}
                         {isYou && (
-                          <span className="ml-1.5 text-[10px] font-semibold uppercase tracking-wide text-brand-500 dark:text-brand-400">
+                          <span className="ml-1.5 text-[10px] font-semibold uppercase tracking-wide text-brand-500">
                             {t("profileWidgets.youTag", "you")}
                           </span>
                         )}
                       </div>
-                      <div className="text-[11px] text-gray-400 dark:text-gray-500">
+                      <div className="text-[11px] text-theme-muted">
                         {entry.isProvisional
                           ? t("profileGames.provisionalGames", {
                               count: entry.games,
@@ -163,7 +161,7 @@ export function PoolLeaderboardCard() {
                       className={`text-base font-extrabold tabular-nums ${
                         accent
                           ? accent.text
-                          : "text-gray-800 dark:text-gray-100"
+                          : "text-theme-foreground "
                       }`}
                     >
                       {entry.rating}
@@ -176,7 +174,7 @@ export function PoolLeaderboardCard() {
         )}
       </div>
       <div className="mt-2 space-y-1">
-        <p className="text-[11px] text-gray-400 dark:text-gray-500">
+        <p className="text-[11px] text-theme-muted">
           {t("profileWidgets.topPlayersHint", {
             top: 50,
             minimum: 10,
@@ -185,11 +183,11 @@ export function PoolLeaderboardCard() {
           })}
         </p>
         {currentUser && (
-          <p className="text-[12px] text-gray-600 dark:text-gray-300">
+          <p className="text-[12px] text-theme-muted">
             {currentUser.qualifies && currentUser.rank ? (
               <>
                 {t("profileWidgets.yourPosition", "Your position")}:{" "}
-                <span className="font-semibold text-brand-600 dark:text-brand-400">
+                <span className="font-semibold text-brand-600">
                   #{currentUser.rank}
                 </span>{" "}
                 ({currentUser.rating})
@@ -197,7 +195,7 @@ export function PoolLeaderboardCard() {
             ) : (
               <>
                 {t("profileWidgets.yourPosition", "Your position")}:{" "}
-                <span className="font-semibold text-gray-500 dark:text-gray-400">
+                <span className="font-semibold text-theme-muted">
                   {t("profileWidgets.unranked", "Unranked")}
                 </span>{" "}
                 {t("profileWidgets.unrankedGamesSuffix", {

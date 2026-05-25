@@ -17,7 +17,7 @@ export function SettingRow({
 }: SettingRowProps) {
   return (
     <div
-      className={`py-3.5 ${!last ? "border-b border-gray-100 dark:border-gray-800/50" : ""}`}
+      className={`py-3.5 ${!last ? "border-b border-theme-glass/50" : ""}`}
     >
       <div
         className={
@@ -27,11 +27,11 @@ export function SettingRow({
         }
       >
         <div className={stacked ? "w-full min-w-0" : "min-w-0 flex-1"}>
-          <div className="text-sm font-medium text-gray-800 dark:text-gray-200">
+          <div className="text-sm font-medium text-theme-foreground ">
             {label}
           </div>
           {helper && (
-            <div className="mt-0.5 text-xs leading-relaxed text-gray-500 dark:text-gray-500">
+            <div className="mt-0.5 text-xs leading-relaxed text-theme-muted">
               {helper}
             </div>
           )}

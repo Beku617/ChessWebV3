@@ -270,7 +270,7 @@ export default function BotGamePage() {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-100 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-theme-surface flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -279,14 +279,14 @@ export default function BotGamePage() {
   // If bot not found, redirect back
   if (error || !bot) {
     return (
-      <div className="min-h-screen bg-slate-100 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-theme-surface flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+          <h2 className="text-xl font-bold text-theme-foreground mb-4">
             {t("botGame.notFound", "Bot not found")}
           </h2>
           <button
             onClick={() => navigate("/play/bot")}
-            className="px-6 py-3 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-medium"
+            className="px-6 py-3 rounded-xl bg-brand-500 hover:bg-brand-600 text-theme-on-accent font-medium"
           >
             {t("botGame.backToBotSelection", "Back to Bot Selection")}
           </button>
@@ -296,7 +296,7 @@ export default function BotGamePage() {
   }
 
   return (
-    <div className="h-screen overflow-hidden bg-theme-primary text-gray-900 dark:text-white font-sans selection:bg-brand-500/30 transition-colors duration-300">
+    <div className="h-screen overflow-hidden bg-theme-primary text-theme-foreground font-sans selection:bg-brand-500/30 transition-colors duration-300">
       <Sidebar />
 
       {/* Main Content */}
@@ -397,7 +397,7 @@ export default function BotGamePage() {
                 {/* Panel Header - Fixed */}
                 <div className="flex-shrink-0 p-4 border-b border-theme-glass">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-lg overflow-hidden bg-slate-700 flex-shrink-0">
+                    <div className="w-12 h-12 rounded-lg overflow-hidden bg-theme-surface flex-shrink-0">
                       {bot.avatarUrl ? (
                         <img
                           src={bot.avatarUrl}
@@ -406,7 +406,7 @@ export default function BotGamePage() {
                         />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center">
-                          <span className="text-white font-bold">
+                          <span className="text-theme-on-accent font-bold">
                             {getBotInitials(bot.name)}
                           </span>
                         </div>
@@ -414,16 +414,16 @@ export default function BotGamePage() {
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                        <h2 className="text-xl font-bold text-theme-foreground ">
                           {bot.name}
                         </h2>
                         {bot.title && (
-                          <span className="px-2 py-0.5 text-xs font-bold bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded">
+                          <span className="px-2 py-0.5 text-xs font-bold bg-amber-500/20 text-amber-600 rounded">
                             {bot.title}
                           </span>
                         )}
                       </div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">
+                      <div className="text-sm text-theme-muted">
                         {t("quickMatch.result.rating", "Rating")}: {bot.rating}
                       </div>
                     </div>
@@ -436,7 +436,7 @@ export default function BotGamePage() {
                     movesContent={
                       <div className="space-y-2">
                         {openingLabel ? (
-                          <div className="px-2 text-xs text-gray-500 dark:text-gray-400">
+                          <div className="px-2 text-xs text-theme-muted">
                             {openingLabel}
                           </div>
                         ) : null}
@@ -447,8 +447,8 @@ export default function BotGamePage() {
                           emptyMessage={t("quickMatch.moves.empty", "No moves yet")}
                           rowClassName="text-sm"
                           moveCellClassName="rounded px-2 py-1 transition-colors"
-                          activeMoveClassName="bg-[#00e5a0]/20 text-[#00e5a0] font-semibold"
-                          inactiveMoveClassName="text-gray-800 dark:text-gray-200"
+                          activeMoveClassName="bg-theme-panel text-theme-accent font-semibold"
+                          inactiveMoveClassName="text-theme-foreground "
                         />
                       </div>
                     }
@@ -461,13 +461,13 @@ export default function BotGamePage() {
                   <ResignConfirmButton
                     onConfirm={handleResign}
                     disabled={gameOver}
-                    className="w-full py-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 font-medium transition-colors disabled:opacity-50"
+                    className="w-full py-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-600 font-medium transition-colors disabled:opacity-50"
                   >
                     {t("game.actions.resign", "Resign")}
                   </ResignConfirmButton>
                   <button
                     onClick={() => navigate("/play/bot")}
-                    className="w-full py-3 rounded-xl bg-white/10 hover:bg-white/15 text-gray-800 dark:text-gray-200 font-medium transition-colors"
+                    className="w-full py-3 rounded-xl bg-theme-panel/10 hover:bg-theme-panel/15 text-theme-foreground font-medium transition-colors"
                   >
                     {t("botGame.backToBotSelection", "Back to Bot Selection")}
                   </button>

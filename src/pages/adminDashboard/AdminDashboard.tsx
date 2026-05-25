@@ -107,14 +107,14 @@ export default function AdminDashboard() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-950 flex items-center justify-center">
+      <div className="min-h-screen bg-theme-panel flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-950 text-gray-900 dark:text-white">
+    <div className="min-h-screen bg-theme-panel text-theme-foreground ">
       <AdminSidebar />
 
       <main className="ml-72 p-8">

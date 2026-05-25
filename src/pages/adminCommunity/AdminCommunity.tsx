@@ -17,7 +17,6 @@ import {
 import AdminSidebar from "../../components/AdminSidebar";
 import { FeedPagination } from "../../components/community/FeedPagination";
 import { useAdminStore } from "../../store/adminStore";
-import { useThemeStore } from "../../store/themeStore";
 import {
   API_URL,
   CommunityPost,
@@ -88,16 +87,16 @@ function FilterDropdown({
         aria-label={ariaLabel}
         aria-expanded={isOpen}
         onClick={() => setIsOpen((open) => !open)}
-        className="w-full inline-flex items-center justify-between gap-2 rounded-lg bg-gray-100 px-4 py-3 text-sm text-gray-900 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500/30 transition-colors dark:bg-white/[0.06] dark:text-white dark:hover:bg-white/[0.1]"
+        className="w-full inline-flex items-center justify-between gap-2 rounded-lg bg-theme-surface px-4 py-3 text-sm text-theme-foreground hover:bg-theme-surface/80 focus:outline-none focus:ring-2 focus:ring-brand-500/30 transition-colors"
       >
         <span className="truncate">
           {selected?.label || t("admin.community.filter.select", "Select")}
         </span>
-        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+        <ChevronDown className={`w-4 h-4 text-theme-muted transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </button>
 
       {isOpen && (
-        <div className="absolute z-[180] mt-2 w-full rounded-xl border border-gray-200 bg-white shadow-[0_18px_48px_rgba(0,0,0,0.16)] p-1 dark:border-white/10 dark:bg-[#0f1a2d] dark:shadow-[0_18px_48px_rgba(0,0,0,0.35)]">
+        <div className="absolute z-[180] mt-2 w-full rounded-xl border border-theme-glass bg-theme-panel shadow-[0_18px_48px_rgba(0,0,0,0.16)] p-1">
           {options.map((option) => {
             const active = option.value === value;
             return (
@@ -110,8 +109,8 @@ function FilterDropdown({
                 }}
                 className={`w-full text-left rounded-lg px-3 py-2 text-sm transition-colors ${
                   active
-                    ? "bg-brand-100 text-brand-700 dark:bg-brand-500/20 dark:text-brand-100"
-                    : "text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-white/[0.08]"
+                    ? "bg-brand-100 text-brand-700"
+                    : "text-theme-muted hover:bg-theme-surface"
                 }`}
               >
                 {option.label}
@@ -163,7 +162,7 @@ function statusClass(status: string) {
     return "bg-red-500/10 text-red-200";
   }
   if (status === "removed") {
-    return "bg-gray-500/15 text-gray-300";
+    return "bg-theme-surface/15 text-theme-muted";
   }
   return "bg-amber-500/10 text-amber-200";
 }
@@ -287,7 +286,6 @@ export default function AdminCommunity() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { isAuthenticated, isLoading: authLoading, checkAuth } = useAdminStore();
-  const { isDarkMode } = useThemeStore();
   const [posts, setPosts] = useState<AdminCommunityResponse["posts"]>([]);
   const [stats, setStats] = useState<CommunityStats>(DEFAULT_STATS);
   const [page, setPage] = useState(1);
@@ -892,25 +890,25 @@ export default function AdminCommunity() {
         label: "Pending",
         value: stats.pending,
         filterValue: "pending",
-        tone: "bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300",
+        tone: "bg-amber-100 text-amber-700",
       },
       {
         label: "Approved",
         value: stats.approved,
         filterValue: "approved",
-        tone: "bg-brand-100 text-brand-700 dark:bg-brand-500/10 dark:text-brand-300",
+        tone: "bg-brand-100 text-brand-700",
       },
       {
         label: "Rejected",
         value: stats.rejected,
         filterValue: "rejected",
-        tone: "bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-300",
+        tone: "bg-red-100 text-red-700",
       },
       {
         label: "Total",
         value: stats.total,
         filterValue: "",
-        tone: "bg-gray-100 text-gray-700 dark:bg-white/[0.06] dark:text-gray-300",
+        tone: "bg-theme-surface text-theme-foreground",
       },
     ],
     [stats],
@@ -967,21 +965,21 @@ export default function AdminCommunity() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-950 flex items-center justify-center">
+      <div className="min-h-screen bg-theme-panel flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className={isDarkMode ? "dark" : ""}>
-      <div className="min-h-screen bg-[#f5f5f7] text-gray-900 dark:bg-[#060f1d] dark:text-white">
+    <div>
+      <div className="min-h-screen bg-theme-panel text-theme-foreground ">
         <AdminSidebar />
 
       {toast && (
         <div
           className={`fixed top-5 right-5 z-[90] px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 ${
-            toast.type === "success" ? "bg-brand-500 text-white" : "bg-red-500 text-white"
+            toast.type === "success" ? "bg-brand-500 text-theme-on-accent" : "bg-red-500 text-theme-on-accent"
           }`}
         >
                       {toast.type === "success" ? (
@@ -995,13 +993,13 @@ export default function AdminCommunity() {
 
       {previewGallery && (
         <div
-          className="fixed inset-0 z-[130] bg-black/90 backdrop-blur-sm p-4 sm:p-8 flex items-center justify-center"
+          className="fixed inset-0 z-[130] bg-theme-panel/90 backdrop-blur-sm p-4 sm:p-8 flex items-center justify-center"
           onClick={() => setPreviewGallery(null)}
         >
           <button
             type="button"
             onClick={() => setPreviewGallery(null)}
-            className="absolute top-4 right-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
+            className="absolute top-4 right-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-theme-panel/10 text-theme-foreground hover:bg-theme-panel/20 transition-colors"
             aria-label={t("common.closeImagePreview")}
           >
             <X className="w-5 h-5" />
@@ -1018,7 +1016,7 @@ export default function AdminCommunity() {
               className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 to-transparent px-4 pb-5 pt-12"
               onClick={(event) => event.stopPropagation()}
             >
-              <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 text-xs text-gray-400">
+              <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 text-xs text-theme-muted">
                 <span>
                   {previewGallery.index + 1} / {previewGallery.items.length}
                 </span>
@@ -1060,11 +1058,11 @@ export default function AdminCommunity() {
 
       {deleteConfirmPostId && (
         <div
-          className="fixed inset-0 z-[140] flex items-center justify-center bg-black/60 backdrop-blur-[2px] p-4"
+          className="fixed inset-0 z-[140] flex items-center justify-center bg-theme-panel/60 backdrop-blur-[2px] p-4"
           onClick={() => setDeleteConfirmPostId(null)}
         >
           <div
-            className="w-full max-w-xl rounded-2xl border border-gray-200 bg-white p-6 shadow-[0_30px_80px_rgba(0,0,0,0.28)] dark:border-white/[0.08] dark:bg-[#0f1a2d]"
+            className="w-full max-w-xl rounded-2xl border border-theme-glass bg-theme-panel p-6 shadow-[0_30px_80px_rgba(0,0,0,0.28)]"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-start gap-3">
@@ -1072,10 +1070,10 @@ export default function AdminCommunity() {
                 <Trash2 className="w-5 h-5" />
               </div>
               <div className="min-w-0">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white"> <Trans>Delete this post permanently?</Trans> </h3>
-                <p className="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300"> <Trans>The uploaded media will be removed too. This action cannot be undone.</Trans> </p>
+                <h3 className="text-lg font-semibold text-theme-foreground "> <Trans>Delete this post permanently?</Trans> </h3>
+                <p className="mt-2 text-sm leading-6 text-theme-muted"> <Trans>The uploaded media will be removed too. This action cannot be undone.</Trans> </p>
                 {deleteTargetPost?.text && (
-                  <div className="mt-3 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-600 dark:border-white/[0.08] dark:bg-white/[0.04] dark:text-gray-400">
+                  <div className="mt-3 rounded-xl border border-theme-glass bg-theme-surface px-3 py-2 text-xs text-theme-muted">
                     {deleteTargetPost.text.slice(0, 140)}
                     {deleteTargetPost.text.length > 140 ? "..." : ""}
                   </div>
@@ -1087,13 +1085,13 @@ export default function AdminCommunity() {
               <button
                 type="button"
                 onClick={() => setDeleteConfirmPostId(null)}
-                className="inline-flex items-center justify-center rounded-xl bg-gray-100 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-200 dark:bg-white/[0.08] dark:text-gray-200 dark:hover:bg-white/[0.14]"
+                className="inline-flex items-center justify-center rounded-xl bg-theme-surface px-4 py-2.5 text-sm font-semibold text-theme-muted hover:bg-theme-surface/80"
               > <Trans>Cancel</Trans> </button>
               <button
                 type="button"
                 onClick={() => void handleConfirmDelete()}
                 disabled={processingId === deleteConfirmPostId}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-red-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-400 disabled:opacity-60"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-red-500 px-4 py-2.5 text-sm font-semibold text-theme-on-accent hover:bg-red-400 disabled:opacity-60"
               >
                 {processingId === deleteConfirmPostId ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -1107,7 +1105,7 @@ export default function AdminCommunity() {
 
       <main className="ml-72 px-8 py-7">
         <div className="max-w-[1400px]">
-          <section className="relative z-30 mb-6 rounded-2xl border border-gray-200/80 bg-white/95 p-5 shadow-[0_18px_42px_rgba(15,23,42,0.08)] backdrop-blur dark:border-white/[0.05] dark:bg-[#0c1728]/80 dark:shadow-[0_18px_55px_rgba(0,0,0,0.22)]">
+          <section className="relative z-30 mb-6 rounded-2xl border border-theme-glass/80 bg-theme-panel/95 p-5 shadow-[0_18px_42px_rgba(15,23,42,0.08)] backdrop-blur">
             <div className="flex items-center justify-between gap-3">
               <div className="flex flex-wrap items-center gap-2">
                 {statPills.map((pill) => (
@@ -1122,12 +1120,12 @@ export default function AdminCommunity() {
                       pill.tone
                     } ${
                       statusFilter === pill.filterValue
-                        ? "ring-1 ring-gray-300 dark:ring-white/25"
+                        ? "ring-1 ring-theme-border"
                         : "opacity-85 hover:opacity-100"
                     }`}
                   >
-                    <span className="text-gray-500 dark:text-gray-400">{pill.label}</span>
-                    <span className="font-semibold text-gray-900 dark:text-white">{pill.value}</span>
+                    <span className="text-current">{pill.label}</span>
+                    <span className="font-semibold text-current">{pill.value}</span>
                   </button>
                 ))}
               </div>
@@ -1135,7 +1133,7 @@ export default function AdminCommunity() {
               <button
                 type="button"
                 onClick={() => setIsCreateOpen((value) => !value)}
-                className="inline-flex shrink-0 items-center gap-2 rounded-full bg-gray-100 px-3.5 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-200 dark:bg-white/[0.08] dark:text-gray-200 dark:hover:bg-white/[0.14]"
+                className="inline-flex shrink-0 items-center gap-2 rounded-full border border-theme-glass bg-theme-surface/90 px-3.5 py-2 text-sm font-medium text-theme-foreground transition-colors hover:bg-theme-surface"
               >
                 {isCreateOpen ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
                 {isCreateOpen
@@ -1147,7 +1145,7 @@ export default function AdminCommunity() {
             <div className="mt-5 flex flex-wrap gap-3">
               <div className="flex-1 min-w-[260px]">
                 <div className="relative">
-                  <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
+                  <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-theme-muted" />
                   <input
                     value={search}
                     onChange={(e) => {
@@ -1155,7 +1153,7 @@ export default function AdminCommunity() {
                       setPage(1);
                     }}
                     placeholder={t("admin.search.communityPosts")}
-                    className="w-full rounded-lg border border-gray-200 bg-gray-50 py-3 pl-11 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-white/[0.05] dark:bg-white/[0.06] dark:text-white dark:placeholder:text-gray-500"
+                    className="w-full rounded-lg border border-theme-glass bg-theme-surface py-3 pl-11 pr-4 text-sm text-theme-foreground placeholder:text-theme-disabled focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                   />
                 </div>
               </div>
@@ -1187,7 +1185,7 @@ export default function AdminCommunity() {
                   value={createText}
                   onChange={(e) => setCreateText(e.target.value)}
                   placeholder="Post text..."
-                  className="min-h-[120px] w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-white/[0.05] dark:bg-white/[0.05] dark:text-white dark:placeholder:text-gray-500"
+                  className="min-h-[120px] w-full rounded-xl border border-theme-glass bg-theme-panel px-4 py-3 text-sm text-theme-foreground placeholder:text-theme-disabled focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                 />
                 <div className="max-w-[220px]">
                   <FilterDropdown
@@ -1202,21 +1200,21 @@ export default function AdminCommunity() {
                     value={createRejectionReason}
                     onChange={(e) => setCreateRejectionReason(e.target.value)}
                     placeholder={t("admin.community.placeholders.rejectionReason", "Rejection reason")}
-                    className="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-white/[0.05] dark:bg-white/[0.06] dark:text-white dark:placeholder:text-gray-500"
+                    className="w-full rounded-lg border border-theme-glass bg-theme-panel px-4 py-3 text-sm text-theme-foreground placeholder:text-theme-disabled focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                   />
                 )}
                 <input
                   type="file"
                   accept="image/png,image/jpeg,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
                   onChange={(e) => setCreateMediaFile(e.target.files?.[0] || null)}
-                  className="block w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm file:text-gray-700 hover:file:bg-gray-200 dark:text-gray-300 dark:file:bg-white/[0.1] dark:file:text-gray-100 dark:hover:file:bg-white/[0.16]"
+                  className="block w-full text-sm text-theme-muted file:mr-3 file:rounded-lg file:border-0 file:bg-theme-surface file:px-3 file:py-2 file:text-sm file:text-theme-muted hover:file:bg-theme-surface"
                 />
                 <div className="flex justify-end">
                   <button
                     type="button"
                     onClick={handleCreatePost}
                     disabled={isCreating}
-                    className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-500 disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-theme-on-accent hover:bg-brand-500 disabled:opacity-50"
                   >
                     <Plus className="w-4 h-4" />
                     {isCreating
@@ -1244,10 +1242,10 @@ export default function AdminCommunity() {
               <Loader2 className="w-8 h-8 text-brand-400 animate-spin" />
             </div>
           ) : posts.length === 0 ? (
-            <div className="rounded-2xl border border-gray-200/80 bg-white/95 py-24 text-center shadow-[0_18px_42px_rgba(15,23,42,0.08)] dark:border-white/[0.05] dark:bg-[#0c1728]/80 dark:shadow-[0_24px_75px_rgba(0,0,0,0.24)]">
-              <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-500" />
-              <p className="text-base font-medium text-gray-900 dark:text-white"><Trans>No posts found</Trans></p>
-              <p className="mt-2 text-sm text-gray-500 dark:text-gray-500"> <Trans>Try a different status or search filter.</Trans> </p>
+            <div className="rounded-2xl border border-theme-glass/80 bg-theme-panel/95 py-24 text-center shadow-[0_18px_42px_rgba(15,23,42,0.08)]">
+              <MessageSquare className="w-12 h-12 mx-auto mb-4 text-theme-muted" />
+              <p className="text-base font-medium text-theme-foreground "><Trans>No posts found</Trans></p>
+              <p className="mt-2 text-sm text-theme-muted"> <Trans>Try a different status or search filter.</Trans> </p>
             </div>
           ) : (
             <div className="space-y-5">
@@ -1303,12 +1301,12 @@ export default function AdminCommunity() {
                 return (
                   <article
                     key={post.id}
-                    className="group overflow-hidden rounded-[24px] border border-gray-200/80 bg-white/95 backdrop-blur-xl shadow-[0_18px_42px_rgba(15,23,42,0.08)] dark:border-white/[0.05] dark:bg-[#0c1728]/90 dark:shadow-[0_22px_60px_rgba(0,0,0,0.24)]"
+                    className="group overflow-hidden rounded-[24px] border border-theme-glass/80 bg-theme-panel/95 backdrop-blur-xl shadow-[0_18px_42px_rgba(15,23,42,0.08)]"
                   >
                     <div className="grid xl:grid-cols-[minmax(0,1fr)_340px]">
                       <div className="min-w-0 px-5 py-5 sm:px-6 sm:py-6">
                         <div className="flex flex-col gap-4">
-                          <div className="flex items-start justify-between gap-4 border-b border-white/[0.05] pb-4">
+                          <div className="flex items-start justify-between gap-4 border-b border-theme-glass pb-4">
                             <div className="flex items-center gap-3.5 min-w-0">
                             <Avatar
                               initials={getInitials(authorName)}
@@ -1316,10 +1314,10 @@ export default function AdminCommunity() {
                               size="sm"
                             />
                             <div className="min-w-0">
-                                <h3 className="truncate text-[15px] font-semibold text-white">
+                                <h3 className="truncate text-[15px] font-semibold text-theme-foreground">
                                   {authorName}
                                 </h3>
-                              <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500">
+                              <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-theme-muted">
                                 <span><Trans>Submitted</Trans> {formatRelativeTime(post.createdAt)}</span>
                                 {post.updatedAt && (
                                   <span><Trans>Updated</Trans> {formatRelativeTime(post.updatedAt)}</span>
@@ -1330,31 +1328,31 @@ export default function AdminCommunity() {
                             </div>
 
                             <div className="shrink-0 text-right">
-                              <div className="text-[10px] uppercase tracking-[0.22em] text-gray-500"> <Trans>Preview</Trans> </div>
-                              <div className="mt-1 text-xs text-gray-400">
+                              <div className="text-[10px] uppercase tracking-[0.22em] text-theme-muted"> <Trans>Preview</Trans> </div>
+                              <div className="mt-1 text-xs text-theme-muted">
                                 {contentTypeLabel}
                               </div>
                             </div>
                           </div>
 
                           {post.text && (
-                            <div className="rounded-[18px] border border-white/[0.04] bg-white/[0.025] px-4 py-3.5">
-                              <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500"> <Trans>Caption</Trans> </div>
-                              <div className="mt-2 whitespace-pre-wrap text-sm leading-6 text-gray-100/90">
+                            <div className="rounded-[18px] border border-theme-glass bg-theme-panel/[0.025] px-4 py-3.5">
+                              <div className="text-[10px] uppercase tracking-[0.2em] text-theme-muted"> <Trans>Caption</Trans> </div>
+                              <div className="mt-2 whitespace-pre-wrap text-sm leading-6 text-theme-foreground/90">
                                 {post.text}
                               </div>
                             </div>
                           )}
 
                           {post.group && (
-                            <div className="rounded-[18px] border border-white/[0.04] bg-white/[0.02] px-4 py-3 text-sm text-gray-300">
-                              <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500"> <Trans>Group</Trans> </div>
+                            <div className="rounded-[18px] border border-theme-glass bg-theme-panel/[0.02] px-4 py-3 text-sm text-theme-muted">
+                              <div className="text-[10px] uppercase tracking-[0.2em] text-theme-muted"> <Trans>Group</Trans> </div>
                               <div className="mt-2 flex flex-wrap items-center gap-2">
                                 <span className="rounded-full bg-brand-500/10 px-2.5 py-1 text-[11px] font-semibold text-brand-100">
                                   {post.group.name}
                                 </span>
                                 {post.group.topic && (
-                                  <span className="rounded-full bg-white/[0.04] px-2.5 py-1 text-[11px] text-gray-400">
+                                  <span className="rounded-full bg-theme-panel/[0.04] px-2.5 py-1 text-[11px] text-theme-muted">
                                     {post.group.topic}
                                   </span>
                                 )}
@@ -1363,13 +1361,13 @@ export default function AdminCommunity() {
                           )}
 
                           {isEditing && (
-                            <div className="space-y-3 rounded-[18px] border border-white/[0.05] bg-[#091321]/80 p-4">
-                              <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500"> <Trans>Edit Submission</Trans> </div>
+                            <div className="space-y-3 rounded-[18px] border border-theme-glass bg-theme-panel p-4">
+                              <div className="text-[10px] uppercase tracking-[0.2em] text-theme-muted"> <Trans>Edit Submission</Trans> </div>
                               <textarea
                                 value={editText}
                                 onChange={(e) => setEditText(e.target.value)}
                                 placeholder="Edit post text..."
-                                className="w-full min-h-[120px] rounded-xl bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+                                className="w-full min-h-[120px] rounded-xl bg-theme-panel/[0.05] px-4 py-3 text-sm text-theme-foreground placeholder:text-theme-disabled focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                               />
                               <div className="max-w-[220px]">
                                 <FilterDropdown
@@ -1384,26 +1382,26 @@ export default function AdminCommunity() {
                                   value={editRejectionReason}
                                   onChange={(e) => setEditRejectionReason(e.target.value)}
                                   placeholder={t("admin.community.placeholders.rejectionReason", "Rejection reason")}
-                                  className="w-full rounded-xl bg-white/[0.05] px-4 py-2.5 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+                                  className="w-full rounded-xl bg-theme-panel/[0.05] px-4 py-2.5 text-sm text-theme-foreground placeholder:text-theme-disabled focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                                 />
                               )}
                               {isGamePost ? (
-                                <div className="rounded-xl bg-white/[0.04] px-4 py-3 text-sm leading-6 text-gray-400"> <Trans>Shared game snapshot is locked for moderation edits. You can update the caption, status, and rejection reason here.</Trans> </div>
+                                <div className="rounded-xl bg-theme-panel/[0.04] px-4 py-3 text-sm leading-6 text-theme-muted"> <Trans>Shared game snapshot is locked for moderation edits. You can update the caption, status, and rejection reason here.</Trans> </div>
                               ) : (
                                 <>
                                   <input
                                     type="file"
                                     accept="image/png,image/jpeg,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
                                     onChange={(e) => setEditMediaFile(e.target.files?.[0] || null)}
-                                    className="block w-full text-sm text-gray-300 file:mr-3 file:rounded-xl file:border-0 file:bg-white/[0.1] file:px-3 file:py-2 file:text-sm file:text-gray-100 hover:file:bg-white/[0.16]"
+                                    className="block w-full text-sm text-theme-muted file:mr-3 file:rounded-xl file:border-0 file:bg-theme-panel/[0.1] file:px-3 file:py-2 file:text-sm file:text-theme-foreground hover:file:bg-theme-panel/[0.16]"
                                   />
                                   {post.mediaType !== "none" && (
-                                    <label className="inline-flex items-center gap-2 text-xs text-gray-400">
+                                    <label className="inline-flex items-center gap-2 text-xs text-theme-muted">
                                       <input
                                         type="checkbox"
                                         checked={editRemoveMedia}
                                         onChange={(e) => setEditRemoveMedia(e.target.checked)}
-                                        className="rounded border-white/20 bg-transparent text-brand-500 focus:ring-brand-500/30"
+                                        className="rounded border-theme-glass bg-transparent text-brand-500 focus:ring-brand-500/30"
                                       /> <Trans>Remove existing media</Trans> </label>
                                   )}
                                 </>
@@ -1412,14 +1410,14 @@ export default function AdminCommunity() {
                                 <button
                                   type="button"
                                   onClick={cancelEditPost}
-                                  className="inline-flex items-center gap-2 rounded-xl bg-white/[0.08] px-4 py-2.5 text-sm text-gray-200 hover:bg-white/[0.14]"
+                                  className="inline-flex items-center gap-2 rounded-xl bg-theme-panel/[0.08] px-4 py-2.5 text-sm text-theme-muted hover:bg-theme-panel/[0.14]"
                                 >
                                   <X className="w-4 h-4" /> <Trans>Cancel</Trans> </button>
                                 <button
                                   type="button"
                                   disabled={isBusy}
                                   onClick={() => handleSaveEdit(post.id)}
-                                  className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-500 disabled:opacity-50"
+                                  className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-theme-on-accent hover:bg-brand-500 disabled:opacity-50"
                                 >
                                   <Check className="w-4 h-4" /> <Trans>Save changes</Trans> </button>
                               </div>
@@ -1428,7 +1426,7 @@ export default function AdminCommunity() {
                         </div>
 
                           {isGamePost && (
-                            <div className="mt-4 rounded-[20px] bg-[#091321]/45 p-1.5">
+                            <div className="mt-4 rounded-[20px] bg-theme-panel p-1.5">
                               <CommunityGameViewer
                                 game={post.game}
                                 analyzeHref={
@@ -1441,26 +1439,26 @@ export default function AdminCommunity() {
                           )}
 
                           {!isGamePost && post.mediaType !== "none" && mediaItems.length > 0 && (
-                            <div className="mt-4 rounded-[20px] border border-white/[0.04] bg-[#091321]/80 p-3">
+                            <div className="mt-4 rounded-[20px] border border-theme-glass bg-theme-panel p-3">
                               {post.mediaType === "video" ? (
-                                <div className="overflow-hidden rounded-[16px] bg-black/55">
+                                <div className="overflow-hidden rounded-[16px] bg-theme-panel/55">
                                   <video
                                     src={mediaUrl}
                                     controls
                                     playsInline
                                     preload="metadata"
-                                    className="w-full max-h-[420px] bg-black object-contain"
+                                    className="w-full max-h-[420px] bg-theme-panel object-contain"
                                   />
                                 </div>
                               ) : imageItems.length === 1 ? (
-                                <div className="overflow-hidden rounded-[16px] bg-black/55">
+                                <div className="overflow-hidden rounded-[16px] bg-theme-panel/55">
                                   <img
                                     src={imageItems[0].url}
                                     alt={
                                       imageItems[0].originalName ||
                                       t("admin.community.media.postMediaAlt", "Community post media")
                                     }
-                                    className="w-full max-h-[420px] object-contain bg-black cursor-zoom-in"
+                                    className="w-full max-h-[420px] object-contain bg-theme-panel cursor-zoom-in"
                                     onClick={() =>
                                       setPreviewGallery({
                                         items: [
@@ -1477,7 +1475,7 @@ export default function AdminCommunity() {
                                   />
                                 </div>
                               ) : (
-                                <div className="rounded-[16px] bg-black/20 p-1.5">
+                                <div className="rounded-[16px] bg-theme-panel/20 p-1.5">
                                   <CommunityImageGrid
                                     items={imageItems.map((item) => ({
                                       url: item.url,
@@ -1502,7 +1500,7 @@ export default function AdminCommunity() {
                                 </div>
                               )}
 
-                              <div className="mt-3 flex items-center justify-between rounded-[14px] bg-gray-100 px-3.5 py-2.5 text-xs text-gray-500 dark:bg-white/[0.03] dark:text-gray-500">
+                              <div className="mt-3 flex items-center justify-between rounded-[14px] bg-theme-surface px-3.5 py-2.5 text-xs text-theme-muted">
                                 <div className="inline-flex items-center gap-2">
                                   {post.mediaType === "video" ? (
                                     <>
@@ -1534,10 +1532,10 @@ export default function AdminCommunity() {
                           )}
                       </div>
 
-                      <aside className="border-t border-gray-200 bg-[linear-gradient(180deg,rgba(248,250,252,0.96),rgba(241,245,249,0.94))] px-5 py-5 xl:border-l xl:border-t-0 sm:px-6 sm:py-6 dark:border-white/[0.05] dark:bg-[linear-gradient(180deg,rgba(255,255,255,0.015),rgba(255,255,255,0.01))]">
+                      <aside className="border-t border-theme-glass bg-theme-panel/[0.02] px-5 py-5 xl:border-l xl:border-t-0 sm:px-6 sm:py-6">
                         <div className="flex h-full flex-col">
-                          <div className="rounded-[20px] border border-gray-200/80 bg-white/90 p-4 dark:border-white/[0.04] dark:bg-white/[0.025]">
-                            <div className="text-[10px] uppercase tracking-[0.22em] text-gray-500 dark:text-gray-500"> <Trans>Review</Trans> </div>
+                          <div className="rounded-[20px] border border-theme-glass/80 bg-theme-panel/90 p-4">
+                            <div className="text-[10px] uppercase tracking-[0.22em] text-theme-muted"> <Trans>Review</Trans> </div>
                             <div className="mt-3 flex items-start justify-between gap-3">
                               <span
                                 className={`inline-flex items-center rounded-full px-3 py-1.5 text-xs font-semibold ${statusClass(
@@ -1546,20 +1544,20 @@ export default function AdminCommunity() {
                               >
                                 {reviewStatusLabel}
                               </span>
-                              <span className="text-xs text-right text-gray-500 dark:text-gray-500">
+                              <span className="text-xs text-right text-theme-muted">
                                 {reviewStateLabel}
                               </span>
                             </div>
 
-                            <div className="mt-4 space-y-3 border-t border-gray-200 pt-4 dark:border-white/[0.05]">
+                            <div className="mt-4 space-y-3 border-t border-theme-glass pt-4">
                               <div className="flex items-center justify-between text-sm">
-                                <span className="text-gray-500 dark:text-gray-500"><Trans>Content type</Trans></span>
-                                <span className="text-gray-900 dark:text-gray-100">{contentTypeLabel}</span>
+                                <span className="text-theme-muted"><Trans>Content type</Trans></span>
+                                <span className="text-theme-foreground ">{contentTypeLabel}</span>
                               </div>
                               {post.group && (
                                 <div className="flex items-center justify-between gap-3 text-sm">
-                                  <span className="text-gray-500 dark:text-gray-500"><Trans>Group</Trans></span>
-                                  <span className="text-right text-gray-800 dark:text-gray-200">
+                                  <span className="text-theme-muted"><Trans>Group</Trans></span>
+                                  <span className="text-right text-theme-foreground ">
                                     {post.group.name}
                                   </span>
                                 </div>
@@ -1567,21 +1565,21 @@ export default function AdminCommunity() {
                               {isGamePost && post.game && (
                                 <>
                                   <div className="flex items-center justify-between gap-3 text-sm">
-                                    <span className="text-gray-500"><Trans>Result</Trans></span>
-                                    <span className="text-right text-gray-200">
+                                    <span className="text-theme-muted"><Trans>Result</Trans></span>
+                                    <span className="text-right text-theme-muted">
                                       {formatCommunityResult(post.game.result)}
                                     </span>
                                   </div>
                                   <div className="flex items-center justify-between gap-3 text-sm">
-                                    <span className="text-gray-500"><Trans>Time control</Trans></span>
-                                    <span className="text-right text-gray-200">
+                                    <span className="text-theme-muted"><Trans>Time control</Trans></span>
+                                    <span className="text-right text-theme-muted">
                                       {formatCommunityTimeControl(post.game.timeControl)}
                                     </span>
                                   </div>
                                   {gameOpening && (
                                     <div className="flex items-center justify-between gap-3 text-sm">
-                                      <span className="text-gray-500"><Trans>Opening</Trans></span>
-                                      <span className="truncate text-right text-gray-200">
+                                      <span className="text-theme-muted"><Trans>Opening</Trans></span>
+                                      <span className="truncate text-right text-theme-muted">
                                         {gameOpening}
                                       </span>
                                     </div>
@@ -1590,8 +1588,8 @@ export default function AdminCommunity() {
                               )}
                               {post.reviewedBy && (
                                 <div className="flex items-center justify-between gap-3 text-sm">
-                                  <span className="text-gray-500"><Trans>Reviewed by</Trans></span>
-                                  <span className="text-right text-gray-200">
+                                  <span className="text-theme-muted"><Trans>Reviewed by</Trans></span>
+                                  <span className="text-right text-theme-muted">
                                     {post.reviewedBy.username}
                                   </span>
                                 </div>
@@ -1600,17 +1598,17 @@ export default function AdminCommunity() {
                           </div>
 
                         {authorId && restrictionDraft && (
-                          <div className="mt-4 rounded-[20px] border border-white/[0.04] bg-white/[0.025] p-4">
+                          <div className="mt-4 rounded-[20px] border border-theme-glass bg-theme-panel/[0.025] p-4">
                             <div className="flex items-start justify-between gap-3">
                               <div>
-                                <div className="text-[10px] uppercase tracking-[0.22em] text-gray-500"> <Trans>Posting access</Trans> </div>
-                                <div className="mt-2 text-sm font-medium text-gray-100">
+                                <div className="text-[10px] uppercase tracking-[0.22em] text-theme-muted"> <Trans>Posting access</Trans> </div>
+                                <div className="mt-2 text-sm font-medium text-theme-foreground">
                                   {formatRestrictionLabel(restriction)}
                                 </div>
                               </div>
                             </div>
 
-                            <div className="mt-4 space-y-3 border-t border-white/[0.05] pt-4">
+                            <div className="mt-4 space-y-3 border-t border-theme-glass pt-4">
                               <button
                                 type="button"
                                 disabled={isRateLimitBypassBusy}
@@ -1623,7 +1621,7 @@ export default function AdminCommunity() {
                                 className={`w-full inline-flex items-center justify-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-colors disabled:opacity-50 ${
                                   restrictionDraft.unlimitedPosts
                                     ? "bg-brand-500/15 text-brand-200 hover:bg-brand-500/20"
-                                    : "bg-white/[0.06] text-gray-100 hover:bg-white/[0.12]"
+                                    : "bg-theme-panel/[0.06] text-theme-foreground hover:bg-theme-panel/[0.12]"
                                 }`}
                               >
                                 {isRateLimitBypassBusy
@@ -1652,7 +1650,7 @@ export default function AdminCommunity() {
                                   })
                                 }
                                 placeholder="Optional restriction reason..."
-                                className="w-full rounded-xl bg-white/[0.05] px-3.5 py-2.5 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+                                className="w-full rounded-xl bg-theme-panel/[0.05] px-3.5 py-2.5 text-sm text-theme-foreground placeholder:text-theme-disabled focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                               />
 
                               <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2.5">
@@ -1666,7 +1664,7 @@ export default function AdminCommunity() {
                                       restrictionDraft.reason,
                                     )
                                   }
-                                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/[0.08] px-3.5 py-2.5 text-sm font-semibold text-gray-100 hover:bg-white/[0.14] disabled:opacity-50"
+                                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-theme-panel/[0.08] px-3.5 py-2.5 text-sm font-semibold text-theme-foreground hover:bg-theme-panel/[0.14] disabled:opacity-50"
                                 >
                                   {isRestrictionBusy
                                     ? t("admin.community.actions.saving", "Saving...")
@@ -1699,8 +1697,8 @@ export default function AdminCommunity() {
                           </div>
                         )}
 
-                          <div className="mt-4 border-t border-white/[0.05] pt-4">
-                            <div className="text-[10px] uppercase tracking-[0.22em] text-gray-500"> <Trans>Review actions</Trans> </div>
+                          <div className="mt-4 border-t border-theme-glass pt-4">
+                            <div className="text-[10px] uppercase tracking-[0.22em] text-theme-muted"> <Trans>Review actions</Trans> </div>
 
                             {showRejectBox && (
                               <textarea
@@ -1712,7 +1710,7 @@ export default function AdminCommunity() {
                                   }))
                                 }
                                 placeholder="Optional rejection reason..."
-                                className="mt-3 w-full min-h-[110px] rounded-[18px] bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+                                className="mt-3 w-full min-h-[110px] rounded-[18px] bg-theme-panel/[0.05] px-4 py-3 text-sm text-theme-foreground placeholder:text-theme-disabled focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                               />
                             )}
 
@@ -1722,7 +1720,7 @@ export default function AdminCommunity() {
                                   type="button"
                                   disabled={isBusy}
                                   onClick={() => handleApprove(post.id)}
-                                  className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(13,148,136,0.22)] hover:bg-brand-500 disabled:opacity-50"
+                                  className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-3 text-sm font-semibold text-theme-on-accent shadow-[0_16px_34px_rgba(13,148,136,0.22)] hover:bg-brand-500 disabled:opacity-50"
                                 >
                                   <Check className="w-4 h-4" /> <Trans>Approve</Trans> </button>
                               )}
@@ -1734,7 +1732,7 @@ export default function AdminCommunity() {
                                       type="button"
                                       disabled={isBusy}
                                       onClick={() => startEditPost(post)}
-                                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/[0.05] px-4 py-2.5 text-sm font-semibold text-gray-200 hover:bg-white/[0.1] disabled:opacity-50"
+                                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-theme-panel/[0.05] px-4 py-2.5 text-sm font-semibold text-theme-muted hover:bg-theme-panel/[0.1] disabled:opacity-50"
                                     >
                                       <Pencil className="w-4 h-4" /> <Trans>Edit</Trans> </button>
                                   )}
@@ -1744,7 +1742,7 @@ export default function AdminCommunity() {
                                       type="button"
                                       disabled={isBusy}
                                       onClick={() => setActiveRejectId(null)}
-                                      className="inline-flex items-center justify-center rounded-xl bg-white/[0.05] px-4 py-2.5 text-sm font-semibold text-gray-300 hover:bg-white/[0.1] disabled:opacity-50"
+                                      className="inline-flex items-center justify-center rounded-xl bg-theme-panel/[0.05] px-4 py-2.5 text-sm font-semibold text-theme-muted hover:bg-theme-panel/[0.1] disabled:opacity-50"
                                     > <Trans>Cancel</Trans> </button>
                                   ) : showRejectAction ? (
                                     <button
@@ -1772,7 +1770,7 @@ export default function AdminCommunity() {
                                 type="button"
                                 disabled={isBusy}
                                 onClick={() => handleDelete(post.id)}
-                                className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-white/[0.04] px-4 py-2.5 text-sm font-semibold text-gray-300 hover:bg-white/[0.08] disabled:opacity-50"
+                                className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-theme-panel/[0.04] px-4 py-2.5 text-sm font-semibold text-theme-muted hover:bg-theme-panel/[0.08] disabled:opacity-50"
                               >
                                 <Trash2 className="w-4 h-4" /> <Trans>Delete</Trans> </button>
                             </div>
@@ -1788,7 +1786,7 @@ export default function AdminCommunity() {
 
           {pages > 1 && (
             <div className="mt-6 space-y-2.5 px-1">
-              <p className="text-xs text-gray-500 text-center"> <Trans>Showing</Trans> {(page - 1) * 8 + 1} - {Math.min(page * 8, total)} <Trans>of</Trans> {total}
+              <p className="text-xs text-theme-muted text-center"> <Trans>Showing</Trans> {(page - 1) * 8 + 1} - {Math.min(page * 8, total)} <Trans>of</Trans> {total}
               </p>
               <FeedPagination
                 currentPage={page}

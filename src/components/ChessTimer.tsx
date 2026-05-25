@@ -112,7 +112,7 @@ const ChessTimer: React.FC<ChessTimerProps> = ({
   // Don't render for unlimited games
   if (initialTime === 0) {
     return (
-      <div className="px-4 py-2 rounded-lg bg-gray-200 dark:bg-slate-700 text-gray-900 dark:text-white font-mono text-xl">
+      <div className="px-4 py-2 rounded-lg bg-theme-surface text-theme-foreground font-mono text-xl">
         {INFINITY_SYMBOL}
       </div>
     );
@@ -129,11 +129,11 @@ const ChessTimer: React.FC<ChessTimerProps> = ({
         ${
           isActive
             ? isCriticalTime
-              ? "bg-red-600 text-white animate-pulse"
+              ? "bg-red-600 text-theme-on-accent animate-pulse"
               : isLowTime
-                ? "bg-orange-500 text-white"
-                : "bg-green-600 text-white"
-            : "bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-slate-300"
+                ? "bg-orange-500 text-theme-on-accent"
+                : "bg-green-600 text-theme-on-accent"
+            : "bg-theme-surface text-theme-muted"
         }
         ${isActive ? "shadow-lg scale-105" : ""}
       `}

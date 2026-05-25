@@ -26,8 +26,8 @@ export function AdminPagination({
   const end = Math.min(page * pageSize, totalItems);
 
   return (
-    <div className="flex flex-col gap-3 border-t border-gray-200 px-4 py-4 text-sm dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between">
-      <span className="text-gray-500 dark:text-gray-400">
+    <div className="flex flex-col gap-3 border-t border-theme-glass px-4 py-4 text-sm sm:flex-row sm:items-center sm:justify-between">
+      <span className="text-theme-muted">
         {t("pagination.showingRange", {
           start,
           end,
@@ -43,7 +43,7 @@ export function AdminPagination({
             type="button"
             onClick={() => onPageChange(1)}
             disabled={page <= 1}
-            className="rounded-lg bg-gray-100 px-3 py-1.5 text-sm text-gray-700 transition-colors hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+            className="rounded-lg bg-theme-surface px-3 py-1.5 text-sm text-theme-muted transition-colors hover:bg-theme-surface/80 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {t("pagination.first", "First")}
           </button>
@@ -51,12 +51,12 @@ export function AdminPagination({
             type="button"
             onClick={() => onPageChange(Math.max(1, page - 1))}
             disabled={page <= 1}
-            className="rounded-lg bg-gray-100 p-2 text-gray-700 transition-colors hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+            className="rounded-lg bg-theme-surface p-2 text-theme-muted transition-colors hover:bg-theme-surface/80 disabled:cursor-not-allowed disabled:opacity-50"
             aria-label={t("pagination.previousPage", "Previous page")}
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
-          <span className="px-2 text-gray-700 dark:text-gray-300">
+          <span className="px-2 text-theme-muted">
             {t("pagination.pageOf", {
               page,
               totalPages,
@@ -67,7 +67,7 @@ export function AdminPagination({
             type="button"
             onClick={() => onPageChange(Math.min(totalPages, page + 1))}
             disabled={page >= totalPages}
-            className="rounded-lg bg-gray-100 p-2 text-gray-700 transition-colors hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+            className="rounded-lg bg-theme-surface p-2 text-theme-muted transition-colors hover:bg-theme-surface/80 disabled:cursor-not-allowed disabled:opacity-50"
             aria-label={t("pagination.nextPage", "Next page")}
           >
             <ChevronRight className="h-4 w-4" />
@@ -76,7 +76,7 @@ export function AdminPagination({
             type="button"
             onClick={() => onPageChange(totalPages)}
             disabled={page >= totalPages}
-            className="rounded-lg bg-gray-100 px-3 py-1.5 text-sm text-gray-700 transition-colors hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+            className="rounded-lg bg-theme-surface px-3 py-1.5 text-sm text-theme-muted transition-colors hover:bg-theme-surface/80 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {t("pagination.last", "Last")}
           </button>

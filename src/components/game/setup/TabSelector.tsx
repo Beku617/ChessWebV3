@@ -13,16 +13,16 @@ export function TabSelector({ activeTab, setActiveTab }: TabSelectorProps) {
         onClick={() => setActiveTab("bots")}
         className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
           activeTab === "bots"
-            ? "bg-brand-600 text-white"
-            : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+            ? "bg-brand-600 text-theme-on-accent"
+            : "bg-theme-surface text-theme-muted hover:bg-theme-surface/80"
         }`}
       > <Trans>Play vs Bot</Trans> </button>
       <button
         onClick={() => setActiveTab("custom")}
         className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
           activeTab === "custom"
-            ? "bg-brand-600 text-white"
-            : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+            ? "bg-brand-600 text-theme-on-accent"
+            : "bg-theme-surface text-theme-muted hover:bg-theme-surface/80"
         }`}
       > <Trans>Custom Level</Trans> </button>
     </div>

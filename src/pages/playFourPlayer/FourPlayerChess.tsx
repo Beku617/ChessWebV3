@@ -78,12 +78,12 @@ function shouldHideStatusMessage(content: string | null | undefined): boolean {
 }
 
 const COLOR_LABEL_CLASS: Record<FourPlayerColor, string> = {
-  red: "bg-rose-500/10 text-rose-600 dark:text-rose-300 border-rose-500/30",
-  blue: "bg-brand-500/10 text-brand-600 dark:text-brand-300 border-brand-500/30",
+  red: "bg-rose-500/10 text-rose-600 border-rose-500/30",
+  blue: "bg-brand-500/10 text-brand-600 border-brand-500/30",
   yellow:
-    "bg-amber-500/10 text-amber-700 dark:text-amber-200 border-amber-500/30",
+    "bg-amber-500/10 text-amber-700 border-amber-500/30",
   green:
-    "bg-brand-500/10 text-brand-600 dark:text-brand-300 border-brand-500/30",
+    "bg-brand-500/10 text-brand-600 border-brand-500/30",
 };
 
 const COLOR_RING_CLASS: Record<FourPlayerColor, string> = {
@@ -391,7 +391,7 @@ function FourPlayerBoard({
         setDragging(null);
         onCancelSelection();
       }}
-      className="relative rounded-2xl overflow-hidden border border-gray-200/70 dark:border-white/10 shadow-xl bg-gray-200/20 dark:bg-black/20"
+      className="relative rounded-2xl overflow-hidden border border-theme-glass/70 shadow-xl bg-theme-surface/20"
       style={{ width: boardWidth, height: boardWidth }}
     >
       <div
@@ -869,7 +869,7 @@ export default function FourPlayerChess() {
 
   if (!gameStarted) {
     return (
-      <div className="relative h-full min-h-0 w-full bg-slate-100 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 overflow-hidden">
+      <div className="relative h-full min-h-0 w-full bg-theme-surface overflow-hidden">
         <div className="h-full grid grid-cols-1 xl:grid-cols-[minmax(0,1.38fr)_minmax(320px,0.62fr)] gap-2 p-2">
           <div
             ref={setupBoardAreaRef}
@@ -892,14 +892,14 @@ export default function FourPlayerChess() {
             />
           </div>
 
-          <div className="min-w-0 rounded-3xl border border-gray-200/70 dark:border-white/10 bg-white/85 dark:bg-slate-900/85 shadow-2xl backdrop-blur-lg flex flex-col min-h-0 overflow-hidden">
+          <div className="min-w-0 rounded-3xl border border-theme-glass/70 bg-theme-panel/85 shadow-2xl backdrop-blur-lg flex flex-col min-h-0 overflow-hidden">
             {isSearching ? (
               <div className="flex-1 flex items-center justify-center p-6">
-                <div className="w-full max-w-[320px] rounded-2xl border border-gray-200/70 dark:border-white/10 bg-white/90 dark:bg-slate-900/90 p-7 text-center shadow-lg">
-                  <Timer className="w-10 h-10 mx-auto text-gray-700 dark:text-gray-200" />
-                  <p className="mt-3 text-2xl font-semibold text-gray-900 dark:text-white">
+                <div className="w-full max-w-[320px] rounded-2xl border border-theme-glass/70 bg-theme-panel/90 p-7 text-center shadow-lg">
+                  <Timer className="w-10 h-10 mx-auto text-theme-muted " />
+                  <p className="mt-3 text-2xl font-semibold text-theme-foreground ">
                     {searchElapsedSeconds}<Trans>s</Trans> </p>
-                  <p className="mt-2 text-base text-gray-600 dark:text-gray-300">
+                  <p className="mt-2 text-base text-theme-muted">
                     {queueStatus ||
                       t("fourPlayer.searchingMatch", {
                         defaultValue: "Searching 4-player match...",
@@ -908,31 +908,31 @@ export default function FourPlayerChess() {
                   <button
                     type="button"
                     onClick={handleCancelSearch}
-                    className="mt-7 text-base font-medium text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white transition-colors"
+                    className="mt-7 text-base font-medium text-theme-muted hover:text-theme-foreground transition-colors"
                   > <Trans>Cancel</Trans> </button>
                 </div>
               </div>
             ) : (
               <>
-                <div className="p-4 border-b border-gray-200/60 dark:border-white/10">
+                <div className="p-4 border-b border-theme-glass/60 ">
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
                       <Users className="w-4 h-4 text-brand-500" />
-                      <h2 className="font-bold text-base text-gray-900 dark:text-white"> <Trans>4-Player Online</Trans> </h2>
+                      <h2 className="font-bold text-base text-theme-foreground "> <Trans>4-Player Online</Trans> </h2>
                     </div>
-                    <span className="text-[11px] rounded-full bg-brand-500/15 text-brand-600 dark:text-brand-300 px-2 py-0.5 font-semibold">
+                    <span className="text-[11px] rounded-full bg-brand-500/15 text-brand-600 px-2 py-0.5 font-semibold">
                       {selectedTimeOption?.label ||
                         t("fourPlayer.defaultTimeControl", {
                           defaultValue: "5+0",
                         })}
                     </span>
                   </div>
-                  <p className="mt-1 text-[11px] text-gray-500 dark:text-gray-400"> <Trans>Queue with 3 more players and start instantly.</Trans> </p>
+                  <p className="mt-1 text-[11px] text-theme-muted"> <Trans>Queue with 3 more players and start instantly.</Trans> </p>
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                  <div className="rounded-2xl border border-gray-200/70 dark:border-white/10 bg-white/60 dark:bg-slate-900/60 p-3">
-                    <div className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
+                  <div className="rounded-2xl border border-theme-glass/70 bg-theme-panel/60 p-3">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-theme-foreground ">
                       <Clock className="w-4 h-4 text-brand-500" />
                       <span><Trans>Time Control</Trans></span>
                     </div>
@@ -953,8 +953,8 @@ export default function FourPlayerChess() {
                             }
                             className={`py-2 px-3 rounded-lg text-sm font-semibold transition-all ${
                               isSelected
-                                ? "bg-brand-500 text-white ring-2 ring-brand-500"
-                                : "bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 ring-1 ring-gray-200 dark:ring-slate-700 hover:ring-gray-300 dark:hover:ring-slate-600"
+                                ? "bg-brand-500 text-theme-on-accent ring-2 ring-brand-500"
+                                : "bg-theme-surface text-theme-muted ring-1 ring-theme-border hover:ring-theme-border"
                             }`}
                           >
                             {opt.label}
@@ -965,18 +965,18 @@ export default function FourPlayerChess() {
                   </div>
 
                   {queueStatus && !shouldHideStatusMessage(queueStatus) && (
-                    <p className="text-xs text-gray-600 dark:text-gray-300 px-1">
+                    <p className="text-xs text-theme-muted px-1">
                       {queueStatus}
                     </p>
                   )}
                 </div>
 
-                <div className="p-4 border-t border-gray-200/60 dark:border-white/10">
+                <div className="p-4 border-t border-theme-glass/60 ">
                   <button
                     type="button"
                     onClick={handleStartMatch}
                     disabled={!isConnected}
-                    className="w-full py-3 rounded-xl bg-gradient-to-r from-brand-500 to-brand-500 hover:from-brand-600 hover:to-brand-600 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold text-base transition-all shadow-lg hover:shadow-xl disabled:cursor-not-allowed"
+                    className="w-full py-3 rounded-xl bg-gradient-to-r from-brand-500 to-brand-500 hover:from-brand-600 hover:to-brand-600 disabled:from-theme-surface disabled:to-theme-surface text-theme-on-accent font-bold text-base transition-all shadow-lg hover:shadow-xl disabled:cursor-not-allowed"
                   >
                     {isConnected
                       ? t("fourPlayer.searchMatchButton", {
@@ -1025,12 +1025,12 @@ export default function FourPlayerChess() {
           });
 
   return (
-    <div className="relative h-full min-h-0 w-full bg-slate-100 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 overflow-hidden">
+    <div className="relative h-full min-h-0 w-full bg-theme-surface overflow-hidden">
       {hasTerminalResult && (
-        <div className="fixed inset-0 z-[60] bg-black/45 backdrop-blur-[2px] flex items-center justify-center p-4 pointer-events-none">
-          <div className="w-full max-w-md rounded-2xl border border-white/15 bg-slate-900/95 text-white p-6 shadow-2xl text-center pointer-events-auto">
+        <div className="fixed inset-0 z-[60] bg-theme-panel/45 backdrop-blur-[2px] flex items-center justify-center p-4 pointer-events-none">
+          <div className="w-full max-w-md rounded-2xl border border-theme-glass bg-theme-panel/95 text-theme-foreground p-6 shadow-2xl text-center pointer-events-auto">
             <h3 className="text-xl font-bold">{gameOverTitle}</h3>
-            <p className="mt-1 text-sm text-slate-300">{gameOverDescription}</p>
+            <p className="mt-1 text-sm text-theme-muted">{gameOverDescription}</p>
             <div className="mt-5 flex gap-2">
               <button
                 type="button"
@@ -1040,7 +1040,7 @@ export default function FourPlayerChess() {
               <button
                 type="button"
                 onClick={handleNewSearch}
-                className="flex-1 py-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 font-semibold"
+                className="flex-1 py-2.5 rounded-xl bg-theme-surface hover:bg-theme-surface font-semibold"
               > <Trans>New Search</Trans> </button>
             </div>
           </div>
@@ -1048,7 +1048,7 @@ export default function FourPlayerChess() {
       )}
 
       <div className="h-full grid grid-cols-1 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.55fr)] gap-2 p-2">
-        <div className="min-w-0 rounded-3xl border border-gray-200/70 dark:border-white/10 bg-white/70 dark:bg-slate-900/70 shadow-xl backdrop-blur-lg p-2 flex flex-col min-h-0">
+        <div className="min-w-0 rounded-3xl border border-theme-glass/70 bg-theme-panel/70 shadow-xl backdrop-blur-lg p-2 flex flex-col min-h-0">
           <div className="flex items-center justify-between mb-2">
             <button
               type="button"
@@ -1060,19 +1060,19 @@ export default function FourPlayerChess() {
                 }
                 navigate("/play/variants");
               }}
-              className="inline-flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700"
+              className="inline-flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg bg-theme-surface hover:bg-theme-surface/80 border border-theme-glass"
             >
               <ArrowLeft className="w-4 h-4" /> <Trans>Variants</Trans> </button>
             <div className="text-center">
-              <h1 className="text-lg font-bold text-gray-900 dark:text-white"> <Trans>4-Player Chess Online</Trans> </h1>
+              <h1 className="text-lg font-bold text-theme-foreground "> <Trans>4-Player Chess Online</Trans> </h1>
             </div>
             <div
               className={`px-3 py-2 rounded-lg text-xs font-semibold ${
                 isReviewingPastMove
-                  ? "bg-amber-500/15 text-amber-700 dark:text-amber-300"
+                  ? "bg-amber-500/15 text-amber-700"
                   : isMyTurn
-                  ? "bg-brand-500/15 text-brand-700 dark:text-brand-300"
-                  : "bg-slate-500/15 text-slate-700 dark:text-slate-300"
+                  ? "bg-brand-500/15 text-brand-700"
+                  : "bg-theme-surface/15 text-theme-foreground"
               }`}
             >
               {isReviewingPastMove
@@ -1114,10 +1114,10 @@ export default function FourPlayerChess() {
           </div>
         </div>
 
-        <div className="min-w-0 rounded-3xl border border-gray-200/70 dark:border-white/10 bg-white/80 dark:bg-slate-900/80 shadow-xl backdrop-blur-lg p-4 flex flex-col min-h-0">
+        <div className="min-w-0 rounded-3xl border border-theme-glass/70 bg-theme-panel/80 shadow-xl backdrop-blur-lg p-4 flex flex-col min-h-0">
           <div className="mb-3">
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white"> <Trans>Match Info</Trans> </h2>
-            <p className="text-xs text-gray-500 dark:text-gray-400"> <Trans>Playing as</Trans> {players[playerColor]?.name || user?.fullName || t("fourPlayer.you", { defaultValue: "You" })}
+            <h2 className="text-lg font-bold text-theme-foreground "> <Trans>Match Info</Trans> </h2>
+            <p className="text-xs text-theme-muted"> <Trans>Playing as</Trans> {players[playerColor]?.name || user?.fullName || t("fourPlayer.you", { defaultValue: "You" })}
               {isReviewingPastMove
                 ? t("fourPlayer.reviewingMoveCount", {
                     current: selectedPly,
@@ -1137,15 +1137,15 @@ export default function FourPlayerChess() {
 
           {((systemMessage && !shouldHideStatusMessage(systemMessage)) ||
             (queueStatus && !shouldHideStatusMessage(queueStatus))) && (
-            <div className="mt-3 rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900/60 px-3 py-2 text-xs text-gray-600 dark:text-gray-300">
+            <div className="mt-3 rounded-xl border border-theme-glass bg-theme-surface px-3 py-2 text-xs text-theme-muted">
               {systemMessage && !shouldHideStatusMessage(systemMessage)
                 ? systemMessage
                 : queueStatus}
             </div>
           )}
 
-          <div className="flex-1 min-h-0 mt-3 rounded-2xl border border-gray-200 dark:border-slate-700 bg-white/70 dark:bg-slate-950/60 overflow-hidden">
-            <div className="px-3 py-2 border-b border-gray-200 dark:border-slate-700 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide"> <Trans>Move Log</Trans> </div>
+          <div className="flex-1 min-h-0 mt-3 rounded-2xl border border-theme-glass bg-theme-panel/70 overflow-hidden">
+            <div className="px-3 py-2 border-b border-theme-glass text-xs font-semibold text-theme-muted uppercase tracking-wide"> <Trans>Move Log</Trans> </div>
             <MoveListTabs
               className="h-full max-h-[48vh]"
               messages={sidebarMessages}
@@ -1172,11 +1172,11 @@ export default function FourPlayerChess() {
                     }
                     setSelectedPly(boundedPly);
                   }}
-                  rowClassName="rounded-lg bg-gray-100 dark:bg-slate-800/70 py-1"
-                  moveNumberClassName="w-10 px-2 text-gray-500 dark:text-gray-400"
+                  rowClassName="rounded-lg bg-theme-surface py-1"
+                  moveNumberClassName="w-10 px-2 text-theme-muted"
                   moveCellClassName="rounded px-2 py-1 text-sm font-mono transition-colors"
-                  activeMoveClassName="bg-[#00e5a0]/20 text-[#00e5a0] font-semibold"
-                  inactiveMoveClassName="text-gray-700 dark:text-gray-200"
+                  activeMoveClassName="bg-theme-panel text-theme-accent font-semibold"
+                  inactiveMoveClassName="text-theme-muted "
                 />
               }
             />
@@ -1186,7 +1186,7 @@ export default function FourPlayerChess() {
             <button
               type="button"
               onClick={handlePlayAgain}
-              className="py-2.5 rounded-xl bg-brand-500/10 hover:bg-brand-500/20 text-brand-700 dark:text-brand-300 font-semibold"
+              className="py-2.5 rounded-xl bg-brand-500/10 hover:bg-brand-500/20 text-brand-700 font-semibold"
             > <Trans>Play Again</Trans> </button>
             <button
               type="button"
@@ -1198,7 +1198,7 @@ export default function FourPlayerChess() {
                 }
                 navigate("/play/variants");
               }}
-              className="py-2.5 rounded-xl bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-800 dark:text-gray-200 font-semibold"
+              className="py-2.5 rounded-xl bg-theme-surface hover:bg-theme-surface/80 text-theme-foreground font-semibold"
             > <Trans>Leave</Trans> </button>
           </div>
         </div>

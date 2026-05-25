@@ -62,12 +62,12 @@ export function UsersTable({
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50 dark:bg-gray-800/50">
+            <thead className="bg-theme-surface">
               <tr>
-                <th className="text-left px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
+                <th className="text-left px-4 py-3 text-sm font-medium text-theme-muted">
                   {t("admin.users.table.user")}
                 </th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
+                <th className="text-left px-4 py-3 text-sm font-medium text-theme-muted">
                   <button
                     onClick={() => onSort("rating")}
                     className="hover:text-brand-500"
@@ -75,7 +75,7 @@ export function UsersTable({
                     {t("admin.users.table.rating")}
                   </button>
                 </th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
+                <th className="text-left px-4 py-3 text-sm font-medium text-theme-muted">
                   <button
                     onClick={() => onSort("gamesPlayed")}
                     className="hover:text-brand-500"
@@ -83,16 +83,16 @@ export function UsersTable({
                     {t("admin.users.table.games")}
                   </button>
                 </th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
+                <th className="text-left px-4 py-3 text-sm font-medium text-theme-muted">
                   {t("admin.users.table.wld")}
                 </th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
+                <th className="text-left px-4 py-3 text-sm font-medium text-theme-muted">
                   {t("admin.users.table.winRate")}
                 </th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
+                <th className="text-left px-4 py-3 text-sm font-medium text-theme-muted">
                   {t("admin.users.table.status")}
                 </th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
+                <th className="text-left px-4 py-3 text-sm font-medium text-theme-muted">
                   <button
                     onClick={() => onSort("createdAt")}
                     className="hover:text-brand-500"
@@ -100,12 +100,12 @@ export function UsersTable({
                     {t("admin.users.table.joined")}
                   </button>
                 </th>
-                <th className="text-right px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400">
+                <th className="text-right px-4 py-3 text-sm font-medium text-theme-muted">
                   {t("admin.users.table.actions")}
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+            <tbody className="divide-y divide-theme-glass">
               {users.map((user) => (
                 <UserRow
                   key={user._id}

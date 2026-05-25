@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import AdminSidebar from "../../components/AdminSidebar";
-import { useThemeStore } from "../../store/themeStore";
 import {
   createAdminLearnCourse,
   deleteAdminLearnCourse,
@@ -93,7 +92,6 @@ function toDraft(course: AdminLearnCourse): CourseDraft {
 export default function AdminLearnOverview() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { isDarkMode } = useThemeStore();
   const { isAuthenticated, isLoading: authLoading } = useAdminGuard();
 
   const [courses, setCourses] = useState<AdminLearnCourse[]>([]);
@@ -417,36 +415,28 @@ export default function AdminLearnOverview() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f5f5f7] dark:bg-gray-950">
+      <div className="min-h-screen flex items-center justify-center bg-theme-panel ">
         <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
       </div>
     );
   }
 
-  const pageToneClass = isDarkMode
-    ? "bg-slate-950 text-white"
-    : "bg-[#f5f5f7] text-gray-900";
-  const surfaceClass = isDarkMode
-    ? "border-slate-800 bg-slate-900/80 shadow-[0_24px_75px_rgba(0,0,0,0.24)]"
-    : "border-gray-200/80 bg-white/95 shadow-[0_18px_50px_rgba(15,23,42,0.08)]";
-  const compactSurfaceClass = isDarkMode
-    ? "border-slate-800 bg-slate-900/80 shadow-[0_20px_60px_rgba(0,0,0,0.22)]"
-    : "border-gray-200/80 bg-white/95 shadow-[0_18px_44px_rgba(15,23,42,0.08)]";
-  const openActionClass = isDarkMode
-    ? "border-cyan-400/25 bg-cyan-500/10 text-cyan-200 hover:bg-cyan-500/20"
-    : "border-cyan-300 bg-cyan-50 text-cyan-700 hover:bg-cyan-100";
-  const editActionClass = isDarkMode
-    ? "border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800"
-    : "border-gray-300 bg-gray-100 text-gray-800 hover:bg-gray-200";
-  const publishActionClass = isDarkMode
-    ? "border-brand-400/25 bg-brand-500/10 text-brand-200 hover:bg-brand-500/20"
-    : "border-brand-300 bg-brand-50 text-brand-700 hover:bg-brand-100";
-  const deleteActionClass = isDarkMode
-    ? "border-red-400/25 bg-red-500/10 text-red-200 hover:bg-red-500/20"
-    : "border-red-300 bg-red-50 text-red-700 hover:bg-red-100";
+  const pageToneClass = "bg-theme-panel text-theme-foreground";
+  const surfaceClass =
+    "border-theme-glass bg-theme-panel/85 shadow-[0_20px_60px_rgba(15,23,42,0.12)]";
+  const compactSurfaceClass =
+    "border-theme-glass bg-theme-panel/85 shadow-[0_18px_44px_rgba(15,23,42,0.12)]";
+  const openActionClass =
+    "border-theme-border bg-theme-surface text-theme-accent hover:bg-theme-hover";
+  const editActionClass =
+    "border-theme-glass bg-theme-panel text-theme-foreground hover:bg-theme-hover";
+  const publishActionClass =
+    "border-theme-border bg-theme-surface text-theme-accent hover:bg-theme-hover";
+  const deleteActionClass =
+    "border-theme-glass bg-theme-surface text-theme-muted hover:bg-theme-hover";
 
   return (
-    <div className={isDarkMode ? "dark" : ""}>
+    <div>
       <div className={`min-h-screen ${pageToneClass}`}>
         <AdminSidebar />
 
@@ -457,40 +447,40 @@ export default function AdminLearnOverview() {
             >
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <h1 className="text-3xl font-semibold tracking-tight text-gray-900 dark:text-white"> <Trans>Learn Course Management</Trans> </h1>
+                  <h1 className="text-3xl font-semibold tracking-tight text-theme-foreground "> <Trans>Learn Course Management</Trans> </h1>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
                   <button
                     type="button"
                     onClick={() => void handleOpenImport()}
-                    className="rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+                    className="rounded-xl border border-theme-glass bg-theme-panel px-4 py-2.5 text-sm font-semibold text-theme-muted transition-colors hover:bg-theme-surface "
                   > <Trans>Import from МН</Trans> </button>
                   <button
                     type="button"
                     onClick={handleOpenCreate}
-                    className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-500"
+                    className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-theme-on-accent transition-colors hover:bg-brand-500"
                   >
                     <Plus className="h-4 w-4" /> <Trans>New Course</Trans> </button>
                 </div>
               </div>
 
               <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                <div className="rounded-2xl border border-gray-200 bg-gray-50/90 px-4 py-4 dark:border-slate-800 dark:bg-slate-900/70">
-                  <div className="text-[11px] uppercase tracking-[0.2em] text-gray-500"> <Trans>Total Courses</Trans> </div>
-                  <div className="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">
+                <div className="rounded-2xl border border-theme-glass bg-theme-surface/90 px-4 py-4">
+                  <div className="text-[11px] uppercase tracking-[0.2em] text-theme-muted"> <Trans>Total Courses</Trans> </div>
+                  <div className="mt-2 text-2xl font-semibold text-theme-foreground ">
                     {stats.totalCourses}
                   </div>
                 </div>
-                <div className="rounded-2xl border border-gray-200 bg-gray-50/90 px-4 py-4 dark:border-slate-800 dark:bg-slate-900/70">
-                  <div className="text-[11px] uppercase tracking-[0.2em] text-gray-500"> <Trans>Total Lessons</Trans> </div>
-                  <div className="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">
+                <div className="rounded-2xl border border-theme-glass bg-theme-surface/90 px-4 py-4">
+                  <div className="text-[11px] uppercase tracking-[0.2em] text-theme-muted"> <Trans>Total Lessons</Trans> </div>
+                  <div className="mt-2 text-2xl font-semibold text-theme-foreground ">
                     {stats.totalLessons}
                   </div>
                 </div>
-                <div className="rounded-2xl border border-gray-200 bg-gray-50/90 px-4 py-4 dark:border-slate-800 dark:bg-slate-900/70">
-                  <div className="text-[11px] uppercase tracking-[0.2em] text-gray-500"> <Trans>Published Courses</Trans> </div>
-                  <div className="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">
+                <div className="rounded-2xl border border-theme-glass bg-theme-surface/90 px-4 py-4">
+                  <div className="text-[11px] uppercase tracking-[0.2em] text-theme-muted"> <Trans>Published Courses</Trans> </div>
+                  <div className="mt-2 text-2xl font-semibold text-theme-foreground ">
                     {stats.totalPublished}
                   </div>
                 </div>
@@ -502,19 +492,19 @@ export default function AdminLearnOverview() {
             >
               <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_190px_190px_180px]">
                 <label className="relative">
-                  <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+                  <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-theme-muted" />
                   <input
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
                     placeholder={t("admin.search.courses")}
-                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 py-2 pl-10 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    className="h-11 w-full rounded-xl border border-theme-glass bg-theme-surface py-2 pl-10 pr-3 text-sm text-theme-foreground placeholder:text-theme-disabled focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                   />
                 </label>
 
                 <select
                   value={category}
                   onChange={(event) => setCategory(event.target.value)}
-                  className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                  className="h-11 w-full rounded-xl border border-theme-glass bg-theme-surface px-3 text-sm text-theme-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                 >
                   <option value=""><Trans>All categories</Trans></option>
                   {options.categories.map((entry) => (
@@ -527,7 +517,7 @@ export default function AdminLearnOverview() {
                 <select
                   value={difficulty}
                   onChange={(event) => setDifficulty(event.target.value)}
-                  className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                  className="h-11 w-full rounded-xl border border-theme-glass bg-theme-surface px-3 text-sm text-theme-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                 >
                   <option value=""><Trans>All difficulties</Trans></option>
                   {options.difficulties.map((entry) => (
@@ -540,7 +530,7 @@ export default function AdminLearnOverview() {
                 <select
                   value={status}
                   onChange={(event) => setStatus(event.target.value as PublishFilter)}
-                  className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                  className="h-11 w-full rounded-xl border border-theme-glass bg-theme-surface px-3 text-sm text-theme-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                 >
                   <option value={PUBLISH_FILTER_VALUE.all}><Trans>All status</Trans></option>
                   <option value={PUBLISH_FILTER_VALUE.published}><Trans>Published</Trans></option>
@@ -556,7 +546,7 @@ export default function AdminLearnOverview() {
             )}
 
             {importWarnings.length > 0 && (
-              <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-200">
+              <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-700">
                 {importWarnings.join(IMPORT_WARNING_SEPARATOR)}
               </div>
             )}
@@ -570,14 +560,14 @@ export default function AdminLearnOverview() {
                 </div>
               ) : courses.length === 0 ? (
                 <div className="py-20 text-center">
-                  <BookOpen className="mx-auto h-9 w-9 text-gray-500" />
-                  <p className="mt-3 text-gray-500 dark:text-gray-400"> <Trans>No courses found for the current filters.</Trans> </p>
+                  <BookOpen className="mx-auto h-9 w-9 text-theme-muted" />
+                  <p className="mt-3 text-theme-muted"> <Trans>No courses found for the current filters.</Trans> </p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[980px]">
                     <thead>
-                      <tr className="text-left text-xs uppercase tracking-[0.14em] text-gray-500 dark:text-gray-500">
+                      <tr className="text-left text-xs uppercase tracking-[0.14em] text-theme-muted">
                         <th className="px-3 py-3"><Trans>Course</Trans></th>
                         <th className="px-3 py-3"><Trans>Topic</Trans></th>
                         <th className="px-3 py-3"><Trans>Level</Trans></th>
@@ -593,33 +583,33 @@ export default function AdminLearnOverview() {
                         return (
                           <tr
                             key={course.id}
-                            className="border-t border-gray-200/80 dark:border-slate-800"
+                            className="border-t border-theme-glass/80"
                           >
                             <td className="px-3 py-4">
-                              <div className="font-medium text-gray-900 dark:text-white">
+                              <div className="font-medium text-theme-foreground ">
                                 {course.title}
                               </div>
-                              <div className="mt-1 text-xs text-gray-500"> <Trans>/learn/</Trans>{course.slug}
+                              <div className="mt-1 text-xs text-theme-muted"> <Trans>/learn/</Trans>{course.slug}
                               </div>
                               {course.pairId && (
-                                <div className="mt-1 inline-flex rounded-full bg-gray-200 px-2 py-0.5 text-[10px] font-medium text-gray-600 dark:bg-slate-800 dark:text-slate-300"> <Trans>Pair ID:</Trans> {course.pairId}
+                                <div className="mt-1 inline-flex rounded-full bg-theme-surface px-2 py-0.5 text-[10px] font-medium text-theme-muted"> <Trans>Pair ID:</Trans> {course.pairId}
                                 </div>
                               )}
                             </td>
-                            <td className="px-3 py-4 text-sm text-gray-600 dark:text-gray-300">
+                            <td className="px-3 py-4 text-sm text-theme-muted">
                               {course.category}
                             </td>
-                            <td className="px-3 py-4 text-sm text-gray-600 dark:text-gray-300">
+                            <td className="px-3 py-4 text-sm text-theme-muted">
                               {course.difficulty}
                             </td>
-                            <td className="px-3 py-4 text-sm text-gray-600 dark:text-gray-300">
+                            <td className="px-3 py-4 text-sm text-theme-muted">
                               {course.totalLessons} <Trans>total /</Trans> {course.publishedLessons} <Trans>published</Trans> </td>
                             <td className="px-3 py-4">
                               <span
                                 className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] ${
                                   course.isPublished
                                     ? "bg-brand-500/15 text-brand-300"
-                                    : "bg-gray-500/15 text-gray-400"
+                                    : "bg-theme-surface/15 text-theme-muted"
                                 }`}
                               >
                                 {course.isPublished
@@ -627,7 +617,7 @@ export default function AdminLearnOverview() {
                                   : t("admin.learn.status.draft", "Draft")}
                               </span>
                             </td>
-                            <td className="px-3 py-4 text-sm text-gray-500">
+                            <td className="px-3 py-4 text-sm text-theme-muted">
                               {course.updatedAt
                                 ? new Date(course.updatedAt).toLocaleDateString()
                                 : t("common.notAvailable", "-")}
@@ -683,7 +673,7 @@ export default function AdminLearnOverview() {
             </section>
 
             {!isBusy && (
-              <div className="text-xs uppercase tracking-[0.14em] text-gray-500">
+              <div className="text-xs uppercase tracking-[0.14em] text-theme-muted">
                 <Trans>Showing</Trans> {courses.length}{" "}
                 {courses.length === 1
                   ? t("admin.learn.labels.courseSingular", "course")
@@ -699,15 +689,15 @@ export default function AdminLearnOverview() {
         </main>
 
         {importModalOpen && (
-          <div className="fixed inset-0 z-[105] bg-black/55 backdrop-blur-sm px-4 py-8 overflow-y-auto">
-            <div className="mx-auto w-full max-w-4xl rounded-2xl border border-gray-200 bg-white p-6 shadow-[0_24px_60px_rgba(15,23,42,0.25)] dark:border-slate-700 dark:bg-slate-900">
+          <div className="fixed inset-0 z-[105] bg-theme-panel/55 backdrop-blur-sm px-4 py-8 overflow-y-auto">
+            <div className="mx-auto w-full max-w-4xl rounded-2xl border border-theme-glass bg-theme-panel p-6 shadow-[0_24px_60px_rgba(15,23,42,0.25)]">
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white"> <Trans>Import from МН</Trans> </h2>
+                <h2 className="text-xl font-semibold text-theme-foreground "> <Trans>Import from МН</Trans> </h2>
                 <button
                   type="button"
                   onClick={closeImportModal}
                   disabled={importSaving}
-                  className="rounded-lg border border-gray-200 bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+                  className="rounded-lg border border-theme-glass bg-theme-surface px-3 py-1.5 text-xs font-medium text-theme-muted hover:bg-theme-surface/80 disabled:opacity-60"
                 > <Trans>Close</Trans> </button>
               </div>
 
@@ -717,25 +707,25 @@ export default function AdminLearnOverview() {
                 </div>
               )}
 
-              <div className="mt-4 rounded-xl border border-gray-200 dark:border-slate-700">
+              <div className="mt-4 rounded-xl border border-theme-glass">
                 {importLoading ? (
                   <div className="py-16 text-center">
                     <Loader2 className="mx-auto h-7 w-7 animate-spin text-brand-400" />
                   </div>
                 ) : importSourceCourses.length === 0 ? (
-                  <div className="py-12 text-center text-sm text-gray-500 dark:text-gray-400"> <Trans>No courses available to import.</Trans> </div>
+                  <div className="py-12 text-center text-sm text-theme-muted"> <Trans>No courses available to import.</Trans> </div>
                 ) : (
                   <div className="max-h-[52vh] overflow-auto">
                     <table className="w-full min-w-[920px]">
-                      <thead className="bg-gray-50 dark:bg-slate-900/70">
-                        <tr className="text-left text-xs uppercase tracking-[0.14em] text-gray-500 dark:text-gray-500">
+                      <thead className="bg-theme-surface">
+                        <tr className="text-left text-xs uppercase tracking-[0.14em] text-theme-muted">
                           <th className="px-3 py-3">
-                            <label className="inline-flex items-center gap-2 text-xs font-semibold normal-case tracking-normal text-gray-700 dark:text-slate-300">
+                            <label className="inline-flex items-center gap-2 text-xs font-semibold normal-case tracking-normal text-theme-muted">
                               <input
                                 type="checkbox"
                                 checked={allImportSelected}
                                 onChange={handleToggleImportAll}
-                                className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500/30"
+                                className="h-4 w-4 rounded border-theme-glass text-brand-500 focus:ring-brand-500/30"
                               /> <Trans>All</Trans> </label>
                           </th>
                           <th className="px-3 py-3"><Trans>Course</Trans></th>
@@ -749,29 +739,29 @@ export default function AdminLearnOverview() {
                         {importSourceCourses.map((course) => (
                           <tr
                             key={course.id}
-                            className="border-t border-gray-200/80 dark:border-slate-800"
+                            className="border-t border-theme-glass/80"
                           >
                             <td className="px-3 py-3">
                               <input
                                 type="checkbox"
                                 checked={selectedImportCourseIds.includes(course.id)}
                                 onChange={() => handleToggleImportCourse(course.id)}
-                                className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500/30"
+                                className="h-4 w-4 rounded border-theme-glass text-brand-500 focus:ring-brand-500/30"
                               />
                             </td>
-                            <td className="px-3 py-3 text-sm font-medium text-gray-900 dark:text-white">
+                            <td className="px-3 py-3 text-sm font-medium text-theme-foreground ">
                               {course.title}
                             </td>
-                            <td className="px-3 py-3 text-sm text-gray-600 dark:text-slate-300">
+                            <td className="px-3 py-3 text-sm text-theme-muted">
                               {course.category}
                             </td>
-                            <td className="px-3 py-3 text-sm text-gray-600 dark:text-slate-300">
+                            <td className="px-3 py-3 text-sm text-theme-muted">
                               {course.difficulty}
                             </td>
-                            <td className="px-3 py-3 text-sm text-gray-600 dark:text-slate-300">
+                            <td className="px-3 py-3 text-sm text-theme-muted">
                               {course.totalLessons}
                             </td>
-                            <td className="px-3 py-3 text-xs text-gray-600 dark:text-slate-300">
+                            <td className="px-3 py-3 text-xs text-theme-muted">
                               {course.pairId || t("common.notAvailable", "-")}
                             </td>
                           </tr>
@@ -787,13 +777,13 @@ export default function AdminLearnOverview() {
                   type="button"
                   onClick={closeImportModal}
                   disabled={importSaving}
-                  className="rounded-xl border border-gray-200 bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                  className="rounded-xl border border-theme-glass bg-theme-surface px-4 py-2 text-sm font-medium text-theme-muted hover:bg-theme-surface/80 disabled:opacity-60"
                 > <Trans>Cancel</Trans> </button>
                 <button
                   type="button"
                   onClick={() => void handleImportSelected()}
                   disabled={importSaving || selectedImportCourseIds.length === 0}
-                  className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-500 disabled:opacity-60"
+                  className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-theme-on-accent hover:bg-brand-500 disabled:opacity-60"
                 >
                   {importSaving && <Loader2 className="h-4 w-4 animate-spin" />} <Trans>Import Selected</Trans> </button>
               </div>
@@ -802,10 +792,10 @@ export default function AdminLearnOverview() {
         )}
 
         {modalOpen && (
-          <div className="fixed inset-0 z-[100] bg-black/55 backdrop-blur-sm px-4 py-8 overflow-y-auto">
-            <div className="mx-auto w-full max-w-2xl rounded-2xl border border-gray-200 bg-white p-6 shadow-[0_24px_60px_rgba(15,23,42,0.25)] dark:border-slate-700 dark:bg-slate-900">
+          <div className="fixed inset-0 z-[100] bg-theme-panel/55 backdrop-blur-sm px-4 py-8 overflow-y-auto">
+            <div className="mx-auto w-full max-w-2xl rounded-2xl border border-theme-glass bg-theme-panel p-6 shadow-[0_24px_60px_rgba(15,23,42,0.25)]">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                <h2 className="text-xl font-semibold text-theme-foreground ">
                   {modalTitle}
                 </h2>
                 <button
@@ -813,23 +803,23 @@ export default function AdminLearnOverview() {
                     setModalOpen(false);
                     setCoverFile(null);
                   }}
-                  className="rounded-lg border border-gray-200 bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+                  className="rounded-lg border border-theme-glass bg-theme-surface px-3 py-1.5 text-xs font-medium text-theme-muted hover:bg-theme-surface/80"
                 > <Trans>Close</Trans> </button>
               </div>
 
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 <label className="space-y-1">
-                  <span className="text-xs uppercase tracking-[0.14em] text-gray-500"> <Trans>Course name</Trans> </span>
+                  <span className="text-xs uppercase tracking-[0.14em] text-theme-muted"> <Trans>Course name</Trans> </span>
                   <input
                     value={draft.title}
                     onChange={(event) =>
                       setDraft((current) => ({ ...current, title: event.target.value }))
                     }
-                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    className="h-11 w-full rounded-xl border border-theme-glass bg-theme-surface px-3 text-sm text-theme-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                   />
                 </label>
                 <label className="space-y-1">
-                  <span className="text-xs uppercase tracking-[0.14em] text-gray-500"> <Trans>Topic</Trans> </span>
+                  <span className="text-xs uppercase tracking-[0.14em] text-theme-muted"> <Trans>Topic</Trans> </span>
                   <select
                     value={draft.category}
                     onChange={(event) =>
@@ -838,7 +828,7 @@ export default function AdminLearnOverview() {
                         category: event.target.value as CourseDraft["category"],
                       }))
                     }
-                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    className="h-11 w-full rounded-xl border border-theme-glass bg-theme-surface px-3 text-sm text-theme-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                   >
                     {options.categories.map((entry) => (
                       <option key={entry} value={entry}>
@@ -848,7 +838,7 @@ export default function AdminLearnOverview() {
                   </select>
                 </label>
                 <label className="space-y-1">
-                  <span className="text-xs uppercase tracking-[0.14em] text-gray-500"> <Trans>Level</Trans> </span>
+                  <span className="text-xs uppercase tracking-[0.14em] text-theme-muted"> <Trans>Level</Trans> </span>
                   <select
                     value={draft.difficulty}
                     onChange={(event) =>
@@ -857,7 +847,7 @@ export default function AdminLearnOverview() {
                         difficulty: event.target.value as CourseDraft["difficulty"],
                       }))
                     }
-                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    className="h-11 w-full rounded-xl border border-theme-glass bg-theme-surface px-3 text-sm text-theme-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                   >
                     {options.difficulties.map((entry) => (
                       <option key={entry} value={entry}>
@@ -867,21 +857,21 @@ export default function AdminLearnOverview() {
                   </select>
                 </label>
                 <label className="space-y-1">
-                  <span className="text-xs uppercase tracking-[0.14em] text-gray-500"> <Trans>Cover image</Trans> </span>
+                  <span className="text-xs uppercase tracking-[0.14em] text-theme-muted"> <Trans>Cover image</Trans> </span>
                   <input
                     type="file"
                     accept="image/png,image/jpeg,image/webp,image/gif"
                     onChange={(event) =>
                       setCoverFile(event.target.files?.[0] || null)
                     }
-                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 file:mr-3 file:rounded-md file:border-0 file:bg-brand-600/20 file:px-2.5 file:py-1.5 file:text-xs file:font-semibold file:text-brand-200 hover:file:bg-brand-600/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    className="h-11 w-full rounded-xl border border-theme-glass bg-theme-surface px-3 py-2 text-sm text-theme-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30 file:mr-3 file:rounded-md file:border-0 file:bg-brand-600/20 file:px-2.5 file:py-1.5 file:text-xs file:font-semibold file:text-brand-200 hover:file:bg-brand-600/30"
                   />
                 </label>
               </div>
 
               <div className="mt-4">
-                <span className="text-xs uppercase tracking-[0.14em] text-gray-500"> <Trans>Cover</Trans> </span>
-                <div className="mt-1.5 h-36 w-full overflow-hidden rounded-xl border border-gray-200 bg-gray-100 dark:border-slate-700 dark:bg-slate-900">
+                <span className="text-xs uppercase tracking-[0.14em] text-theme-muted"> <Trans>Cover</Trans> </span>
+                <div className="mt-1.5 h-36 w-full overflow-hidden rounded-xl border border-theme-glass bg-theme-surface">
                   {coverPreviewUrl ? (
                     <img
                       src={coverPreviewUrl}
@@ -889,24 +879,24 @@ export default function AdminLearnOverview() {
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center text-xs text-gray-500 dark:text-gray-400"> <Trans>No image selected</Trans> </div>
+                    <div className="flex h-full w-full items-center justify-center text-xs text-theme-muted"> <Trans>No image selected</Trans> </div>
                   )}
                 </div>
               </div>
 
               <label className="mt-4 block space-y-1">
-                <span className="text-xs uppercase tracking-[0.14em] text-gray-500"> <Trans>Summary</Trans> </span>
+                <span className="text-xs uppercase tracking-[0.14em] text-theme-muted"> <Trans>Summary</Trans> </span>
                 <input
                   value={draft.subtitle}
                   onChange={(event) =>
                     setDraft((current) => ({ ...current, subtitle: event.target.value }))
                   }
-                  className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                  className="h-11 w-full rounded-xl border border-theme-glass bg-theme-surface px-3 text-sm text-theme-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                 />
               </label>
 
               <label className="mt-4 block space-y-1">
-                <span className="text-xs uppercase tracking-[0.14em] text-gray-500"> <Trans>Pair ID</Trans> </span>
+                <span className="text-xs uppercase tracking-[0.14em] text-theme-muted"> <Trans>Pair ID</Trans> </span>
                 <div className="flex gap-2">
                   <input
                     type="text"
@@ -921,20 +911,20 @@ export default function AdminLearnOverview() {
                       }))
                     }
                     placeholder={t("admin.learn.placeholders.pairId", "10423")}
-                    className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                    className="h-11 w-full rounded-xl border border-theme-glass bg-theme-surface px-3 text-sm text-theme-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                   />
                   <button
                     type="button"
                     onClick={() =>
                       setDraft((current) => ({ ...current, pairId: generatePairId() }))
                     }
-                    className="rounded-xl border border-gray-200 bg-gray-100 px-4 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                    className="rounded-xl border border-theme-glass bg-theme-surface px-4 text-sm font-medium text-theme-muted hover:bg-theme-surface/80"
                   > <Trans>Generate</Trans> </button>
                 </div>
               </label>
 
               <label className="mt-4 block space-y-1">
-                <span className="text-xs uppercase tracking-[0.14em] text-gray-500"> <Trans>Instructor</Trans> </span>
+                <span className="text-xs uppercase tracking-[0.14em] text-theme-muted"> <Trans>Instructor</Trans> </span>
                 <input
                   value={draft.instructorName}
                   onChange={(event) =>
@@ -944,11 +934,11 @@ export default function AdminLearnOverview() {
                     }))
                   }
                   placeholder={t("admin.learn.placeholders.instructorExample", "IM Viktor Asanov")}
-                  className="h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                  className="h-11 w-full rounded-xl border border-theme-glass bg-theme-surface px-3 text-sm text-theme-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                 />
               </label>
 
-              <label className="mt-4 inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+              <label className="mt-4 inline-flex items-center gap-2 text-sm text-theme-muted">
                 <input
                   type="checkbox"
                   checked={draft.isPublished}
@@ -958,7 +948,7 @@ export default function AdminLearnOverview() {
                       isPublished: event.target.checked,
                     }))
                   }
-                  className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-400/40"
+                  className="h-4 w-4 rounded border-theme-glass text-brand-500 focus:ring-brand-400/40"
                 /> <Trans>Show course</Trans> </label>
 
               <div className="mt-6 flex justify-end gap-3">
@@ -967,12 +957,12 @@ export default function AdminLearnOverview() {
                     setModalOpen(false);
                     setCoverFile(null);
                   }}
-                  className="rounded-xl border border-gray-200 bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                  className="rounded-xl border border-theme-glass bg-theme-surface px-4 py-2 text-sm font-medium text-theme-muted hover:bg-theme-surface/80"
                 > <Trans>Cancel</Trans> </button>
                 <button
                   disabled={saving}
                   onClick={() => void handleSave()}
-                  className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-500 disabled:opacity-60"
+                  className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-theme-on-accent hover:bg-brand-500 disabled:opacity-60"
                 >
                   {saving && <Loader2 className="h-4 w-4 animate-spin" />}
                   {editingCourse
@@ -985,7 +975,7 @@ export default function AdminLearnOverview() {
         )}
 
         {importToast && (
-          <div className="pointer-events-none fixed bottom-6 right-6 z-[130] rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg">
+          <div className="pointer-events-none fixed bottom-6 right-6 z-[130] rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-medium text-theme-on-accent shadow-lg">
             {importToast}
           </div>
         )}
@@ -993,4 +983,3 @@ export default function AdminLearnOverview() {
     </div>
   );
 }
-

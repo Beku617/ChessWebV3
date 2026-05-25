@@ -156,7 +156,19 @@
         "mn": "Mongolian"
       },
       "logOut": "Log Out",
-      "languageLabel": "Admin language"
+      "languageLabel": "Admin language",
+      "nav": {
+        "users": "Users",
+        "bots": "Bots",
+        "puzzles": "Puzzles",
+        "learn": "Learn",
+        "learnMn": "Learn (MN)",
+        "events": "Events",
+        "eventsMn": "Events (MN)",
+        "games": "Games",
+        "community": "Community",
+        "groups": "Groups"
+      }
     },
     "actions": {
       "viewAdminProfile": "View admin profile",
@@ -438,7 +450,11 @@
   "communityGameViewer": {
     "previewUnavailable": "Game preview unavailable.",
     "analyzeGame": "Analyze game",
-    "useArrowKeys": "Use arrow keys"
+    "useArrowKeys": "Use arrow keys",
+    "whiteWon": "White won",
+    "blackWon": "Black won",
+    "draw": "Draw",
+    "resultUnavailable": "Result unavailable"
   },
   ") vs": ") vs",
   "communityGroups": {
@@ -1053,10 +1069,10 @@
     "provisionalGames_other": "Provisional ({{count}}/{{total}})",
     "gamesCount_one": "{{count}} games",
     "gamesCount_other": "{{count}} games",
-    "allGames_one": "",
-    "allGames_other": "",
-    "tournamentHistory_one": "",
-    "tournamentHistory_other": "",
+    "allGames_one": "{{count}} game",
+    "allGames_other": "{{count}} games",
+    "tournamentHistory_one": "{{count}} tournament result",
+    "tournamentHistory_other": "{{count}} tournament results",
     "noTournamentHistory": "No tournament history yet.",
     "range": "{{start}}-{{end}} of {{total}} games",
     "noGamesFound": "No games found",
@@ -1189,7 +1205,92 @@
       "unableToLoadGame": "Unable to load game"
     },
     "gameNotFound": "Game Not Found",
-    "backToProfile": "Back to Profile"
+    "backToProfile": "Back to Profile",
+    "moveAnalysisTitle": "Move Analysis",
+    "movePlayed": "{{san}} was played.",
+    "moveAnalysisUnavailable": "No analysis data available for this move.",
+    "aiProviderMissingForModel": "Selected AI model is not configured. Add the required provider key and try again.",
+    "noMovesRecorded": "No moves yet",
+    "qualityLabels": {
+      "Brilliant": "Brilliant",
+      "Great": "Great",
+      "Best": "Best move",
+      "Excellent": "Excellent",
+      "Good": "Good move",
+      "Book": "Book",
+      "Inaccuracy": "Inaccuracy",
+      "Mistake": "Mistake",
+      "Miss": "Miss",
+      "Blunder": "Blunder",
+      "Unknown": "?"
+    },
+    "colors": {
+      "white": "White",
+      "black": "Black"
+    },
+    "moveExplanations": {
+      "brilliant": {
+        "title": "Brilliant Move!",
+        "description": "{{san}} is a brilliant sacrifice! This move demonstrates deep calculation and turns the position decisively in {{mover}}'s favor.",
+        "details": "This move improved the position significantly ({{swing}} swing) through a tactical sacrifice that the opponent cannot easily refute.",
+        "suggestion": "This is exactly the kind of move that separates strong players!"
+      },
+      "great": {
+        "title": "Great Move!",
+        "description": "{{san}} is a great move that significantly improved {{mover}}'s position.",
+        "details": "Win probability shifted from {{before}} to {{after}} — a {{gain}} improvement.",
+        "suggestion": "This move found a critical resource in the position."
+      },
+      "best": {
+        "title": "Best Move",
+        "description": "{{san}} is the best move in this position, maintaining or improving the evaluation.",
+        "details": "Position evaluation stayed strong at {{after}} win probability."
+      },
+      "excellent": {
+        "title": "Excellent Move",
+        "description": "{{san}} is an excellent move, very close to the engine's top choice.",
+        "details": "Only a tiny {{loss}} loss compared to the absolute best move."
+      },
+      "good": {
+        "title": "Good Move",
+        "description": "{{san}} is a good, solid move that keeps the position playable.",
+        "details": "About {{loss}} accuracy loss — not perfect but reasonable."
+      },
+      "book": {
+        "title": "Book Move",
+        "description": "{{san}} is a standard opening move, following established theory.",
+        "details": "This move is part of well-known opening theory. Both sides are following established lines."
+      },
+      "inaccuracy": {
+        "title": "Inaccuracy",
+        "description": "{{san}} is an inaccuracy — not the best choice in this position.",
+        "details": "Win probability dropped from {{before}} to {{after}} ({{loss}} loss).",
+        "suggestion": "Look for moves that maintain piece activity and do not give your opponent free tempos."
+      },
+      "mistake": {
+        "title": "Mistake",
+        "description": "{{san}} is a mistake that significantly hurts {{mover}}'s position.",
+        "details": "Win probability dropped from {{before}} to {{after}} — that is a {{loss}} swing!",
+        "suggestion": "Before moving, check for tactics: captures, checks, and threats. Ask yourself what your opponent wants to do."
+      },
+      "miss": {
+        "title": "Missed Opportunity",
+        "description": "{{san}} missed a chance to capitalize on the opponent's previous error.",
+        "details": "Your opponent made a mistake, but this move did not punish it effectively. The advantage was not fully converted.",
+        "suggestion": "When your opponent blunders, slow down and look for the tactical punishment."
+      },
+      "blunder": {
+        "title": "Blunder",
+        "description": "{{san}} is a serious blunder that dramatically changes the game.",
+        "details": "Win probability crashed from {{before}} to {{after}} — a devastating {{loss}} loss.",
+        "suggestion": "Always check for hanging pieces and tactical threats before finalizing your move. Ask: is my piece safe and what can my opponent attack?"
+      },
+      "unknown": {
+        "title": "Move",
+        "description": "{{san}} was played.",
+        "details": "Analysis not available for this move."
+      }
+    }
   },
   "settings": {
     "appearance": {

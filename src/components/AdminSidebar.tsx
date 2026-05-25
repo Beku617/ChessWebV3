@@ -88,16 +88,16 @@ export default function AdminSidebar() {
           className="h-12 object-contain shrink-0"
         />
         <div className="min-w-0 pr-2">
-          <div className="text-gray-900 dark:text-white font-bold text-[1.72rem] tracking-tight leading-none">
+          <div className="text-theme-foreground font-bold text-[1.72rem] tracking-tight leading-none">
             {t("admin.sidebar.brandName")}
           </div>
-          <span className="mt-1 inline-flex text-xs bg-brand-500/20 text-brand-600 dark:text-brand-400 px-2 py-0.5 rounded-full font-medium">
+          <span className="mt-1 inline-flex text-xs bg-brand-500/20 text-brand-600 px-2 py-0.5 rounded-full font-medium">
             {t("admin.sidebar.adminBadge")}
           </span>
         </div>
       </Link>
 
-      <nav className="flex-1 min-h-0 overflow-y-auto premium-scrollbar px-4 pr-3 space-y-2 mt-2">
+      <nav className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden premium-scrollbar px-4 pr-3 space-y-2 mt-2">
         {navItems.map((item) => {
           const Icon = item.Icon;
 
@@ -105,14 +105,14 @@ export default function AdminSidebar() {
             <Link
               key={item.path}
               to={item.path}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group ${
+              className={`flex min-w-0 items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group ${
                 isActive(item.path)
-                  ? "bg-brand-500/10 text-brand-600 dark:text-brand-400 border-l-4 border-brand-500"
-                  : "text-gray-500 dark:text-gray-300 hover:bg-white/45 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white"
+                  ? "bg-brand-500/10 text-brand-600 border-l-4 border-brand-500"
+                  : "text-theme-muted hover:bg-theme-panel/45 hover:text-theme-foreground"
               }`}
             >
               <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
-              <span className="font-medium">{t(item.labelKey)}</span>
+              <span className="font-medium truncate">{t(item.labelKey)}</span>
             </Link>
           );
         })}
@@ -132,17 +132,17 @@ export default function AdminSidebar() {
                 className="h-full w-full object-cover"
               />
             ) : (
-              <span className="text-xs font-bold text-white">AD</span>
+              <span className="text-xs font-bold text-theme-on-accent">AD</span>
             )}
           </Link>
           <Link
             to="/admin/profile"
             className="flex-1 min-w-0 hover:opacity-80 transition-opacity"
           >
-            <div className="text-sm font-medium text-gray-900 dark:text-white truncate">
+            <div className="text-sm font-medium text-theme-foreground truncate">
               {admin?.username || t("admin.sidebar.adminFallbackName")}
             </div>
-            <div className="text-xs text-gray-500 truncate">
+            <div className="text-xs text-theme-muted truncate">
               {t("admin.sidebar.adminRole")}
             </div>
           </Link>

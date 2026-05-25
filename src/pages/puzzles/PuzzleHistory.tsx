@@ -11,25 +11,25 @@ const PAGE_SIZE = 9;
 
 function difficultyClass(difficulty?: string) {
   if (difficulty === "Easy") {
-    return "border-emerald-300/50 bg-emerald-400/15 text-emerald-100";
+    return "border-emerald-400/45 bg-emerald-500/12 text-emerald-600";
   }
   if (difficulty === "Hard") {
-    return "border-red-300/50 bg-red-400/15 text-red-100";
+    return "border-rose-400/45 bg-rose-500/12 text-rose-600";
   }
-  return "border-amber-300/50 bg-amber-400/15 text-amber-100";
+  return "border-amber-400/45 bg-amber-500/12 text-amber-700";
 }
 
 function resultClass(result: PuzzleHistoryItem["result"]) {
   if (result === "SOLVED") {
-    return "border-emerald-300/60 bg-emerald-400/15 text-emerald-100";
+    return "border-emerald-400/45 bg-emerald-500/12 text-emerald-600";
   }
   if (result === "FAILED") {
-    return "border-rose-300/60 bg-rose-400/15 text-rose-100";
+    return "border-rose-400/45 bg-rose-500/12 text-rose-600";
   }
   if (result === "SKIPPED") {
-    return "border-amber-300/60 bg-amber-400/15 text-amber-100";
+    return "border-amber-400/45 bg-amber-500/12 text-amber-700";
   }
-  return "border-slate-400/50 bg-slate-400/10 text-slate-200";
+  return "border-theme-border/50 bg-theme-surface/10 text-theme-foreground";
 }
 
 function difficultyLabel(
@@ -118,7 +118,7 @@ function PuzzlePreviewBoard({
   return (
     <div
       ref={containerRef}
-      className="aspect-square w-full rounded-lg overflow-hidden border border-[#2d3f63] shadow-sm"
+      className="aspect-square w-full rounded-lg overflow-hidden border border-theme-glass shadow-sm"
     >
       {boardWidth > 0 ? (
         <Chessboard
@@ -220,27 +220,27 @@ export default function PuzzleHistory() {
 
   return (
     <div className="space-y-4 max-w-full">
-      <section className="rounded-2xl border border-[#243250] bg-[#0f172a] px-5 py-5 shadow-[0_25px_80px_-55px_rgba(20,184,166,0.45)]">
+      <section className="rounded-2xl border border-theme-glass bg-theme-panel px-5 py-5 shadow-[0_25px_80px_-55px_rgba(20,184,166,0.45)]">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-[11px] uppercase tracking-[0.2em] text-emerald-300/90">
+            <p className="text-[11px] uppercase tracking-[0.2em] text-theme-muted">
               {t("puzzles.history.eyebrow", "Puzzle History")}
             </p>
           </div>
           <button
             type="button"
             onClick={() => navigate("/puzzles/train?mode=rated")}
-            className="inline-flex items-center rounded-lg border border-[#304464] bg-[#111b31] px-3 py-2 text-xs font-medium text-slate-100 transition-colors hover:bg-[#162541]"
+            className="inline-flex items-center rounded-lg border border-theme-glass bg-theme-panel px-3 py-2 text-xs font-medium text-theme-foreground transition-colors hover:bg-theme-panel"
           >
             {t("analysis.back", "Back")}
           </button>
         </div>
 
         <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-2">
-          <label className="rounded-xl border border-[#304464] bg-[#111b31] px-3 py-2 text-xs text-slate-200">
+          <label className="rounded-xl border border-theme-glass bg-theme-panel px-3 py-2 text-xs text-theme-foreground">
             {t("puzzles.history.searchLabel", "Search")}
             <div className="mt-1 flex items-center gap-2">
-              <Search className="h-3.5 w-3.5 text-slate-400" />
+              <Search className="h-3.5 w-3.5 text-theme-muted" />
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
@@ -248,7 +248,7 @@ export default function PuzzleHistory() {
                   "puzzles.history.searchPlaceholder",
                   "Search title",
                 )}
-                className="w-full bg-transparent outline-none text-sm placeholder:text-slate-500"
+                className="w-full bg-transparent outline-none text-sm placeholder:text-theme-disabled"
               />
             </div>
           </label>
@@ -256,18 +256,18 @@ export default function PuzzleHistory() {
       </section>
 
       {loading ? (
-        <div className="rounded-2xl border border-[#243250] bg-[#0f172a] px-4 py-12 flex justify-center">
-          <div className="flex flex-col items-center gap-2 text-sm text-slate-300">
-            <Loader2 className="w-8 h-8 animate-spin text-emerald-300" />
+        <div className="rounded-2xl border border-theme-glass bg-theme-panel px-4 py-12 flex justify-center">
+          <div className="flex flex-col items-center gap-2 text-sm text-theme-muted">
+            <Loader2 className="w-8 h-8 animate-spin text-brand-500" />
             <span>{t("puzzles.history.loading", "Loading puzzle history...")}</span>
           </div>
         </div>
       ) : error ? (
-        <div className="rounded-2xl border border-red-400/50 bg-red-500/10 px-4 py-4 text-sm text-red-100">
+        <div className="rounded-2xl border border-red-400/50 bg-red-500/10 px-4 py-4 text-sm text-red-700">
           {error}
         </div>
       ) : filteredItems.length === 0 ? (
-        <div className="rounded-2xl border border-[#243250] bg-[#0f172a] px-4 py-6 text-sm text-slate-300">
+        <div className="rounded-2xl border border-theme-glass bg-theme-panel px-4 py-6 text-sm text-theme-muted">
           {t("puzzles.history.empty", "No history items match your search.")}
         </div>
       ) : (
@@ -276,7 +276,7 @@ export default function PuzzleHistory() {
             {pagedItems.map((item) => (
               <article
                 key={item.id}
-                className="rounded-xl border border-[#273655] bg-[#101a30] p-3 transition-all hover:border-[#3d547f] hover:shadow-md"
+                className="rounded-xl border border-theme-glass bg-theme-panel p-3 transition-all hover:border-theme-glass hover:shadow-md"
               >
                 <PuzzlePreviewBoard
                   puzzleId={item.puzzleId || item.id}
@@ -285,10 +285,10 @@ export default function PuzzleHistory() {
 
                 <div className="mt-2.5 flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <h3 className="font-semibold text-white truncate">
+                    <h3 className="font-semibold text-theme-foreground truncate">
                       {item.puzzleTitle}
                     </h3>
-                    <p className="text-xs text-slate-400">{item.puzzleRating} <Trans>Elo</Trans></p>
+                    <p className="text-xs text-theme-muted">{item.puzzleRating} <Trans>Elo</Trans></p>
                   </div>
                   <span
                     className={`px-2 py-1 rounded-md border text-[11px] font-semibold ${resultClass(
@@ -310,32 +310,32 @@ export default function PuzzleHistory() {
                   >
                     {difficultyLabel(item.puzzleDifficulty, translateDefault)}
                   </span>
-                  <span className="px-2 py-1 rounded-md border border-[#31446d] bg-[#0d1629] text-[11px] text-slate-200 uppercase">
+                  <span className="px-2 py-1 rounded-md border border-theme-glass bg-theme-panel text-[11px] text-theme-foreground uppercase">
                     {modeLabel(item.mode, translateDefault)}
                   </span>
                   {item.motifs.slice(0, 2).map((motif) => (
                     <span
                       key={`${item.id}-${motif}`}
-                      className="px-2 py-1 rounded-md border border-[#31446d] bg-[#0d1629] text-[11px] text-slate-200"
+                      className="px-2 py-1 rounded-md border border-theme-glass bg-theme-panel text-[11px] text-theme-foreground"
                     >
                       {motif}
                     </span>
                   ))}
                 </div>
 
-                <p className="mt-2 text-xs text-slate-300 line-clamp-2">
+                <p className="mt-2 text-xs text-theme-muted line-clamp-2">
                   {historySummary(item, translateHistory, locale)}
                 </p>
 
                 <div className="mt-3 flex items-center justify-between gap-2">
-                  <div className="text-[11px] text-slate-400">
+                  <div className="text-[11px] text-theme-muted">
                     {new Date(item.date).toLocaleDateString(locale)} -{" "}
                     {formatTime(Math.floor(item.timeSpent / 1000))}
                   </div>
                   {item.puzzleId ? (
                     <Link
                       to={`/puzzles/train/${item.puzzleId}?mode=library`}
-                      className="rounded-lg border border-emerald-300/70 bg-emerald-500/20 px-3 py-1.5 text-[11px] font-semibold text-emerald-100 hover:bg-emerald-500/30"
+                      className="rounded-lg border border-emerald-400/50 bg-emerald-500/15 px-3 py-1.5 text-[11px] font-semibold text-theme-foreground hover:bg-emerald-500/25"
                     >
                       {t("puzzles.library.start", "Start")}
                     </Link>
@@ -346,8 +346,8 @@ export default function PuzzleHistory() {
           </div>
 
           {totalPages > 1 ? (
-            <div className="rounded-xl border border-[#243250] bg-[#0f172a] p-4 flex items-center justify-between">
-              <p className="text-sm text-slate-400">
+            <div className="rounded-xl border border-theme-glass bg-theme-panel p-4 flex items-center justify-between">
+              <p className="text-sm text-theme-muted">
                 {t("puzzles.library.pagination", {
                   defaultValue: "Showing {{start}} - {{end}} of {{total}}",
                   start: pageStart + 1,
@@ -360,7 +360,7 @@ export default function PuzzleHistory() {
                   type="button"
                   onClick={() => setPage((prev) => Math.max(1, prev - 1))}
                   disabled={safePage <= 1}
-                  className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-[#111b31] border border-[#304464] text-slate-300 hover:border-emerald-300/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-theme-panel border border-theme-glass text-theme-muted hover:border-emerald-300/50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
@@ -368,7 +368,7 @@ export default function PuzzleHistory() {
                   value === "..." ? (
                     <span
                       key={`dots-${index}`}
-                      className="w-9 h-9 inline-flex items-center justify-center text-slate-500 text-sm select-none"
+                      className="w-9 h-9 inline-flex items-center justify-center text-theme-muted text-sm select-none"
                     >
                       ...
                     </span>
@@ -379,8 +379,8 @@ export default function PuzzleHistory() {
                       onClick={() => setPage(value)}
                       className={`inline-flex items-center justify-center w-9 h-9 rounded-lg border text-sm font-medium transition-colors ${
                         value === safePage
-                          ? "border-emerald-300/60 bg-emerald-500/25 text-emerald-100"
-                          : "border-[#304464] bg-[#111b31] text-slate-300 hover:border-emerald-300/50"
+                          ? "border-emerald-400/50 bg-emerald-500/15 text-theme-foreground"
+                          : "border-theme-glass bg-theme-panel text-theme-muted hover:border-emerald-300/50"
                       }`}
                     >
                       {value}
@@ -391,7 +391,7 @@ export default function PuzzleHistory() {
                   type="button"
                   onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
                   disabled={safePage >= totalPages}
-                  className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-[#111b31] border border-[#304464] text-slate-300 hover:border-emerald-300/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-theme-panel border border-theme-glass text-theme-muted hover:border-emerald-300/50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>

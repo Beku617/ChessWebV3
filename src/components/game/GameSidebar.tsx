@@ -35,7 +35,7 @@ export function GameSidebar({
     ? "bg-rose-500/10 text-rose-400 border border-rose-500/30"
     : gameStarted
       ? "bg-brand-500/10 text-brand-400 border border-brand-500/30"
-      : "bg-gray-500/10 text-gray-500 border border-gray-500/20";
+      : "bg-theme-surface/10 text-theme-muted border border-theme-border/20";
 
   const statusLabel = gameOver
     ? t("game.sidebar.status.gameOver", "Game over")
@@ -44,25 +44,25 @@ export function GameSidebar({
       : t("game.sidebar.status.waiting", "Waiting");
 
   return (
-    <div className="w-full h-full min-h-0 rounded-3xl border border-gray-200/70 dark:border-white/5 bg-white/70 dark:bg-slate-900/70 shadow-2xl overflow-hidden backdrop-blur-xl flex flex-col">
-      <div className="px-5 py-4 border-b border-gray-200/60 dark:border-white/5 flex items-start justify-between gap-3">
+    <div className="w-full h-full min-h-0 rounded-3xl border border-theme-glass/70 bg-theme-panel/70 shadow-2xl overflow-hidden backdrop-blur-xl flex flex-col">
+      <div className="px-5 py-4 border-b border-theme-glass/60 flex items-start justify-between gap-3">
         <div>
-          <p className="text-[11px] uppercase tracking-[0.2em] text-brand-600 dark:text-brand-300 font-semibold"> <Trans>Game log</Trans> </p>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white"> <Trans>Moves &amp; opening</Trans> </h3>
-          <p className="text-xs text-gray-500 dark:text-gray-400"> <Trans>A clean timeline of your current game.</Trans> </p>
+          <p className="text-[11px] uppercase tracking-[0.2em] text-brand-600 font-semibold"> <Trans>Game log</Trans> </p>
+          <h3 className="text-lg font-semibold text-theme-foreground "> <Trans>Moves &amp; opening</Trans> </h3>
+          <p className="text-xs text-theme-muted"> <Trans>A clean timeline of your current game.</Trans> </p>
         </div>
         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusTone}`}>
           {statusLabel}
         </span>
       </div>
 
-      <div className="px-5 py-4 border-b border-gray-200/60 dark:border-white/5 bg-white/70 dark:bg-white/5">
+      <div className="px-5 py-4 border-b border-theme-glass/60 bg-theme-panel/70">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-brand-500/15 text-brand-600 dark:text-brand-200">
+          <div className="p-2 rounded-xl bg-brand-500/15 text-brand-600">
             <Compass className="w-5 h-5" />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+            <div className="text-sm font-semibold text-theme-foreground flex items-center gap-2">
               <span>
                 {opening
                   ? opening.variation
@@ -78,7 +78,7 @@ export function GameSidebar({
                 <span className="w-2 h-2 rounded-full bg-brand-500 animate-pulse" />
               )}
             </div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">
+            <div className="text-xs text-theme-muted">
               {opening?.eco
                 ? t("game.sidebar.opening.ecoLabel", {
                     defaultValue: "ECO {{eco}}",
@@ -93,7 +93,7 @@ export function GameSidebar({
                 : ""}
             </div>
             {opening?.line && (
-              <div className="text-xs text-gray-400 mt-1 overflow-hidden text-ellipsis whitespace-nowrap">
+              <div className="text-xs text-theme-muted mt-1 overflow-hidden text-ellipsis whitespace-nowrap">
                 {opening.line}
               </div>
             )}
@@ -103,7 +103,7 @@ export function GameSidebar({
 
       <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4 space-y-2">
         {formattedMoves.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-gray-300 dark:border-white/10 px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-400">
+          <div className="rounded-2xl border border-dashed border-theme-glass px-4 py-6 text-center text-sm text-theme-muted">
             {gameStarted
               ? t("game.sidebar.log.firstMovePrompt", "Make your first move to populate the log.")
               : t("game.sidebar.log.startPrompt", "Start a game to see your move list.")}
@@ -112,18 +112,18 @@ export function GameSidebar({
           formattedMoves.map((move, i) => (
             <div
               key={i}
-              className="grid grid-cols-[auto_1fr_1fr] gap-x-3 items-center rounded-xl bg-gray-50/90 dark:bg-white/5 px-3 py-2 shadow-sm"
+              className="grid grid-cols-[auto_1fr_1fr] gap-x-3 items-center rounded-xl bg-theme-surface/90 px-3 py-2 shadow-sm"
             >
-              <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+              <span className="text-xs font-semibold text-theme-muted">
                 {t("common.moveNumberDot", {
                   defaultValue: "{{num}}.",
                   num: i + 1,
                 })}
               </span>
-              <span className="font-semibold text-gray-900 dark:text-white">
+              <span className="font-semibold text-theme-foreground ">
                 {move.white}
               </span>
-              <span className="font-semibold text-gray-900 dark:text-white">
+              <span className="font-semibold text-theme-foreground ">
                 {move.black}
               </span>
             </div>

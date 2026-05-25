@@ -15,7 +15,6 @@ import {
   calculateStats,
   filterGames,
   type FilterType,
-  type TournamentHistoryEntry,
   type TabType,
 } from "../components/profilePage";
 import type { Relationship } from "../components/profilePage/ProfileHeader";
@@ -89,9 +88,6 @@ export default function UserProfile() {
   const [friendLoading, setFriendLoading] = useState(false);
   const [blockActionLoading, setBlockActionLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [tournamentHistory, setTournamentHistory] = useState<
-    TournamentHistoryEntry[]
-  >([]);
   const targetUserId =
     profileUser?.id || (!isUsernameRoute ? routeProfileKey : "");
   const {
@@ -186,31 +182,6 @@ export default function UserProfile() {
       cancelled = true;
     };
   }, [isUsernameRoute, routeProfileKey]);
-
-  useEffect(() => {
-    if (!targetUserId) return;
-    let cancelled = false;
-
-    async function fetchTournamentHistory() {
-      try {
-        const res = await fetch(`${API_URL}/api/users/${targetUserId}/profile`, {
-          credentials: "include",
-        });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.error || "Failed to load profile");
-        if (!cancelled) {
-          setTournamentHistory(data.profile?.tournamentHistory || []);
-        }
-      } catch {
-        if (!cancelled) setTournamentHistory([]);
-      }
-    }
-
-    void fetchTournamentHistory();
-    return () => {
-      cancelled = true;
-    };
-  }, [targetUserId]);
 
   const stats = useMemo(() => calculateStats(games), [games]);
   const filteredGames = useMemo(
@@ -377,7 +348,7 @@ export default function UserProfile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-950 flex">
+      <div className="min-h-screen bg-theme-panel flex">
         <Sidebar />
         <div className="flex-1 ml-[60px] md:ml-72 flex items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-500"></div>
@@ -392,16 +363,16 @@ export default function UserProfile() {
 
   if (error || !profileUser) {
     return (
-      <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-950 flex">
+      <div className="min-h-screen bg-theme-panel flex">
         <Sidebar />
         <div className="flex-1 ml-[60px] md:ml-72 flex items-center justify-center">
           <div className="text-center">
-            <p className="text-lg text-gray-500 dark:text-gray-400">
+            <p className="text-lg text-theme-muted">
               {error || "User not found"}
             </p>
             <button
               onClick={() => navigate(-1)}
-              className="mt-4 px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors"
+              className="mt-4 px-4 py-2 bg-brand-600 text-theme-on-accent rounded-lg hover:bg-brand-700 transition-colors"
             > <Trans>Go Back</Trans> </button>
           </div>
         </div>
@@ -412,7 +383,7 @@ export default function UserProfile() {
   const isMe = false;
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-950 text-gray-900 dark:text-white flex transition-colors duration-300">
+    <div className="min-h-screen bg-theme-panel text-theme-foreground flex transition-colors duration-300">
       <Sidebar />
       <div className="flex-1 ml-[60px] md:ml-72">
         <ProfileHeader
@@ -438,7 +409,7 @@ export default function UserProfile() {
 
         <div className="px-4 lg:px-6 py-6">
           {actionError ? (
-            <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
+            <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700">
               {actionError}
             </div>
           ) : null}
@@ -458,7 +429,6 @@ export default function UserProfile() {
               <GamesTabContent
                 filteredGames={filteredGames}
                 allGames={games}
-                tournamentHistory={tournamentHistory}
                 filter={filter}
                 setFilter={setFilter}
                 expandedId={expandedId}

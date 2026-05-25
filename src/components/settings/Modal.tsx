@@ -24,7 +24,7 @@ export function Modal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-[80] flex items-center justify-center bg-theme-panel/60 p-4 backdrop-blur-sm"
           onClick={onClose}
         >
           <motion.div
@@ -36,14 +36,14 @@ export function Modal({
             className={`${maxWidth} theme-glass-panel-strong flex max-h-[calc(100vh-2rem)] w-full flex-col overflow-hidden rounded-2xl`}
           >
             <div className="flex shrink-0 items-center justify-between px-6 py-4 border-b border-theme-glass">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+              <h3 className="text-lg font-bold text-theme-foreground ">
                 {title}
               </h3>
               <button
                 onClick={onClose}
-                className="p-1.5 rounded-lg hover:bg-white/45 dark:hover:bg-white/10 transition-colors"
+                className="p-1.5 rounded-lg hover:bg-theme-panel/45 transition-colors"
               >
-                <X className="w-4 h-4 text-gray-500" />
+                <X className="w-4 h-4 text-theme-muted" />
               </button>
             </div>
             <div className="min-h-0 overflow-y-auto overscroll-contain px-6 py-5 premium-scrollbar">

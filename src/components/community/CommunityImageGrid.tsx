@@ -30,7 +30,7 @@ function ImageTile({
   const isInteractive = typeof onImageClick === "function";
 
   return (
-    <div className={`group/tile relative overflow-hidden rounded-[18px] bg-black/60 ${className || ""}`}>
+    <div className={`group/tile relative overflow-hidden rounded-[18px] bg-theme-panel/60 ${className || ""}`}>
       {isInteractive ? (
         <button
           type="button"
@@ -56,8 +56,8 @@ function ImageTile({
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/28 via-transparent to-transparent" />
 
       {hiddenCount > 0 && (
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/58">
-          <span className="text-[28px] font-semibold tracking-tight text-white">
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-theme-panel/58">
+          <span className="text-[28px] font-semibold tracking-tight text-theme-on-accent">
             +{hiddenCount}
           </span>
         </div>
@@ -70,7 +70,7 @@ function ImageTile({
             event.stopPropagation();
             onRemoveImage(index);
           }}
-          className="absolute right-2 top-2 z-10 inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/62 text-gray-100 transition-colors hover:bg-black/80 hover:text-white"
+          className="absolute right-2 top-2 z-10 inline-flex h-8 w-8 items-center justify-center rounded-full bg-theme-panel/62 text-theme-foreground transition-colors hover:bg-theme-panel/80 hover:text-theme-foreground"
           aria-label="Remove image"
         >
           <X className="h-4 w-4" />

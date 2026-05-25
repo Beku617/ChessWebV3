@@ -37,7 +37,7 @@ export function BotSelector({
     >
       {/* Category Selector */}
       <div className="mb-4">
-        <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block"> <Trans>Difficulty Category</Trans> </label>
+        <label className="text-sm font-medium text-theme-muted mb-2 block"> <Trans>Difficulty Category</Trans> </label>
         <div className="flex gap-1 overflow-x-auto pb-2">
           {categories.map((cat) => (
             <button
@@ -48,8 +48,8 @@ export function BotSelector({
               }}
               className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
                 selectedCategory === cat
-                  ? `${categoryColors[cat]} text-white`
-                  : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                  ? `${categoryColors[cat]} text-theme-on-accent`
+                  : "bg-theme-surface text-theme-muted hover:bg-theme-surface/80"
               }`}
             >
               {categoryLabels[cat]}
@@ -60,7 +60,7 @@ export function BotSelector({
 
       {/* Bot Selection Grid */}
       <div className="mb-4">
-        <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block"> <Trans>Choose Your Opponent</Trans> </label>
+        <label className="text-sm font-medium text-theme-muted mb-2 block"> <Trans>Choose Your Opponent</Trans> </label>
         <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
           {botsInCategory.map((bot) => (
             <button
@@ -68,8 +68,8 @@ export function BotSelector({
               onClick={() => setSelectedBot(bot)}
               className={`p-3 rounded-lg text-left transition-all ${
                 selectedBot?.id === bot.id
-                  ? "bg-brand-600 text-white ring-2 ring-brand-400"
-                  : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                  ? "bg-brand-600 text-theme-on-accent ring-2 ring-brand-400"
+                  : "bg-theme-surface text-theme-muted hover:bg-theme-surface/80"
               }`}
             >
               <div className="flex items-center gap-2">
@@ -86,7 +86,7 @@ export function BotSelector({
                     className={`text-xs ${
                       selectedBot?.id === bot.id
                         ? "text-brand-100"
-                        : "text-gray-500 dark:text-gray-400"
+                        : "text-theme-muted"
                     }`}
                   > <Trans>Rating:</Trans> {bot.rating}
                   </div>
@@ -111,30 +111,30 @@ function BotInfoCard({
   language: string;
 }) {
   return (
-    <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+    <div className="mb-4 p-4 bg-theme-surface rounded-lg">
       <div className="flex items-start gap-3">
         <div className="flex-1">
-          <h3 className="font-bold text-gray-900 dark:text-white">
+          <h3 className="font-bold text-theme-foreground ">
             {bot.title && (
-              <span className="text-brand-600 dark:text-brand-400 mr-1">
+              <span className="text-brand-600 mr-1">
                 {bot.title}
               </span>
             )}
             {bot.name}
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400 italic mb-1">
+          <p className="text-sm text-theme-muted italic mb-1">
             "{bot.personality}"
           </p>
-          <p className="text-xs text-gray-500 dark:text-gray-500">
+          <p className="text-xs text-theme-muted">
             {resolveLocalizedBotDescription(bot.description, language)}
           </p>
           <div className="flex gap-2 mt-2">
             <span
-              className={`text-xs px-2 py-0.5 rounded-full ${categoryColors[bot.category]} text-white`}
+              className={`text-xs px-2 py-0.5 rounded-full ${categoryColors[bot.category]} text-theme-on-accent`}
             >
               {bot.rating} ELO
             </span>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 capitalize">
+            <span className="text-xs px-2 py-0.5 rounded-full bg-theme-surface text-theme-muted capitalize">
               {bot.playStyle}
             </span>
           </div>

@@ -32,22 +32,22 @@ export function PromotionModal({ state, onSelect }: PromotionModalProps) {
 
   return (
     <div className="absolute inset-0 z-[90] flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-[1px]" />
+      <div className="absolute inset-0 bg-theme-panel/60 backdrop-blur-[1px]" />
 
       <div
         role="dialog"
         aria-modal="true"
         aria-label={t("game.aria.choosePromotionPiece")}
-        className="relative z-[91] w-[min(92%,420px)] rounded-2xl border border-white/15 bg-slate-950/95 p-5 shadow-2xl"
+        className="relative z-[91] w-[min(92%,420px)] rounded-2xl border border-theme-glass bg-theme-panel/95 p-5 shadow-2xl"
       >
-        <h3 className="text-center text-sm font-semibold uppercase tracking-[0.18em] text-slate-300"> <Trans>Choose Promotion</Trans> </h3>
+        <h3 className="text-center text-sm font-semibold uppercase tracking-[0.18em] text-theme-muted"> <Trans>Choose Promotion</Trans> </h3>
         <div className="mt-4 grid grid-cols-4 gap-3">
           {PIECE_ORDER.map((piece) => (
             <button
               key={piece}
               type="button"
               onClick={() => onSelect(piece)}
-              className="group flex h-20 flex-col items-center justify-center rounded-xl border border-white/15 bg-slate-900/80 transition hover:-translate-y-0.5 hover:border-brand-300/70 hover:bg-slate-800"
+              className="group flex h-20 flex-col items-center justify-center rounded-xl border border-theme-glass bg-theme-panel/80 transition hover:-translate-y-0.5 hover:border-brand-300/70 hover:bg-theme-surface"
               aria-label={t("game.aria.promoteTo", {
                 piece: t(PIECE_LABELS[piece]),
               })}

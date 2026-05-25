@@ -198,16 +198,16 @@ export function BotGameView({
             <div className="flex items-center gap-3">
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                  <h2 className="text-xl font-bold text-theme-foreground ">
                     {gameSettings.selectedBot?.name || "Stockfish"}
                   </h2>
                   {gameSettings.selectedBot?.title && (
-                    <span className="px-2 py-0.5 text-xs font-bold bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded">
+                    <span className="px-2 py-0.5 text-xs font-bold bg-amber-500/20 text-amber-600 rounded">
                       {gameSettings.selectedBot.title}
                     </span>
                   )}
                 </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400"> <Trans>Rating:</Trans> {gameSettings.selectedBot?.rating || "N/A"}
+                <div className="text-sm text-theme-muted"> <Trans>Rating:</Trans> {gameSettings.selectedBot?.rating || "N/A"}
                 </div>
               </div>
             </div>
@@ -221,7 +221,7 @@ export function BotGameView({
                   rows={moveRows}
                   emptyMessage="No moves yet"
                   rowClassName="text-sm"
-                  inactiveMoveClassName="text-gray-800 dark:text-gray-200"
+                  inactiveMoveClassName="text-theme-foreground "
                 />
               }
               showMessagesTab={false}
@@ -233,11 +233,11 @@ export function BotGameView({
             <ResignConfirmButton
               onConfirm={onResign}
               disabled={gameOver}
-              className="w-full py-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 font-medium transition-colors disabled:opacity-50"
+              className="w-full py-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-600 font-medium transition-colors disabled:opacity-50"
             > <Trans>Resign</Trans> </ResignConfirmButton>
             <button
               onClick={() => navigate("/play/bot")}
-              className="w-full py-3 rounded-xl bg-white/10 hover:bg-white/15 text-gray-800 dark:text-gray-200 font-medium transition-colors"
+              className="w-full py-3 rounded-xl bg-theme-panel/10 hover:bg-theme-panel/15 text-theme-foreground font-medium transition-colors"
             > <Trans>Back to Bot Selection</Trans> </button>
           </div>
         </div>

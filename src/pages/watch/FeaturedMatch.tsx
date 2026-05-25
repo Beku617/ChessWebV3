@@ -21,12 +21,12 @@ export function FeaturedMatch({
     return (
       <section className="mb-10">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
+          <h2 className="text-xl font-bold text-theme-foreground flex items-center">
             {t("Featured Match")}
           </h2>
         </div>
-        <div className="bg-white dark:bg-gradient-to-r dark:from-gray-900 dark:to-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-800 shadow-xl animate-pulse">
-          <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
+        <div className="bg-theme-panel rounded-2xl p-6 border border-theme-glass shadow-xl animate-pulse">
+          <div className="h-32 bg-theme-surface rounded"></div>
         </div>
       </section>
     );
@@ -40,7 +40,7 @@ export function FeaturedMatch({
     return (
       <section className="mb-10">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
+          <h2 className="text-xl font-bold text-theme-foreground flex items-center">
             {t("Featured")}{" "}
             {event.type === "tournament"
               ? t("Tournament")
@@ -48,36 +48,36 @@ export function FeaturedMatch({
                 ? t("Match")
                 : t("Event")}
           </h2>
-          <span className="text-brand-600 dark:text-brand-500 text-sm font-medium cursor-pointer hover:underline">
+          <span className="text-brand-600 text-sm font-medium cursor-pointer hover:underline">
             {t("View all events")}
           </span>
         </div>
 
-        <div className="bg-white dark:bg-gradient-to-r dark:from-gray-900 dark:to-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-800 shadow-xl relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 dark:bg-brand-500/10 rounded-full blur-3xl -mr-16 -mt-16 transition-all group-hover:bg-brand-500/10 dark:group-hover:bg-brand-500/20"></div>
+        <div className="bg-theme-panel rounded-2xl p-6 border border-theme-glass shadow-xl relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-16 -mt-16 transition-all group-hover:bg-brand-500/10"></div>
 
           {/* Event Header */}
           <div className="relative z-10 mb-6">
             <div className="flex items-center gap-3 mb-2">
               {event.status === "live" && (
-                <span className="px-2 py-1 bg-red-500 text-white text-xs font-bold rounded animate-pulse">
+                <span className="px-2 py-1 bg-red-500 text-theme-on-accent text-xs font-bold rounded animate-pulse">
                   LIVE
                 </span>
               )}
               {event.status === "upcoming" && (
-                <span className="px-2 py-1 bg-blue-500 text-white text-xs font-bold rounded">
+                <span className="px-2 py-1 bg-blue-500 text-theme-on-accent text-xs font-bold rounded">
                   {t("UPCOMING")}
                 </span>
               )}
-              <span className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <span className="text-xs text-theme-muted uppercase tracking-wider">
                 {event.type}
               </span>
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+            <h3 className="text-2xl font-bold text-theme-foreground ">
               {event.title}
             </h3>
             {event.description && (
-              <p className="text-gray-500 dark:text-gray-400 mt-1">
+              <p className="text-theme-muted mt-1">
                 {event.description}
               </p>
             )}
@@ -95,29 +95,29 @@ export function FeaturedMatch({
                         {player1.title}
                       </span>
                     )}
-                    <span className="text-2xl font-bold text-gray-900 dark:text-white">
+                    <span className="text-2xl font-bold text-theme-foreground ">
                       {player1.name}
                     </span>
                   </div>
-                  <div className="text-gray-500 dark:text-gray-400 font-mono">
+                  <div className="text-theme-muted font-mono">
                     {player1.rating}
                   </div>
                 </div>
-                <div className="w-16 h-16 rounded-xl bg-gray-100 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 flex items-center justify-center text-2xl shadow-lg">
+                <div className="w-16 h-16 rounded-xl bg-theme-surface border-2 border-theme-glass flex items-center justify-center text-2xl shadow-lg">
 
                 </div>
               </div>
 
               {/* VS */}
               <div className="flex flex-col items-center px-8">
-                <div className="text-4xl font-black text-gray-400 dark:text-gray-600">
+                <div className="text-4xl font-black text-theme-muted">
                   VS
                 </div>
               </div>
 
               {/* Player 2 */}
               <div className="flex items-center space-x-4 flex-1">
-                <div className="w-16 h-16 rounded-xl bg-gray-100 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 flex items-center justify-center text-2xl shadow-lg">
+                <div className="w-16 h-16 rounded-xl bg-theme-surface border-2 border-theme-glass flex items-center justify-center text-2xl shadow-lg">
 
                 </div>
                 <div>
@@ -127,11 +127,11 @@ export function FeaturedMatch({
                         {player2.title}
                       </span>
                     )}
-                    <span className="text-2xl font-bold text-gray-900 dark:text-white">
+                    <span className="text-2xl font-bold text-theme-foreground ">
                       {player2.name}
                     </span>
                   </div>
-                  <div className="text-gray-500 dark:text-gray-400 font-mono">
+                  <div className="text-theme-muted font-mono">
                     {player2.rating}
                   </div>
                 </div>
@@ -140,7 +140,7 @@ export function FeaturedMatch({
           )}
 
           {/* Event Info */}
-          <div className="relative z-10 flex items-center justify-center gap-6 text-sm text-gray-500 dark:text-gray-400 mb-6">
+          <div className="relative z-10 flex items-center justify-center gap-6 text-sm text-theme-muted mb-6">
             {event.startDate && (
               <div className="flex items-center gap-1">
                 <Calendar className="w-4 h-4" />
@@ -158,7 +158,7 @@ export function FeaturedMatch({
           </div>
 
           <div className="flex justify-center gap-4">
-            <button className="flex items-center space-x-2 bg-brand-600 hover:bg-brand-500 text-white px-8 py-3 rounded-lg font-bold transition-all shadow-lg shadow-brand-900/20 hover:scale-105">
+            <button className="flex items-center space-x-2 bg-brand-600 hover:bg-brand-500 text-theme-on-accent px-8 py-3 rounded-lg font-bold transition-all shadow-lg shadow-brand-900/20 hover:scale-105">
               <Eye className="w-5 h-5" />
               <span>{t("Watch Now")}</span>
             </button>
@@ -167,7 +167,7 @@ export function FeaturedMatch({
                 href={event.lichessUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center space-x-2 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-900 dark:text-white px-6 py-3 rounded-lg font-bold transition-all"
+                className="flex items-center space-x-2 bg-theme-surface hover:bg-theme-surface text-theme-foreground px-6 py-3 rounded-lg font-bold transition-all"
               >
                 <ExternalLink className="w-5 h-5" />
                 <span><Trans>Lichess</Trans></span>
@@ -184,19 +184,19 @@ export function FeaturedMatch({
     return (
       <section className="mb-10">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
+          <h2 className="text-xl font-bold text-theme-foreground flex items-center">
             {t("Featured Match")}
-            <span className="ml-2 text-xs bg-gray-200 dark:bg-gray-800 px-2 py-1 rounded text-gray-500">
+            <span className="ml-2 text-xs bg-theme-surface px-2 py-1 rounded text-theme-muted">
               {t("via Lichess")}
             </span>
           </h2>
-          <span className="text-brand-600 dark:text-brand-500 text-sm font-medium cursor-pointer hover:underline">
+          <span className="text-brand-600 text-sm font-medium cursor-pointer hover:underline">
             {t("View all tournaments")}
           </span>
         </div>
 
-        <div className="bg-white dark:bg-gradient-to-r dark:from-gray-900 dark:to-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-800 shadow-xl relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 dark:bg-brand-500/10 rounded-full blur-3xl -mr-16 -mt-16 transition-all group-hover:bg-brand-500/10 dark:group-hover:bg-brand-500/20"></div>
+        <div className="bg-theme-panel rounded-2xl p-6 border border-theme-glass shadow-xl relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-16 -mt-16 transition-all group-hover:bg-brand-500/10"></div>
 
           <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
             {/* Player 1 */}
@@ -208,15 +208,15 @@ export function FeaturedMatch({
                       {fallbackGame.whiteTitle}
                     </span>
                   )}
-                  <span className="text-2xl font-bold text-gray-900 dark:text-white">
+                  <span className="text-2xl font-bold text-theme-foreground ">
                     {fallbackGame.white}
                   </span>
                 </div>
-                <div className="text-gray-500 dark:text-gray-400 font-mono">
+                <div className="text-theme-muted font-mono">
                   {fallbackGame.whiteRating}
                 </div>
               </div>
-              <div className="w-16 h-16 rounded-xl bg-gray-100 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 flex items-center justify-center text-2xl shadow-lg">
+              <div className="w-16 h-16 rounded-xl bg-theme-surface border-2 border-theme-glass flex items-center justify-center text-2xl shadow-lg">
 
               </div>
             </div>
@@ -226,10 +226,10 @@ export function FeaturedMatch({
               <div className="text-sm font-bold text-red-500 tracking-widest mb-2 animate-pulse">
                 LIVE
               </div>
-              <div className="text-4xl font-black text-gray-400 dark:text-gray-600">
+              <div className="text-4xl font-black text-theme-muted">
                 VS
               </div>
-              <div className="mt-2 px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded text-xs text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700">
+              <div className="mt-2 px-3 py-1 bg-theme-surface rounded text-xs text-theme-muted border border-theme-glass ">
                 {(fallbackGame.category || fallbackGame.type) +
                   " • " +
                   fallbackGame.time}
@@ -238,7 +238,7 @@ export function FeaturedMatch({
 
             {/* Player 2 */}
             <div className="flex items-center space-x-4 flex-1">
-              <div className="w-16 h-16 rounded-xl bg-gray-100 dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 flex items-center justify-center text-2xl shadow-lg">
+              <div className="w-16 h-16 rounded-xl bg-theme-surface border-2 border-theme-glass flex items-center justify-center text-2xl shadow-lg">
 
               </div>
               <div>
@@ -248,11 +248,11 @@ export function FeaturedMatch({
                       {fallbackGame.blackTitle}
                     </span>
                   )}
-                  <span className="text-2xl font-bold text-gray-900 dark:text-white">
+                  <span className="text-2xl font-bold text-theme-foreground ">
                     {fallbackGame.black}
                   </span>
                 </div>
-                <div className="text-gray-500 dark:text-gray-400 font-mono">
+                <div className="text-theme-muted font-mono">
                   {fallbackGame.blackRating}
                 </div>
               </div>
@@ -264,7 +264,7 @@ export function FeaturedMatch({
               href={fallbackGame.gameUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center space-x-2 bg-brand-600 hover:bg-brand-500 text-white px-8 py-3 rounded-lg font-bold transition-all shadow-lg shadow-brand-900/20 hover:scale-105"
+              className="flex items-center space-x-2 bg-brand-600 hover:bg-brand-500 text-theme-on-accent px-8 py-3 rounded-lg font-bold transition-all shadow-lg shadow-brand-900/20 hover:scale-105"
             >
               <Eye className="w-5 h-5" />
               <span>{t("Watch on Lichess")}</span>
@@ -279,12 +279,12 @@ export function FeaturedMatch({
   return (
     <section className="mb-10">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
+        <h2 className="text-xl font-bold text-theme-foreground flex items-center">
           {t("Featured Match")}
         </h2>
       </div>
-      <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 border border-gray-200 dark:border-gray-800 text-center">
-        <p className="text-gray-500 dark:text-gray-400">
+      <div className="bg-theme-panel rounded-2xl p-8 border border-theme-glass text-center">
+        <p className="text-theme-muted">
           {t("No featured events at the moment")}
         </p>
       </div>

@@ -129,18 +129,18 @@ export function BotFormModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-theme-panel/50 backdrop-blur-sm">
+      <div className="bg-theme-panel rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+        <div className="flex items-center justify-between p-6 border-b border-theme-glass ">
+          <h2 className="text-xl font-bold text-theme-foreground ">
             {editingBot
               ? t("admin.bots.modal.editBot", "Edit Bot")
               : t("admin.bots.modal.createNewBot", "Create New Bot")}
           </h2>
           <button
             onClick={onClose}
-            className="px-3 py-1.5 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="px-3 py-1.5 rounded-lg text-sm font-medium text-theme-muted hover:bg-theme-surface transition-colors"
           > <Trans>Close</Trans> </button>
         </div>
 
@@ -154,14 +154,14 @@ export function BotFormModal({
             <div className="space-y-4">
               {/* Name */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"> <Trans>Bot Name *</Trans> </label>
+                <label className="block text-sm font-medium text-theme-muted mb-1"> <Trans>Bot Name *</Trans> </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) =>
                     setFormData({ ...formData, name: e.target.value })
                   }
-                  className={`w-full px-4 py-2 rounded-lg border ${errors.name ? "border-red-500" : "border-gray-300 dark:border-gray-600"} bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-transparent`}
+                  className={`w-full px-4 py-2 rounded-lg border ${errors.name ? "border-red-500" : "border-theme-glass"} bg-theme-panel text-theme-foreground focus:ring-2 focus:ring-brand-500 focus:border-transparent`}
                   placeholder={t("admin.bots.placeholders.botName", "Enter bot name")}
                 />
                 {errors.name && (
@@ -171,11 +171,11 @@ export function BotFormModal({
 
               {/* Avatar Image Upload */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"> <Trans>Avatar Image (optional)</Trans> </label>
+                <label className="block text-sm font-medium text-theme-muted mb-1"> <Trans>Avatar Image (optional)</Trans> </label>
                 <div className="flex items-center gap-4">
                   <div
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-20 h-20 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center cursor-pointer hover:border-brand-500 transition-colors overflow-hidden"
+                    className="w-20 h-20 rounded-xl border-2 border-dashed border-theme-glass flex items-center justify-center cursor-pointer hover:border-brand-500 transition-colors overflow-hidden"
                   >
                     {previewUrl ? (
                       <img
@@ -184,7 +184,7 @@ export function BotFormModal({
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <span className="text-xs font-semibold uppercase tracking-wide text-gray-400"> <Trans>Image</Trans> </span>
+                      <span className="text-xs font-semibold uppercase tracking-wide text-theme-muted"> <Trans>Image</Trans> </span>
                     )}
                   </div>
                   <div className="flex-1">
@@ -198,9 +198,9 @@ export function BotFormModal({
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="px-4 py-2 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors flex items-center gap-2"
+                      className="px-4 py-2 bg-theme-surface text-theme-muted rounded-lg hover:bg-theme-surface/80 transition-colors flex items-center gap-2"
                     > <Trans>Upload Image</Trans> </button>
-                    <p className="text-xs text-gray-500 mt-1"> <Trans>Max 5MB, JPG/PNG/GIF/WebP</Trans> </p>
+                    <p className="text-xs text-theme-muted mt-1"> <Trans>Max 5MB, JPG/PNG/GIF/WebP</Trans> </p>
                   </div>
                 </div>
                 {errors.avatarFile && (
@@ -212,7 +212,7 @@ export function BotFormModal({
 
               {/* ELO Rating */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"> <Trans>ELO Rating *</Trans> </label>
+                <label className="block text-sm font-medium text-theme-muted mb-1"> <Trans>ELO Rating *</Trans> </label>
                 <input
                   type="number"
                   min={100}
@@ -224,7 +224,7 @@ export function BotFormModal({
                       eloRating: parseInt(e.target.value) || 1200,
                     })
                   }
-                  className={`w-full px-4 py-2 rounded-lg border ${errors.eloRating ? "border-red-500" : "border-gray-300 dark:border-gray-600"} bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500`}
+                  className={`w-full px-4 py-2 rounded-lg border ${errors.eloRating ? "border-red-500" : "border-theme-glass"} bg-theme-panel text-theme-foreground focus:ring-2 focus:ring-brand-500`}
                 />
                 {errors.eloRating && (
                   <p className="text-red-500 text-xs mt-1">
@@ -235,7 +235,7 @@ export function BotFormModal({
 
               {/* Difficulty */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"> <Trans>Difficulty *</Trans> </label>
+                <label className="block text-sm font-medium text-theme-muted mb-1"> <Trans>Difficulty *</Trans> </label>
                 <select
                   value={formData.difficulty}
                   onChange={(e) =>
@@ -244,7 +244,7 @@ export function BotFormModal({
                       difficulty: e.target.value as BotFormData["difficulty"],
                     })
                   }
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500"
+                  className="w-full px-4 py-2 rounded-lg border border-theme-glass bg-theme-panel text-theme-foreground focus:ring-2 focus:ring-brand-500"
                 >
                   {DIFFICULTY_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -256,21 +256,21 @@ export function BotFormModal({
 
               {/* Category */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"> <Trans>Category</Trans> </label>
+                <label className="block text-sm font-medium text-theme-muted mb-1"> <Trans>Category</Trans> </label>
                 <input
                   type="text"
                   value={formData.category}
                   onChange={(e) =>
                     setFormData({ ...formData, category: e.target.value })
                   }
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500"
+                  className="w-full px-4 py-2 rounded-lg border border-theme-glass bg-theme-panel text-theme-foreground focus:ring-2 focus:ring-brand-500"
                   placeholder={t("admin.bots.placeholders.categoryExample", "e.g., general, historical, sports")}
                 />
               </div>
 
               {/* Title */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-theme-muted mb-1">
                   {t("admin.bots.labels.title", "Title (GM, IM, etc.)")}
                 </label>
                 <input
@@ -279,7 +279,7 @@ export function BotFormModal({
                   onChange={(e) =>
                     setFormData({ ...formData, title: e.target.value })
                   }
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500"
+                  className="w-full px-4 py-2 rounded-lg border border-theme-glass bg-theme-panel text-theme-foreground focus:ring-2 focus:ring-brand-500"
                   placeholder={t("admin.bots.placeholders.titleExample", "e.g., GM, IM, FM")}
                 />
               </div>
@@ -289,7 +289,7 @@ export function BotFormModal({
             <div className="space-y-4">
               {/* Quote */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"> <Trans>Quote/Tagline</Trans> </label>
+                <label className="block text-sm font-medium text-theme-muted mb-1"> <Trans>Quote/Tagline</Trans> </label>
                 <textarea
                   value={formData.quote}
                   onChange={(e) =>
@@ -297,10 +297,10 @@ export function BotFormModal({
                   }
                   rows={2}
                   maxLength={200}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 resize-none"
+                  className="w-full px-4 py-2 rounded-lg border border-theme-glass bg-theme-panel text-theme-foreground focus:ring-2 focus:ring-brand-500 resize-none"
                   placeholder={t("admin.bots.placeholders.quote", "Bot's signature quote...")}
                 />
-                <p className="text-xs text-gray-500 text-right">
+                <p className="text-xs text-theme-muted text-right">
                   {t("admin.bots.labels.quoteCount", {
                     defaultValue: "{{count}}/200",
                     count: formData.quote.length,
@@ -310,21 +310,21 @@ export function BotFormModal({
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"> <Trans>Description</Trans> </label>
+                <label className="block text-sm font-medium text-theme-muted mb-1"> <Trans>Description</Trans> </label>
                 <textarea
                   value={formData.description}
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
                   rows={3}
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 resize-none"
+                  className="w-full px-4 py-2 rounded-lg border border-theme-glass bg-theme-panel text-theme-foreground focus:ring-2 focus:ring-brand-500 resize-none"
                   placeholder={t("admin.bots.placeholders.description", "Describe this bot...")}
                 />
               </div>
 
               {/* Play Style */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"> <Trans>Play Style</Trans> </label>
+                <label className="block text-sm font-medium text-theme-muted mb-1"> <Trans>Play Style</Trans> </label>
                 <select
                   value={formData.playStyle}
                   onChange={(e) =>
@@ -333,7 +333,7 @@ export function BotFormModal({
                       playStyle: e.target.value as BotFormData["playStyle"],
                     })
                   }
-                  className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500"
+                  className="w-full px-4 py-2 rounded-lg border border-theme-glass bg-theme-panel text-theme-foreground focus:ring-2 focus:ring-brand-500"
                 >
                   {PLAY_STYLE_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -345,7 +345,7 @@ export function BotFormModal({
 
               {/* Skill Level Slider */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"> <Trans>Skill Level:</Trans> {formData.skillLevel}
+                <label className="block text-sm font-medium text-theme-muted mb-1"> <Trans>Skill Level:</Trans> {formData.skillLevel}
                 </label>
                 <input
                   type="range"
@@ -360,7 +360,7 @@ export function BotFormModal({
                   }
                   className="w-full"
                 />
-                <div className="flex justify-between text-xs text-gray-500">
+                <div className="flex justify-between text-xs text-theme-muted">
                   <span><Trans>0 (Weakest)</Trans></span>
                   <span><Trans>20 (Strongest)</Trans></span>
                 </div>
@@ -368,7 +368,7 @@ export function BotFormModal({
 
               {/* Blunder Chance */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label className="block text-sm font-medium text-theme-muted mb-1">
                   <Trans>Blunder Chance:</Trans>{" "}
                   {t("admin.bots.labels.percentValue", {
                     defaultValue: "{{value}}%",
@@ -402,9 +402,9 @@ export function BotFormModal({
                         openingBook: e.target.checked,
                       })
                     }
-                    className="w-4 h-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                    className="w-4 h-4 rounded border-theme-glass text-brand-500 focus:ring-brand-500"
                   />
-                  <span className="text-sm text-gray-700 dark:text-gray-300"> <Trans>Use Opening Book</Trans> </span>
+                  <span className="text-sm text-theme-muted"> <Trans>Use Opening Book</Trans> </span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -413,25 +413,25 @@ export function BotFormModal({
                     onChange={(e) =>
                       setFormData({ ...formData, isActive: e.target.checked })
                     }
-                    className="w-4 h-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+                    className="w-4 h-4 rounded border-theme-glass text-brand-500 focus:ring-brand-500"
                   />
-                  <span className="text-sm text-gray-700 dark:text-gray-300"> <Trans>Active</Trans> </span>
+                  <span className="text-sm text-theme-muted"> <Trans>Active</Trans> </span>
                 </label>
               </div>
             </div>
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-theme-glass ">
             <button
               type="button"
               onClick={onClose}
-              className="px-6 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="px-6 py-2.5 rounded-lg border border-theme-glass text-theme-muted hover:bg-theme-surface transition-colors"
             > <Trans>Cancel</Trans> </button>
             <button
               type="submit"
               disabled={saving}
-              className="px-6 py-2.5 rounded-lg bg-gradient-to-r from-brand-500 to-brand-500 text-white font-medium hover:from-brand-600 hover:to-brand-600 transition-colors disabled:opacity-50"
+              className="px-6 py-2.5 rounded-lg bg-gradient-to-r from-brand-500 to-brand-500 text-theme-on-accent font-medium hover:from-brand-600 hover:to-brand-600 transition-colors disabled:opacity-50"
             >
               {saving
                 ? t("admin.bots.actions.saving", "Saving...")

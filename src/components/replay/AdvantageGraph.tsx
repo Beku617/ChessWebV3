@@ -1,4 +1,3 @@
-import { Trans } from "react-i18next";
 import { useMemo } from "react";
 import { evalToExpectedPoints } from "../../utils/moveQuality";
 
@@ -25,7 +24,9 @@ export function AdvantageGraph({
 
   if (points.length === 0) {
     return (
-      <div className="h-24 flex items-center justify-center text-sm text-gray-400"> <Trans>No engine data yet</Trans> </div>
+      <div className="h-24 flex items-center justify-center text-sm text-gray-400">
+        No engine data yet
+      </div>
     );
   }
 

@@ -484,8 +484,8 @@ export default function AdminFeaturedEvents() {
     "inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus:outline-none disabled:pointer-events-none disabled:opacity-40";
   const pBtnPage = (active: boolean) =>
     active
-      ? `${pBtnBase} w-9 h-9 bg-brand-500 text-white shadow-md shadow-brand-500/25`
-      : `${pBtnBase} w-9 h-9 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 hover:border-brand-400 dark:hover:border-brand-600 hover:text-brand-600 dark:hover:text-brand-400`;
+      ? `${pBtnBase} w-9 h-9 bg-brand-500 text-theme-on-accent shadow-md shadow-brand-500/25`
+      : `${pBtnBase} w-9 h-9 bg-theme-panel border border-theme-glass text-theme-muted hover:border-brand-400 hover:text-brand-600`;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -494,37 +494,37 @@ export default function AdminFeaturedEvents() {
       case "upcoming":
         return "bg-blue-500";
       case "completed":
-        return "bg-gray-500";
+        return "bg-theme-surface";
       default:
-        return "bg-gray-500";
+        return "bg-theme-surface";
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-950 text-gray-900 dark:text-white flex">
+    <div className="min-h-screen bg-theme-panel text-theme-foreground flex">
       <AdminSidebar />
 
       <main className="flex-1 ml-72 p-8">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white"> <Trans>Featured Events</Trans> </h1>
+            <h1 className="text-3xl font-bold text-theme-foreground "> <Trans>Featured Events</Trans> </h1>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={() => void handleOpenImportModal()}
-              className="rounded-lg border border-gray-200 bg-white px-4 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
+              className="rounded-lg border border-theme-glass bg-theme-panel px-4 py-2 font-medium text-theme-muted transition-colors hover:bg-theme-surface"
             > <Trans>Import from МН</Trans> </button>
             <button
               onClick={openNewModal}
-              className="flex items-center gap-2 bg-brand-600 hover:bg-brand-500 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+              className="flex items-center gap-2 bg-brand-600 hover:bg-brand-500 text-theme-on-accent px-4 py-2 rounded-lg font-medium transition-colors"
             >
               <Plus className="w-5 h-5" /> <Trans>Add Event</Trans> </button>
           </div>
         </div>
 
         {importWarnings.length > 0 && (
-          <div className="mb-5 rounded-lg border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-200">
+          <div className="mb-5 rounded-lg border border-amber-500/25 bg-amber-500/10 px-4 py-3 text-sm text-amber-700">
             {importWarnings.join(" | ")}
           </div>
         )}
@@ -532,19 +532,19 @@ export default function AdminFeaturedEvents() {
         {/* Filters */}
         <div className="flex gap-4 mb-6">
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-theme-muted" />
             <input
               type="text"
               placeholder={t("admin.search.events")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:border-brand-500 shadow-sm"
+              className="w-full bg-theme-panel border border-theme-glass text-theme-foreground rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:border-brand-500 shadow-sm"
             />
           </div>
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500 shadow-sm"
+            className="bg-theme-panel border border-theme-glass text-theme-foreground rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500 shadow-sm"
           >
             <option value="all"><Trans>All Status</Trans></option>
             <option value="upcoming"><Trans>Upcoming</Trans></option>
@@ -555,11 +555,11 @@ export default function AdminFeaturedEvents() {
 
         {/* Events Table */}
         {loading ? (
-          <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+          <div className="text-center py-12 text-theme-muted">
             Loading...
           </div>
         ) : filteredEvents.length === 0 ? (
-          <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+          <div className="text-center py-12 text-theme-muted">
             <p><Trans>No events found</Trans></p>
             <button
               onClick={openNewModal}
@@ -567,43 +567,43 @@ export default function AdminFeaturedEvents() {
             > <Trans>Create your first event</Trans> </button>
           </div>
         ) : (
-          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm">
+          <div className="bg-theme-panel border border-theme-glass rounded-xl overflow-hidden shadow-sm">
             <table className="w-full">
-              <thead className="bg-gray-50 dark:bg-gray-800/50">
+              <thead className="bg-theme-surface">
                 <tr>
-                  <th className="text-left px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400"> <Trans>Event</Trans> </th>
-                  <th className="text-left px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400"> <Trans>Type</Trans> </th>
-                  <th className="text-left px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400"> <Trans>Status</Trans> </th>
-                  <th className="text-left px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400"> <Trans>Date</Trans> </th>
-                  <th className="text-center px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400"> <Trans>Featured</Trans> </th>
-                  <th className="text-center px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400"> <Trans>Active</Trans> </th>
-                  <th className="text-right px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400"> <Trans>Actions</Trans> </th>
+                  <th className="text-left px-6 py-4 text-sm font-medium text-theme-muted"> <Trans>Event</Trans> </th>
+                  <th className="text-left px-6 py-4 text-sm font-medium text-theme-muted"> <Trans>Type</Trans> </th>
+                  <th className="text-left px-6 py-4 text-sm font-medium text-theme-muted"> <Trans>Status</Trans> </th>
+                  <th className="text-left px-6 py-4 text-sm font-medium text-theme-muted"> <Trans>Date</Trans> </th>
+                  <th className="text-center px-6 py-4 text-sm font-medium text-theme-muted"> <Trans>Featured</Trans> </th>
+                  <th className="text-center px-6 py-4 text-sm font-medium text-theme-muted"> <Trans>Active</Trans> </th>
+                  <th className="text-right px-6 py-4 text-sm font-medium text-theme-muted"> <Trans>Actions</Trans> </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+              <tbody className="divide-y divide-theme-glass">
                 {paginatedEvents.map((event) => (
                   <tr
                     key={event._id}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-800/30"
+                    className="hover:bg-theme-surface"
                   >
                     <td className="px-6 py-4">
                       <div>
-                        <div className="font-medium text-gray-900 dark:text-white">
+                        <div className="font-medium text-theme-foreground ">
                           {event.title}
                         </div>
                         {event.pairId && (
-                          <div className="mt-1 inline-flex rounded-full bg-gray-200 px-2 py-0.5 text-[10px] font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300"> <Trans>Pair ID:</Trans> {event.pairId}
+                          <div className="mt-1 inline-flex rounded-full bg-theme-surface px-2 py-0.5 text-[10px] font-medium text-theme-muted"> <Trans>Pair ID:</Trans> {event.pairId}
                           </div>
                         )}
                         {event.description && (
-                          <div className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-xs">
+                          <div className="text-sm text-theme-muted truncate max-w-xs">
                             {event.description}
                           </div>
                         )}
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="capitalize text-gray-600 dark:text-gray-300">
+                      <span className="capitalize text-theme-muted">
                         {event.type}
                       </span>
                     </td>
@@ -613,14 +613,14 @@ export default function AdminFeaturedEvents() {
                         onChange={(e) =>
                           updateStatus(event._id, e.target.value)
                         }
-                        className={`${getStatusColor(event.status)} text-white text-xs px-2 py-1 rounded font-medium bg-opacity-80`}
+                        className={`${getStatusColor(event.status)} text-theme-on-accent text-xs px-2 py-1 rounded font-medium bg-opacity-80`}
                       >
                         <option value="upcoming"><Trans>Upcoming</Trans></option>
                         <option value="live"><Trans>Live</Trans></option>
                         <option value="completed"><Trans>Completed</Trans></option>
                       </select>
                     </td>
-                    <td className="px-6 py-4 text-gray-500 dark:text-gray-400 text-sm">
+                    <td className="px-6 py-4 text-theme-muted text-sm">
                       {event.startDate
                         ? new Date(event.startDate).toLocaleDateString()
                         : "-"}
@@ -631,7 +631,7 @@ export default function AdminFeaturedEvents() {
                         className={`p-1 rounded transition-colors ${
                           event.featured
                             ? "text-yellow-500 hover:text-yellow-400"
-                            : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
+                            : "text-theme-muted hover:text-theme-muted"
                         }`}
                       >
                         {event.featured ? (
@@ -647,7 +647,7 @@ export default function AdminFeaturedEvents() {
                         className={`p-1 rounded transition-colors ${
                           event.isActive
                             ? "text-green-500 hover:text-green-400"
-                            : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
+                            : "text-theme-muted hover:text-theme-muted"
                         }`}
                       >
                         {event.isActive ? (
@@ -661,13 +661,13 @@ export default function AdminFeaturedEvents() {
                       <div className="flex justify-end gap-2">
                         <button
                           onClick={() => openEditModal(event)}
-                          className="p-2 text-gray-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                          className="p-2 text-theme-muted hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors"
                         >
                           <Pencil className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(event._id)}
-                          className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                          className="p-2 text-theme-muted hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -679,15 +679,15 @@ export default function AdminFeaturedEvents() {
             </table>
 
             {/* Pagination */}
-            <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 dark:border-gray-800">
-              <div className="text-sm text-gray-500 dark:text-gray-400">
+            <div className="flex items-center justify-between px-6 py-4 border-t border-theme-glass ">
+              <div className="text-sm text-theme-muted">
                 {rangeStart}<Trans>\u2013</Trans>{rangeEnd} <Trans>of</Trans> {filteredEvents.length} <Trans>events</Trans> </div>
               {totalPages > 1 && (
                 <div className="flex items-center gap-1.5">
                   <button
                     disabled={safePage <= 1}
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    className={`${pBtnBase} w-9 h-9 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:border-brand-400 dark:hover:border-brand-600 hover:text-brand-600 dark:hover:text-brand-400`}
+                    className={`${pBtnBase} w-9 h-9 bg-theme-panel border border-theme-glass text-theme-muted hover:border-brand-400 hover:text-brand-600`}
                   >
                     <ChevronLeft size={16} />
                   </button>
@@ -695,7 +695,7 @@ export default function AdminFeaturedEvents() {
                     p === "..." ? (
                       <span
                         key={`dots-${i}`}
-                        className="w-9 h-9 flex items-center justify-center text-gray-400 dark:text-gray-600 text-sm select-none"
+                        className="w-9 h-9 flex items-center justify-center text-theme-muted text-sm select-none"
                       > <Trans>\u2026</Trans> </span>
                     ) : (
                       <button
@@ -712,7 +712,7 @@ export default function AdminFeaturedEvents() {
                     onClick={() =>
                       setCurrentPage((p) => Math.min(totalPages, p + 1))
                     }
-                    className={`${pBtnBase} w-9 h-9 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:border-brand-400 dark:hover:border-brand-600 hover:text-brand-600 dark:hover:text-brand-400`}
+                    className={`${pBtnBase} w-9 h-9 bg-theme-panel border border-theme-glass text-theme-muted hover:border-brand-400 hover:text-brand-600`}
                   >
                     <ChevronRight size={16} />
                   </button>
@@ -723,52 +723,52 @@ export default function AdminFeaturedEvents() {
         )}
 
         {importModalOpen && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[55] p-4">
-            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-xl">
-              <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-800">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white"> <Trans>Import from МН</Trans> </h2>
+          <div className="fixed inset-0 bg-theme-panel/50 flex items-center justify-center z-[55] p-4">
+            <div className="bg-theme-panel border border-theme-glass rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-xl">
+              <div className="flex justify-between items-center p-6 border-b border-theme-glass ">
+                <h2 className="text-xl font-bold text-theme-foreground "> <Trans>Import from МН</Trans> </h2>
                 <button
                   onClick={closeImportModal}
                   disabled={importSaving}
-                  className="px-3 py-1.5 text-sm text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white disabled:opacity-60"
+                  className="px-3 py-1.5 text-sm text-theme-muted hover:text-theme-foreground disabled:opacity-60"
                 > <Trans>Close</Trans> </button>
               </div>
 
               <div className="p-6">
                 {importError && (
-                  <div className="mb-4 rounded-lg border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-200">
+                  <div className="mb-4 rounded-lg border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-700">
                     {importError}
                   </div>
                 )}
 
-                <div className="rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+                <div className="rounded-xl border border-theme-glass overflow-hidden">
                   {importLoading ? (
-                    <div className="py-16 text-center text-gray-500 dark:text-gray-400">
+                    <div className="py-16 text-center text-theme-muted">
                       Loading...
                     </div>
                   ) : importSourceEvents.length === 0 ? (
-                    <div className="py-12 text-center text-sm text-gray-500 dark:text-gray-400"> <Trans>No events available to import.</Trans> </div>
+                    <div className="py-12 text-center text-sm text-theme-muted"> <Trans>No events available to import.</Trans> </div>
                   ) : (
                     <div className="max-h-[52vh] overflow-auto">
                       <table className="w-full min-w-[860px]">
-                        <thead className="bg-gray-50 dark:bg-gray-800/50">
+                        <thead className="bg-theme-surface">
                           <tr>
-                            <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400">
-                              <label className="inline-flex items-center gap-2 text-xs font-medium normal-case tracking-normal text-gray-700 dark:text-gray-300">
+                            <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-theme-muted">
+                              <label className="inline-flex items-center gap-2 text-xs font-medium normal-case tracking-normal text-theme-muted">
                                 <input
                                   type="checkbox"
                                   checked={allImportSelected}
                                   onChange={toggleSelectAllImportEvents}
-                                  className="h-4 w-4 rounded border-gray-300 dark:border-gray-700"
+                                  className="h-4 w-4 rounded border-theme-glass "
                                 /> <Trans>All</Trans> </label>
                             </th>
-                            <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400"> <Trans>Event</Trans> </th>
-                            <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400"> <Trans>Type</Trans> </th>
-                            <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400"> <Trans>Status</Trans> </th>
-                            <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-gray-500 dark:text-gray-400"> <Trans>Pair ID</Trans> </th>
+                            <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-theme-muted"> <Trans>Event</Trans> </th>
+                            <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-theme-muted"> <Trans>Type</Trans> </th>
+                            <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-theme-muted"> <Trans>Status</Trans> </th>
+                            <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-theme-muted"> <Trans>Pair ID</Trans> </th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                        <tbody className="divide-y divide-theme-glass">
                           {importSourceEvents.map((event) => (
                             <tr key={event._id}>
                               <td className="px-4 py-3">
@@ -776,19 +776,19 @@ export default function AdminFeaturedEvents() {
                                   type="checkbox"
                                   checked={selectedImportEventIds.includes(event._id)}
                                   onChange={() => toggleSelectImportEvent(event._id)}
-                                  className="h-4 w-4 rounded border-gray-300 dark:border-gray-700"
+                                  className="h-4 w-4 rounded border-theme-glass "
                                 />
                               </td>
-                              <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
+                              <td className="px-4 py-3 text-sm font-medium text-theme-foreground ">
                                 {event.title}
                               </td>
-                              <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300 capitalize">
+                              <td className="px-4 py-3 text-sm text-theme-muted capitalize">
                                 {event.type}
                               </td>
-                              <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300 capitalize">
+                              <td className="px-4 py-3 text-sm text-theme-muted capitalize">
                                 {event.status}
                               </td>
-                              <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
+                              <td className="px-4 py-3 text-sm text-theme-muted">
                                 {event.pairId || "-"}
                               </td>
                             </tr>
@@ -804,13 +804,13 @@ export default function AdminFeaturedEvents() {
                     type="button"
                     onClick={closeImportModal}
                     disabled={importSaving}
-                    className="px-4 py-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors disabled:opacity-60"
+                    className="px-4 py-2 text-theme-muted hover:text-theme-foreground transition-colors disabled:opacity-60"
                   > <Trans>Cancel</Trans> </button>
                   <button
                     type="button"
                     onClick={() => void handleImportSelected()}
                     disabled={importSaving || selectedImportEventIds.length === 0}
-                    className="px-5 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg font-medium transition-colors disabled:opacity-60"
+                    className="px-5 py-2 bg-brand-600 hover:bg-brand-500 text-theme-on-accent rounded-lg font-medium transition-colors disabled:opacity-60"
                   > <Trans>Import Selected</Trans> </button>
                 </div>
               </div>
@@ -820,17 +820,17 @@ export default function AdminFeaturedEvents() {
 
         {/* Modal */}
         {showModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-xl">
-              <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-800">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+          <div className="fixed inset-0 bg-theme-panel/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-theme-panel border border-theme-glass rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-xl">
+              <div className="flex justify-between items-center p-6 border-b border-theme-glass ">
+                <h2 className="text-xl font-bold text-theme-foreground ">
                   {editingEvent
                     ? t("admin.modal.editEvent")
                     : t("admin.modal.addNewEvent")}
                 </h2>
                 <button
                   onClick={closeModal}
-                  className="p-2 text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+                  className="p-2 text-theme-muted hover:text-theme-foreground hover:bg-theme-surface rounded-lg"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -838,13 +838,13 @@ export default function AdminFeaturedEvents() {
 
               <form onSubmit={handleSubmit} className="p-6 space-y-6">
                 {saveError && (
-                  <div className="rounded-lg border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-200">
+                  <div className="rounded-lg border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-700">
                     {saveError}
                   </div>
                 )}
                 {/* Title */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2"> <Trans>Title *</Trans> </label>
+                  <label className="block text-sm font-medium text-theme-muted mb-2"> <Trans>Title *</Trans> </label>
                   <input
                     type="text"
                     required
@@ -852,25 +852,25 @@ export default function AdminFeaturedEvents() {
                     onChange={(e) =>
                       setFormData({ ...formData, title: e.target.value })
                     }
-                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
+                    className="w-full bg-theme-surface border border-theme-glass text-theme-foreground rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
                   />
                 </div>
 
                 {/* Description */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2"> <Trans>Description</Trans> </label>
+                  <label className="block text-sm font-medium text-theme-muted mb-2"> <Trans>Description</Trans> </label>
                   <textarea
                     value={formData.description}
                     onChange={(e) =>
                       setFormData({ ...formData, description: e.target.value })
                     }
                     rows={3}
-                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
+                    className="w-full bg-theme-surface border border-theme-glass text-theme-foreground rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2"> <Trans>Pair ID</Trans> </label>
+                  <label className="block text-sm font-medium text-theme-muted mb-2"> <Trans>Pair ID</Trans> </label>
                   <div className="flex gap-2">
                     <input
                       type="text"
@@ -885,14 +885,14 @@ export default function AdminFeaturedEvents() {
                         })
                       }
                       placeholder="10423"
-                      className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
+                      className="w-full bg-theme-surface border border-theme-glass text-theme-foreground rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
                     />
                     <button
                       type="button"
                       onClick={() =>
                         setFormData({ ...formData, pairId: generatePairId() })
                       }
-                      className="rounded-lg border border-gray-200 bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                      className="rounded-lg border border-theme-glass bg-theme-surface px-3 py-2 text-sm font-medium text-theme-muted hover:bg-theme-surface/80 "
                     > <Trans>Generate</Trans> </button>
                   </div>
                 </div>
@@ -900,7 +900,7 @@ export default function AdminFeaturedEvents() {
                 {/* Type & Status */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2"> <Trans>Type</Trans> </label>
+                    <label className="block text-sm font-medium text-theme-muted mb-2"> <Trans>Type</Trans> </label>
                     <select
                       value={formData.type}
                       onChange={(e) =>
@@ -909,7 +909,7 @@ export default function AdminFeaturedEvents() {
                           type: e.target.value as any,
                         })
                       }
-                      className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
+                      className="w-full bg-theme-surface border border-theme-glass text-theme-foreground rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
                     >
                       <option value="event"><Trans>Event</Trans></option>
                       <option value="tournament"><Trans>Tournament</Trans></option>
@@ -918,7 +918,7 @@ export default function AdminFeaturedEvents() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2"> <Trans>Status</Trans> </label>
+                    <label className="block text-sm font-medium text-theme-muted mb-2"> <Trans>Status</Trans> </label>
                     <select
                       value={formData.status}
                       onChange={(e) =>
@@ -927,7 +927,7 @@ export default function AdminFeaturedEvents() {
                           status: e.target.value as any,
                         })
                       }
-                      className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
+                      className="w-full bg-theme-surface border border-theme-glass text-theme-foreground rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
                     >
                       <option value="upcoming"><Trans>Upcoming</Trans></option>
                       <option value="live"><Trans>Live</Trans></option>
@@ -938,21 +938,21 @@ export default function AdminFeaturedEvents() {
 
                 {/* Dates */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2"> <Trans>Date</Trans> </label>
+                  <label className="block text-sm font-medium text-theme-muted mb-2"> <Trans>Date</Trans> </label>
                   <input
                     type="date"
                     value={formData.startDate}
                     onChange={(e) =>
                       setFormData({ ...formData, startDate: e.target.value })
                     }
-                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
+                    className="w-full bg-theme-surface border border-theme-glass text-theme-foreground rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
                   />
                 </div>
 
                 {/* Buttons */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2"> <Trans>Main Button Label</Trans> </label>
+                    <label className="block text-sm font-medium text-theme-muted mb-2"> <Trans>Main Button Label</Trans> </label>
                     <input
                       type="text"
                       value={formData.primaryButtonLabel}
@@ -963,11 +963,11 @@ export default function AdminFeaturedEvents() {
                         })
                       }
                       placeholder="Watch Now"
-                      className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
+                      className="w-full bg-theme-surface border border-theme-glass text-theme-foreground rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2"> <Trans>Main Button URL</Trans> </label>
+                    <label className="block text-sm font-medium text-theme-muted mb-2"> <Trans>Main Button URL</Trans> </label>
                     <input
                       type="url"
                       value={formData.primaryButtonUrl}
@@ -978,14 +978,14 @@ export default function AdminFeaturedEvents() {
                         })
                       }
                       placeholder="https://..."
-                      className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
+                      className="w-full bg-theme-surface border border-theme-glass text-theme-foreground rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2"> <Trans>Secondary Button URL</Trans> </label>
+                    <label className="block text-sm font-medium text-theme-muted mb-2"> <Trans>Secondary Button URL</Trans> </label>
                     <input
                       type="url"
                       value={formData.secondaryButtonUrl}
@@ -996,7 +996,7 @@ export default function AdminFeaturedEvents() {
                         })
                       }
                       placeholder="https://..."
-                      className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
+                      className="w-full bg-theme-surface border border-theme-glass text-theme-foreground rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
                     />
                   </div>
                   <div className="flex items-end gap-6">
@@ -1010,9 +1010,9 @@ export default function AdminFeaturedEvents() {
                             featured: e.target.checked,
                           })
                         }
-                        className="w-4 h-4 rounded border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-brand-500 focus:ring-brand-500"
+                        className="w-4 h-4 rounded border-theme-glass bg-theme-surface text-brand-500 focus:ring-brand-500"
                       />
-                      <span className="text-sm text-gray-600 dark:text-gray-300"> <Trans>Featured</Trans> </span>
+                      <span className="text-sm text-theme-muted"> <Trans>Featured</Trans> </span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
@@ -1024,16 +1024,16 @@ export default function AdminFeaturedEvents() {
                             isActive: e.target.checked,
                           })
                         }
-                        className="w-4 h-4 rounded border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-brand-500 focus:ring-brand-500"
+                        className="w-4 h-4 rounded border-theme-glass bg-theme-surface text-brand-500 focus:ring-brand-500"
                       />
-                      <span className="text-sm text-gray-600 dark:text-gray-300"> <Trans>Active</Trans> </span>
+                      <span className="text-sm text-theme-muted"> <Trans>Active</Trans> </span>
                     </label>
                   </div>
                 </div>
 
                 {/* Background */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2"> <Trans>Background Type</Trans> </label>
+                  <label className="block text-sm font-medium text-theme-muted mb-2"> <Trans>Background Type</Trans> </label>
                   <select
                     value={formData.backgroundType}
                     onChange={(e) =>
@@ -1042,7 +1042,7 @@ export default function AdminFeaturedEvents() {
                         backgroundType: e.target.value as BackgroundType,
                       })
                     }
-                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
+                    className="w-full bg-theme-surface border border-theme-glass text-theme-foreground rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
                   >
                     <option value="default"><Trans>Default Gradient</Trans></option>
                     <option value="color"><Trans>Custom Color</Trans></option>
@@ -1052,7 +1052,7 @@ export default function AdminFeaturedEvents() {
 
                 {formData.backgroundType === "color" && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2"> <Trans>Background Color</Trans> </label>
+                    <label className="block text-sm font-medium text-theme-muted mb-2"> <Trans>Background Color</Trans> </label>
                     <input
                       type="color"
                       value={formData.backgroundColor || "#1a0e04"}
@@ -1062,7 +1062,7 @@ export default function AdminFeaturedEvents() {
                           backgroundColor: e.target.value,
                         })
                       }
-                      className="h-10 w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-1.5 py-1 focus:outline-none focus:border-brand-500"
+                      className="h-10 w-full bg-theme-surface border border-theme-glass rounded-lg px-1.5 py-1 focus:outline-none focus:border-brand-500"
                     />
                   </div>
                 )}
@@ -1070,7 +1070,7 @@ export default function AdminFeaturedEvents() {
                 {formData.backgroundType === "image" && (
                   <>
                     <div>
-                      <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2"> <Trans>Background Image URL</Trans> </label>
+                      <label className="block text-sm font-medium text-theme-muted mb-2"> <Trans>Background Image URL</Trans> </label>
                       <input
                         type="url"
                         value={formData.backgroundImageUrl}
@@ -1081,34 +1081,34 @@ export default function AdminFeaturedEvents() {
                           })
                         }
                         placeholder="https://..."
-                        className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
+                        className="w-full bg-theme-surface border border-theme-glass text-theme-foreground rounded-lg px-4 py-2 focus:outline-none focus:border-brand-500"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-600 dark:text-gray-300 mb-2"> <Trans>Upload Background Image</Trans> </label>
+                      <label className="block text-sm font-medium text-theme-muted mb-2"> <Trans>Upload Background Image</Trans> </label>
                       <input
                         type="file"
                         accept="image/png,image/jpeg,image/webp,image/gif"
                         onChange={(e) =>
                           setBackgroundImageFile(e.target.files?.[0] || null)
                         }
-                        className="h-11 w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 focus:outline-none focus:border-brand-500 file:mr-3 file:rounded-md file:border-0 file:bg-brand-600/20 file:px-2.5 file:py-1.5 file:text-xs file:font-semibold file:text-brand-200 hover:file:bg-brand-600/30 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+                        className="h-11 w-full rounded-lg border border-theme-glass bg-theme-surface px-3 py-2 text-sm text-theme-foreground focus:outline-none focus:border-brand-500 file:mr-3 file:rounded-md file:border-0 file:bg-brand-600/20 file:px-2.5 file:py-1.5 file:text-xs file:font-semibold file:text-brand-200 hover:file:bg-brand-600/30 "
                       />
                     </div>
                   </>
                 )}
 
                 {/* Actions */}
-                <div className="flex justify-end gap-4 pt-4 border-t border-gray-200 dark:border-gray-800">
+                <div className="flex justify-end gap-4 pt-4 border-t border-theme-glass ">
                   <button
                     type="button"
                     onClick={closeModal}
-                    className="px-4 py-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                    className="px-4 py-2 text-theme-muted hover:text-theme-foreground transition-colors"
                   > <Trans>Cancel</Trans> </button>
                   <button
                     type="submit"
-                    className="px-6 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg font-medium transition-colors"
+                    className="px-6 py-2 bg-brand-600 hover:bg-brand-500 text-theme-on-accent rounded-lg font-medium transition-colors"
                   >
                     {editingEvent
                       ? t("admin.modal.saveChanges")
@@ -1121,7 +1121,7 @@ export default function AdminFeaturedEvents() {
         )}
 
         {importToast && (
-          <div className="pointer-events-none fixed bottom-6 right-6 z-[70] rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg">
+          <div className="pointer-events-none fixed bottom-6 right-6 z-[70] rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-medium text-theme-on-accent shadow-lg">
             {importToast}
           </div>
         )}

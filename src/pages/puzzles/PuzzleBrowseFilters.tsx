@@ -23,7 +23,7 @@ interface PuzzleBrowseFiltersProps {
 function chipClass(active: boolean) {
   return active
     ? "border-brand-400/50 bg-brand-500/15 text-brand-100 shadow-[0_10px_18px_-16px_rgba(20,184,166,0.9)]"
-    : "border-gray-800 bg-gray-900/70 text-gray-200 hover:border-brand-300/40 hover:text-brand-100";
+    : "border-theme-border bg-theme-panel/70 text-theme-muted hover:border-brand-300/40 hover:text-brand-100";
 }
 
 export function PuzzleBrowseFilters({
@@ -45,15 +45,15 @@ export function PuzzleBrowseFilters({
         : [];
 
   return (
-    <div className="rounded-2xl border border-gray-800 bg-gray-900/70 p-4 shadow-[0_24px_48px_-46px_rgba(8,145,178,0.45)]">
+    <div className="rounded-2xl border border-theme-border bg-theme-panel/70 p-4 shadow-[0_24px_48px_-46px_rgba(8,145,178,0.45)]">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="relative w-full max-w-xl">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-theme-muted" />
           <input
             value={query}
             onChange={(event) => onQueryChange(event.target.value)}
             placeholder={t("Search puzzle title, theme, or motif...")}
-            className="h-11 w-full rounded-xl border border-gray-800 bg-gray-950/70 pl-9 pr-3 text-sm text-gray-100 placeholder:text-gray-500 outline-none transition-colors focus:border-brand-300/50"
+            className="h-11 w-full rounded-xl border border-theme-border bg-theme-panel/70 pl-9 pr-3 text-sm text-theme-foreground placeholder:text-theme-disabled outline-none transition-colors focus:border-brand-300/50"
           />
         </div>
 

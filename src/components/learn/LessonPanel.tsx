@@ -41,11 +41,11 @@ export function LessonPanel({
   const { t } = useTranslation();
   return (
     <aside
-      className={`flex flex-col min-h-0 bg-slate-950/90 border border-slate-800 rounded-2xl overflow-hidden ${
+      className={`flex flex-col min-h-0 bg-theme-panel/90 border border-theme-glass rounded-2xl overflow-hidden ${
         fillHeight ? "h-full" : ""
       }`}
     >
-      <div className="px-3.5 pt-3 pb-2.5 border-b border-slate-800 bg-[radial-gradient(circle_at_top_right,rgba(20,184,166,0.15),rgba(2,6,23,0.95)_50%)]">
+      <div className="px-3.5 pt-3 pb-2.5 border-b border-theme-glass bg-[radial-gradient(circle_at_top_right,rgba(20,184,166,0.15),rgba(2,6,23,0.95)_50%)]">
         {showBackToCatalog && (
           <button
             onClick={onBackToCatalog}
@@ -60,19 +60,19 @@ export function LessonPanel({
         </p>
       </div>
 
-      <div className="px-3.5 py-2.5 border-b border-slate-800">
+      <div className="px-3.5 py-2.5 border-b border-theme-glass">
         <div>
-          <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
+          <div className="flex items-center justify-between text-xs text-theme-muted mb-1">
             <span>{t("learn.courseProgressLabel", "Course progress")}</span>
             <span>{courseProgress.percentComplete}%</span>
           </div>
-          <div className="h-1.5 rounded-full bg-slate-800 overflow-hidden">
+          <div className="h-1.5 rounded-full bg-theme-surface overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-brand-400 to-brand-300"
               style={{ width: `${courseProgress.percentComplete}%` }}
             />
           </div>
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-theme-muted">
             {t("learn.lessonProgressCompleted", {
               defaultValue: "{{completed}}/{{total}} lessons completed",
               completed: courseProgress.completedLessonsCount,
@@ -82,8 +82,8 @@ export function LessonPanel({
         </div>
       </div>
 
-      <div className="px-3.5 py-2.5 border-b border-slate-800 min-h-0 flex flex-col">
-        <p className="text-sm font-medium text-slate-300 mb-2">
+      <div className="px-3.5 py-2.5 border-b border-theme-glass min-h-0 flex flex-col">
+        <p className="text-sm font-medium text-theme-muted mb-2">
           {t("learn.courseLessons", "Course Lessons")}
         </p>
         <div className="space-y-1 min-h-0 flex-1 overflow-y-auto pr-1">
@@ -96,7 +96,7 @@ export function LessonPanel({
                 className={`w-full rounded-lg px-2.5 py-1.5 border text-left transition-colors ${
                   active
                     ? "border-brand-400/35 bg-brand-500/10"
-                    : "border-slate-800 bg-slate-900/80 hover:border-slate-700"
+                    : "border-theme-glass bg-theme-panel/80 hover:border-theme-glass"
                 }`}
               >
                 <div className="flex items-center gap-2">
@@ -106,13 +106,13 @@ export function LessonPanel({
                         ? "bg-brand-500/20 text-brand-300"
                         : active
                           ? "bg-brand-500/30 text-brand-200"
-                          : "bg-slate-800 text-slate-400"
+                          : "bg-theme-surface text-theme-muted"
                     }`}
                   >
                     {lesson.isCompleted ? <CheckCircle2 className="w-3.5 h-3.5" /> : index + 1}
                   </span>
                   <span
-                    className={`text-sm truncate ${active ? "text-slate-100" : "text-slate-300"}`}
+                    className={`text-sm truncate ${active ? "text-theme-foreground" : "text-theme-muted"}`}
                   >
                     {lesson.title}
                   </span>
@@ -124,11 +124,11 @@ export function LessonPanel({
       </div>
 
       {showNavigationFooter && (
-        <div className="mt-auto p-2.5 grid grid-cols-2 gap-2 border-t border-slate-800">
+        <div className="mt-auto p-2.5 grid grid-cols-2 gap-2 border-t border-theme-glass">
           <button
             onClick={onPrevLesson}
             disabled={!hasPrevLesson}
-            className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs bg-slate-900 border border-slate-700 text-slate-300 hover:border-slate-600 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs bg-theme-panel border border-theme-glass text-theme-muted hover:border-theme-border disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <ChevronLeft className="w-3.5 h-3.5" />
             {t("learn.previous", "Previous")}
@@ -144,7 +144,7 @@ export function LessonPanel({
           ) : (
             <button
               onClick={onRetryLesson}
-              className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs bg-slate-900 border border-slate-700 text-slate-300 hover:border-slate-600"
+              className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs bg-theme-panel border border-theme-glass text-theme-muted hover:border-theme-border"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               {t("learn.retryLesson", "Retry Lesson")}

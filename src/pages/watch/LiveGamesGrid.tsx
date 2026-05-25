@@ -40,14 +40,14 @@ export function LiveGameCard({ game }: LiveGameCardProps) {
       type="button"
       onClick={() => navigate(`/watch/${encodeURIComponent(game.id)}`)}
       whileHover={{ y: -4 }}
-      className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4 hover:border-gray-300 dark:hover:border-gray-700 transition-colors cursor-pointer group shadow-sm hover:shadow-md block text-left w-full"
+      className="bg-theme-panel border border-theme-glass rounded-xl p-4 hover:border-theme-glass transition-colors cursor-pointer group shadow-sm hover:shadow-md block text-left w-full"
     >
       <div className="flex justify-between items-start mb-4">
-        <div className="flex items-center space-x-2 text-xs font-medium text-gray-500 dark:text-gray-400">
+        <div className="flex items-center space-x-2 text-xs font-medium text-theme-muted">
           <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
           <span>{categorySummary}</span>
         </div>
-        <div className="flex items-center space-x-1 text-xs text-gray-500">
+        <div className="flex items-center space-x-1 text-xs text-theme-muted">
           <Eye className="w-3 h-3" />
           <span>{game.viewers}</span>
         </div>
@@ -56,44 +56,44 @@ export function LiveGameCard({ game }: LiveGameCardProps) {
       <div className="space-y-3 mb-4">
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-2">
-            <div className="w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-xs"></div>
+            <div className="w-6 h-6 rounded bg-theme-surface flex items-center justify-center text-xs"></div>
             <div className="flex items-center gap-1">
               {game.whiteTitle && (
                 <span className="text-amber-500 text-xs font-bold">
                   {game.whiteTitle}
                 </span>
               )}
-              <span className="font-medium text-gray-900 dark:text-gray-200">
+              <span className="font-medium text-theme-foreground ">
                 {game.white}
               </span>
             </div>
           </div>
-          <span className="text-xs font-mono text-gray-500">
+          <span className="text-xs font-mono text-theme-muted">
             {game.whiteRating}
           </span>
         </div>
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-2">
-            <div className="w-6 h-6 rounded bg-gray-100 dark:bg-gray-100 flex items-center justify-center text-xs text-black"></div>
+            <div className="w-6 h-6 rounded bg-theme-surface flex items-center justify-center text-xs text-theme-foreground"></div>
             <div className="flex items-center gap-1">
               {game.blackTitle && (
                 <span className="text-amber-500 text-xs font-bold">
                   {game.blackTitle}
                 </span>
               )}
-              <span className="font-medium text-gray-900 dark:text-gray-200">
+              <span className="font-medium text-theme-foreground ">
                 {game.black}
               </span>
             </div>
           </div>
-          <span className="text-xs font-mono text-gray-500">
+          <span className="text-xs font-mono text-theme-muted">
             {game.blackRating}
           </span>
         </div>
       </div>
 
-      <div className="pt-4 border-t border-gray-200 dark:border-gray-800 flex justify-end items-center">
-        <span className="text-brand-600 dark:text-brand-500 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity flex items-center">
+      <div className="pt-4 border-t border-theme-glass flex justify-end items-center">
+        <span className="text-brand-600 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity flex items-center">
           {t("Watch")} <ChevronRight className="w-4 h-4 ml-1" />
         </span>
       </div>
@@ -103,23 +103,23 @@ export function LiveGameCard({ game }: LiveGameCardProps) {
 
 function GameCardSkeleton() {
   return (
-    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4 animate-pulse">
+    <div className="bg-theme-panel border border-theme-glass rounded-xl p-4 animate-pulse">
       <div className="flex justify-between items-start mb-4">
-        <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
-        <div className="h-4 w-12 bg-gray-200 dark:bg-gray-700 rounded"></div>
+        <div className="h-4 w-24 bg-theme-surface rounded"></div>
+        <div className="h-4 w-12 bg-theme-surface rounded"></div>
       </div>
       <div className="space-y-3 mb-4">
         <div className="flex justify-between items-center">
-          <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
-          <div className="h-4 w-12 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          <div className="h-6 w-32 bg-theme-surface rounded"></div>
+          <div className="h-4 w-12 bg-theme-surface rounded"></div>
         </div>
         <div className="flex justify-between items-center">
-          <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
-          <div className="h-4 w-12 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          <div className="h-6 w-32 bg-theme-surface rounded"></div>
+          <div className="h-4 w-12 bg-theme-surface rounded"></div>
         </div>
       </div>
-      <div className="pt-4 border-t border-gray-200 dark:border-gray-800">
-        <div className="h-4 w-20 bg-gray-200 dark:bg-gray-700 rounded"></div>
+      <div className="pt-4 border-t border-theme-glass ">
+        <div className="h-4 w-20 bg-theme-surface rounded"></div>
       </div>
     </div>
   );
@@ -203,12 +203,12 @@ export function LiveGamesGrid({
     "inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus:outline-none disabled:pointer-events-none disabled:opacity-40";
   const btnPage = (active: boolean) =>
     active
-      ? `${btnBase} w-9 h-9 bg-brand-500 text-white shadow-md shadow-brand-500/25`
-      : `${btnBase} w-9 h-9 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 hover:border-brand-400 dark:hover:border-brand-600 hover:text-brand-600 dark:hover:text-brand-400`;
+      ? `${btnBase} w-9 h-9 bg-brand-500 text-theme-on-accent shadow-md shadow-brand-500/25`
+      : `${btnBase} w-9 h-9 bg-theme-panel border border-theme-glass text-theme-muted hover:border-brand-400 hover:text-brand-600`;
 
   return (
     <section>
-      <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 mb-6">
+      <div className="flex items-center justify-between border-b border-theme-glass mb-6">
         <div className="flex space-x-6">
           {LIVE_GAME_TABS.map((tab) => (
             <button
@@ -216,8 +216,8 @@ export function LiveGamesGrid({
               onClick={() => onTabChange(tab)}
               className={`pb-4 text-sm font-medium transition-colors relative ${
                 activeTab === tab
-                  ? "text-gray-900 dark:text-white"
-                  : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                  ? "text-theme-foreground "
+                  : "text-theme-muted hover:text-theme-muted"
               }`}
             >
               {t(tab)}
@@ -234,7 +234,7 @@ export function LiveGamesGrid({
         {onRefresh && (
           <button
             onClick={onRefresh}
-            className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 pb-4"
+            className="flex items-center gap-2 text-sm text-theme-muted hover:text-theme-muted pb-4"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
             {t("Refresh")}
@@ -243,7 +243,7 @@ export function LiveGamesGrid({
       </div>
 
       {!loading && filteredGames.length > 0 && (
-        <div className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+        <div className="text-sm text-theme-muted mb-4">
           {t("watch.liveGames.rangeSummary", {
             start: rangeStart,
             end: rangeEnd,
@@ -266,7 +266,7 @@ export function LiveGamesGrid({
           ))}
         </div>
       ) : (
-        <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+        <div className="text-center py-12 text-theme-muted">
           <p>{t("No live games in this category right now")}</p>
           <p className="text-sm mt-2">
             {t("Check back soon or try another category")}
@@ -279,7 +279,7 @@ export function LiveGamesGrid({
           <button
             disabled={safePage <= 1}
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-            className={`${btnBase} w-9 h-9 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:border-brand-400 dark:hover:border-brand-600 hover:text-brand-600 dark:hover:text-brand-400`}
+            className={`${btnBase} w-9 h-9 bg-theme-panel border border-theme-glass text-theme-muted hover:border-brand-400 hover:text-brand-600`}
           >
             <ChevronLeft size={16} />
           </button>
@@ -287,7 +287,7 @@ export function LiveGamesGrid({
             p === "..." ? (
               <span
                 key={`dots-${i}`}
-                className="w-9 h-9 flex items-center justify-center text-gray-400 dark:text-gray-600 text-sm select-none"
+                className="w-9 h-9 flex items-center justify-center text-theme-muted text-sm select-none"
               >
                 {PAGE_ELLIPSIS}
               </span>
@@ -304,7 +304,7 @@ export function LiveGamesGrid({
           <button
             disabled={safePage >= totalPages}
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-            className={`${btnBase} w-9 h-9 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:border-brand-400 dark:hover:border-brand-600 hover:text-brand-600 dark:hover:text-brand-400`}
+            className={`${btnBase} w-9 h-9 bg-theme-panel border border-theme-glass text-theme-muted hover:border-brand-400 hover:text-brand-600`}
           >
             <ChevronRight size={16} />
           </button>

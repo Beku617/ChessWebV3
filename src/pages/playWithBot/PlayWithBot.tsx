@@ -307,7 +307,7 @@ export default function PlayWithBot() {
   return (
     <div
       ref={containerRef}
-      className="relative h-full min-h-0 w-full bg-slate-100 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 overflow-hidden"
+      className="relative h-full min-h-0 w-full bg-theme-surface overflow-hidden"
     >
       <div className="h-full min-h-0 grid grid-cols-1 lg:grid-cols-2">
         {/* Left Side - Board Preview with Bot Info */}
@@ -339,7 +339,7 @@ export default function PlayWithBot() {
 
           {/* Chess Board Preview */}
           <div
-            className="rounded-2xl overflow-hidden shadow-2xl border border-gray-200/60 dark:border-white/10"
+            className="rounded-2xl overflow-hidden shadow-2xl border border-theme-glass/60 "
             style={{ width: boardWidth }}
           >
             <Chessboard
@@ -381,11 +381,11 @@ export default function PlayWithBot() {
         </div>
 
         {/* Right Side - Bot Selection Panel */}
-        <div className="w-full bg-white/90 dark:bg-slate-900/95 border-l border-gray-200/60 dark:border-white/10 flex flex-col h-full min-h-0">
+        <div className="w-full bg-theme-panel/90 border-l border-theme-glass/60 flex flex-col h-full min-h-0">
           {/* Panel Header */}
-          <div className="p-4 border-b border-gray-200/60 dark:border-white/10">
+          <div className="p-4 border-b border-theme-glass/60 ">
             <div>
-              <h2 className="font-bold text-lg text-gray-900 dark:text-white">
+              <h2 className="font-bold text-lg text-theme-foreground ">
                 {t("Play Bots")}
               </h2>
             </div>
@@ -394,11 +394,11 @@ export default function PlayWithBot() {
           {/* Selected Bot Hero */}
           {selectedBot && (
             <div
-              className="p-3 border-b border-gray-200/60 dark:border-white/10 space-y-2"
+              className="p-3 border-b border-theme-glass/60 space-y-2"
               style={{ minHeight: "15vh" }}
             >
               <div className="flex items-start gap-3">
-                <div className="w-14 h-14 rounded-lg overflow-hidden bg-slate-700 flex-shrink-0">
+                <div className="w-14 h-14 rounded-lg overflow-hidden bg-theme-surface flex-shrink-0">
                   {selectedBot.avatarUrl ? (
                     <img
                       src={selectedBot.avatarUrl}
@@ -407,28 +407,28 @@ export default function PlayWithBot() {
                     />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-rose-500 to-pink-600 flex items-center justify-center">
-                      <span className="text-white text-2xl leading-none">
+                      <span className="text-theme-on-accent text-2xl leading-none">
                         {getBotInitials(selectedBot.name)}
                       </span>
                     </div>
                   )}
                 </div>
                 <div className="flex-1 space-y-2">
-                  <div className="relative bg-gray-100 dark:bg-slate-800 rounded-lg p-2">
-                    <p className="text-xs text-gray-700 dark:text-gray-300 italic line-clamp-2">
+                  <div className="relative bg-theme-surface rounded-lg p-2">
+                    <p className="text-xs text-theme-muted italic line-clamp-2">
                       "{selectedBot.personality}"
                     </p>
-                    <div className="absolute -bottom-2 left-6 w-0 h-0 border-l-6 border-r-6 border-t-6 border-transparent border-t-gray-100 dark:border-t-slate-800" />
+                    <div className="absolute -bottom-2 left-6 w-0 h-0 border-l-6 border-r-6 border-t-6 border-transparent border-t-gray-100" />
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-gray-900 dark:text-white">
+                    <span className="font-semibold text-theme-foreground ">
                       {selectedBot.name}
                     </span>
-                    <span className="text-sm font-medium text-brand-600 dark:text-brand-400">
+                    <span className="text-sm font-medium text-brand-600">
                       {selectedBot.rating}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
+                  <p className="text-xs text-theme-muted line-clamp-2">
                     {resolveLocalizedBotDescription(
                       selectedBot.description,
                       i18n.language,
@@ -440,10 +440,10 @@ export default function PlayWithBot() {
           )}
 
           {/* Category Sections */}
-          <div className="flex-1 min-h-0 overflow-y-auto pr-1 pb-3 [scrollbar-width:thin] [scrollbar-color:#334155_transparent]">
+          <div className="flex-1 min-h-0 overflow-y-auto pr-1 pb-3 [scrollbar-width:thin] [scrollbar-color:rgba(var(--border-color-rgb),0.65)_transparent]">
             {loading ? (
               <div className="flex items-center justify-center py-10">
-                <span className="text-gray-500">{t("Loading bots...")}</span>
+                <span className="text-theme-muted">{t("Loading bots...")}</span>
               </div>
             ) : error ? (
               <div className="flex items-center justify-center py-10">
@@ -460,24 +460,24 @@ export default function PlayWithBot() {
                 return (
                   <div
                     key={cat.key}
-                    className="border-b border-gray-200/60 dark:border-white/10 py-1"
+                    className="border-b border-theme-glass/60 py-1"
                   >
                     {/* Category Header */}
                     <button
                       onClick={() => toggleCategory(cat.key)}
-                      className="w-full px-3 py-2 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors"
+                      className="w-full px-3 py-2 flex items-center justify-between hover:bg-theme-surface/50 transition-colors"
                     >
                       <div className="flex items-center">
-                        <span className="font-medium text-gray-900 dark:text-white">
+                        <span className="font-medium text-theme-foreground ">
                           {t(cat.label)}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                        <span className="text-xs text-theme-muted">
                           {categoryBots.length}{" "}
                           {categoryBots.length === 1 ? t("bot") : t("bots")}
                         </span>
-                        <span className="text-xs font-semibold text-gray-400">
+                        <span className="text-xs font-semibold text-theme-muted">
                           {isExpanded ? t("Hide") : t("Show")}
                         </span>
                       </div>
@@ -497,7 +497,7 @@ export default function PlayWithBot() {
                               className={`relative w-full aspect-square rounded-xl overflow-hidden ${
                                 selectedBot?.id === bot.id
                                   ? "ring-2 ring-brand-500 shadow-md shadow-brand-500/20"
-                                  : "ring-1 ring-gray-200 dark:ring-slate-700 hover:ring-gray-300 dark:hover:ring-slate-600"
+                                  : "ring-1 ring-theme-border hover:ring-theme-border"
                               }`}
                             >
                               {bot.avatarUrl ? (
@@ -508,10 +508,10 @@ export default function PlayWithBot() {
                                 />
                               ) : (
                                 <div className="w-full h-full bg-gradient-to-br from-rose-500 to-pink-600 flex flex-col items-center justify-center">
-                                  <span className="text-2xl leading-none text-white">
+                                  <span className="text-2xl leading-none text-theme-on-accent">
                                     {getBotInitials(bot.name)}
                                   </span>
-                                  <span className="mt-1 text-[10px] font-semibold text-white/90">
+                                  <span className="mt-1 text-[10px] font-semibold text-theme-on-accent">
                                     {bot.name.match(/\d+/)?.[0] ||
                                       bot.name.substring(0, 2).toUpperCase()}
                                   </span>
@@ -521,13 +521,13 @@ export default function PlayWithBot() {
                             <span
                               className={`mt-1 block text-[11px] font-medium truncate ${
                                 selectedBot?.id === bot.id
-                                  ? "text-brand-600 dark:text-brand-400"
-                                  : "text-gray-700 dark:text-gray-300"
+                                  ? "text-brand-600"
+                                  : "text-theme-muted"
                               }`}
                             >
                               {bot.name}
                             </span>
-                            <span className="block text-[10px] text-gray-500 dark:text-gray-400">
+                            <span className="block text-[10px] text-theme-muted">
                               {bot.rating}
                             </span>
                           </button>
@@ -541,7 +541,7 @@ export default function PlayWithBot() {
           </div>
 
           {/* Play Button */}
-          <div className="p-3 border-t border-gray-200/60 dark:border-white/10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm">
+          <div className="p-3 border-t border-theme-glass/60 bg-theme-panel/95 backdrop-blur-sm">
             <div className="mb-2.5 grid grid-cols-3 gap-2">
               {PLAY_AS_OPTIONS.map((option) => {
                 const isActive = playAsSelection === option.value;
@@ -554,8 +554,8 @@ export default function PlayWithBot() {
                     title={option.label}
                     className={`h-11 rounded-xl border text-xl leading-none transition-all ${
                       isActive
-                        ? "border-brand-400 bg-brand-500/15 text-brand-700 shadow-[0_0_0_1px_rgba(16,185,129,0.35)_inset] dark:text-brand-300"
-                        : "border-gray-200 bg-gray-50 text-gray-500 hover:border-gray-300 dark:border-white/15 dark:bg-slate-800/70 dark:text-gray-300 dark:hover:border-white/30"
+                        ? "border-brand-400 bg-brand-500/15 text-brand-700 shadow-[0_0_0_1px_rgba(16,185,129,0.35)_inset]"
+                        : "border-theme-glass bg-theme-surface text-theme-muted hover:border-theme-glass"
                     }`}
                   >
                     <span aria-hidden>{option.icon}</span>
@@ -566,7 +566,7 @@ export default function PlayWithBot() {
             <button
               onClick={handleStartMatch}
               disabled={!selectedBot}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-brand-500 to-brand-500 hover:from-brand-600 hover:to-brand-600 text-white font-bold text-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl active:scale-[0.98]"
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-brand-500 to-brand-500 hover:from-brand-600 hover:to-brand-600 text-theme-on-accent font-bold text-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl active:scale-[0.98]"
             >
               {t("Play")}
             </button>

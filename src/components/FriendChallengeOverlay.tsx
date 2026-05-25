@@ -76,25 +76,25 @@ export default function FriendChallengeOverlay() {
   }`;
 
   return (
-    <div className="fixed right-4 bottom-4 z-[80] w-[320px] max-w-[calc(100vw-2rem)] rounded-2xl border border-gray-200 dark:border-white/10 bg-white/95 dark:bg-slate-900/95 shadow-2xl p-3 backdrop-blur">
+    <div className="fixed right-4 bottom-4 z-[80] w-[320px] max-w-[calc(100vw-2rem)] rounded-2xl border border-theme-glass bg-theme-panel/95 shadow-2xl p-3 backdrop-blur">
       <div className="flex items-center gap-2">
-        <h3 className="text-sm font-bold text-gray-900 dark:text-white"> <Trans>Friend Challenge</Trans> </h3>
+        <h3 className="text-sm font-bold text-theme-foreground "> <Trans>Friend Challenge</Trans> </h3>
       </div>
 
-      <p className="mt-2 text-[13px] text-gray-700 dark:text-gray-200">
+      <p className="mt-2 text-[13px] text-theme-muted ">
         <span className="font-semibold">{challenge.fromName}</span> <Trans>challenged you to play.</Trans> </p>
 
       <div className="mt-2 grid grid-cols-2 gap-2 text-[11px]">
-        <div className="rounded-lg bg-gray-100 dark:bg-slate-800 px-2 py-1 text-gray-700 dark:text-gray-300">
+        <div className="rounded-lg bg-theme-surface px-2 py-1 text-theme-muted">
           {formatGameTypeLabel(challenge.gameType)}
         </div>
-        <div className="rounded-lg bg-gray-100 dark:bg-slate-800 px-2 py-1 text-gray-700 dark:text-gray-300">
+        <div className="rounded-lg bg-theme-surface px-2 py-1 text-theme-muted">
           {timeLabel}
         </div>
       </div>
 
       {lastError && (
-        <p className="mt-2 text-[11px] text-red-600 dark:text-red-300">{lastError}</p>
+        <p className="mt-2 text-[11px] text-red-600">{lastError}</p>
       )}
 
       <div className="mt-3 grid grid-cols-2 gap-2">
@@ -111,7 +111,7 @@ export default function FriendChallengeOverlay() {
               setIsResponding(false);
             }
           }}
-          className="py-2 rounded-xl bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-200 font-semibold hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors flex items-center justify-center gap-1"
+          className="py-2 rounded-xl bg-theme-surface text-theme-muted font-semibold hover:bg-theme-surface/80 transition-colors flex items-center justify-center gap-1"
         > <Trans>Decline</Trans> </button>
         <button
           type="button"
@@ -128,7 +128,7 @@ export default function FriendChallengeOverlay() {
               setIsResponding(false);
             }
           }}
-          className="py-2 rounded-xl bg-brand-500 text-white font-semibold hover:bg-brand-600 transition-colors flex items-center justify-center gap-1"
+          className="py-2 rounded-xl bg-brand-500 text-theme-on-accent font-semibold hover:bg-brand-600 transition-colors flex items-center justify-center gap-1"
         > <Trans>Accept</Trans> </button>
       </div>
     </div>

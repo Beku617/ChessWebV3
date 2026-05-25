@@ -34,8 +34,8 @@ export function Toast({
           <div
             className={`flex items-center gap-3 px-5 py-3 rounded-xl shadow-2xl border backdrop-blur-xl ${
               type === "success"
-                ? "bg-brand-500/90 border-brand-400/30 text-white"
-                : "bg-red-500/90 border-red-400/30 text-white"
+                ? "bg-brand-500/90 border-brand-400/30 text-theme-on-accent"
+                : "bg-red-500/90 border-red-400/30 text-theme-on-accent"
             }`}
           >
             {type === "success" ? (

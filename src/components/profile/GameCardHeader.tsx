@@ -31,13 +31,13 @@ export function GameCardHeader({
   return (
     <div
       onClick={onToggle}
-      className="p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+      className="p-4 cursor-pointer hover:bg-theme-surface transition-colors"
     >
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 flex-1 items-center gap-4">
           {gameIndex != null && (
             <span
-              className="inline-flex h-7 min-w-[28px] items-center justify-center rounded-md bg-gray-100 dark:bg-gray-800 text-xs font-semibold text-gray-500 dark:text-gray-400 tabular-nums"
+              className="inline-flex h-7 min-w-[28px] items-center justify-center rounded-md bg-theme-surface text-xs font-semibold text-theme-muted tabular-nums"
               title={t("profileGames.card.gameNumber", {
                 index: gameIndex,
                 defaultValue: "Game #{{index}}",
@@ -47,37 +47,47 @@ export function GameCardHeader({
             </span>
           )}
           <div
-            className={`px-3 py-1.5 rounded-lg font-bold text-sm ${resultBg} ${resultColor} w-16 text-center`}
+            className={`inline-flex min-w-[4rem] shrink-0 items-center justify-center rounded-lg px-3 py-1.5 text-center text-sm font-bold ${resultBg} ${resultColor}`}
           >
             {resultText}
           </div>
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-2">
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <div className="flex min-w-0 items-center gap-2">
               <div
-                className={`w-2 h-2 rounded-full ${game.white === "Stockfish" ? "bg-gray-400" : "bg-brand-500"}`}
+                className={`w-2 h-2 rounded-full ${game.white === "Stockfish" ? "bg-theme-surface" : "bg-brand-500"}`}
               ></div>
-              <span
-                className={`font-medium ${playerIsWhite ? "text-gray-900 dark:text-white" : "text-gray-500 dark:text-gray-400"}`}
-              >
-                {game.white}{" "}
-                <span className="text-xs text-gray-400">({game.whiteElo})</span>
-              </span>
+              <div className="flex min-w-0 items-center gap-1">
+                <span
+                  className={`min-w-0 truncate font-medium ${playerIsWhite ? "text-theme-foreground " : "text-theme-muted"}`}
+                  title={String(game.white || "")}
+                >
+                  {game.white}
+                </span>
+                {game.whiteElo != null && (
+                  <span className="shrink-0 text-xs text-theme-muted">({game.whiteElo})</span>
+                )}
+              </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 items-center gap-2">
               <div
-                className={`w-2 h-2 rounded-full ${game.black === "Stockfish" ? "bg-gray-400" : "bg-brand-500"}`}
+                className={`w-2 h-2 rounded-full ${game.black === "Stockfish" ? "bg-theme-surface" : "bg-brand-500"}`}
               ></div>
-              <span
-                className={`font-medium ${!playerIsWhite ? "text-gray-900 dark:text-white" : "text-gray-500 dark:text-gray-400"}`}
-              >
-                {game.black}{" "}
-                <span className="text-xs text-gray-400">({game.blackElo})</span>
-              </span>
+              <div className="flex min-w-0 items-center gap-1">
+                <span
+                  className={`min-w-0 truncate font-medium ${!playerIsWhite ? "text-theme-foreground " : "text-theme-muted"}`}
+                  title={String(game.black || "")}
+                >
+                  {game.black}
+                </span>
+                {game.blackElo != null && (
+                  <span className="shrink-0 text-xs text-theme-muted">({game.blackElo})</span>
+                )}
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
+        <div className="flex shrink-0 items-center gap-6 text-sm text-theme-muted">
           <div
             className="flex items-center gap-1.5"
             title={t("profileGames.columns.date", "Date")}
@@ -107,7 +117,7 @@ export function GameCardHeader({
                 onShare();
               }}
               title={t("profileGames.card.shareGame", "Share game")}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500 transition-colors hover:border-brand-400 dark:hover:border-brand-600 hover:text-brand-500 dark:hover:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-500/10"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-theme-glass text-theme-muted transition-colors hover:border-brand-400 hover:text-brand-500 hover:bg-brand-50"
             >
               <Share2 size={14} />
             </button>

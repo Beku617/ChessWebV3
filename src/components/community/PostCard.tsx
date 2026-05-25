@@ -37,7 +37,7 @@ const SOUND_UNLOCK_SESSION_KEY = "communityVideoSoundUnlocked";
 function moderationStatusClass(status: CommunityPost["status"]) {
   if (status === "approved") return "bg-brand-500/12 text-brand-200";
   if (status === "rejected") return "bg-red-500/12 text-red-200";
-  if (status === "removed") return "bg-gray-500/15 text-gray-300";
+  if (status === "removed") return "bg-theme-surface/15 text-theme-muted";
   return "bg-amber-500/12 text-amber-200";
 }
 
@@ -312,7 +312,7 @@ function PostCardComponent({
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04, duration: 0.32, ease: "easeOut" }}
-      className="group relative overflow-hidden rounded-xl bg-[#0c1728]/84 backdrop-blur-xl shadow-[0_18px_48px_rgba(0,0,0,0.22)] transition-colors duration-300 hover:bg-[#0f1c31]/88"
+      className="group relative overflow-hidden rounded-xl bg-theme-panel backdrop-blur-xl shadow-[0_18px_48px_rgba(0,0,0,0.22)] transition-colors duration-300 hover:bg-theme-panel"
     >
       <div className={`relative px-4 pt-4 ${isGamePost ? "pb-0" : "pb-3"}`}>
         <div className="flex items-start justify-between gap-3">
@@ -323,8 +323,8 @@ function PostCardComponent({
               size="sm"
             />
             <div className="min-w-0">
-              <h3 className="text-sm font-semibold text-white">{authorName}</h3>
-              <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-gray-500">
+              <h3 className="text-sm font-semibold text-theme-foreground">{authorName}</h3>
+              <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-theme-muted">
                 <span>{timestamp}</span>
                 {post.group?.slug && (
                   <Link
@@ -353,7 +353,7 @@ function PostCardComponent({
                 type="button"
                 disabled={isDeleting}
                 onClick={handleDeleteClick}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-red-500/15 hover:text-red-200 transition-colors disabled:opacity-50"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-theme-muted hover:bg-red-500/15 hover:text-red-200 transition-colors disabled:opacity-50"
                 title={t("postCard.deleteYourPost")}
               >
                 <Trash2 className="w-4 h-4" />
@@ -364,7 +364,7 @@ function PostCardComponent({
 
         {post.text && (
           <div
-            className={`whitespace-pre-wrap text-sm leading-6 text-gray-200 ${
+            className={`whitespace-pre-wrap text-sm leading-6 text-theme-muted ${
               isGamePost ? "mt-1" : "mt-2.5"
             }`}
           >
@@ -389,8 +389,8 @@ function PostCardComponent({
       {hasMedia && (
         <div className="px-4 pb-3">
           {post.mediaType === "video" ? (
-            <div className="relative overflow-hidden rounded-[14px] bg-black/50">
-              <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-white/5 via-transparent to-black/30" />
+            <div className="relative overflow-hidden rounded-[14px] bg-theme-panel/50">
+              <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-theme-panel/5 via-transparent to-black/30" />
               <video
                 ref={videoRef}
                 src={mediaUrl}
@@ -400,21 +400,21 @@ function PostCardComponent({
                 playsInline
                 preload="metadata"
                 onClick={handleVideoClick}
-                className="relative w-full max-h-[420px] bg-black object-contain"
+                className="relative w-full max-h-[420px] bg-theme-panel object-contain"
               />
             </div>
           ) : hasSingleImage ? (
-            <div className="relative overflow-hidden rounded-[14px] bg-black/50">
-              <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-white/5 via-transparent to-black/30" />
+            <div className="relative overflow-hidden rounded-[14px] bg-theme-panel/50">
+              <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-theme-panel/5 via-transparent to-black/30" />
               <img
                 src={imageItems[0].url}
                 alt={imageItems[0].originalName || t("postCard.mediaAlt")}
-                className="relative w-full max-h-[420px] object-contain bg-black cursor-zoom-in"
+                className="relative w-full max-h-[420px] object-contain bg-theme-panel cursor-zoom-in"
                 onClick={() => setActiveImageIndex(0)}
               />
             </div>
           ) : hasMultiImage ? (
-            <div className="rounded-[20px] bg-black/26 p-1.5">
+            <div className="rounded-[20px] bg-theme-panel/26 p-1.5">
               <CommunityImageGrid
                 items={imageItems.map((item) => ({
                   url: item.url,
@@ -452,8 +452,8 @@ function PostCardComponent({
               className={`inline-flex items-center gap-2 rounded-full px-3 py-2 transition-all ${
                 likedByMe
                   ? "bg-brand-500/12 text-brand-100"
-                  : "bg-white/[0.04] text-gray-400 hover:bg-white/[0.08] hover:text-gray-200"
-              } disabled:cursor-not-allowed disabled:hover:bg-white/[0.04] disabled:hover:text-gray-400 disabled:opacity-70`}
+                  : "bg-theme-panel/[0.04] text-theme-muted hover:bg-theme-panel/[0.08] hover:text-theme-muted"
+              } disabled:cursor-not-allowed disabled:hover:bg-theme-panel/[0.04] disabled:hover:text-theme-muted disabled:opacity-70`}
             >
               <Heart
                 className={`h-4 w-4 ${likedByMe ? "fill-current opacity-80" : ""}`}
@@ -462,7 +462,7 @@ function PostCardComponent({
             </button>
           )}
 
-          {footerMediaLabel && <span className="text-gray-500">{footerMediaLabel}</span>}
+          {footerMediaLabel && <span className="text-theme-muted">{footerMediaLabel}</span>}
         </div>
       )}
 
@@ -477,20 +477,20 @@ function PostCardComponent({
         typeof document !== "undefined" &&
         createPortal(
           <div
-            className="fixed inset-0 z-[170] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+            className="fixed inset-0 z-[170] bg-theme-panel/80 backdrop-blur-sm flex items-center justify-center p-4"
             onClick={() => {
               if (isDeleting) return;
               setShowDeleteConfirm(false);
             }}
           >
             <div
-              className="w-full max-w-md rounded-2xl bg-[#0d192c]/95 border border-white/10 shadow-[0_28px_90px_rgba(0,0,0,0.45)] p-5"
+              className="w-full max-w-md rounded-2xl bg-theme-panel border border-theme-glass shadow-[0_28px_90px_rgba(0,0,0,0.45)] p-5"
               onClick={(event) => event.stopPropagation()}
             >
-              <h3 className="text-base font-semibold text-white">
+              <h3 className="text-base font-semibold text-theme-foreground">
                 {t("postCard.deletePostTitle")}
               </h3>
-              <p className="mt-2 text-sm leading-6 text-gray-400">
+              <p className="mt-2 text-sm leading-6 text-theme-muted">
                 {t("postCard.deletePostDescription")}
               </p>
               <div className="mt-5 flex items-center justify-end gap-2">
@@ -498,7 +498,7 @@ function PostCardComponent({
                   type="button"
                   disabled={isDeleting}
                   onClick={() => setShowDeleteConfirm(false)}
-                  className="rounded-lg bg-white/[0.08] px-4 py-2 text-sm text-gray-200 hover:bg-white/[0.14] transition-colors disabled:opacity-50"
+                  className="rounded-lg bg-theme-panel/[0.08] px-4 py-2 text-sm text-theme-muted hover:bg-theme-panel/[0.14] transition-colors disabled:opacity-50"
                 >
                   {t("common.cancel")}
                 </button>
@@ -506,7 +506,7 @@ function PostCardComponent({
                   type="button"
                   disabled={isDeleting}
                   onClick={handleConfirmDelete}
-                  className="rounded-lg bg-red-500/80 px-4 py-2 text-sm font-semibold text-white hover:bg-red-500 transition-colors disabled:opacity-50"
+                  className="rounded-lg bg-red-500/80 px-4 py-2 text-sm font-semibold text-theme-on-accent hover:bg-red-500 transition-colors disabled:opacity-50"
                 >
                   {isDeleting ? t("postCard.deleting") : t("Delete")}
                 </button>
@@ -521,7 +521,7 @@ function PostCardComponent({
         typeof document !== "undefined" &&
         createPortal(
           <div
-            className="fixed inset-0 z-[160] bg-black/95"
+            className="fixed inset-0 z-[160] bg-theme-panel/95"
             onClick={() => setActiveImageIndex(null)}
           >
             <div
@@ -535,16 +535,16 @@ function PostCardComponent({
                   size="sm"
                 />
                 <div className="min-w-0">
-                  <div className="text-sm font-semibold text-white truncate">
+                  <div className="text-sm font-semibold text-theme-on-accent truncate">
                     {authorName}
                   </div>
-                  <div className="text-xs text-gray-400">{timestamp}</div>
+                  <div className="text-xs text-theme-muted">{timestamp}</div>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setActiveImageIndex(null)}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-theme-panel/10 text-theme-foreground hover:bg-theme-panel/20 transition-colors"
                 aria-label={t("postCard.closeImagePreview")}
               >
                 <X className="w-5 h-5" />
@@ -567,7 +567,7 @@ function PostCardComponent({
                 className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/88 to-transparent px-4 pb-5 pt-12"
                 onClick={(event) => event.stopPropagation()}
               >
-                <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 text-xs text-gray-400">
+                <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 text-xs text-theme-muted">
                   <span>
                     {activeImageIndex + 1} / {imageItems.length}
                   </span>
@@ -606,4 +606,3 @@ function PostCardComponent({
 }
 
 export const PostCard = memo(PostCardComponent);
-

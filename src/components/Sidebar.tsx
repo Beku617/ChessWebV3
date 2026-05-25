@@ -119,7 +119,7 @@ export default function Sidebar() {
           className={`object-contain ${styleGroup.logoHeight}`}
         />
         <span
-          className={`hidden md:inline text-gray-900 dark:text-white font-bold tracking-tight ${
+          className={`hidden md:inline text-theme-foreground font-bold tracking-tight ${
             isCompact ? "text-xl" : "text-2xl"
           }`}
         > <Trans>NeonGambit</Trans> </span>
@@ -137,8 +137,8 @@ export default function Sidebar() {
                 to={item.path}
                 className={`flex items-center justify-center md:justify-start gap-0 md:gap-3 min-h-[44px] ${styleGroup.rowPadding} rounded-xl border border-transparent transition-all duration-200 group ${
                   isRouteActive(item.path)
-                    ? "bg-gray-300/75 dark:bg-gray-500/40 text-gray-900 dark:text-gray-100"
-                    : "text-gray-500 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white"
+                    ? "bg-theme-surface/80 text-theme-foreground "
+                    : "text-theme-muted hover:bg-theme-panel/50 hover:text-theme-foreground"
                 }`}
                 title={item.label}
               >
@@ -168,7 +168,7 @@ export default function Sidebar() {
               className={`w-full md:flex-1 min-w-0 flex items-center justify-center md:justify-start gap-2.5 rounded-xl border border-transparent transition-colors cursor-pointer group ${styleGroup.profileRowPadding} ${
                 isRouteActive("/profile")
                   ? "bg-brand-500/10 border-brand-400/25"
-                  : "hover:bg-white/50 dark:hover:bg-white/10"
+                  : "hover:bg-theme-panel/50"
               }`}
             >
               <div
@@ -184,7 +184,7 @@ export default function Sidebar() {
                   />
                 ) : (
                   <span
-                    className={`text-white font-bold ${fontSizeGroup.caption}`}
+                    className={`text-theme-on-accent font-bold ${fontSizeGroup.caption}`}
                   >
                     {user?.fullName?.substring(0, 2).toUpperCase() ||
                       t("common.userInitial", "U")}
@@ -193,7 +193,7 @@ export default function Sidebar() {
               </div>
               <div className="hidden md:block flex-1 min-w-0">
                 <div
-                  className={`font-medium text-gray-900 dark:text-white truncate ${fontSizeGroup.secondary}`}
+                  className={`font-medium text-theme-foreground truncate ${fontSizeGroup.secondary}`}
                 >
                   {user?.fullName || t("common.user", "User")}
                 </div>
@@ -205,15 +205,15 @@ export default function Sidebar() {
                 to="/messages"
                 className={`relative inline-flex items-center justify-center flex-shrink-0 rounded-lg transition-colors ${
                   isRouteActive("/messages")
-                    ? "bg-brand-500/10 text-brand-600 dark:text-brand-300"
-                    : "text-gray-400 hover:bg-white/50 dark:hover:bg-white/10 hover:text-gray-600 dark:hover:text-gray-200"
+                    ? "bg-brand-500/10 text-brand-600"
+                    : "text-theme-muted hover:bg-theme-panel/50 hover:text-theme-muted"
                 } px-2 py-1.5 md:px-3 md:py-2`}
                 title={t("nav.messages", "Messages")}
               >
                 <MessageCircle className="h-4 w-4 md:h-5 md:w-5" aria-hidden="true" />
                 <span className="sr-only">{t("nav.messages", "Messages")}</span>
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[18px] h-5 px-1.5 rounded-full bg-brand-500 text-[10px] font-bold text-white leading-none flex items-center justify-center shadow-[0_0_0_1px_rgba(0,0,0,0.35)]">
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-5 px-1.5 rounded-full bg-brand-500 text-[10px] font-bold text-theme-on-accent leading-none flex items-center justify-center shadow-[0_0_0_1px_rgba(0,0,0,0.35)]">
                     {formatCount(unreadCount)}
                   </span>
                 )}
@@ -223,15 +223,15 @@ export default function Sidebar() {
                 to="/friends"
                 className={`relative inline-flex items-center justify-center flex-shrink-0 rounded-lg transition-colors ${
                   isRouteActive("/friends")
-                    ? "bg-brand-500/10 text-brand-600 dark:text-brand-300"
-                    : "text-gray-400 hover:bg-white/50 dark:hover:bg-white/10 hover:text-gray-600 dark:hover:text-gray-200"
+                    ? "bg-brand-500/10 text-brand-600"
+                    : "text-theme-muted hover:bg-theme-panel/50 hover:text-theme-muted"
                 } px-2 py-1.5 md:px-3 md:py-2`}
                 title={t("nav.friends", "Friends")}
               >
                 <Users className="h-4 w-4 md:h-5 md:w-5" aria-hidden="true" />
                 <span className="sr-only">{t("nav.friends", "Friends")}</span>
                 {pendingIncomingCount > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[18px] h-5 px-1.5 rounded-full bg-brand-500 text-[10px] font-bold text-white leading-none flex items-center justify-center shadow-[0_0_0_1px_rgba(0,0,0,0.35)]">
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-5 px-1.5 rounded-full bg-brand-500 text-[10px] font-bold text-theme-on-accent leading-none flex items-center justify-center shadow-[0_0_0_1px_rgba(0,0,0,0.35)]">
                     {formatCount(pendingIncomingCount)}
                   </span>
                 )}
@@ -241,8 +241,8 @@ export default function Sidebar() {
                 to="/settings"
                 className={`inline-flex items-center justify-center flex-shrink-0 rounded-lg transition-colors ${
                   isRouteActive("/settings")
-                    ? "bg-brand-500/10 text-brand-600 dark:text-brand-300"
-                    : "text-gray-400 hover:bg-white/50 dark:hover:bg-white/10 hover:text-gray-600 dark:hover:text-gray-200"
+                    ? "bg-brand-500/10 text-brand-600"
+                    : "text-theme-muted hover:bg-theme-panel/50 hover:text-theme-muted"
                 } px-2 py-1.5 md:px-3 md:py-2`}
                 title={t("nav.settings", "Settings")}
               >

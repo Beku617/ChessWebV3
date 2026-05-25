@@ -23,8 +23,8 @@ export function PuzzleActions({
   return (
     <>
       {/* Timer */}
-      <div className="px-3 py-2 flex items-center gap-2 text-gray-300">
-        <div className="w-3 h-3 rounded-full border-2 border-gray-500" />
+      <div className="px-3 py-2 flex items-center gap-2 text-theme-muted">
+        <div className="w-3 h-3 rounded-full border-2 border-theme-border" />
         <span className="font-mono">{formatTime(elapsedTime)}</span>
       </div>
 
@@ -42,8 +42,8 @@ export function PuzzleActions({
             disabled={showHint}
             className={`w-full flex items-center justify-center gap-1 py-2 rounded-lg font-bold text-sm transition-colors ${
               showHint
-                ? "bg-[#1f2633] text-gray-500 cursor-not-allowed"
-                : "bg-[#161b25] hover:bg-[#1f222e] text-white"
+                ? "bg-theme-panel text-theme-muted cursor-not-allowed"
+                : "bg-theme-panel hover:bg-theme-panel text-theme-foreground"
             }`}
           >
             <Lightbulb
@@ -56,20 +56,20 @@ export function PuzzleActions({
       </div>
 
       {/* Bottom Nav */}
-      <div className="flex items-center justify-between px-3 py-2 border-t border-[#1f2633]">
-        <button className="text-gray-500 hover:text-white transition-colors">
+      <div className="flex items-center justify-between px-3 py-2 border-t border-theme-glass">
+        <button className="text-theme-muted hover:text-theme-on-accent transition-colors">
           <Settings size={18} />
         </button>
         <div className="flex items-center gap-3">
           <button
             onClick={onPrevPuzzle}
-            className="text-gray-400 hover:text-white transition-colors p-1"
+            className="text-theme-muted hover:text-theme-on-accent transition-colors p-1"
           >
             <ChevronLeft size={20} />
           </button>
           <button
             onClick={onNextPuzzle}
-            className="text-gray-400 hover:text-white transition-colors p-1"
+            className="text-theme-muted hover:text-theme-on-accent transition-colors p-1"
           >
             <ChevronRight size={20} />
           </button>

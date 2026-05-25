@@ -183,7 +183,7 @@ function FourPlayerPreview({ size, label }: { size: number; label: string }) {
         {cells}
       </div>
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <span className="px-3 py-1.5 rounded-full bg-black/55 text-white text-xs font-semibold uppercase tracking-wide">
+        <span className="px-3 py-1.5 rounded-full bg-theme-panel/55 text-theme-foreground text-xs font-semibold uppercase tracking-wide">
           {label}
         </span>
       </div>
@@ -439,7 +439,7 @@ export default function PlayVariants() {
           <div className="flex-1 flex flex-col gap-3 px-3 py-3 overflow-hidden min-h-0">
             {/* Variant Options */}
             <div className="theme-glass-panel-soft rounded-2xl p-3">
-              <div className="text-[12px] font-semibold text-gray-900 dark:text-white mb-2">
+              <div className="text-[12px] font-semibold text-theme-foreground mb-2">
                 {t("Variants")}
               </div>
               <div className="grid grid-cols-2 gap-2">
@@ -451,8 +451,8 @@ export default function PlayVariants() {
                       onClick={() => setSelectedVariant(variant)}
                       className={`rounded-xl p-2.5 text-left transition-all border ${
                         isSelected
-                          ? "bg-brand-500/10 border-brand-500 text-brand-600 dark:text-brand-400"
-                          : "bg-white/55 dark:bg-white/10 border-white/10 text-gray-700 dark:text-gray-300"
+                          ? "bg-brand-500/10 border-brand-500 text-brand-600"
+                          : "bg-theme-panel/55 border-theme-glass text-theme-muted"
                       }`}
                     >
                       <div className="flex items-center gap-2">
@@ -460,7 +460,7 @@ export default function PlayVariants() {
                           {t(variant.label)}
                         </span>
                       </div>
-                      <div className="text-[10px] text-gray-500 mt-1">
+                      <div className="text-[10px] text-theme-muted mt-1">
                         {t(variant.description)}
                       </div>
                     </button>
@@ -471,7 +471,7 @@ export default function PlayVariants() {
 
             {/* Time Control */}
             <div className="theme-glass-panel-soft flex-1 min-h-0 rounded-2xl p-3 flex flex-col">
-              <div className="flex items-center gap-2 text-[13px] font-semibold text-gray-900 dark:text-white mb-2">
+              <div className="flex items-center gap-2 text-[13px] font-semibold text-theme-foreground mb-2">
                 <Clock className="w-4 h-4 text-brand-500" />
                 <span>{t("Time Control")}</span>
               </div>
@@ -491,8 +491,8 @@ export default function PlayVariants() {
                       }
                       className={`py-2 px-3 rounded-xl text-center text-[13px] font-semibold transition-all ${
                         isSelected
-                          ? "bg-brand-500 text-white ring-2 ring-brand-500"
-                          : "bg-white/55 dark:bg-white/10 text-gray-700 dark:text-gray-300 ring-1 ring-white/10 hover:ring-white/20"
+                          ? "bg-brand-500 text-theme-on-accent ring-2 ring-brand-500"
+                          : "bg-theme-panel/55 text-theme-muted ring-1 ring-theme-glass/35 hover:ring-theme-glass/60"
                       }`}
                     >
                       {opt.label}
@@ -507,7 +507,7 @@ export default function PlayVariants() {
           <div className="p-3 border-t border-theme-glass flex-shrink-0">
             <button
               onClick={handleStart}
-              className="w-full py-3 rounded-2xl bg-gradient-to-r from-brand-500 to-brand-500 hover:from-brand-600 hover:to-brand-600 text-white font-bold text-[15px] transition-all shadow-lg hover:shadow-xl active:scale-[0.98]"
+              className="w-full py-3 rounded-2xl bg-gradient-to-r from-brand-500 to-brand-500 hover:from-brand-600 hover:to-brand-600 text-theme-on-accent font-bold text-[15px] transition-all shadow-lg hover:shadow-xl active:scale-[0.98]"
             >
               {t("Start Variant")}
             </button>
@@ -517,4 +517,3 @@ export default function PlayVariants() {
     </div>
   );
 }
-

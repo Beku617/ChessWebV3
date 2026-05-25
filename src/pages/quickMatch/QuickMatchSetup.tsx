@@ -333,20 +333,19 @@ export function QuickMatchSetup({
   return (
     <div
       ref={containerRef}
-      className="relative h-full min-h-0 w-full bg-transparent"
+      className="relative h-full min-h-0 w-full bg-theme-primary"
     >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(255,255,255,0.42),transparent_56%),radial-gradient(circle_at_85%_10%,rgba(56,189,248,0.05),transparent_44%),linear-gradient(180deg,rgba(255,255,255,0.22),rgba(255,255,255,0.1))]" />
       <div className="relative h-full min-h-0 grid grid-cols-1 lg:grid-cols-2">
         {/* Left Side - Board Preview with Player Info */}
         <div
           ref={leftRef}
-          className="flex flex-col items-center justify-center p-4 gap-4 h-full min-h-0"
+          className="flex flex-col items-center justify-center p-4 gap-4 h-full min-h-0 bg-theme-primary"
         >
           {/* Top Opponent Info Bar */}
           <div
             ref={topBarRef}
             className="w-full flex-shrink-0 z-10"
-            style={{ width: boardWidth }}
+            style={{ width: boardWidth, backgroundColor: "var(--bg-panel)" }}
           >
             <PlayerInfo
               name={isSearching ? searchingStatusLabel : ""}
@@ -364,7 +363,7 @@ export function QuickMatchSetup({
 
           {/* Chess Board Preview */}
           <div
-            className="rounded-2xl overflow-hidden shadow-2xl border border-gray-200/60 dark:border-white/10"
+            className="rounded-2xl overflow-hidden shadow-2xl border border-theme-glass/60 "
             style={{ width: boardWidth, height: boardWidth }}
           >
             <Chessboard
@@ -409,7 +408,7 @@ export function QuickMatchSetup({
           <div
             ref={bottomBarRef}
             className="w-full flex-shrink-0 z-10"
-            style={{ width: boardWidth }}
+            style={{ width: boardWidth, backgroundColor: "var(--bg-panel)" }}
           >
             <PlayerInfo
               name={user?.fullName || t("You")}
@@ -428,22 +427,31 @@ export function QuickMatchSetup({
         </div>
 
         {/* Right Side - Quick Match Panel */}
-        <div className="theme-glass-panel-strong w-full h-full min-h-0 rounded-2xl overflow-hidden flex flex-col">
+        <div
+          className="theme-glass-panel-strong w-full h-full min-h-0 rounded-2xl overflow-hidden flex flex-col"
+          style={{ backgroundColor: "var(--bg-base)" }}
+        >
           {isSearching ? (
             <>
               <div className="relative flex-1 overflow-hidden">
-                <div className="theme-glass-panel-soft absolute inset-5 lg:inset-6 rounded-2xl" />
+                <div
+                  className="theme-glass-panel-soft absolute inset-5 lg:inset-6 rounded-2xl"
+                  style={{ backgroundColor: "var(--bg-surface)" }}
+                />
 
                 <div className="absolute inset-0 flex items-center justify-center px-6">
-                  <div className="theme-glass-panel-strong w-full max-w-[300px] rounded-2xl p-7 text-center">
-                    <Timer className="w-10 h-10 mx-auto text-gray-700 dark:text-gray-200" />
-                    <p className="mt-3 text-2xl font-semibold text-gray-900 dark:text-white">
+                  <div
+                    className="theme-glass-panel-strong w-full max-w-[300px] rounded-2xl p-7 text-center"
+                    style={{ backgroundColor: "var(--bg-panel)" }}
+                  >
+                    <Timer className="w-10 h-10 mx-auto text-theme-muted " />
+                    <p className="mt-3 text-2xl font-semibold text-theme-foreground ">
                       {searchElapsedSeconds} {t("tournamentsPage.units.secAbbr", "s")}
                     </p>
-                    <p className="mt-2 text-lg text-gray-600 dark:text-gray-300">
+                    <p className="mt-2 text-lg text-theme-muted">
                       {searchingGameText}
                     </p>
-                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    <p className="mt-1 text-sm text-theme-muted">
                       {tournamentMode
                         ? localizedQueueStatus || waitingForOpponentLabel
                         : localizedQueueStatus ||
@@ -454,7 +462,7 @@ export function QuickMatchSetup({
                     <button
                       type="button"
                       onClick={onCancel}
-                      className="mt-7 text-base font-medium text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white transition-colors"
+                      className="mt-7 text-base font-medium text-theme-muted hover:text-theme-foreground transition-colors"
                     >
                       {t("Cancel")}
                     </button>
@@ -469,16 +477,16 @@ export function QuickMatchSetup({
                   <>
                     {/* Game Type */}
                     <div className="theme-glass-panel-soft rounded-2xl p-3">
-                      <div className="text-[12px] font-semibold text-gray-900 dark:text-white mb-2">
+                      <div className="text-[12px] font-semibold text-theme-foreground mb-2">
                         {t("Game Type")}
                       </div>
                       <button
                         type="button"
                         onClick={() => setIsGameTypeOpen((value) => !value)}
-                        className="w-full py-3 px-3 rounded-xl bg-white/55 dark:bg-white/10 border border-white/10 text-gray-800 dark:text-gray-100 flex items-center justify-between"
+                        className="w-full py-3 px-3 rounded-xl bg-theme-panel/55 border border-theme-glass text-theme-foreground flex items-center justify-between"
                       >
                         <span className="flex items-center gap-2 text-[13px] font-semibold">
-                          <LayoutGrid className="w-4 h-4 text-gray-600 dark:text-gray-300" />
+                          <LayoutGrid className="w-4 h-4 text-theme-muted" />
                           {t(selectedGameType.label)}
                         </span>
                         {isGameTypeOpen ? (
@@ -489,7 +497,7 @@ export function QuickMatchSetup({
                       </button>
 
                       {isGameTypeOpen && (
-                        <div className="mt-2 rounded-xl border border-white/10 overflow-hidden">
+                        <div className="mt-2 rounded-xl border border-theme-glass overflow-hidden">
                           {GAME_TYPE_OPTIONS.map((option) => {
                             const isActive = selectedGameType.id === option.id;
                             return (
@@ -506,8 +514,8 @@ export function QuickMatchSetup({
                                 }}
                                 className={`w-full px-3 py-2.5 flex items-center justify-between text-left transition-colors ${
                                   isActive
-                                    ? "bg-brand-500/15 text-brand-600 dark:text-brand-300"
-                                    : "bg-white/55 dark:bg-white/10 hover:bg-white/75 dark:hover:bg-white/15 text-gray-700 dark:text-gray-200"
+                                    ? "bg-brand-500/15 text-brand-600"
+                                    : "bg-theme-panel/55 hover:bg-theme-panel/75 text-theme-muted "
                                 }`}
                               >
                                 <span className="text-[13px] font-medium">
@@ -528,7 +536,7 @@ export function QuickMatchSetup({
                       <button
                         type="button"
                         onClick={() => setIsTimeControlOpen((value) => !value)}
-                        className="w-full py-3 px-3 rounded-xl bg-white/55 dark:bg-white/10 border border-white/10 text-gray-800 dark:text-gray-100 flex items-center justify-between"
+                        className="w-full py-3 px-3 rounded-xl bg-theme-panel/55 border border-theme-glass text-theme-foreground flex items-center justify-between"
                       >
                         <span className="flex items-center gap-2 text-[13px] font-semibold">
                           <Timer className="w-4 h-4 text-yellow-500" />
@@ -546,7 +554,7 @@ export function QuickMatchSetup({
                           {QUICK_TIME_GROUPS.map((group) => {
                             return (
                               <div key={group.id}>
-                                <div className="mb-1 flex items-center gap-1.5 text-[12px] font-semibold text-gray-800 dark:text-gray-200">
+                                <div className="mb-1 flex items-center gap-1.5 text-[12px] font-semibold text-theme-foreground ">
                                   <span>{t(group.label)}</span>
                                 </div>
                                 <div className="grid grid-cols-3 gap-2">
@@ -566,8 +574,8 @@ export function QuickMatchSetup({
                                         }}
                                         className={`py-2 rounded-lg text-[12px] font-semibold transition-all ${
                                           isSelected
-                                            ? "bg-brand-500/20 text-brand-600 dark:text-brand-300 ring-2 ring-brand-500"
-                                            : "bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 ring-1 ring-gray-200 dark:ring-slate-700 hover:ring-gray-300 dark:hover:ring-slate-600"
+                                            ? "bg-brand-500/20 text-brand-600 ring-2 ring-brand-500"
+                                            : "bg-theme-surface text-theme-muted ring-1 ring-theme-border hover:ring-theme-border"
                                         }`}
                                       >
                                         {t(opt.label)}
@@ -579,11 +587,11 @@ export function QuickMatchSetup({
                             );
                           })}
                           <div className="theme-glass-panel-soft rounded-xl p-2.5">
-                            <div className="text-[12px] font-semibold text-gray-800 dark:text-gray-200">
+                            <div className="text-[12px] font-semibold text-theme-foreground ">
                               {t("Custom")}
                             </div>
                             <div className="mt-2 grid grid-cols-2 gap-2">
-                              <label className="text-[11px] text-gray-600 dark:text-gray-300">
+                              <label className="text-[11px] text-theme-muted">
                                 {t("Base (min)")}
                                 <input
                                   type="number"
@@ -593,10 +601,10 @@ export function QuickMatchSetup({
                                   onChange={(event) =>
                                     setCustomBaseMinutes(event.target.value)
                                   }
-                                  className="mt-1 w-full rounded-lg border border-white/10 bg-white/60 dark:bg-white/10 px-2 py-1.5 text-[12px] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500/40"
+                                  className="mt-1 w-full rounded-lg border border-theme-glass bg-theme-panel/60 px-2 py-1.5 text-[12px] text-theme-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/40"
                                 />
                               </label>
-                              <label className="text-[11px] text-gray-600 dark:text-gray-300">
+                              <label className="text-[11px] text-theme-muted">
                                 {t("Increment (sec)")}
                                 <input
                                   type="number"
@@ -606,14 +614,14 @@ export function QuickMatchSetup({
                                   onChange={(event) =>
                                     setCustomIncrementSeconds(event.target.value)
                                   }
-                                  className="mt-1 w-full rounded-lg border border-white/10 bg-white/60 dark:bg-white/10 px-2 py-1.5 text-[12px] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500/40"
+                                  className="mt-1 w-full rounded-lg border border-theme-glass bg-theme-panel/60 px-2 py-1.5 text-[12px] text-theme-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/40"
                                 />
                               </label>
                             </div>
                             <button
                               type="button"
                               onClick={applyCustomTimeControl}
-                              className="mt-2 w-full rounded-lg bg-brand-500/20 text-brand-700 dark:text-brand-300 py-1.5 text-[12px] font-semibold ring-1 ring-brand-500/40 hover:bg-brand-500/25 transition-colors"
+                              className="mt-2 w-full rounded-lg bg-brand-500/20 text-brand-700 py-1.5 text-[12px] font-semibold ring-1 ring-brand-500/40 hover:bg-brand-500/25 transition-colors"
                             >
                               {t("Apply Custom")}
                             </button>
@@ -625,7 +633,7 @@ export function QuickMatchSetup({
                 )}
 
                 {tournamentMode && (
-                  <div className="theme-glass-panel-soft rounded-2xl p-3 text-sm text-gray-700 dark:text-gray-200">
+                  <div className="theme-glass-panel-soft rounded-2xl p-3 text-sm text-theme-muted ">
                     {tournamentPairingInfoLabel}
                   </div>
                 )}
@@ -636,7 +644,7 @@ export function QuickMatchSetup({
                   <button
                     onClick={onStart}
                     disabled={isSearching || !isConnected}
-                    className="w-full py-3 rounded-xl bg-gradient-to-r from-brand-500 to-brand-500 hover:from-brand-600 hover:to-brand-600 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold text-lg transition-all shadow-lg hover:shadow-xl active:scale-[0.98] disabled:cursor-not-allowed disabled:shadow-none"
+                    className="w-full py-3 rounded-xl bg-gradient-to-r from-brand-500 to-brand-500 hover:from-brand-600 hover:to-brand-600 disabled:from-theme-surface disabled:to-theme-surface text-theme-on-accent font-bold text-lg transition-all shadow-lg hover:shadow-xl active:scale-[0.98] disabled:cursor-not-allowed disabled:shadow-none"
                   >
                     {isSearching
                       ? searchingStatusLabel

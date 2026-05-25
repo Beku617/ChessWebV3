@@ -22,20 +22,20 @@ const BOARD_FRAME_PADDING = 4;
 const BOARD_MIN_SIZE = 280;
 const BOARD_MAX_SIZE = 1600;
 
-const surfaceClass = "rounded-2xl border border-white/10 bg-[#0f1b31]";
+const surfaceClass = "rounded-2xl border border-theme-glass bg-theme-panel";
 const statCardClass = `${surfaceClass} px-4 py-3`;
 const cardClass = `${surfaceClass} p-4`;
 
 const secondaryButtonClass =
-  "inline-flex h-11 w-full items-center justify-between gap-2 rounded-xl border border-white/10 bg-[#13203a] px-3.5 text-xs font-semibold text-slate-100 transition-colors hover:bg-[#182742] disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex h-11 w-full items-center justify-between gap-2 rounded-xl border border-theme-glass bg-theme-panel px-3.5 text-xs font-semibold text-theme-foreground transition-colors hover:bg-theme-panel disabled:cursor-not-allowed disabled:opacity-50";
 
 const primaryButtonClass =
-  "inline-flex h-11 w-full items-center justify-between gap-2 rounded-xl border border-emerald-400/40 bg-emerald-500/15 px-3.5 text-xs font-semibold text-emerald-100 transition-colors hover:bg-emerald-500/25 disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex h-11 w-full items-center justify-between gap-2 rounded-xl border border-emerald-400/40 bg-emerald-500/15 px-3.5 text-xs font-semibold text-theme-foreground transition-colors hover:bg-emerald-500/25 disabled:cursor-not-allowed disabled:opacity-50";
 
 function ratingDeltaClass(delta: number) {
-  if (delta > 0) return "text-emerald-300";
-  if (delta < 0) return "text-red-300";
-  return "text-slate-300";
+  if (delta > 0) return "text-emerald-600";
+  if (delta < 0) return "text-red-600";
+  return "text-theme-muted";
 }
 
 export default function PuzzleTrainer() {
@@ -131,13 +131,13 @@ export default function PuzzleTrainer() {
     : t("puzzles.trainer.blackToMove", "Black to move");
 
   return (
-    <div className="h-screen overflow-hidden bg-[#070b14] text-white">
+    <div className="h-screen overflow-hidden bg-theme-panel text-theme-foreground">
       <div className="flex h-full overflow-hidden">
         <Sidebar />
 
         <main className="ml-[60px] min-h-0 min-w-0 flex-1 overflow-hidden md:ml-72">
-          <div className="grid h-full grid-rows-[54px_minmax(0,1fr)] overflow-hidden bg-[#0d1322]">
-            <div className="flex items-stretch gap-[2px] overflow-x-auto overflow-y-hidden border-b border-white/10 bg-[#0c1630] px-5 no-scrollbar">
+          <div className="grid h-full grid-rows-[54px_minmax(0,1fr)] overflow-hidden bg-theme-panel">
+            <div className="flex items-stretch gap-[2px] overflow-x-auto overflow-y-hidden border-b border-theme-glass bg-theme-panel px-5 no-scrollbar">
               {TRAINER_MODES.map((tab) => {
                 const active = tab.mode === activeMode;
 
@@ -148,8 +148,8 @@ export default function PuzzleTrainer() {
                     onClick={() => openMode(tab.mode)}
                     className={`relative h-full px-3.5 text-[12.5px] font-medium transition-colors ${
                       active
-                        ? "text-emerald-300 after:absolute after:bottom-0 after:left-[10px] after:right-[10px] after:h-0.5 after:rounded-t-[2px] after:bg-emerald-300"
-                        : "text-slate-400 hover:text-slate-100"
+                        ? "text-theme-foreground after:absolute after:bottom-0 after:left-[10px] after:right-[10px] after:h-0.5 after:rounded-t-[2px] after:bg-brand-500"
+                        : "text-theme-muted hover:text-theme-foreground"
                     }`}
                   >
                     {t(`puzzles.modeLabels.${tab.mode}`, tab.label)}
@@ -160,7 +160,7 @@ export default function PuzzleTrainer() {
               <button
                 type="button"
                 onClick={() => navigate("/puzzles/history")}
-                className="relative h-full px-3.5 text-[12.5px] font-medium text-slate-400 transition-colors hover:text-slate-100"
+                className="relative h-full px-3.5 text-[12.5px] font-medium text-theme-muted transition-colors hover:text-theme-foreground"
               >
                 {t("puzzles.trainer.historyTab", "History")}
               </button>
@@ -174,32 +174,32 @@ export default function PuzzleTrainer() {
               }}
             >
               <section
-                className="min-h-0 overflow-hidden bg-[#0b1222] pt-1.5 pb-1.5"
+                className="min-h-0 overflow-hidden bg-theme-panel pt-1.5 pb-1.5"
                 style={{
                   paddingLeft: LEFT_SECTION_X_PADDING,
                   paddingRight: LEFT_SECTION_X_PADDING,
                 }}
               >
                 <div
-                  className="h-full overflow-hidden rounded-3xl border border-white/10 bg-[#0d1629]"
+                  className="h-full overflow-hidden rounded-3xl border border-theme-glass bg-theme-panel"
                   style={{ padding: BOARD_FRAME_PADDING }}
                 >
                   <div className="flex h-full w-full items-start justify-start overflow-hidden">
                     {loading ? (
                       <div className="flex h-full w-full flex-col items-center justify-center px-4 text-center">
                         <Loader2 className="mb-3 h-10 w-10 animate-spin text-emerald-400" />
-                        <p className="text-sm text-slate-300">
+                        <p className="text-sm text-theme-muted">
                           {t("puzzles.trainer.loading", "Loading puzzle...")}
                         </p>
                       </div>
                     ) : networkError ? (
-                      <div className="max-w-[680px] rounded-2xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-100">
+                      <div className="max-w-[680px] rounded-2xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-700">
                         {networkError}
                       </div>
                     ) : !currentPuzzle ? (
                       <div className="flex h-full w-full items-center justify-center px-6">
                         <div className="max-w-md text-center">
-                          <p className="text-lg font-semibold text-slate-100">
+                          <p className="text-lg font-semibold text-theme-foreground">
                             {activeMode === "review"
                               ? t(
                                   "puzzles.trainer.noReviewTitle",
@@ -211,7 +211,7 @@ export default function PuzzleTrainer() {
                                 )}
                           </p>
                           {activeMode === "review" ? null : (
-                            <p className="mt-2 text-sm leading-6 text-slate-400">
+                            <p className="mt-2 text-sm leading-6 text-theme-muted">
                               {selectionReason ||
                                 t(
                                   "puzzles.trainer.noPuzzleDescription",
@@ -224,7 +224,7 @@ export default function PuzzleTrainer() {
                     ) : (
                       <div className="flex flex-col items-start">
                         <div
-                          className="aspect-square overflow-hidden rounded-[22px] border border-white/10 bg-[#0f1b2d] shadow-[0_16px_38px_rgba(0,0,0,0.34)]"
+                          className="aspect-square overflow-hidden rounded-[22px] border border-theme-glass bg-theme-panel shadow-[0_16px_38px_rgba(0,0,0,0.34)]"
                           style={{ width: boardSize, height: boardSize }}
                         >
                           <Chessboard
@@ -272,14 +272,14 @@ export default function PuzzleTrainer() {
                 </div>
               </section>
 
-              <aside className="min-h-0 overflow-y-auto overflow-x-hidden border-l border-white/10 bg-[#0d172b] px-4 py-3">
+              <aside className="min-h-0 overflow-y-auto overflow-x-hidden border-l border-theme-glass bg-theme-panel px-4 py-3">
                 <div className="space-y-3">
                   <div className="grid grid-cols-2 gap-3 text-xs">
                   <div className={statCardClass}>
-                      <p className="text-slate-400">
+                      <p className="text-theme-muted">
                         {t("puzzles.trainer.puzzleElo", "Puzzle Elo")}
                       </p>
-                      <p className="mt-1 flex items-baseline gap-2 text-[30px] font-semibold leading-none text-emerald-200">
+                      <p className="mt-1 flex items-baseline gap-2 text-[30px] font-semibold leading-none text-theme-foreground">
                         {puzzleElo}
                         {showRatingDelta ? (
                           <span
@@ -295,38 +295,38 @@ export default function PuzzleTrainer() {
                     </div>
 
                     <div className={statCardClass}>
-                      <p className="text-slate-400">
+                      <p className="text-theme-muted">
                         {t("puzzles.trainer.streak", "Streak")}
                       </p>
-                      <p className="mt-1 text-[30px] font-semibold leading-none text-amber-200">
+                      <p className="mt-1 text-[30px] font-semibold leading-none text-theme-foreground">
                         {streak}
                       </p>
                     </div>
                   </div>
 
                   <div className={cardClass}>
-                    <p className="text-xs uppercase tracking-[0.16em] text-slate-400">
+                    <p className="text-xs uppercase tracking-[0.16em] text-theme-muted">
                       {t("puzzles.trainer.sideToMove", "Side to move")}
                     </p>
 
                     {currentPuzzle ? (
-                      <div className="mt-3 flex items-center gap-3 rounded-2xl border border-white/10 bg-[#101d33] px-3.5 py-3">
+                      <div className="mt-3 flex items-center gap-3 rounded-2xl border border-theme-glass bg-theme-panel px-3.5 py-3">
                         <span
                           className={`h-4 w-4 rounded-full border ${
                             puzzleStartsWithWhite
-                              ? "border-slate-200 bg-white"
-                              : "border-slate-500 bg-slate-900"
+                              ? "border-theme-border bg-theme-panel"
+                              : "border-theme-border bg-theme-panel"
                           }`}
                           aria-hidden="true"
                         />
                         <div>
-                          <p className="text-sm font-semibold text-white">
+                          <p className="text-sm font-semibold text-theme-foreground">
                             {sideToMoveLabel}
                           </p>
                         </div>
                       </div>
                     ) : (
-                      <p className="mt-2 text-sm text-slate-500">
+                      <p className="mt-2 text-sm text-theme-muted">
                         {t(
                           "puzzles.trainer.waitingForPuzzle",
                           "Waiting for puzzle...",
@@ -336,11 +336,11 @@ export default function PuzzleTrainer() {
                   </div>
 
                   <div className={cardClass}>
-                    <p className="inline-flex items-center gap-1.5 text-xs text-slate-400">
-                      <Clock3 className="h-2 w-3.5 text-slate-300" />
+                    <p className="inline-flex items-center gap-1.5 text-xs text-theme-muted">
+                      <Clock3 className="h-2 w-3.5 text-theme-muted" />
                       {t("puzzles.trainer.timer", "Timer")}
                     </p>
-                    <p className="mt-2 text-3xl font-mono leading-none text-white">
+                    <p className="mt-2 text-3xl font-mono leading-none text-theme-foreground">
                       {formatTime(elapsedTime)}
                     </p>
                   </div>
@@ -429,14 +429,14 @@ export default function PuzzleTrainer() {
 
                   <div className={cardClass}>
                     {!solutionLineVisible ? (
-                      <p className="text-xs leading-5 text-slate-500">
+                      <p className="text-xs leading-5 text-theme-muted">
                         {t(
                           "puzzles.trainer.revealLine",
                           "Click Show Solution to reveal the line.",
                         )}
                       </p>
                     ) : solutionMoves.length === 0 ? (
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-theme-muted">
                         {t("puzzles.trainer.noStoredLine", "No stored line.")}
                       </p>
                     ) : (
@@ -444,7 +444,7 @@ export default function PuzzleTrainer() {
                         {solutionMoves.map((move, index) => (
                           <span
                             key={`${move}-${index}`}
-                            className="rounded-lg border border-white/10 bg-[#101a2f] px-2.5 py-1 text-[11px] font-mono text-slate-200"
+                            className="rounded-lg border border-theme-glass bg-theme-panel px-2.5 py-1 text-[11px] font-mono text-theme-foreground"
                           >
                             {move}
                           </span>

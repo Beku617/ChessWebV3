@@ -117,7 +117,7 @@ export default function AdminUserProfile() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-950 flex items-center justify-center">
+      <div className="min-h-screen bg-theme-panel flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
       </div>
     );
@@ -125,17 +125,17 @@ export default function AdminUserProfile() {
 
   if (error || !user) {
     return (
-      <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-950 text-gray-900 dark:text-white">
+      <div className="min-h-screen bg-theme-panel text-theme-foreground ">
         <AdminSidebar />
         <main className="ml-72 p-8">
           <button
             onClick={() => navigate("/admin")}
-            className="flex items-center gap-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 mb-6"
+            className="flex items-center gap-2 text-theme-muted hover:text-theme-muted mb-6"
           >
             <ArrowLeft className="w-4 h-4" />
             {t("admin.users.backToDashboard")}
           </button>
-          <div className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 p-4 rounded-xl">
+          <div className="bg-red-100 text-red-700 p-4 rounded-xl">
             {error || t("admin.users.errors.notFound")}
           </div>
         </main>
@@ -166,7 +166,7 @@ export default function AdminUserProfile() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-950 text-gray-900 dark:text-white transition-colors duration-300">
+    <div className="min-h-screen bg-theme-panel text-theme-foreground transition-colors duration-300">
       <AdminSidebar />
 
       <div className="ml-72">
@@ -174,7 +174,7 @@ export default function AdminUserProfile() {
         <div className="px-8 pt-6">
           <button
             onClick={() => navigate("/admin")}
-            className="flex items-center gap-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 mb-4"
+            className="flex items-center gap-2 text-theme-muted hover:text-theme-muted mb-4"
           >
             <ArrowLeft className="w-4 h-4" />
             {t("admin.users.backToDashboard")}

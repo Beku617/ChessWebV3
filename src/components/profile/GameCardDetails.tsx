@@ -68,31 +68,31 @@ export function GameCardDetails({ game }: GameCardDetailsProps) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
       <div className="space-y-1">
-        <span className="text-xs uppercase tracking-wider text-gray-500 font-semibold">
+        <span className="text-xs uppercase tracking-wider text-theme-muted font-semibold">
           {t("profileGames.card.opening", "Opening")}
         </span>
         <p
-          className="text-sm font-medium text-gray-900 dark:text-white truncate"
+          className="text-sm font-medium text-theme-foreground truncate"
           title={game.eco}
         >
           {game.eco || t("profilePage.unknown", "Unknown")}
         </p>
       </div>
       <div className="space-y-1">
-        <span className="text-xs uppercase tracking-wider text-gray-500 font-semibold">
+        <span className="text-xs uppercase tracking-wider text-theme-muted font-semibold">
           {t("profileGames.card.timeControl", "Time Control")}
         </span>
-        <p className="text-sm font-medium text-gray-900 dark:text-white">
+        <p className="text-sm font-medium text-theme-foreground ">
           {game.timeControl === "-"
             ? t("profileGames.card.unlimited", "Unlimited")
             : formatTimeControlDisplay(game.timeControl)}
         </p>
       </div>
       <div className="space-y-1">
-        <span className="text-xs uppercase tracking-wider text-gray-500 font-semibold">
+        <span className="text-xs uppercase tracking-wider text-theme-muted font-semibold">
           {t("profileGames.card.termination", "Termination")}
         </span>
-        <p className="text-sm font-medium text-gray-900 dark:text-white">
+        <p className="text-sm font-medium text-theme-foreground ">
           {t(
             `profileGames.termination.${normalizeKey(String(game.termination || ""))}`,
             String(game.termination || t("profilePage.unknown", "Unknown")),
@@ -100,19 +100,19 @@ export function GameCardDetails({ game }: GameCardDetailsProps) {
         </p>
       </div>
       <div className="space-y-1">
-        <span className="text-xs uppercase tracking-wider text-gray-500 font-semibold">
+        <span className="text-xs uppercase tracking-wider text-theme-muted font-semibold">
           {t("profileGames.card.opponentLevel", "Opponent Level")}
         </span>
-        <p className="text-sm font-medium text-gray-900 dark:text-white">
+        <p className="text-sm font-medium text-theme-foreground ">
           {game.opponentLevel || t("profileGames.card.notAvailable", "N/A")}
         </p>
       </div>
       {isThreeCheckGame && (
         <div className="space-y-1">
-          <span className="text-xs uppercase tracking-wider text-gray-500 font-semibold">
+          <span className="text-xs uppercase tracking-wider text-theme-muted font-semibold">
             {t("profileGames.card.threeCheck", "3-Check")}
           </span>
-          <p className="text-sm font-medium text-gray-900 dark:text-white">
+          <p className="text-sm font-medium text-theme-foreground ">
             {t("profileGames.card.threeCheckScore", {
               white: t("profileGames.card.white", "White"),
               black: t("profileGames.card.black", "Black"),

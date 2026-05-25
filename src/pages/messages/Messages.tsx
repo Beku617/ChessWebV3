@@ -66,8 +66,8 @@ const GAME_RESULT_ACCENT_CLASS = {
 } as const;
 
 const GAME_CARD_BG_CLASS = {
-  mine: "border-white/20 bg-white/10 hover:bg-white/15",
-  theirs: "border-[#25344e] bg-[#0b1424]/80 hover:bg-[#0f1a2e]/90",
+  mine: "border-theme-glass bg-theme-panel/10 hover:bg-theme-panel/15",
+  theirs: "border-theme-glass bg-theme-panel hover:bg-theme-panel",
 } as const;
 
 const OFFLINE_PRESENCE_STATUS: PresenceStatus = "offline";
@@ -814,20 +814,20 @@ export default function Messages() {
     const videos = attachments.filter(isVideoAttachment);
     const images = attachments.filter((att) => !isVideoAttachment(att));
     const containerTint = mine
-      ? "border-white/10 bg-white/5"
-      : "border-[#1f2d45] bg-[#0d1729]/80";
+      ? "border-theme-glass bg-theme-panel/5"
+      : "border-theme-glass bg-theme-panel";
 
     const videoBlock =
       videos.length > 0 ? (
         <div className={`mt-2 rounded-xl border ${containerTint} p-2`}>
-          <div className="relative overflow-hidden rounded-lg bg-[#0b1424] shadow-[0_10px_26px_rgba(0,0,0,0.28)]">
+          <div className="relative overflow-hidden rounded-lg bg-theme-panel shadow-[0_10px_26px_rgba(0,0,0,0.28)]">
             <video
               key={`${messageId}-video`}
               src={resolveMediaUrl(videos[0].url)}
               poster={videos[0].thumbnail ? resolveMediaUrl(videos[0].thumbnail || "") : undefined}
               controls
               preload="metadata"
-              className="h-full max-h-[360px] w-full rounded-lg bg-black/60 object-contain"
+              className="h-full max-h-[360px] w-full rounded-lg bg-theme-panel/60 object-contain"
               onDoubleClick={(e) => {
                 e.stopPropagation();
                 setViewer({ attachments, index: attachments.indexOf(videos[0]) });
@@ -835,11 +835,11 @@ export default function Messages() {
             />
             <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/45 via-black/15 to-transparent" />
           </div>
-          <div className="mt-2 flex items-center justify-between gap-2 text-[12px] text-slate-200/90">
+          <div className="mt-2 flex items-center justify-between gap-2 text-[12px] text-theme-foreground/90">
             <span className="truncate">
               {videos[0].filename || t("messages.media.video", "Video")}
             </span>
-            <span className="text-slate-400">{formatBytes(videos[0].size || 0)}</span>
+            <span className="text-theme-muted">{formatBytes(videos[0].size || 0)}</span>
           </div>
         </div>
       ) : null;
@@ -887,7 +887,7 @@ export default function Messages() {
                         className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                       />
                       {isOverlay && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-lg font-semibold text-white backdrop-blur-sm">
+                        <div className="absolute inset-0 flex items-center justify-center bg-theme-panel/60 text-lg font-semibold text-theme-foreground backdrop-blur-sm">
                           +{extra}
                         </div>
                       )}
@@ -1148,33 +1148,33 @@ export default function Messages() {
   }, [challengeFriendId, challengeFriendName, navigate]);
 
   return (
-    <div className="min-h-screen h-screen bg-transparent text-slate-100 flex transition-colors duration-300">
+    <div className="min-h-screen h-screen bg-transparent text-theme-foreground flex transition-colors duration-300">
       <Sidebar />
 
       <div className="flex-1 ml-[60px] md:ml-72 grid h-screen min-h-0 grid-cols-12 overflow-hidden">
         <aside className="theme-glass-panel-strong col-span-4 min-w-0 min-h-0 overflow-y-auto premium-scrollbar rounded-none border-r">
           <div className="theme-glass-panel-soft sticky top-0 z-20 rounded-none px-5 py-5">
             <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-theme-muted" />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={t("messages.search", "Search conversations")}
-                className="w-full rounded-xl border border-[#25344e] bg-[#0c1629]/90 py-2.5 pl-10 pr-3 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition-all focus:border-brand-400/80 focus:ring-2 focus:ring-brand-500/20"
+                className="w-full rounded-xl border border-theme-glass bg-theme-panel py-2.5 pl-10 pr-3 text-sm text-theme-foreground placeholder:text-theme-disabled outline-none transition-all focus:border-brand-400/80 focus:ring-2 focus:ring-brand-500/20"
               />
             </div>
           </div>
 
           <div className="p-4 pt-0">
             <section className="theme-glass-panel-soft overflow-hidden rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.18)]">
-              <div className="flex border-b border-[#25344e] bg-[#0c1629]/65">
+              <div className="flex border-b border-theme-glass bg-theme-panel">
                 <button
                   type="button"
                   onClick={() => setChatTab("conversations")}
-                  className={`flex flex-1 items-center justify-between gap-2 border-r border-[#25344e] px-4 py-3 text-[12px] font-semibold leading-4 transition-all ${
+                  className={`flex flex-1 items-center justify-between gap-2 border-r border-theme-glass px-4 py-3 text-[12px] font-semibold leading-4 transition-all ${
                     chatTab === "conversations"
-                      ? "relative -mb-px border-b border-[#0c1629] bg-[#0c1629] text-brand-300 shadow-[inset_0_1px_0_rgba(37,52,78,0.8)]"
-                      : "border-b border-[#25344e] bg-[#0c1629]/40 text-slate-400 hover:bg-[#13223a]/65 hover:text-slate-200"
+                      ? "relative -mb-px border-b border-theme-glass bg-theme-panel text-brand-300 shadow-[inset_0_1px_0_rgba(37,52,78,0.8)]"
+                      : "border-b border-theme-glass bg-theme-panel text-theme-muted hover:bg-theme-panel hover:text-theme-foreground"
                   }`}
                 >
                   <span>{t("messages.tabConversations", "Conversations")}</span>
@@ -1182,7 +1182,7 @@ export default function Messages() {
                     className={`inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] ${
                       chatTab === "conversations"
                         ? "bg-brand-500/15 text-brand-200"
-                        : "bg-[#1b2d45] text-slate-300"
+                        : "bg-theme-panel text-theme-muted"
                     }`}
                   >
                     {tabbedConversations.active.length}
@@ -1191,10 +1191,10 @@ export default function Messages() {
                 <button
                   type="button"
                   onClick={() => setChatTab("archived")}
-                  className={`flex flex-1 items-center justify-between gap-2 border-l border-[#25344e] px-4 py-3 text-[12px] font-semibold leading-4 transition-all ${
+                  className={`flex flex-1 items-center justify-between gap-2 border-l border-theme-glass px-4 py-3 text-[12px] font-semibold leading-4 transition-all ${
                     chatTab === "archived"
-                      ? "relative -mb-px border-b border-[#0c1629] bg-[#0c1629] text-brand-300 shadow-[inset_0_1px_0_rgba(37,52,78,0.8)]"
-                      : "border-b border-[#25344e] bg-[#0c1629]/40 text-slate-400 hover:bg-[#13223a]/65 hover:text-slate-200"
+                      ? "relative -mb-px border-b border-theme-glass bg-theme-panel text-brand-300 shadow-[inset_0_1px_0_rgba(37,52,78,0.8)]"
+                      : "border-b border-theme-glass bg-theme-panel text-theme-muted hover:bg-theme-panel hover:text-theme-foreground"
                   }`}
                 >
                   <span>{t("messages.tabArchived", "Archived")}</span>
@@ -1202,7 +1202,7 @@ export default function Messages() {
                     className={`inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] ${
                       chatTab === "archived"
                         ? "bg-brand-500/15 text-brand-200"
-                        : "bg-[#1b2d45] text-slate-300"
+                        : "bg-theme-panel text-theme-muted"
                     }`}
                   >
                     {tabbedConversations.archived.length}
@@ -1212,11 +1212,11 @@ export default function Messages() {
 
               <div className="p-3">
                 {loading ? (
-                  <div className="rounded-xl border border-dashed border-[#27354f] bg-[#0f192b]/65 px-3 py-4 text-center text-xs text-slate-500">
+                  <div className="rounded-xl border border-dashed border-theme-glass bg-theme-panel px-3 py-4 text-center text-xs text-theme-muted">
                     {t("messages.loading", "Loading conversations...")}
                   </div>
                 ) : visibleConversations.length === 0 ? (
-                <div className="rounded-xl border border-dashed border-[#27354f] bg-[#0f192b]/65 px-3 py-4 text-center text-xs text-slate-500">
+                <div className="rounded-xl border border-dashed border-theme-glass bg-theme-panel px-3 py-4 text-center text-xs text-theme-muted">
                   {chatTab === "archived"
                     ? t("messages.archivedEmpty", "No archived chats.")
                     : t("messages.conversationsEmpty", "No conversations yet.")}
@@ -1235,12 +1235,12 @@ export default function Messages() {
                         onClick={() => setSearchParams({ chat: c.partnerId })}
                         className={`group w-full rounded-[14px] border px-3 py-2.5 text-left transition-all duration-200 ${
                           selected
-                            ? "border-brand-400/45 bg-[#10253a]/95 shadow-[inset_0_0_0_1px_rgba(45,212,191,0.12),0_8px_18px_rgba(8,145,178,0.12)]"
-                            : "border-[#24334d]/45 bg-[#0d1729]/72 hover:border-[#314664] hover:bg-[#111e32]/90"
+                            ? "border-brand-400/45 bg-theme-panel shadow-[inset_0_0_0_1px_rgba(45,212,191,0.12),0_8px_18px_rgba(8,145,178,0.12)]"
+                            : "border-theme-glass bg-theme-panel hover:border-theme-glass hover:bg-theme-panel"
                         }`}
                       >
                         <div className="flex items-center gap-2.5">
-                          <div className="relative h-9 w-9 shrink-0 rounded-full bg-[#1a2940] text-xs font-semibold text-slate-100 ring-1 ring-[#2a3a57]">
+                          <div className="relative h-9 w-9 shrink-0 rounded-full bg-theme-panel text-xs font-semibold text-theme-foreground ring-1 ring-theme-border">
                             {c.partnerAvatar ? (
                               <img
                                 src={c.partnerAvatar}
@@ -1253,7 +1253,7 @@ export default function Messages() {
                               </div>
                             )}
                             <span
-                              className={`absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border border-[#0f1828] ${
+                              className={`absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full border border-theme-glass ${
                                 presenceDotClass(presenceStatus)
                               }`}
                             />
@@ -1261,19 +1261,19 @@ export default function Messages() {
 
                           <div className="min-w-0 flex-1">
                             <div className="flex items-start justify-between gap-2">
-                              <span className="truncate pr-1 text-[15px] font-semibold leading-5 text-slate-100">
+                              <span className="truncate pr-1 text-[15px] font-semibold leading-5 text-theme-foreground">
                                 {c.partnerName}
                               </span>
-                              <span className="shrink-0 pt-0.5 text-[11px] leading-4 text-slate-500">
+                              <span className="shrink-0 pt-0.5 text-[11px] leading-4 text-theme-muted">
                                 {formatConversationTime(c.lastMessageAt)}
                               </span>
                             </div>
                             <div className="mt-0.5 flex items-center justify-between gap-2">
-                              <span className="truncate text-[12px] leading-4 text-slate-400">
+                              <span className="truncate text-[12px] leading-4 text-theme-muted">
                                 {c.lastMessage || t("messages.noMessages", "No messages yet.")}
                               </span>
                               <div className="flex items-center gap-2 shrink-0">
-                                <span className="inline-flex items-center gap-1 text-[11px] leading-4 text-slate-400">
+                                <span className="inline-flex items-center gap-1 text-[11px] leading-4 text-theme-muted">
                                   <span
                                     className={`h-2 w-2 rounded-full ${presenceDotClass(
                                       presenceStatus,
@@ -1282,7 +1282,7 @@ export default function Messages() {
                                   <span className="truncate max-w-[110px]">{presenceLabel}</span>
                                 </span>
                                 {c.unreadCount > 0 && (
-                                  <span className="inline-flex h-5 min-w-[20px] shrink-0 items-center justify-center rounded-full bg-brand-500 px-1.5 text-[10px] font-semibold text-white">
+                                  <span className="inline-flex h-5 min-w-[20px] shrink-0 items-center justify-center rounded-full bg-brand-500 px-1.5 text-[10px] font-semibold text-theme-on-accent">
                                     {c.unreadCount > 99 ? "99+" : c.unreadCount}
                                   </span>
                                 )}
@@ -1303,23 +1303,23 @@ export default function Messages() {
         <section className="theme-glass-panel-strong col-span-8 min-w-0 min-h-0 flex flex-col overflow-hidden rounded-none">
           {!activeChatId ? (
             loading ? (
-              <div className="flex flex-1 items-center justify-center text-sm text-slate-500">
+              <div className="flex flex-1 items-center justify-center text-sm text-theme-muted">
                 {t("messages.loadingConversation", "Loading conversations...")}
               </div>
             ) : hasConversations ? (
-              <div className="flex flex-1 items-center justify-center text-sm text-slate-400">
+              <div className="flex flex-1 items-center justify-center text-sm text-theme-muted">
                 {t("messages.openingLatest", "Opening your latest conversation...")}
               </div>
             ) : (
               <div className="flex flex-1 items-center justify-center p-8">
-                <div className="w-full max-w-md rounded-3xl border border-[#26344c] bg-[#101a2d]/88 p-8 text-center shadow-[0_28px_52px_rgba(0,0,0,0.3)]">
+                <div className="w-full max-w-md rounded-3xl border border-theme-glass bg-theme-panel p-8 text-center shadow-[0_28px_52px_rgba(0,0,0,0.3)]">
                   <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-brand-400/30 bg-brand-500/10 text-brand-300">
                     <MessageSquare className="h-8 w-8" />
                   </div>
-                  <h3 className="text-xl font-semibold tracking-tight text-slate-100">
+                  <h3 className="text-xl font-semibold tracking-tight text-theme-foreground">
                     {t("messages.emptyTitle", "No conversations")}
                   </h3>
-                  <p className="mx-auto mt-2 max-w-xs text-sm text-slate-400">
+                  <p className="mx-auto mt-2 max-w-xs text-sm text-theme-muted">
                     {t("messages.emptySubtitle", "Choose a player from your list to start a focused, real-time chat.")}
                   </p>
                 </div>
@@ -1329,7 +1329,7 @@ export default function Messages() {
             <>
               <header className="theme-glass-panel-soft flex shrink-0 items-center justify-between rounded-none px-5 py-3.5">
                 <div className="flex min-w-0 items-center gap-3">
-                  <div className="relative h-11 w-11 shrink-0 rounded-full bg-[#1a2940] ring-1 ring-[#2a3a57]">
+                  <div className="relative h-11 w-11 shrink-0 rounded-full bg-theme-panel ring-1 ring-theme-border">
                     {activeConversation?.partnerAvatar ? (
                       <img
                         src={activeConversation.partnerAvatar}
@@ -1337,20 +1337,20 @@ export default function Messages() {
                         className="h-full w-full rounded-full object-cover"
                       />
                     ) : (
-                      <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-slate-100">
+                      <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-theme-foreground">
                         {getInitials(activeTitle)}
                       </div>
                     )}
                     <span
-                      className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-[#111b2f] ${presenceDotClass(
+                      className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-theme-glass ${presenceDotClass(
                         activePresenceStatus,
                       )}`}
                     />
                   </div>
 
                   <div className="min-w-0">
-                    <div className="truncate text-base font-semibold text-slate-100">{activeTitle}</div>
-                    <div className="truncate text-xs text-slate-400">
+                    <div className="truncate text-base font-semibold text-theme-foreground">{activeTitle}</div>
+                    <div className="truncate text-xs text-theme-muted">
                       <span className="truncate">{activeStatus}</span>
                     </div>
                   </div>
@@ -1361,7 +1361,7 @@ export default function Messages() {
                     type="button"
                     onClick={handleChallengeOpponent}
                     disabled={!challengeFriendId}
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#2a3a57] bg-[#152238] text-slate-400 transition-colors hover:text-brand-300 hover:bg-brand-500/10"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-theme-glass bg-theme-panel text-theme-muted transition-colors hover:text-brand-300 hover:bg-brand-500/10"
                   >
                     <Swords className="h-4 w-4" />
                   </button>
@@ -1370,7 +1370,7 @@ export default function Messages() {
                     ref={actionButtonRef}
                     aria-expanded={actionMenuOpen}
                     onClick={() => setActionMenuOpen((v) => !v)}
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#2a3a57] bg-[#152238] text-slate-300 transition-colors hover:text-slate-100 hover:bg-[#1b2a41] focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-theme-glass bg-theme-panel text-theme-muted transition-colors hover:text-theme-foreground hover:bg-theme-panel focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                   >
                     <MoreHorizontal className="h-4 w-4" />
                   </button>
@@ -1378,7 +1378,7 @@ export default function Messages() {
                   {actionMenuOpen && (
                     <div
                       ref={actionMenuRef}
-                      className="absolute right-0 top-full z-30 mt-2 w-48 overflow-hidden rounded-xl border border-[#22334f] bg-[#0b1323]/95 shadow-[0_18px_38px_rgba(0,0,0,0.45)] backdrop-blur-xl ring-1 ring-black/30"
+                      className="absolute right-0 top-full z-30 mt-2 w-48 overflow-hidden rounded-xl border border-theme-glass bg-theme-panel shadow-[0_18px_38px_rgba(0,0,0,0.45)] backdrop-blur-xl ring-1 ring-black/30"
                     >
                       <button
                         type="button"
@@ -1386,13 +1386,13 @@ export default function Messages() {
                           void (activeConversationArchived ? handleUnarchiveConversation() : handleArchiveConversation())
                         }
                         disabled={actionLoading === "archive"}
-                        className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left text-sm text-slate-100 transition-colors hover:bg-[#13223a] focus:bg-[#13223a] disabled:cursor-not-allowed disabled:opacity-70"
+                        className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left text-sm text-theme-foreground transition-colors hover:bg-theme-panel bg-theme-panel disabled:cursor-not-allowed disabled:opacity-70"
                       >
                         <span className="inline-flex items-center gap-2">
                           {activeConversationArchived ? (
-                            <ArchiveRestore className="h-4 w-4 text-slate-300" />
+                            <ArchiveRestore className="h-4 w-4 text-theme-muted" />
                           ) : (
-                            <Archive className="h-4 w-4 text-slate-300" />
+                            <Archive className="h-4 w-4 text-theme-muted" />
                           )}
                           {activeConversationArchived
                             ? t("messages.unarchive", "Unarchive")
@@ -1402,12 +1402,12 @@ export default function Messages() {
                           <span className="text-[11px] text-brand-300">{t("messages.action", "Working...")}</span>
                         )}
                       </button>
-                      <div className="h-px bg-gradient-to-r from-transparent via-[#243556] to-transparent" />
+                      <div className="h-px bg-gradient-to-r from-transparent via-theme-surface to-transparent" />
                       <button
                         type="button"
                         onClick={handleDeleteRequest}
                         disabled={actionLoading === "delete"}
-                        className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left text-sm text-rose-200 transition-colors hover:bg-[#1d1523] focus:bg-[#1d1523] disabled:cursor-not-allowed disabled:opacity-70"
+                        className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-left text-sm text-rose-200 transition-colors hover:bg-theme-panel bg-theme-panel disabled:cursor-not-allowed disabled:opacity-70"
                       >
                         <span className="inline-flex items-center gap-2">
                           <Trash2 className="h-4 w-4 text-rose-300" />
@@ -1439,9 +1439,9 @@ export default function Messages() {
 
                 {messages.length === 0 ? (
                   <div className="flex h-full min-h-[260px] items-center justify-center">
-                    <div className="rounded-2xl border border-dashed border-[#27354f] bg-[#0f192b]/65 px-6 py-8 text-center">
-                      <Clock3 className="mx-auto mb-2 h-6 w-6 text-slate-500" />
-                      <p className="text-sm text-slate-300">
+                    <div className="rounded-2xl border border-dashed border-theme-glass bg-theme-panel px-6 py-8 text-center">
+                      <Clock3 className="mx-auto mb-2 h-6 w-6 text-theme-muted" />
+                      <p className="text-sm text-theme-muted">
                         {t("messages.startConversation", "No messages yet. Start the conversation.")}
                       </p>
                     </div>
@@ -1470,8 +1470,8 @@ export default function Messages() {
                         <div
                           className={`max-w-[76%] rounded-2xl text-sm leading-relaxed ${
                             mine
-                              ? "rounded-br-md bg-gradient-to-br from-brand-500 to-cyan-500 text-white shadow-[0_10px_24px_rgba(20,184,166,0.28)]"
-                              : "rounded-bl-md border border-[#27354f] bg-[#132036] text-slate-100 shadow-[0_8px_20px_rgba(0,0,0,0.22)]"
+                              ? "rounded-br-md bg-gradient-to-br from-brand-500 to-cyan-500 text-theme-on-accent shadow-[0_10px_24px_rgba(20,184,166,0.28)]"
+                              : "rounded-bl-md border border-theme-glass bg-theme-panel text-theme-foreground shadow-[0_8px_20px_rgba(0,0,0,0.22)]"
                           } ${
                             hasAttachments || hasSharedGame ? "px-3 py-3" : "px-4 py-2.5"
                           }`}
@@ -1509,40 +1509,40 @@ export default function Messages() {
                                 <div className="flex items-start gap-3">
                                   <div className="min-w-0 flex-1">
                                     <div className="flex items-center gap-1.5 text-[13px] font-semibold">
-                                      <span className={mine ? "text-white" : "text-slate-100"}>{sg.white}</span>
-                                      {sg.whiteElo != null && <span className={`text-[11px] font-normal ${mine ? "text-cyan-100/70" : "text-slate-500"}`}>({sg.whiteElo})</span>}
-                                      <span className={mine ? "text-cyan-100/60" : "text-slate-500"}><Trans>vs</Trans></span>
-                                      <span className={mine ? "text-white" : "text-slate-100"}>{sg.black}</span>
-                                      {sg.blackElo != null && <span className={`text-[11px] font-normal ${mine ? "text-cyan-100/70" : "text-slate-500"}`}>({sg.blackElo})</span>}
+                                      <span className={mine ? "text-theme-on-accent" : "text-theme-foreground"}>{sg.white}</span>
+                                      {sg.whiteElo != null && <span className={`text-[11px] font-normal ${mine ? "text-cyan-100/70" : "text-theme-muted"}`}>({sg.whiteElo})</span>}
+                                      <span className={mine ? "text-cyan-100/60" : "text-theme-muted"}><Trans>vs</Trans></span>
+                                      <span className={mine ? "text-theme-on-accent" : "text-theme-foreground"}>{sg.black}</span>
+                                      {sg.blackElo != null && <span className={`text-[11px] font-normal ${mine ? "text-cyan-100/70" : "text-theme-muted"}`}>({sg.blackElo})</span>}
                                     </div>
-                                    <div className={`mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] ${mine ? "text-cyan-100/75" : "text-slate-400"}`}>
+                                    <div className={`mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] ${mine ? "text-cyan-100/75" : "text-theme-muted"}`}>
                                       <span className={`font-semibold ${mine ? resultAccent : resultAccent}`}>{gameResultText}</span>
                                       {sg.timeControl && (
                                         <>
-                                          <span className={mine ? "text-cyan-100/40" : "text-slate-600"}>·</span>
+                                          <span className={mine ? "text-theme-muted/70" : "text-theme-muted"}>·</span>
                                           <span>{sg.timeControl}{variant && ` ${variant}`}</span>
                                         </>
                                       )}
                                       {sg.eco && (
                                         <>
-                                          <span className={mine ? "text-cyan-100/40" : "text-slate-600"}>·</span>
+                                          <span className={mine ? "text-theme-muted/70" : "text-theme-muted"}>·</span>
                                           <span>{sg.eco}</span>
                                         </>
                                       )}
                                       {sg.moves != null && sg.moves > 0 && (
                                         <>
-                                          <span className={mine ? "text-cyan-100/40" : "text-slate-600"}>·</span>
+                                          <span className={mine ? "text-theme-muted/70" : "text-theme-muted"}>·</span>
                                           <span>{sg.moves} <Trans>moves</Trans></span>
                                         </>
                                       )}
                                       {sg.rated && (
                                         <>
-                                          <span className={mine ? "text-cyan-100/40" : "text-slate-600"}>·</span>
+                                          <span className={mine ? "text-theme-muted/70" : "text-theme-muted"}>·</span>
                                           <span><Trans>Rated</Trans></span>
                                         </>
                                       )}
                                     </div>
-                                    <div className={`mt-1.5 inline-flex items-center gap-1 text-[11px] font-medium ${mine ? "text-white/80 group-hover:text-white" : "text-brand-400/80 group-hover:text-brand-300"} transition-colors`}>
+                                    <div className={`mt-1.5 inline-flex items-center gap-1 text-[11px] font-medium ${mine ? "text-theme-muted group-hover:text-theme-foreground" : "text-brand-400/80 group-hover:text-brand-300"} transition-colors`}>
                                       <ExternalLink className="h-3 w-3" /> <Trans>View Game</Trans> </div>
                                   </div>
                                 </div>
@@ -1552,7 +1552,7 @@ export default function Messages() {
                           {hasAttachments && renderAttachmentGrid(attachments, m._id, mine)}
                           <div
                             className={`mt-1.5 inline-flex items-center gap-1 text-[10px] ${
-                              mine ? "text-cyan-100/90" : "text-slate-400"
+                              mine ? "text-theme-muted" : "text-theme-muted"
                             }`}
                           >
                             {formatTime(m.createdAt)}
@@ -1567,15 +1567,15 @@ export default function Messages() {
 
               {activeConversationArchived ? (
                 <div className="theme-glass-panel-soft shrink-0 rounded-none px-4 py-3">
-                  <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#27354f] bg-[#121e31]/92 px-3 py-3">
-                    <div className="text-sm text-slate-200">
+                  <div className="flex items-center justify-between gap-3 rounded-2xl border border-theme-glass bg-theme-panel px-3 py-3">
+                    <div className="text-sm text-theme-foreground">
                       {t("messages.archivedReadOnly", "This conversation is archived. Unarchive to reply.")}
                     </div>
                     <button
                       type="button"
                       onClick={() => void handleUnarchiveConversation()}
                       disabled={actionLoading === "archive"}
-                      className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(13,148,136,0.35)] transition-all hover:bg-brand-500 disabled:cursor-not-allowed disabled:bg-[#1e2a40] disabled:text-slate-500 disabled:shadow-none"
+                      className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-3 py-2 text-sm font-semibold text-theme-on-accent shadow-[0_10px_20px_rgba(13,148,136,0.35)] transition-all hover:bg-brand-500 disabled:cursor-not-allowed disabled:bg-theme-panel disabled:text-theme-muted disabled:shadow-none"
                     >
                       <ArchiveRestore className="h-4 w-4" />
                       <span>{t("messages.unarchive", "Unarchive")}</span>
@@ -1607,8 +1607,8 @@ export default function Messages() {
                   />
 
                   {pendingVideo && (
-                    <div className="mb-2 rounded-2xl border border-[#27354f] bg-[#0f1829]/92 px-3 py-3">
-                      <div className="mb-2 flex items-center justify-between text-[12px] text-slate-200">
+                    <div className="mb-2 rounded-2xl border border-theme-glass bg-theme-panel px-3 py-3">
+                      <div className="mb-2 flex items-center justify-between text-[12px] text-theme-foreground">
                         <span className="inline-flex items-center gap-2">
                           <Video className="h-4 w-4 text-brand-300" />
                           <span><Trans>1 video selected ·</Trans> {formatBytes(pendingVideo.size)}</span>
@@ -1616,13 +1616,13 @@ export default function Messages() {
                         <button
                           type="button"
                           onClick={clearPendingVideo}
-                          className="rounded-lg px-2 py-1 text-[11px] text-slate-300 transition-colors hover:bg-[#18273f] hover:text-white"
+                          className="rounded-lg px-2 py-1 text-[11px] text-theme-muted transition-colors hover:bg-theme-panel hover:text-theme-foreground"
                         >
                           {t("messages.clearAttachments", "Remove all")}
                         </button>
                       </div>
                       <div className="flex items-center gap-3">
-                        <div className="relative h-24 w-40 overflow-hidden rounded-xl border border-[#23334f] bg-[#0b1424] shadow-[0_10px_24px_rgba(0,0,0,0.28)]">
+                        <div className="relative h-24 w-40 overflow-hidden rounded-xl border border-theme-glass bg-theme-panel shadow-[0_10px_24px_rgba(0,0,0,0.28)]">
                           <video
                             src={pendingVideo.previewUrl}
                             className="h-full w-full object-cover"
@@ -1632,25 +1632,25 @@ export default function Messages() {
                           <button
                             type="button"
                             onClick={clearPendingVideo}
-                            className="absolute right-1 top-1 inline-flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-white opacity-80 transition hover:opacity-100"
+                            className="absolute right-1 top-1 inline-flex h-7 w-7 items-center justify-center rounded-full bg-theme-panel/70 text-theme-foreground opacity-80 transition hover:opacity-100"
                           >
                             <X className="h-3.5 w-3.5" />
                           </button>
-                          <span className="absolute bottom-1 left-1 rounded-full bg-black/55 px-2 py-0.5 text-[10px] text-slate-100">
+                          <span className="absolute bottom-1 left-1 rounded-full bg-theme-panel/55 px-2 py-0.5 text-[10px] text-theme-foreground">
                             {formatBytes(pendingVideo.size)}
                           </span>
                         </div>
-                        <div className="min-w-0 flex-1 text-[12px] text-slate-200">
+                        <div className="min-w-0 flex-1 text-[12px] text-theme-foreground">
                           <div className="truncate font-medium">{pendingVideo.name}</div>
-                          <div className="text-slate-400">{pendingVideo.type}</div>
+                          <div className="text-theme-muted">{pendingVideo.type}</div>
                         </div>
                       </div>
                     </div>
                   )}
 
                   {pendingImages.length > 0 && (
-                    <div className="mb-2 rounded-2xl border border-[#27354f] bg-[#0f1829]/92 px-3 py-3">
-                      <div className="mb-2 flex items-center justify-between text-[12px] text-slate-200">
+                    <div className="mb-2 rounded-2xl border border-theme-glass bg-theme-panel px-3 py-3">
+                      <div className="mb-2 flex items-center justify-between text-[12px] text-theme-foreground">
                         <span className="inline-flex items-center gap-2">
                           <ImageIcon className="h-4 w-4 text-brand-300" />
                           <span>
@@ -1664,7 +1664,7 @@ export default function Messages() {
                         <button
                           type="button"
                           onClick={clearPendingImages}
-                          className="rounded-lg px-2 py-1 text-[11px] text-slate-300 transition-colors hover:bg-[#18273f] hover:text-white"
+                          className="rounded-lg px-2 py-1 text-[11px] text-theme-muted transition-colors hover:bg-theme-panel hover:text-theme-foreground"
                         >
                           {t("messages.clearAttachments", "Remove all")}
                         </button>
@@ -1677,7 +1677,7 @@ export default function Messages() {
                         {pendingImages.map((img) => (
                           <div
                             key={img.id}
-                            className="group relative overflow-hidden rounded-lg border border-[#23334f] bg-[#0b1424]"
+                            className="group relative overflow-hidden rounded-lg border border-theme-glass bg-theme-panel"
                           >
                             <img
                               src={img.previewUrl}
@@ -1687,11 +1687,11 @@ export default function Messages() {
                             <button
                               type="button"
                               onClick={() => removePendingImage(img.id)}
-                              className="absolute right-1 top-1 inline-flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-white opacity-80 transition hover:opacity-100"
+                              className="absolute right-1 top-1 inline-flex h-7 w-7 items-center justify-center rounded-full bg-theme-panel/70 text-theme-foreground opacity-80 transition hover:opacity-100"
                             >
                               <X className="h-3.5 w-3.5" />
                             </button>
-                            <span className="absolute bottom-1 left-1 rounded-full bg-black/55 px-2 py-0.5 text-[10px] text-slate-100">
+                            <span className="absolute bottom-1 left-1 rounded-full bg-theme-panel/55 px-2 py-0.5 text-[10px] text-theme-foreground">
                               {formatBytes(img.size)}
                             </span>
                           </div>
@@ -1707,7 +1707,7 @@ export default function Messages() {
                     </div>
                   )}
 
-                  <div className="flex items-center gap-2 rounded-2xl border border-[#27354f] bg-[#121e31]/92 p-2">
+                  <div className="flex items-center gap-2 rounded-2xl border border-theme-glass bg-theme-panel p-2">
                     <button
                       type="button"
                       onClick={() => {
@@ -1715,7 +1715,7 @@ export default function Messages() {
                         setInfo(null);
                         fileInputRef.current?.click();
                       }}
-                      className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-[#1b2a41] hover:text-slate-100"
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-theme-muted transition-colors hover:bg-theme-panel hover:text-theme-foreground"
                     >
                       <Paperclip className="h-4 w-4" />
                     </button>
@@ -1726,7 +1726,7 @@ export default function Messages() {
                         setInfo(null);
                         videoInputRef.current?.click();
                       }}
-                      className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-[#1b2a41] hover:text-slate-100"
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-theme-muted transition-colors hover:bg-theme-panel hover:text-theme-foreground"
                     >
                       <Video className="h-4 w-4" />
                     </button>
@@ -1740,13 +1740,13 @@ export default function Messages() {
                         }
                       }}
                       placeholder={t("messages.composePlaceholder", "Type a message...")}
-                      className="flex-1 bg-transparent px-2 py-2 text-sm text-slate-100 placeholder:text-slate-500 outline-none"
+                      className="flex-1 bg-transparent px-2 py-2 text-sm text-theme-foreground placeholder:text-theme-disabled outline-none"
                     />
 
                     <button
                       onClick={() => void sendMessage()}
                       disabled={sending || (!draft.trim() && pendingImages.length === 0 && !pendingVideo)}
-                      className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-brand-600 text-white shadow-[0_10px_20px_rgba(13,148,136,0.35)] transition-all hover:bg-brand-500 disabled:cursor-not-allowed disabled:bg-[#1e2a40] disabled:text-slate-600 disabled:shadow-none"
+                      className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-brand-600 text-theme-on-accent shadow-[0_10px_20px_rgba(13,148,136,0.35)] transition-all hover:bg-brand-500 disabled:cursor-not-allowed disabled:bg-theme-panel disabled:text-theme-muted disabled:shadow-none"
                     >
                       {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                     </button>
@@ -1760,7 +1760,7 @@ export default function Messages() {
 
       {viewer && viewer.attachments.length > 0 && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-theme-panel/80 backdrop-blur-sm"
           onClick={closeViewer}
         >
           <button
@@ -1769,7 +1769,7 @@ export default function Messages() {
               e.stopPropagation();
               closeViewer();
             }}
-            className="absolute right-6 top-6 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white shadow-lg backdrop-blur transition hover:bg-white/20"
+            className="absolute right-6 top-6 inline-flex h-10 w-10 items-center justify-center rounded-full bg-theme-panel/10 text-theme-foreground shadow-lg backdrop-blur transition hover:bg-theme-panel/20"
           >
             <X className="h-5 w-5" />
           </button>
@@ -1780,7 +1780,7 @@ export default function Messages() {
                 e.stopPropagation();
                 stepViewer(-1);
               }}
-              className="absolute left-6 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white shadow-lg backdrop-blur transition hover:bg-white/20"
+              className="absolute left-6 top-1/2 -translate-y-1/2 rounded-full bg-theme-panel/10 p-3 text-theme-foreground shadow-lg backdrop-blur transition hover:bg-theme-panel/20"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
@@ -1803,23 +1803,23 @@ export default function Messages() {
                       }
                       controls
                       preload="metadata"
-                      className="max-h-[80vh] w-full rounded-2xl border border-white/10 bg-black/70 object-contain shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
+                      className="max-h-[80vh] w-full rounded-2xl border border-theme-glass bg-theme-panel/70 object-contain shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
                     />
                   ) : (
                     <img
                       src={resolveMediaUrl(current?.url)}
                       alt={current?.filename || t("messages.media.attachment", "attachment")}
-                      className="max-h-[80vh] w-full rounded-2xl border border-white/10 bg-[#0b1424] object-contain shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
+                      className="max-h-[80vh] w-full rounded-2xl border border-theme-glass bg-theme-panel object-contain shadow-[0_20px_60px_rgba(0,0,0,0.55)]"
                     />
                   )}
-                  <div className="mt-3 flex items-center justify-center gap-3 text-sm text-slate-200">
+                  <div className="mt-3 flex items-center justify-center gap-3 text-sm text-theme-foreground">
                     <span className="max-w-[60vw] truncate">
                       {current?.filename ||
                         (video
                           ? t("messages.media.video", "Video")
                           : t("messages.media.photo", "Photo"))}
                     </span>
-                    <span className="text-slate-400">{formatBytes(current?.size || 0)}</span>
+                    <span className="text-theme-muted">{formatBytes(current?.size || 0)}</span>
                   </div>
                 </>
               );
@@ -1832,7 +1832,7 @@ export default function Messages() {
                 e.stopPropagation();
                 stepViewer(1);
               }}
-              className="absolute right-6 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white shadow-lg backdrop-blur transition hover:bg-white/20"
+              className="absolute right-6 top-1/2 -translate-y-1/2 rounded-full bg-theme-panel/10 p-3 text-theme-foreground shadow-lg backdrop-blur transition hover:bg-theme-panel/20"
             >
               <ChevronRight className="h-5 w-5" />
             </button>
@@ -1842,22 +1842,22 @@ export default function Messages() {
 
       {deleteConfirmOpen && (
         <div
-          className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 backdrop-blur-sm"
+          className="fixed inset-0 z-40 flex items-center justify-center bg-theme-panel/70 backdrop-blur-sm"
           onClick={() => setDeleteConfirmOpen(false)}
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="relative mx-4 w-full max-w-md rounded-2xl border border-[#27354f] bg-[#0c1627]/95 p-5 shadow-[0_20px_40px_rgba(0,0,0,0.6)] ring-1 ring-black/40"
+            className="relative mx-4 w-full max-w-md rounded-2xl border border-theme-glass bg-theme-panel p-5 shadow-[0_20px_40px_rgba(0,0,0,0.6)] ring-1 ring-black/40"
           >
             <div className="flex items-start gap-3">
               <div className="mt-0.5 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-rose-600/35 via-amber-500/35 to-pink-500/35 text-rose-100 ring-1 ring-rose-500/30">
                 <Trash2 className="h-5 w-5" />
               </div>
               <div className="flex-1">
-                <h4 className="text-lg font-semibold text-slate-100">
+                <h4 className="text-lg font-semibold text-theme-foreground">
                   {t("messages.deleteConfirmTitle", "Delete conversation?")}
                 </h4>
-                <p className="mt-1 text-sm text-slate-400">
+                <p className="mt-1 text-sm text-theme-muted">
                   {t("messages.deleteConfirmBody")}
                 </p>
               </div>
@@ -1867,7 +1867,7 @@ export default function Messages() {
               <button
                 type="button"
                 onClick={() => setDeleteConfirmOpen(false)}
-                className="inline-flex h-10 items-center justify-center rounded-lg border border-[#25344e] bg-[#0e1727] px-4 text-sm font-medium text-slate-200 transition-colors hover:bg-[#162237] focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+                className="inline-flex h-10 items-center justify-center rounded-lg border border-theme-glass bg-theme-panel px-4 text-sm font-medium text-theme-foreground transition-colors hover:bg-theme-panel focus:outline-none focus:ring-2 focus:ring-brand-500/30"
               >
                 {t("common.cancel", "Cancel")}
               </button>
@@ -1875,7 +1875,7 @@ export default function Messages() {
                 type="button"
                 disabled={actionLoading === "delete"}
                 onClick={() => void handleDeleteConfirm()}
-                className="inline-flex h-10 items-center justify-center rounded-lg bg-gradient-to-r from-rose-600 via-amber-500 to-pink-500 px-4 text-sm font-semibold text-white shadow-[0_12px_32px_rgba(225,29,72,0.35)] transition-transform hover:translate-y-[-1px] focus:outline-none focus:ring-2 focus:ring-rose-400/40 disabled:cursor-not-allowed disabled:opacity-70"
+                className="inline-flex h-10 items-center justify-center rounded-lg bg-gradient-to-r from-rose-600 via-amber-500 to-pink-500 px-4 text-sm font-semibold text-theme-on-accent shadow-[0_12px_32px_rgba(225,29,72,0.35)] transition-transform hover:translate-y-[-1px] focus:outline-none focus:ring-2 focus:ring-rose-400/40 disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {t("messages.confirmDelete", "Delete")}
               </button>
@@ -1886,4 +1886,3 @@ export default function Messages() {
     </div>
   );
 }
-

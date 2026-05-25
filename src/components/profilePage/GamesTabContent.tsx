@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { GameHistory } from "../../historyTypes";
 import { GameCard } from "../profile";
 import { ShareGameModal } from "../ShareGameModal";
-import { FilterType, TournamentHistoryEntry } from "./types";
+import { FilterType } from "./types";
 
 const GAMES_PER_PAGE = 10;
 const PROFILE_GAME_FILTERS = ["all", "wins", "losses", "draws"] as const;
@@ -25,7 +25,6 @@ function getPageNumbers(current: number, total: number): (number | "...")[] {
 interface GamesTabContentProps {
   filteredGames: GameHistory[];
   allGames?: GameHistory[];
-  tournamentHistory?: TournamentHistoryEntry[];
   filter: FilterType;
   setFilter: (filter: FilterType) => void;
   expandedId: string | null;
@@ -34,23 +33,9 @@ interface GamesTabContentProps {
   showShareButton?: boolean;
 }
 
-function formatTournamentDate(input: string | null, locale?: string): string {
-  if (!input) return "-";
-  const parsed = new Date(input);
-  if (!Number.isFinite(parsed.getTime())) return "-";
-  return parsed.toLocaleDateString(locale || undefined);
-}
-
-function normalizeTournamentFormat(value: string) {
-  const raw = String(value || "").trim();
-  if (!raw) return "";
-  return raw.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
-}
-
 export function GamesTabContent({
   filteredGames,
   allGames,
-  tournamentHistory = [],
   filter,
   setFilter,
   expandedId,
@@ -58,7 +43,7 @@ export function GamesTabContent({
   analyzeBaseUrl,
   showShareButton = false,
 }: GamesTabContentProps) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [currentPage, setCurrentPage] = useState(1);
   const [shareGame, setShareGame] = useState<GameHistory | null>(null);
 
@@ -94,8 +79,8 @@ export function GamesTabContent({
     "inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus:outline-none disabled:pointer-events-none disabled:opacity-40";
   const btnPage = (active: boolean) =>
     active
-      ? `${btnBase} w-9 h-9 bg-brand-500 text-white shadow-md shadow-brand-500/25`
-      : `${btnBase} w-9 h-9 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 hover:border-brand-400 dark:hover:border-brand-600 hover:text-brand-600 dark:hover:text-brand-400`;
+      ? `${btnBase} w-9 h-9 bg-brand-500 text-theme-on-accent shadow-md shadow-brand-500/25`
+      : `${btnBase} w-9 h-9 bg-theme-panel border border-theme-glass text-theme-muted hover:border-brand-400 hover:text-brand-600`;
 
   return (
     <motion.div
@@ -109,15 +94,15 @@ export function GamesTabContent({
           {t("profileGames.allGames", { count: filteredGames.length })}
         </h2>
 
-        <div className="flex bg-white dark:bg-gray-900 p-1 rounded-xl border border-gray-200 dark:border-gray-800">
+        <div className="flex bg-theme-panel p-1 rounded-xl border border-theme-glass ">
           {PROFILE_GAME_FILTERS.map((f) => (
             <button
               key={f}
               onClick={() => handleSetFilter(f)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 filter === f
-                  ? "bg-brand-500 text-white shadow-sm"
-                  : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
+                  ? "bg-brand-500 text-theme-on-accent shadow-sm"
+                  : "text-theme-muted hover:text-theme-foreground"
               }`}
             >
               {t(`profileGames.filters.${f}`)}
@@ -126,83 +111,9 @@ export function GamesTabContent({
         </div>
       </div>
 
-      <div className="mb-6 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
-        <div className="px-4 py-3 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-            {t("profileGames.tournamentHistory", {
-              count: tournamentHistory.length,
-            })}
-          </h3>
-        </div>
-        <div className="overflow-x-auto bg-white dark:bg-gray-900">
-          <table className="w-full text-left text-xs sm:text-sm">
-            <thead className="bg-gray-50 dark:bg-gray-950/50 text-gray-500 dark:text-gray-400">
-              <tr>
-                <th className="px-3 py-2">{t("profileGames.columns.tournament")}</th>
-                <th className="px-3 py-2">{t("profileGames.columns.format")}</th>
-                <th className="px-3 py-2">{t("profileGames.columns.placement")}</th>
-                <th className="px-3 py-2">{t("profileGames.columns.score")}</th>
-                <th className="px-3 py-2">{t("profileGames.columns.eloChange")}</th>
-                <th className="px-3 py-2">{t("profileGames.columns.date")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tournamentHistory.slice(0, 20).map((row) => (
-                <tr
-                  key={`${row.tournamentId}:${row.date || ""}`}
-                  className="border-t border-gray-200 dark:border-gray-800"
-                >
-                  <td className="px-3 py-2 text-gray-900 dark:text-gray-100">
-                    {row.tournamentName}
-                  </td>
-                  <td className="px-3 py-2 text-gray-700 dark:text-gray-300">
-                    {t(
-                      `profileGames.formats.${normalizeTournamentFormat(row.format)}`,
-                      row.format,
-                    )}
-                  </td>
-                  <td className="px-3 py-2 text-gray-700 dark:text-gray-300">
-                    {row.placement ? `#${row.placement}` : "-"}
-                  </td>
-                  <td className="px-3 py-2 text-gray-700 dark:text-gray-300">
-                    {row.score}
-                  </td>
-                  <td
-                    className={`px-3 py-2 font-semibold ${
-                      row.eloChange >= 0
-                        ? "text-emerald-600 dark:text-emerald-400"
-                        : "text-red-600 dark:text-red-400"
-                    }`}
-                  >
-                    {row.eloChange >= 0 ? "+" : ""}
-                    {row.eloChange}
-                  </td>
-                  <td className="px-3 py-2 text-gray-500 dark:text-gray-400">
-                    {formatTournamentDate(
-                      row.date,
-                      i18n.resolvedLanguage || i18n.language || undefined,
-                    )}
-                  </td>
-                </tr>
-              ))}
-              {tournamentHistory.length === 0 && (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="px-3 py-6 text-center text-sm text-gray-500 dark:text-gray-400"
-                  >
-                    {t("profileGames.noTournamentHistory")}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
       {/* Range info */}
       {filteredGames.length > 0 && (
-        <div className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+        <div className="text-sm text-theme-muted mb-4">
           {t("profileGames.range", {
             start: rangeStart,
             end: rangeEnd,
@@ -227,11 +138,11 @@ export function GamesTabContent({
             />
           ))
         ) : (
-          <div className="text-center py-12 bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">
+          <div className="text-center py-12 bg-theme-panel rounded-xl border border-theme-glass ">
+            <h3 className="text-lg font-medium text-theme-foreground mb-1">
               {t("profileGames.noGamesFound")}
             </h3>
-            <p className="text-gray-500 dark:text-gray-400">
+            <p className="text-theme-muted">
               {t("profileGames.noGamesFoundDescription")}
             </p>
           </div>
@@ -244,7 +155,7 @@ export function GamesTabContent({
           <button
             disabled={safePage <= 1}
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-            className={`${btnBase} w-9 h-9 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:border-brand-400 dark:hover:border-brand-600 hover:text-brand-600 dark:hover:text-brand-400`}
+            className={`${btnBase} w-9 h-9 bg-theme-panel border border-theme-glass text-theme-muted hover:border-brand-400 hover:text-brand-600`}
           >
             <ChevronLeft size={16} />
           </button>
@@ -252,7 +163,7 @@ export function GamesTabContent({
             p === "..." ? (
               <span
                 key={`dots-${i}`}
-                className="w-9 h-9 flex items-center justify-center text-gray-400 dark:text-gray-600 text-sm select-none"
+                className="w-9 h-9 flex items-center justify-center text-theme-muted text-sm select-none"
               >
                 …
               </span>
@@ -269,7 +180,7 @@ export function GamesTabContent({
           <button
             disabled={safePage >= totalPages}
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-            className={`${btnBase} w-9 h-9 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:border-brand-400 dark:hover:border-brand-600 hover:text-brand-600 dark:hover:text-brand-400`}
+            className={`${btnBase} w-9 h-9 bg-theme-panel border border-theme-glass text-theme-muted hover:border-brand-400 hover:text-brand-600`}
           >
             <ChevronRight size={16} />
           </button>

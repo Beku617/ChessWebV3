@@ -37,17 +37,17 @@ function StatCard({
   sub?: string;
 }) {
   return (
-    <div className="rounded-2xl border border-gray-200/80 bg-white/95 p-5 shadow-[0_12px_30px_rgba(15,23,42,0.08)] dark:border-white/10 dark:bg-slate-900/90">
+    <div className="rounded-2xl border border-theme-glass/80 bg-theme-panel/95 p-5 shadow-[0_12px_30px_rgba(15,23,42,0.08)]">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <div className="text-xs font-semibold uppercase tracking-[0.24em] text-gray-500 dark:text-gray-400">
+          <div className="text-xs font-semibold uppercase tracking-[0.24em] text-theme-muted">
             {label}
           </div>
-          <div className="mt-3 text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+          <div className="mt-3 text-3xl font-bold tracking-tight text-theme-foreground ">
             {typeof value === "number" ? value.toLocaleString() : value}
           </div>
           {sub ? (
-            <div className="mt-2 text-sm font-medium text-brand-600 dark:text-brand-400">
+            <div className="mt-2 text-sm font-medium text-brand-600">
               {sub}
             </div>
           ) : null}
@@ -73,7 +73,7 @@ function Toast({
 
   return (
     <div
-      className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-xl px-5 py-3.5 text-sm font-semibold text-white shadow-xl ${
+      className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-xl px-5 py-3.5 text-sm font-semibold text-theme-on-accent shadow-xl ${
         type === "success" ? "bg-brand-500" : "bg-red-500"
       }`}
     >
@@ -206,19 +206,19 @@ export default function AdminProfile() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f5f5f7] dark:bg-gray-950">
+      <div className="flex min-h-screen items-center justify-center bg-theme-panel ">
         <Loader2 className="h-8 w-8 animate-spin text-brand-500" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] text-gray-900 dark:bg-gray-950 dark:text-white transition-colors duration-300">
+    <div className="min-h-screen bg-theme-panel text-theme-foreground transition-colors duration-300">
       <AdminSidebar />
 
       <main className="ml-72 px-6 py-6">
         <div className="mx-auto max-w-7xl space-y-6">
-          <section className="relative overflow-hidden rounded-2xl border border-gray-200/70 bg-gradient-to-br from-white via-gray-50 to-slate-100 p-4 shadow-[0_12px_35px_rgba(15,23,42,0.08)] dark:border-white/10 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 dark:shadow-[0_22px_48px_rgba(0,0,0,0.5)] lg:p-5">
+          <section className="relative overflow-hidden rounded-2xl border border-theme-glass/70 bg-gradient-to-br from-theme-panel via-theme-surface to-theme-base p-4 shadow-[0_12px_35px_rgba(15,23,42,0.08)] lg:p-5">
             <div className="pointer-events-none absolute -left-12 -top-20 h-64 w-64 rounded-full bg-brand-400/15 blur-3xl" />
             <div className="relative z-10 flex flex-col gap-5 xl:flex-row xl:items-start">
               <div className="flex-shrink-0">
@@ -236,11 +236,11 @@ export default function AdminProfile() {
 
               <div className="min-w-0 flex-1">
                 <div className="min-w-0">
-                  <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+                  <h1 className="text-3xl font-bold tracking-tight text-theme-foreground ">
                     {admin?.username ||
                       t("admin.profile.fallback.administrator", "Administrator")}
                   </h1>
-                  <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+                  <p className="mt-1 text-sm text-theme-muted">
                     {admin?.email ||
                       t("admin.profile.fallback.noEmail", "No email available")}
                   </p>
@@ -250,13 +250,13 @@ export default function AdminProfile() {
           </section>
 
           <div className="space-y-6">
-            <section className="rounded-2xl border border-gray-200/80 bg-white/95 p-5 shadow-[0_14px_38px_rgba(15,23,42,0.08)] dark:border-white/10 dark:bg-slate-900/90">
+            <section className="rounded-2xl border border-theme-glass/80 bg-theme-panel/95 p-5 shadow-[0_14px_38px_rgba(15,23,42,0.08)]">
               {statsLoading ? (
                 <div className="grid gap-4 sm:grid-cols-2">
                   {[...Array(4)].map((_, index) => (
                     <div
                       key={index}
-                      className="h-32 animate-pulse rounded-2xl border border-gray-200/80 bg-white/90 dark:border-white/10 dark:bg-white/[0.03]"
+                      className="h-32 animate-pulse rounded-2xl border border-theme-glass/80 bg-theme-panel/90"
                     />
                   ))}
                 </div>
@@ -290,20 +290,20 @@ export default function AdminProfile() {
               )}
             </section>
 
-            <section className="rounded-2xl border border-gray-200/80 bg-white/95 shadow-[0_14px_38px_rgba(15,23,42,0.08)] dark:border-white/10 dark:bg-slate-900/90">
-              <div className="flex items-center justify-between border-b border-gray-200/70 px-6 py-5 dark:border-white/10">
+            <section className="rounded-2xl border border-theme-glass/80 bg-theme-panel/95 shadow-[0_14px_38px_rgba(15,23,42,0.08)]">
+              <div className="flex items-center justify-between border-b border-theme-glass/70 px-6 py-5 ">
                 <div className="flex items-center gap-3">
                   <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-red-500/10">
                     <Key className="h-5 w-5 text-red-500" />
                   </div>
                   <div>
-                    <div className="text-sm font-semibold text-gray-900 dark:text-white"> <Trans>Credential Security</Trans> </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400"> <Trans>Manage the current admin password.</Trans> </div>
+                    <div className="text-sm font-semibold text-theme-foreground "> <Trans>Credential Security</Trans> </div>
+                    <div className="text-xs text-theme-muted"> <Trans>Manage the current admin password.</Trans> </div>
                   </div>
                 </div>
                 <button
                   onClick={() => setPwOpen((open) => !open)}
-                  className="inline-flex items-center gap-2 rounded-xl bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-200 dark:bg-white/10 dark:text-gray-300 dark:hover:bg-white/20"
+                  className="inline-flex items-center gap-2 rounded-xl bg-theme-surface px-4 py-2 text-sm font-semibold text-theme-muted transition-colors hover:bg-theme-surface/80"
                 >
                   <Key className="h-4 w-4" />
                   {pwOpen
@@ -323,7 +323,7 @@ export default function AdminProfile() {
 
                     return (
                       <div key={field}>
-                        <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">
+                        <label className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.2em] text-theme-muted">
                           {labels[field]}
                         </label>
                         <div className="relative">
@@ -336,7 +336,7 @@ export default function AdminProfile() {
                                 [field]: event.target.value,
                               }))
                             }
-                            className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 pr-11 text-sm text-gray-900 outline-none transition-all focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-white/10 dark:bg-slate-900 dark:text-white"
+                            className="w-full rounded-2xl border border-theme-glass bg-theme-surface px-4 py-3 pr-11 text-sm text-theme-foreground outline-none transition-all focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 "
                             placeholder={`Enter ${labels[field].toLowerCase()}`}
                           />
                           <button
@@ -347,7 +347,7 @@ export default function AdminProfile() {
                                 [field]: !current[field],
                               }))
                             }
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 transition-colors hover:text-gray-600 dark:hover:text-gray-300"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-theme-muted transition-colors hover:text-theme-muted"
                           >
                             {showPw[field] ? (
                               <EyeOff className="h-4 w-4" />
@@ -364,7 +364,7 @@ export default function AdminProfile() {
                     <button
                       onClick={handlePasswordChange}
                       disabled={pwSaving}
-                      className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-bold text-white shadow-[0_14px_34px_rgba(13,148,136,0.24)] transition-colors hover:bg-brand-500 disabled:opacity-60"
+                      className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-bold text-theme-on-accent shadow-[0_14px_34px_rgba(13,148,136,0.24)] transition-colors hover:bg-brand-500 disabled:opacity-60"
                     >
                       {pwSaving ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -376,18 +376,18 @@ export default function AdminProfile() {
                         setPwOpen(false);
                         setPwFields({ current: "", next: "", confirm: "" });
                       }}
-                      className="rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-500 transition-colors hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10"
+                      className="rounded-xl px-4 py-2.5 text-sm font-semibold text-theme-muted transition-colors hover:bg-theme-surface"
                     > <Trans>Cancel</Trans> </button>
                   </div>
                 </div>
               ) : null}
 
-              <div className="flex flex-col gap-3 border-t border-gray-200/70 px-6 py-5 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-col gap-3 border-t border-theme-glass/70 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                  <div className="text-sm font-semibold text-theme-foreground ">
                     {t("admin.sidebar.languageLabel")}
                   </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400"> <Trans>Admin interface language</Trans> </div>
+                  <div className="text-xs text-theme-muted"> <Trans>Admin interface language</Trans> </div>
                 </div>
                 <SegmentedControl
                   options={adminSupportedLanguages.map((lang) => ({

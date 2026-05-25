@@ -30,7 +30,7 @@ export function AdminCommunityMediaPreview({
 
   if (isGamePost) {
     return (
-      <div className="mt-4 rounded-[20px] bg-[#091321]/45 p-1.5">
+      <div className="mt-4 rounded-[20px] bg-theme-panel p-1.5">
         <CommunityGameViewer
           game={post.game}
           analyzeHref={post.game?.sourceGameId ? `/admin/analyze/${post.game.sourceGameId}` : ""}
@@ -50,31 +50,31 @@ export function AdminCommunityMediaPreview({
   }));
 
   return (
-    <div className="mt-4 rounded-[20px] border border-gray-200 dark:border-white/[0.04] bg-[#091321]/78 p-3">
+    <div className="mt-4 rounded-[20px] border border-theme-glass bg-theme-panel p-3">
       {post.mediaType === "video" ? (
-        <div className="overflow-hidden rounded-[16px] bg-black/55">
+        <div className="overflow-hidden rounded-[16px] bg-theme-panel/55">
           <video
             src={mediaUrl}
             controls
             playsInline
             preload="metadata"
-            className="w-full max-h-[420px] bg-black object-contain"
+            className="w-full max-h-[420px] bg-theme-panel object-contain"
           />
         </div>
       ) : imageItems.length === 1 ? (
-        <div className="overflow-hidden rounded-[16px] bg-black/55">
+        <div className="overflow-hidden rounded-[16px] bg-theme-panel/55">
           <img
             src={imageItems[0].url}
             alt={
               imageItems[0].originalName ||
               t("admin.community.media.postMediaAlt", "Community post media")
             }
-            className="w-full max-h-[420px] cursor-zoom-in bg-black object-contain"
+            className="w-full max-h-[420px] cursor-zoom-in bg-theme-panel object-contain"
             onClick={() => onOpenGallery(galleryItems, 0)}
           />
         </div>
       ) : (
-        <div className="rounded-[16px] bg-black/18 p-1.5">
+        <div className="rounded-[16px] bg-theme-panel/18 p-1.5">
           <CommunityImageGrid
             items={imageItems.map((item) => ({
               url: item.url,
@@ -90,7 +90,7 @@ export function AdminCommunityMediaPreview({
         </div>
       )}
 
-      <div className="mt-3 flex items-center justify-between rounded-[14px] bg-white/[0.03] px-3.5 py-2.5 text-xs text-gray-500">
+      <div className="mt-3 flex items-center justify-between rounded-[14px] bg-theme-panel/[0.03] px-3.5 py-2.5 text-xs text-theme-muted">
         <div className="inline-flex items-center gap-2">
           {post.mediaType === "video" ? (
             <>

@@ -46,7 +46,7 @@ export function RecentGames({
         </h3>
         <button
           onClick={() => setActiveTab("games")}
-          className="inline-flex items-center gap-1 text-sm text-brand-600 dark:text-brand-400 hover:underline font-medium"
+          className="inline-flex items-center gap-1 text-sm text-brand-600 hover:underline font-medium"
         >
           <span>{t("profileGames.viewAll", "View All")}</span>
           <ChevronRight className="h-4 w-4" />

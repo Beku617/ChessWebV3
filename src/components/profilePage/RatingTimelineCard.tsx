@@ -189,15 +189,15 @@ export function RatingTimelineCard({
     RANGES.find((option) => option.id === range)?.label ?? range.toUpperCase();
 
   return (
-    <div className="h-full min-w-0 bg-white/85 dark:bg-slate-900/70 rounded-2xl p-6 border border-gray-200/70 dark:border-white/10 shadow-[0_10px_30px_rgba(15,23,42,0.08)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.4)] backdrop-blur flex flex-col">
+    <div className="h-full min-w-0 bg-theme-panel/85 rounded-2xl p-6 border border-theme-glass/70 shadow-[0_10px_30px_rgba(15,23,42,0.08)] backdrop-blur flex flex-col">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+        <h3 className="text-lg font-semibold text-theme-foreground ">
           {t("profileWidgets.ratingTimelineTitle", "Rating Timeline")}
         </h3>
         <LineChartIcon className="w-5 h-5 text-brand-500" />
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-gray-200/70 bg-white/60 p-1.5 dark:border-white/10 dark:bg-black/20">
+      <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-theme-glass/70 bg-theme-panel/60 p-1.5">
         {POOLS.map((option) => (
           <button
             key={option.id}
@@ -206,8 +206,8 @@ export function RatingTimelineCard({
             disabled={!enabled}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 ${
               pool === option.id
-                ? "bg-brand-500 text-white shadow-[0_8px_20px_rgba(20,184,166,0.35)]"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700/90 dark:text-gray-200 dark:hover:bg-gray-700"
+                ? "bg-brand-500 text-theme-on-accent shadow-[0_8px_20px_rgba(20,184,166,0.35)]"
+                : "bg-theme-surface text-theme-muted hover:bg-theme-surface/80"
             } ${!enabled ? "cursor-not-allowed opacity-60" : ""}`}
           >
             {t(`profileGames.pools.${option.id}`, option.label)}
@@ -215,7 +215,7 @@ export function RatingTimelineCard({
         ))}
       </div>
 
-      <div className="mt-2 flex flex-wrap items-center gap-2 rounded-xl border border-gray-200/70 bg-white/60 p-1.5 dark:border-white/10 dark:bg-black/20">
+      <div className="mt-2 flex flex-wrap items-center gap-2 rounded-xl border border-theme-glass/70 bg-theme-panel/60 p-1.5">
         {RANGES.map((option) => (
           <button
             key={option.id}
@@ -224,8 +224,8 @@ export function RatingTimelineCard({
             disabled={!enabled}
             className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all duration-150 ${
               range === option.id
-                ? "bg-brand-100 text-brand-700 dark:bg-brand-500/20 dark:text-brand-300"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700/90 dark:text-gray-300 dark:hover:bg-gray-700"
+                ? "bg-brand-100 text-brand-700"
+                : "bg-theme-surface text-theme-muted hover:bg-theme-surface/80"
             } ${!enabled ? "cursor-not-allowed opacity-60" : ""}`}
           >
             {option.label}
@@ -233,9 +233,9 @@ export function RatingTimelineCard({
         ))}
       </div>
 
-      <div className="mt-4 rounded-xl border border-gray-200/70 dark:border-white/10 bg-gray-50/90 dark:bg-black/20 p-3 flex-1 flex flex-col">
+      <div className="mt-4 rounded-xl border border-theme-glass/70 bg-theme-surface/90 p-3 flex-1 flex flex-col">
         {!enabled ? (
-          <div className="flex min-h-[190px] flex-1 items-center justify-center text-center text-sm text-gray-500 dark:text-gray-400">
+          <div className="flex min-h-[190px] flex-1 items-center justify-center text-center text-sm text-theme-muted">
             {unavailableMessage ||
               t(
                 "profileWidgets.timelineUnavailable",
@@ -243,15 +243,15 @@ export function RatingTimelineCard({
               )}
           </div>
         ) : loading ? (
-          <div className="min-h-[190px] flex-1 flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">
+          <div className="min-h-[190px] flex-1 flex items-center justify-center text-sm text-theme-muted">
             {t("profileWidgets.loadingTimeline", "Loading timeline...")}
           </div>
         ) : error ? (
-          <div className="min-h-[190px] flex-1 flex items-center justify-center text-sm text-red-500">
+          <div className="min-h-[190px] flex-1 flex items-center justify-center text-sm text-theme-muted">
             {error}
           </div>
         ) : points.length === 0 ? (
-          <div className="min-h-[190px] flex-1 flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">
+          <div className="min-h-[190px] flex-1 flex items-center justify-center text-sm text-theme-muted">
             {t(
               "profileWidgets.noRatedGamesInRange",
               "No rated games in this range yet.",
@@ -265,11 +265,11 @@ export function RatingTimelineCard({
             transition={{ duration: 0.28, ease: "easeOut" }}
             className="min-w-0 space-y-2 flex-1 flex flex-col"
           >
-            <div className="flex items-center justify-between gap-2 rounded-lg border border-gray-200/70 bg-white/55 px-3 py-2 dark:border-white/10 dark:bg-slate-900/45">
-              <span className="text-[11px] font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+            <div className="flex items-center justify-between gap-2 rounded-lg border border-theme-glass/70 bg-theme-panel/55 px-3 py-2">
+              <span className="text-[11px] font-medium uppercase tracking-wide text-theme-muted">
                 {selectedPoolLabel} | {selectedRangeLabel}
               </span>
-              <span className="text-[12px] font-semibold text-gray-700 dark:text-gray-200">
+              <span className="text-[12px] font-semibold text-theme-muted ">
                 {t("profileWidgets.current", "Current")}: {chart.last}
                 {typeof chart.lastPoint?.rd === "number"
                   ? ` ${t("profileWidgets.plusMinus", "+/-")} ${Math.round(chart.lastPoint.rd)}`
@@ -287,20 +287,28 @@ export function RatingTimelineCard({
                 >
                   <defs>
                     <linearGradient id="ratingFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#14b8a6" stopOpacity={0.42} />
-                      <stop offset="90%" stopColor="#14b8a6" stopOpacity={0.04} />
+                      <stop
+                        offset="0%"
+                        stopColor="rgb(var(--accent-rgb))"
+                        stopOpacity={0.42}
+                      />
+                      <stop
+                        offset="90%"
+                        stopColor="rgb(var(--accent-rgb))"
+                        stopOpacity={0.04}
+                      />
                     </linearGradient>
                   </defs>
 
                   <CartesianGrid
                     vertical={false}
                     strokeDasharray="2 6"
-                    stroke="#475569"
+                    stroke="rgba(var(--border-color-rgb), 0.52)"
                     opacity={0.28}
                   />
                   <XAxis
                     dataKey="x"
-                    tick={{ fill: "#94a3b8", fontSize: 11 }}
+                    tick={{ fill: "rgb(var(--text-secondary-rgb))", fontSize: 11 }}
                     axisLine={false}
                     tickLine={false}
                     minTickGap={42}
@@ -313,7 +321,7 @@ export function RatingTimelineCard({
                   />
                   <YAxis
                     domain={[chart.yMin, chart.yMax]}
-                    tick={{ fill: "#94a3b8", fontSize: 11 }}
+                    tick={{ fill: "rgb(var(--text-secondary-rgb))", fontSize: 11 }}
                     width={38}
                     axisLine={false}
                     tickLine={false}
@@ -322,20 +330,23 @@ export function RatingTimelineCard({
                   />
                   <Tooltip
                     cursor={{
-                      stroke: "#0f766e",
+                      stroke: "var(--accent-hover)",
                       strokeWidth: 1,
                       strokeDasharray: "4 4",
                     }}
                     contentStyle={{
-                      background: "rgba(15, 23, 42, 0.96)",
-                      border: "1px solid rgba(100, 116, 139, 0.35)",
+                      background: "rgba(var(--bg-base-rgb), 0.96)",
+                      border: "1px solid rgba(var(--border-color-rgb), 0.35)",
                       borderRadius: "12px",
-                      color: "#e2e8f0",
+                      color: "rgb(var(--text-primary-rgb))",
                       fontSize: "12px",
                       padding: "8px 10px",
-                      boxShadow: "0 8px 24px rgba(0,0,0,0.25)",
+                      boxShadow: "0 8px 24px var(--shadow-color)",
                     }}
-                    labelStyle={{ color: "#cbd5e1", marginBottom: "4px" }}
+                    labelStyle={{
+                      color: "rgb(var(--text-secondary-rgb))",
+                      marginBottom: "4px",
+                    }}
                     formatter={(value: number) =>
                       [value, t("profileWidgets.rating", "Rating")] as [number, string]
                     }
@@ -347,7 +358,7 @@ export function RatingTimelineCard({
                   <Area
                     type="monotone"
                     dataKey="rating"
-                    stroke="#14b8a6"
+                    stroke="rgb(var(--accent-rgb))"
                     strokeWidth={3}
                     fillOpacity={1}
                     fill="url(#ratingFill)"
@@ -376,34 +387,34 @@ export function RatingTimelineCard({
                           cx={props.cx}
                           cy={props.cy}
                           r={4}
-                          fill="#14b8a6"
-                          stroke="#0f172a"
+                          fill="rgb(var(--accent-rgb))"
+                          stroke="rgb(var(--bg-base-rgb))"
                           strokeWidth={2}
                         />
                       );
                     }}
                     activeDot={{
                       r: 4,
-                      stroke: "#0f766e",
+                      stroke: "var(--accent-hover)",
                       strokeWidth: 2,
-                      fill: "#14b8a6",
+                      fill: "rgb(var(--accent-rgb))",
                     }}
                   />
                 </AreaChart>
               ) : (
-                <div className="h-full w-full animate-pulse rounded-lg bg-slate-200/60 dark:bg-slate-800/50" />
+                <div className="h-full w-full animate-pulse rounded-lg bg-theme-surface/60" />
               )}
             </div>
 
-            <div className="mt-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+            <div className="mt-2 flex items-center justify-between text-xs text-theme-muted">
               <span>{t("profileWidgets.low", "Low")} {chart.min}</span>
               <span
                 className={`rounded-md px-2 py-0.5 font-semibold ${
                   isSinglePoint
-                    ? "text-gray-400 dark:text-gray-500"
+                    ? "text-theme-muted"
                     : delta >= 0
                       ? "text-brand-500"
-                      : "text-red-500"
+                      : "text-theme-muted"
                 }`}
               >
                 {deltaLabel}

@@ -13,7 +13,6 @@ import {
   calculateStats,
   filterGames,
   type FilterType,
-  type TournamentHistoryEntry,
   type TabType,
 } from "../components/profilePage";
 
@@ -26,9 +25,6 @@ export default function Profile() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [filter, setFilter] = useState<FilterType>("all");
   const [activeTab, setActiveTab] = useState<TabType>("overview");
-  const [tournamentHistory, setTournamentHistory] = useState<
-    TournamentHistoryEntry[]
-  >([]);
 
   useEffect(() => {
     async function fetchGames() {
@@ -51,35 +47,6 @@ export default function Profile() {
     }
     fetchGames();
   }, []);
-
-  useEffect(() => {
-    if (!user?.id) return;
-    let cancelled = false;
-
-    async function fetchTournamentHistory() {
-      try {
-        const res = await fetch(`${API_URL}/api/users/${user.id}/profile`, {
-          credentials: "include",
-        });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) {
-          throw new Error(
-            data.error || t("profilePage.errors.loadProfileFailed", "Failed to load profile"),
-          );
-        }
-        if (!cancelled) {
-          setTournamentHistory(data.profile?.tournamentHistory || []);
-        }
-      } catch {
-        if (!cancelled) setTournamentHistory([]);
-      }
-    }
-
-    void fetchTournamentHistory();
-    return () => {
-      cancelled = true;
-    };
-  }, [user?.id]);
 
   const stats = useMemo(() => calculateStats(games), [games]);
   const filteredGames = useMemo(
@@ -111,7 +78,7 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-950 flex">
+      <div className="min-h-screen bg-theme-panel flex">
         <Sidebar />
         <div className="flex-1 ml-[60px] md:ml-72 flex items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-500"></div>
@@ -121,7 +88,7 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-950 text-gray-900 dark:text-white flex transition-colors duration-300">
+    <div className="min-h-screen bg-theme-panel text-theme-foreground flex transition-colors duration-300">
       <Sidebar />
       <div className="flex-1 ml-[60px] md:ml-72">
         <ProfileHeader
@@ -135,7 +102,7 @@ export default function Profile() {
 
         <div className="px-4 lg:px-6 py-6">
           {error && (
-            <div className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 p-4 rounded-xl mb-6">
+            <div className="bg-red-100 text-red-700 p-4 rounded-xl mb-6">
               {error}
             </div>
           )}
@@ -153,7 +120,6 @@ export default function Profile() {
               <GamesTabContent
                 filteredGames={filteredGames}
                 allGames={games}
-                tournamentHistory={tournamentHistory}
                 filter={filter}
                 setFilter={setFilter}
                 expandedId={expandedId}

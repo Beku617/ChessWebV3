@@ -1,5 +1,5 @@
 import { Download, Compass } from "lucide-react";
-import { useTranslation, Trans } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import { GameHistory } from "../../historyTypes";
 import { OpeningMatch } from "../../utils/openingExplorer";
 import { formatLocalizedOpeningLabel } from "../../utils/openingLocalization";
@@ -27,7 +27,7 @@ export function ReplayHeader({
     <div className="flex items-center gap-4">
       <div className="text-right hidden md:block">
         <div className="text-lg font-bold text-gray-900 dark:text-white">
-          {game.white} <Trans>vs</Trans> {game.black}
+          {game.white} vs {game.black}
         </div>
         <div className="text-sm text-gray-500">
           {game.date} • {game.timeControl} •{" "}

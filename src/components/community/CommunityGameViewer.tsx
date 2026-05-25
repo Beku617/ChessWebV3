@@ -300,7 +300,7 @@ function CommunityGameViewerComponent({
 
   if (!game) {
     return (
-      <div className="mt-2 rounded-[18px] bg-white/[0.03] px-4 py-4 text-sm text-gray-400 shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]">
+      <div className="mt-2 rounded-[18px] bg-theme-panel/[0.03] px-4 py-4 text-sm text-theme-muted shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]">
         {t("communityGameViewer.previewUnavailable")}
       </div>
     );
@@ -314,7 +314,7 @@ function CommunityGameViewerComponent({
       <div
         ref={interactiveRef}
         onMouseDown={() => markViewerInteracted(viewerId)}
-        className="rounded-[16px] bg-[#07111d]/90 px-1.5 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.015),0_14px_32px_rgba(0,0,0,0.2)] sm:px-2 sm:py-2"
+        className="rounded-[16px] bg-theme-panel px-1.5 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.015),0_14px_32px_rgba(0,0,0,0.2)] sm:px-2 sm:py-2"
       >
         <div className="mx-auto w-full max-w-[560px]">
           <div className="flex justify-center">
@@ -336,18 +336,18 @@ function CommunityGameViewerComponent({
                   }}
                 />
               ) : (
-                <div className="aspect-square w-full animate-pulse rounded-[15px] bg-white/[0.05]" />
+                <div className="aspect-square w-full animate-pulse rounded-[15px] bg-theme-panel/[0.05]" />
               )}
             </div>
           </div>
 
           <div className="mt-2.5 flex flex-col gap-1.5 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
             <div className="min-w-0">
-              <div className="truncate text-[13px] font-semibold text-gray-100 sm:text-sm">
+              <div className="truncate text-[13px] font-semibold text-theme-foreground sm:text-sm">
                 {game.white} ({game.whiteElo}<Trans>) vs</Trans> {game.black} ({game.blackElo})
               </div>
-              <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px] leading-none text-gray-500">
-                <span className="font-medium text-gray-300">{outcomeLabel}</span>
+              <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px] leading-none text-theme-muted">
+                <span className="font-medium text-theme-muted">{outcomeLabel}</span>
                 {analyzeHref && (
                   <Link
                     to={analyzeHref}
@@ -362,8 +362,8 @@ function CommunityGameViewerComponent({
             </div>
 
             {totalPlies > 0 && (
-              <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px] leading-none text-gray-500 sm:shrink-0 sm:justify-end">
-                <span className="text-gray-600">
+              <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px] leading-none text-theme-muted sm:shrink-0 sm:justify-end">
+                <span className="text-theme-muted">
                   {t("communityGameViewer.useArrowKeys")}
                 </span>
               </div>

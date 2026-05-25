@@ -85,10 +85,10 @@ export function AdminCommunityReviewSidebar({
   const restriction = post.authorPostingRestriction || null;
 
   return (
-    <aside className="border-t border-white/[0.05] bg-[linear-gradient(180deg,rgba(255,255,255,0.015),rgba(255,255,255,0.01))] px-5 py-5 xl:border-l xl:border-t-0 sm:px-6 sm:py-6">
+    <aside className="border-t border-theme-glass bg-theme-panel/[0.02] px-5 py-5 xl:border-l xl:border-t-0 sm:px-6 sm:py-6">
       <div className="flex h-full flex-col">
-        <div className="rounded-[20px] border border-white/[0.04] bg-white/[0.025] p-4">
-          <div className="text-[10px] uppercase tracking-[0.22em] text-gray-500"><Trans>Review</Trans></div>
+        <div className="rounded-[20px] border border-theme-glass bg-theme-panel/[0.025] p-4">
+          <div className="text-[10px] uppercase tracking-[0.22em] text-theme-muted"><Trans>Review</Trans></div>
           <div className="mt-3 flex items-start justify-between gap-3">
             <span
               className={`inline-flex items-center rounded-full px-3 py-1.5 text-xs font-semibold ${statusClass(
@@ -97,63 +97,63 @@ export function AdminCommunityReviewSidebar({
             >
               {reviewStatusLabel}
             </span>
-            <span className="text-right text-xs text-gray-500">{reviewStateLabel}</span>
+            <span className="text-right text-xs text-theme-muted">{reviewStateLabel}</span>
           </div>
 
-          <div className="mt-4 space-y-3 border-t border-white/[0.05] pt-4">
+          <div className="mt-4 space-y-3 border-t border-theme-glass pt-4">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-500"><Trans>Content type</Trans></span>
-              <span className="text-gray-100">{contentTypeLabel}</span>
+              <span className="text-theme-muted"><Trans>Content type</Trans></span>
+              <span className="text-theme-foreground">{contentTypeLabel}</span>
             </div>
             {post.group && (
               <div className="flex items-center justify-between gap-3 text-sm">
-                <span className="text-gray-500"><Trans>Group</Trans></span>
-                <span className="text-right text-gray-200">{post.group.name}</span>
+                <span className="text-theme-muted"><Trans>Group</Trans></span>
+                <span className="text-right text-theme-muted">{post.group.name}</span>
               </div>
             )}
             {post.postType === "game" && post.game && (
               <>
                 <div className="flex items-center justify-between gap-3 text-sm">
-                  <span className="text-gray-500"><Trans>Result</Trans></span>
-                  <span className="text-right text-gray-200">
+                  <span className="text-theme-muted"><Trans>Result</Trans></span>
+                  <span className="text-right text-theme-muted">
                     {formatCommunityResult(post.game.result)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between gap-3 text-sm">
-                  <span className="text-gray-500"><Trans>Time control</Trans></span>
-                  <span className="text-right text-gray-200">
+                  <span className="text-theme-muted"><Trans>Time control</Trans></span>
+                  <span className="text-right text-theme-muted">
                     {formatCommunityTimeControl(post.game.timeControl)}
                   </span>
                 </div>
                 {gameOpening && (
                   <div className="flex items-center justify-between gap-3 text-sm">
-                    <span className="text-gray-500"><Trans>Opening</Trans></span>
-                    <span className="truncate text-right text-gray-200">{gameOpening}</span>
+                    <span className="text-theme-muted"><Trans>Opening</Trans></span>
+                    <span className="truncate text-right text-theme-muted">{gameOpening}</span>
                   </div>
                 )}
               </>
             )}
             {post.reviewedBy && (
               <div className="flex items-center justify-between gap-3 text-sm">
-                <span className="text-gray-500"><Trans>Reviewed by</Trans></span>
-                <span className="text-right text-gray-200">{post.reviewedBy.username}</span>
+                <span className="text-theme-muted"><Trans>Reviewed by</Trans></span>
+                <span className="text-right text-theme-muted">{post.reviewedBy.username}</span>
               </div>
             )}
           </div>
         </div>
 
         {authorId && restrictionDraft && (
-          <div className="mt-4 rounded-[20px] border border-white/[0.04] bg-white/[0.025] p-4">
+          <div className="mt-4 rounded-[20px] border border-theme-glass bg-theme-panel/[0.025] p-4">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <div className="text-[10px] uppercase tracking-[0.22em] text-gray-500"> <Trans>Posting access</Trans> </div>
-                <div className="mt-2 text-sm font-medium text-gray-100">
+                <div className="text-[10px] uppercase tracking-[0.22em] text-theme-muted"> <Trans>Posting access</Trans> </div>
+                <div className="mt-2 text-sm font-medium text-theme-foreground">
                   {formatRestrictionLabel(restriction)}
                 </div>
               </div>
             </div>
 
-            <div className="mt-4 space-y-3 border-t border-white/[0.05] pt-4">
+            <div className="mt-4 space-y-3 border-t border-theme-glass pt-4">
               <button
                 type="button"
                 disabled={isRateLimitBypassBusy}
@@ -161,7 +161,7 @@ export function AdminCommunityReviewSidebar({
                 className={`inline-flex w-full items-center justify-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-colors disabled:opacity-50 ${
                   restrictionDraft.unlimitedPosts
                     ? "bg-brand-500/14 text-brand-200 hover:bg-brand-500/22"
-                    : "bg-white/[0.06] text-gray-100 hover:bg-white/[0.12]"
+                    : "bg-theme-panel/[0.06] text-theme-foreground hover:bg-theme-panel/[0.12]"
                 }`}
               >
                 {isRateLimitBypassBusy
@@ -189,7 +189,7 @@ export function AdminCommunityReviewSidebar({
                   "admin.community.placeholders.optionalRestrictionReason",
                   "Optional restriction reason...",
                 )}
-                className="w-full rounded-xl bg-white/[0.05] px-3.5 py-2.5 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+                className="w-full rounded-xl bg-theme-panel/[0.05] px-3.5 py-2.5 text-sm text-theme-foreground placeholder:text-theme-disabled focus:outline-none focus:ring-2 focus:ring-brand-500/30"
               />
 
               <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2.5">
@@ -199,7 +199,7 @@ export function AdminCommunityReviewSidebar({
                   onClick={() =>
                     onApplyRestriction(restrictionDraft.duration, restrictionDraft.reason)
                   }
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/[0.08] px-3.5 py-2.5 text-sm font-semibold text-gray-100 hover:bg-white/[0.14] disabled:opacity-50"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-theme-panel/[0.08] px-3.5 py-2.5 text-sm font-semibold text-theme-foreground hover:bg-theme-panel/[0.14] disabled:opacity-50"
                 >
                   {isRestrictionBusy
                     ? t("admin.community.actions.saving", "Saving...")
@@ -226,8 +226,8 @@ export function AdminCommunityReviewSidebar({
           </div>
         )}
 
-        <div className="mt-4 border-t border-white/[0.05] pt-4">
-          <div className="text-[10px] uppercase tracking-[0.22em] text-gray-500"> <Trans>Review actions</Trans> </div>
+        <div className="mt-4 border-t border-theme-glass pt-4">
+          <div className="text-[10px] uppercase tracking-[0.22em] text-theme-muted"> <Trans>Review actions</Trans> </div>
 
           {showRejectBox && (
             <textarea
@@ -237,7 +237,7 @@ export function AdminCommunityReviewSidebar({
                 "admin.community.placeholders.optionalRejectionReason",
                 "Optional rejection reason...",
               )}
-              className="mt-3 min-h-[110px] w-full rounded-[18px] bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30"
+              className="mt-3 min-h-[110px] w-full rounded-[18px] bg-theme-panel/[0.05] px-4 py-3 text-sm text-theme-foreground placeholder:text-theme-disabled focus:outline-none focus:ring-2 focus:ring-brand-500/30"
             />
           )}
 
@@ -247,7 +247,7 @@ export function AdminCommunityReviewSidebar({
                 type="button"
                 disabled={isBusy}
                 onClick={onApprove}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(13,148,136,0.22)] hover:bg-brand-500 disabled:opacity-50"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-brand-600 px-4 py-3 text-sm font-semibold text-theme-on-accent shadow-[0_16px_34px_rgba(13,148,136,0.22)] hover:bg-brand-500 disabled:opacity-50"
               >
                 <Check className="h-4 w-4" /> <Trans>Approve</Trans> </button>
             )}
@@ -259,7 +259,7 @@ export function AdminCommunityReviewSidebar({
                     type="button"
                     disabled={isBusy}
                     onClick={onStartEdit}
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/[0.05] px-4 py-2.5 text-sm font-semibold text-gray-200 hover:bg-white/[0.1] disabled:opacity-50"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-theme-panel/[0.05] px-4 py-2.5 text-sm font-semibold text-theme-muted hover:bg-theme-panel/[0.1] disabled:opacity-50"
                   >
                     <Pencil className="h-4 w-4" /> <Trans>Edit</Trans> </button>
                 )}
@@ -269,7 +269,7 @@ export function AdminCommunityReviewSidebar({
                     type="button"
                     disabled={isBusy}
                     onClick={onCloseReject}
-                    className="inline-flex items-center justify-center rounded-xl bg-white/[0.05] px-4 py-2.5 text-sm font-semibold text-gray-300 hover:bg-white/[0.1] disabled:opacity-50"
+                    className="inline-flex items-center justify-center rounded-xl bg-theme-panel/[0.05] px-4 py-2.5 text-sm font-semibold text-theme-muted hover:bg-theme-panel/[0.1] disabled:opacity-50"
                   > <Trans>Cancel</Trans> </button>
                 ) : showRejectAction ? (
                   <button
@@ -297,7 +297,7 @@ export function AdminCommunityReviewSidebar({
               type="button"
               disabled={isBusy}
               onClick={onDelete}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white/[0.04] px-4 py-2.5 text-sm font-semibold text-gray-300 hover:bg-white/[0.08] disabled:opacity-50"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-theme-panel/[0.04] px-4 py-2.5 text-sm font-semibold text-theme-muted hover:bg-theme-panel/[0.08] disabled:opacity-50"
             >
               <Trash2 className="h-4 w-4" /> <Trans>Delete</Trans> </button>
           </div>

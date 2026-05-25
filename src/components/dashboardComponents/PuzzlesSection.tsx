@@ -76,7 +76,7 @@ function PuzzlePreviewBoard({ puzzleId, fen, onClick }: PuzzlePreviewBoardProps)
     >
       <div
         ref={containerRef}
-        className="aspect-square w-full rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm cursor-pointer"
+        className="aspect-square w-full rounded-lg overflow-hidden border border-theme-glass shadow-sm cursor-pointer"
       >
         {boardWidth > 0 ? (
           <Chessboard
@@ -100,7 +100,7 @@ export function PuzzlesSection({ showTopDivider = true }: PuzzlesSectionProps) {
   const [puzzles, setPuzzles] = useState<Puzzle[]>([]);
   const [loading, setLoading] = useState(true);
   const wrapperClass = showTopDivider
-    ? "mt-6 pt-4 border-t border-gray-200 dark:border-gray-800"
+    ? "mt-6 pt-4 border-t border-theme-glass "
     : "";
 
   useEffect(() => {
@@ -146,12 +146,12 @@ export function PuzzlesSection({ showTopDivider = true }: PuzzlesSectionProps) {
       <div className={wrapperClass}>
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+            <h3 className="text-xl font-semibold text-theme-foreground ">
               {t("Puzzles")}
             </h3>
           </div>
         </div>
-        <p className="text-gray-500 dark:text-gray-400 text-sm">
+        <p className="text-theme-muted text-sm">
           {t("No puzzles available yet.")}
         </p>
       </div>
@@ -162,13 +162,13 @@ export function PuzzlesSection({ showTopDivider = true }: PuzzlesSectionProps) {
     <div className={wrapperClass}>
       <div className="flex items-center justify-between mb-3">
         <div>
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+          <h3 className="text-xl font-semibold text-theme-foreground ">
             {t("Puzzles")}
           </h3>
         </div>
         <button
           onClick={() => navigate("/puzzles")}
-          className="text-sm text-brand-600 dark:text-brand-400 hover:text-brand-500 dark:hover:text-brand-300 transition-colors"
+          className="text-sm text-brand-600 hover:text-brand-500 transition-colors"
         >
           {t("Browse All")}
         </button>
@@ -180,7 +180,7 @@ export function PuzzlesSection({ showTopDivider = true }: PuzzlesSectionProps) {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.35, delay: idx * 0.06 }}
-            className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-3 hover:border-gray-300 dark:hover:border-gray-600 transition-all shadow-sm hover:shadow-md"
+            className="rounded-xl border border-theme-glass bg-theme-panel p-3 hover:border-theme-glass transition-all shadow-sm hover:shadow-md"
           >
             <PuzzlePreviewBoard
               puzzleId={pz._id}
@@ -192,7 +192,7 @@ export function PuzzlesSection({ showTopDivider = true }: PuzzlesSectionProps) {
               <button
                 type="button"
                 onClick={() => handleSolve(pz)}
-                className="w-full px-4 py-2.5 bg-gray-900 dark:bg-gray-800 hover:bg-gray-800 dark:hover:bg-gray-700 text-white text-sm rounded-lg transition-colors"
+                className="w-full px-4 py-2.5 bg-theme-panel hover:bg-theme-panel/90 text-theme-foreground text-sm rounded-lg transition-colors"
               >
                 {t("Solve Puzzle")}
               </button>

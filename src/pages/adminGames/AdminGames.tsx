@@ -31,21 +31,21 @@ function formatDate(value?: string): string {
 
 function resultBadgeClass(result: string): string {
   if (result === "1-0") {
-    return "bg-brand-500/10 text-brand-600 dark:text-brand-400";
+    return "bg-brand-500/10 text-brand-600";
   }
   if (result === "0-1") {
-    return "bg-blue-500/10 text-blue-600 dark:text-blue-400";
+    return "bg-blue-500/10 text-blue-600";
   }
   if (result === "1/2-1/2") {
-    return "bg-amber-500/10 text-amber-600 dark:text-amber-400";
+    return "bg-amber-500/10 text-amber-600";
   }
-  return "bg-gray-500/10 text-gray-600 dark:text-gray-400";
+  return "bg-theme-surface/10 text-theme-muted";
 }
 
 function variantBadgeClass(variant: string): string {
   return variant === "chess960"
-    ? "bg-purple-500/10 text-purple-600 dark:text-purple-400"
-    : "bg-slate-500/10 text-slate-600 dark:text-slate-300";
+    ? "bg-purple-500/10 text-purple-600"
+    : "bg-theme-surface/10 text-theme-muted";
 }
 
 export default function AdminGames() {
@@ -157,22 +157,22 @@ export default function AdminGames() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-950 flex items-center justify-center">
+      <div className="min-h-screen bg-theme-panel flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-950 text-gray-900 dark:text-white">
+    <div className="min-h-screen bg-theme-panel text-theme-foreground ">
       <AdminSidebar />
 
       {notification && (
         <div
           className={`fixed top-5 right-5 z-[90] px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 ${
             notification.type === "success"
-              ? "bg-brand-500 text-white"
-              : "bg-red-500 text-white"
+              ? "bg-brand-500 text-theme-on-accent"
+              : "bg-red-500 text-theme-on-accent"
           }`}
         >
           {notification.type === "success" ? (
@@ -195,7 +195,7 @@ export default function AdminGames() {
             <button
               type="button"
               onClick={handleExport}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-theme-glass text-theme-muted hover:bg-theme-surface transition-colors"
             >
               <Download className="w-4 h-4" /> <Trans>Export CSV</Trans> </button>
           </div>
@@ -203,38 +203,38 @@ export default function AdminGames() {
 
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4">
-              <p className="text-sm text-gray-500 dark:text-gray-400"> <Trans>Total Games</Trans> </p>
+            <div className="bg-theme-panel rounded-xl border border-theme-glass p-4">
+              <p className="text-sm text-theme-muted"> <Trans>Total Games</Trans> </p>
               <p className="mt-1 text-2xl font-bold">{stats.total}</p>
             </div>
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4">
-              <p className="text-sm text-gray-500 dark:text-gray-400"><Trans>Rated</Trans></p>
-              <p className="mt-1 text-2xl font-bold text-brand-600 dark:text-brand-400">
+            <div className="bg-theme-panel rounded-xl border border-theme-glass p-4">
+              <p className="text-sm text-theme-muted"><Trans>Rated</Trans></p>
+              <p className="mt-1 text-2xl font-bold text-brand-600">
                 {stats.rated}
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              <p className="text-xs text-theme-muted mt-1">
                 {ratedPercent}<Trans>% of all games</Trans> </p>
             </div>
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4">
-              <p className="text-sm text-gray-500 dark:text-gray-400"> <Trans>Standard / 960</Trans> </p>
+            <div className="bg-theme-panel rounded-xl border border-theme-glass p-4">
+              <p className="text-sm text-theme-muted"> <Trans>Standard / 960</Trans> </p>
               <p className="mt-1 text-2xl font-bold">
                 {stats.byVariant.standard} / {stats.byVariant.chess960}
               </p>
             </div>
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4">
-              <p className="text-sm text-gray-500 dark:text-gray-400"> <Trans>Last 24 Hours</Trans> </p>
-              <p className="mt-1 text-2xl font-bold text-brand-600 dark:text-brand-400">
+            <div className="bg-theme-panel rounded-xl border border-theme-glass p-4">
+              <p className="text-sm text-theme-muted"> <Trans>Last 24 Hours</Trans> </p>
+              <p className="mt-1 text-2xl font-bold text-brand-600">
                 {stats.recent24h}
               </p>
             </div>
           </div>
         )}
 
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-gray-800 p-4 mb-6">
+        <div className="bg-theme-panel rounded-xl border border-theme-glass p-4 mb-6">
           <div className="flex flex-wrap gap-3">
             <div className="flex-1 min-w-[220px]">
               <div className="relative">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-theme-muted" />
                 <input
                   value={searchQuery}
                   onChange={(e) => {
@@ -242,7 +242,7 @@ export default function AdminGames() {
                     setPage(1);
                   }}
                   placeholder={t("admin.search.games")}
-                  className="w-full pl-10 pr-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  className="w-full pl-10 pr-3 py-2 rounded-lg border border-theme-glass bg-theme-panel text-theme-foreground focus:outline-none focus:ring-2 focus:ring-brand-500"
                 />
               </div>
             </div>
@@ -253,7 +253,7 @@ export default function AdminGames() {
                 setVariantFilter(e.target.value);
                 setPage(1);
               }}
-              className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="px-3 py-2 rounded-lg border border-theme-glass bg-theme-panel text-theme-foreground focus:outline-none focus:ring-2 focus:ring-brand-500"
             >
               <option value=""><Trans>All Variants</Trans></option>
               <option value="standard"><Trans>Standard</Trans></option>
@@ -266,7 +266,7 @@ export default function AdminGames() {
                 setResultFilter(e.target.value);
                 setPage(1);
               }}
-              className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="px-3 py-2 rounded-lg border border-theme-glass bg-theme-panel text-theme-foreground focus:outline-none focus:ring-2 focus:ring-brand-500"
             >
               <option value=""><Trans>All Results</Trans></option>
               {GAME_RESULT_OPTIONS.map((option) => (
@@ -282,7 +282,7 @@ export default function AdminGames() {
                 setRatedFilter(e.target.value);
                 setPage(1);
               }}
-              className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="px-3 py-2 rounded-lg border border-theme-glass bg-theme-panel text-theme-foreground focus:outline-none focus:ring-2 focus:ring-brand-500"
             >
               <option value=""><Trans>All Types</Trans></option>
               <option value="true"><Trans>Rated</Trans></option>
@@ -292,35 +292,35 @@ export default function AdminGames() {
         </div>
 
         {error && (
-          <div className="mb-4 rounded-lg border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/30 px-4 py-3 text-sm text-red-700 dark:text-red-300">
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             {error}
           </div>
         )}
 
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+        <div className="bg-theme-panel rounded-xl border border-theme-glass overflow-hidden">
           {loading ? (
             <div className="py-24 flex items-center justify-center">
               <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
             </div>
           ) : games.length === 0 ? (
-            <div className="py-20 text-center text-gray-500 dark:text-gray-400">
+            <div className="py-20 text-center text-theme-muted">
               <Gamepad2 className="w-12 h-12 mx-auto mb-3 opacity-40" />
               <p><Trans>No games found with current filters.</Trans></p>
             </div>
           ) : (
             <table className="w-full">
-              <thead className="bg-gray-50 dark:bg-slate-800/50 border-b border-gray-200 dark:border-gray-800">
+              <thead className="bg-theme-surface border-b border-theme-glass ">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"> <Trans>Players</Trans> </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"> <Trans>Result</Trans> </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"> <Trans>Variant</Trans> </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"> <Trans>Owner</Trans> </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"> <Trans>Moves</Trans> </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"> <Trans>Created</Trans> </th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"> <Trans>Actions</Trans> </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-theme-muted"> <Trans>Players</Trans> </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-theme-muted"> <Trans>Result</Trans> </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-theme-muted"> <Trans>Variant</Trans> </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-theme-muted"> <Trans>Owner</Trans> </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-theme-muted"> <Trans>Moves</Trans> </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-theme-muted"> <Trans>Created</Trans> </th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-theme-muted"> <Trans>Actions</Trans> </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+              <tbody className="divide-y divide-theme-glass">
                 {games.map((game) => {
                   const owner =
                     typeof game.userId === "string" ? null : game.userId;
@@ -328,13 +328,13 @@ export default function AdminGames() {
                   return (
                     <tr
                       key={game._id}
-                      className="hover:bg-gray-50 dark:hover:bg-slate-800/40 transition-colors"
+                      className="hover:bg-theme-surface/40 transition-colors"
                     >
                       <td className="px-4 py-3">
-                        <div className="font-medium text-gray-900 dark:text-white">
+                        <div className="font-medium text-theme-foreground ">
                           {game.white} <Trans>vs</Trans> {game.black}
                         </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                        <div className="text-xs text-theme-muted">
                           {game.event || "NeonGambit Game"}
                         </div>
                       </td>
@@ -349,8 +349,8 @@ export default function AdminGames() {
                         <span
                           className={`ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                             game.rated
-                              ? "bg-brand-500/10 text-brand-600 dark:text-brand-400"
-                              : "bg-gray-500/10 text-gray-600 dark:text-gray-400"
+                              ? "bg-brand-500/10 text-brand-600"
+                              : "bg-theme-surface/10 text-theme-muted"
                           }`}
                         >
                           {game.rated ? "Rated" : "Casual"}
@@ -364,25 +364,25 @@ export default function AdminGames() {
                         >
                           {game.variant || "standard"}
                         </span>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        <div className="text-xs text-theme-muted mt-1">
                           {game.timeControl || "-"}
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <div className="text-sm text-gray-900 dark:text-white">
+                        <div className="text-sm text-theme-foreground ">
                           {owner?.fullName || "Unknown"}
                         </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                        <div className="text-xs text-theme-muted">
                           {owner?.email ||
                             (typeof game.userId === "string"
                               ? game.userId
                               : "")}
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+                      <td className="px-4 py-3 text-sm text-theme-muted">
                         {Array.isArray(game.moves) ? game.moves.length : 0}
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
+                      <td className="px-4 py-3 text-sm text-theme-muted">
                         {formatDate(game.createdAt)}
                       </td>
                       <td className="px-4 py-3">
@@ -390,7 +390,7 @@ export default function AdminGames() {
                           <button
                             type="button"
                             onClick={() => openAnalyzeWindow(`/admin/analyze/${game._id}`)}
-                            className="p-2 rounded-lg text-gray-500 hover:text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"
+                            className="p-2 rounded-lg text-theme-muted hover:text-brand-500 hover:bg-brand-50 transition-colors"
                             title={t("admin.actions.analyze")}
                           >
                             <Eye className="w-4 h-4" />
@@ -398,7 +398,7 @@ export default function AdminGames() {
                           <button
                             type="button"
                             onClick={() => handleEditClick(game)}
-                            className="p-2 rounded-lg text-gray-500 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                            className="p-2 rounded-lg text-theme-muted hover:text-blue-500 hover:bg-blue-50 transition-colors"
                             title={t("admin.actions.edit")}
                           >
                             <Pencil className="w-4 h-4" />
@@ -406,7 +406,7 @@ export default function AdminGames() {
                           <button
                             type="button"
                             onClick={() => setDeleteTarget(game)}
-                            className="p-2 rounded-lg text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                            className="p-2 rounded-lg text-theme-muted hover:text-red-500 hover:bg-red-50 transition-colors"
                             title={t("admin.actions.delete")}
                           >
                             <Trash2 className="w-4 h-4" />
@@ -421,25 +421,25 @@ export default function AdminGames() {
           )}
 
           {pagination.pages > 1 && (
-            <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-800">
-              <div className="text-sm text-gray-500 dark:text-gray-400"> <Trans>Showing</Trans> {(pagination.page - 1) * pagination.limit + 1} <Trans>to</Trans>{" "}
+            <div className="flex items-center justify-between px-4 py-3 border-t border-theme-glass ">
+              <div className="text-sm text-theme-muted"> <Trans>Showing</Trans> {(pagination.page - 1) * pagination.limit + 1} <Trans>to</Trans>{" "}
                 {Math.min(pagination.page * pagination.limit, pagination.total)}{" "} <Trans>of</Trans> {pagination.total} <Trans>games</Trans> </div>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setPage(pagination.page - 1)}
                   disabled={pagination.page <= 1}
-                  className="p-2 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 disabled:opacity-40"
+                  className="p-2 rounded-lg border border-theme-glass text-theme-muted hover:bg-theme-surface disabled:opacity-40"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
-                <span className="text-sm text-gray-600 dark:text-gray-400"> <Trans>Page</Trans> {pagination.page} <Trans>of</Trans> {pagination.pages}
+                <span className="text-sm text-theme-muted"> <Trans>Page</Trans> {pagination.page} <Trans>of</Trans> {pagination.pages}
                 </span>
                 <button
                   type="button"
                   onClick={() => setPage(pagination.page + 1)}
                   disabled={pagination.page >= pagination.pages}
-                  className="p-2 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800 disabled:opacity-40"
+                  className="p-2 rounded-lg border border-theme-glass text-theme-muted hover:bg-theme-surface disabled:opacity-40"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>

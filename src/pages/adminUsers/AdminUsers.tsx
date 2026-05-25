@@ -37,14 +37,14 @@ export default function AdminUsers() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-950 flex items-center justify-center">
+      <div className="min-h-screen bg-theme-panel flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-950 text-gray-900 dark:text-white">
+    <div className="min-h-screen bg-theme-panel text-theme-foreground ">
       <AdminSidebar />
 
       <main className="ml-72 p-8">
@@ -59,7 +59,7 @@ export default function AdminUsers() {
           <div className="flex items-center gap-3">
             <button
               onClick={exportUsers}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg text-sm font-medium transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-theme-surface hover:bg-theme-surface/80 rounded-lg text-sm font-medium transition-colors"
             >
               <Download className="w-4 h-4" />
               {t("admin.users.exportCsv")}
@@ -70,7 +70,7 @@ export default function AdminUsers() {
         <UserStatsCards stats={stats} />
 
         {/* Users Table */}
-        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden">
+        <div className="bg-theme-panel border border-theme-glass rounded-xl overflow-hidden">
           <UsersTable
             users={users}
             loadingUsers={loadingUsers}

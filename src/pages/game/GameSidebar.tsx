@@ -37,7 +37,7 @@ export function GameSidebar({ onStartMatch }: GameSidebarProps) {
       <div className="theme-glass-panel-strong flex-1 rounded-3xl px-5 py-6 lg:p-6 flex flex-col overflow-hidden">
         <div className="flex items-center justify-center flex-shrink-0 mb-5">
           <div className="flex items-center gap-2">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white"> <Trans>Play Chess</Trans> </h2>
+            <h2 className="text-xl font-bold text-theme-foreground "> <Trans>Play Chess</Trans> </h2>
           </div>
         </div>
 
@@ -49,14 +49,14 @@ export function GameSidebar({ onStartMatch }: GameSidebarProps) {
               className="w-full text-left rounded-xl theme-glass-panel-soft px-3.5 py-3 shadow-sm transition-all duration-200 hover:-translate-y-[1px] theme-glass-hover disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
             >
               <div className="h-full flex items-center gap-2.5">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-theme-glass bg-white/25 text-gray-700 shadow-sm dark:bg-white/10 dark:text-gray-200">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-theme-glass bg-theme-panel/25 text-theme-muted shadow-sm ">
                   <action.IconComponent className="h-5 w-5" aria-hidden="true" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm sm:text-base font-semibold leading-snug text-gray-800 dark:text-white">
+                  <div className="text-sm sm:text-base font-semibold leading-snug text-theme-foreground ">
                     {t(action.title)}
                   </div>
-                  <div className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400">
+                  <div className="text-[11px] sm:text-xs text-theme-muted">
                     {t(action.description)}
                   </div>
                 </div>

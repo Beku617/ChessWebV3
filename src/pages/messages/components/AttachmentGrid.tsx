@@ -23,13 +23,13 @@ export function AttachmentGrid({
     (attachment) => !isVideoAttachment(attachment),
   );
   const containerTint = mine
-    ? "border-white/10 bg-white/5"
-    : "border-[#1f2d45] bg-[#0d1729]/80";
+    ? "border-theme-glass bg-theme-panel/5"
+    : "border-theme-glass bg-theme-panel";
 
   const videoBlock =
     videos.length > 0 ? (
       <div className={`mt-2 rounded-xl border ${containerTint} p-2`}>
-        <div className="relative overflow-hidden rounded-lg bg-[#0b1424] shadow-[0_10px_26px_rgba(0,0,0,0.28)]">
+        <div className="relative overflow-hidden rounded-lg bg-theme-panel shadow-[0_10px_26px_rgba(0,0,0,0.28)]">
           <video
             key={`${messageId}-video`}
             src={resolveMediaUrl(videos[0].url)}
@@ -40,7 +40,7 @@ export function AttachmentGrid({
             }
             controls
             preload="metadata"
-            className="h-full max-h-[360px] w-full rounded-lg bg-black/60 object-contain"
+            className="h-full max-h-[360px] w-full rounded-lg bg-theme-panel/60 object-contain"
             onDoubleClick={(event) => {
               event.stopPropagation();
               onOpenViewer(attachments, attachments.indexOf(videos[0]));
@@ -48,11 +48,11 @@ export function AttachmentGrid({
           />
           <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/45 via-black/15 to-transparent" />
         </div>
-        <div className="mt-2 flex items-center justify-between gap-2 text-[12px] text-slate-200/90">
+        <div className="mt-2 flex items-center justify-between gap-2 text-[12px] text-theme-foreground/90">
           <span className="truncate">
             {videos[0].filename || t("messages.videoFileFallback", "Video")}
           </span>
-          <span className="text-slate-400">
+          <span className="text-theme-muted">
             {formatBytes(videos[0].size || 0)}
           </span>
         </div>
@@ -105,7 +105,7 @@ export function AttachmentGrid({
                       className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                     />
                     {isOverlay && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-lg font-semibold text-white backdrop-blur-sm">
+                      <div className="absolute inset-0 flex items-center justify-center bg-theme-panel/60 text-lg font-semibold text-theme-foreground backdrop-blur-sm">
                         +{extra}
                       </div>
                     )}

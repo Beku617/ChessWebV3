@@ -115,10 +115,10 @@ export function FormatRatingsCard() {
       initial={{ opacity: 0, x: 10 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.5 }}
-      className="bg-gradient-to-br from-brand-50 dark:from-brand-900/20 to-cyan-50 dark:to-cyan-900/20 rounded-xl border border-brand-200 dark:border-brand-800/30 p-6 shadow-sm"
+      className="bg-gradient-to-br from-brand-50 to-cyan-50 rounded-xl border border-brand-200 p-6 shadow-sm"
     >
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xl md:text-2xl font-semibold text-gray-900 dark:text-white">
+        <h3 className="text-xl md:text-2xl font-semibold text-theme-foreground ">
           {t("Format Ratings")}
         </h3>
       </div>
@@ -126,23 +126,23 @@ export function FormatRatingsCard() {
         {timeFormats.map((format) => (
           <div
             key={format.id}
-            className="flex items-center justify-between p-3 rounded-lg bg-white dark:bg-gray-800/30 border border-gray-200 dark:border-gray-700"
+            className="flex items-center justify-between p-3 rounded-lg bg-theme-panel border border-theme-glass "
           >
             <div className="flex items-center space-x-3">
               <div>
-                <div className="font-medium text-gray-900 dark:text-white">
+                <div className="font-medium text-theme-foreground ">
                   {t(format.name)}
                 </div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">
+                <div className="text-xs text-theme-muted">
                   {format.displayTime}
                 </div>
               </div>
             </div>
             <div className="text-right">
-              <div className="text-lg font-bold text-gray-900 dark:text-white">
+              <div className="text-lg font-bold text-theme-foreground ">
                 {format.rating}
               </div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">
+              <div className="text-xs text-theme-muted">
                 {format.rating > 1850
                   ? t("Hot")
                   : format.rating > 1750
@@ -153,34 +153,34 @@ export function FormatRatingsCard() {
           </div>
         ))}
       </div>
-      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+      <div className="mt-4 pt-4 border-t border-theme-glass ">
         {loading ? (
           <div className="flex items-center justify-center py-2">
             <Loader2 className="w-5 h-5 text-brand-500 animate-spin" />
           </div>
         ) : (
           <div className="grid grid-cols-3 gap-2 text-center">
-            <div className="bg-white dark:bg-gray-800/50 rounded-lg p-2">
-              <div className="text-xs text-gray-500 dark:text-gray-400">
+            <div className="bg-theme-panel rounded-lg p-2">
+              <div className="text-xs text-theme-muted">
                 {t("Win Rate")}
               </div>
-              <div className="text-sm font-medium text-gray-900 dark:text-white">
+              <div className="text-sm font-medium text-theme-foreground ">
                 {stats.winRate}%
               </div>
             </div>
-            <div className="bg-white dark:bg-gray-800/50 rounded-lg p-2">
-              <div className="text-xs text-gray-500 dark:text-gray-400">
+            <div className="bg-theme-panel rounded-lg p-2">
+              <div className="text-xs text-theme-muted">
                 {t("Games")}
               </div>
-              <div className="text-sm font-medium text-gray-900 dark:text-white">
+              <div className="text-sm font-medium text-theme-foreground ">
                 {stats.totalGames}
               </div>
             </div>
-            <div className="bg-white dark:bg-gray-800/50 rounded-lg p-2">
-              <div className="text-xs text-gray-500 dark:text-gray-400">
+            <div className="bg-theme-panel rounded-lg p-2">
+              <div className="text-xs text-theme-muted">
                 {t("Streak")}
               </div>
-              <div className="text-sm font-medium text-gray-900 dark:text-white">
+              <div className="text-sm font-medium text-theme-foreground ">
                 {stats.streak}
               </div>
             </div>

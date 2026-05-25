@@ -62,6 +62,7 @@ interface MatchFoundPayload {
   gameId: string;
   color: PlayerColor;
   fen: string;
+  initialFen?: string;
   opponentName?: string;
   rated?: boolean;
   playerRating?: number;
@@ -289,6 +290,7 @@ interface GameStateRestoredPayload {
   gameId: string;
   color?: PlayerColor;
   fen?: string;
+  initialFen?: string;
   moves?: string[];
   whiteTimeLeft?: number;
   blackTimeLeft?: number;
@@ -976,7 +978,9 @@ export function useOnlineQuickMatch() {
           ? normalizeThreeCheckCounts(payload)
           : normalizeThreeCheckCounts(),
       );
-      startingFenRef.current = payload.fen || nextGame.fen();
+      const normalizedInitialFen = String(payload.initialFen || "").trim();
+      startingFenRef.current =
+        normalizedInitialFen || payload.fen || nextGame.fen();
       if (Array.isArray(payload.moves)) {
         setStoredMoves(payload.moves);
       } else {
@@ -1219,10 +1223,18 @@ export function useOnlineQuickMatch() {
           const restored = new Chess(restoredFen);
           gameRef.current = restored;
           setGame(restored);
-          startingFenRef.current = restored.fen();
         } catch {
           // keep existing state if payload fen is invalid
         }
+      }
+      const restoredInitialFen = String(payload.initialFen || "").trim();
+      if (restoredInitialFen) {
+        startingFenRef.current = restoredInitialFen;
+      } else if (!startingFenRef.current) {
+        startingFenRef.current =
+          matchVariantRef.current === "chess960"
+            ? restoredFen || gameRef.current.fen()
+            : "start";
       }
       if (Array.isArray(payload.moves)) {
         setStoredMoves(payload.moves);

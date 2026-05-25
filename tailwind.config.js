@@ -14,6 +14,20 @@ export default {
         "light-bg": "#f5f5f7",
         "light-bg-secondary": "#eeeef0",
         "light-card": "#ffffff",
+        theme: {
+          base: "rgb(var(--bg-base-rgb) / <alpha-value>)",
+          surface: "rgb(var(--bg-surface-rgb) / <alpha-value>)",
+          panel: "rgb(var(--bg-panel-rgb) / <alpha-value>)",
+          card: "rgb(var(--bg-card-rgb) / <alpha-value>)",
+          input: "rgb(var(--bg-input-rgb) / <alpha-value>)",
+          foreground: "rgb(var(--text-primary-rgb) / <alpha-value>)",
+          muted: "rgb(var(--text-secondary-rgb) / <alpha-value>)",
+          disabled: "rgb(var(--text-disabled-rgb) / <alpha-value>)",
+          onaccent: "rgb(var(--text-on-accent-rgb) / <alpha-value>)",
+          border: "rgb(var(--border-color-rgb) / calc(<alpha-value> * 0.28))",
+          accent: "rgb(var(--accent-rgb) / <alpha-value>)",
+          glass: "rgb(var(--glass-border-rgb) / calc(<alpha-value> * 0.28))",
+        },
         // Theme CSS variable colors
         surface: {
           primary: "var(--bg-primary)",
@@ -38,6 +52,9 @@ export default {
       backgroundColor: {
         // Override white to be slightly gray in light mode
         page: "#f5f5f7",
+      },
+      borderColor: {
+        DEFAULT: "rgb(var(--glass-border-rgb) / 0.2)",
       },
     },
   },

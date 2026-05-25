@@ -468,34 +468,34 @@ export function FriendGameSetup({
             {!hasChosenFriend ? (
               <div className="theme-glass-panel-soft rounded-2xl p-3 flex-shrink-0">
                 <div className="relative">
-                  <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <Search className="w-4 h-4 text-theme-muted absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
                     value={friendSearch}
                     onChange={(e) => setFriendSearch(e.target.value)}
                     placeholder={t("common.searchByUsername")}
-                    className="w-full pl-10 pr-3 py-2 rounded-xl bg-white/60 dark:bg-white/10 text-gray-900 dark:text-white text-[12px] border border-white/10 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    className="w-full pl-10 pr-3 py-2 rounded-xl bg-theme-panel/60 text-theme-foreground text-[12px] border border-theme-glass focus:outline-none focus:ring-2 focus:ring-brand-500"
                   />
                 </div>
 
                 <div className="mt-2 flex items-center gap-2">
-                  <span className="text-[12px] font-semibold text-gray-900 dark:text-white">
+                  <span className="text-[12px] font-semibold text-theme-foreground ">
                     {t("Friends")}
                   </span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-gray-300">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-theme-surface text-theme-muted">
                     {filteredFriends.length}
                   </span>
                 </div>
 
                 <div className="mt-1 max-h-48 overflow-y-auto space-y-1 pr-1">
                   {loadingFriends ? (
-                    <p className="text-[11px] text-gray-500 dark:text-gray-400 py-1">
+                    <p className="text-[11px] text-theme-muted py-1">
                       {t("Loading friends...")}
                     </p>
                   ) : friendsError ? (
                     <p className="text-[11px] text-red-500 py-1">{friendsError}</p>
                   ) : filteredFriends.length === 0 ? (
-                    <p className="text-[11px] text-gray-500 dark:text-gray-400 py-1">
+                    <p className="text-[11px] text-theme-muted py-1">
                       {t("No friends found.")}
                     </p>
                   ) : (
@@ -516,10 +516,10 @@ export function FriendGameSetup({
                           className={`w-full rounded-lg px-2 py-1.5 flex items-center gap-2 text-left transition-all ${
                             isActive
                               ? "bg-brand-500/15 ring-1 ring-brand-500/70"
-                              : "hover:bg-gray-100 dark:hover:bg-slate-800/80"
+                              : "hover:bg-theme-surface/80"
                           }`}
                         >
-                          <div className="w-7 h-7 rounded-md overflow-hidden bg-slate-700 flex-shrink-0">
+                          <div className="w-7 h-7 rounded-md overflow-hidden bg-theme-surface flex-shrink-0">
                             {friend.avatar ? (
                               <img
                                 src={friend.avatar}
@@ -528,17 +528,17 @@ export function FriendGameSetup({
                               />
                             ) : (
                               <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center">
-                                <span className="text-white font-semibold text-[11px]">
+                                <span className="text-theme-on-accent font-semibold text-[11px]">
                                   {friend.name.substring(0, 1).toUpperCase()}
                                 </span>
                               </div>
                             )}
                           </div>
                           <div className="min-w-0">
-                            <div className="text-[12px] font-semibold text-gray-900 dark:text-white truncate">
+                            <div className="text-[12px] font-semibold text-theme-foreground truncate">
                               {friend.name}
                               {typeof friend.rating === "number" && (
-                                <span className="ml-1 text-[11px] font-normal text-gray-500 dark:text-gray-400">
+                                <span className="ml-1 text-[11px] font-normal text-theme-muted">
                                   ({friend.rating})
                                 </span>
                               )}
@@ -553,13 +553,13 @@ export function FriendGameSetup({
             ) : (
               <>
                 <div className="theme-glass-panel-soft rounded-2xl p-3">
-                  <div className="flex items-center gap-2 text-[12px] font-semibold text-gray-900 dark:text-white">
+                  <div className="flex items-center gap-2 text-[12px] font-semibold text-theme-foreground ">
                     <Users className="w-4 h-4 text-brand-500" />
                     <span>{t("Play vs")}</span>
                   </div>
 
                   <div className="mt-3 flex flex-col items-center text-center">
-                    <div className="w-20 h-20 rounded-lg overflow-hidden bg-slate-700">
+                    <div className="w-20 h-20 rounded-lg overflow-hidden bg-theme-surface">
                       {selectedFriend?.avatar ? (
                         <img
                           src={selectedFriend.avatar}
@@ -568,16 +568,16 @@ export function FriendGameSetup({
                         />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center">
-                          <span className="text-white font-bold text-xl">
+                          <span className="text-theme-on-accent font-bold text-xl">
                             {opponentLabel.substring(0, 1).toUpperCase()}
                           </span>
                         </div>
                       )}
                     </div>
-                    <div className="mt-2 text-[13px] font-semibold text-gray-900 dark:text-white">
+                    <div className="mt-2 text-[13px] font-semibold text-theme-foreground ">
                       {opponentLabel}
                       {typeof selectedFriend?.rating === "number" && (
-                        <span className="ml-1 text-[12px] font-normal text-gray-500 dark:text-gray-400">
+                        <span className="ml-1 text-[12px] font-normal text-theme-muted">
                           ({selectedFriend.rating})
                         </span>
                       )}
@@ -587,20 +587,20 @@ export function FriendGameSetup({
                   <button
                     type="button"
                     onClick={() => setHasChosenFriend(false)}
-                    className="mt-3 w-full py-2 rounded-xl border border-white/10 bg-white/55 dark:bg-white/10 text-[12px] font-semibold text-gray-700 dark:text-gray-300 hover:bg-white/75 dark:hover:bg-white/15 transition-colors"
+                    className="mt-3 w-full py-2 rounded-xl border border-theme-glass bg-theme-panel/55 text-[12px] font-semibold text-theme-muted hover:bg-theme-panel/75 transition-colors"
                   >
                     {t("Change Friend")}
                   </button>
                 </div>
 
                 <div className="theme-glass-panel-soft rounded-2xl p-3">
-                  <div className="text-[12px] font-semibold text-gray-900 dark:text-white mb-2">
+                  <div className="text-[12px] font-semibold text-theme-foreground mb-2">
                     {t("Game Type")}
                   </div>
                   <button
                     type="button"
                     onClick={() => setIsGameTypeOpen((value) => !value)}
-                    className="w-full py-3 px-3 rounded-xl bg-white/55 dark:bg-white/10 border border-white/10 text-gray-800 dark:text-gray-100 flex items-center justify-between"
+                    className="w-full py-3 px-3 rounded-xl bg-theme-panel/55 border border-theme-glass text-theme-foreground flex items-center justify-between"
                   >
                     <span className="flex items-center gap-2 text-[13px] font-semibold">
                       {t(selectedGameType.label)}
@@ -613,7 +613,7 @@ export function FriendGameSetup({
                   </button>
 
                   {isGameTypeOpen && (
-                    <div className="mt-2 rounded-xl border border-white/10 overflow-hidden">
+                    <div className="mt-2 rounded-xl border border-theme-glass overflow-hidden">
                       {GAME_TYPE_OPTIONS.map((option) => {
                         const active = selectedGameType.id === option.id;
                         return (
@@ -626,8 +626,8 @@ export function FriendGameSetup({
                             }}
                             className={`w-full px-3 py-2.5 flex items-center justify-between text-left transition-colors ${
                               active
-                                ? "bg-brand-500/15 text-brand-600 dark:text-brand-300"
-                                : "bg-white/55 dark:bg-white/10 hover:bg-white/75 dark:hover:bg-white/15 text-gray-700 dark:text-gray-200"
+                                ? "bg-brand-500/15 text-brand-600"
+                                : "bg-theme-panel/55 hover:bg-theme-panel/75 text-theme-muted "
                             }`}
                           >
                             <span className="flex items-center gap-2 text-[13px] font-medium">
@@ -644,7 +644,7 @@ export function FriendGameSetup({
                   <button
                     type="button"
                     onClick={() => setIsTimeControlOpen((value) => !value)}
-                    className="w-full py-3 px-3 rounded-xl bg-white/55 dark:bg-white/10 border border-white/10 text-gray-800 dark:text-gray-100 flex items-center justify-between"
+                    className="w-full py-3 px-3 rounded-xl bg-theme-panel/55 border border-theme-glass text-theme-foreground flex items-center justify-between"
                   >
                     <span className="flex items-center gap-2 text-[13px] font-semibold">
                       <Timer className="w-4 h-4 text-yellow-500" />
@@ -661,7 +661,7 @@ export function FriendGameSetup({
                     <div className="mt-3 space-y-3">
                       {TIME_GROUPS.map((group) => (
                         <div key={group.id}>
-                            <div className="flex items-center gap-1.5 text-[12px] font-semibold text-gray-800 dark:text-gray-200">
+                            <div className="flex items-center gap-1.5 text-[12px] font-semibold text-theme-foreground ">
                               <span>{t(group.label)}</span>
                             </div>
                             <div className="mt-1.5 grid grid-cols-3 gap-2">
@@ -682,8 +682,8 @@ export function FriendGameSetup({
                                     }}
                                     className={`py-2 rounded-lg text-[12px] font-semibold transition-all ${
                                       selected
-                                        ? "bg-brand-500/20 text-brand-600 dark:text-brand-300 ring-2 ring-brand-500"
-                                        : "bg-gray-100 dark:bg-slate-800 text-gray-700 dark:text-gray-300 ring-1 ring-gray-200 dark:ring-slate-700 hover:ring-gray-300 dark:hover:ring-slate-600"
+                                        ? "bg-brand-500/20 text-brand-600 ring-2 ring-brand-500"
+                                        : "bg-theme-surface text-theme-muted ring-1 ring-theme-border hover:ring-theme-border"
                                     }`}
                                   >
                                     {t(option.label)}
@@ -694,11 +694,11 @@ export function FriendGameSetup({
                         </div>
                       ))}
                       <div className="theme-glass-panel-soft rounded-xl p-2.5">
-                        <div className="text-[12px] font-semibold text-gray-800 dark:text-gray-200">
+                        <div className="text-[12px] font-semibold text-theme-foreground ">
                           {t("Custom")}
                         </div>
                         <div className="mt-2 grid grid-cols-2 gap-2">
-                          <label className="text-[11px] text-gray-600 dark:text-gray-300">
+                          <label className="text-[11px] text-theme-muted">
                             {t("Base (min)")}
                             <input
                               type="number"
@@ -708,10 +708,10 @@ export function FriendGameSetup({
                               onChange={(event) =>
                                 setCustomBaseMinutes(event.target.value)
                               }
-                              className="mt-1 w-full rounded-lg border border-white/10 bg-white/60 dark:bg-white/10 px-2 py-1.5 text-[12px] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500/40"
+                              className="mt-1 w-full rounded-lg border border-theme-glass bg-theme-panel/60 px-2 py-1.5 text-[12px] text-theme-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/40"
                             />
                           </label>
-                          <label className="text-[11px] text-gray-600 dark:text-gray-300">
+                          <label className="text-[11px] text-theme-muted">
                             {t("Increment (sec)")}
                             <input
                               type="number"
@@ -721,14 +721,14 @@ export function FriendGameSetup({
                               onChange={(event) =>
                                 setCustomIncrementSeconds(event.target.value)
                               }
-                              className="mt-1 w-full rounded-lg border border-white/10 bg-white/60 dark:bg-white/10 px-2 py-1.5 text-[12px] text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-brand-500/40"
+                              className="mt-1 w-full rounded-lg border border-theme-glass bg-theme-panel/60 px-2 py-1.5 text-[12px] text-theme-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/40"
                             />
                           </label>
                         </div>
                         <button
                           type="button"
                           onClick={applyCustomTimeControl}
-                          className="mt-2 w-full rounded-lg bg-brand-500/20 text-brand-700 dark:text-brand-300 py-1.5 text-[12px] font-semibold ring-1 ring-brand-500/40 hover:bg-brand-500/25 transition-colors"
+                          className="mt-2 w-full rounded-lg bg-brand-500/20 text-brand-700 py-1.5 text-[12px] font-semibold ring-1 ring-brand-500/40 hover:bg-brand-500/25 transition-colors"
                         >
                           {t("Apply Custom")}
                         </button>
@@ -737,12 +737,12 @@ export function FriendGameSetup({
                   )}
                 </div>
 
-                <p className="px-1 text-[11px] text-gray-500 dark:text-gray-400">
+                <p className="px-1 text-[11px] text-theme-muted">
                   {t("Friend games are always unrated. Elo does not change.")}
                 </p>
 
                 <div className="theme-glass-panel-soft rounded-2xl p-3">
-                  <div className="text-[12px] font-semibold text-gray-900 dark:text-white mb-2"> <Trans>I play as</Trans> </div>
+                  <div className="text-[12px] font-semibold text-theme-foreground mb-2"> <Trans>I play as</Trans> </div>
                   <div className="grid grid-cols-3 gap-2">
                     {PLAY_AS_OPTIONS.map((option) => {
                       const active = playAs === option.id;
@@ -753,8 +753,8 @@ export function FriendGameSetup({
                           onClick={() => onPlayAsChange(option.id)}
                           className={`py-2.5 rounded-xl text-[11px] font-semibold transition-all border ${
                             active
-                              ? "bg-brand-500/20 border-brand-500 text-brand-600 dark:text-brand-300"
-                              : "bg-gray-100 dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-300"
+                              ? "bg-brand-500/20 border-brand-500 text-brand-600"
+                              : "bg-theme-surface border-theme-glass text-theme-muted"
                           }`}
                         >
                           {t(option.label)}
@@ -765,13 +765,13 @@ export function FriendGameSetup({
                 </div>
 
                 {challengeError && (
-                  <div className="rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 px-3 py-2 text-[12px] text-red-600 dark:text-red-300">
+                  <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-[12px] text-red-600">
                     {challengeError}
                   </div>
                 )}
 
                 {challengeInfo && !challengeError && (
-                  <div className="rounded-xl border border-brand-200 dark:border-brand-500/30 bg-brand-50 dark:bg-brand-500/10 px-3 py-2 text-[12px] text-brand-700 dark:text-brand-300">
+                  <div className="rounded-xl border border-brand-200 bg-brand-50 px-3 py-2 text-[12px] text-brand-700">
                     {challengeInfo}
                   </div>
                 )}
@@ -787,7 +787,7 @@ export function FriendGameSetup({
                 disabled={
                   isSendingChallenge || !selectedFriend || !isRealtimeConnected
                 }
-                className="w-full py-3 rounded-2xl bg-gradient-to-r from-brand-500 to-cyan-500 hover:from-brand-600 hover:to-cyan-600 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold text-[15px] transition-all shadow-lg hover:shadow-xl active:scale-[0.98] disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-2"
+                className="w-full py-3 rounded-2xl bg-gradient-to-r from-brand-500 to-cyan-500 hover:from-brand-600 hover:to-cyan-600 disabled:from-theme-surface disabled:to-theme-surface text-theme-on-accent font-bold text-[15px] transition-all shadow-lg hover:shadow-xl active:scale-[0.98] disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-2"
               >
                 <Play className="w-5 h-5" />
                 {isSendingChallenge
@@ -799,7 +799,7 @@ export function FriendGameSetup({
             ) : (
               <button
                 disabled
-                className="w-full py-3 rounded-2xl bg-gray-300 dark:bg-slate-700 text-gray-500 dark:text-gray-400 font-bold text-[15px] cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full py-3 rounded-2xl bg-theme-surface text-theme-muted font-bold text-[15px] cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {t("Choose Friend First")}
               </button>

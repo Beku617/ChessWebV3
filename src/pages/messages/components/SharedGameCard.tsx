@@ -28,8 +28,8 @@ export function SharedGameCard({ game, mine }: SharedGameCardProps) {
       ? `/analyze960/${game.gameId}`
       : `/analyze/${game.gameId}`;
   const cardBg = mine
-    ? "border-white/20 bg-white/10 hover:bg-white/15"
-    : "border-[#25344e] bg-[#0b1424]/80 hover:bg-[#0f1a2e]/90";
+    ? "border-theme-glass bg-theme-panel/10 hover:bg-theme-panel/15"
+    : "border-theme-glass bg-theme-panel hover:bg-theme-panel";
 
   return (
     <Link
@@ -39,26 +39,26 @@ export function SharedGameCard({ game, mine }: SharedGameCardProps) {
       <div className="flex items-start gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5 text-[13px] font-semibold">
-            <span className={mine ? "text-white" : "text-slate-100"}>
+            <span className={mine ? "text-theme-on-accent" : "text-theme-foreground"}>
               {game.white}
             </span>
             {game.whiteElo != null && (
               <span
                 className={`text-[11px] font-normal ${
-                  mine ? "text-cyan-100/70" : "text-slate-500"
+                  mine ? "text-theme-muted" : "text-theme-muted"
                 }`}
               >
                 ({game.whiteElo})
               </span>
             )}
-            <span className={mine ? "text-cyan-100/60" : "text-slate-500"}> <Trans>vs</Trans> </span>
-            <span className={mine ? "text-white" : "text-slate-100"}>
+            <span className={mine ? "text-theme-muted" : "text-theme-muted"}> <Trans>vs</Trans> </span>
+            <span className={mine ? "text-theme-on-accent" : "text-theme-foreground"}>
               {game.black}
             </span>
             {game.blackElo != null && (
               <span
                 className={`text-[11px] font-normal ${
-                  mine ? "text-cyan-100/70" : "text-slate-500"
+                  mine ? "text-theme-muted" : "text-theme-muted"
                 }`}
               >
                 ({game.blackElo})
@@ -67,7 +67,7 @@ export function SharedGameCard({ game, mine }: SharedGameCardProps) {
           </div>
           <div
             className={`mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] ${
-              mine ? "text-cyan-100/75" : "text-slate-400"
+              mine ? "text-theme-muted" : "text-theme-muted"
             }`}
           >
             <span className={`font-semibold ${resultAccent}`}>
@@ -75,7 +75,7 @@ export function SharedGameCard({ game, mine }: SharedGameCardProps) {
             </span>
             {game.timeControl && (
               <>
-                <span className={mine ? "text-cyan-100/40" : "text-slate-600"}>
+                <span className={mine ? "text-theme-muted/70" : "text-theme-muted"}>
                   ·
                 </span>
                 <span>
@@ -86,7 +86,7 @@ export function SharedGameCard({ game, mine }: SharedGameCardProps) {
             )}
             {game.eco && (
               <>
-                <span className={mine ? "text-cyan-100/40" : "text-slate-600"}>
+                <span className={mine ? "text-theme-muted/70" : "text-theme-muted"}>
                   ·
                 </span>
                 <span>{game.eco}</span>
@@ -94,7 +94,7 @@ export function SharedGameCard({ game, mine }: SharedGameCardProps) {
             )}
             {game.moves != null && game.moves > 0 && (
               <>
-                <span className={mine ? "text-cyan-100/40" : "text-slate-600"}>
+                <span className={mine ? "text-theme-muted/70" : "text-theme-muted"}>
                   ·
                 </span>
                 <span>{game.moves} <Trans>moves</Trans></span>
@@ -102,7 +102,7 @@ export function SharedGameCard({ game, mine }: SharedGameCardProps) {
             )}
             {game.rated && (
               <>
-                <span className={mine ? "text-cyan-100/40" : "text-slate-600"}>
+                <span className={mine ? "text-theme-muted/70" : "text-theme-muted"}>
                   ·
                 </span>
                 <span><Trans>Rated</Trans></span>
@@ -112,7 +112,7 @@ export function SharedGameCard({ game, mine }: SharedGameCardProps) {
           <div
             className={`mt-1.5 inline-flex items-center gap-1 text-[11px] font-medium ${
               mine
-                ? "text-white/80 group-hover:text-white"
+                ? "text-theme-muted group-hover:text-theme-on-accent"
                 : "text-brand-400/80 group-hover:text-brand-300"
             } transition-colors`}
           >

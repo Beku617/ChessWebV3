@@ -122,7 +122,7 @@ export function GameCard({
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden hover:shadow-md transition-all ${borderColor}`}
+      className={`bg-theme-panel rounded-xl border border-theme-glass overflow-hidden hover:shadow-md transition-all ${borderColor}`}
     >
       <GameCardHeader
         game={game}
@@ -138,7 +138,7 @@ export function GameCard({
       />
 
       {isExpanded && (
-        <div className="border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50 p-6 space-y-6">
+        <div className="border-t border-theme-glass bg-theme-surface p-6 space-y-6">
           <GameCardDetails game={game} />
           <GameCardMoveHistory
             formattedMoves={formattedMoves}

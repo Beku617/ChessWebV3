@@ -321,7 +321,7 @@ export default function Settings() {
 
   return (
     <div
-      className="min-h-screen bg-transparent text-gray-900 transition-colors duration-300 dark:text-white"
+      className="min-h-screen bg-transparent text-theme-foreground transition-colors duration-300 "
     >
       <div className="flex min-h-screen">
         <Sidebar />
@@ -336,7 +336,7 @@ export default function Settings() {
                 <button
                   onClick={handleReset}
                   disabled={!dirty}
-                  className="flex items-center gap-2 rounded-xl border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-600 transition-all hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-30 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+                  className="flex items-center gap-2 rounded-xl border border-theme-glass px-4 py-2 text-sm font-semibold text-theme-muted transition-all hover:bg-theme-surface disabled:cursor-not-allowed disabled:text-theme-disabled"
                 >
                   {t("settings.actions.reset", "Reset")}
                 </button>
@@ -345,8 +345,8 @@ export default function Settings() {
                   disabled={!dirty}
                   className={`flex items-center gap-2 rounded-xl px-5 py-2 text-sm font-bold transition-all shadow-lg ${
                     dirty
-                      ? "bg-brand-600 text-white shadow-brand-900/25 hover:bg-brand-500"
-                      : "cursor-not-allowed bg-gray-300 text-gray-500 shadow-none dark:bg-gray-800"
+                      ? "bg-brand-600 text-theme-on-accent shadow-brand-900/25 hover:bg-brand-500"
+                      : "cursor-not-allowed bg-theme-surface text-theme-muted shadow-none"
                   }`}
                 >
                   {t("settings.actions.saveChanges", "Save Changes")}
@@ -373,14 +373,14 @@ export default function Settings() {
                   />
                   <div className="w-full space-y-4">
                     <div>
-                      <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                      <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-theme-muted">
                         {t("settings.profile.email", "Email")}
                       </label>
                       <input
                         type="email"
                         defaultValue={user?.email || ""}
                         disabled
-                        className="w-full cursor-not-allowed rounded-xl border border-gray-200 bg-gray-100 px-4 py-3 text-base text-gray-500 dark:border-gray-700 dark:bg-gray-800/50 dark:text-gray-400"
+                        className="w-full cursor-not-allowed rounded-xl border border-theme-glass bg-theme-surface px-4 py-3 text-base text-theme-muted"
                       />
                     </div>
                   </div>
@@ -396,7 +396,7 @@ export default function Settings() {
                 >
                   <button
                     onClick={() => setPasswordModal(true)}
-                    className="flex items-center gap-1.5 rounded-lg bg-gray-100 px-4 py-2 text-sm font-bold text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                    className="flex items-center gap-1.5 rounded-lg bg-theme-surface px-4 py-2 text-sm font-bold text-theme-muted transition-colors hover:bg-theme-surface/80"
                   >
                     {t("settings.actions.change", "Change")}
                   </button>
@@ -412,7 +412,7 @@ export default function Settings() {
                       {linkedProviders.map((provider) => (
                         <span
                           key={provider}
-                          className="rounded-lg bg-gray-100 px-3 py-2 text-sm font-bold text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                          className="rounded-lg bg-theme-surface px-3 py-2 text-sm font-bold text-theme-muted"
                         >
                           {provider}
                         </span>
@@ -447,7 +447,7 @@ export default function Settings() {
                     />
                     {showMnUnavailableBadge && (
                       <span
-                        className="rounded-full border border-amber-300/35 bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium tracking-wide text-amber-700 dark:border-amber-700/45 dark:text-amber-300"
+                        className="rounded-full border border-amber-300/35 bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium tracking-wide text-amber-700"
                         title={t(
                           "settingsLang.mnUnavailableTooltip",
                           "Mongolian translation is unavailable for some content.",
@@ -669,8 +669,8 @@ export default function Settings() {
                   <span
                     className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
                       hasConfiguredAiProvider
-                        ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/35 dark:text-emerald-300"
-                        : "bg-amber-100 text-amber-700 dark:bg-amber-900/35 dark:text-amber-300"
+                        ? "bg-emerald-100 text-emerald-700"
+                        : "bg-amber-100 text-amber-700"
                     }`}
                   >
                     {aiStatusLabel}
@@ -690,7 +690,7 @@ export default function Settings() {
                   <button
                     type="button"
                     onClick={() => setBlockedUsersModal(true)}
-                    className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-bold text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                    className="rounded-lg bg-theme-surface px-4 py-2 text-sm font-bold text-theme-muted transition-colors hover:bg-theme-surface/80"
                   >
                     {t("settings.actions.manage", "Manage")} ({blockedUsers.length})
                   </button>
@@ -708,21 +708,21 @@ export default function Settings() {
       >
         <div className="space-y-3">
           {blockedUsersLoading ? (
-            <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+            <div className="rounded-lg border border-theme-glass bg-theme-surface px-4 py-3 text-sm text-theme-muted">
               {t("settings.errors.blockedUsersLoad", "Loading blocked users...")}
             </div>
           ) : blockedUsers.length === 0 ? (
-            <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300">
+            <div className="rounded-lg border border-theme-glass bg-theme-surface px-4 py-3 text-sm text-theme-muted">
               {t("settings.errors.noBlockedUsers", "No blocked users.")}
             </div>
           ) : (
             blockedUsers.map((blockedUser) => (
               <div
                 key={blockedUser.id}
-                className="flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 dark:border-gray-700 dark:bg-gray-800"
+                className="flex items-center justify-between gap-3 rounded-xl border border-theme-glass bg-theme-surface px-3 py-2.5"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 shrink-0">
+                  <div className="w-10 h-10 rounded-full overflow-hidden bg-theme-surface shrink-0">
                     {blockedUser.avatar ? (
                       <img
                         src={resolveAvatarUrl(blockedUser.avatar)}
@@ -730,16 +730,16 @@ export default function Settings() {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-xs font-semibold text-gray-600 dark:text-gray-200">
+                      <div className="w-full h-full flex items-center justify-center text-xs font-semibold text-theme-muted ">
                         {blockedUser.fullName?.slice(0, 2).toUpperCase() || "U"}
                       </div>
                     )}
                   </div>
                   <div className="min-w-0">
-                    <div className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                    <div className="text-sm font-semibold text-theme-foreground truncate">
                       {blockedUser.fullName}
                     </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                    <div className="text-xs text-theme-muted">
                       {blockedUser.blockedAt
                         ? t("settings.errors.blockedSince", {
                             defaultValue: "Blocked since {{date}}",
@@ -753,7 +753,7 @@ export default function Settings() {
                   type="button"
                   onClick={() => void handleUnblock(blockedUser.id)}
                   disabled={unblockingId === blockedUser.id}
-                  className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-500 disabled:opacity-60"
+                  className="rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-semibold text-theme-on-accent hover:bg-brand-500 disabled:opacity-60"
                 >
                   {unblockingId === blockedUser.id
                     ? t("settings.errors.unblocking", "Unblocking...")
@@ -775,38 +775,38 @@ export default function Settings() {
       >
         <div className="space-y-4">
           <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-theme-muted">
               {t("settings.modals.changePassword.current", "Current Password")}
             </label>
             <input
               type="password"
               value={pwFields.current}
               onChange={(event) => setPwFields((prev) => ({ ...prev, current: event.target.value }))}
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm transition-all focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/40 dark:border-gray-700 dark:bg-gray-800"
+              className="w-full rounded-xl border border-theme-glass bg-theme-surface px-4 py-2.5 text-sm transition-all focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/40"
               placeholder={t("settings.modals.changePassword.currentPlaceholder", "Enter current password")}
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-theme-muted">
               {t("settings.modals.changePassword.new", "New Password")}
             </label>
             <input
               type="password"
               value={pwFields.newPw}
               onChange={(event) => setPwFields((prev) => ({ ...prev, newPw: event.target.value }))}
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm transition-all focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/40 dark:border-gray-700 dark:bg-gray-800"
+              className="w-full rounded-xl border border-theme-glass bg-theme-surface px-4 py-2.5 text-sm transition-all focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/40"
               placeholder={t("settings.modals.changePassword.newPlaceholder", "Enter new password")}
             />
           </div>
           <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-theme-muted">
               {t("settings.modals.changePassword.confirm", "Confirm Password")}
             </label>
             <input
               type="password"
               value={pwFields.confirm}
               onChange={(event) => setPwFields((prev) => ({ ...prev, confirm: event.target.value }))}
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm transition-all focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/40 dark:border-gray-700 dark:bg-gray-800"
+              className="w-full rounded-xl border border-theme-glass bg-theme-surface px-4 py-2.5 text-sm transition-all focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/40"
               placeholder={t("settings.modals.changePassword.confirmPlaceholder", "Confirm new password")}
             />
           </div>
@@ -820,7 +820,7 @@ export default function Settings() {
             onClick={() => {
               void handlePasswordChange();
             }}
-            className="w-full rounded-xl bg-brand-600 py-2.5 text-sm font-bold text-white transition-all hover:bg-brand-500 disabled:bg-gray-300 disabled:text-gray-500 dark:disabled:bg-gray-800"
+            className="w-full rounded-xl bg-brand-600 py-2.5 text-sm font-bold text-theme-on-accent transition-all hover:bg-brand-500 disabled:bg-theme-surface disabled:text-theme-muted"
           >
             {pwSaving
               ? t("settings.errors.passwordUpdating", "Updating...")

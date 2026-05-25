@@ -16,7 +16,7 @@ export function PuzzleStatsCards({ stats, loading = false }: PuzzleStatsCardsPro
         {Array.from({ length: 3 }).map((_, idx) => (
           <div
             key={idx}
-            className="h-[92px] rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 animate-pulse"
+            className="h-[92px] rounded-xl border border-theme-glass bg-theme-panel animate-pulse"
           />
         ))}
       </div>
@@ -72,12 +72,12 @@ function StatCard({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay }}
-      className="flex items-center justify-between rounded-xl border border-gray-800 bg-gray-900/70 px-4 py-3 shadow-[0_14px_32px_-26px_rgba(15,23,42,0.9)]"
+      className="flex items-center justify-between rounded-xl border border-theme-border bg-theme-panel/70 px-4 py-3 shadow-[0_14px_32px_-26px_rgba(15,23,42,0.9)]"
     >
       <div className="min-w-0">
-        <p className="text-[11px] uppercase tracking-[0.16em] text-gray-400">{label}</p>
-        <p className="mt-1 text-lg font-semibold leading-tight text-white">{value}</p>
-        <p className="mt-0.5 text-[11px] text-gray-500">{helper}</p>
+        <p className="text-[11px] uppercase tracking-[0.16em] text-theme-muted">{label}</p>
+        <p className="mt-1 text-lg font-semibold leading-tight text-theme-foreground">{value}</p>
+        <p className="mt-0.5 text-[11px] text-theme-muted">{helper}</p>
       </div>
     </motion.div>
   );

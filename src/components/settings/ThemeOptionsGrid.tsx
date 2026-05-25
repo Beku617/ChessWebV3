@@ -33,19 +33,19 @@ export function ThemeOptionsGrid({
             aria-pressed={isActive}
             className={`rounded-xl border px-4 py-3 text-left transition-all duration-200 ${
               isActive
-                ? "bg-slate-950/90"
-                : "bg-slate-950/72 hover:bg-slate-950/88"
+                ? "bg-theme-panel/95"
+                : "bg-theme-panel/75 hover:bg-theme-panel/90"
             }`}
             style={{
-              borderColor: isActive ? "var(--accent)" : "rgba(255, 255, 255, 0.12)",
+              borderColor: isActive ? "var(--accent)" : "var(--border-color)",
               boxShadow: isActive
-                ? "0 18px 40px rgba(2, 6, 23, 0.28)"
-                : "0 10px 24px rgba(2, 6, 23, 0.2)",
+                ? "0 18px 40px var(--shadow-color)"
+                : "0 10px 24px var(--shadow-color)",
             }}
           >
             <div className="flex items-center justify-between gap-2">
               <div className="min-w-0">
-                <span className="block text-sm font-semibold text-white">
+                <span className="block text-sm font-semibold text-theme-foreground">
                   {t(
                     `settings.appearance.themeNames.${themeOption.name}`,
                     themeOption.label,
@@ -53,18 +53,18 @@ export function ThemeOptionsGrid({
                 </span>
               </div>
               {isActive ? (
-                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[var(--accent)] text-white">
+                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-theme-accent text-theme-on-accent">
                   <Check className="h-4 w-4" />
                 </span>
               ) : (
-                <span className="h-6 w-6 rounded-full border border-white/15 bg-white/5" />
+                <span className="h-6 w-6 rounded-full border border-theme-border/50 bg-theme-surface/50" />
               )}
             </div>
             <div className="mt-3 flex items-center gap-2">
               {swatches.map((color) => (
                 <span
                   key={`${themeOption.name}-${color}`}
-                  className="h-4 w-4 rounded-full border border-black/10 dark:border-white/10"
+                  className="h-4 w-4 rounded-full border border-theme-border/20 "
                   style={{ backgroundColor: color }}
                 />
               ))}

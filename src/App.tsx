@@ -3,7 +3,6 @@ import {
   Suspense,
   useCallback,
   useEffect,
-  useLayoutEffect,
   useRef,
   useState,
 } from "react";
@@ -18,13 +17,10 @@ import {
 } from "react-router-dom";
 import { I18nextProvider, useTranslation } from "react-i18next";
 import Sidebar from "./components/Sidebar";
-import { useThemeStore } from "./store/themeStore";
 import { useAuthStore, authApi } from "./store/authStore";
 import { useFriendChallengeStore } from "./store/friendChallengeStore";
 import { useFriendStore } from "./store/friendStore";
 import FriendChallengeOverlay from "./components/FriendChallengeOverlay";
-import { applyThemeClass } from "./utils/theme";
-import { useTheme } from "./hooks/useTheme";
 import {
   buildActiveOnlineGamePath,
   clearActiveOnlineGame,
@@ -187,16 +183,6 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   }
 
   return <>{children}</>;
-}
-
-function ThemeController() {
-  const { themeName } = useTheme();
-
-  useLayoutEffect(() => {
-    applyThemeClass(themeName);
-  }, [themeName]);
-
-  return null;
 }
 
 function RealtimeBridge() {
@@ -501,7 +487,7 @@ function ActiveGameGuard() {
   return (
     <>
       {showLeaveConfirm && (
-        <div className="fixed inset-0 z-[160] flex items-center justify-center bg-black/65 p-4 backdrop-blur-[2px]">
+        <div className="fixed inset-0 z-[160] flex items-center justify-center bg-theme-panel/65 p-4 backdrop-blur-[2px]">
           <div
             role="dialog"
             aria-modal="true"
@@ -512,13 +498,13 @@ function ActiveGameGuard() {
             <div className="px-6 pt-6 pb-5">
               <h2
                 id="leave-game-dialog-title"
-                className="text-lg font-semibold text-gray-900 dark:text-white"
+                className="text-lg font-semibold text-theme-foreground "
               >
                 {t("quickMatch.leave.title", "Leave Current Game?")}
               </h2>
               <p
                 id="leave-game-dialog-description"
-                className="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300"
+                className="mt-2 text-sm leading-6 text-theme-muted"
               >
                 {t(
                   "quickMatch.leave.description",
@@ -531,7 +517,7 @@ function ActiveGameGuard() {
                 type="button"
                 onClick={handleCancelLeave}
                 disabled={isLeaving}
-                className="rounded-lg border border-theme-glass bg-white/70 px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-white/80 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white/5 dark:text-gray-200 dark:hover:bg-white/10"
+                className="rounded-lg border border-theme-glass bg-theme-panel/70 px-4 py-2 text-sm font-semibold text-theme-muted transition-colors hover:bg-theme-panel/80 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {t("quickMatch.leave.stay", "Stay")}
               </button>
@@ -539,7 +525,7 @@ function ActiveGameGuard() {
                 type="button"
                 onClick={handleConfirmLeave}
                 disabled={isLeaving}
-                className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-500 disabled:cursor-not-allowed disabled:opacity-70"
+                className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-theme-on-accent transition-colors hover:bg-brand-500 disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {isLeaving
                   ? t("quickMatch.leave.leaving", "Leaving...")
@@ -555,7 +541,6 @@ function ActiveGameGuard() {
 
 function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
-  const { isDarkMode } = useThemeStore();
   const isDashboardPage = location.pathname === "/";
   const isTournamentPage = location.pathname.startsWith("/tournaments");
   const isLearnLessonPage = /^\/learn\/[^/]+\/[^/]+$/.test(location.pathname);
@@ -593,7 +578,7 @@ function Layout({ children }: { children: React.ReactNode }) {
     location.pathname.match(/^\/play\/bot\/.+/);
 
   if (isAdminRoute) {
-    return <div className={isDarkMode ? "dark" : ""}>{children}</div>;
+    return <>{children}</>;
   }
 
   // For pages with their own layout, just render children
@@ -603,7 +588,7 @@ function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div
-      className={`bg-theme-primary text-gray-900 dark:text-white font-sans selection:bg-brand-500/30 transition-colors duration-300 ${
+      className={`bg-theme-primary text-theme-foreground font-sans selection:bg-brand-500/30 transition-colors duration-300 ${
         isWorkspacePage ? "h-screen overflow-hidden" : "min-h-screen"
       }`}
     >
@@ -653,7 +638,6 @@ function withAdminI18n(element: React.ReactNode) {
 function App() {
   return (
     <>
-      <ThemeController />
       <AuthChecker />
       <RealtimeBridge />
       <AnalyzeNavigationBridge />

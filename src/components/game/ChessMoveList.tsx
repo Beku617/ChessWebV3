@@ -73,7 +73,7 @@ function MoveCell({
     return (
       <span
         className={joinClasses(
-          "flex-1 px-2 text-gray-400 dark:text-gray-500",
+          "flex-1 px-2 text-theme-muted",
           moveCellClassName,
         )}
       >
@@ -86,7 +86,7 @@ function MoveCell({
   const canSelect = typeof onSelectPly === "function" && Number.isFinite(ply);
   const moveCellTone = isActive
     ? activeMoveClassName || "text-emerald-500"
-    : inactiveMoveClassName || "text-gray-800 dark:text-gray-200";
+    : inactiveMoveClassName || "text-theme-foreground ";
 
   const content = (
     <span className="flex min-w-0 items-center justify-between gap-2">
@@ -171,7 +171,7 @@ export function ChessMoveList({
     return (
       <div
         className={joinClasses(
-          "text-center text-gray-400 dark:text-gray-500 text-sm py-6",
+          "text-center text-theme-muted text-sm py-6",
           className,
         )}
       >
@@ -193,7 +193,7 @@ export function ChessMoveList({
         >
           <span
             className={joinClasses(
-              "w-9 text-gray-400 dark:text-gray-500",
+              "w-9 text-theme-muted",
               moveNumberClassName,
             )}
           >

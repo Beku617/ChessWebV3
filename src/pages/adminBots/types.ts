@@ -73,27 +73,27 @@ export const DIFFICULTY_OPTIONS: {
   {
     value: "beginner",
     label: "Beginner",
-    color: "bg-green-500/20 text-green-600 dark:text-green-400",
+    color: "bg-green-500/20 text-green-600",
   },
   {
     value: "casual",
     label: "Casual",
-    color: "bg-blue-500/20 text-blue-600 dark:text-blue-400",
+    color: "bg-blue-500/20 text-blue-600",
   },
   {
     value: "intermediate",
     label: "Intermediate",
-    color: "bg-yellow-500/20 text-yellow-600 dark:text-yellow-400",
+    color: "bg-yellow-500/20 text-yellow-600",
   },
   {
     value: "advanced",
     label: "Advanced",
-    color: "bg-orange-500/20 text-orange-600 dark:text-orange-400",
+    color: "bg-orange-500/20 text-orange-600",
   },
   {
     value: "master",
     label: "Master",
-    color: "bg-red-500/20 text-red-600 dark:text-red-400",
+    color: "bg-red-500/20 text-red-600",
   },
 ];
 

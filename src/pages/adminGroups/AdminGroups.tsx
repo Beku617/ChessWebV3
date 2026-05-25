@@ -12,7 +12,6 @@ import {
 } from "../../components/community/types";
 import { CommunityGroupAvatar } from "../../components/community/CommunityGroups";
 import { useAdminStore } from "../../store/adminStore";
-import { useThemeStore } from "../../store/themeStore";
 
 type GroupDraft = {
   name: string;
@@ -32,7 +31,6 @@ export default function AdminGroups() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { isAuthenticated, isLoading: authLoading, checkAuth } = useAdminStore();
-  const { isDarkMode } = useThemeStore();
   const [groups, setGroups] = useState<CommunityGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -174,22 +172,22 @@ export default function AdminGroups() {
   };
 
   return (
-    <div className={isDarkMode ? "dark" : ""}>
-      <div className="min-h-screen bg-[#f5f5f7] text-gray-900 dark:bg-[#06101d] dark:text-white">
+    <div>
+      <div className="min-h-screen bg-theme-panel text-theme-foreground ">
         <AdminSidebar />
 
         <main className="ml-72 px-8 py-7">
           <div className="mx-auto max-w-[1400px]">
-          <section className="rounded-[28px] border border-gray-200/80 bg-white/95 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.08)] dark:border-white/[0.05] dark:bg-[#0c1728]/85 dark:shadow-[0_24px_75px_rgba(0,0,0,0.24)]">
+          <section className="rounded-[28px] border border-theme-glass/80 bg-theme-panel/95 p-6 shadow-[0_18px_50px_rgba(15,23,42,0.08)]">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
-                <h1 className="text-3xl font-semibold tracking-tight text-gray-900 dark:text-white"> <Trans>Community Groups</Trans> </h1>
+                <h1 className="text-3xl font-semibold tracking-tight text-theme-foreground "> <Trans>Community Groups</Trans> </h1>
               </div>
 
               <button
                 type="button"
                 onClick={() => setIsCreateOpen((open) => !open)}
-                className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-500"
+                className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-theme-on-accent transition-colors hover:bg-brand-500"
               >
                 <Plus className="h-4 w-4" />
                 {isCreateOpen
@@ -200,7 +198,7 @@ export default function AdminGroups() {
 
             <div className="mt-5 flex flex-wrap gap-3">
               <div className="relative min-w-[280px] flex-1">
-                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-theme-muted" />
                 <input
                   value={search}
                   onChange={(event) => {
@@ -208,13 +206,13 @@ export default function AdminGroups() {
                     setPage(1);
                   }}
                   placeholder={t("admin.search.groups")}
-                  className="w-full rounded-2xl border border-gray-200 bg-gray-50 py-3 pl-11 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-white/[0.05] dark:bg-white/[0.05] dark:text-white dark:placeholder:text-gray-500"
+                  className="w-full rounded-2xl border border-theme-glass bg-theme-surface py-3 pl-11 pr-4 text-sm text-theme-foreground placeholder:text-theme-disabled focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                 />
               </div>
             </div>
 
             {isCreateOpen && (
-              <div className="mt-5 rounded-[22px] border border-gray-200/80 bg-gray-50/90 p-5 dark:border-white/[0.05] dark:bg-[#091321]/80">
+              <div className="mt-5 rounded-[22px] border border-theme-glass/80 bg-theme-surface/90 p-5">
                 <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_220px]">
                   <div className="space-y-4">
                     <input
@@ -223,7 +221,7 @@ export default function AdminGroups() {
                         setCreateDraft((current) => ({ ...current, name: event.target.value }))
                       }
                       placeholder={t("admin.groups.placeholders.groupName", "Group name")}
-                      className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-white/[0.05] dark:bg-white/[0.05] dark:text-white dark:placeholder:text-gray-500"
+                      className="w-full rounded-2xl border border-theme-glass bg-theme-panel px-4 py-3 text-sm text-theme-foreground placeholder:text-theme-disabled focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                     />
                     <textarea
                       value={createDraft.description}
@@ -237,7 +235,7 @@ export default function AdminGroups() {
                         "admin.groups.placeholders.description",
                         "Describe what this group is for...",
                       )}
-                      className="min-h-[120px] w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm leading-6 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-white/[0.05] dark:bg-white/[0.05] dark:text-white dark:placeholder:text-gray-500"
+                      className="min-h-[120px] w-full rounded-2xl border border-theme-glass bg-theme-panel px-4 py-3 text-sm leading-6 text-theme-foreground placeholder:text-theme-disabled focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                     />
                   </div>
 
@@ -248,13 +246,13 @@ export default function AdminGroups() {
                         setCreateDraft((current) => ({ ...current, topic: event.target.value }))
                       }
                       placeholder={t("admin.groups.placeholders.topic", "Topic")}
-                      className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-white/[0.05] dark:bg-white/[0.05] dark:text-white dark:placeholder:text-gray-500"
+                      className="w-full rounded-2xl border border-theme-glass bg-theme-panel px-4 py-3 text-sm text-theme-foreground placeholder:text-theme-disabled focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                     />
                     <button
                       type="button"
                       onClick={handleCreate}
                       disabled={isCreating}
-                      className="w-full rounded-xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-500 disabled:opacity-50"
+                      className="w-full rounded-xl bg-brand-600 px-4 py-3 text-sm font-semibold text-theme-on-accent transition-colors hover:bg-brand-500 disabled:opacity-50"
                     >
                       {isCreating
                         ? t("admin.groups.actions.creating", "Creating...")
@@ -273,14 +271,14 @@ export default function AdminGroups() {
           )}
 
           {loading ? (
-            <div className="mt-6 flex items-center justify-center rounded-2xl border border-gray-200/80 bg-white/95 py-24 shadow-[0_18px_44px_rgba(15,23,42,0.08)] dark:border-white/[0.05] dark:bg-[#0c1728]/80 dark:shadow-[0_22px_65px_rgba(0,0,0,0.22)]">
+            <div className="mt-6 flex items-center justify-center rounded-2xl border border-theme-glass/80 bg-theme-panel/95 py-24 shadow-[0_18px_44px_rgba(15,23,42,0.08)]">
               <Loader2 className="h-8 w-8 animate-spin text-brand-400" />
             </div>
           ) : groups.length === 0 ? (
-            <div className="mt-6 rounded-2xl border border-gray-200/80 bg-white/95 px-6 py-24 text-center shadow-[0_18px_44px_rgba(15,23,42,0.08)] dark:border-white/[0.05] dark:bg-[#0c1728]/80 dark:shadow-[0_22px_65px_rgba(0,0,0,0.22)]">
-              <Users className="mx-auto h-10 w-10 text-gray-500" />
-              <div className="mt-4 text-lg font-semibold text-gray-900 dark:text-white"><Trans>No groups yet</Trans></div>
-              <p className="mt-2 text-sm leading-7 text-gray-500 dark:text-gray-500"> <Trans>Create the first public community group.</Trans> </p>
+            <div className="mt-6 rounded-2xl border border-theme-glass/80 bg-theme-panel/95 px-6 py-24 text-center shadow-[0_18px_44px_rgba(15,23,42,0.08)]">
+              <Users className="mx-auto h-10 w-10 text-theme-muted" />
+              <div className="mt-4 text-lg font-semibold text-theme-foreground "><Trans>No groups yet</Trans></div>
+              <p className="mt-2 text-sm leading-7 text-theme-muted"> <Trans>Create the first public community group.</Trans> </p>
             </div>
           ) : (
             <div className="mt-6 grid gap-5 xl:grid-cols-2">
@@ -290,19 +288,19 @@ export default function AdminGroups() {
                 return (
                   <article
                     key={group.id}
-                    className="rounded-[24px] border border-gray-200/80 bg-white/95 p-5 shadow-[0_18px_44px_rgba(15,23,42,0.08)] dark:border-white/[0.05] dark:bg-[#0c1728]/85 dark:shadow-[0_20px_60px_rgba(0,0,0,0.22)]"
+                    className="rounded-[24px] border border-theme-glass/80 bg-theme-panel/95 p-5 shadow-[0_18px_44px_rgba(15,23,42,0.08)]"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex min-w-0 items-start gap-3">
                         <CommunityGroupAvatar group={group} size="md" />
                         <div className="min-w-0">
-                          <div className="truncate text-lg font-semibold text-gray-900 dark:text-white">
+                          <div className="truncate text-lg font-semibold text-theme-foreground ">
                             {group.name}
                           </div>
-                          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-500">
+                          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-theme-muted">
                             <span>{group.memberCount} <Trans>members</Trans></span>
                             {group.topic && (
-                              <span className="rounded-full bg-gray-100 px-2.5 py-1 text-[11px] text-gray-500 dark:bg-white/[0.04] dark:text-gray-400">
+                              <span className="rounded-full bg-theme-surface px-2.5 py-1 text-[11px] text-theme-muted">
                                 {group.topic}
                               </span>
                             )}
@@ -316,7 +314,7 @@ export default function AdminGroups() {
                           <button
                             type="button"
                             onClick={() => handleStartEdit(group)}
-                            className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100 text-gray-700 transition-colors hover:bg-gray-200 dark:bg-white/[0.05] dark:text-gray-200 dark:hover:bg-white/[0.1]"
+                            className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-theme-surface text-theme-muted transition-colors hover:bg-theme-surface/80"
                             aria-label={t("admin.aria.editGroup", {
                               name: group.name,
                             })}
@@ -345,7 +343,7 @@ export default function AdminGroups() {
                           onChange={(event) =>
                             setEditDraft((current) => ({ ...current, name: event.target.value }))
                           }
-                          className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-white/[0.05] dark:bg-white/[0.05] dark:text-white dark:placeholder:text-gray-500"
+                          className="w-full rounded-2xl border border-theme-glass bg-theme-panel px-4 py-3 text-sm text-theme-foreground placeholder:text-theme-disabled focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                         />
                         <textarea
                           value={editDraft.description}
@@ -355,26 +353,26 @@ export default function AdminGroups() {
                               description: event.target.value,
                             }))
                           }
-                          className="min-h-[120px] w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm leading-6 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-white/[0.05] dark:bg-white/[0.05] dark:text-white dark:placeholder:text-gray-500"
+                          className="min-h-[120px] w-full rounded-2xl border border-theme-glass bg-theme-panel px-4 py-3 text-sm leading-6 text-theme-foreground placeholder:text-theme-disabled focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                         />
                         <input
                           value={editDraft.topic}
                           onChange={(event) =>
                             setEditDraft((current) => ({ ...current, topic: event.target.value }))
                           }
-                          className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-white/[0.05] dark:bg-white/[0.05] dark:text-white dark:placeholder:text-gray-500"
+                          className="w-full rounded-2xl border border-theme-glass bg-theme-panel px-4 py-3 text-sm text-theme-foreground placeholder:text-theme-disabled focus:outline-none focus:ring-2 focus:ring-brand-500/30"
                         />
                         <div className="flex items-center justify-end gap-3">
                           <button
                             type="button"
                             onClick={() => setEditingId(null)}
-                            className="rounded-xl bg-gray-100 px-4 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-200 dark:bg-white/[0.06] dark:text-gray-200 dark:hover:bg-white/[0.12]"
+                            className="rounded-xl bg-theme-surface px-4 py-2.5 text-sm font-semibold text-theme-muted transition-colors hover:bg-theme-surface/80"
                           > <Trans>Cancel</Trans> </button>
                           <button
                             type="button"
                             disabled={isBusy}
                             onClick={() => void handleSaveEdit(group.id)}
-                            className="rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-500 disabled:opacity-50"
+                            className="rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-theme-on-accent transition-colors hover:bg-brand-500 disabled:opacity-50"
                           >
                             {isBusy
                               ? t("admin.groups.actions.saving", "Saving...")
@@ -384,26 +382,26 @@ export default function AdminGroups() {
                       </div>
                     ) : (
                       <>
-                        <p className="mt-4 text-sm leading-7 text-gray-600 dark:text-gray-400">
+                        <p className="mt-4 text-sm leading-7 text-theme-muted">
                           {group.description ||
                             t("admin.groups.labels.noDescription", "No description yet.")}
                         </p>
                         <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                          <div className="rounded-2xl bg-gray-100/90 px-4 py-3 dark:bg-white/[0.03]">
-                            <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500 dark:text-gray-500"> <Trans>Members</Trans> </div>
-                            <div className="mt-2 text-lg font-semibold text-gray-900 dark:text-white">
+                          <div className="rounded-2xl bg-theme-surface/90 px-4 py-3">
+                            <div className="text-[10px] uppercase tracking-[0.2em] text-theme-muted"> <Trans>Members</Trans> </div>
+                            <div className="mt-2 text-lg font-semibold text-theme-foreground ">
                               {group.memberCount}
                             </div>
                           </div>
-                          <div className="rounded-2xl bg-gray-100/90 px-4 py-3 dark:bg-white/[0.03]">
-                            <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500 dark:text-gray-500"> <Trans>Approved Posts</Trans> </div>
-                            <div className="mt-2 text-lg font-semibold text-gray-900 dark:text-white">
+                          <div className="rounded-2xl bg-theme-surface/90 px-4 py-3">
+                            <div className="text-[10px] uppercase tracking-[0.2em] text-theme-muted"> <Trans>Approved Posts</Trans> </div>
+                            <div className="mt-2 text-lg font-semibold text-theme-foreground ">
                               {group.approvedPostCount || 0}
                             </div>
                           </div>
-                          <div className="rounded-2xl bg-gray-100/90 px-4 py-3 dark:bg-white/[0.03]">
-                            <div className="text-[10px] uppercase tracking-[0.2em] text-gray-500 dark:text-gray-500"> <Trans>Created</Trans> </div>
-                            <div className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
+                          <div className="rounded-2xl bg-theme-surface/90 px-4 py-3">
+                            <div className="text-[10px] uppercase tracking-[0.2em] text-theme-muted"> <Trans>Created</Trans> </div>
+                            <div className="mt-2 text-sm font-medium text-theme-foreground ">
                               {group.createdAt
                                 ? formatRelativeTime(group.createdAt)
                                 : t("admin.groups.labels.justNow", "Just now")}
@@ -411,8 +409,8 @@ export default function AdminGroups() {
                           </div>
                         </div>
 
-                        <div className="mt-5 border-t border-gray-200 pt-4 text-sm text-gray-500 dark:border-white/[0.05] dark:text-gray-500"> <Trans>Creator:</Trans>{" "}
-                          <span className="text-gray-800 dark:text-gray-200">
+                        <div className="mt-5 border-t border-theme-glass pt-4 text-sm text-theme-muted"> <Trans>Creator:</Trans>{" "}
+                          <span className="text-theme-foreground ">
                             {group.creator?.fullName ||
                               t("admin.groups.labels.unknown", "Unknown")}
                           </span>

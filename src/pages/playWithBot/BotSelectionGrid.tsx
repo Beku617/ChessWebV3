@@ -35,10 +35,10 @@ export function BotSelectionGrid({
       <div className="flex items-center gap-4 mb-6">
         <button
           onClick={() => navigate("/play/quick")}
-          className="px-3 py-2 rounded-lg text-sm font-medium bg-white/80 dark:bg-slate-800/80 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
+          className="px-3 py-2 rounded-lg text-sm font-medium bg-theme-panel/80 hover:bg-theme-surface transition-colors"
         > <Trans>Back</Trans> </button>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white"> <Trans>Play with Bot</Trans> </h1>
+          <h1 className="text-2xl font-bold text-theme-foreground "> <Trans>Play with Bot</Trans> </h1>
         </div>
       </div>
 
@@ -50,8 +50,8 @@ export function BotSelectionGrid({
             onClick={() => onCategoryChange(cat.key)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               categoryFilter === cat.key
-                ? "bg-brand-500 text-white"
-                : "bg-white/80 dark:bg-slate-800/80 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700"
+                ? "bg-brand-500 text-theme-on-accent"
+                : "bg-theme-panel/80 text-theme-muted hover:bg-theme-surface "
             }`}
           >
             {cat.label}
@@ -67,24 +67,24 @@ export function BotSelectionGrid({
             onClick={() => onSelectBot(bot)}
             className={`p-4 rounded-xl border text-left transition-all ${
               selectedBot?.id === bot.id
-                ? "border-brand-500 bg-brand-500/10 dark:bg-brand-500/20 ring-2 ring-brand-500/50"
-                : "border-gray-200/60 dark:border-white/10 bg-white/80 dark:bg-slate-800/80 hover:border-gray-300 dark:hover:border-white/20"
+                ? "border-brand-500 bg-brand-500/10 ring-2 ring-brand-500/50"
+                : "border-theme-glass/60 bg-theme-panel/80 hover:border-theme-glass"
             }`}
           >
             <div className="flex items-start gap-3">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold text-gray-900 dark:text-white">
+                  <span className="font-semibold text-theme-foreground ">
                     {bot.name}
                   </span>
                   {bot.title && (
-                    <span className="px-1.5 py-0.5 text-[10px] font-bold bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded">
+                    <span className="px-1.5 py-0.5 text-[10px] font-bold bg-amber-500/20 text-amber-600 rounded">
                       {bot.title}
                     </span>
                   )}
                 </div>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  <span className="text-sm font-medium text-theme-muted">
                     {bot.rating}
                   </span>
                   <span
@@ -92,11 +92,11 @@ export function BotSelectionGrid({
                   >
                     {bot.category}
                   </span>
-                  <span className="text-xs text-gray-500 dark:text-gray-400 capitalize">
+                  <span className="text-xs text-theme-muted capitalize">
                     {getPlayStyleLabel(bot.playStyle)}
                   </span>
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
+                <p className="text-xs text-theme-muted mt-1 line-clamp-2">
                   {resolveLocalizedBotDescription(bot.description, i18n.language)}
                 </p>
               </div>

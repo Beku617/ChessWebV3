@@ -12,7 +12,7 @@ export function TimeControlSelector({
 }: TimeControlSelectorProps) {
   return (
     <div className="mb-6">
-      <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block"> <Trans>Time Control</Trans> </label>
+      <label className="text-sm font-medium text-theme-muted mb-2 block"> <Trans>Time Control</Trans> </label>
       <div className="grid grid-cols-4 gap-2">
         {timeOptions.map((opt) => (
           <button
@@ -26,8 +26,8 @@ export function TimeControlSelector({
             className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
               timeControl.initial === opt.initial &&
               timeControl.increment === opt.increment
-                ? "bg-brand-600 text-white"
-                : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                ? "bg-brand-600 text-theme-on-accent"
+                : "bg-theme-surface text-theme-muted hover:bg-theme-surface/80"
             }`}
           >
             {opt.label}

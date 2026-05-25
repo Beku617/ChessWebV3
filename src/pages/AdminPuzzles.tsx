@@ -809,8 +809,8 @@ export default function AdminPuzzles() {
     "inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors focus:outline-none disabled:pointer-events-none disabled:opacity-40";
   const pBtnPage = (active: boolean) =>
     active
-      ? `${pBtnBase} w-9 h-9 bg-brand-500 text-white shadow-md shadow-brand-500/25`
-      : `${pBtnBase} w-9 h-9 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-700 dark:text-gray-300 hover:border-brand-400 dark:hover:border-brand-600 hover:text-brand-600 dark:hover:text-brand-400`;
+      ? `${pBtnBase} w-9 h-9 bg-brand-500 text-theme-on-accent shadow-md shadow-brand-500/25`
+      : `${pBtnBase} w-9 h-9 bg-theme-panel border border-theme-glass text-theme-muted hover:border-brand-400 hover:text-brand-600`;
 
   const patchPuzzleState = async (
     puzzleId: string,
@@ -843,13 +843,13 @@ export default function AdminPuzzles() {
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case "Easy":
-        return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400";
+        return "bg-green-100 text-green-700";
       case "Medium":
-        return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400";
+        return "bg-yellow-100 text-yellow-700";
       case "Hard":
-        return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
+        return "bg-red-100 text-red-700";
       default:
-        return "bg-gray-100 text-gray-700";
+        return "bg-theme-surface text-theme-muted";
     }
   };
 
@@ -858,7 +858,7 @@ export default function AdminPuzzles() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f5f7] dark:bg-gray-950 text-gray-900 dark:text-white">
+    <div className="min-h-screen bg-theme-panel text-theme-foreground ">
       <AdminSidebar />
 
       <main className="ml-72 p-8">
@@ -870,7 +870,7 @@ export default function AdminPuzzles() {
             </div>
             <button
               onClick={handleCreate}
-              className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg font-medium transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-brand-600 hover:bg-brand-500 text-theme-on-accent rounded-lg font-medium transition-colors"
             >
               <Plus size={20} /> <Trans>Add Puzzle</Trans> </button>
           </div>
@@ -878,13 +878,13 @@ export default function AdminPuzzles() {
           {/* Search */}
           <div className="mb-6">
             <div className="relative max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-theme-muted w-5 h-5" />
               <input
                 type="text"
                 placeholder={t("admin.search.puzzles")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full pl-10 pr-4 py-2 rounded-lg border border-theme-glass bg-theme-panel focus:outline-none focus:ring-2 focus:ring-brand-500"
               />
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -895,14 +895,14 @@ export default function AdminPuzzles() {
                     event.target.value as "all" | "active" | "inactive",
                   )
                 }
-                className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm"
+                className="px-3 py-2 rounded-lg border border-theme-glass bg-theme-panel text-sm"
               >
                 <option value="all"><Trans>All active states</Trans></option>
                 <option value="active"><Trans>Active only</Trans></option>
                 <option value="inactive"><Trans>Inactive only</Trans></option>
               </select>
 
-              <label className="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm">
+              <label className="inline-flex items-center gap-2 rounded-lg border border-theme-glass bg-theme-panel px-3 py-2 text-sm">
                 <input
                   type="checkbox"
                   checked={duplicateOnly}
@@ -917,28 +917,28 @@ export default function AdminPuzzles() {
               <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
             </div>
           ) : (
-            <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-x-auto">
+            <div className="bg-theme-panel rounded-xl border border-theme-glass overflow-x-auto">
               <table className="w-full min-w-[1100px]">
                 <thead>
-                  <tr className="border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
-                    <th className="text-left px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400"> <Trans>Puzzle</Trans> </th>
-                    <th className="text-left px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400"> <Trans>Difficulty</Trans> </th>
-                    <th className="text-left px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400"> <Trans>Rating</Trans> </th>
-                    <th className="text-left px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400"> <Trans>Quality</Trans> </th>
-                    <th className="text-left px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400"> <Trans>State</Trans> </th>
-                    <th className="text-right px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400"> <Trans>Actions</Trans> </th>
+                  <tr className="border-b border-theme-glass bg-theme-surface">
+                    <th className="text-left px-6 py-4 text-sm font-medium text-theme-muted"> <Trans>Puzzle</Trans> </th>
+                    <th className="text-left px-6 py-4 text-sm font-medium text-theme-muted"> <Trans>Difficulty</Trans> </th>
+                    <th className="text-left px-6 py-4 text-sm font-medium text-theme-muted"> <Trans>Rating</Trans> </th>
+                    <th className="text-left px-6 py-4 text-sm font-medium text-theme-muted"> <Trans>Quality</Trans> </th>
+                    <th className="text-left px-6 py-4 text-sm font-medium text-theme-muted"> <Trans>State</Trans> </th>
+                    <th className="text-right px-6 py-4 text-sm font-medium text-theme-muted"> <Trans>Actions</Trans> </th>
                   </tr>
                 </thead>
                 <tbody>
                   {paginatedPuzzles.map((puzzle) => (
                     <tr
                       key={puzzle._id}
-                      className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                      className="border-b border-theme-glass hover:bg-theme-surface"
                     >
                       <td className="px-6 py-4">
                         <div>
                           <div className="font-medium">{puzzle.title}</div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                          <div className="text-sm text-theme-muted">
                             {puzzle.category || "tactics"}
                           </div>
                         </div>
@@ -951,27 +951,27 @@ export default function AdminPuzzles() {
                         </span>
                       </td>
                       <td className="px-6 py-4 font-medium">{puzzle.rating}</td>
-                      <td className="px-6 py-4 text-xs text-gray-500 dark:text-gray-300 space-y-0.5">
+                      <td className="px-6 py-4 text-xs text-theme-muted space-y-0.5">
                         <div> <Trans>Attempts:</Trans>{" "}
-                          <span className="font-medium text-gray-700 dark:text-gray-100">
+                          <span className="font-medium text-theme-muted ">
                             {puzzle.quality?.attempts ?? puzzle.timesPlayed}
                           </span>
                         </div>
                         <div> <Trans>Solve / Fail:</Trans>{" "}
-                          <span className="font-medium text-emerald-600 dark:text-emerald-300">
+                          <span className="font-medium text-emerald-600">
                             {puzzle.quality?.solveRate ?? 0}%
                           </span>{" "}
                           /{" "}
-                          <span className="font-medium text-rose-600 dark:text-rose-300">
+                          <span className="font-medium text-rose-600">
                             {puzzle.quality?.failRate ?? 0}%
                           </span>
                         </div>
                         <div> <Trans>Avg Time:</Trans>{" "}
-                          <span className="font-medium text-gray-700 dark:text-gray-100">
+                          <span className="font-medium text-theme-muted ">
                             {Math.round((puzzle.quality?.avgTimeMs ?? 0) / 1000)}<Trans>s</Trans> </span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-xs text-gray-500 dark:text-gray-300">
+                      <td className="px-6 py-4 text-xs text-theme-muted">
                         <div className="flex flex-col gap-1.5">
                           <button
                             type="button"
@@ -982,14 +982,14 @@ export default function AdminPuzzles() {
                             }
                             className={`rounded-md px-2 py-1 text-left ${
                               puzzle.isActive !== false
-                                ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
-                                : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                                ? "bg-emerald-100 text-emerald-700"
+                                : "bg-theme-surface text-theme-muted"
                             }`}
                           >
                             {puzzle.isActive !== false ? "Active" : "Inactive"}
                           </button>
                           {Number(puzzle.duplicateCount || 1) > 1 && (
-                            <span className="text-amber-500 dark:text-amber-300"> <Trans>Duplicate ×</Trans>{puzzle.duplicateCount}
+                            <span className="text-amber-500"> <Trans>Duplicate ×</Trans>{puzzle.duplicateCount}
                             </span>
                           )}
                         </div>
@@ -998,7 +998,7 @@ export default function AdminPuzzles() {
                         <div className="flex items-center justify-end gap-2">
                           <button
                             onClick={() => handleEdit(puzzle)}
-                            className="p-2 text-gray-500 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors"
+                            className="p-2 text-theme-muted hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors"
                           >
                             <Pencil size={18} />
                           </button>
@@ -1006,13 +1006,13 @@ export default function AdminPuzzles() {
                             <div className="flex items-center gap-1">
                               <button
                                 onClick={() => handleDelete(puzzle._id)}
-                                className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                                className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
                               >
                                 <Check size={18} />
                               </button>
                               <button
                                 onClick={() => setDeleteConfirm(null)}
-                                className="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+                                className="p-2 text-theme-muted hover:bg-theme-surface rounded-lg"
                               >
                                 <X size={18} />
                               </button>
@@ -1020,7 +1020,7 @@ export default function AdminPuzzles() {
                           ) : (
                             <button
                               onClick={() => setDeleteConfirm(puzzle._id)}
-                              className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                              className="p-2 text-theme-muted hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                             >
                               <Trash2 size={18} />
                             </button>
@@ -1033,15 +1033,15 @@ export default function AdminPuzzles() {
               </table>
 
               {filteredPuzzles.length === 0 && (
-                <div className="text-center py-12 text-gray-500">
+                <div className="text-center py-12 text-theme-muted">
                   <p><Trans>No puzzles found</Trans></p>
                 </div>
               )}
 
               {/* Pagination */}
               {filteredPuzzles.length > 0 && (
-                <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 dark:border-gray-800">
-                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                <div className="flex items-center justify-between px-6 py-4 border-t border-theme-glass ">
+                  <div className="text-sm text-theme-muted">
                     {rangeStart}-{rangeEnd} <Trans>of</Trans> {filteredPuzzles.length}{" "}
                     {t("admin.puzzles.pagination.items", "puzzles")}
                   </div>
@@ -1052,7 +1052,7 @@ export default function AdminPuzzles() {
                         onClick={() =>
                           setCurrentPage((p) => Math.max(1, p - 1))
                         }
-                        className={`${pBtnBase} w-9 h-9 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:border-brand-400 dark:hover:border-brand-600 hover:text-brand-600 dark:hover:text-brand-400`}
+                        className={`${pBtnBase} w-9 h-9 bg-theme-panel border border-theme-glass text-theme-muted hover:border-brand-400 hover:text-brand-600`}
                       >
                         <ChevronLeft size={16} />
                       </button>
@@ -1060,7 +1060,7 @@ export default function AdminPuzzles() {
                         p === "..." ? (
                           <span
                             key={`dots-${i}`}
-                            className="w-9 h-9 flex items-center justify-center text-gray-400 dark:text-gray-600 text-sm select-none"
+                            className="w-9 h-9 flex items-center justify-center text-theme-muted text-sm select-none"
                           >
                                 ...
                           </span>
@@ -1079,7 +1079,7 @@ export default function AdminPuzzles() {
                         onClick={() =>
                           setCurrentPage((p) => Math.min(totalPages, p + 1))
                         }
-                        className={`${pBtnBase} w-9 h-9 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 hover:border-brand-400 dark:hover:border-brand-600 hover:text-brand-600 dark:hover:text-brand-400`}
+                        className={`${pBtnBase} w-9 h-9 bg-theme-panel border border-theme-glass text-theme-muted hover:border-brand-400 hover:text-brand-600`}
                       >
                         <ChevronRight size={16} />
                       </button>
@@ -1094,9 +1094,9 @@ export default function AdminPuzzles() {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-5xl my-4">
-            <div className="p-6 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+        <div className="fixed inset-0 bg-theme-panel/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-theme-panel rounded-2xl w-full max-w-5xl my-4">
+            <div className="p-6 border-b border-theme-glass flex items-center justify-between">
               <h2 className="text-xl font-bold">
                 {editingPuzzle
                   ? t("admin.modal.editPuzzle")
@@ -1104,7 +1104,7 @@ export default function AdminPuzzles() {
               </h2>
               <button
                 onClick={() => setShowModal(false)}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+                className="p-2 hover:bg-theme-surface rounded-lg"
               >
                 <X size={20} />
               </button>
@@ -1112,7 +1112,7 @@ export default function AdminPuzzles() {
 
             <form onSubmit={handleSubmit} className="p-6">
               {saveError && (
-                <div className="mb-4 rounded-lg border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-200">
+                <div className="mb-4 rounded-lg border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-700">
                   {saveError}
                 </div>
               )}
@@ -1130,23 +1130,23 @@ export default function AdminPuzzles() {
                         type="button"
                         onClick={clearBoard}
                         disabled={isRecordingSolution}
-                        className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded disabled:opacity-50"
+                        className="px-2 py-1 text-xs bg-theme-surface hover:bg-theme-surface/80 rounded disabled:opacity-50"
                       > <Trans>Clear</Trans> </button>
                       <button
                         type="button"
                         onClick={setStartingPosition}
                         disabled={isRecordingSolution}
-                        className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded disabled:opacity-50"
+                        className="px-2 py-1 text-xs bg-theme-surface hover:bg-theme-surface/80 rounded disabled:opacity-50"
                       > <Trans>Starting</Trans> </button>
                     </div>
                   </div>
 
                   {/* Piece Palette */}
                   {!isRecordingSolution && (
-                    <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg space-y-2">
+                    <div className="p-2 bg-theme-surface rounded-lg space-y-2">
                       {/* White Pieces Row */}
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-medium text-gray-600 dark:text-gray-300 w-12"> <Trans>White</Trans> </span>
+                        <span className="text-xs font-medium text-theme-muted w-12"> <Trans>White</Trans> </span>
                         <div className="flex gap-1">
                           {WHITE_PIECES.map((piece) => (
                             <button
@@ -1162,7 +1162,7 @@ export default function AdminPuzzles() {
                               className={`w-9 h-9 flex items-center justify-center rounded transition-colors ${
                                 selectedPiece === piece
                                   ? "bg-brand-500 ring-2 ring-brand-400"
-                                  : "bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
+                                  : "bg-theme-surface hover:bg-theme-surface"
                               }`}
                             >
                               <PiecePaletteIcon piece={piece} />
@@ -1172,7 +1172,7 @@ export default function AdminPuzzles() {
                       </div>
                       {/* Black Pieces Row */}
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-medium text-gray-600 dark:text-gray-300 w-12"> <Trans>Black</Trans> </span>
+                        <span className="text-xs font-medium text-theme-muted w-12"> <Trans>Black</Trans> </span>
                         <div className="flex gap-1">
                           {BLACK_PIECES.map((piece) => (
                             <button
@@ -1188,7 +1188,7 @@ export default function AdminPuzzles() {
                               className={`w-9 h-9 flex items-center justify-center rounded transition-colors ${
                                 selectedPiece === piece
                                   ? "bg-brand-500 ring-2 ring-brand-400"
-                                  : "bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
+                                  : "bg-theme-surface hover:bg-theme-surface"
                               }`}
                             >
                               <PiecePaletteIcon piece={piece} />
@@ -1198,7 +1198,7 @@ export default function AdminPuzzles() {
                       </div>
                       {/* Eraser */}
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-medium text-gray-600 dark:text-gray-300 w-12"> <Trans>Tool</Trans> </span>
+                        <span className="text-xs font-medium text-theme-muted w-12"> <Trans>Tool</Trans> </span>
                         <button
                           type="button"
                           onClick={() =>
@@ -1208,8 +1208,8 @@ export default function AdminPuzzles() {
                           }
                           className={`w-9 h-9 flex items-center justify-center rounded transition-colors ${
                             selectedPiece === "eraser"
-                              ? "bg-red-500 text-white"
-                              : "bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
+                              ? "bg-red-500 text-theme-on-accent"
+                              : "bg-theme-surface hover:bg-theme-surface"
                           }`}
                         >
                           <Eraser size={18} />
@@ -1245,7 +1245,7 @@ export default function AdminPuzzles() {
                       <button
                         type="button"
                         onClick={startRecordingSolution}
-                        className="flex items-center gap-2 px-3 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg text-sm font-medium"
+                        className="flex items-center gap-2 px-3 py-2 bg-green-600 hover:bg-green-500 text-theme-on-accent rounded-lg text-sm font-medium"
                       >
                         <Play size={16} /> <Trans>Record Solution</Trans> </button>
                     ) : (
@@ -1253,32 +1253,32 @@ export default function AdminPuzzles() {
                         <button
                           type="button"
                           onClick={stopRecordingSolution}
-                          className="flex items-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg text-sm font-medium"
+                          className="flex items-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-500 text-theme-on-accent rounded-lg text-sm font-medium"
                         >
                           <SquareIcon size={16} /> <Trans>Stop Recording</Trans> </button>
                         <button
                           type="button"
                           onClick={undoSolutionMove}
                           disabled={solutionMoves.length === 0}
-                          className="flex items-center gap-2 px-3 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-lg text-sm font-medium disabled:opacity-50"
+                          className="flex items-center gap-2 px-3 py-2 bg-theme-surface hover:bg-theme-surface/80 text-theme-foreground rounded-lg text-sm font-medium disabled:opacity-50"
                         >
                           <RotateCcw size={16} /> <Trans>Undo</Trans> </button>
                       </>
                     )}
                   </div>
                   {isRecordingSolution && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400"> <Trans>Click a piece to highlight its legal moves, then click a highlighted square to record. Dragging still works.</Trans> </p>
+                    <p className="text-xs text-theme-muted"> <Trans>Click a piece to highlight its legal moves, then click a highlighted square to record. Dragging still works.</Trans> </p>
                   )}
 
                   {recordingMessage && (
-                    <div className="p-3 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 rounded-lg text-sm text-blue-800 dark:text-blue-200">
+                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800">
                       {recordingMessage}
                     </div>
                   )}
 
                   {/* Recorded Moves Display */}
                   {solutionMoves.length > 0 && (
-                    <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                    <div className="p-3 bg-theme-surface rounded-lg">
                       <div className="text-sm font-medium mb-1"> <Trans>Recorded Moves:</Trans> </div>
                       <div className="font-mono text-sm">
                         {solutionMoves.join(", ")}
@@ -1302,7 +1302,7 @@ export default function AdminPuzzles() {
                           mateIn: Math.max(1, parseInt(e.target.value, 10) || 1),
                         })
                       }
-                      className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                      className="w-full px-3 py-2 rounded-lg border border-theme-glass bg-theme-panel focus:outline-none focus:ring-2 focus:ring-brand-500"
                     />
                   </div>
 
@@ -1315,8 +1315,8 @@ export default function AdminPuzzles() {
                         onClick={() => handleWhiteToMoveChange(true)}
                         className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                           formData.isWhiteToMove
-                            ? "bg-gray-200 dark:bg-gray-600 border-2 border-brand-500"
-                            : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
+                            ? "bg-theme-surface border-2 border-brand-500"
+                            : "bg-theme-surface hover:bg-theme-surface/80"
                         }`}
                       > <Trans>White to Move</Trans> </button>
                       <button
@@ -1324,8 +1324,8 @@ export default function AdminPuzzles() {
                         onClick={() => handleWhiteToMoveChange(false)}
                         className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                           !formData.isWhiteToMove
-                            ? "bg-gray-700 dark:bg-gray-300 text-white dark:text-gray-900 border-2 border-brand-500"
-                            : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
+                            ? "bg-theme-panel text-theme-foreground border-2 border-brand-500"
+                            : "bg-theme-surface hover:bg-theme-surface/80"
                         }`}
                       > <Trans>Black to Move</Trans> </button>
                     </div>
@@ -1339,7 +1339,7 @@ export default function AdminPuzzles() {
                       onChange={(e) =>
                         setFormData({ ...formData, title: e.target.value })
                       }
-                      className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                      className="w-full px-3 py-2 rounded-lg border border-theme-glass bg-theme-panel focus:outline-none focus:ring-2 focus:ring-brand-500"
                       required
                     />
                   </div>
@@ -1353,7 +1353,7 @@ export default function AdminPuzzles() {
                         setFormData({ ...formData, category: e.target.value })
                       }
                       placeholder="tactics / endgame / opening / mate"
-                      className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                      className="w-full px-3 py-2 rounded-lg border border-theme-glass bg-theme-panel focus:outline-none focus:ring-2 focus:ring-brand-500"
                     />
                   </div>
 
@@ -1371,7 +1371,7 @@ export default function AdminPuzzles() {
                               | "Hard",
                           })
                         }
-                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                        className="w-full px-3 py-2 rounded-lg border border-theme-glass bg-theme-panel focus:outline-none focus:ring-2 focus:ring-brand-500"
                       >
                         <option value="Easy"><Trans>Easy</Trans></option>
                         <option value="Medium"><Trans>Medium</Trans></option>
@@ -1389,13 +1389,13 @@ export default function AdminPuzzles() {
                             rating: parseInt(e.target.value) || 1200,
                           })
                         }
-                        className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                        className="w-full px-3 py-2 rounded-lg border border-theme-glass bg-theme-panel focus:outline-none focus:ring-2 focus:ring-brand-500"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm">
+                    <label className="inline-flex items-center gap-2 rounded-lg border border-theme-glass bg-theme-panel px-3 py-2 text-sm">
                       <input
                         type="checkbox"
                         checked={formData.isActive}
@@ -1416,7 +1416,7 @@ export default function AdminPuzzles() {
                         })
                       }
                       rows={2}
-                      className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                      className="w-full px-3 py-2 rounded-lg border border-theme-glass bg-theme-panel focus:outline-none focus:ring-2 focus:ring-brand-500"
                     />
                   </div>
 
@@ -1437,7 +1437,7 @@ export default function AdminPuzzles() {
                         }));
                       }}
                       placeholder="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-                      className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono text-xs"
+                      className="w-full px-3 py-2 rounded-lg border border-theme-glass bg-theme-panel focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono text-xs"
                       required
                     />
                   </div>
@@ -1450,7 +1450,7 @@ export default function AdminPuzzles() {
                       readOnly
                       placeholder="Qh7+, Kf8, Qh8#"
                       title={t("admin.actions.useRecordedSolution")}
-                      className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/70 focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono text-sm cursor-not-allowed"
+                      className="w-full px-3 py-2 rounded-lg border border-theme-glass bg-theme-surface focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono text-sm cursor-not-allowed"
                       required
                     />
                   </div>
@@ -1459,12 +1459,12 @@ export default function AdminPuzzles() {
                     <button
                       type="button"
                       onClick={() => setShowModal(false)}
-                      className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                      className="px-4 py-2 text-theme-muted hover:bg-theme-surface rounded-lg transition-colors"
                     > <Trans>Cancel</Trans> </button>
                     <button
                       type="submit"
                       disabled={saving || isRecordingSolution}
-                      className="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg font-medium transition-colors flex items-center gap-2 disabled:opacity-50"
+                      className="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-theme-on-accent rounded-lg font-medium transition-colors flex items-center gap-2 disabled:opacity-50"
                     >
                       {saving && <Loader2 className="w-4 h-4 animate-spin" />}
                       {editingPuzzle

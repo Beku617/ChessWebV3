@@ -220,15 +220,15 @@ export default function CommunityGroupDetail() {
   }, [page, total]);
 
   return (
-    <div className="min-h-screen bg-[#060f1d] text-white flex transition-colors duration-300">
+    <div className="min-h-screen bg-theme-panel text-theme-foreground flex transition-colors duration-300">
       <Sidebar />
 
       <main className="relative flex-1 ml-[60px] md:ml-72 min-h-screen overflow-x-hidden">
-        <div className="pointer-events-none absolute inset-x-0 top-0 z-0 h-24 bg-gradient-to-b from-[#060f1d] via-[#060f1d]/96 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-0 h-24 bg-gradient-to-b from-theme-panel via-theme-surface to-transparent" />
 
         <div className="relative z-10 mx-auto max-w-[1500px] px-6 py-7">
           {loading ? (
-            <div className="rounded-2xl bg-[#0c1728]/82 py-24 flex items-center justify-center shadow-[0_22px_65px_rgba(0,0,0,0.22)]">
+            <div className="rounded-2xl bg-theme-panel py-24 flex items-center justify-center shadow-[0_22px_65px_rgba(0,0,0,0.22)]">
               <Loader2 className="h-8 w-8 animate-spin text-brand-400" />
             </div>
           ) : error ? (
@@ -236,33 +236,33 @@ export default function CommunityGroupDetail() {
               {error}
             </div>
           ) : !group ? (
-            <div className="rounded-2xl bg-[#0c1728]/82 py-24 text-center shadow-[0_22px_65px_rgba(0,0,0,0.22)]">
-              <Users className="mx-auto h-10 w-10 text-gray-500" />
-              <div className="mt-4 text-lg font-semibold text-white">
+            <div className="rounded-2xl bg-theme-panel py-24 text-center shadow-[0_22px_65px_rgba(0,0,0,0.22)]">
+              <Users className="mx-auto h-10 w-10 text-theme-muted" />
+              <div className="mt-4 text-lg font-semibold text-theme-foreground">
                 {t("communityGroupDetail.notFoundTitle")}
               </div>
-              <p className="mt-2 text-sm text-gray-500">
+              <p className="mt-2 text-sm text-theme-muted">
                 {t("communityGroupDetail.notFoundDescription")}
               </p>
             </div>
           ) : (
             <>
-              <section className="rounded-[28px] bg-[#0c1728]/84 p-6 shadow-[0_22px_65px_rgba(0,0,0,0.24)]">
+              <section className="rounded-[28px] bg-theme-panel p-6 shadow-[0_22px_65px_rgba(0,0,0,0.24)]">
                 <div className="flex flex-wrap items-start justify-between gap-5">
                   <div className="flex min-w-0 flex-1 items-start gap-4">
                     <CommunityGroupAvatar group={group} size="lg" />
                     <div className="min-w-0">
-                      <h1 className="text-3xl font-semibold tracking-tight text-white">
+                      <h1 className="text-3xl font-semibold tracking-tight text-theme-foreground">
                         {group.name}
                       </h1>
-                      <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-gray-500">
+                      <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-theme-muted">
                         <span>
                           {t("communityGroups.membersCount", {
                             count: group.memberCount,
                           })}
                         </span>
                         {group.topic && (
-                          <span className="rounded-full bg-white/[0.04] px-2.5 py-1 text-[11px] text-gray-400">
+                          <span className="rounded-full bg-theme-panel/[0.04] px-2.5 py-1 text-[11px] text-theme-muted">
                             {group.topic}
                           </span>
                         )}
@@ -281,7 +281,7 @@ export default function CommunityGroupDetail() {
                           </span>
                         )}
                       </div>
-                      <p className="mt-4 max-w-3xl text-sm leading-7 text-gray-400">
+                      <p className="mt-4 max-w-3xl text-sm leading-7 text-theme-muted">
                         {group.description ||
                           t("communityGroups.defaultDescription")}
                       </p>
@@ -291,7 +291,7 @@ export default function CommunityGroupDetail() {
                   <div className="flex items-center gap-3">
                     <Link
                       to="/community/groups"
-                      className="rounded-xl bg-white/[0.06] px-4 py-2.5 text-sm font-medium text-gray-200 transition-colors hover:bg-white/[0.12]"
+                      className="rounded-xl bg-theme-panel/[0.06] px-4 py-2.5 text-sm font-medium text-theme-muted transition-colors hover:bg-theme-panel/[0.12]"
                     >
                       {t("communityGroups.sidebar.allGroups")}
                     </Link>
@@ -315,11 +315,11 @@ export default function CommunityGroupDetail() {
                     onSubmitted={handleRefreshAfterSubmit}
                   />
                 ) : (
-                  <div className="rounded-2xl bg-[#0c1728]/82 px-5 py-5 shadow-[0_18px_55px_rgba(0,0,0,0.22)]">
-                    <div className="text-sm font-semibold text-white">
+                  <div className="rounded-2xl bg-theme-panel px-5 py-5 shadow-[0_18px_55px_rgba(0,0,0,0.22)]">
+                    <div className="text-sm font-semibold text-theme-foreground">
                       {t("communityGroupDetail.joinPromptTitle")}
                     </div>
-                    <p className="mt-2 text-sm leading-7 text-gray-400">
+                    <p className="mt-2 text-sm leading-7 text-theme-muted">
                       {t("communityGroupDetail.joinPromptDescription")}
                     </p>
                     <div className="mt-4 flex items-center gap-3">
@@ -331,7 +331,7 @@ export default function CommunityGroupDetail() {
                       <button
                         type="button"
                         onClick={() => setIsCreateOpen(true)}
-                        className="rounded-xl bg-white/[0.06] px-4 py-2.5 text-sm font-medium text-gray-200 transition-colors hover:bg-white/[0.12]"
+                        className="rounded-xl bg-theme-panel/[0.06] px-4 py-2.5 text-sm font-medium text-theme-muted transition-colors hover:bg-theme-panel/[0.12]"
                       >
                         {t("communityGroupDetail.createAnotherGroup")}
                       </button>
@@ -341,16 +341,16 @@ export default function CommunityGroupDetail() {
               </section>
 
               <section className="mt-6">
-                <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-gray-500">
+                <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-theme-muted">
                   {t("communityGroupDetail.groupFeed")}
                 </div>
                 {posts.length === 0 ? (
-                  <div className="rounded-2xl bg-[#0c1728]/82 px-6 py-20 text-center shadow-[0_22px_65px_rgba(0,0,0,0.22)]">
-                    <MessageSquare className="mx-auto h-10 w-10 text-gray-500" />
-                    <div className="mt-4 text-lg font-semibold text-white">
+                  <div className="rounded-2xl bg-theme-panel px-6 py-20 text-center shadow-[0_22px_65px_rgba(0,0,0,0.22)]">
+                    <MessageSquare className="mx-auto h-10 w-10 text-theme-muted" />
+                    <div className="mt-4 text-lg font-semibold text-theme-foreground">
                       {t("communityGroupDetail.emptyTitle")}
                     </div>
-                    <p className="mt-2 text-sm leading-7 text-gray-500">
+                    <p className="mt-2 text-sm leading-7 text-theme-muted">
                       {group.joined
                         ? t("communityGroupDetail.emptyJoined")
                         : t("communityGroupDetail.emptyNotJoined")}
@@ -366,7 +366,7 @@ export default function CommunityGroupDetail() {
 
                     {pages > 1 && (
                       <div className="pt-2 pb-4 space-y-2.5">
-                        <p className="text-center text-xs text-gray-500">
+                        <p className="text-center text-xs text-theme-muted">
                           {t("communityPage.pagination.showing", {
                             start: range.start,
                             end: range.end,
@@ -402,4 +402,3 @@ export default function CommunityGroupDetail() {
     </div>
   );
 }
-

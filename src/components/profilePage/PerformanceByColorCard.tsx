@@ -13,38 +13,38 @@ export function PerformanceByColorCard({ stats }: PerformanceByColorCardProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}
-      className="bg-white dark:bg-gray-900 rounded-2xl p-6 border border-gray-200 dark:border-gray-800 shadow-sm"
+      className="bg-theme-panel rounded-2xl p-6 border border-theme-glass shadow-sm"
     >
       <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
         <Activity size={20} className="text-yellow-500" /> <Trans>Performance by Color</Trans> </h3>
       <div className="space-y-6">
         <div>
           <div className="flex justify-between mb-2">
-            <span className="text-sm font-medium text-gray-600 dark:text-gray-400 flex items-center gap-2">
-              <div className="w-4 h-4 rounded bg-gray-200 border border-gray-300"></div> <Trans>Playing White</Trans> </span>
+            <span className="text-sm font-medium text-theme-muted flex items-center gap-2">
+              <div className="w-4 h-4 rounded bg-theme-surface border border-theme-glass"></div> <Trans>Playing White</Trans> </span>
             <span className="text-sm font-bold">{stats.whiteWinRate}%</span>
           </div>
-          <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+          <div className="h-3 bg-theme-surface rounded-full overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${stats.whiteWinRate}%` }}
               transition={{ duration: 1 }}
-              className="h-full bg-gradient-to-r from-gray-400 to-gray-500 rounded-full"
+              className="h-full bg-gradient-to-r from-theme-surface to-theme-panel rounded-full"
             />
           </div>
         </div>
         <div>
           <div className="flex justify-between mb-2">
-            <span className="text-sm font-medium text-gray-600 dark:text-gray-400 flex items-center gap-2">
-              <div className="w-4 h-4 rounded bg-gray-800 border border-gray-600"></div> <Trans>Playing Black</Trans> </span>
+            <span className="text-sm font-medium text-theme-muted flex items-center gap-2">
+              <div className="w-4 h-4 rounded bg-theme-surface border border-theme-border"></div> <Trans>Playing Black</Trans> </span>
             <span className="text-sm font-bold">{stats.blackWinRate}%</span>
           </div>
-          <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+          <div className="h-3 bg-theme-surface rounded-full overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${stats.blackWinRate}%` }}
               transition={{ duration: 1 }}
-              className="h-full bg-gradient-to-r from-gray-700 to-gray-800 rounded-full"
+              className="h-full bg-gradient-to-r from-theme-panel to-theme-base rounded-full"
             />
           </div>
         </div>

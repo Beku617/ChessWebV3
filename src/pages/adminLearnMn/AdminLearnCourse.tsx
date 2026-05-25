@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import AdminSidebar from "../../components/AdminSidebar";
-import { useThemeStore } from "../../store/themeStore";
 import {
   createAdminLearnLesson,
   deleteAdminLearnLesson,
@@ -72,7 +71,6 @@ export default function AdminLearnCourse() {
   const { t } = useTranslation();
   const { courseId = "" } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
-  const { isDarkMode } = useThemeStore();
   const { isAuthenticated, isLoading: authLoading } = useAdminGuard();
 
   const [course, setCourse] = useState<AdminLearnCourse | null>(null);
@@ -232,48 +230,34 @@ export default function AdminLearnCourse() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f5f5f7] dark:bg-gray-950">
+      <div className="min-h-screen flex items-center justify-center bg-theme-panel ">
         <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
       </div>
     );
   }
 
-  const pageToneClass = isDarkMode
-    ? "bg-slate-950 text-white"
-    : "bg-[#f5f5f7] text-gray-900";
-  const surfaceClass = isDarkMode
-    ? "border-slate-800 bg-slate-900/80 shadow-[0_20px_60px_rgba(0,0,0,0.22)]"
-    : "border-gray-200/80 bg-white/95 shadow-[0_18px_44px_rgba(15,23,42,0.08)]";
-  const statCardClass = isDarkMode
-    ? "border-slate-800 bg-slate-900/70"
-    : "border-gray-200 bg-gray-50/90";
-  const alertClass = isDarkMode
-    ? "border-red-500/25 bg-red-500/10 text-red-200"
-    : "border-red-200 bg-red-50 text-red-700";
+  const pageToneClass = "bg-theme-panel text-theme-foreground";
+  const surfaceClass =
+    "border-theme-glass bg-theme-panel/85 shadow-[0_18px_44px_rgba(15,23,42,0.12)]";
+  const statCardClass = "border-theme-glass bg-theme-surface/90";
+  const alertClass = "border-theme-glass bg-theme-surface text-theme-muted";
   const inputClass =
-    "h-11 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100";
+    "h-11 w-full rounded-xl border border-theme-glass bg-theme-surface px-3 text-sm text-theme-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/30";
   const textInputClass =
-    "h-11 w-full rounded-xl border border-gray-200 bg-gray-50 py-2 pl-10 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100";
+    "h-11 w-full rounded-xl border border-theme-glass bg-theme-surface py-2 pl-10 pr-3 text-sm text-theme-foreground placeholder:text-theme-disabled focus:outline-none focus:ring-2 focus:ring-brand-500/30";
   const neutralButtonClass =
-    "inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-800 hover:bg-gray-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800";
-  const openActionClass = isDarkMode
-    ? "border-cyan-400/25 bg-cyan-500/10 text-cyan-200 hover:bg-cyan-500/20"
-    : "border-cyan-300 bg-cyan-100 text-cyan-800 hover:bg-cyan-200";
-  const publishActionClass = isDarkMode
-    ? "border-brand-400/25 bg-brand-500/10 text-brand-200 hover:bg-brand-500/20"
-    : "border-brand-300 bg-brand-100 text-brand-800 hover:bg-brand-200";
-  const deleteActionClass = isDarkMode
-    ? "border-red-400/25 bg-red-500/10 text-red-200 hover:bg-red-500/20"
-    : "border-red-300 bg-red-100 text-red-800 hover:bg-red-200";
-  const publishedBadgeClass = isDarkMode
-    ? "bg-brand-500/15 text-brand-300"
-    : "bg-brand-100 text-brand-800";
-  const draftBadgeClass = isDarkMode
-    ? "bg-gray-500/15 text-gray-400"
-    : "bg-gray-200 text-gray-700";
+    "inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-theme-glass bg-theme-panel px-3 py-1.5 text-xs font-medium text-theme-foreground hover:bg-theme-surface ";
+  const openActionClass =
+    "border-theme-border bg-theme-surface text-theme-accent hover:bg-theme-hover";
+  const publishActionClass =
+    "border-theme-border bg-theme-surface text-theme-accent hover:bg-theme-hover";
+  const deleteActionClass =
+    "border-theme-glass bg-theme-surface text-theme-muted hover:bg-theme-hover";
+  const publishedBadgeClass = "bg-theme-hover text-theme-accent";
+  const draftBadgeClass = "bg-theme-surface text-theme-muted";
 
   return (
-    <div className={isDarkMode ? "dark" : ""}>
+    <div>
       <div className={`min-h-screen ${pageToneClass}`}>
         <AdminSidebar />
 
@@ -288,30 +272,30 @@ export default function AdminLearnCourse() {
 
               <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <h1 className="text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">
+                  <h1 className="text-3xl font-semibold tracking-tight text-theme-foreground ">
                     {course?.title ||
                       t("admin.learn.labels.loadingCourse", "Loading course...")}
                   </h1>
                 </div>
                 <button
                   onClick={openCreate}
-                  className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-500"
+                  className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-semibold text-theme-on-accent transition-colors hover:bg-brand-500"
                 >
                   <Plus className="h-4 w-4" /> <Trans>Add Lesson</Trans> </button>
               </div>
 
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
         <div className={`rounded-2xl border px-4 py-4 ${statCardClass}`}>
-          <div className="text-[11px] uppercase tracking-[0.2em] text-gray-500"> <Trans>Topic / Level</Trans> </div>
-                  <div className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
+          <div className="text-[11px] uppercase tracking-[0.2em] text-theme-muted"> <Trans>Topic / Level</Trans> </div>
+                  <div className="mt-2 text-sm font-semibold text-theme-foreground ">
                     {course?.category || t("common.notAvailable", "-")}{" "}
                     <Trans>/</Trans>{" "}
                     {course?.difficulty || t("common.notAvailable", "-")}
                   </div>
                 </div>
                 <div className={`rounded-2xl border px-4 py-4 ${statCardClass}`}>
-                  <div className="text-[11px] uppercase tracking-[0.2em] text-gray-500"> <Trans>Lessons</Trans> </div>
-                  <div className="mt-2 text-sm font-semibold text-gray-900 dark:text-white">
+                  <div className="text-[11px] uppercase tracking-[0.2em] text-theme-muted"> <Trans>Lessons</Trans> </div>
+                  <div className="mt-2 text-sm font-semibold text-theme-foreground ">
                     {lessons.length}
                   </div>
                 </div>
@@ -321,7 +305,7 @@ export default function AdminLearnCourse() {
             <section className={`rounded-[24px] border p-5 ${surfaceClass}`}>
               <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_220px]">
                 <label className="relative">
-                  <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+                  <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-theme-muted" />
                   <input
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
@@ -355,7 +339,7 @@ export default function AdminLearnCourse() {
                   <Loader2 className="mx-auto h-8 w-8 animate-spin text-brand-400" />
                 </div>
               ) : lessons.length === 0 ? (
-                <div className="py-16 text-center text-gray-500 dark:text-gray-400"> <Trans>No lessons found.</Trans> </div>
+                <div className="py-16 text-center text-theme-muted"> <Trans>No lessons found.</Trans> </div>
               ) : (
                 <div className="space-y-3">
                   {lessons.map((lesson, index) => {
@@ -367,7 +351,7 @@ export default function AdminLearnCourse() {
                       >
                         <div className="flex flex-wrap items-start justify-between gap-3">
                           <div className="min-w-0">
-                            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.14em] text-gray-500"> <Trans>Lesson</Trans> {lesson.orderIndex + 1}
+                            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.14em] text-theme-muted"> <Trans>Lesson</Trans> {lesson.orderIndex + 1}
                               <span
                                 className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
                                   lesson.isPublished
@@ -380,15 +364,15 @@ export default function AdminLearnCourse() {
                                   : t("admin.learn.status.draft", "Draft")}
                               </span>
                             </div>
-                            <h3 className="mt-1 text-lg font-semibold text-gray-900 dark:text-white">
+                            <h3 className="mt-1 text-lg font-semibold text-theme-foreground ">
                               {lesson.title}
                             </h3>
-                            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                            <p className="mt-1 text-sm text-theme-muted">
                               {lesson.subtitle ||
                                 lesson.description ||
                                 t("admin.learn.labels.noSubtitle", "No subtitle.")}
                             </p>
-                            <div className="mt-2 text-xs text-gray-500">
+                            <div className="mt-2 text-xs text-theme-muted">
                               {t("admin.learn.labels.lessonMeta", {
                                 defaultValue:
                                   "{{steps}} steps - {{minutes}} min - /learn/{{courseSlug}}/{{lessonSlug}}",
@@ -399,7 +383,7 @@ export default function AdminLearnCourse() {
                               })}
                             </div>
                             {lesson.pairId && (
-                              <div className="mt-1 inline-flex rounded-full bg-gray-200 px-2 py-0.5 text-[10px] font-medium text-gray-600 dark:bg-slate-800 dark:text-slate-300"> <Trans>Pair ID:</Trans> {lesson.pairId}
+                              <div className="mt-1 inline-flex rounded-full bg-theme-surface px-2 py-0.5 text-[10px] font-medium text-theme-muted"> <Trans>Pair ID:</Trans> {lesson.pairId}
                               </div>
                             )}
                           </div>
@@ -472,23 +456,23 @@ export default function AdminLearnCourse() {
         </main>
 
         {modalOpen && (
-          <div className="fixed inset-0 z-[100] bg-black/55 backdrop-blur-sm px-4 py-8 overflow-y-auto">
-            <div className="mx-auto w-full max-w-2xl rounded-2xl border border-gray-200 bg-white p-6 shadow-[0_24px_60px_rgba(15,23,42,0.25)] dark:border-slate-700 dark:bg-slate-900">
+          <div className="fixed inset-0 z-[100] bg-theme-panel/55 backdrop-blur-sm px-4 py-8 overflow-y-auto">
+            <div className="mx-auto w-full max-w-2xl rounded-2xl border border-theme-glass bg-theme-panel p-6 shadow-[0_24px_60px_rgba(15,23,42,0.25)]">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                <h2 className="text-xl font-semibold text-theme-foreground ">
                   {editingLesson
                     ? t("admin.learn.actions.editLesson", "Edit lesson")
                     : t("admin.learn.actions.createLesson", "Create lesson")}
                 </h2>
                 <button
                   onClick={() => setModalOpen(false)}
-                  className="rounded-lg border border-gray-200 bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+                  className="rounded-lg border border-theme-glass bg-theme-surface px-3 py-1.5 text-xs font-medium text-theme-muted hover:bg-theme-surface/80"
                 > <Trans>Close</Trans> </button>
               </div>
 
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 <label className="space-y-1">
-                  <span className="text-xs uppercase tracking-[0.14em] text-gray-500"> <Trans>Lesson name</Trans> </span>
+                  <span className="text-xs uppercase tracking-[0.14em] text-theme-muted"> <Trans>Lesson name</Trans> </span>
                   <input
                     value={draft.title}
                     onChange={(event) =>
@@ -497,7 +481,7 @@ export default function AdminLearnCourse() {
                     className={inputClass}
                   />
                 </label>
-                <label className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                <label className="inline-flex items-center gap-2 text-sm text-theme-muted">
                   <input
                     type="checkbox"
                     checked={draft.isPublished}
@@ -507,12 +491,12 @@ export default function AdminLearnCourse() {
                         isPublished: event.target.checked,
                       }))
                     }
-                    className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-400/40"
+                    className="h-4 w-4 rounded border-theme-glass text-brand-500 focus:ring-brand-400/40"
                   /> <Trans>Show lesson</Trans> </label>
               </div>
 
               <label className="mt-4 block space-y-1">
-                <span className="text-xs uppercase tracking-[0.14em] text-gray-500"> <Trans>Pair ID</Trans> </span>
+                <span className="text-xs uppercase tracking-[0.14em] text-theme-muted"> <Trans>Pair ID</Trans> </span>
                 <div className="flex gap-2">
                   <input
                     type="text"
@@ -534,7 +518,7 @@ export default function AdminLearnCourse() {
                     onClick={() =>
                       setDraft((current) => ({ ...current, pairId: generatePairId() }))
                     }
-                    className="rounded-xl border border-gray-200 bg-gray-100 px-4 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                    className="rounded-xl border border-theme-glass bg-theme-surface px-4 text-sm font-medium text-theme-muted hover:bg-theme-surface/80"
                   > <Trans>Generate</Trans> </button>
                 </div>
               </label>
@@ -542,12 +526,12 @@ export default function AdminLearnCourse() {
               <div className="mt-6 flex justify-end gap-3">
                 <button
                   onClick={() => setModalOpen(false)}
-                  className="rounded-xl border border-gray-200 bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                  className="rounded-xl border border-theme-glass bg-theme-surface px-4 py-2 text-sm font-medium text-theme-muted hover:bg-theme-surface/80"
                 > <Trans>Cancel</Trans> </button>
                 <button
                   disabled={saving}
                   onClick={() => void handleSaveLesson()}
-                  className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-500 disabled:opacity-60"
+                  className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-theme-on-accent hover:bg-brand-500 disabled:opacity-60"
                 >
                   {saving && <Loader2 className="h-4 w-4 animate-spin" />}
                   {editingLesson
@@ -562,5 +546,4 @@ export default function AdminLearnCourse() {
     </div>
   );
 }
-
 

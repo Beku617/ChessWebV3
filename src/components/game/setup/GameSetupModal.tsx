@@ -49,13 +49,13 @@ export function GameSetupModal({ isOpen, onStart }: GameSetupModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 pointer-events-none">
+    <div className="fixed inset-0 bg-theme-panel/50 flex items-center justify-center z-50 pointer-events-none">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-white dark:bg-gray-900 rounded-xl p-6 w-full max-w-lg shadow-2xl border border-gray-200 dark:border-gray-800 max-h-[90vh] overflow-y-auto pointer-events-auto"
+        className="bg-theme-panel rounded-xl p-6 w-full max-w-lg shadow-2xl border border-theme-glass max-h-[90vh] overflow-y-auto pointer-events-auto"
       >
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4"> <Trans>New Game</Trans> </h2>
+        <h2 className="text-xl font-bold text-theme-foreground mb-4"> <Trans>New Game</Trans> </h2>
 
         <TabSelector activeTab={activeTab} setActiveTab={setActiveTab} />
 
@@ -84,7 +84,7 @@ export function GameSetupModal({ isOpen, onStart }: GameSetupModalProps) {
 
         <button
           onClick={handleStart}
-          className="w-full py-3 bg-brand-600 hover:bg-brand-500 text-white rounded-lg font-medium flex items-center justify-center gap-2"
+          className="w-full py-3 bg-brand-600 hover:bg-brand-500 text-theme-on-accent rounded-lg font-medium flex items-center justify-center gap-2"
         >
           <Play className="w-5 h-5" />
           {activeTab === "bots" && selectedBot

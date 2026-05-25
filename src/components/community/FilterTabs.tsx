@@ -37,8 +37,8 @@ export function FilterTabs({ active, onChange }: FilterTabsProps) {
             onClick={() => onChange(tab)}
             className={`relative px-4 py-4 text-sm font-semibold whitespace-nowrap transition-colors duration-200 rounded-lg ${
               active === tab
-                ? "text-brand-600 dark:text-brand-400"
-                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100/60 dark:hover:bg-gray-800/40"
+                ? "text-brand-600"
+                : "text-theme-muted hover:text-theme-muted hover:bg-theme-surface/60"
             }`}
           >
             {tab}

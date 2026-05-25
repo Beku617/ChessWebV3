@@ -75,12 +75,12 @@ export default function Dashboard() {
                         }
                       : undefined
                   }
-                  className="theme-glass-panel-soft rounded-xl min-h-[92px] h-full min-w-0 px-3 py-2.5 sm:px-3.5 sm:py-3 flex flex-col items-center justify-center text-center hover:border-teal-300/60 hover:bg-white/70 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                  className="theme-glass-panel-soft rounded-xl min-h-[92px] h-full min-w-0 px-3 py-2.5 sm:px-3.5 sm:py-3 flex flex-col items-center justify-center text-center hover:border-teal-300/60 hover:bg-theme-panel/70 transition-colors cursor-pointer"
                 >
-                  <p className="text-3xl sm:text-[2.2rem] leading-none font-light text-gray-900 dark:text-white tracking-tight">
+                  <p className="text-3xl sm:text-[2.2rem] leading-none font-light text-theme-foreground tracking-tight">
                     {option.label === "Custom" ? t("Custom") : option.label}
                   </p>
-                  <p className="mt-1.5 text-sm sm:text-base font-medium text-gray-600 dark:text-gray-300">
+                  <p className="mt-1.5 text-sm sm:text-base font-medium text-theme-muted">
                     {t(option.category)}
                   </p>
                 </Link>
@@ -98,19 +98,19 @@ export default function Dashboard() {
                 <Link
                   key={item.id}
                   to={item.route}
-                  className="theme-glass-panel-soft group w-full rounded-xl px-4 py-4 hover:border-teal-300/60 hover:bg-white/70 dark:hover:bg-white/10 transition-colors flex items-center gap-3"
+                  className="theme-glass-panel-soft group w-full rounded-xl px-4 py-4 hover:border-teal-300/60 hover:bg-theme-panel/70 transition-colors flex items-center gap-3"
                 >
-                  <span className="w-10 h-10 shrink-0 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center border border-gray-200 dark:border-gray-700 group-hover:border-teal-300 dark:group-hover:border-teal-700/50 transition-colors">
-                    <Icon className="w-5 h-5 text-gray-500 dark:text-gray-300" aria-hidden="true" />
+                  <span className="w-10 h-10 shrink-0 rounded-lg bg-theme-surface flex items-center justify-center border border-theme-glass group-hover:border-teal-300 transition-colors">
+                    <Icon className="w-5 h-5 text-theme-muted" aria-hidden="true" />
                   </span>
                   <span className="min-w-0">
                     <span
-                      className={`block ${fontSizeGroup.primary} font-medium text-gray-900 dark:text-white`}
+                      className={`block ${fontSizeGroup.primary} font-medium text-theme-foreground `}
                     >
                       {t(item.title)}
                     </span>
                     <span
-                      className={`block ${fontSizeGroup.secondary} text-gray-500 dark:text-gray-400`}
+                      className={`block ${fontSizeGroup.secondary} text-theme-muted`}
                     >
                       {t(item.description)}
                     </span>

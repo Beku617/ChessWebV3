@@ -162,8 +162,8 @@ function buildSubmissionBlockedMessage(
 function perspectiveTone(value: CommunityShareableGameSummary["perspectiveResult"]) {
   if (value === "win") return "bg-brand-500/12 text-brand-200";
   if (value === "loss") return "bg-red-500/12 text-red-200";
-  if (value === "draw") return "bg-slate-500/14 text-slate-200";
-  return "bg-white/[0.06] text-gray-300";
+  if (value === "draw") return "bg-theme-surface/14 text-theme-foreground";
+  return "bg-theme-panel/[0.06] text-theme-muted";
 }
 
 async function fetchGameDetail(gameId: string) {
@@ -561,8 +561,8 @@ export function PostComposer({
     <section
       className={`relative overflow-hidden rounded-2xl backdrop-blur-xl transition-all duration-300 ${
         focused
-          ? "bg-[#0d192c]/90 shadow-[0_26px_70px_rgba(0,0,0,0.3)] ring-1 ring-brand-400/25"
-          : "bg-[#0c1728]/82 shadow-[0_20px_58px_rgba(0,0,0,0.24)]"
+          ? "bg-theme-panel shadow-[0_26px_70px_rgba(0,0,0,0.3)] ring-1 ring-brand-400/25"
+          : "bg-theme-panel shadow-[0_20px_58px_rgba(0,0,0,0.24)]"
       }`}
     >
       <div className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-brand-400/35 to-transparent" />
@@ -587,7 +587,7 @@ export function PostComposer({
                   ? t("communityComposer.addCaption")
                   : t("communityComposer.composePlaceholder")
               }
-              className={`w-full bg-transparent border-none focus:ring-0 focus:outline-none text-sm text-white placeholder:text-gray-500 resize-none premium-scrollbar ${
+              className={`w-full bg-transparent border-none focus:ring-0 focus:outline-none text-sm text-theme-foreground placeholder:text-theme-disabled resize-none premium-scrollbar ${
                 hasSelectedImages || hasSelectedVideo || selectedGameSummary
                   ? content.trim().length > 0
                     ? "min-h-[30px] leading-6"
@@ -598,12 +598,12 @@ export function PostComposer({
 
             {selectedMediaType === "video" && selectedVideoPreviewUrl && (
               <div className="mt-2">
-                <div className="relative overflow-hidden rounded-xl border border-black/80 bg-black/55">
+                <div className="relative overflow-hidden rounded-xl border border-theme-glass bg-theme-panel/55">
                   <button
                     type="button"
                     onClick={clearSelectedMedia}
                     disabled={isSubmitting}
-                    className="absolute right-2 top-2 z-10 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-black/60 text-gray-200 hover:bg-black/80 hover:text-white transition-colors disabled:cursor-not-allowed disabled:opacity-45"
+                    className="absolute right-2 top-2 z-10 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-theme-panel/60 text-theme-muted hover:bg-theme-panel/80 hover:text-theme-foreground transition-colors disabled:cursor-not-allowed disabled:opacity-45"
                     title={t("communityComposer.removeMedia")}
                   >
                     <X className="w-4 h-4" />
@@ -611,7 +611,7 @@ export function PostComposer({
                   <video
                     src={selectedVideoPreviewUrl}
                     controls
-                    className="w-full max-h-[420px] bg-black object-contain"
+                    className="w-full max-h-[420px] bg-theme-panel object-contain"
                   />
                 </div>
               </div>
@@ -619,12 +619,12 @@ export function PostComposer({
 
             {selectedMediaType === "image" && selectedImages.length === 1 && (
               <div className="mt-2">
-                <div className="relative overflow-hidden rounded-xl border border-black/80 bg-black/55">
+                <div className="relative overflow-hidden rounded-xl border border-theme-glass bg-theme-panel/55">
                   <button
                     type="button"
                     onClick={clearSelectedMedia}
                     disabled={isSubmitting}
-                    className="absolute right-2 top-2 z-10 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-black/60 text-gray-200 hover:bg-black/80 hover:text-white transition-colors disabled:cursor-not-allowed disabled:opacity-45"
+                    className="absolute right-2 top-2 z-10 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-theme-panel/60 text-theme-muted hover:bg-theme-panel/80 hover:text-theme-foreground transition-colors disabled:cursor-not-allowed disabled:opacity-45"
                     title={t("communityComposer.removeMedia")}
                   >
                     <X className="w-4 h-4" />
@@ -632,20 +632,20 @@ export function PostComposer({
                   <img
                     src={selectedImages[0].previewUrl}
                     alt={selectedImages[0].file.name || t("communityComposer.selectedPreview")}
-                    className="w-full max-h-[420px] object-contain bg-black"
+                    className="w-full max-h-[420px] object-contain bg-theme-panel"
                   />
                 </div>
               </div>
             )}
 
             {selectedMediaType === "image" && selectedImages.length > 1 && (
-              <div className="mt-2 overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.025] p-3">
+              <div className="mt-2 overflow-hidden rounded-2xl border border-theme-glass bg-theme-panel/[0.025] p-3">
                 <div className="mb-3 flex items-center justify-between gap-3">
                   <div className="min-w-0">
                     <div className="text-[10px] font-semibold uppercase tracking-[0.24em] text-brand-200/70">
                       {t("communityComposer.imageSet")}
                     </div>
-                    <div className="mt-1 text-sm font-semibold text-white">
+                    <div className="mt-1 text-sm font-semibold text-theme-foreground">
                       {t("communityComposer.imagesSelected", {
                         count: selectedImages.length,
                       })}
@@ -656,7 +656,7 @@ export function PostComposer({
                     type="button"
                     onClick={clearSelectedImages}
                     disabled={isSubmitting}
-                    className="inline-flex items-center gap-2 rounded-lg bg-white/[0.06] px-3 py-2 text-xs font-semibold text-gray-200 transition-colors hover:bg-white/[0.12] disabled:cursor-not-allowed disabled:opacity-45"
+                    className="inline-flex items-center gap-2 rounded-lg bg-theme-panel/[0.06] px-3 py-2 text-xs font-semibold text-theme-muted transition-colors hover:bg-theme-panel/[0.12] disabled:cursor-not-allowed disabled:opacity-45"
                   >
                     <X className="h-4 w-4" />
                     {t("communityComposer.clearAll")}
@@ -676,7 +676,7 @@ export function PostComposer({
                     {selectedImages.map((image, index) => (
                       <div
                         key={image.id}
-                        className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-black/60"
+                        className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-theme-panel/60"
                       >
                         <img
                           src={image.previewUrl}
@@ -692,7 +692,7 @@ export function PostComposer({
                           type="button"
                           onClick={() => handleRemoveSelectedImage(index)}
                           disabled={isSubmitting}
-                          className="absolute right-1 top-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-black/70 text-white hover:bg-black/85 disabled:cursor-not-allowed disabled:opacity-45"
+                          className="absolute right-1 top-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-theme-panel/70 text-theme-foreground hover:bg-theme-panel/85 disabled:cursor-not-allowed disabled:opacity-45"
                           aria-label={t("communityComposer.removeImageAria", {
                             index: index + 1,
                           })}
@@ -707,18 +707,18 @@ export function PostComposer({
             )}
 
             {selectedGameSummary && (
-              <div className="mt-2 overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.025]">
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] px-4 py-3">
+              <div className="mt-2 overflow-hidden rounded-2xl border border-theme-glass bg-theme-panel/[0.025]">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-theme-glass px-4 py-3">
                   <div className="min-w-0">
                     <div className="text-[10px] font-semibold uppercase tracking-[0.24em] text-brand-200/70">
                       {t("communityComposer.shareGame")}
                     </div>
-                    <div className="mt-1 truncate text-sm font-semibold text-white">
+                    <div className="mt-1 truncate text-sm font-semibold text-theme-foreground">
                       {t("communityComposer.vsOpponent", {
                         opponent: selectedGameSummary.opponent,
                       })}
                     </div>
-                    <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-400">
+                    <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-theme-muted">
                       <span
                         className={`inline-flex items-center rounded-full px-2.5 py-1 font-semibold ${perspectiveTone(
                           selectedGameSummary.perspectiveResult,
@@ -741,7 +741,7 @@ export function PostComposer({
                       type="button"
                       disabled={isLoadingSelectedGame || isSubmitting}
                       onClick={() => setIsGamePickerOpen((value) => !value)}
-                      className="inline-flex items-center gap-2 rounded-lg bg-white/[0.06] px-3 py-2 text-xs font-semibold text-gray-200 hover:bg-white/[0.12] disabled:opacity-50"
+                      className="inline-flex items-center gap-2 rounded-lg bg-theme-panel/[0.06] px-3 py-2 text-xs font-semibold text-theme-muted hover:bg-theme-panel/[0.12] disabled:opacity-50"
                     >
                       <Gamepad2 className="h-4 w-4" />
                       {t("communityComposer.change")}
@@ -750,7 +750,7 @@ export function PostComposer({
                       type="button"
                       disabled={isLoadingSelectedGame || isSubmitting}
                       onClick={clearSelectedGame}
-                      className="inline-flex items-center gap-2 rounded-lg bg-white/[0.06] px-3 py-2 text-xs font-semibold text-gray-200 hover:bg-white/[0.12] disabled:opacity-50"
+                      className="inline-flex items-center gap-2 rounded-lg bg-theme-panel/[0.06] px-3 py-2 text-xs font-semibold text-theme-muted hover:bg-theme-panel/[0.12] disabled:opacity-50"
                     >
                       <X className="h-4 w-4" />
                       {t("communityComposer.remove")}
@@ -760,8 +760,8 @@ export function PostComposer({
 
                 <div className="px-4 pb-4">
                   {isLoadingSelectedGame || !selectedGame ? (
-                    <div className="mt-3 rounded-[20px] border border-white/8 bg-white/[0.03] p-4">
-                      <div className="h-[320px] animate-pulse rounded-[18px] bg-white/[0.06]" />
+                    <div className="mt-3 rounded-[20px] border border-theme-glass bg-theme-panel/[0.03] p-4">
+                      <div className="h-[320px] animate-pulse rounded-[18px] bg-theme-panel/[0.06]" />
                     </div>
                   ) : (
                     <CommunityGameViewer game={selectedGame} />
@@ -771,13 +771,13 @@ export function PostComposer({
             )}
 
             {isGamePickerOpen && (
-              <div className="mt-3 overflow-hidden rounded-2xl border border-white/[0.08] bg-[#0b1424]/96 shadow-[0_20px_50px_rgba(0,0,0,0.28)]">
-                <div className="flex items-center justify-between gap-3 border-b border-white/[0.06] px-4 py-3">
+              <div className="mt-3 overflow-hidden rounded-2xl border border-theme-glass bg-theme-panel shadow-[0_20px_50px_rgba(0,0,0,0.28)]">
+                <div className="flex items-center justify-between gap-3 border-b border-theme-glass px-4 py-3">
                   <div>
-                    <div className="text-sm font-semibold text-white">
+                    <div className="text-sm font-semibold text-theme-foreground">
                       {t("communityComposer.chooseGame")}
                     </div>
-                    <div className="mt-1 text-xs text-gray-500">
+                    <div className="mt-1 text-xs text-theme-muted">
                       {t("communityComposer.chooseGameDescription")}
                     </div>
                   </div>
@@ -785,22 +785,22 @@ export function PostComposer({
                     type="button"
                     onClick={() => setIsGamePickerOpen(false)}
                     disabled={isSubmitting}
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white/[0.06] text-gray-300 hover:bg-white/[0.12] disabled:cursor-not-allowed disabled:opacity-45"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-theme-panel/[0.06] text-theme-muted hover:bg-theme-panel/[0.12] disabled:cursor-not-allowed disabled:opacity-45"
                     aria-label={t("communityComposer.closeGamePicker")}
                   >
                     <X className="h-4 w-4" />
                   </button>
                 </div>
 
-                <div className="border-b border-white/[0.06] px-4 py-3">
+                <div className="border-b border-theme-glass px-4 py-3">
                   <div className="relative">
-                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-theme-muted" />
                     <input
                       value={gameSearch}
                       disabled={isSubmitting}
                       onChange={(e) => setGameSearch(e.target.value)}
                       placeholder={t("communityComposer.gameSearchPlaceholder")}
-                      className="w-full rounded-xl bg-white/[0.05] py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 disabled:cursor-not-allowed disabled:opacity-45"
+                      className="w-full rounded-xl bg-theme-panel/[0.05] py-2.5 pl-10 pr-4 text-sm text-theme-foreground placeholder:text-theme-disabled focus:outline-none focus:ring-2 focus:ring-brand-500/30 disabled:cursor-not-allowed disabled:opacity-45"
                     />
                   </div>
                 </div>
@@ -811,7 +811,7 @@ export function PostComposer({
                       {Array.from({ length: 4 }, (_, index) => (
                         <div
                           key={`game-skeleton-${index}`}
-                          className="h-24 animate-pulse rounded-2xl bg-white/[0.05]"
+                          className="h-24 animate-pulse rounded-2xl bg-theme-panel/[0.05]"
                         />
                       ))}
                     </div>
@@ -820,11 +820,11 @@ export function PostComposer({
                       {gamesError}
                     </div>
                   ) : availableGames.length === 0 ? (
-                    <div className="rounded-2xl bg-white/[0.04] px-4 py-8 text-center">
-                      <div className="text-sm font-medium text-white">
+                    <div className="rounded-2xl bg-theme-panel/[0.04] px-4 py-8 text-center">
+                      <div className="text-sm font-medium text-theme-foreground">
                         {t("communityComposer.noGamesFound")}
                       </div>
-                      <div className="mt-2 text-xs leading-6 text-gray-500">
+                      <div className="mt-2 text-xs leading-6 text-theme-muted">
                         {t("communityComposer.noGamesFoundDescription")}
                       </div>
                     </div>
@@ -846,13 +846,13 @@ export function PostComposer({
                             className={`w-full rounded-2xl border px-4 py-3 text-left transition-all ${
                               isSelected
                                 ? "border-brand-400/35 bg-brand-500/10"
-                                : "border-white/[0.06] bg-white/[0.03] hover:border-white/[0.12] hover:bg-white/[0.05]"
+                                : "border-theme-glass bg-theme-panel/[0.03] hover:border-theme-border hover:bg-theme-panel/[0.05]"
                             } disabled:opacity-60`}
                           >
                             <div className="flex flex-wrap items-start justify-between gap-3">
                               <div className="min-w-0">
                                 <div className="flex flex-wrap items-center gap-2">
-                                  <span className="truncate text-sm font-semibold text-white">
+                                  <span className="truncate text-sm font-semibold text-theme-foreground">
                                     {t("communityComposer.vsOpponent", {
                                       opponent: gameOption.opponent,
                                     })}
@@ -867,7 +867,7 @@ export function PostComposer({
                                     )}
                                   </span>
                                 </div>
-                                <div className="mt-1 text-xs text-gray-400">
+                                <div className="mt-1 text-xs text-theme-muted">
                                   {t("communityComposer.vsLabel", {
                                     white: gameOption.white,
                                     black: gameOption.black,
@@ -875,7 +875,7 @@ export function PostComposer({
                                 </div>
                               </div>
 
-                              <div className="shrink-0 text-right text-xs text-gray-500">
+                              <div className="shrink-0 text-right text-xs text-theme-muted">
                                 <div>{formatGamePlayedAt(gameOption.playedAt)}</div>
                                 <div className="mt-1">
                                   {t("communityComposer.movesCount", {
@@ -885,11 +885,11 @@ export function PostComposer({
                               </div>
                             </div>
 
-                            <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-gray-400">
-                              <span className="rounded-full bg-white/[0.05] px-2.5 py-1">
+                            <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-theme-muted">
+                              <span className="rounded-full bg-theme-panel/[0.05] px-2.5 py-1">
                                 {formatCommunityTimeControl(gameOption.timeControl)}
                               </span>
-                              <span className="rounded-full bg-white/[0.05] px-2.5 py-1">
+                              <span className="rounded-full bg-theme-panel/[0.05] px-2.5 py-1">
                                 {gameOption.variant === "chess960"
                                   ? t("Chess960")
                                   : gameOption.variant === "kingOfHill"
@@ -899,7 +899,7 @@ export function PostComposer({
                                     : t("Standard")}
                               </span>
                               {optionOpening && (
-                                <span className="rounded-full bg-white/[0.05] px-2.5 py-1">
+                                <span className="rounded-full bg-theme-panel/[0.05] px-2.5 py-1">
                                   {optionOpening}
                                 </span>
                               )}
@@ -948,7 +948,7 @@ export function PostComposer({
               onChange={(e) => handlePickVideo(e.target.files?.[0])}
             />
 
-            <div className="mt-4 flex items-center justify-between border-t border-white/5 pt-3">
+            <div className="mt-4 flex items-center justify-between border-t border-theme-glass pt-3">
               <div className="flex flex-wrap items-center gap-2">
                 {(availableGroups.length > 0 || selectedGroupId) && (
                   lockGroupSelection ? (
@@ -961,23 +961,23 @@ export function PostComposer({
                       </span>
                     </div>
                   ) : (
-                    <label className="inline-flex items-center gap-2 rounded-lg bg-white/[0.04] px-3 py-2 text-sm text-gray-300 transition-colors hover:bg-white/[0.08]">
-                      <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-gray-500">
+                    <label className="inline-flex items-center gap-2 rounded-lg bg-theme-panel/[0.04] px-3 py-2 text-sm text-theme-muted transition-colors hover:bg-theme-panel/[0.08]">
+                      <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-theme-muted">
                         {t("communityComposer.group")}
                       </span>
                       <select
                         value={selectedGroupId}
                         onChange={(e) => setSelectedGroupId(e.target.value)}
-                        className="min-w-[150px] bg-transparent text-sm text-gray-200 focus:outline-none"
+                        className="min-w-[150px] bg-transparent text-sm text-theme-muted focus:outline-none"
                       >
-                        <option value="" className="bg-[#0d192c] text-white">
+                        <option value="" className="bg-theme-panel text-theme-foreground">
                           {t("communityComposer.generalCommunity")}
                         </option>
                         {availableGroups.map((group) => (
                           <option
                             key={group.id}
                             value={group.id}
-                            className="bg-[#0d192c] text-white"
+                            className="bg-theme-panel text-theme-foreground"
                           >
                             {group.name}
                           </option>
@@ -990,7 +990,7 @@ export function PostComposer({
                   type="button"
                   disabled={mediaControlsDisabled}
                   onClick={() => openFilePicker("image")}
-                  className="inline-flex items-center gap-2 rounded-lg bg-white/[0.04] px-3.5 py-2 text-sm text-gray-300 transition-colors hover:bg-white/[0.08] hover:text-brand-200 disabled:cursor-not-allowed disabled:opacity-45"
+                  className="inline-flex items-center gap-2 rounded-lg bg-theme-panel/[0.04] px-3.5 py-2 text-sm text-theme-muted transition-colors hover:bg-theme-panel/[0.08] hover:text-brand-200 disabled:cursor-not-allowed disabled:opacity-45"
                 >
                   <ImageIcon className="w-4 h-4" />
                   {t("communityComposer.image")}
@@ -999,7 +999,7 @@ export function PostComposer({
                   type="button"
                   disabled={mediaControlsDisabled}
                   onClick={() => openFilePicker("video")}
-                  className="inline-flex items-center gap-2 rounded-lg bg-white/[0.04] px-3.5 py-2 text-sm text-gray-300 transition-colors hover:bg-white/[0.08] hover:text-brand-200 disabled:cursor-not-allowed disabled:opacity-45"
+                  className="inline-flex items-center gap-2 rounded-lg bg-theme-panel/[0.04] px-3.5 py-2 text-sm text-theme-muted transition-colors hover:bg-theme-panel/[0.08] hover:text-brand-200 disabled:cursor-not-allowed disabled:opacity-45"
                 >
                   <Video className="w-4 h-4" />
                   {t("communityComposer.video")}
@@ -1019,7 +1019,7 @@ export function PostComposer({
                   className={`inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-45 ${
                     isGamePickerOpen || selectedGameSummary
                       ? "bg-brand-500/16 text-brand-100 hover:bg-brand-500/22"
-                      : "bg-white/[0.04] text-gray-300 hover:bg-white/[0.08] hover:text-brand-200"
+                      : "bg-theme-panel/[0.04] text-theme-muted hover:bg-theme-panel/[0.08] hover:text-brand-200"
                   }`}
                 >
                   <Gamepad2 className="w-4 h-4" />
@@ -1030,7 +1030,7 @@ export function PostComposer({
               </div>
 
               <div className="flex items-center gap-3">
-                <span className="text-xs tabular-nums text-gray-500">
+                <span className="text-xs tabular-nums text-theme-muted">
                   {content.length}/{MAX_CHARS}
                 </span>
                 <button
@@ -1039,8 +1039,8 @@ export function PostComposer({
                   disabled={!canSubmitNow}
                   className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
                     canSubmitNow
-                      ? "bg-brand-600 text-white shadow-[0_12px_30px_rgba(13,148,136,0.28)] hover:bg-brand-500"
-                      : "cursor-not-allowed bg-white/[0.06] text-gray-500"
+                      ? "bg-brand-600 text-theme-on-accent shadow-[0_12px_30px_rgba(13,148,136,0.28)] hover:bg-brand-500"
+                      : "cursor-not-allowed bg-theme-panel/[0.06] text-theme-muted"
                   }`}
                 >
                   <Send className="w-4 h-4" />

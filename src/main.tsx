@@ -8,6 +8,7 @@ import "./i18n";
 import i18n from "./i18n";
 import { I18nextProvider } from "react-i18next";
 import { applyThemeClass, readStoredTheme } from "./utils/theme";
+import { ThemeProvider } from "./providers/ThemeProvider";
 import { loadOAuthConfig, type OAuthConfig } from "./utils/oauthConfig";
 
 applyThemeClass(readStoredTheme());
@@ -45,14 +46,16 @@ function Root() {
   }, []);
 
   const appContent = (
-    <I18nextProvider i18n={i18n}>
-      <RouterProvider
-        router={router}
-        future={{
-          v7_startTransition: true,
-        }}
-      />
-    </I18nextProvider>
+    <ThemeProvider>
+      <I18nextProvider i18n={i18n}>
+        <RouterProvider
+          router={router}
+          future={{
+            v7_startTransition: true,
+          }}
+        />
+      </I18nextProvider>
+    </ThemeProvider>
   );
 
   // Keep provider mounted even if config is unavailable to avoid hook context crashes.
@@ -63,7 +66,7 @@ function Root() {
     <StrictMode>
       <Suspense
         fallback={
-          <div className="min-h-screen flex items-center justify-center bg-theme-primary text-gray-700 dark:text-gray-200">
+          <div className="min-h-screen flex items-center justify-center bg-theme-primary text-theme-muted ">
             <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
           </div>
         }

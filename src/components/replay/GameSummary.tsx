@@ -1,5 +1,5 @@
 import { ArrowLeft } from "lucide-react";
-import { useTranslation, Trans } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import { AdvantageGraph } from "./AdvantageGraph";
 import { AccuracyBadge } from "./AccuracyBadge";
 import { QualityBreakdown } from "./QualityBreakdown";
@@ -60,7 +60,7 @@ export function GameSummary({
             <button
               onClick={onBack}
               className="absolute left-0 top-0 z-10 p-2 rounded-xl bg-white/70 dark:bg-slate-900/70 hover:bg-white dark:hover:bg-slate-800 border border-slate-200 dark:border-white/10 shadow-sm dark:shadow-lg transition-all duration-200"
-              aria-label={t("common.back")}
+              aria-label="Back"
             >
               <ArrowLeft className="w-4 h-4 text-slate-700 dark:text-slate-200" />
             </button>
@@ -69,7 +69,7 @@ export function GameSummary({
           <div className="min-w-0 flex flex-col items-center text-center px-1 sm:px-6">
             <h2 className="text-lg sm:text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-50 leading-tight break-words">
               <span>{game.white}</span>
-              <span className="mx-2"><Trans>vs</Trans></span>
+              <span className="mx-2">vs</span>
               <span>{game.black}</span>
             </h2>
 

@@ -18,12 +18,12 @@ interface LearnCourseCardProps {
 
 function difficultyClass(value: string) {
   if (value === "Beginner") {
-    return "bg-brand-500/15 text-brand-200 border-brand-400/30";
+    return "bg-emerald-500/12 text-emerald-700 border-emerald-400/30";
   }
   if (value === "Advanced") {
-    return "bg-rose-500/15 text-rose-200 border-rose-400/30";
+    return "bg-rose-500/12 text-rose-700 border-rose-400/30";
   }
-  return "bg-amber-500/15 text-amber-200 border-amber-400/30";
+  return "bg-amber-500/12 text-amber-700 border-amber-400/30";
 }
 
 export function LearnCourseCard({
@@ -65,9 +65,9 @@ export function LearnCourseCard({
           : badgeText;
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-gray-800 bg-gray-900/70 shadow-[0_20px_40px_-32px_rgba(15,23,42,0.95)]">
+    <article className="overflow-hidden rounded-2xl border border-theme-border bg-theme-panel/70 shadow-[0_20px_40px_-32px_rgba(15,23,42,0.95)]">
       <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)]">
-        <div className="relative min-h-[290px] overflow-hidden border-b border-gray-800 xl:min-h-[400px] xl:border-b-0 xl:border-r xl:border-gray-800">
+        <div className="relative min-h-[290px] overflow-hidden border-b border-theme-border xl:min-h-[400px] xl:border-b-0 xl:border-r xl:border-theme-border">
           {course.coverImage ? (
             <img
               src={course.coverImage}
@@ -82,20 +82,20 @@ export function LearnCourseCard({
 
           <div className="relative z-10 flex h-full flex-col justify-between p-5 sm:p-6">
             <div className="flex items-start justify-between gap-3">
-              <span className="inline-flex h-8 items-center rounded-full border border-brand-400/35 bg-brand-500/12 px-3 text-[10px] font-semibold uppercase tracking-[0.1em] text-brand-100">
+              <span className="inline-flex h-8 items-center rounded-full border border-white/35 bg-white/12 px-3 text-[10px] font-semibold uppercase tracking-[0.1em] text-white">
                 {localizedBadgeText}
               </span>
             </div>
 
             <div className="max-w-[28rem] space-y-3">
-              <h3 className="font-sans text-3xl leading-[1.08] font-semibold tracking-tight text-slate-50 sm:text-4xl">
+              <h3 className="font-sans text-3xl leading-[1.08] font-semibold tracking-tight text-white sm:text-4xl">
                 {course.title}
               </h3>
-              <p className="line-clamp-2 text-sm leading-relaxed text-gray-300/85">
+              <p className="line-clamp-2 text-sm leading-relaxed text-white/85">
                 {secondaryText}
               </p>
-              <div className="inline-flex items-center gap-2 text-gray-300/85">
-                <UserRound className="h-4 w-4 text-gray-400" />
+              <div className="inline-flex items-center gap-2 text-white/85">
+                <UserRound className="h-4 w-4 text-white/75" />
                 <span className="text-sm">
                   {course.instructorName ||
                     t("learn.instructorFallback", "NeonGambit Instructor")}
@@ -105,15 +105,15 @@ export function LearnCourseCard({
           </div>
         </div>
 
-        <div className="flex flex-col gap-6 bg-gray-900/65 p-5 sm:p-6">
+        <div className="flex flex-col gap-6 bg-theme-panel/65 p-5 sm:p-6">
           <div className="flex items-center">
-            <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-gray-400/90">
+            <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-theme-muted/90">
               {t("learn.courseProgress", "Course Progress")}
             </p>
           </div>
 
-          <div className="rounded-2xl border border-gray-800 bg-gray-950/70 p-4">
-            <div className="mb-2.5 flex items-center justify-between text-xs text-gray-400">
+          <div className="rounded-2xl border border-theme-border bg-theme-panel/70 p-4">
+            <div className="mb-2.5 flex items-center justify-between text-xs text-theme-muted">
               <span>
                 {t("learn.lessonProgress", {
                   defaultValue: "{{completed}}/{{total}} lessons",
@@ -123,7 +123,7 @@ export function LearnCourseCard({
               </span>
               <span>{progressPercent}%</span>
             </div>
-            <div className="h-2 overflow-hidden rounded-full bg-gray-800">
+            <div className="h-2 overflow-hidden rounded-full bg-theme-surface">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-brand-300 to-cyan-300 transition-all duration-500"
                 style={{ width: `${progressPercent}%` }}
@@ -133,7 +133,7 @@ export function LearnCourseCard({
 
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-gray-400/90">
+              <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-theme-muted/90">
                 {t("learn.quickLessons", "Quick Lessons")}
               </p>
               <span
@@ -148,15 +148,15 @@ export function LearnCourseCard({
                 <button
                   key={lesson.id}
                   onClick={() => onOpenLesson(course.slug, lesson.slug)}
-                  className="group flex h-11 w-full items-center gap-3 rounded-xl border border-gray-800 bg-gray-950/70 px-3 text-left transition-colors hover:border-brand-300/35 hover:bg-gray-950/90"
+                  className="group flex h-11 w-full items-center gap-3 rounded-xl border border-theme-border bg-theme-panel/70 px-3 text-left transition-colors hover:border-brand-300/35 hover:bg-theme-panel/90"
                 >
-                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-800 bg-gray-900/85 text-gray-300 group-hover:text-brand-200">
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-theme-border bg-theme-panel/85 text-theme-muted group-hover:text-brand-700">
                     <Play className="h-4 w-4" />
                   </span>
-                  <span className="min-w-0 flex-1 truncate text-sm text-slate-100">
+                  <span className="min-w-0 flex-1 truncate text-sm text-theme-foreground">
                     {lesson.title}
                   </span>
-                  <ChevronRight className="h-4 w-4 text-gray-500 group-hover:text-gray-300" />
+                  <ChevronRight className="h-4 w-4 text-theme-muted group-hover:text-theme-muted" />
                 </button>
               ))}
             </div>
@@ -164,7 +164,7 @@ export function LearnCourseCard({
 
           <div className="mt-auto space-y-3 pt-1">
             {course.lessons.length > visibleLessons.length ? (
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-theme-muted">
                 {t(
                   course.lessons.length - visibleLessons.length === 1
                     ? "learn.moreLessons_one"
@@ -181,7 +181,7 @@ export function LearnCourseCard({
           <button
             onClick={() => actionSlug && onContinue(course.slug, actionSlug)}
             disabled={!actionSlug}
-            className="group inline-flex h-11 w-full items-center justify-center rounded-xl border border-cyan-300/35 bg-gradient-to-r from-brand-300 via-cyan-300 to-brand-300 px-5 text-sm font-semibold text-slate-950 transition-all hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:brightness-100"
+            className="group inline-flex h-11 w-full items-center justify-center rounded-xl border border-cyan-300/35 bg-gradient-to-r from-brand-300 via-cyan-300 to-brand-300 px-5 text-sm font-semibold text-theme-foreground transition-all hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:brightness-100"
           >
             <span className="inline-flex items-center gap-2">
               {isCompleted ? (

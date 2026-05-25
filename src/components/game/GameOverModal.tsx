@@ -199,29 +199,29 @@ function toneClasses(tone: ModalTone): {
 } {
   if (tone === "win") {
     return {
-      border: "border-slate-800/90",
+      border: "border-theme-glass/90",
       glow: "from-brand-500/15",
-      title: "text-brand-700 dark:text-brand-100",
+      title: "text-brand-700",
     };
   }
   if (tone === "loss") {
     return {
-      border: "border-slate-800/90",
-      glow: "from-slate-500/10",
-      title: "text-rose-700 dark:text-rose-100",
+      border: "border-theme-glass/90",
+      glow: "from-theme-surface/20",
+      title: "text-theme-foreground",
     };
   }
   if (tone === "draw") {
     return {
-      border: "border-slate-800/90",
+      border: "border-theme-glass/90",
       glow: "from-brand-500/12",
-      title: "text-brand-700 dark:text-brand-100",
+      title: "text-brand-700",
     };
   }
   return {
-    border: "border-slate-800/90",
+    border: "border-theme-glass/90",
     glow: "from-violet-500/12",
-    title: "text-violet-700 dark:text-violet-100",
+    title: "text-violet-700",
   };
 }
 
@@ -299,7 +299,7 @@ export function GameOverModal({
   };
 
   const modal = (
-    <div className="fixed inset-0 z-[170] bg-black/65 backdrop-blur-[2px] flex items-center justify-center p-4 pointer-events-none">
+    <div className="fixed inset-0 z-[170] bg-theme-panel/65 backdrop-blur-[2px] flex items-center justify-center p-4 pointer-events-none">
       <motion.div
         initial={{ opacity: 0, scale: 0.97, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -318,7 +318,7 @@ export function GameOverModal({
             </h2>
 
             {showResultSubtitle && (
-              <p className="text-sm text-slate-700 dark:text-slate-300/95">
+              <p className="text-sm text-theme-foreground">
                 {parsed.subtitle}
               </p>
             )}
@@ -326,7 +326,7 @@ export function GameOverModal({
 
           {showEloBlock && (
             <div className="mb-4 rounded-xl border border-brand-500/25 bg-brand-500/10 px-3 py-2.5">
-              <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+              <p className="text-sm font-semibold text-theme-foreground">
                 {t("quickMatch.gameOver.eloChange", {
                   old: playerElo?.oldRating,
                   new: playerElo?.newRating,
@@ -343,7 +343,7 @@ export function GameOverModal({
                 type="button"
                 onClick={handleAnalyze}
                 disabled={!canAnalyze}
-                className="w-full h-12 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-medium transition-all duration-150 flex items-center justify-center gap-2 shadow-[0_12px_28px_rgba(124,58,237,0.35)] disabled:opacity-75 disabled:cursor-wait"
+                className="w-full h-12 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-theme-on-accent font-medium transition-all duration-150 flex items-center justify-center gap-2 shadow-[0_12px_28px_rgba(124,58,237,0.35)] disabled:opacity-75 disabled:cursor-wait"
               >
                 <BarChart3 size={18} />
                 {canAnalyze
@@ -356,7 +356,7 @@ export function GameOverModal({
               <button
                 type="button"
                 onClick={() => onBackToTournament?.()}
-                className="w-full h-11 rounded-xl border border-theme-glass bg-white/70 text-slate-800 font-medium transition-colors hover:bg-white/85 disabled:cursor-not-allowed disabled:opacity-60 disabled:text-slate-500 dark:border-white/10 dark:bg-white/10 dark:text-slate-100 dark:hover:bg-white/15 dark:disabled:text-slate-400"
+                className="w-full h-11 rounded-xl border border-theme-glass bg-theme-panel/70 text-theme-foreground font-medium transition-colors hover:bg-theme-panel/85 disabled:cursor-not-allowed disabled:opacity-60 disabled:text-theme-muted"
               >
                 {t("quickMatch.actions.backToTournament", "Back to Tournament")}
               </button>
@@ -365,7 +365,7 @@ export function GameOverModal({
                 <button
                   type="button"
                   onClick={onTryAgain}
-                  className="w-full h-11 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-medium transition-colors flex items-center justify-center gap-2"
+                  className="w-full h-11 rounded-xl bg-brand-600 hover:bg-brand-500 text-theme-on-accent font-medium transition-colors flex items-center justify-center gap-2"
                 >
                   <RotateCcw size={16} />
                   {t("quickMatch.actions.tryAgain", "Try Again")}
@@ -373,7 +373,7 @@ export function GameOverModal({
                 <button
                   type="button"
                   onClick={onNewGame}
-                  className="w-full h-11 rounded-xl border border-theme-glass bg-white/70 text-slate-800 font-medium transition-colors hover:bg-white/85 disabled:cursor-not-allowed disabled:opacity-60 disabled:text-slate-500 dark:border-white/10 dark:bg-white/10 dark:text-slate-100 dark:hover:bg-white/15 dark:disabled:text-slate-400 flex items-center justify-center gap-2"
+                  className="w-full h-11 rounded-xl border border-theme-glass bg-theme-panel/70 text-theme-foreground font-medium transition-colors hover:bg-theme-panel/85 disabled:cursor-not-allowed disabled:opacity-60 disabled:text-theme-muted flex items-center justify-center gap-2"
                 >
                   <Swords size={16} />
                   {t("quickMatch.actions.newGame", "New Game")}
@@ -382,7 +382,7 @@ export function GameOverModal({
             )}
           </div>
           {!canAnalyze && historyNote && (
-            <p className="mt-3 text-center text-xs text-slate-500 dark:text-slate-400">
+            <p className="mt-3 text-center text-xs text-theme-muted">
               {historyNote}
             </p>
           )}

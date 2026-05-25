@@ -22,7 +22,7 @@ export function ThemeWindow({
       title={t("settings.appearance.theme", "Theme")}
       maxWidth="max-w-2xl"
     >
-      <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
+      <p className="mb-4 text-sm text-theme-muted">
         {t("settings.appearance.themeHelper", "Choose your preferred color scheme")}
       </p>
       <ThemeOptionsGrid onThemeSelect={closeOnSelect ? onClose : undefined} />

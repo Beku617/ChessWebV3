@@ -18,7 +18,7 @@ export function CustomDifficultySelector({
       exit={{ opacity: 0, x: -20 }}
     >
       <div className="mb-6">
-        <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block"> <Trans>Difficulty: Level</Trans> {difficulty}
+        <label className="text-sm font-medium text-theme-muted mb-2 block"> <Trans>Difficulty: Level</Trans> {difficulty}
         </label>
         <input
           type="range"
@@ -28,7 +28,7 @@ export function CustomDifficultySelector({
           onChange={(e) => setDifficulty(Number(e.target.value))}
           className="w-full accent-brand-600"
         />
-        <div className="flex justify-between text-xs text-gray-500 mt-1">
+        <div className="flex justify-between text-xs text-theme-muted mt-1">
           <span><Trans>Easy</Trans></span>
           <span><Trans>Hard</Trans></span>
         </div>

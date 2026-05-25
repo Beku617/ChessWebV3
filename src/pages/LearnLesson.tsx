@@ -483,13 +483,13 @@ export default function LearnLesson() {
   if (error || !lessonData || !currentStep || !courseProgress) {
     return (
       <div className="max-w-2xl mx-auto py-14 text-center">
-        <div className="w-14 h-14 mx-auto rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center">
-          <BookOpen className="w-7 h-7 text-slate-400" />
+        <div className="w-14 h-14 mx-auto rounded-2xl bg-theme-panel border border-theme-glass flex items-center justify-center">
+          <BookOpen className="w-7 h-7 text-theme-muted" />
         </div>
-        <h1 className="mt-4 text-2xl font-semibold text-slate-100">
+        <h1 className="mt-4 text-2xl font-semibold text-theme-foreground">
           {t("learn.lessonNotFound", "Lesson Not Found")}
         </h1>
-        <p className="mt-2 text-slate-400">
+        <p className="mt-2 text-theme-muted">
           {error ||
             t(
               "learn.lessonNotFoundDescription",
@@ -516,9 +516,9 @@ export default function LearnLesson() {
   return (
     <div className="h-full min-h-0 px-4 sm:px-5 lg:px-6 xl:px-8 py-4 lg:py-5 overflow-y-auto xl:overflow-hidden">
       <div className="h-full min-h-0 grid grid-cols-1 xl:grid-cols-[minmax(0,780px)_minmax(420px,1fr)] gap-3 lg:gap-4 items-start xl:items-stretch">
-        <section className="min-h-[420px] xl:min-h-0 rounded-2xl border border-slate-800/90 bg-slate-950/85 p-2.5 sm:p-3 flex items-center justify-center xl:justify-start">
+        <section className="min-h-[420px] xl:min-h-0 rounded-2xl border border-theme-glass/90 bg-theme-panel/85 p-2.5 sm:p-3 flex items-center justify-center xl:justify-start">
           <div ref={boardViewportRef} className="w-full h-full min-h-[380px] xl:min-h-0 flex items-center justify-center xl:justify-start">
-            <div className="rounded-xl overflow-hidden shadow-[0_16px_40px_rgba(2,6,23,0.7)] border border-slate-800">
+            <div className="rounded-xl overflow-hidden shadow-[0_16px_40px_rgba(2,6,23,0.7)] border border-theme-glass">
               <Chessboard
                 id={`learn-lesson-board-${lessonBoardId}`}
                 position={boardFen}
@@ -563,10 +563,10 @@ export default function LearnLesson() {
             showNavigationFooter={false}
           />
 
-          <section className="min-w-0 min-h-0 xl:flex-1 rounded-2xl border border-slate-800/90 bg-slate-950/85 flex flex-col overflow-hidden">
+          <section className="min-w-0 min-h-0 xl:flex-1 rounded-2xl border border-theme-glass/90 bg-theme-panel/85 flex flex-col overflow-hidden">
             <div className="px-3.5 py-3 min-h-0 flex-1 overflow-y-auto flex flex-col gap-3">
               <div className="w-full max-h-full overflow-y-auto">
-                <p className="mx-auto max-w-2xl text-center text-base text-slate-200 leading-snug break-words">
+                <p className="mx-auto max-w-2xl text-center text-base text-theme-foreground leading-snug break-words">
                   {currentStep.instructionText}
                 </p>
               </div>
@@ -591,12 +591,12 @@ export default function LearnLesson() {
               )}
             </div>
 
-            <div className="px-3.5 py-2.5 border-t border-slate-800 space-y-2">
+            <div className="px-3.5 py-2.5 border-t border-theme-glass space-y-2">
               <div className="flex flex-wrap gap-2">
                 {!lessonCompleted && currentStep.hintText && (
                   <button
                     onClick={() => setShowHint((prev) => !prev)}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 text-xs hover:border-slate-600"
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-theme-panel border border-theme-glass text-theme-muted text-xs hover:border-theme-border"
                   >
                     <Lightbulb className="w-3.5 h-3.5" />
                     {showHint
@@ -608,11 +608,11 @@ export default function LearnLesson() {
             </div>
           </section>
 
-          <div className="mt-auto rounded-2xl border border-slate-800/90 bg-slate-950/85 p-2.5 grid grid-cols-2 gap-2">
+          <div className="mt-auto rounded-2xl border border-theme-glass/90 bg-theme-panel/85 p-2.5 grid grid-cols-2 gap-2">
             <button
               onClick={openPrevLesson}
               disabled={!hasPrevLesson}
-              className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs bg-slate-900 border border-slate-700 text-slate-300 hover:border-slate-600 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs bg-theme-panel border border-theme-glass text-theme-muted hover:border-theme-border disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <ChevronLeft className="w-3.5 h-3.5" />
               {t("learn.previous", "Previous")}
@@ -628,7 +628,7 @@ export default function LearnLesson() {
 	            ) : (
 	              <button
 	                onClick={retryLesson}
-	                className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs bg-slate-900 border border-slate-700 text-slate-300 hover:border-slate-600"
+	                className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs bg-theme-panel border border-theme-glass text-theme-muted hover:border-theme-border"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 {t("learn.retryLesson", "Retry Lesson")}
