@@ -1,0 +1,42 @@
+{
+  "bundle_name": "chess_cheat_detector_FINAL.zip",
+  "backend_feature_set": "fics_checkpoint_17_features",
+  "inference_extractor": "heuristic_centipawn_proxy_without_stockfish",
+  "training_artifacts": {
+    "primary_checkpoint_csv": "fics_features_checkpoint.csv",
+    "secondary_nn_csv": "chess_games_features.csv"
+  },
+  "models": {
+    "xgboost": {
+      "artifact": "xgboost_cheat_detector.onnx",
+      "feature_count": 17,
+      "status": "compatible",
+      "checkpoint_evaluation": {
+        "rows": 600,
+        "accuracy": 0.9583,
+        "precision": 0.9599,
+        "recall": 0.9567,
+        "f1": 0.9583,
+        "auc": 0.9781
+      }
+    },
+    "neural_network": {
+      "artifacts": [
+        "nn_cheat_detector.onnx",
+        "neural_network_cheat_detector.onnx"
+      ],
+      "status": "runtime-validated",
+      "note": "Enabled only if the artifact expects the same 17-feature contract as the backend extractor.",
+      "observed_bundle_issues": [
+        "nn_cheat_detector.onnx expects 17 inputs but the bundled scaler has only 9 values.",
+        "neural_network_cheat_detector.onnx is missing its external .onnx.data sidecar file."
+      ]
+    }
+  },
+  "notes": [
+    "The downloaded bundle contains mixed artifacts from at least two feature pipelines.",
+    "This backend prioritizes the XGBoost FICS checkpoint because its feature names match the available 17-feature extractor.",
+    "The XGBoost checkpoint metrics above are based on the included bundle data, not a separately verified holdout set.",
+    "Live API accuracy may be lower because the deployed extractor is heuristic rather than engine-backed."
+  ]
+}
