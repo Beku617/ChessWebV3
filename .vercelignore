@@ -7,3 +7,7 @@ docx-render-check
 docx-render-check-short
 .idea
 *.log
+.env*
+!.env.example
+client_secret_*.json
+.codex-dev.log
