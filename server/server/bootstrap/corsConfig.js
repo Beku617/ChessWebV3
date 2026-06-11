@@ -1,6 +1,10 @@
 const allowedOrigins = [
-  "http://localhost:5173",
-  "https://neongambit-chesswebv3.vercel.app",
+  ...new Set(
+    String(process.env.CLIENT_ORIGINS || process.env.CORS_ORIGINS || "")
+      .split(",")
+      .map((origin) => String(origin || "").trim())
+      .filter(Boolean),
+  ),
 ];
 
 function isAllowedOrigin(origin) {

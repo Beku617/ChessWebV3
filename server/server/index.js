@@ -113,27 +113,26 @@ import { areUsersBlocked } from "./utils/visibility.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const DEFAULT_ALLOWED_ORIGINS = [
-  "http://localhost:5173",
-  "http://localhost:3000",
-  "https://neongambit-chesswebv3.vercel.app",
+const allowedOrigins = [
+  ...new Set(
+    String(process.env.CLIENT_ORIGINS || process.env.CORS_ORIGINS || "")
+      .split(",")
+      .map((origin) => String(origin || "").trim())
+      .filter(Boolean),
+  ),
 ];
-const allowedOrigins = process.env.CORS_ORIGINS
-  ? [
-      ...new Set(
-        process.env.CORS_ORIGINS.split(",")
-          .map((origin) => String(origin || "").trim())
-          .filter(Boolean)
-          .concat(["http://localhost:5173", "http://localhost:3000"]),
-      ),
-    ]
-  : DEFAULT_ALLOWED_ORIGINS;
 const PORT = Number.parseInt(process.env.PORT || "3001", 10);
 const BODY_LIMIT = process.env.BODY_LIMIT || "10mb";
 const COOKIE_SECRET =
   process.env.COOKIE_SECRET ||
   process.env.COOKIES_SECRET ||
   "change-me-in-production-cookie-secret";
+
+if (allowedOrigins.length === 0) {
+  console.warn(
+    "CLIENT_ORIGINS is not set. Browser requests with an Origin header will be rejected by CORS.",
+  );
+}
 
 function isAllowedOrigin(origin) {
   return !origin || allowedOrigins.includes(origin);
