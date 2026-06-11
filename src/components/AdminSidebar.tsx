@@ -72,7 +72,7 @@ export default function AdminSidebar() {
     ) {
       return avatar;
     }
-    const base = import.meta.env.VITE_API_URL || "http://localhost:3001";
+    const base = import.meta.env.VITE_API_URL;
     return `${base}${avatar.startsWith("/") ? "" : "/"}${avatar}`;
   };
 

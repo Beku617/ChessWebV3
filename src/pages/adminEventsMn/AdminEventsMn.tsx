@@ -29,7 +29,7 @@ function getPageNumbers(current: number, total: number): (number | "...")[] {
 }
 import AdminSidebar from "../../components/AdminSidebar";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL;
 
 interface Player {
   name: string;

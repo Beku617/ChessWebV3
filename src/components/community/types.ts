@@ -2,7 +2,7 @@ import type { GameHistory } from "../../historyTypes";
 import { findOpeningByEco } from "../../utils/openingExplorer";
 import i18n from "../../i18n";
 
-export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+export const API_URL = import.meta.env.VITE_API_URL;
 
 export interface CommunityAuthor {
   id: string;

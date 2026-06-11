@@ -5,7 +5,7 @@ import { useAuthStore } from "../store/authStore";
 import { useTranslation } from "react-i18next";
 import { useLanguageAvailabilityStore } from "../store/languageAvailabilityStore";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL;
 const WATCH_LIVE_GAMES_ENDPOINT = `${API_URL}/api/watch/live-games`;
 const EVENTS_ENDPOINT = `${API_URL}/api/events?limit=10`;
 const EVENTS_MN_ENDPOINT = `${API_URL}/api/events-mn?limit=10`;

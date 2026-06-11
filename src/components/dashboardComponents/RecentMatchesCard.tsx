@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import type { GameHistory } from "../../historyTypes";
 import { openAnalyzeWindow } from "../../utils/analyzeNavigation";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL;
 
 interface RecentMatch {
   id: string;

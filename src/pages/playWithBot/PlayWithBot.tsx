@@ -12,7 +12,7 @@ import {
   resolveLocalizedBotText,
 } from "../../utils/botDescriptionLocalization";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL;
 
 const CATEGORY_INFO: {
   key: BotPersonality["category"];

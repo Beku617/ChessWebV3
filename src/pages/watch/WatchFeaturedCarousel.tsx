@@ -11,7 +11,7 @@ import type { FeaturedEvent } from "../../hooks/useWatchPage";
 import i18n from "../../i18n";
 import "./watchFeaturedCarousel.css";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL;
 
 const HERO_VARIANTS = ["slide-0", "slide-1", "slide-2"] as const;
 

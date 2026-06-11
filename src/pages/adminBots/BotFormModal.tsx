@@ -7,7 +7,7 @@ import {
   DEFAULT_BOT_FORM,
 } from "./types";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL;
 
 function resolveAvatarPreviewUrl(input: unknown): string {
   const avatarUrl = String(input || "").trim();

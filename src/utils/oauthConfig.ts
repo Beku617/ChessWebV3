@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL;
 
 export interface OAuthConfig {
   googleClientId: string;
@@ -54,4 +54,3 @@ export async function loadOAuthConfig(forceRefresh = false): Promise<OAuthConfig
 
   return pendingOAuthConfigRequest;
 }
-
