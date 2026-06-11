@@ -171,6 +171,7 @@ const PUBLIC_API_ROUTES = new Set([
   "POST:/auth/facebook",
   "POST:/logout",
   "GET:/me",
+  "GET:/ratings/leaderboard",
   "GET:/oauth/config",
   "GET:/lichess/tv",
   "GET:/lichess/streamers",

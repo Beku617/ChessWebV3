@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import type { Socket } from "socket.io-client";
 import { API_URL } from "../config/network";
+import { useAuthStore } from "./authStore";
 
 const SERVICE_UNAVAILABLE_COOLDOWN_MS = 30_000;
 let friendsServiceUnavailableUntil = 0;
@@ -202,6 +203,17 @@ export const useFriendStore = create<FriendStoreState>((set, get) => ({
         fetch(`${API_URL}/api/friends`, { credentials: "include" }),
         fetch(`${API_URL}/api/friends/requests`, { credentials: "include" }),
       ]);
+      if (friendsRes.status === 401 || requestsRes.status === 401) {
+        useAuthStore.getState().logout();
+        set({
+          friends: [],
+          incoming: [],
+          outgoing: [],
+          loading: false,
+          error: null,
+        });
+        return;
+      }
       if (friendsRes.status === 503 || requestsRes.status === 503) {
         friendsServiceUnavailableUntil =
           Date.now() + SERVICE_UNAVAILABLE_COOLDOWN_MS;

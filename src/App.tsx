@@ -188,7 +188,7 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 function RealtimeBridge() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, isLoading, user } = useAuthStore();
   const initialize = useFriendChallengeStore((state) => state.initialize);
   const disconnect = useFriendChallengeStore((state) => state.disconnect);
   const socket = useFriendChallengeStore((state) => state.socket);
@@ -205,6 +205,10 @@ function RealtimeBridge() {
       return;
     }
 
+    if (isLoading) {
+      return;
+    }
+
     if (isAuthenticated && user) {
       initialize(user);
       void loadFriends();
@@ -217,6 +221,7 @@ function RealtimeBridge() {
     disconnect,
     initialize,
     isAuthenticated,
+    isLoading,
     user,
     loadFriends,
     resetFriends,

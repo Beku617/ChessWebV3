@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { API_URL } from "../config/network";
+import { useAuthStore } from "./authStore";
 
 const SERVICE_UNAVAILABLE_COOLDOWN_MS = 30_000;
 let unreadServiceUnavailableUntil = 0;
@@ -25,6 +26,11 @@ export const useMessageStore = create<MessageStoreState>((set, get) => ({
       const res = await fetch(`${API_URL}/api/messages/unread-count`, {
         credentials: "include",
       });
+      if (res.status === 401) {
+        useAuthStore.getState().logout();
+        set({ unreadCount: 0 });
+        return 0;
+      }
       if (res.status === 503) {
         unreadServiceUnavailableUntil = Date.now() + SERVICE_UNAVAILABLE_COOLDOWN_MS;
         return get().unreadCount;

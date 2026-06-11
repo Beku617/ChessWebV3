@@ -11,3 +11,4 @@ docx-render-check-short
 !.env.example
 client_secret_*.json
 .codex-dev.log
+server

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authMiddleware } from "../middleware/index.js";
+import { authMiddleware, optionalAuthMiddleware } from "../middleware/index.js";
 import { RatingEvent, User } from "../models/index.js";
 import { gamesFieldForPool, ratingFieldForPool } from "../utils/elo.js";
 
@@ -118,7 +118,7 @@ router.get("/timeline", authMiddleware, async (req, res) => {
   }
 });
 
-router.get("/leaderboard", async (req, res) => {
+router.get("/leaderboard", optionalAuthMiddleware, async (req, res) => {
   try {
     const pool = normalizePool(req.query.pool);
     if (!pool) {
