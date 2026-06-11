@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { timeFormats } from "../../data/mockData";
 import type { GameHistory } from "../../historyTypes";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL;
 
 interface GameStats {
   totalGames: number;

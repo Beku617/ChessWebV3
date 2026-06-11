@@ -21,7 +21,7 @@ import {
 import { fetchBlockStatus } from "../../features/blocking/api";
 import i18n from "../../i18n";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL;
 
 function resolveAvatarUrl(avatar?: string) {
   if (!avatar) return "";

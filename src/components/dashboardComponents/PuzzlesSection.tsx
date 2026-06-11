@@ -19,7 +19,7 @@ interface Puzzle {
   featured: boolean;
 }
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL;
 const FEATURED_PUZZLE_COUNT = 3;
 
 interface PuzzlesSectionProps {
@@ -203,4 +203,3 @@ export function PuzzlesSection({ showTopDivider = true }: PuzzlesSectionProps) {
     </div>
   );
 }
-

@@ -49,7 +49,7 @@ import pawnIcon from "../assets/pieces/cburnett/pawn.svg";
 import queenIcon from "../assets/pieces/cburnett/queen.svg";
 import rookIcon from "../assets/pieces/cburnett/rook.svg";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL;
 
 interface Puzzle {
   _id: string;

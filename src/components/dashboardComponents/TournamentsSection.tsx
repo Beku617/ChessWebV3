@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL;
 const DASHBOARD_VISIBLE_TOURNAMENT_COUNT = 2;
 
 type TournamentStatus = "draft" | "registering" | "running" | "finished";

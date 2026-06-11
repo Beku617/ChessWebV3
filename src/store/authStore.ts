@@ -72,7 +72,7 @@ interface AuthState {
   logout: () => void;
 }
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL;
 
 export interface AuthApiError extends Error {
   status?: number;

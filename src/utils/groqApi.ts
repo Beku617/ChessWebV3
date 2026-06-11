@@ -5,7 +5,7 @@ import {
 } from "./analysisAiModels";
 import { MoveQualityInfo } from "./moveQuality";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL;
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 const GROQ_MODEL_ID =
   import.meta.env.VITE_GROQ_MODEL_ID || "llama-3.3-70b-versatile";

@@ -43,7 +43,7 @@ function getLinkedProviders(user: ReturnType<typeof useAuthStore.getState>["user
   return providers;
 }
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_URL = import.meta.env.VITE_API_URL;
 
 const SETTINGS_CARD_ACCENT = {
   profile: "bg-brand-500",
